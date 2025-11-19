@@ -1,14 +1,43 @@
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { getRequiredBalance, getTokenTransferData } from './transaction-pay';
+import {
+  getAvailableTokens,
+  getRequiredBalance,
+  getTokenAddress,
+  getTokenTransferData,
+} from './transaction-pay';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
+import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
+import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
+import { AssetType, TokenStandard } from '../types/token';
+import {
+  TransactionPayRequiredToken,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
+import { strings } from '../../../../../locales/i18n';
 
+const CHAIN_ID_MOCK = '0x1';
 const TO_MOCK = '0x0987654321098765432109876543210987654321';
+
 const TOKEN_TRANSFER_DATA_MOCK =
   '0xa9059cbb0000000000000000000000007e5f4552091a69125d5dfcb7b8c2659029395bdf000000000000000000000000000000000000000000000000000000000000012c;';
+
+const TOKEN_MOCK = {
+  accountType: EthAccountType.Eoa,
+  address: NATIVE_TOKEN_ADDRESS,
+  balance: '1.23',
+  balanceInSelectedCurrency: '$1.23',
+  chainId: CHAIN_ID_MOCK,
+  decimals: 18,
+  name: 'Native Token 1',
+  standard: TokenStandard.ERC20,
+  symbol: 'NTV1',
+} as AssetType;
 
 describe('Transaction Pay Utils', () => {
   describe('getRequiredBalance', () => {
@@ -87,6 +116,160 @@ describe('Transaction Pay Utils', () => {
         to: TO_MOCK,
         index: 1,
       });
+    });
+  });
+
+  describe('getTokenAddress', () => {
+    it('returns token address from nested token transfer', () => {
+      const transactionMeta = {
+        txParams: {
+          data: '0x1234',
+          to: '0x5678',
+        },
+        nestedTransactions: [
+          {
+            data: '0x123456',
+            to: '0x567890',
+          },
+          {
+            data: TOKEN_TRANSFER_DATA_MOCK,
+            to: TO_MOCK,
+          },
+        ],
+      } as unknown as TransactionMeta;
+
+      expect(getTokenAddress(transactionMeta)).toBe(TO_MOCK);
+    });
+
+    it('returns to param if no nested transfer', () => {
+      const transactionMeta = {
+        txParams: {
+          data: TOKEN_TRANSFER_DATA_MOCK,
+          to: TO_MOCK,
+        },
+      } as TransactionMeta;
+
+      expect(getTokenAddress(transactionMeta)).toBe(TO_MOCK);
+    });
+  });
+
+  describe('getAvailableTokens', () => {
+    it('returns tokens if balance', () => {
+      const result = getAvailableTokens({
+        tokens: [TOKEN_MOCK] as AssetType[],
+      });
+
+      expect(result).toMatchObject([TOKEN_MOCK]);
+    });
+
+    it('returns token with zero balance if required token', async () => {
+      const tokenWithZeroBalance = {
+        ...TOKEN_MOCK,
+        balance: '0',
+        balanceInSelectedCurrency: '$0.00',
+      } as AssetType;
+
+      const result = getAvailableTokens({
+        tokens: [tokenWithZeroBalance] as AssetType[],
+        requiredTokens: [
+          {
+            address: TOKEN_MOCK.address as Hex,
+            chainId: TOKEN_MOCK.chainId as Hex,
+          } as TransactionPayRequiredToken,
+        ],
+      });
+
+      expect(result).toMatchObject([tokenWithZeroBalance]);
+    });
+
+    it('returns token with zero balance if payment token', async () => {
+      const tokenWithZeroBalance = {
+        ...TOKEN_MOCK,
+        balance: '0',
+        balanceInSelectedCurrency: '$0.00',
+      } as AssetType;
+
+      const result = getAvailableTokens({
+        tokens: [tokenWithZeroBalance] as AssetType[],
+        payToken: {
+          address: TOKEN_MOCK.address as Hex,
+          chainId: TOKEN_MOCK.chainId as Hex,
+        } as TransactionPaymentToken,
+      });
+
+      expect(result).toMatchObject([tokenWithZeroBalance]);
+    });
+
+    it('returns disabled token with message if no native gas', async () => {
+      const nonNativeToken = {
+        ...TOKEN_MOCK,
+        address: '0x234',
+      } as AssetType;
+
+      const result = getAvailableTokens({
+        tokens: [nonNativeToken] as AssetType[],
+      });
+
+      expect(result).toMatchObject([
+        {
+          ...nonNativeToken,
+          disabled: true,
+          disabledMessage: strings('pay_with_modal.no_gas'),
+        },
+      ]);
+    });
+
+    it('does not return token if no balance', async () => {
+      const tokenWithZeroBalance = {
+        ...TOKEN_MOCK,
+        balance: '0',
+        balanceInSelectedCurrency: '$0.00',
+      } as AssetType;
+
+      const result = getAvailableTokens({
+        tokens: [tokenWithZeroBalance] as AssetType[],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('does not return token if not ERC-20', async () => {
+      const tokenWithWrongStandard = {
+        ...TOKEN_MOCK,
+        standard: TokenStandard.ERC721,
+      } as AssetType;
+
+      const result = getAvailableTokens({
+        tokens: [tokenWithWrongStandard] as AssetType[],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('does not return token if account type is not EVM', async () => {
+      const tokenWithWrongAccountType = {
+        ...TOKEN_MOCK,
+        accountType: SolAccountType.DataAccount,
+      } as AssetType;
+
+      const result = getAvailableTokens({
+        tokens: [tokenWithWrongAccountType] as AssetType[],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('does not return token if on testnet', async () => {
+      const tokenOnTestNet = {
+        ...TOKEN_MOCK,
+        chainId: CHAIN_IDS.SEPOLIA,
+      } as AssetType;
+
+      const result = getAvailableTokens({
+        tokens: [tokenOnTestNet] as AssetType[],
+      });
+
+      expect(result).toStrictEqual([]);
     });
   });
 });

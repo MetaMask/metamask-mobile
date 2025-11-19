@@ -4,7 +4,6 @@ import { TokensControllerState, Token } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
-import { isPortfolioViewEnabled } from '../util/networks';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -99,10 +98,6 @@ export const getChainIdsToPoll = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
   (networkConfigurations, currentChainId) => {
-    if (!isPortfolioViewEnabled()) {
-      return [currentChainId];
-    }
-
     const popularNetworksChainIds = PopularList.map(
       (popular) => popular.chainId,
     );

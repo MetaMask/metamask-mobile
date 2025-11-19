@@ -1,25 +1,31 @@
 /*
  * Cross-platform deep link opener for Detox tests.
  */
+import { createLogger } from './logger';
+import { E2EDeeplinkSchemes } from './Constants';
 
-// Import device from Detox types to avoid shadowing warnings
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const device: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+const logger = createLogger({
+  name: 'E2E - DeepLink',
+});
 
 export async function openE2EUrl(url: string): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log(`[E2E] DeepLink open: ${url}`);
+  logger.debug(`Opening E2E DeepLink: ${url}`);
+  // Map any E2E scheme to the declared "metamask" scheme for both platforms
+  let mappedUrl = url;
+  for (const deeplinkScheme of Object.values(E2EDeeplinkSchemes)) {
+    if (url.startsWith(deeplinkScheme)) {
+      const pathSuffix = url.slice(deeplinkScheme.length); // <path>?<query>
+      mappedUrl = `metamask://e2e/perps/${pathSuffix}`;
+      logger.debug(`Mapped E2E DeepLink to metamask scheme: ${mappedUrl}`);
+      break;
+    }
+  }
+
   if (device.getPlatform() === 'ios' && device.openURL) {
-    await device.openURL({ url });
+    await device.openURL({ url: mappedUrl });
     return;
   }
   if (device.getPlatform() === 'android' && device.launchApp) {
-    // On Android, our production manifest doesn't declare the custom "e2e" scheme.
-    // Reuse the already-declared "expo-metamask" scheme to transport the command.
-    // Mapping: e2e://perps/<path>?<query> -> expo-metamask://e2e/perps/<path>?<query>
-    const mappedUrl = url.startsWith('e2e://perps/')
-      ? url.replace('e2e://perps/', 'expo-metamask://e2e/perps/')
-      : url;
     if (device.openURL) {
       await device.openURL({ url: mappedUrl });
       return;

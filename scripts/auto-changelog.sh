@@ -6,6 +6,14 @@ set -o pipefail
 
 readonly URL='https://github.com/MetaMask/metamask-mobile'
 
+# Ensure existing changelog entries use hyphen bullets so older
+# @metamask/auto-changelog versions can parse the file correctly.
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+  sed -i'' 's/^\* /- /' CHANGELOG.md
+else
+  sed -i '' 's/^\* /- /' CHANGELOG.md
+fi
+
 git fetch --tags
 
 most_recent_tag="$(git describe --tags "$(git rev-list --tags --max-count=1)")"

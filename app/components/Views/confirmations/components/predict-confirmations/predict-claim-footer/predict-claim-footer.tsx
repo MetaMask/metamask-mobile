@@ -1,27 +1,27 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../../locales/i18n';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../../component-library/components/Avatars/Avatar';
+import AvatarGroup from '../../../../../../component-library/components/Avatars/AvatarGroup';
+import Button, {
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { Box } from '../../../../../UI/Box/Box';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { Box } from '../../../../../UI/Box/Box';
+import { PredictClaimConfirmationSelectorsIDs } from '../../../../../../../e2e/selectors/Predict/Predict.selectors';
 import styleSheet from './predict-claim-footer.styles';
-import AvatarGroup from '../../../../../../component-library/components/Avatars/AvatarGroup';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../../component-library/components/Avatars/Avatar';
-import { strings } from '../../../../../../../locales/i18n';
-import {
-  getPredictMarketImage,
-  selectPredictClaimDataByTransactionId,
-} from '../predict-temp';
-import { RootState } from '../../../../../../reducers';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
+import { selectPredictWonPositions } from '../../../../../UI/Predict/selectors/predictController';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import { PredictPosition } from '../../../../../UI/Predict';
+import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
+import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 
 export interface PredictClaimFooterProps {
   onPress: () => void;
@@ -29,34 +29,27 @@ export interface PredictClaimFooterProps {
 
 export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
   const { styles } = useStyles(styleSheet, {});
-  const { id: transactionId } = useTransactionMetadataRequest() ?? {};
 
-  const { marketIds } =
-    useSelector((state: RootState) =>
-      selectPredictClaimDataByTransactionId(state, transactionId ?? ''),
-    ) ?? {};
+  const selectedAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
 
-  if (!marketIds) return null;
+  const wonPositions = useSelector(
+    selectPredictWonPositions({
+      address: selectedAddress,
+    }),
+  );
 
-  const networkAvatars = marketIds.map((marketId) => ({
-    imageSource: getPredictMarketImage(marketId),
-    variant: AvatarVariant.Token as const,
-  }));
+  if (!wonPositions?.length) {
+    return null;
+  }
 
   return (
     <Box style={styles.container} testID="predict-claim-footer">
-      <Box style={styles.top}>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {strings('confirm.predict_claim.footer_top', {
-            count: marketIds.length,
-          })}
-        </Text>
-        <AvatarGroup
-          avatarPropsList={networkAvatars}
-          size={AvatarSize.Sm}
-          maxStackedAvatars={3}
-        />
-      </Box>
+      {wonPositions.length > 1 ? (
+        <MultipleWinnings wonPositions={wonPositions} />
+      ) : (
+        <SingleWin wonPositions={wonPositions} />
+      )}
       <Button
         variant={ButtonVariants.Primary}
         labelTextVariant={TextVariant.BodyLGMedium}
@@ -64,6 +57,7 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
         label={strings('confirm.predict_claim.button_label')}
         onPress={onPress}
         isInverse
+        testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}
       />
       <Text
         variant={TextVariant.BodyXS}
@@ -72,6 +66,66 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
       >
         {strings('confirm.predict_claim.footer_bottom')}
       </Text>
+    </Box>
+  );
+}
+
+function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
+  const { formatFiat } = useTransactionPayFiat();
+
+  const position = wonPositions[0];
+  const { amount } = position;
+
+  const amountFormatted = useMemo(
+    () => formatFiat(amount),
+    [amount, formatFiat],
+  );
+
+  return (
+    <Box
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+      gap={12}
+    >
+      <Avatar
+        variant={AvatarVariant.Token}
+        imageSource={{ uri: position.icon }}
+        size={AvatarSize.Lg}
+      />
+      <Box flexDirection={FlexDirection.Column}>
+        <Text variant={TextVariant.BodyMDMedium}>{position.title}</Text>
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+          {amountFormatted} on {position.outcome}
+        </Text>
+      </Box>
+    </Box>
+  );
+}
+
+function MultipleWinnings({
+  wonPositions,
+}: {
+  wonPositions: PredictPosition[];
+}) {
+  const { styles } = useStyles(styleSheet, {});
+
+  const positionIcons = wonPositions.map((position) => ({
+    imageSource: { uri: position.icon },
+    variant: AvatarVariant.Token as const,
+  }));
+
+  return (
+    <Box style={styles.top}>
+      <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        {strings('confirm.predict_claim.footer_top', {
+          count: wonPositions.length,
+        })}
+      </Text>
+      <AvatarGroup
+        avatarPropsList={positionIcons}
+        size={AvatarSize.Sm}
+        maxStackedAvatars={3}
+      />
     </Box>
   );
 }

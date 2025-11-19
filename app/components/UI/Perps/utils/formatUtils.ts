@@ -1,6 +1,7 @@
 /**
  * Shared formatting utilities for Perps components
  */
+import { BigNumber } from 'bignumber.js';
 import { formatWithThreshold } from '../../../../util/assets';
 import {
   FUNDING_RATE_CONFIG,
@@ -59,21 +60,13 @@ export interface FiatRangeConfig {
   customFormat?: (value: number, locale: string, currency: string) => string;
   /** Optional flag to strip trailing zeros for this range (overrides global stripTrailingZeros option) */
   stripTrailingZeros?: boolean;
+  /**
+   * Optional flag for fiat-style stripping (only strips .00, preserves meaningful decimals like .10, .40)
+   * When true, "$1,250.00" → "$1,250" but "$1,250.10" stays "$1,250.10"
+   * When false (default), strips all trailing zeros: "$1,250.10" → "$1,250.1"
+   */
+  fiatStyleStripping?: boolean;
 }
-
-/**
- * Default fiat formatting range configurations
- * Applied in order - first matching condition wins
- */
-export const DEFAULT_FIAT_RANGES: FiatRangeConfig[] = [
-  {
-    // Standard fiat formatting (default for backward compatibility)
-    condition: () => true,
-    minimumDecimals: 2,
-    maximumDecimals: 2,
-    threshold: 0.01,
-  },
-];
 
 /**
  * Formats a number to a specific number of significant digits
@@ -164,25 +157,51 @@ export function formatWithSignificantDigits(
 }
 
 /**
+ * Minimal view fiat range configuration
+ * Uses fiat-style stripping for clean currency display
+ * Strips only .00 to avoid partial decimals like $1,250.1
+ */
+export const PRICE_RANGES_MINIMAL_VIEW: FiatRangeConfig[] = [
+  {
+    // Large values (>= $1000): Strip .00 only ($5,000 not $5,000.00, but $5,000.10 stays)
+    condition: (val: number) => Math.abs(val) >= PRICE_THRESHOLD.LARGE,
+    minimumDecimals: 2,
+    maximumDecimals: 2,
+    threshold: PRICE_THRESHOLD.LARGE,
+    stripTrailingZeros: true,
+    fiatStyleStripping: true,
+  },
+  {
+    // Small values (< $1000): Also use fiat-style stripping ($100 not $100.00, but $13.40 stays)
+    condition: () => true,
+    minimumDecimals: 2,
+    maximumDecimals: 2,
+    threshold: PRICE_THRESHOLD.LOW,
+    stripTrailingZeros: true,
+    fiatStyleStripping: true,
+  },
+];
+
+/**
  * Formats a balance value as USD currency with appropriate decimal places
  * @param balance - Raw numeric balance value (e.g., 1234.56, not token minimal denomination)
  * @param options - Optional formatting options
  * @param options.minimumDecimals - Global minimum decimal places (overrides range configs)
  * @param options.maximumDecimals - Global maximum decimal places (overrides range configs)
  * @param options.significantDigits - Global significant digits (overrides decimal settings when set)
- * @param options.ranges - Custom range configurations (defaults to DEFAULT_FIAT_RANGES)
+ * @param options.ranges - Custom range configurations (defaults to PRICE_RANGES_MINIMAL_VIEW)
  * @param options.currency - Currency code (default: 'USD')
  * @param options.locale - Locale for formatting (default: 'en-US')
- * @param options.stripTrailingZeros - Strip trailing zeros from output (default: true). When true, overrides minimumDecimals constraint.
+ * @param options.stripTrailingZeros - Strip trailing zeros from output (default: false via PRICE_RANGES_MINIMAL_VIEW). When true, overrides minimumDecimals constraint.
  * @returns Formatted currency string with variable decimals based on configured ranges
  * @example
- * // Using defaults (strips trailing zeros by default)
+ * // Using defaults (preserves trailing zeros for fiat)
  * formatPerpsFiat(1234.56) => "$1,234.56"
- * formatPerpsFiat(1250.00) => "$1,250"  // Trailing zeros stripped
- * formatPerpsFiat(50000) => "$50,000"   // Trailing zeros stripped
+ * formatPerpsFiat(1250.00) => "$1,250.00"  // Trailing zeros preserved
+ * formatPerpsFiat(50000) => "$50,000.00"   // Trailing zeros preserved
  *
- * // Preserving trailing zeros when needed
- * formatPerpsFiat(1250, { minimumDecimals: 2, stripTrailingZeros: false }) => "$1,250.00"
+ * // Stripping trailing zeros when needed (e.g., for crypto)
+ * formatPerpsFiat(1250, { stripTrailingZeros: true }) => "$1,250"
  *
  * // With custom ranges
  * formatPerpsFiat(0.00001, {
@@ -220,7 +239,7 @@ export const formatPerpsFiat = (
   }
 
   // Use custom ranges or defaults
-  const ranges = options?.ranges || DEFAULT_FIAT_RANGES;
+  const ranges = options?.ranges || PRICE_RANGES_MINIMAL_VIEW;
 
   // Find the first matching range configuration
   const rangeConfig = ranges.find((range) => range.condition(num));
@@ -296,17 +315,51 @@ export const formatPerpsFiat = (
   }
 
   // Post-process: strip trailing zeros unless explicitly disabled
-  // Range config overrides global option (priority: rangeConfig > options > default)
+  // Priority: explicit options.stripTrailingZeros false > rangeConfig > options default > true
+  // If options.stripTrailingZeros is explicitly false, skip stripping entirely
+  if (options?.stripTrailingZeros === false) {
+    return formatted;
+  }
+
+  // Otherwise check range config or default to true
   const shouldStrip =
-    rangeConfig?.stripTrailingZeros ?? options?.stripTrailingZeros ?? true; // Default: true
+    rangeConfig?.stripTrailingZeros ?? options?.stripTrailingZeros ?? true;
 
   if (shouldStrip) {
-    // Only strip trailing zeros AFTER the decimal point, not in the integer part
-    // Examples: $1,250.00 → $1,250 | $100.0 → $100 | $121,300 → $121,300 (keeps integer zeros)
+    // Check if fiat-style stripping is enabled (only strips .00)
+    const useFiatStyle = rangeConfig?.fiatStyleStripping ?? false;
+
+    if (useFiatStyle) {
+      // Fiat-style: Only strip .00 (no meaningful decimals), preserve 2-decimal format
+      // Examples: $1,250.00 → $1,250 | $1,000.10 → $1,000.10 | $13.40 → $13.40
+      return formatted.replace(/\.00$/, '');
+    }
+    // Standard: Strip all trailing zeros after decimal point
+    // Examples: $1,250.00 → $1,250 | $100.0 → $100 | $10.5 → $10.5 | $1.234 → $1.234
     return formatted.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
   }
 
   return formatted;
+};
+
+/**
+ * Formats a fee value as USD currency with appropriate decimal places
+ * @param fee - Raw numeric or string fee value (e.g., 1234.56, not token minimal denomination)
+ * @returns Formatted currency string with variable decimals based on configured ranges
+ * @example formatFee(1234.56) => "$1,234.56"
+ * @example formatFee(0.005) => "< $0.01"
+ * @example formatFee(0) => "$0"
+ */
+export const formatFee = (fee: number | string): string => {
+  const smallFeeThreshold = 0.01;
+
+  if (BigNumber(fee).isEqualTo(0)) {
+    return '$0';
+  }
+  if (BigNumber(fee).isLessThan(smallFeeThreshold)) {
+    return '< $0.01';
+  }
+  return formatPerpsFiat(fee);
 };
 
 /**
@@ -327,15 +380,6 @@ export const DEFAULT_PRICE_RANGES: FiatRangeConfig[] = [
     minimumDecimals: 2,
     maximumDecimals: 4,
     threshold: 0.0001,
-  },
-];
-
-export const PRICE_RANGES_MINIMAL_VIEW: FiatRangeConfig[] = [
-  {
-    condition: () => true,
-    minimumDecimals: 2,
-    maximumDecimals: 2,
-    threshold: PRICE_THRESHOLD.LOW,
   },
 ];
 
@@ -449,7 +493,7 @@ export const formatPnl = (pnl: string | number): string => {
   const num = typeof pnl === 'string' ? parseFloat(pnl) : pnl;
 
   if (isNaN(num)) {
-    return '$0.00';
+    return PERPS_CONSTANTS.ZERO_AMOUNT_DETAILED_DISPLAY;
   }
 
   const formatted = getIntlNumberFormatter('en-US', {

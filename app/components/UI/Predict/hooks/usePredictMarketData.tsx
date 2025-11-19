@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import { PredictCategory, PredictMarket } from '../types';
 
 export interface UsePredictMarketDataOptions {
@@ -151,6 +154,27 @@ export const usePredictMarketData = (
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch market data';
         setError(errorMessage);
+
+        // Capture exception with market data loading context
+        Logger.error(ensureError(err), {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            component: 'usePredictMarketData',
+          },
+          context: {
+            name: 'usePredictMarketData',
+            data: {
+              method: 'loadMarketData',
+              action: 'market_data_load',
+              operation: 'data_fetching',
+              providerId,
+              category,
+              hasSearchQuery: !!q,
+              pageSize,
+              isLoadMore,
+            },
+          },
+        });
 
         if (!isLoadMore) {
           setMarketData([]);

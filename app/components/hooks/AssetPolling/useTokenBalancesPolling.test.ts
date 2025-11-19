@@ -30,7 +30,7 @@ describe('useTokenBalancesPolling', () => {
       chainId,
       rpcEndpoints: [{ networkClientId }],
       defaultRpcEndpointIndex: 0,
-    } as NetworkConfiguration);
+    }) as NetworkConfiguration;
 
   beforeEach(() => {
     jest.resetAllMocks();

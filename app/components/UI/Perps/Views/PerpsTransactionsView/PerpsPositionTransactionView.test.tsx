@@ -361,7 +361,7 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('$5')).toBeOnTheScreen();
   });
 
-  it('should display fees with $ prefix directly for amounts < 0.01', () => {
+  it('should display fees with < $0.01 label for amounts < 0.01', () => {
     // Given a transaction with fee less than 0.01
     const smallFeeTransaction = {
       ...mockTransaction,
@@ -379,9 +379,9 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    // Then fee should display with $ prefix directly (not formatted through formatPerpsFiat)
+    // Then fee should display with < $0.01 label (not the actual value)
     expect(getByText('Total fees')).toBeOnTheScreen();
-    expect(getByText('$0.005')).toBeOnTheScreen();
+    expect(getByText('< $0.01')).toBeOnTheScreen();
   });
 
   it('should not render points when not present', () => {
@@ -541,7 +541,7 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     expect(getByText('+$12,500.75')).toBeOnTheScreen();
-    expect(getByText('$125.5')).toBeOnTheScreen();
+    expect(getByText('$125.50')).toBeOnTheScreen();
   });
 
   it('should handle different asset types', () => {

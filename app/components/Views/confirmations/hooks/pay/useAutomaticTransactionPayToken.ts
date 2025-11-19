@@ -1,7 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { orderBy } from 'lodash';
 import { useEffect, useMemo, useRef } from 'react';
@@ -13,6 +12,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { getRequiredBalance } from '../../utils/transaction-pay';
 import { getNativeTokenAddress } from '../../utils/asset';
+import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -24,13 +24,15 @@ export interface BalanceOverride {
 
 export function useAutomaticTransactionPayToken({
   countOnly = false,
+  disable = false,
 }: {
   countOnly?: boolean;
+  disable?: boolean;
 } = {}) {
   const isUpdated = useRef(false);
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { setPayToken } = useTransactionPayToken();
-  const requiredTokens = useTransactionRequiredTokens({ log: true });
+  const requiredTokens = useTransactionPayRequiredTokens();
 
   const transactionMeta =
     useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
@@ -54,7 +56,7 @@ export function useAutomaticTransactionPayToken({
 
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
 
-  if (!isUpdated.current || countOnly) {
+  if (!disable && (!isUpdated.current || countOnly)) {
     const targetToken =
       requiredTokens.find((token) => token.address !== nativeTokenAddress) ??
       requiredTokens[0];

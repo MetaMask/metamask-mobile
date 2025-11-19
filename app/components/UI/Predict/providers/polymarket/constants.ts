@@ -4,9 +4,22 @@ export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
 export const FEE_PERCENTAGE = 4; // 4%
 export const FEE_COLLECTOR_ADDRESS =
-  '0xe6a2026d58eaff3c7ad7ba9386fb143388002382';
+  process.env.METAMASK_ENVIRONMENT === 'dev'
+    ? '0xe6a2026d58eaff3c7ad7ba9386fb143388002382'
+    : '0x100c7b833bbd604a77890783439bbb9d65e31de7';
+
+/**
+ * Default slippage for market orders.
+ */
+export const SLIPPAGE = 0.015; // 1.5%
+
+export const ORDER_RATE_LIMIT_MS = 5000;
+
+export const MIN_COLLATERAL_BALANCE_FOR_CLAIM = 0.5;
 
 export const POLYGON_MAINNET_CHAIN_ID = 137;
+export const POLYGON_MAINNET_CAIP_CHAIN_ID =
+  `eip155:${POLYGON_MAINNET_CHAIN_ID}` as const;
 
 export const COLLATERAL_TOKEN_DECIMALS = 6;
 export const CONDITIONAL_TOKEN_DECIMALS = 6;

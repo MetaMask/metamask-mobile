@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictPositionResolved from './PredictPositionResolved';
 import {
   PredictPositionStatus,
@@ -61,7 +61,7 @@ describe('PredictPositionResolved', () => {
     expect(
       screen.getByText('$123.45 on Yes • Ended 2 days ago'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Won $2,222.22')).toBeOnTheScreen();
+    expect(screen.getByText('Won $2,345.67')).toBeOnTheScreen();
   });
 
   it('renders losing position correctly', () => {
@@ -96,11 +96,23 @@ describe('PredictPositionResolved', () => {
   });
 
   it('calls onPress when position is tapped', () => {
-    // const mockOnPress = jest.fn();
+    const mockOnPress = jest.fn();
+    render(
+      <PredictPositionResolved position={basePosition} onPress={mockOnPress} />,
+    );
+
+    const touchableElement = screen.getByText(basePosition.title);
+    fireEvent.press(touchableElement);
+
+    expect(mockOnPress).toHaveBeenCalledWith(basePosition);
+    expect(mockOnPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not throw when onPress is not provided', () => {
     renderComponent();
 
-    // Since we can't easily test TouchableOpacity onPress, we'll test that the component renders
-    // The onPress functionality would be tested in integration tests
-    expect(screen.getByText(basePosition.title)).toBeOnTheScreen();
+    const touchableElement = screen.getByText(basePosition.title);
+    // Should not throw when onPress is not provided
+    expect(() => fireEvent.press(touchableElement)).not.toThrow();
   });
 });

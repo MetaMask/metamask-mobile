@@ -960,6 +960,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -1151,9 +1152,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
-                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -1641,7 +1640,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -1810,20 +1808,29 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flexDirection": "row",
+                                                "gap": 8,
                                               }
                                             }
                                           >
-                                            SOL
-                                          </Text>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Regular",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              SOL
+                                            </Text>
+                                          </View>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -2727,6 +2734,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -2918,9 +2926,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
-                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -3408,7 +3414,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -3577,20 +3582,29 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flexDirection": "row",
+                                                "gap": 8,
                                               }
                                             }
                                           >
-                                            SOL
-                                          </Text>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Regular",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              SOL
+                                            </Text>
+                                          </View>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -4494,6 +4508,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -4685,9 +4700,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
-                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -5175,7 +5188,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -5313,20 +5325,29 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flexDirection": "row",
+                                                "gap": 8,
                                               }
                                             }
                                           >
-                                            USDC
-                                          </Text>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Regular",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              USDC
+                                            </Text>
+                                          </View>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -6302,6 +6323,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -6493,9 +6515,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
-                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -6983,7 +7003,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -7152,20 +7171,29 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flexDirection": "row",
+                                                "gap": 8,
                                               }
                                             }
                                           >
-                                            SOL
-                                          </Text>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Regular",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              SOL
+                                            </Text>
+                                          </View>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -8069,6 +8097,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -8260,9 +8289,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
-                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -8750,7 +8777,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -8919,20 +8945,29 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flexDirection": "row",
+                                                "gap": 8,
                                               }
                                             }
                                           >
-                                            SOL
-                                          </Text>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Regular",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              SOL
+                                            </Text>
+                                          </View>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -9836,6 +9871,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -10027,9 +10063,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
-                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -10517,7 +10551,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -10655,20 +10688,29 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flexDirection": "row",
+                                                "gap": 8,
                                               }
                                             }
                                           >
-                                            UNKNOWN
-                                          </Text>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Regular",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              UNKNOWN
+                                            </Text>
+                                          </View>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -12174,6 +12216,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -12365,9 +12408,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
-                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -12855,7 +12896,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -13024,20 +13064,29 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flexDirection": "row",
+                                                "gap": 8,
                                               }
                                             }
                                           >
-                                            SOL
-                                          </Text>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Regular",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              SOL
+                                            </Text>
+                                          </View>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -13941,6 +13990,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -14132,9 +14182,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
-                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -14622,7 +14670,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -14791,20 +14838,29 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             }
                                           }
                                         >
-                                          <Text
-                                            accessibilityRole="text"
+                                          <View
                                             style={
                                               {
-                                                "color": "#121314",
-                                                "fontFamily": "Geist Regular",
-                                                "fontSize": 16,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flexDirection": "row",
+                                                "gap": 8,
                                               }
                                             }
                                           >
-                                            SOL
-                                          </Text>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Regular",
+                                                  "fontSize": 16,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              SOL
+                                            </Text>
+                                          </View>
                                           <Text
                                             accessibilityRole="text"
                                             style={

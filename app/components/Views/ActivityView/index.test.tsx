@@ -31,6 +31,7 @@ const mockNavigation = {
   navigate: jest.fn(),
   setOptions: jest.fn(),
   goBack: jest.fn(),
+  canGoBack: jest.fn(() => true),
   reset: jest.fn(),
   dangerouslyGetParent: () => ({
     pop: jest.fn(),
@@ -42,9 +43,14 @@ jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
   useCurrentNetworkInfo: jest.fn(),
 }));
 
+const mockRoute = {
+  params: {},
+};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
+  useRoute: () => mockRoute,
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -398,6 +404,83 @@ describe('ActivityView', () => {
 
         expect(filterButton.props.disabled).toBe(true);
       });
+    });
+  });
+
+  describe('back button behavior', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('displays back button when showBackButton param is true', () => {
+      mockRoute.params = { showBackButton: true };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('activity-view-back-button')).toBeTruthy();
+    });
+
+    it('hides back button when showBackButton param is false', () => {
+      mockRoute.params = { showBackButton: false };
+
+      const { queryByTestId } = renderComponent(mockInitialState);
+
+      expect(queryByTestId('activity-view-back-button')).toBeNull();
+    });
+
+    it('hides back button when showBackButton param is undefined', () => {
+      mockRoute.params = {};
+
+      const { queryByTestId } = renderComponent(mockInitialState);
+
+      expect(queryByTestId('activity-view-back-button')).toBeNull();
+    });
+
+    it('calls navigation.goBack when back button is pressed', () => {
+      mockRoute.params = { showBackButton: true };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+      const backButton = getByTestId('activity-view-back-button');
+
+      fireEvent.press(backButton);
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call navigation.goBack when canGoBack returns false', () => {
+      mockRoute.params = { showBackButton: true };
+      mockNavigation.canGoBack.mockReturnValueOnce(false);
+
+      const { getByTestId } = renderComponent(mockInitialState);
+      const backButton = getByTestId('activity-view-back-button');
+
+      fireEvent.press(backButton);
+
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('hides default header when showBackButton is true', () => {
+      mockRoute.params = { showBackButton: true };
+
+      renderComponent(mockInitialState);
+
+      expect(mockNavigation.setOptions).toHaveBeenCalledWith({
+        headerShown: false,
+      });
+    });
+
+    it('shows default header when showBackButton is false', () => {
+      mockRoute.params = { showBackButton: false };
+
+      renderComponent(mockInitialState);
+
+      expect(mockNavigation.setOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headerTitle: expect.any(Function),
+          headerLeft: null,
+          headerRight: expect.any(Function),
+        }),
+      );
     });
   });
 });

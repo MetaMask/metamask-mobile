@@ -24,6 +24,8 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeViewMode } from '../../types';
+import { useGasIncluded } from '../../hooks/useGasIncluded';
+import { useIsSendBundleSupported } from '../../hooks/useIsSendBundleSupported';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -255,6 +257,16 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
+// Mock useGasIncluded hook
+jest.mock('../../hooks/useGasIncluded', () => ({
+  useGasIncluded: jest.fn(),
+}));
+
+// Mock useIsSendBundleSupported hook (dependency of useGasIncluded)
+jest.mock('../../hooks/useIsSendBundleSupported', () => ({
+  useIsSendBundleSupported: jest.fn().mockReturnValue(false),
+}));
+
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),
@@ -266,6 +278,8 @@ describe('BridgeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Set default mock values
+    (useGasIncluded as jest.Mock).mockReturnValue(undefined);
+    (useIsSendBundleSupported as jest.Mock).mockReturnValue(false);
   });
 
   it('renders', async () => {
@@ -480,10 +494,11 @@ describe('BridgeView', () => {
     expect(maxButton).toBeTruthy();
     fireEvent.press(maxButton);
 
-    // Verify the input value is set to the maximum available balance (2.0 from useLatestBalance mock)
+    // Verify the input displays truncated value ("2.0" → "2" for display only)
+    // The actual sourceAmount in Redux state retains full precision "2.0" for API
     const input = getByTestId('source-token-area-input');
     await waitFor(() => {
-      expect(input.props.value).toBe('2.0');
+      expect(input.props.value).toBe('2');
     });
   });
 
@@ -578,6 +593,10 @@ describe('BridgeView', () => {
   });
 
   describe('Bottom Content', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('displays "Select amount" when no amount is entered', () => {
       const { getByText } = renderScreen(
         BridgeView,
@@ -638,7 +657,7 @@ describe('BridgeView', () => {
       expect(getByText('Insufficient funds')).toBeTruthy();
     });
 
-    it('displays "Fetching quote" when quotes are loading', () => {
+    it('displays "Fetching quote" when quotes are loading and there is no active quote', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLastFetched: null,
@@ -650,6 +669,7 @@ describe('BridgeView', () => {
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isLoading: true,
+          activeQuote: null,
         }));
 
       const { getByText } = renderScreen(
@@ -682,6 +702,42 @@ describe('BridgeView', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isExpired: false,
+          willRefresh: false,
+        }));
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      const continueButton = getByTestId('bridge-confirm-button');
+      expect(continueButton).toBeTruthy();
+    });
+
+    it('displays Continue button and Terms link when a quote is available but other quotes are still loading', () => {
+      const mockQuote = mockQuoteWithMetadata;
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.LOADING,
+          quotes: [mockQuote as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0', // Less than balance of 2.0 ETH
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: false,
           willRefresh: false,
@@ -735,10 +791,11 @@ describe('BridgeView', () => {
     it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
+          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
         }));
 
       renderScreen(
@@ -759,7 +816,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote expires with refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: true,
@@ -786,7 +843,7 @@ describe('BridgeView', () => {
     it('does not navigate to QuoteExpiredModal when quote is valid', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: false,
           willRefresh: false,
@@ -849,11 +906,12 @@ describe('BridgeView', () => {
     it('blurs input when opening QuoteExpiredModal', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
+        .mockImplementationOnce(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
           isLoading: false,
+          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
         }));
 
       const { toJSON } = renderScreen(
@@ -887,7 +945,7 @@ describe('BridgeView', () => {
             },
             quotesLoadingStatus: RequestStatus.FETCHED,
             quotes: [mockQuote as unknown as QuoteResponse],
-            quotesLastFetched: 12,
+            quotesLastFetched: Date.now(),
           },
           bridgeReducerOverrides: {
             sourceAmount: '1.0',
@@ -1477,9 +1535,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Should display the deep link amount in the input
+      // Should display the deep link amount in the input (formatted with commas)
       const input = getByTestId('source-token-area-input');
-      expect(input.props.value).toBe('1000000');
+      expect(input.props.value).toBe('1,000,000');
     });
 
     it('uses all deep link params when all are provided', async () => {
@@ -1513,7 +1571,7 @@ describe('BridgeView', () => {
       expect(getByText('USDC')).toBeTruthy();
       expect(getByText('USDT')).toBeTruthy();
       const input = getByTestId('source-token-area-input');
-      expect(input.props.value).toBe('1000000');
+      expect(input.props.value).toBe('1,000,000');
     });
 
     it('falls back to Redux state when deep link params are not provided', () => {
@@ -1532,6 +1590,103 @@ describe('BridgeView', () => {
 
       // Should display default ETH token from Redux state
       expect(getByText('ETH')).toBeTruthy();
+    });
+  });
+
+  describe('gasIncluded functionality', () => {
+    it('calls useGasIncluded hook with source chain ID', () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+          },
+        },
+      });
+
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(useGasIncluded).toHaveBeenCalledWith('0x1');
+    });
+
+    it('calls useGasIncluded with undefined when source token not set', () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: undefined,
+        },
+      });
+
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(useGasIncluded).toHaveBeenCalledWith(undefined);
+    });
+
+    it('updates gasIncluded when source chain changes', () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'ETH',
+          },
+        },
+      });
+
+      const { store } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Change source token to different chain
+      act(() => {
+        store.dispatch(
+          setSourceToken({
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0xa', // Optimism
+            decimals: 18,
+            symbol: 'ETH',
+          }),
+        );
+      });
+
+      // useGasIncluded should be called with the new chain ID
+      expect(useGasIncluded).toHaveBeenCalledWith('0xa');
+    });
+
+    it('calls useGasIncluded with non-EVM chainId directly', () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: {
+            address: 'SomeNonEvmAddress',
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            decimals: 9,
+            symbol: 'SOL',
+          },
+        },
+      });
+
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Hook receives the raw chainId and handles filtering internally
+      expect(useGasIncluded).toHaveBeenCalledWith(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
     });
   });
 });

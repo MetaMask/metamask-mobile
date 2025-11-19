@@ -90,15 +90,18 @@ const useAccountInfo = (address: string, chainId: Hex) => {
       return undefined;
     }
 
-    const accountGroupNames = accountGroups.reduce((acc, group) => {
-      group.accounts.forEach((accountId) => {
-        const account = internalAccountsById[accountId];
-        if (account) {
-          acc[account.address.toLowerCase()] = group.metadata.name;
-        }
-      });
-      return acc;
-    }, {} as Record<string, string>);
+    const accountGroupNames = accountGroups.reduce(
+      (acc, group) => {
+        group.accounts.forEach((accountId) => {
+          const account = internalAccountsById[accountId];
+          if (account) {
+            acc[account.address.toLowerCase()] = group.metadata.name;
+          }
+        });
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
     return accountGroupNames[activeAddress.toLowerCase()];
   }, [

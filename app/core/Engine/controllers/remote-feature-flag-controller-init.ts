@@ -3,8 +3,8 @@ import {
   ClientConfigApiService,
   ClientType,
   RemoteFeatureFlagController,
+  type RemoteFeatureFlagControllerMessenger,
 } from '@metamask/remote-feature-flag-controller';
-import { RemoteFeatureFlagControllerMessenger } from '../messengers/remote-feature-flag-controller-messenger';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';
@@ -31,7 +31,7 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state: persistedState.RemoteFeatureFlagController,
     disabled,
-    getMetaMetricsId: () => metaMetricsId ?? '',
+    getMetaMetricsId: () => metaMetricsId,
     clientConfigApiService: new ClientConfigApiService({
       fetch,
       config: {
@@ -53,7 +53,7 @@ export const remoteFeatureFlagControllerInit: ControllerInitFunction<
       .then(() => {
         Logger.log('Feature flags updated');
       })
-      .catch((error) => Logger.log(error));
+      .catch((error) => Logger.log('Feature flags update failed: ', error));
   }
 
   return {

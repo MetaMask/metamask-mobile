@@ -1,34 +1,46 @@
 import React, {
-  useCallback,
-  useRef,
   forwardRef,
+  useCallback,
+  useEffect,
   useImperativeHandle,
 } from 'react';
 
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition as PredictPositionType } from '../../types';
-import PredictPosition from '../PredictPosition/PredictPosition';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
-import Routes from '../../../../../constants/navigation/Routes';
-import PredictPositionEmpty from '../PredictPositionEmpty';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictNewButton from '../PredictNewButton';
-import { ActivityIndicator, View } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { IconColor } from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
+import PredictPosition from '../PredictPosition/PredictPosition';
+import PredictPositionEmpty from '../PredictPositionEmpty';
+import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
+import PredictPositionSkeleton from '../PredictPositionSkeleton';
+import { PredictPositionsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 export interface PredictPositionsHandle {
   refresh: () => Promise<void>;
 }
 
-const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
-  const tw = useTailwind();
+interface PredictPositionsProps {
+  isVisible?: boolean;
+  /**
+   * Callback when an error occurs during positions fetch
+   */
+  onError?: (error: string | null) => void;
+}
+
+const PredictPositions = forwardRef<
+  PredictPositionsHandle,
+  PredictPositionsProps
+>(({ isVisible, onError }, ref) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { positions, isRefreshing, loadPositions, isLoading } =
+  const { positions, isRefreshing, loadPositions, isLoading, error } =
     usePredictPositions({
       loadOnMount: true,
       refreshOnFocus: true,
@@ -36,11 +48,18 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
   const {
     positions: claimablePositions,
     loadPositions: loadClaimablePositions,
+    error: claimableError,
   } = usePredictPositions({
     claimable: true,
     loadOnMount: true,
+    refreshOnFocus: true,
   });
-  const listRef = useRef<FlashListRef<PredictPositionType>>(null);
+
+  // Notify parent of errors while keeping state isolated
+  useEffect(() => {
+    const combinedError = error || claimableError;
+    onError?.(combinedError);
+  }, [error, claimableError, onError]);
 
   useImperativeHandle(ref, () => ({
     refresh: async () => {
@@ -51,15 +70,25 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     },
   }));
 
+  // Track position viewed when tab becomes visible
+  useEffect(() => {
+    if (isVisible && !isLoading) {
+      Engine.context.PredictController.trackPositionViewed({
+        openPositionsCount: positions.length,
+      });
+    }
+  }, [isVisible, isLoading, positions.length]);
+
   const renderPosition = useCallback(
     ({ item }: { item: PredictPositionType }) => (
       <PredictPosition
         position={item}
         onPress={() => {
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+          navigation.navigate(Routes.PREDICT.ROOT, {
             screen: Routes.PREDICT.MARKET_DETAILS,
             params: {
               marketId: item.marketId,
+              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
               headerShown: false,
             },
           });
@@ -69,50 +98,79 @@ const PredictPositions = forwardRef<PredictPositionsHandle>((_props, ref) => {
     [navigation],
   );
 
-  if (isLoading || (isRefreshing && positions.length === 0)) {
-    return (
-      <View style={tw.style('flex-1 bg-default')}>
-        <Box style={tw.style('flex-1 px-4 py-4 justify-center items-center')}>
-          <ActivityIndicator
-            testID="activity-indicator"
-            size="large"
-            color={IconColor.Alternative}
-          />
-        </Box>
-      </View>
-    );
-  }
+  const renderResolvedPosition = useCallback(
+    ({ item }: { item: PredictPositionType }) => (
+      <PredictPositionResolved
+        position={item}
+        onPress={() => {
+          navigation.navigate(Routes.PREDICT.ROOT, {
+            screen: Routes.PREDICT.MARKET_DETAILS,
+            params: {
+              marketId: item.marketId,
+              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+              headerShown: false,
+            },
+          });
+        }}
+      />
+    ),
+    [navigation],
+  );
+
+  const isTrulyEmpty =
+    positions.length === 0 && claimablePositions.length === 0;
 
   // TODO: Sort positions in the controller (business logic)
   return (
     <>
-      <FlashList
-        testID="active-positions-list"
-        ref={listRef}
-        data={positions.sort((a, b) => b.percentPnl - a.percentPnl)}
-        renderItem={renderPosition}
-        scrollEnabled={false}
-        keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-        removeClippedSubviews
-        decelerationRate={0}
-        ListEmptyComponent={<PredictPositionEmpty />}
-        ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
-      />
-      <Box>
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative mb-4">
-          {strings('predict.tab.resolved_markets')}
-        </Text>
-      </Box>
-      <FlashList
-        testID="claimable-positions-list"
-        data={claimablePositions.sort(
-          (a, b) =>
-            new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+      <View testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
+        {isLoading || (isRefreshing && positions.length === 0) ? (
+          // Show skeleton loaders during initial load
+          <>
+            {[1, 2, 3, 4].map((index) => (
+              <PredictPositionSkeleton
+                key={`skeleton-${index}`}
+                testID={`predict-position-skeleton-${index}`}
+              />
+            ))}
+          </>
+        ) : isTrulyEmpty ? (
+          <PredictPositionEmpty />
+        ) : (
+          <>
+            {positions.map((item) => (
+              <React.Fragment key={`${item.outcomeId}:${item.outcomeIndex}`}>
+                {renderPosition({ item })}
+              </React.Fragment>
+            ))}
+          </>
         )}
-        renderItem={renderPosition}
-        scrollEnabled={false}
-        keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
-      />
+      </View>
+      {!isTrulyEmpty && !isLoading && <PredictNewButton />}
+      {claimablePositions.length > 0 && (
+        <>
+          <Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-alternative mb-4"
+            >
+              {strings('predict.tab.resolved_markets')}
+            </Text>
+          </Box>
+          <View testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}>
+            {claimablePositions
+              .sort(
+                (a, b) =>
+                  new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+              )
+              .map((item) => (
+                <React.Fragment key={`${item.outcomeId}:${item.outcomeIndex}`}>
+                  {renderResolvedPosition({ item })}
+                </React.Fragment>
+              ))}
+          </View>
+        </>
+      )}
     </>
   );
 });

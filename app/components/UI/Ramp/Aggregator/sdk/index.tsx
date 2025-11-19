@@ -25,8 +25,6 @@ import {
   setFiatOrdersGetStartedAGG,
   setFiatOrdersRegionAGG,
   fiatOrdersRegionSelectorAgg,
-  fiatOrdersPaymentMethodSelectorAgg,
-  setFiatOrdersPaymentMethodAGG,
   networkShortNameSelector,
   fiatOrdersGetStartedSell,
   setFiatOrdersGetStartedSell,
@@ -170,9 +168,6 @@ export const RampSDKProvider = ({
   const selectedNetworkName =
     selectedNetworkNickname || selectedAggregatorNetworkName;
 
-  const INITIAL_PAYMENT_METHOD_ID = useSelector(
-    fiatOrdersPaymentMethodSelectorAgg,
-  );
   const INITIAL_SELECTED_ASSET = null;
 
   const [rampType, setRampType] = useState(providerRampType ?? RampType.BUY);
@@ -188,9 +183,9 @@ export const RampSDKProvider = ({
   const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
   const selectedAddress = useRampAccountAddress(caipChainId);
 
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
-    INITIAL_PAYMENT_METHOD_ID,
-  );
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
+    string | null
+  >(null);
   const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState<
     string | null
   >(null);
@@ -217,9 +212,8 @@ export const RampSDKProvider = ({
   const setSelectedPaymentMethodIdCallback = useCallback(
     (paymentMethodId: Payment['id'] | null) => {
       setSelectedPaymentMethodId(paymentMethodId);
-      dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodId));
     },
-    [dispatch],
+    [],
   );
 
   const setSelectedAssetCallback = useCallback((asset: CryptoCurrency) => {
@@ -316,11 +310,10 @@ export const useRampSDK = () => {
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const withRampSDK = (Component: React.FC) => (props: any) =>
-  (
-    <RampSDKProvider>
-      <Component {...props} />
-    </RampSDKProvider>
-  );
+export const withRampSDK = (Component: React.FC) => (props: any) => (
+  <RampSDKProvider>
+    <Component {...props} />
+  </RampSDKProvider>
+);
 
 export default SDKContext;

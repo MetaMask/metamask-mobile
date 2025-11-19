@@ -39,7 +39,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 // Using ScrollView from react-native-gesture-handler to fix scroll issues with the bottom sheet
 import { ScrollView } from 'react-native-gesture-handler';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { BridgeViewMode } from '../types';
 ///: END:ONLY_INCLUDE_IF
 const createStyles = (params: { theme: Theme }) => {
@@ -47,10 +47,13 @@ const createStyles = (params: { theme: Theme }) => {
   return StyleSheet.create({
     networksButton: {
       borderColor: theme.colors.border.muted,
+      backgroundColor: theme.colors.background.default,
+      borderRadius: 10,
     },
     selectedNetworkIcon: {
-      borderColor: theme.colors.primary.muted,
-      backgroundColor: theme.colors.primary.muted,
+      borderColor: theme.colors.border.muted,
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 10,
     },
     scrollView: {
       flexGrow: 0,
@@ -58,7 +61,7 @@ const createStyles = (params: { theme: Theme }) => {
     contentContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: 10,
       paddingHorizontal: 4,
     },
   });
@@ -69,20 +72,22 @@ const createStyles = (params: { theme: Theme }) => {
  * 1 = most popular
  * Infinity = least popular
  */
-const ChainPopularity: Record<Hex | CaipChainId, number> = {
+export const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [ETH_CHAIN_ID]: 1,
+  [BSC_CHAIN_ID]: 2,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  [SolScope.Mainnet]: 2,
+  [BtcScope.Mainnet]: 3,
+  [SolScope.Mainnet]: 4,
   ///: END:ONLY_INCLUDE_IF
-  [BASE_CHAIN_ID]: 3,
-  [BSC_CHAIN_ID]: 4,
-  [LINEA_CHAIN_ID]: 5,
-  [OPTIMISM_CHAIN_ID]: 6,
-  [ARBITRUM_CHAIN_ID]: 7,
-  [AVALANCHE_CHAIN_ID]: 9,
+  [BASE_CHAIN_ID]: 5,
+  [ARBITRUM_CHAIN_ID]: 6,
+  [LINEA_CHAIN_ID]: 7,
   [POLYGON_CHAIN_ID]: 8,
-  [ZKSYNC_ERA_CHAIN_ID]: 10,
-  [NETWORKS_CHAIN_ID.SEI]: 11,
+  [AVALANCHE_CHAIN_ID]: 9,
+  [OPTIMISM_CHAIN_ID]: 10,
+  [ZKSYNC_ERA_CHAIN_ID]: 11,
+  [NETWORKS_CHAIN_ID.SEI]: 12,
+  [NETWORKS_CHAIN_ID.MONAD]: 13,
 };
 
 const ShortChainNames: Record<Hex | CaipChainId, string> = {
@@ -137,7 +142,7 @@ export const BridgeDestNetworksBar = () => {
               <Box
                 flexDirection={FlexDirection.Row}
                 alignItems={AlignItems.center}
-                gap={4}
+                gap={8}
               >
                 {selectedDestChainId === chain.chainId ? (
                   <AvatarNetwork

@@ -15,6 +15,7 @@ import {
   formatTransactionDate,
   formatDateSection,
   formatFundingRate,
+  formatFee,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from './formatUtils';
@@ -194,21 +195,156 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatFee', () => {
+    it('returns "$0" when fee is exactly zero', () => {
+      // Given a fee of exactly zero
+      const fee = 0;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it returns "$0"
+      expect(result).toBe('$0');
+    });
+
+    it('returns "< $0.01" when fee is below threshold', () => {
+      // Given a fee below the 0.01 threshold
+      const fee = 0.005;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it returns "< $0.01"
+      expect(result).toBe('< $0.01');
+    });
+
+    it('formats fee normally when exactly at 0.01 threshold', () => {
+      // Given a fee at exactly the 0.01 threshold
+      const fee = 0.01;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it formats normally
+      expect(result).toBe('$0.01');
+    });
+
+    it('formats fee normally when above threshold', () => {
+      // Given a fee above the 0.01 threshold
+      const fee = 1.5;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it formats normally
+      expect(result).toBe('$1.50');
+    });
+
+    it('returns "< $0.01" for very small positive fees', () => {
+      // Given a very small positive fee
+      const fee = 0.0001;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it returns "< $0.01"
+      expect(result).toBe('< $0.01');
+    });
+
+    it('returns "< $0.01" for fee just below threshold', () => {
+      // Given a fee just below the 0.01 threshold
+      const fee = 0.0099;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it returns "< $0.01"
+      expect(result).toBe('< $0.01');
+    });
+
+    it('formats fee normally when just above threshold', () => {
+      // Given a fee just above the 0.01 threshold
+      const fee = 0.0101;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it formats normally (rounded to $0.01)
+      expect(result).toBe('$0.01');
+    });
+
+    it('formats large fees with proper decimals', () => {
+      // Given a large fee value
+      const fee = 123.45;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it formats with proper decimals
+      expect(result).toBe('$123.45');
+    });
+
+    it('strips trailing zeros for whole number fees', () => {
+      // Given a whole number fee
+      const fee = 100;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then trailing zeros are stripped
+      expect(result).toBe('$100');
+    });
+
+    it('handles fees with many decimal places', () => {
+      // Given a fee with many decimal places
+      const fee = 1.23456789;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it rounds appropriately
+      expect(result).toBe('$1.23');
+    });
+
+    it('returns "$0" for negative zero', () => {
+      // Given a negative zero value
+      const fee = -0;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it returns "$0"
+      expect(result).toBe('$0');
+    });
+
+    it('returns "< $0.01" for smallest representable positive fee', () => {
+      // Given the smallest positive fee
+      const fee = 0.00000001;
+
+      // When formatting the fee
+      const result = formatFee(fee);
+
+      // Then it returns "< $0.01"
+      expect(result).toBe('< $0.01');
+    });
+  });
+
   describe('formatPerpsFiat', () => {
-    it('should format balance with default 2 decimal places', () => {
-      expect(formatPerpsFiat(1234.56)).toBe('$1,234.56');
-      expect(formatPerpsFiat('5000')).toBe('$5,000');
-      expect(formatPerpsFiat(100)).toBe('$100');
+    it('should format balance with default 2 decimal places (fiat-style stripping)', () => {
+      expect(formatPerpsFiat(1234.56)).toBe('$1,234.56'); // Has meaningful decimals: preserved
+      expect(formatPerpsFiat('5000')).toBe('$5,000'); // No meaningful decimals: strips .00
+      expect(formatPerpsFiat(100)).toBe('$100'); // No meaningful decimals: strips .00
+      expect(formatPerpsFiat(100.5)).toBe('$100.50'); // Has meaningful decimals: preserved
     });
 
     it('should handle large numbers', () => {
-      expect(formatPerpsFiat(1000000)).toBe('$1,000,000');
+      expect(formatPerpsFiat(1000000)).toBe('$1,000,000'); // >= $1000: strips trailing zeros
       expect(formatPerpsFiat(999999.99)).toBe('$999,999.99');
       expect(formatPerpsFiat('123456.789')).toBe('$123,456.79');
     });
 
     it('should handle small decimal values', () => {
-      expect(formatPerpsFiat(0.1)).toBe('$0.1'); // Trailing zero stripped by default
+      expect(formatPerpsFiat(0.1)).toBe('$0.10'); // < $1000: preserves trailing zeros
     });
 
     it('should return placeholder for NaN values', () => {
@@ -218,33 +354,40 @@ describe('formatUtils', () => {
     });
 
     describe('stripTrailingZeros option', () => {
-      it('strips trailing zeros by default', () => {
-        expect(formatPerpsFiat(1250, { minimumDecimals: 2 })).toBe('$1,250');
-        expect(formatPerpsFiat(100.0, { minimumDecimals: 2 })).toBe('$100');
-        expect(formatPerpsFiat(0, { minimumDecimals: 2 })).toBe('$0');
+      it('strips .00 by default (PRICE_RANGES_MINIMAL_VIEW with fiat-style)', () => {
+        expect(formatPerpsFiat(1250, { minimumDecimals: 2 })).toBe('$1,250'); // Strips .00
+        expect(formatPerpsFiat(100.0, { minimumDecimals: 2 })).toBe('$100'); // Strips .00
+        expect(formatPerpsFiat(0, { minimumDecimals: 2 })).toBe('$0'); // Strips .00
+        expect(formatPerpsFiat(100.1, { minimumDecimals: 2 })).toBe('$100.10'); // Preserves meaningful decimals
       });
 
-      it('can be disabled to preserve trailing zeros', () => {
+      it('can be explicitly controlled via stripTrailingZeros option (only strips .00)', () => {
         expect(
           formatPerpsFiat(1250, {
             minimumDecimals: 2,
-            stripTrailingZeros: false,
+            stripTrailingZeros: true, // Explicitly enable stripping (only .00)
           }),
-        ).toBe('$1,250.00');
+        ).toBe('$1,250');
         expect(
           formatPerpsFiat(100.0, {
             minimumDecimals: 2,
-            stripTrailingZeros: false,
+            stripTrailingZeros: true, // Explicitly enable stripping (only .00)
           }),
-        ).toBe('$100.00');
+        ).toBe('$100');
         expect(
-          formatPerpsFiat(0, { minimumDecimals: 2, stripTrailingZeros: false }),
-        ).toBe('$0.00');
+          formatPerpsFiat(100.1, {
+            minimumDecimals: 2,
+            stripTrailingZeros: true, // Preserves 2 decimals (not $100.1)
+          }),
+        ).toBe('$100.10');
+        expect(
+          formatPerpsFiat(0, { minimumDecimals: 2, stripTrailingZeros: true }),
+        ).toBe('$0');
       });
 
-      it('preserves meaningful decimals when enabled', () => {
+      it('preserves meaningful decimals (never shows partial decimals)', () => {
         expect(formatPerpsFiat(1250.5, { minimumDecimals: 2 })).toBe(
-          '$1,250.5',
+          '$1,250.50', // >= $1000: preserves 2 decimals (never partial like $1,250.5)
         );
         expect(formatPerpsFiat(1250.05, { minimumDecimals: 2 })).toBe(
           '$1,250.05',
@@ -254,19 +397,20 @@ describe('formatUtils', () => {
         );
       });
 
-      it('strips all trailing zeros including decimals beyond minimum', () => {
+      it('range-based trailing zero behavior (only strips .00)', () => {
         expect(formatPerpsFiat(1250.1, { minimumDecimals: 2 })).toBe(
-          '$1,250.1',
+          '$1,250.10', // >= $1000: preserves 2 decimals (not $1,250.1)
         );
         expect(formatPerpsFiat(1250.01, { minimumDecimals: 2 })).toBe(
           '$1,250.01',
         );
         expect(formatPerpsFiat(1250.1, { maximumDecimals: 3 })).toBe(
-          '$1,250.1',
+          '$1,250.10', // >= $1000: preserves 2 decimals (not $1,250.1)
         );
       });
 
       it('works with custom ranges', () => {
+        // Custom range without stripTrailingZeros set will default to true (default behavior)
         expect(
           formatPerpsFiat(50000, {
             ranges: [
@@ -277,8 +421,9 @@ describe('formatUtils', () => {
               },
             ],
           }),
-        ).toBe('$50,000');
+        ).toBe('$50,000'); // Default: strips trailing zeros
 
+        // Explicit stripTrailingZeros: false preserves trailing zeros
         expect(
           formatPerpsFiat(50000, {
             ranges: [
@@ -293,8 +438,8 @@ describe('formatUtils', () => {
         ).toBe('$50,000.00');
       });
 
-      it('range config stripTrailingZeros overrides global option', () => {
-        // Range says strip, global says don't strip → range wins
+      it('explicit options stripTrailingZeros overrides range config', () => {
+        // Explicit options.stripTrailingZeros: false always wins (user intent)
         expect(
           formatPerpsFiat(1250, {
             ranges: [
@@ -307,9 +452,9 @@ describe('formatUtils', () => {
             ],
             stripTrailingZeros: false,
           }),
-        ).toBe('$1,250');
+        ).toBe('$1,250.00'); // Options wins: preserves .00
 
-        // Range says don't strip, global says strip → range wins
+        // Range config only matters when options.stripTrailingZeros is not explicitly set
         expect(
           formatPerpsFiat(1250, {
             ranges: [
@@ -320,9 +465,9 @@ describe('formatUtils', () => {
                 stripTrailingZeros: false,
               },
             ],
-            stripTrailingZeros: true,
+            // stripTrailingZeros not set at options level
           }),
-        ).toBe('$1,250.00');
+        ).toBe('$1,250.00'); // Range config applied: preserves .00
       });
     });
   });
@@ -905,7 +1050,7 @@ describe('formatUtils', () => {
         priceRange: '$1k-$10k',
         expected4SF: '$2,801.5',
         expectedDetailed: '$2,801.5',
-        expectedMinimal: '$2,801.5',
+        expectedMinimal: '$2,801.50', // Fiat-style: preserves 2 decimals
         expectedUserInput: '$2,801.5',
       },
       {
@@ -979,7 +1124,7 @@ describe('formatUtils', () => {
         priceRange: '$10-$100',
         expected4SF: '$10.5',
         expectedDetailed: '$10.5',
-        expectedMinimal: '$10.5',
+        expectedMinimal: '$10.50', // Fiat-style: preserves 2 decimals
         expectedUserInput: '$10.5',
       },
       // $1-$10 range (<= $10: 5 sig figs)
@@ -1053,7 +1198,7 @@ describe('formatUtils', () => {
         priceRange: '$0.1-$1',
         expected4SF: '$0.1',
         expectedDetailed: '$0.1',
-        expectedMinimal: '$0.1',
+        expectedMinimal: '$0.10', // Fiat-style: preserves 2 decimals
         expectedUserInput: '$0.1',
       },
       // $0.00001-$0.0001 range (<$0.01: 4 sig figs)

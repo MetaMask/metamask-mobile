@@ -112,7 +112,7 @@ describe('AccountListFooter', () => {
           onAccountCreated={jest.fn()}
         />,
       );
-      expect(getByText('Create account')).toBeOnTheScreen();
+      expect(getByText('Add account')).toBeOnTheScreen();
     });
   });
 
@@ -125,7 +125,7 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
         expect(InteractionManager.runAfterInteractions).toHaveBeenCalled();
@@ -140,10 +140,10 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
-        expect(getByText('Creating account...')).toBeOnTheScreen();
+        expect(getByText('Adding account...')).toBeOnTheScreen();
       });
     });
   });
@@ -161,7 +161,7 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
         expect(
@@ -184,14 +184,14 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
-        expect(getByText('Creating account...')).toBeOnTheScreen();
+        expect(getByText('Adding account...')).toBeOnTheScreen();
       });
 
       await waitFor(() => {
-        expect(getByText('Create account')).toBeOnTheScreen();
+        expect(getByText('Add account')).toBeOnTheScreen();
       });
     });
   });
@@ -205,10 +205,10 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
-        expect(getByText('Creating account...')).toBeOnTheScreen();
+        expect(getByText('Adding account...')).toBeOnTheScreen();
       });
     });
 
@@ -224,14 +224,14 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
-        expect(getByText('Creating account...')).toBeOnTheScreen();
+        expect(getByText('Adding account...')).toBeOnTheScreen();
       });
 
       await waitFor(() => {
-        expect(getByText('Create account')).toBeOnTheScreen();
+        expect(getByText('Add account')).toBeOnTheScreen();
       });
     });
 
@@ -247,14 +247,14 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
-        expect(getByText('Creating account...')).toBeOnTheScreen();
+        expect(getByText('Adding account...')).toBeOnTheScreen();
       });
 
       await waitFor(() => {
-        expect(getByText('Create account')).toBeOnTheScreen();
+        expect(getByText('Add account')).toBeOnTheScreen();
       });
     });
 
@@ -272,7 +272,7 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      expect(getByText('Create account')).toBeOnTheScreen();
+      expect(getByText('Add account')).toBeOnTheScreen();
 
       // Simulate account syncing starting
       mockUseAccountWalletOperationsLoadingStates.mockReturnValue({
@@ -302,7 +302,7 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      expect(getByText('Create account')).toBeOnTheScreen();
+      expect(getByText('Add account')).toBeOnTheScreen();
     });
   });
 
@@ -315,7 +315,7 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
         expect(InteractionManager.runAfterInteractions).toHaveBeenCalledWith(
@@ -339,7 +339,7 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
         expect(mockLogger.error).toHaveBeenCalledWith(
@@ -349,7 +349,7 @@ describe('AccountListFooter', () => {
       });
 
       await waitFor(() => {
-        expect(getByText('Create account')).toBeOnTheScreen();
+        expect(getByText('Add account')).toBeOnTheScreen();
       });
 
       expect(
@@ -372,7 +372,7 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Create account'));
+      fireEvent.press(getByText('Add account'));
 
       await waitFor(() => {
         expect(onAccountCreated).toHaveBeenCalledWith('new-account-group-id');
@@ -381,7 +381,7 @@ describe('AccountListFooter', () => {
   });
 
   describe('Wallet Type Filtering', () => {
-    it('renders create account button only for Entropy wallet type', () => {
+    it('renders Add account button only for Entropy wallet type', () => {
       const { getByText } = render(
         <AccountListFooter
           walletId={mockWalletId}
@@ -389,10 +389,10 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      expect(getByText('Create account')).toBeOnTheScreen();
+      expect(getByText('Add account')).toBeOnTheScreen();
     });
 
-    it('does not render create account button for non-Entropy wallet types', () => {
+    it('does not render Add account button for non-Entropy wallet types', () => {
       const testCases = [
         {
           name: 'Keyring wallet type',
@@ -427,11 +427,11 @@ describe('AccountListFooter', () => {
           />,
         );
 
-        expect(queryByText('Create account')).not.toBeOnTheScreen();
+        expect(queryByText('Add account')).not.toBeOnTheScreen();
       });
     });
 
-    it('does not render create account button when wallet is undefined', () => {
+    it('does not render Add account button when wallet is undefined', () => {
       // Override the selector mock for this test
       (useSelector as jest.Mock).mockImplementationOnce((selector: unknown) => {
         if (selector === selectWalletsMap) {
@@ -447,7 +447,7 @@ describe('AccountListFooter', () => {
         />,
       );
 
-      expect(queryByText('Create account')).not.toBeOnTheScreen();
+      expect(queryByText('Add account')).not.toBeOnTheScreen();
     });
   });
 });

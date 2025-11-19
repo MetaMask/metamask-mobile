@@ -8,7 +8,7 @@ import { usePerpsLiveAccount } from './stream';
 
 // Type for mock balances
 interface MockBalance {
-  totalValue: string;
+  totalBalance: string;
   unrealizedPnl: string;
   accountValue1dAgo: string;
   lastUpdated: number;
@@ -71,11 +71,10 @@ describe('usePerpsPortfolioBalance', () => {
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         availableBalance: '0',
-        totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
-        totalValue: '0',
+        totalBalance: '0',
       },
       isInitialLoading: false,
     });
@@ -109,7 +108,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should return balance data when perps balances exist', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '1000.50',
+          totalBalance: '1000.50',
           unrealizedPnl: '50.25',
           accountValue1dAgo: '950.00',
           lastUpdated: Date.now(),
@@ -118,11 +117,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '1000.50',
-        totalBalance: '1000.50',
         marginUsed: '0',
         unrealizedPnl: '50.25',
         returnOnEquity: '0',
-        totalValue: '1000.50',
+        totalBalance: '1000.50',
       };
 
       setupMocks(mockBalances, accountData);
@@ -143,13 +141,13 @@ describe('usePerpsPortfolioBalance', () => {
     it('should aggregate balances from multiple providers', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '1000.50',
+          totalBalance: '1000.50',
           unrealizedPnl: '-50.25',
           accountValue1dAgo: '950.00',
           lastUpdated: Date.now(),
         },
         dydx: {
-          totalValue: '500.25',
+          totalBalance: '500.25',
           unrealizedPnl: '25.10',
           accountValue1dAgo: '480.00',
           lastUpdated: Date.now(),
@@ -158,11 +156,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '1500.75',
-        totalBalance: '1500.75',
         marginUsed: '0',
         unrealizedPnl: '-25.15',
         returnOnEquity: '0',
-        totalValue: '1500.75',
+        totalBalance: '1500.75',
       };
 
       setupMocks(mockBalances, accountData);
@@ -178,7 +175,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should handle single provider balance', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '2500.00',
+          totalBalance: '2500.00',
           unrealizedPnl: '100.00',
           accountValue1dAgo: '2400.00',
           lastUpdated: Date.now(),
@@ -187,11 +184,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '2500.00',
-        totalBalance: '2500.00',
         marginUsed: '0',
         unrealizedPnl: '100.00',
         returnOnEquity: '0',
-        totalValue: '2500.00',
+        totalBalance: '2500.00',
       };
 
       setupMocks(mockBalances, accountData);
@@ -209,7 +205,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should convert USD values to display currency', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '1000.00',
+          totalBalance: '1000.00',
           unrealizedPnl: '50.00',
           accountValue1dAgo: '900.00',
           lastUpdated: Date.now(),
@@ -218,11 +214,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '1000.00',
-        totalBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
-        totalValue: '1000.00',
+        totalBalance: '1000.00',
       };
 
       setupMocks(mockBalances, accountData, 0.85); // EUR conversion rate
@@ -237,7 +232,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should handle missing conversion rate (defaults to 1)', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '1000.00',
+          totalBalance: '1000.00',
           unrealizedPnl: '50.00',
           accountValue1dAgo: '900.00',
           lastUpdated: Date.now(),
@@ -246,11 +241,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '1000.00',
-        totalBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
-        totalValue: '1000.00',
+        totalBalance: '1000.00',
       };
 
       // Mock useSelector to return undefined for conversion rate (should default to 1)
@@ -327,7 +321,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should be stable across re-renders', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '1000.00',
+          totalBalance: '1000.00',
           unrealizedPnl: '50.00',
           accountValue1dAgo: '900.00',
           lastUpdated: Date.now(),
@@ -336,11 +330,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '1000.00',
-        totalBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
-        totalValue: '1000.00',
+        totalBalance: '1000.00',
       };
 
       setupMocks(mockBalances, accountData);
@@ -361,7 +354,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should handle invalid numeric values in balances', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: 'invalid',
+          totalBalance: 'invalid',
           unrealizedPnl: 'NaN',
           accountValue1dAgo: undefined as unknown as string,
           lastUpdated: Date.now(),
@@ -370,11 +363,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: 'invalid',
-        totalBalance: 'invalid',
         marginUsed: '0',
         unrealizedPnl: 'NaN',
         returnOnEquity: '0',
-        totalValue: 'invalid',
+        totalBalance: 'invalid',
       };
 
       setupMocks(mockBalances, accountData);
@@ -391,7 +383,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should handle negative balances', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '-100.50',
+          totalBalance: '-100.50',
           unrealizedPnl: '-200.25',
           accountValue1dAgo: '50.00',
           lastUpdated: Date.now(),
@@ -400,11 +392,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '-100.50',
-        totalBalance: '-100.50',
         marginUsed: '0',
         unrealizedPnl: '-200.25',
         returnOnEquity: '0',
-        totalValue: '-100.50',
+        totalBalance: '-100.50',
       };
 
       setupMocks(mockBalances, accountData);
@@ -419,7 +410,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should handle very large numbers', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '999999999.99',
+          totalBalance: '999999999.99',
           unrealizedPnl: '123456789.12',
           accountValue1dAgo: '888888888.88',
           lastUpdated: Date.now(),
@@ -428,11 +419,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '999999999.99',
-        totalBalance: '999999999.99',
         marginUsed: '0',
         unrealizedPnl: '123456789.12',
         returnOnEquity: '0',
-        totalValue: '999999999.99',
+        totalBalance: '999999999.99',
       };
 
       setupMocks(mockBalances, accountData);
@@ -447,7 +437,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should handle missing fields in balance objects', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '1000.00',
+          totalBalance: '1000.00',
           // Missing unrealizedPnl and accountValue1dAgo
           lastUpdated: Date.now(),
         } as Partial<MockBalance>,
@@ -455,11 +445,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '1000.00',
-        totalBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '0', // Missing field defaults to 0
         returnOnEquity: '0',
-        totalValue: '1000.00',
+        totalBalance: '1000.00',
       };
 
       setupMocks(mockBalances as Record<string, MockBalance>, accountData);
@@ -475,7 +464,7 @@ describe('usePerpsPortfolioBalance', () => {
       const mockBalances = {
         hyperliquid: null as unknown as MockBalance,
         dydx: {
-          totalValue: '500.00',
+          totalBalance: '500.00',
           unrealizedPnl: '25.00',
           accountValue1dAgo: '450.00',
           lastUpdated: Date.now(),
@@ -484,11 +473,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '500.00',
-        totalBalance: '500.00',
         marginUsed: '0',
         unrealizedPnl: '25.00',
         returnOnEquity: '0',
-        totalValue: '500.00',
+        totalBalance: '500.00',
       };
 
       setupMocks(mockBalances, accountData);
@@ -506,7 +494,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should not recalculate when dependencies have not changed', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '1000.00',
+          totalBalance: '1000.00',
           unrealizedPnl: '50.00',
           accountValue1dAgo: '900.00',
           lastUpdated: Date.now(),
@@ -515,11 +503,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '1000.00',
-        totalBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
-        totalValue: '1000.00',
+        totalBalance: '1000.00',
       };
 
       setupMocks(mockBalances, accountData);
@@ -542,7 +529,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should recalculate when perps balances change', () => {
       let mockBalances = {
         hyperliquid: {
-          totalValue: '1000.00',
+          totalBalance: '1000.00',
           unrealizedPnl: '50.00',
           accountValue1dAgo: '900.00',
           lastUpdated: Date.now(),
@@ -551,11 +538,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       let accountData = {
         availableBalance: '1000.00',
-        totalBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
-        totalValue: '1000.00',
+        totalBalance: '1000.00',
       };
 
       setupMocks(mockBalances, accountData);
@@ -567,7 +553,7 @@ describe('usePerpsPortfolioBalance', () => {
       // Update the balances and account data
       mockBalances = {
         hyperliquid: {
-          totalValue: '2000.00',
+          totalBalance: '2000.00',
           unrealizedPnl: '100.00',
           accountValue1dAgo: '1800.00',
           lastUpdated: Date.now(),
@@ -576,11 +562,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       accountData = {
         availableBalance: '2000.00',
-        totalBalance: '2000.00',
         marginUsed: '0',
         unrealizedPnl: '100.00',
         returnOnEquity: '0',
-        totalValue: '2000.00',
+        totalBalance: '2000.00',
       };
 
       setupMocks(mockBalances, accountData);
@@ -595,7 +580,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should recalculate when conversion rate changes', () => {
       const mockBalances = {
         hyperliquid: {
-          totalValue: '1000.00',
+          totalBalance: '1000.00',
           unrealizedPnl: '50.00',
           accountValue1dAgo: '900.00',
           lastUpdated: Date.now(),
@@ -604,11 +589,10 @@ describe('usePerpsPortfolioBalance', () => {
 
       const accountData = {
         availableBalance: '1000.00',
-        totalBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
-        totalValue: '1000.00',
+        totalBalance: '1000.00',
       };
 
       setupMocks(mockBalances, accountData, 1);

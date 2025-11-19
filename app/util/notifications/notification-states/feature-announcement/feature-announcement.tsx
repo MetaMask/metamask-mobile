@@ -49,11 +49,9 @@ const state: NotificationState<FeatureAnnouncementNotification> = {
     footer: {
       type: ModalFooterType.ANNOUNCEMENT_CTA,
       mobileLink: notification.data.mobileLink,
+      externalLink: notification.data.externalLink,
+      notification,
     },
-    /**
-     * TODO support mobile links
-     * GH Issue: https://github.com/MetaMask/metamask-mobile/issues/10377
-     * */
   }),
 };
 

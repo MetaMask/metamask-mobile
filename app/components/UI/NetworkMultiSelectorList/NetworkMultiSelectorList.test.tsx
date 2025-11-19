@@ -73,6 +73,14 @@ jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(),
 }));
 
+jest.mock('../../../util/hideProtocolFromUrl', () =>
+  jest.fn((url: string) => url.replace(/^https?:\/\//, '')),
+);
+
+jest.mock('../../../util/hideKeyFromUrl', () =>
+  jest.fn((url: string) => url.replace(/\/[a-zA-Z0-9]{32,}$/, '')),
+);
+
 jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(),
 }));
@@ -182,6 +190,7 @@ describe('NetworkMultiSelectorList', () => {
   const mockOnSelectNetwork = jest.fn();
   const mockOpenModal = jest.fn();
   const mockRenderRightAccessory = jest.fn();
+  const mockOpenRpcModal = jest.fn();
 
   const mockNetworks: Network[] = [
     {
@@ -190,7 +199,8 @@ describe('NetworkMultiSelectorList', () => {
       isSelected: true,
       imageSource: { uri: 'ethereum.png' },
       caipChainId: 'eip155:1' as CaipChainId,
-      networkTypeOrRpcUrl: 'https://mainnet.infura.io',
+      networkTypeOrRpcUrl: 'https://mainnet.infura.io/v3/abc123',
+      hasMultipleRpcs: true,
     },
     {
       id: 'eip155:137',
@@ -199,6 +209,7 @@ describe('NetworkMultiSelectorList', () => {
       imageSource: { uri: 'polygon.png' },
       caipChainId: 'eip155:137' as CaipChainId,
       networkTypeOrRpcUrl: 'https://polygon-rpc.com',
+      hasMultipleRpcs: false,
     },
     {
       id: 'eip155:80001',
@@ -207,6 +218,7 @@ describe('NetworkMultiSelectorList', () => {
       imageSource: { uri: 'mumbai.png' },
       caipChainId: 'eip155:80001' as CaipChainId,
       networkTypeOrRpcUrl: 'https://mumbai-rpc.com',
+      hasMultipleRpcs: false,
     },
   ];
 
@@ -214,6 +226,7 @@ describe('NetworkMultiSelectorList', () => {
     onSelectNetwork: mockOnSelectNetwork,
     networks: mockNetworks,
     openModal: mockOpenModal,
+    openRpcModal: mockOpenRpcModal,
   };
 
   beforeEach(() => {
@@ -435,6 +448,59 @@ describe('NetworkMultiSelectorList', () => {
 
       expect(mockParseCaipChainId).toHaveBeenCalledWith('eip155:1');
       expect(mockToHex).toHaveBeenCalledWith('1');
+    });
+  });
+
+  describe('RPC Selection', () => {
+    it('calls openRpcModal when network text is clicked', () => {
+      const { getByTestId } = render(
+        <NetworkMultiSelectorList {...defaultProps} />,
+      );
+
+      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(mockOpenRpcModal).toBeDefined();
+    });
+
+    it('displays secondary text when network has multiple RPCs', () => {
+      const networkWithMultipleRpcs: Network = {
+        id: 'eip155:1',
+        name: 'Ethereum Mainnet',
+        isSelected: false,
+        imageSource: { uri: 'ethereum.png' },
+        caipChainId: 'eip155:1' as CaipChainId,
+        networkTypeOrRpcUrl: 'https://mainnet.infura.io/v3/abc123',
+        hasMultipleRpcs: true,
+      };
+
+      const props = {
+        ...defaultProps,
+        networks: [networkWithMultipleRpcs],
+      };
+
+      const { getByTestId } = render(<NetworkMultiSelectorList {...props} />);
+
+      expect(getByTestId('mock-flash-list')).toBeTruthy();
+    });
+
+    it('does not display secondary text when network has single RPC', () => {
+      const networkWithSingleRpc: Network = {
+        id: 'eip155:137',
+        name: 'Polygon',
+        isSelected: false,
+        imageSource: { uri: 'polygon.png' },
+        caipChainId: 'eip155:137' as CaipChainId,
+        networkTypeOrRpcUrl: 'https://polygon-rpc.com',
+        hasMultipleRpcs: false,
+      };
+
+      const props = {
+        ...defaultProps,
+        networks: [networkWithSingleRpc],
+      };
+
+      const { getByTestId } = render(<NetworkMultiSelectorList {...props} />);
+
+      expect(getByTestId('mock-flash-list')).toBeTruthy();
     });
   });
 });

@@ -245,9 +245,8 @@ describe('BaseLoginHandler', () => {
           new Response(JSON.stringify(mockRevokeResponse)),
         );
 
-      const revokeResult = await mockHandler.revokeRefreshToken(
-        'refresh-token',
-      );
+      const revokeResult =
+        await mockHandler.revokeRefreshToken('refresh-token');
 
       expect(revokeResult).toEqual({
         refresh_token: 'refresh-token',

@@ -51,7 +51,10 @@ const useApprovalRequest = () => {
   );
 
   const pageMeta = useMemo(
-    () => approvalRequest?.requestData?.pageMeta ?? {},
+    () =>
+      approvalRequest?.requestData?.pageMeta ??
+      approvalRequest?.requestData?.metadata?.pageMeta ??
+      {},
     [approvalRequest],
   );
 

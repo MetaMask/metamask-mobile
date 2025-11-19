@@ -1,4 +1,3 @@
-import { BtcAccountType, KeyringAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
@@ -21,16 +20,12 @@ import { TraceName, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
-import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
 import createStyles from '../../styles';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { FlashListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../Earn/selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -39,15 +34,11 @@ import SensitiveText, {
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
+import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
+
+import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
-
-const accountTypeLabel: Partial<Record<KeyringAccountType, string>> = {
-  [BtcAccountType.P2pkh]: 'Legacy',
-  [BtcAccountType.P2sh]: 'Nested SegWit',
-  [BtcAccountType.P2wpkh]: 'Native SegWit',
-  [BtcAccountType.P2tr]: 'Taproot',
-};
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -83,7 +74,6 @@ export const TokenListItemBip44 = React.memo(
     const { getEarnToken } = useEarnTokens();
 
     // Earn feature flags
-    const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
@@ -116,7 +106,6 @@ export const TokenListItemBip44 = React.memo(
         )}%`
       : undefined;
 
-    const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
     const earnToken = getEarnToken(asset as TokenI);
 
     const networkBadgeSource = useMemo(
@@ -141,36 +130,32 @@ export const TokenListItemBip44 = React.memo(
       });
     };
 
+    const isStakeable = useSelector((state: RootState) =>
+      selectIsStakeableToken(state, asset as TokenI),
+    );
+
     const renderEarnCta = useCallback(() => {
       if (!asset) {
         return null;
       }
-      const isCurrentAssetEth =
-        asset.isNative && asset.chainId?.startsWith('eip') && !asset.isStaked;
-      const shouldShowPooledStakingCta =
-        isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
+
+      const shouldShowStakeCta = isStakeable && !asset?.isStaked;
 
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
+      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [
-      asset,
-      earnToken,
-      isPooledStakingEnabled,
-      isStablecoinLendingEnabled,
-      isStakingSupportedChain,
-    ]);
+    }, [asset, earnToken, isStablecoinLendingEnabled, isStakeable]);
 
     if (!asset || !chainId) {
       return null;
     }
 
     const label = asset.accountType
-      ? accountTypeLabel[asset.accountType]
+      ? ACCOUNT_TYPE_LABELS[asset.accountType]
       : undefined;
 
     return (

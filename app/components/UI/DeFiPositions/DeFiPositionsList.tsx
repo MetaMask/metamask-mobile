@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, FlatList } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import {
@@ -34,6 +34,9 @@ import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { DefiEmptyState } from '../DefiEmptyState';
+import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
+
 export interface DeFiPositionsListProps {
   tabLabel: string;
 }
@@ -48,6 +51,9 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     selectDefiPositionsByEnabledNetworks,
   );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const formattedDeFiPositions = useMemo(() => {
     if (!defiPositions) {
@@ -132,38 +138,40 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     }
   }
 
-  if (formattedDeFiPositions.length === 0) {
-    // No positions found for the current account
-    return (
-      <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
-        <DeFiPositionsControlBar />
-        <DefiEmptyState twClassName="mx-auto mt-4" />
-      </View>
-    );
-  }
-
-  return (
-    <View
-      style={styles.wrapper}
-      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
-    >
-      <DeFiPositionsControlBar />
-      <FlatList
-        testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
-        data={formattedDeFiPositions}
-        renderItem={({ item: { chainId, protocolId, protocolAggregate } }) => (
+  const content = (
+    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}>
+      {formattedDeFiPositions.map(
+        ({ chainId, protocolId, protocolAggregate }) => (
           <DeFiPositionsListItem
+            key={`${chainId}-${protocolAggregate.protocolDetails.name}`}
             chainId={chainId}
             protocolId={protocolId}
             protocolAggregate={protocolAggregate}
             privacyMode={privacyMode}
           />
-        )}
-        keyExtractor={(protocolChainAggregate) =>
-          `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
-        }
-        scrollEnabled
-      />
+        ),
+      )}
+    </View>
+  );
+
+  return (
+    <View
+      style={!isHomepageRedesignV1Enabled ? styles.wrapper : undefined}
+      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
+    >
+      <DeFiPositionsControlBar />
+      {formattedDeFiPositions.length > 0 ? (
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{
+            testID: WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+          }}
+        >
+          {content}
+        </ConditionalScrollView>
+      ) : (
+        <DefiEmptyState twClassName="mx-auto mt-4" />
+      )}
     </View>
   );
 };

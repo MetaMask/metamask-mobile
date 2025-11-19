@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     marketContainer: {
       width: '100%',
-      backgroundColor: theme.colors.background.muted,
+      backgroundColor: theme.colors.background.section,
       borderRadius: 16,
       padding: 16,
       marginVertical: 8,
@@ -21,12 +21,12 @@ const styleSheet = (params: { theme: Theme }) => {
     buttonYes: {
       color: theme.colors.success.default,
       backgroundColor: theme.colors.success.muted,
-      paddingHorizontal: 18,
+      width: 68,
     },
     buttonNo: {
       color: theme.colors.error.default,
       backgroundColor: theme.colors.error.muted,
-      paddingHorizontal: 18,
+      width: 68,
     },
   });
 };

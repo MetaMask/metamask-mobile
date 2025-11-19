@@ -53,6 +53,7 @@ describe('useSwitchTokens', () => {
     };
     const setSourceTokenSpy = jest.spyOn(bridgeSlice, 'setSourceToken');
     const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+    const setSourceAmountSpy = jest.spyOn(bridgeSlice, 'setSourceAmount');
 
     const { result } = renderHookWithProvider(() => useSwitchTokens(), {
       state: {
@@ -65,10 +66,11 @@ describe('useSwitchTokens', () => {
       },
     });
 
-    await result.current.handleSwitchTokens();
+    await result.current.handleSwitchTokens()();
 
     expect(setSourceTokenSpy).toHaveBeenCalledWith(differentEvmToken);
     expect(setDestTokenSpy).toHaveBeenCalledWith(mockEvmToken);
+    expect(setSourceAmountSpy).toHaveBeenCalledWith(undefined);
 
     await waitFor(() => {
       expect(mockOnSetRpcTarget).toHaveBeenCalledWith({
@@ -88,6 +90,7 @@ describe('useSwitchTokens', () => {
   it('handles EVM to Solana chain switching', async () => {
     const setSourceTokenSpy = jest.spyOn(bridgeSlice, 'setSourceToken');
     const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+    const setSourceAmountSpy = jest.spyOn(bridgeSlice, 'setSourceAmount');
     const { result } = renderHookWithProvider(() => useSwitchTokens(), {
       state: {
         ...initialState,
@@ -99,10 +102,11 @@ describe('useSwitchTokens', () => {
       },
     });
 
-    await result.current.handleSwitchTokens();
+    await result.current.handleSwitchTokens()();
 
     expect(setSourceTokenSpy).toHaveBeenCalledWith(mockSolanaToken);
     expect(setDestTokenSpy).toHaveBeenCalledWith(mockEvmToken);
+    expect(setSourceAmountSpy).toHaveBeenCalledWith(undefined);
 
     await waitFor(() => {
       expect(mockOnNonEvmNetworkChange).toHaveBeenCalledWith(mockSolanaChainId);
@@ -112,6 +116,7 @@ describe('useSwitchTokens', () => {
   it('handles Solana to EVM chain switching', async () => {
     const setSourceTokenSpy = jest.spyOn(bridgeSlice, 'setSourceToken');
     const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+    const setSourceAmountSpy = jest.spyOn(bridgeSlice, 'setSourceAmount');
     const { result } = renderHookWithProvider(() => useSwitchTokens(), {
       state: {
         ...initialState,
@@ -123,10 +128,11 @@ describe('useSwitchTokens', () => {
       },
     });
 
-    await result.current.handleSwitchTokens();
+    await result.current.handleSwitchTokens()();
 
     expect(setSourceTokenSpy).toHaveBeenCalledWith(mockEvmToken);
     expect(setDestTokenSpy).toHaveBeenCalledWith(mockSolanaToken);
+    expect(setSourceAmountSpy).toHaveBeenCalledWith(undefined);
 
     await waitFor(() => {
       expect(mockOnSetRpcTarget).toHaveBeenCalledWith({
@@ -146,6 +152,7 @@ describe('useSwitchTokens', () => {
   it('does not switch networks when tokens are on the same chain', async () => {
     const setSourceTokenSpy = jest.spyOn(bridgeSlice, 'setSourceToken');
     const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+    const setSourceAmountSpy = jest.spyOn(bridgeSlice, 'setSourceAmount');
     const sameChainToken: BridgeToken = {
       ...mockEvmToken,
       address: '0x0000000000000000000000000000000000000002',
@@ -162,10 +169,11 @@ describe('useSwitchTokens', () => {
       },
     });
 
-    await result.current.handleSwitchTokens();
+    await result.current.handleSwitchTokens()();
 
     expect(setSourceTokenSpy).toHaveBeenCalledWith(sameChainToken);
     expect(setDestTokenSpy).toHaveBeenCalledWith(mockEvmToken);
+    expect(setSourceAmountSpy).toHaveBeenCalledWith(undefined);
 
     await waitFor(() => {
       expect(mockOnSetRpcTarget).not.toHaveBeenCalled();
@@ -176,6 +184,7 @@ describe('useSwitchTokens', () => {
   it('calls BridgeController.resetState when switching tokens', async () => {
     const setSourceTokenSpy = jest.spyOn(bridgeSlice, 'setSourceToken');
     const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+    const setSourceAmountSpy = jest.spyOn(bridgeSlice, 'setSourceAmount');
     const { result } = renderHookWithProvider(() => useSwitchTokens(), {
       state: {
         ...initialState,
@@ -187,10 +196,59 @@ describe('useSwitchTokens', () => {
       },
     });
 
-    await result.current.handleSwitchTokens();
+    await result.current.handleSwitchTokens()();
 
     expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
     expect(setSourceTokenSpy).toHaveBeenCalledWith(mockSolanaToken);
     expect(setDestTokenSpy).toHaveBeenCalledWith(mockEvmToken);
+    expect(setSourceAmountSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('sets source amount to destination amount when provided', async () => {
+    const destTokenAmount = '10.5';
+    const setSourceTokenSpy = jest.spyOn(bridgeSlice, 'setSourceToken');
+    const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+    const setSourceAmountSpy = jest.spyOn(bridgeSlice, 'setSourceAmount');
+
+    const { result } = renderHookWithProvider(() => useSwitchTokens(), {
+      state: {
+        ...initialState,
+        bridge: {
+          ...initialState.bridge,
+          sourceToken: mockEvmToken,
+          destToken: mockSolanaToken,
+        },
+      },
+    });
+
+    await result.current.handleSwitchTokens(destTokenAmount)();
+
+    expect(setSourceTokenSpy).toHaveBeenCalledWith(mockSolanaToken);
+    expect(setDestTokenSpy).toHaveBeenCalledWith(mockEvmToken);
+    expect(setSourceAmountSpy).toHaveBeenCalledWith(destTokenAmount);
+  });
+
+  it('clears source amount when destination amount is not provided', async () => {
+    const setSourceTokenSpy = jest.spyOn(bridgeSlice, 'setSourceToken');
+    const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+    const setSourceAmountSpy = jest.spyOn(bridgeSlice, 'setSourceAmount');
+
+    const { result } = renderHookWithProvider(() => useSwitchTokens(), {
+      state: {
+        ...initialState,
+        bridge: {
+          ...initialState.bridge,
+          sourceToken: mockEvmToken,
+          destToken: mockSolanaToken,
+          sourceAmount: '5.0',
+        },
+      },
+    });
+
+    await result.current.handleSwitchTokens()();
+
+    expect(setSourceTokenSpy).toHaveBeenCalledWith(mockSolanaToken);
+    expect(setDestTokenSpy).toHaveBeenCalledWith(mockEvmToken);
+    expect(setSourceAmountSpy).toHaveBeenCalledWith(undefined);
   });
 });

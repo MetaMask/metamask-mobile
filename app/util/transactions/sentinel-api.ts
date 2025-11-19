@@ -1,6 +1,7 @@
 import { convertHexToDecimal } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 
+// TODO: Make it configurable via environment variable
 const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
 const ENDPOINT_NETWORKS = 'networks';
 

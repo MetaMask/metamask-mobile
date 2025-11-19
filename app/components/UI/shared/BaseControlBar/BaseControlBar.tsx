@@ -1,5 +1,5 @@
 import React, { useCallback, ReactNode, useMemo, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { SolScope } from '@metamask/keyring-api';
@@ -77,6 +77,10 @@ export interface BaseControlBarProps {
    * Custom wrapper component for the control buttons
    */
   customWrapper?: 'outer' | 'none';
+  /**
+   * Custom style to apply to the action bar wrapper
+   */
+  style?: ViewStyle;
 }
 
 const BaseControlBar: React.FC<BaseControlBarProps> = ({
@@ -88,6 +92,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   additionalButtons,
   useEvmSelectionLogic = false,
   customWrapper = 'outer',
+  style,
 }) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
   const navigation = useNavigation();
@@ -202,7 +207,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
           >
             {displayAllNetworks
               ? strings('wallet.popular_networks')
-              : currentNetworkName ?? strings('wallet.current_network')}
+              : (currentNetworkName ?? strings('wallet.current_network'))}
           </TextComponent>
         </View>
       ) : (
@@ -213,7 +218,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
         >
           {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
             ? strings('wallet.popular_networks')
-            : networkName ?? strings('wallet.current_network')}
+            : (networkName ?? strings('wallet.current_network'))}
         </TextComponent>
       )}
     </>
@@ -240,6 +245,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       }
       style={isDisabled ? styles.controlButtonDisabled : styles.controlButton}
       disabled={isDisabled}
+      activeOpacity={0.2}
     />
   );
 
@@ -255,7 +261,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   if (customWrapper === 'none') {
     return (
-      <View style={styles.actionBarWrapper}>
+      <View style={[styles.actionBarWrapper, style]}>
         {networkButton}
         {sortButton}
         {additionalButtons}
@@ -264,7 +270,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   }
 
   return (
-    <View style={styles.actionBarWrapper}>
+    <View style={[styles.actionBarWrapper, style]}>
       <View style={styles.controlButtonOuterWrapper}>
         {networkButton}
         <View style={styles.controlButtonInnerWrapper}>

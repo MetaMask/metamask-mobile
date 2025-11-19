@@ -11,16 +11,20 @@ import {
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import {
+  selectPopularNetworkConfigurationsByCaipChainId,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+import Engine from '../../../core/Engine';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 
 interface UseNetworkSelectionOptions {
@@ -67,6 +71,10 @@ export const useNetworkSelection = ({
     selectPopularNetworkConfigurationsByCaipChainId,
   );
 
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const internalAccounts = useSelector(selectInternalAccounts);
   ///: END:ONLY_INCLUDE_IF
@@ -105,6 +113,37 @@ export const useNetworkSelection = ({
   );
   ///: END:ONLY_INCLUDE_IF
 
+  /**
+   * Helper function to switch the active network in MultichainNetworkController.
+   * This synchronizes the active network state when a network is enabled.
+   * For EVM networks, it uses the networkClientId from rpcEndpoints.
+   * For non-EVM networks (like Solana), it uses the caipChainId directly.
+   */
+  const switchActiveNetwork = useCallback(
+    async (caipChainId: CaipChainId) => {
+      const { MultichainNetworkController } = Engine.context;
+
+      // For non-EVM chains (e.g., Solana, Bitcoin), use the caipChainId directly
+      if (isNonEvmChainId(caipChainId)) {
+        await MultichainNetworkController.setActiveNetwork(caipChainId);
+        return;
+      }
+
+      // For EVM chains, use the networkClientId from rpcEndpoints
+      const networkConfig = networkConfigurations[caipChainId];
+      if (!networkConfig || !('rpcEndpoints' in networkConfig)) {
+        // Configuration is missing or lacks RPC endpoints
+        return;
+      }
+
+      const { rpcEndpoints, defaultRpcEndpointIndex } = networkConfig;
+      const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+
+      await MultichainNetworkController.setActiveNetwork(networkClientId);
+    },
+    [networkConfigurations],
+  );
+
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
@@ -133,11 +172,18 @@ export const useNetworkSelection = ({
         Engine.setSelectedAddress(bitcoAccountInScope.address);
       }
       ///: END:ONLY_INCLUDE_IF
+
+      // Enable the network in NetworkEnablementController
       await enableNetwork(chainId);
+
+      // Switch the active network in MultichainNetworkController
+      await switchActiveNetwork(chainId);
+
       onComplete?.();
     },
     [
       enableNetwork,
+      switchActiveNetwork,
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       bitcoinInternalAccounts,
       ///: END:ONLY_INCLUDE_IF(bitcoin)
@@ -147,35 +193,27 @@ export const useNetworkSelection = ({
   const selectAllPopularNetworks = useCallback(
     async (onComplete?: () => void) => {
       await enableAllPopularNetworks();
+
+      // Switch the active network in MultichainNetworkController to ethereum mainnet
+      await switchActiveNetwork('eip155:1');
+
       onComplete?.();
     },
-    [enableAllPopularNetworks],
+    [enableAllPopularNetworks, switchActiveNetwork],
   );
 
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-      if (chainId.includes(KnownCaipNamespace.Bip122)) {
-        const bitcoAccountInScope = bitcoinInternalAccounts.find((account) =>
-          account.scopes.includes(chainId),
-        );
-
-        if (bitcoAccountInScope) {
-          Engine.setSelectedAddress(bitcoAccountInScope.address);
-        }
-      }
-      ///: END:ONLY_INCLUDE_IF
-
+      // Enable the network in NetworkEnablementController
       await enableNetwork(chainId);
+
+      // Switch the active network in MultichainNetworkController
+      await switchActiveNetwork(chainId);
+
       onComplete?.();
     },
-    [
-      enableNetwork,
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-      bitcoinInternalAccounts,
-      ///: END:ONLY_INCLUDE_IF(bitcoin)
-    ],
+    [enableNetwork, switchActiveNetwork],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */

@@ -97,7 +97,6 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
               >
                 <TouchableOpacity
                   disabled={false}
-                  onPressIn={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -247,7 +246,6 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
               >
                 <TouchableOpacity
                   disabled={false}
-                  onPressIn={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -278,7 +276,6 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                       fill="currentColor"
                       height={20}
                       name="CheckBold"
-                      onPressIn={[Function]}
                       style={
                         {
                           "height": 20,

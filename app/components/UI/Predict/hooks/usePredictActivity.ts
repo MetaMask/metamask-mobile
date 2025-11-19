@@ -1,9 +1,10 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
 import type { PredictActivity } from '../types';
+import { ensureError } from '../utils/predictErrorHandler';
 
 interface UsePredictActivityOptions {
   providerId?: string;
@@ -29,10 +30,6 @@ export function usePredictActivity(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
-
   const loadActivity = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
       const { isRefresh = false } = loadOptions || {};
@@ -47,7 +44,6 @@ export function usePredictActivity(
 
         const controller = Engine.context.PredictController;
         const data = await controller.getActivity({
-          address: selectedInternalAccountAddress,
           providerId,
         });
         setActivity(data ?? []);
@@ -55,12 +51,29 @@ export function usePredictActivity(
         const message =
           err instanceof Error ? err.message : 'Failed to load activity';
         setError(message);
+
+        // Capture exception with activity loading context (no user address)
+        Logger.error(ensureError(err), {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            component: 'usePredictActivity',
+          },
+          context: {
+            name: 'usePredictActivity',
+            data: {
+              method: 'loadActivity',
+              action: 'activity_load',
+              operation: 'data_fetching',
+              providerId,
+            },
+          },
+        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
       }
     },
-    [providerId, selectedInternalAccountAddress],
+    [providerId],
   );
 
   useEffect(() => {

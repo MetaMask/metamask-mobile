@@ -46,7 +46,7 @@ export function handleMetaMaskDeeplink({
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
           screen: Routes.SDK.RETURN_TO_DAPP_NOTIFICATION,
-          hideReturnToApp: params.hr,
+          hideReturnToApp: !!params.hr,
         },
       );
     } else if (params.channelId) {

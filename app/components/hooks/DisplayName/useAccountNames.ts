@@ -18,13 +18,16 @@ export function useAccountNames(requests: UseDisplayNameRequest[]) {
   );
 
   if (isMultichainAccountsState2Enabled) {
-    const accountGroupNames = accountGroups.reduce((acc, group) => {
-      group.accounts.forEach((accountId) => {
-        const account = internalAccountsById[accountId];
-        acc[account.address.toLowerCase()] = group.metadata.name;
-      });
-      return acc;
-    }, {} as Record<string, string>);
+    const accountGroupNames = accountGroups.reduce(
+      (acc, group) => {
+        group.accounts.forEach((accountId) => {
+          const account = internalAccountsById[accountId];
+          acc[account.address.toLowerCase()] = group.metadata.name;
+        });
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
     return requests.map((request) => {
       const { value } = request;

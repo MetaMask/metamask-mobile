@@ -6,7 +6,6 @@ import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import EarnTokenList from '.';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import * as portfolioNetworkUtils from '../../../../../util/networks';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -46,10 +45,6 @@ jest.mock('../../../../../core/Engine', () => ({
       setActiveNetwork: jest.fn(),
     },
   },
-}));
-
-jest.mock('../../../../../util/networks', () => ({
-  isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
 }));
 
 const mockNavigate = jest.fn();
@@ -224,10 +219,6 @@ describe('EarnTokenList', () => {
     (
       selectStablecoinLendingEnabledFlag as unknown as jest.Mock
     ).mockReturnValue(false);
-
-    jest
-      .spyOn(portfolioNetworkUtils, 'isPortfolioViewEnabled')
-      .mockReturnValueOnce(false);
 
     const { toJSON } = renderWithProvider(<EarnTokenList />, {
       state: initialState,
@@ -773,10 +764,6 @@ describe('EarnTokenList', () => {
       (
         selectStablecoinLendingEnabledFlag as unknown as jest.Mock
       ).mockReturnValue(false);
-
-      jest
-        .spyOn(portfolioNetworkUtils, 'isPortfolioViewEnabled')
-        .mockReturnValueOnce(false);
 
       renderWithProvider(<EarnTokenList />, {
         state: initialState,

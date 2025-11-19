@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CardAuthentication Component Component Rendering matches snapshot 1`] = `
+exports[`CardAuthentication Component Login Step - Component Rendering matches login step snapshot 1`] = `
 <View
   style={
     {
@@ -661,6 +661,7 @@ exports[`CardAuthentication Component Component Rendering matches snapshot 1`] =
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 20,
                                             "opacity": 1,
                                             "paddingVertical": 2,
                                             "textAlignVertical": "center",
@@ -774,6 +775,7 @@ exports[`CardAuthentication Component Component Rendering matches snapshot 1`] =
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 20,
                                             "opacity": 1,
                                             "paddingVertical": 2,
                                             "textAlignVertical": "center",
@@ -813,8 +815,7 @@ exports[`CardAuthentication Component Component Rendering matches snapshot 1`] =
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
-                                      "marginBottom": 32,
-                                      "marginTop": 28,
+                                      "opacity": 0.6,
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
@@ -834,6 +835,45 @@ exports[`CardAuthentication Component Component Rendering matches snapshot 1`] =
                                     }
                                   >
                                     Log in
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "transparent",
+                                      "borderRadius": 12,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                  testID="signup-button"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    card.card_authentication.signup_button
                                   </Text>
                                 </TouchableOpacity>
                               </View>

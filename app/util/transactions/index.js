@@ -32,7 +32,17 @@ import {
 } from '../number';
 import AppConstants from '../../core/AppConstants';
 import { isMainnetByChainId } from '../networks';
-import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
+import FIRST_PARTY_CONTRACT_NAMES from '../../constants/first-party-contracts';
+import {
+  UINT256_BN_MAX_VALUE,
+  TX_SUBMITTED,
+  TX_APPROVED,
+  TX_UNAPPROVED,
+  TX_PENDING,
+  TX_CANCELLED,
+  TX_REJECTED,
+  TX_FAILED,
+} from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 import {
   addCurrencies,
@@ -201,6 +211,9 @@ const actionKeys = {
   ),
   [TransactionType.predictClaim]: strings(
     'transactions.tx_review_predict_claim',
+  ),
+  [TransactionType.predictWithdraw]: strings(
+    'transactions.tx_review_predict_withdraw',
   ),
 };
 
@@ -544,6 +557,10 @@ export async function getTransactionActionKey(transaction, chainId) {
     return TransactionType.predictClaim;
   }
 
+  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
+    return TransactionType.predictWithdraw;
+  }
+
   if (!to) {
     return CONTRACT_METHOD_DEPLOY;
   }
@@ -553,6 +570,12 @@ export async function getTransactionActionKey(transaction, chainId) {
   }
 
   if (transaction.type === TransactionType.bridge) {
+    return BRIDGE_TRANSACTION_ACTION_KEY;
+  }
+
+  // Check if the 'to' address is a known bridge contract for this chainId
+  const bridgeAddress = FIRST_PARTY_CONTRACT_NAMES.Bridge?.[chainId];
+  if (bridgeAddress && to?.toLowerCase() === bridgeAddress.toLowerCase()) {
     return BRIDGE_TRANSACTION_ACTION_KEY;
   }
 
@@ -592,6 +615,26 @@ export async function getTransactionActionKey(transaction, chainId) {
 }
 
 /**
+ * Checks if a transaction is in an incomplete state (not yet confirmed)
+ * Includes pending, rejected, cancelled, and failed transactions
+ *
+ * @param {string | undefined} status - The transaction status
+ * @returns {boolean} - Whether the transaction is incomplete
+ */
+export function isTransactionIncomplete(status) {
+  if (!status) return false;
+  return [
+    TX_SUBMITTED,
+    TX_APPROVED,
+    TX_UNAPPROVED,
+    TX_PENDING,
+    TX_CANCELLED,
+    TX_REJECTED,
+    TX_FAILED,
+  ].includes(status);
+}
+
+/**
  * Returns corresponding transaction type message to show in UI
  *
  * @param {object} tx - Transaction object
@@ -600,6 +643,28 @@ export async function getTransactionActionKey(transaction, chainId) {
  */
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
   const actionKey = await getTransactionActionKey(tx, chainId);
+
+  // Handle token transfers with direction logic (similar to ETH transfers)
+  if (actionKey === SEND_TOKEN_ACTION_KEY) {
+    const fromAddress = safeToChecksumAddress(tx.txParams.from)?.toLowerCase();
+    const toAddress = safeToChecksumAddress(tx.txParams.to)?.toLowerCase();
+    const selectedAddr = selectedAddress?.toLowerCase();
+
+    const sentByUser = fromAddress === selectedAddr;
+    const incoming = !sentByUser;
+    const selfSent = fromAddress === selectedAddr && toAddress === selectedAddr;
+
+    if (selfSent) {
+      return strings('transactions.self_sent_tokens');
+    }
+
+    if (incoming) {
+      return strings('transactions.received_tokens');
+    }
+
+    return strings('transactions.sent_tokens');
+  }
+
   if (actionKey === SEND_ETHER_ACTION_KEY) {
     let currencySymbol = ticker;
 
@@ -613,19 +678,42 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
       currencySymbol = tx.transferInformation.symbol;
     }
 
-    const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
-    const selfSent =
-      incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
+    // Determine direction based on who initiated the transaction (txParams.from)
+    // This matches the logic in decodeIncomingTransfer (utils.js line 307)
+    // For both token transfers and ETH transfers:
+    // - If txParams.from === selectedAddress, user sent it (outgoing)
+    // - If txParams.from !== selectedAddress, user received it (incoming)
+    const fromAddress = safeToChecksumAddress(tx.txParams.from)?.toLowerCase();
+    const toAddress = safeToChecksumAddress(tx.txParams.to)?.toLowerCase();
+    const selectedAddr = selectedAddress?.toLowerCase();
 
-    return incoming
-      ? selfSent
-        ? currencySymbol
-          ? strings('transactions.self_sent_unit', { unit: currencySymbol })
-          : strings('transactions.self_sent_ether')
-        : currencySymbol
+    // Check if transaction was sent by the selected address
+    const sentByUser = fromAddress === selectedAddr;
+    const incoming = !sentByUser;
+    const selfSent = fromAddress === selectedAddr && toAddress === selectedAddr;
+
+    // Check if transaction is incomplete (not confirmed)
+    const isIncomplete = isTransactionIncomplete(tx.status);
+
+    // Handle self-sent transactions first
+    if (selfSent) {
+      return currencySymbol
+        ? strings('transactions.self_sent_unit', { unit: currencySymbol })
+        : strings('transactions.self_sent_ether');
+    }
+
+    if (incoming) {
+      return currencySymbol
         ? strings('transactions.received_unit', { unit: currencySymbol })
-        : strings('transactions.received_ether')
-      : currencySymbol
+        : strings('transactions.received_ether');
+    }
+    // For outgoing transactions, check status
+    if (isIncomplete) {
+      return currencySymbol
+        ? strings('transactions.send_unit', { unit: currencySymbol })
+        : strings('transactions.send_ether');
+    }
+    return currencySymbol
       ? strings('transactions.sent_unit', { unit: currencySymbol })
       : strings('transactions.sent_ether');
   }
@@ -1692,6 +1780,12 @@ export const getIsSwapApproveOrSwapTransaction = (
   chainId,
 ) => {
   if (!data) {
+    return false;
+  }
+
+  // Exclude token transfers (e.g., WETH sends) - these are not swap transactions
+  const fourByteSignature = getFourByteSignature(data);
+  if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
     return false;
   }
 

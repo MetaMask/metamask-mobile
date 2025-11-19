@@ -105,10 +105,11 @@ import migration101 from './101';
 import migration102 from './102';
 import migration103 from './103';
 import migration104 from './104';
+import migration105 from './105';
+import migration106 from './106';
+import migration107 from './107';
 
 // Add migrations above this line
-import { validatePostMigrationState } from '../validateMigration/validateMigration';
-import { RootState } from '../../reducers';
 import { ControllerStorage } from '../persistConfig';
 import { captureException } from '@sentry/react-native';
 
@@ -228,13 +229,13 @@ export const migrationList: MigrationsList = {
   102: migration102,
   103: migration103,
   104: migration104,
+  105: migration105,
+  106: migration106,
+  107: migration107,
 };
 
 // Enable both synchronous and asynchronous migrations
-export const asyncifyMigrations = (
-  inputMigrations: MigrationsList,
-  onMigrationsComplete?: (state: unknown) => void,
-) => {
+export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
   const lastVersion = Math.max(...Object.keys(inputMigrations).map(Number));
   let didInflate = false;
 
@@ -250,6 +251,9 @@ export const asyncifyMigrations = (
    * - Migrations 105+ still expect to work with the old engine.backgroundState format
    * - This function temporarily recreates the old format so migrations can run
    * - "unpacking" distributed files back into a single object
+   *
+   * CRITICAL: Crashes if controller data cannot be loaded.
+   * This ensures migrations run with complete data and prevents silent data loss.
    */
   const inflateFromControllers = async (state: unknown) => {
     try {
@@ -274,8 +278,22 @@ export const asyncifyMigrations = (
         },
       } as StateWithEngine;
       return inflated as unknown;
-    } catch {
-      return state;
+    } catch (error) {
+      captureException(
+        new Error(
+          `inflateFromControllers: Critical error loading controller data: ${String(
+            error,
+          )}`,
+        ),
+      );
+
+      // CRASH on load failure, don't allow migrations to run with incomplete data
+      // This could result in data loss if migrations can't access all controller state
+      throw new Error(
+        `Critical: Failed to load controller data for migration. ` +
+          `Cannot continue safely as migrations may corrupt data without complete state. ` +
+          `App will restart to attempt recovery. Error: ${String(error)}`,
+      );
     }
   };
 
@@ -288,9 +306,9 @@ export const asyncifyMigrations = (
    * - This function "redistributes" the single object back into individual controller files
    * - Then strips engine.backgroundState from redux to maintain the new architecture
    * - "repacking" the single object back into distributed files
-   * 
-   * CRITICAL: Only strips engine.backgroundState if ALL controllers save successfully.
-   * Failed controllers are preserved to prevent data loss.
+   *
+   * CRITICAL: Crashes immediately if ANY controller fails to save.
+   * This prevents partial migration state corruption and ensures clean recovery.
    */
   const deflateToControllersAndStrip = async (state: unknown) => {
     try {
@@ -300,10 +318,9 @@ export const asyncifyMigrations = (
         string,
         unknown,
       ][];
-      
-      let failedControllers = 0;
-      const failedControllerStates: Record<string, unknown> = {};
 
+      // Save all controller states to individual storage
+      // CRITICAL: If ANY controller fails to save, crash the app immediately
       await Promise.all(
         entries.map(async ([controllerName, controllerState]) => {
           try {
@@ -312,7 +329,7 @@ export const asyncifyMigrations = (
               JSON.stringify(controllerState),
             );
           } catch (error) {
-            failedControllers++;
+            // Log the error for debugging
             captureException(
               new Error(
                 `deflateToControllersAndStrip: Failed to save ${controllerName} to individual storage: ${String(
@@ -321,33 +338,20 @@ export const asyncifyMigrations = (
               ),
             );
 
-            // Preserve failed controller state to prevent data loss
-            failedControllerStates[controllerName] = controllerState;
+            // CRASH immediately, don't allow partial migration success
+            // This ensures clean recovery and prevents state corruption
+            throw new Error(
+              `Critical: Migration failed for controller '${controllerName}'. ` +
+                `Cannot continue with partial migration as this would corrupt user data. ` +
+                `App will restart to attempt recovery. Error: ${String(error)}`,
+            );
           }
         }),
       );
 
-      // Only strip engine.backgroundState if ALL controllers saved successfully
-      if (failedControllers === 0) {
-        // Return state without engine slice (kept out of redux)
-        const { engine: _engine, ...rest } = s;
-        return rest as unknown;
-      }
-      
-      // Keep failed controllers in engine.backgroundState to prevent data loss
-      captureException(
-        new Error(
-          `deflateToControllersAndStrip: ${failedControllers} controllers failed to save, preserving their state in redux-persist`,
-        ),
-      );
-
-      return {
-        ...s,
-        engine: {
-          ...s.engine,
-          backgroundState: failedControllerStates,
-        },
-      };
+      // All controllers saved successfully, safe to strip engine state
+      const { engine: _engine, ...rest } = s;
+      return rest as unknown;
     } catch (error) {
       captureException(
         new Error(
@@ -356,7 +360,14 @@ export const asyncifyMigrations = (
           )}`,
         ),
       );
-      return state;
+
+      // CRASH on any deflation error, don't return original state
+      // Returning original state would mean user continues with unmigrated data
+      throw new Error(
+        `Critical: deflateToControllersAndStrip failed completely. ` +
+          `Cannot continue safely as this indicates severe migration system failure. ` +
+          `App will restart to attempt recovery. Error: ${String(error)}`,
+      );
     }
   };
 
@@ -367,20 +378,13 @@ export const asyncifyMigrations = (
       ) => {
         let state = await incomingState;
 
-        if (!didInflate && Number(migrationNumber) > 104) {
+        if (!didInflate && Number(migrationNumber) > 106) {
           state = await inflateFromControllers(state);
           didInflate = true;
         }
 
         const migratedState = await migrationFunction(state);
-
-        if (
-          onMigrationsComplete &&
-          Number(migrationNumber) === Object.keys(inputMigrations).length - 1
-        ) {
-          onMigrationsComplete(migratedState);
-        }
-        if (Number(migrationNumber) === lastVersion && lastVersion > 104) {
+        if (Number(migrationNumber) === lastVersion && lastVersion >= 106) {
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&
@@ -401,9 +405,9 @@ export const asyncifyMigrations = (
 };
 
 // Convert all migrations to async
-export const migrations = asyncifyMigrations(migrationList, (state) => {
-  validatePostMigrationState(state as RootState);
-}) as unknown as MigrationManifest;
+export const migrations = asyncifyMigrations(
+  migrationList,
+) as unknown as MigrationManifest;
 
 // The latest (i.e. highest) version number.
 export const version = Object.keys(migrations).length - 1;

@@ -29,7 +29,10 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
+import { getVaultFromBackup } from '../../../core/BackupVault';
+import Logger from '../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { isE2E } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -59,10 +62,11 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
+import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import FoxAnimation from './FoxAnimation';
-import OnboardingAnimation from './OnboardingAnimation';
+import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
+import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -282,6 +286,7 @@ class Onboarding extends PureComponent {
   incomingDataStr = '';
   dataToSync = null;
   mounted = false;
+  hasCheckedVaultBackup = false; // Prevent multiple vault backup checks
 
   warningCallback = () => true;
 
@@ -322,6 +327,7 @@ class Onboarding extends PureComponent {
     this.props.disableNewPrivacyPolicyToast();
 
     InteractionManager.runAfterInteractions(() => {
+      this.checkForMigrationFailureAndVaultBackup();
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
         this.showNotification();
@@ -345,6 +351,56 @@ class Onboarding extends PureComponent {
     const { existingUser } = this.props;
     if (existingUser) {
       this.setState({ existingUser: true });
+    }
+  }
+
+  /**
+   * Check for migration failure scenario and vault backup availability
+   * This detects when a migration has failed and left the user with a corrupted state
+   * but a valid vault backup still exists in the secure keychain
+   */
+  async checkForMigrationFailureAndVaultBackup() {
+    // Prevent multiple checks - only run once per instance
+    if (this.hasCheckedVaultBackup) {
+      return;
+    }
+
+    this.hasCheckedVaultBackup = true;
+
+    // Skip check in E2E test environment
+    // E2E tests start with fresh state but may have vault backups from fixtures/previous runs
+    // This would trigger false positive vault recovery redirects and break onboarding tests
+    if (isE2E) {
+      return;
+    }
+
+    // Skip check if this is an intentional wallet reset
+    // (route.params.delete is set when user explicitly resets their wallet)
+    if (this.props.route?.params?.delete) {
+      return;
+    }
+
+    const { existingUser } = this.props;
+
+    try {
+      const vaultBackupResult = await getVaultFromBackup();
+
+      // Detect migration failure scenario:
+      // - existingUser is false (Redux state was corrupted/reset)
+      // - BUT vault backup exists (user previously had a wallet)
+      const migrationFailureDetected =
+        !existingUser && vaultBackupResult.success && vaultBackupResult.vault;
+
+      if (migrationFailureDetected) {
+        this.props.navigation.reset({
+          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+        });
+      }
+    } catch (error) {
+      Logger.error(
+        error,
+        'Failed to check for migration failure and vault backup',
+      );
     }
   }
 
@@ -442,6 +498,7 @@ class Onboarding extends PureComponent {
             accountName: result.accountName,
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
+            provider,
           });
         } else {
           trace({
@@ -459,6 +516,7 @@ class Onboarding extends PureComponent {
                 accountName: result.accountName,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: this.onboardingTraceCtx,
+                provider,
               },
             );
           } else {
@@ -467,6 +525,7 @@ class Onboarding extends PureComponent {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
               onboardingTraceCtx: this.onboardingTraceCtx,
+              provider,
             });
           }
         }
@@ -497,6 +556,7 @@ class Onboarding extends PureComponent {
             accountName: result.accountName,
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
+            provider,
           });
         }
       }
@@ -569,6 +629,7 @@ class Onboarding extends PureComponent {
       const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
+        !createWallet,
       ).catch((error) => {
         this.props.unsetLoading();
         this.handleLoginError(error, provider);
@@ -884,6 +945,13 @@ class Onboarding extends PureComponent {
           <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
 
           <View>{this.handleSimpleNotification()}</View>
+
+          <FastOnboarding
+            onPressContinueWithGoogle={this.onPressContinueWithGoogle}
+            onPressContinueWithApple={this.onPressContinueWithApple}
+            onPressImport={this.onPressImport}
+            onPressCreate={this.onPressCreate}
+          />
         </SafeAreaView>
       </ErrorBoundary>
     );

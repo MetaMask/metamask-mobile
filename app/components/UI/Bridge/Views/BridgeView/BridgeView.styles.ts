@@ -22,7 +22,6 @@ export const createStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: theme.colors.background.default,
-      paddingTop: 12,
     },
     button: {
       width: '100%',
@@ -54,7 +53,8 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingTop: 1,
     },
     quoteContainer: {
-      paddingHorizontal: 24,
+      flex: 1,
+      justifyContent: 'flex-end',
     },
     keypadContainer: {
       flex: 1,
@@ -69,7 +69,6 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     dynamicContent: {
       flex: 1,
-      paddingBottom: 12,
       justifyContent: 'flex-start',
     },
     keypadContainerWithDestinationPicker: {

@@ -1,5 +1,5 @@
 /* eslint-disable */
-// Mock for @deeeed/hyperliquid-node20 SDK
+// Mock for @nktkas/hyperliquid SDK
 
 const mockExchangeClient = {
   order: jest.fn(),

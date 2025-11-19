@@ -390,7 +390,7 @@ describe('usePerpsPositions', () => {
       expect(result.current.isRefreshing).toBe(true);
       expect(result.current.isLoading).toBe(false);
 
-      act(() => {
+      await act(async () => {
         resolvePromise(mockPositions);
       });
 
@@ -549,7 +549,7 @@ describe('usePerpsPositions', () => {
       expect(result.current.isRefreshing).toBe(true);
       expect(result.current.isLoading).toBe(false);
 
-      act(() => {
+      await act(async () => {
         resolvePromise(mockPositions);
       });
 

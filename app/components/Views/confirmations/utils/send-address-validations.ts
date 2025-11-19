@@ -12,7 +12,7 @@ import {
 import { memoizedGetTokenStandardAndDetails } from './token';
 import { isBtcMainnetAddress } from '../../../../core/Multichain/utils';
 
-const LOWER_CASED_BURN_ADDRESSES = [
+export const LOWER_CASED_BURN_ADDRESSES = [
   '0x0000000000000000000000000000000000000000',
   '0x000000000000000000000000000000000000dead',
 ];

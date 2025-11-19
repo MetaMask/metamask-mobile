@@ -26,7 +26,8 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
@@ -42,12 +43,15 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
+import { zeroAddress } from 'ethereumjs-util';
+import parseAmount from '../../../../../util/parseAmount';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -84,8 +88,8 @@ const createStyles = ({
     },
     input: {
       borderWidth: 0,
-      lineHeight: 50,
-      height: 50,
+      lineHeight: vars.fontSize * 1.25,
+      height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
     },
     currencyContainer: {
@@ -111,16 +115,58 @@ const formatAddress = (address?: string) => {
   return renderShortAddress(address, 4);
 };
 
+/**
+ * Formats a number string with locale-appropriate separators
+ * Uses Intl.NumberFormat to respect user's locale (e.g., en-US uses commas, de-DE uses periods)
+ */
+const formatWithLocaleSeparators = (value: string): string => {
+  if (!value || value === '0') return value;
+
+  const numericValue = parseFloat(value);
+  if (isNaN(numericValue)) return value;
+
+  // Determine the number of decimal places in the original value
+  const decimalPlaces = value.includes('.')
+    ? value.split('.')[1]?.length || 0
+    : 0;
+
+  try {
+    // Format with locale-appropriate separators using user's locale
+    const formatted = getIntlNumberFormatter(I18n.locale, {
+      useGrouping: true,
+      minimumFractionDigits: decimalPlaces,
+      maximumFractionDigits: decimalPlaces,
+    }).format(numericValue);
+
+    return formatted;
+  } catch (error) {
+    // Fallback to simple comma formatting if Intl fails
+    console.error('Number formatting error:', error);
+    return value;
+  }
+};
+
 export const getDisplayAmount = (
   amount?: string,
   tokenType?: TokenInputAreaType,
+  isMaxAmount?: boolean,
 ) => {
   if (amount === undefined) return amount;
 
-  const displayAmount =
-    tokenType === TokenInputAreaType.Source
-      ? amount
-      : parseAmount(amount, MAX_DECIMALS);
+  // Only truncate for display when:
+  // 1. Amount came from Max button (isMaxAmount = true), OR
+  // 2. Destination token (always truncate)
+  const shouldTruncate =
+    tokenType === TokenInputAreaType.Destination || isMaxAmount;
+
+  const displayAmount = shouldTruncate
+    ? parseAmount(amount, MAX_DECIMALS)
+    : amount;
+
+  // Format with locale-appropriate separators
+  if (displayAmount && displayAmount !== '0') {
+    return formatWithLocaleSeparators(displayAmount);
+  }
 
   return displayAmount;
 };
@@ -131,6 +177,7 @@ export interface TokenInputAreaRef {
 
 interface TokenInputAreaProps {
   amount?: string;
+  isMaxAmount?: boolean;
   token?: BridgeToken;
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
@@ -155,6 +202,7 @@ export const TokenInputArea = forwardRef<
   (
     {
       amount,
+      isMaxAmount = false,
       token,
       tokenBalance,
       networkImageSource,
@@ -256,18 +304,24 @@ export const TokenInputArea = forwardRef<
           }`
         : undefined;
 
-    const isNativeAsset = isNativeAddress(token?.address);
+    // Polygon native token address can be 0x0000000000000000000000000000000000001010
+    // so we need to use the zero address for the token address
+    const tokenAddress =
+      token?.chainId === CHAIN_IDS.POLYGON &&
+      token?.address === POLYGON_NATIVE_TOKEN
+        ? zeroAddress()
+        : token?.address;
+
+    const isNativeAsset = isNativeAddress(tokenAddress);
     const formattedAddress =
-      token?.address && !isNativeAsset
-        ? formatAddress(token?.address)
-        : undefined;
+      tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
     const subtitle =
       tokenType === TokenInputAreaType.Source
         ? formattedBalance
         : formattedAddress;
 
-    const displayedAmount = getDisplayAmount(amount, tokenType);
+    const displayedAmount = getDisplayAmount(amount, tokenType, isMaxAmount);
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 
@@ -386,3 +440,5 @@ export const TokenInputArea = forwardRef<
     );
   },
 );
+
+TokenInputArea.displayName = 'TokenInputArea';

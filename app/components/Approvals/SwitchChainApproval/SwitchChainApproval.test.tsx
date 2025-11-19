@@ -2,11 +2,23 @@ import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { ApprovalRequest } from '@metamask/approval-controller';
 import SwitchChainApproval from './SwitchChainApproval';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
+
+jest.mock('../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../selectors/networkController'),
+  selectEvmNetworkConfigurationsByChainId: () => ({
+    '0x1': {
+      name: 'Ethereum Mainnet',
+    },
+  }),
+}));
 
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
@@ -54,11 +66,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
 }));
 
-const URL_MOCK = 'test.com';
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
+const mockApprovalRequest = (approvalRequest?: unknown) => {
   (
     useApprovalRequest as jest.MockedFn<typeof useApprovalRequest>
   ).mockReturnValue({
@@ -69,10 +77,31 @@ const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   } as any);
 };
 
+const URL_MOCK = 'test.com';
+
+const mockApprovalRequestData = {
+  metadata: {
+    rpcUrl: URL_MOCK,
+  },
+  diff: {
+    permissionDiffMap: {
+      [Caip25EndowmentPermissionName]: {
+        [Caip25CaveatType]: {
+          requiredScopes: {
+            'eip155:1': {
+              accounts: [],
+            },
+          },
+          optionalScopes: {},
+        },
+      },
+    },
+  },
+};
+
 describe('SwitchChainApproval', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+    jest.clearAllMocks();
     jest
       .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
       .mockReturnValue(false);
@@ -81,9 +110,8 @@ describe('SwitchChainApproval', () => {
   it('renders', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+      requestData: mockApprovalRequestData,
+    });
 
     const wrapper = shallow(<SwitchChainApproval />);
 
@@ -109,12 +137,8 @@ describe('SwitchChainApproval', () => {
   it('calls networkSwitched action when confirm is pressed', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: {
-        rpcUrl: URL_MOCK,
-      },
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+      requestData: mockApprovalRequestData,
+    });
 
     const wrapper = shallow(<SwitchChainApproval />);
     wrapper.find('SwitchCustomNetwork').simulate('confirm');
@@ -126,16 +150,11 @@ describe('SwitchChainApproval', () => {
     });
   });
 
-  it('sets token network filter when portfolio view is enabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+  it('sets token network filter', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: {
-        rpcUrl: URL_MOCK,
-      },
-    } as ApprovalRequest<{
-      rpcUrl: string;
-    }>);
+      requestData: mockApprovalRequestData,
+    });
 
     const wrapper = shallow(<SwitchChainApproval />);
     wrapper.find('SwitchCustomNetwork').simulate('confirm');
@@ -147,22 +166,15 @@ describe('SwitchChainApproval', () => {
     });
   });
 
-  it('calls selectNetwork when both portfolio view and remove global network selector are enabled', () => {
+  it('calls selectNetwork when remove global network selector are enabled', () => {
     jest
       .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
       .mockReturnValue(true);
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
 
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: {
-        rpcUrl: URL_MOCK,
-        chainId: '0x1',
-      },
-    } as ApprovalRequest<{
-      rpcUrl: string;
-      chainId: string;
-    }>);
+      requestData: mockApprovalRequestData,
+    });
 
     const wrapper = shallow(<SwitchChainApproval />);
     wrapper.find('SwitchCustomNetwork').simulate('confirm');
@@ -180,18 +192,11 @@ describe('SwitchChainApproval', () => {
     jest
       .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
       .mockReturnValue(false);
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
 
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: {
-        rpcUrl: URL_MOCK,
-        chainId: '0x1',
-      },
-    } as ApprovalRequest<{
-      rpcUrl: string;
-      chainId: string;
-    }>);
+      requestData: mockApprovalRequestData,
+    });
 
     const wrapper = shallow(<SwitchChainApproval />);
     wrapper.find('SwitchCustomNetwork').simulate('confirm');

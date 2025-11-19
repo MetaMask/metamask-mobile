@@ -55,7 +55,9 @@ export interface BridgeState {
   slippage: string | undefined;
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
+  isMaxSourceAmount?: boolean;
   isSelectingRecipient: boolean;
+  gasIncluded: boolean;
 }
 
 export const initialState: BridgeState = {
@@ -69,7 +71,9 @@ export const initialState: BridgeState = {
   slippage: '0.5',
   isSubmittingTx: false,
   bridgeViewMode: undefined,
+  isMaxSourceAmount: false,
   isSelectingRecipient: false,
+  gasIncluded: false,
 };
 
 const name = 'bridge';
@@ -93,6 +97,15 @@ const slice = createSlice({
     },
     setSourceAmount: (state, action: PayloadAction<string | undefined>) => {
       state.sourceAmount = action.payload;
+      // Clears max flag when amount is set via keypad
+      state.isMaxSourceAmount = false;
+    },
+    setSourceAmountAsMax: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.sourceAmount = action.payload;
+      state.isMaxSourceAmount = true;
     },
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
@@ -129,6 +142,9 @@ const slice = createSlice({
     },
     setIsSelectingRecipient: (state, action: PayloadAction<boolean>) => {
       state.isSelectingRecipient = action.payload;
+    },
+    setGasIncluded: (state, action: PayloadAction<boolean>) => {
+      state.gasIncluded = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -181,6 +197,11 @@ export const selectSourceAmount = createSelector(
 export const selectDestAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAmount,
+);
+
+export const selectIsMaxSourceAmount = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isMaxSourceAmount ?? false,
 );
 
 export const selectBridgeViewMode = createSelector(
@@ -383,6 +404,8 @@ export const selectDestAddress = createSelector(
   (bridgeState) => bridgeState.destAddress,
 );
 
+export const selectGasIncluded = (state: RootState) => state.bridge.gasIncluded;
+
 const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
   gasFeeEstimates: selectGasFeeControllerEstimates(state) as GasFeeEstimates,
@@ -555,6 +578,7 @@ export const selectBip44DefaultPair = createSelector(
 // Actions
 export const {
   setSourceAmount,
+  setSourceAmountAsMax,
   setDestAmount,
   resetBridgeState,
   setSourceToken,
@@ -566,4 +590,5 @@ export const {
   setIsSubmittingTx,
   setBridgeViewMode,
   setIsSelectingRecipient,
+  setGasIncluded,
 } = actions;

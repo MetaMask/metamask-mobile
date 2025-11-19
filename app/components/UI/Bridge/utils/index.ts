@@ -1,6 +1,6 @@
 import { CaipChainId, SolScope } from '@metamask/keyring-api';
 import AppConstants from '../../../../core/AppConstants';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import {
   ARBITRUM_CHAIN_ID,
   AVALANCHE_CHAIN_ID,
@@ -15,6 +15,7 @@ import {
 } from '@metamask/swaps-controller/dist/constants';
 import Engine from '../../../../core/Engine';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   ETH_CHAIN_ID,
@@ -27,6 +28,7 @@ const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   AVALANCHE_CHAIN_ID,
   LINEA_CHAIN_ID,
   SEI_CHAIN_ID,
+  CHAIN_IDS.MONAD,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   SolScope.Mainnet,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -54,4 +56,17 @@ export const wipeBridgeStatus = (
       ignoreNetwork: false,
     });
   }
+};
+
+export const getTokenIconUrl = (
+  assetId: CaipAssetType | undefined,
+  isNonEvmChain: boolean,
+) => {
+  if (!assetId) {
+    return undefined;
+  }
+  const formattedAddress = isNonEvmChain ? assetId : assetId.toLowerCase();
+  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${formattedAddress
+    .split(':')
+    .join('/')}.png`;
 };

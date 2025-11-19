@@ -1,9 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
-import PredictActivity, {
-  type PredictActivityItem,
-  PredictActivityType,
-} from './PredictActivity';
+import PredictActivity from './PredictActivity';
+import { PredictActivityType, type PredictActivityItem } from '../../types';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -49,6 +48,12 @@ jest.mock('expo-image', () => ({
   },
 }));
 
+// Mock navigation
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
 const baseItem: PredictActivityItem = {
   id: '1',
   type: PredictActivityType.BUY,
@@ -57,31 +62,55 @@ const baseItem: PredictActivityItem = {
   amountUsd: 1234.5,
   percentChange: 1.5,
   icon: undefined,
+  outcome: 'Yes',
+  entry: {
+    type: 'buy',
+    timestamp: 0,
+    marketId: 'market-1',
+    outcomeId: 'outcome-1',
+    outcomeTokenId: 0,
+    amount: 1234.5,
+    price: 0.34,
+  },
 };
 
 const renderComponent = (overrides?: Partial<PredictActivityItem>) => {
   const item: PredictActivityItem = {
     ...baseItem,
     ...overrides,
-  } as PredictActivityItem;
-  const onPress = jest.fn();
-  render(<PredictActivity item={item} onPress={onPress} />);
-  return { item, onPress };
+    entry: {
+      ...baseItem.entry,
+      ...(overrides?.entry ?? {}),
+    },
+  };
+  render(<PredictActivity item={item} />);
+  return { item };
 };
 
 describe('PredictActivity', () => {
-  it('renders BUY activity with title, market, detail, amount and percent', () => {
+  it('renders BUY activity with title, market, amount and percent', () => {
     renderComponent();
 
     expect(screen.getByText('Buy')).toBeOnTheScreen();
     expect(screen.getByText(baseItem.marketTitle)).toBeOnTheScreen();
-    expect(screen.getByText(baseItem.detail)).toBeOnTheScreen();
     expect(screen.getByText('-$1,234.50')).toBeOnTheScreen();
-    expect(screen.getByText('+1.50%')).toBeOnTheScreen();
+    expect(screen.getByText('2%')).toBeOnTheScreen();
   });
 
   it('renders SELL activity with plus-signed amount and negative percent', () => {
-    renderComponent({ type: PredictActivityType.SELL, percentChange: -3 });
+    renderComponent({
+      type: PredictActivityType.SELL,
+      percentChange: -3,
+      entry: {
+        type: 'sell',
+        timestamp: 0,
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 0,
+        amount: 1234.5,
+        price: 0.34,
+      },
+    });
 
     expect(screen.getByText('Sell')).toBeOnTheScreen();
     expect(screen.getByText('+$1,234.50')).toBeOnTheScreen();
@@ -89,7 +118,14 @@ describe('PredictActivity', () => {
   });
 
   it('renders CLAIM activity without detail', () => {
-    renderComponent({ type: PredictActivityType.CLAIM });
+    renderComponent({
+      type: PredictActivityType.CLAIM,
+      entry: {
+        type: 'claimWinnings',
+        timestamp: 0,
+        amount: 1234.5,
+      },
+    });
 
     expect(screen.getByText('Claim')).toBeOnTheScreen();
     expect(screen.queryByText(baseItem.detail)).toBeNull();
@@ -108,11 +144,15 @@ describe('PredictActivity', () => {
   });
 
   it('calls onPress with item when pressed', () => {
-    const { item, onPress } = renderComponent();
+    const { item } = renderComponent({ icon: undefined });
 
-    const pressable = screen.getByRole('button');
-    fireEvent.press(pressable);
+    // Press a child inside the touchable to trigger parent onPress
+    const pressTarget = screen.getByText('Icon:Activity');
+    fireEvent.press(pressTarget);
 
-    expect(onPress).toHaveBeenCalledWith(item);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.ACTIVITY_DETAIL,
+      params: { activity: item },
+    });
   });
 });

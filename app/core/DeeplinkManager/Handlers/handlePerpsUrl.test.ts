@@ -107,7 +107,7 @@ describe('handlePerpsUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     });
   });
@@ -170,7 +170,7 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     });
 
@@ -178,7 +178,7 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     });
 
@@ -192,7 +192,7 @@ describe('handlePerpsUrl', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     });
 
@@ -202,7 +202,7 @@ describe('handlePerpsUrl', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     });
 
@@ -246,7 +246,7 @@ describe('handlePerpsUrl', () => {
 
       // Returning users with screen=markets parameter go directly to markets
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
       // Should not call setParams for direct navigation
@@ -282,7 +282,7 @@ describe('handlePerpsUrl', () => {
 
       // Should navigate to markets for screen=markets parameter
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
     });

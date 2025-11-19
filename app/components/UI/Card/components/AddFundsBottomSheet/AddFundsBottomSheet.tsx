@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import React, { useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -30,23 +30,32 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
-import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import {
+  useRampNavigation,
+  RampMode,
+} from '../../../Ramp/hooks/useRampNavigation';
+import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
+import Routes from '../../../../../constants/navigation/Routes';
 
-export interface AddFundsBottomSheetProps {
-  setOpenAddFundsBottomSheet: (open: boolean) => void;
-  sheetRef: React.RefObject<BottomSheetRef>;
+interface AddFundsModalNavigationDetails {
   priorityToken?: CardTokenAllowance;
-  chainId: string;
-  navigate: NavigationProp<ParamListBase>['navigate'];
 }
 
-const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
-  setOpenAddFundsBottomSheet,
-  sheetRef,
-  priorityToken,
-  chainId,
-  navigate,
-}) => {
+export const createAddFundsModalNavigationDetails =
+  createNavigationDetails<AddFundsModalNavigationDetails>(
+    Routes.CARD.MODALS.ID,
+    Routes.CARD.MODALS.ADD_FUNDS,
+  );
+
+const AddFundsBottomSheet: React.FC = () => {
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const { priorityToken } = useParams<AddFundsModalNavigationDetails>();
+
   const { isDepositEnabled } = useDepositEnabled();
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -54,25 +63,26 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
     priorityToken,
   });
   const { trackEvent, createEventBuilder } = useMetrics();
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { goToRamps } = useRampNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
       sheetRef.current?.onCloseBottomSheet(navigateFunc);
     },
-    [sheetRef],
+    [],
   );
 
   const handleOpenSwaps = useCallback(() => {
     if (!priorityToken) return;
     openSwaps({
-      chainId,
       beforeNavigate: (nav) => closeBottomSheetAndNavigate(nav),
     });
-  }, [priorityToken, openSwaps, chainId, closeBottomSheetAndNavigate]);
+  }, [priorityToken, openSwaps, closeBottomSheetAndNavigate]);
 
   const openDeposit = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(...createDepositNavigationDetails());
+      goToRamps({ mode: RampMode.DEPOSIT });
     });
     trackEvent(
       createEventBuilder(
@@ -85,8 +95,9 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
         .addProperties({
           text: 'Deposit',
           location: 'CardHome',
-          chain_id_destination: getDecimalChainId(chainId),
+          chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
           ramp_type: 'DEPOSIT',
+          region: rampGeodetectedRegion,
         })
         .build(),
     );
@@ -95,11 +106,12 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
       name: TraceName.LoadDepositExperience,
     });
   }, [
+    rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    navigate,
-    chainId,
+    goToRamps,
     trackEvent,
     createEventBuilder,
+    priorityToken,
   ]);
 
   const options = [
@@ -119,21 +131,22 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
       icon: IconName.SwapHorizontal,
       onPress: handleOpenSwaps,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
-      enabled: AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId),
+      enabled:
+        AppConstants.SWAPS.ACTIVE &&
+        isSwapsAllowed(
+          safeFormatChainIdToHex(priorityToken?.caipChainId ?? ''),
+        ),
     },
   ];
 
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack={false}
-      onClose={() => {
-        setOpenAddFundsBottomSheet(false);
-      }}
+      shouldNavigateBack
       testID={CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => setOpenAddFundsBottomSheet(false)}>
+      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSM}>
           {strings('card.add_funds_bottomsheet.select_method')}
         </Text>
@@ -145,7 +158,6 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
           item.enabled ? (
             <ListItemSelect
               onPress={() => {
-                setOpenAddFundsBottomSheet(false);
                 item.onPress();
               }}
               testID={item.testID}
