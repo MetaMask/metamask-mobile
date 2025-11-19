@@ -52,7 +52,8 @@ async function postInit(instance: SDKConnect) {
     `SDKConnect::postInit() - currentRouteName=${currentRouteName}`,
   );
 
-  const waitRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN];
+  // Wait for user to be past login screen before initializing SDK
+  const waitRoutes = [Routes.ONBOARDING.LOGIN];
   await waitForCondition({
     fn: () => {
       currentRouteName = instance.state.navigation?.getCurrentRoute()?.name;

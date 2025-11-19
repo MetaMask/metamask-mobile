@@ -656,18 +656,26 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      const errorMessage = (e as Error).message;
+      const errorMessage = (e as Error)?.message || '';
+      const isUserCancelled = errorMessage.includes('code: 13');
 
-      // Track authentication failures that could indicate vault/keychain issues to Segment
-      trackVaultCorruption(errorMessage, {
-        error_type: 'authentication_service_failure',
-        context: 'app_triggered_auth_failed',
-      });
+      if (!isUserCancelled) {
+        // Track authentication failures that could indicate vault/keychain issues to Segment
+        trackVaultCorruption(errorMessage, {
+          error_type: 'authentication_service_failure',
+          context: 'app_triggered_auth_failed',
+        });
+      }
 
       ReduxService.store.dispatch(authError(bioStateMachineId));
-      !disableAutoLogout && this.lockApp({ reset: false });
+
+      // Only lock app for real failures, not user cancellations
+      if (!disableAutoLogout && !isUserCancelled) {
+        await this.lockApp({ reset: false, locked: true });
+      }
+
       throw new AuthenticationError(
-        errorMessage,
+        errorMessage || AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
         this.authData,
       );

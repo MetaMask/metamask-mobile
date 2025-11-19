@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Alert,
   View,
@@ -160,8 +166,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const setAllowLoginWithRememberMe = (enabled: boolean) =>
-    setAllowLoginWithRememberMeUtil(enabled);
+
+  const setAllowLoginWithRememberMe = useCallback(
+    (enabled: boolean) => setAllowLoginWithRememberMeUtil(enabled),
+    [],
+  );
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   // coming from oauth onboarding flow flag
@@ -181,26 +190,29 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     selectIsSeedlessPasswordOutdated,
   );
 
-  const track = (
-    event: IMetaMetricsEvent,
-    properties: Record<string, string | boolean | number>,
-  ) => {
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-      saveOnboardingEvent,
-    );
-  };
+  const track = useCallback(
+    (
+      event: IMetaMetricsEvent,
+      properties: Record<string, string | boolean | number>,
+    ) => {
+      trackOnboarding(
+        MetricsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
+          .build(),
+        saveOnboardingEvent,
+      );
+    },
+    [saveOnboardingEvent],
+  );
 
-  const handleBackPress = () => {
+  const handleBackPress = useCallback(() => {
     if (!isComingFromOauthOnboarding) {
       Authentication.lockApp();
     } else {
       navigation.goBack();
     }
     return false;
-  };
+  }, [isComingFromOauthOnboarding, navigation]);
 
   const updateBiometryChoice = async (newBiometryChoice: boolean) => {
     await updateAuthTypeStorageFlags(newBiometryChoice);
@@ -217,8 +229,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleBackPress, track]);
 
   useEffect(() => {
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
@@ -247,39 +258,45 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   }, [isSeedlessPasswordOutdated]);
 
-  useEffect(() => {
-    const getUserAuthPreferences = async () => {
-      const authData = await Authentication.getType();
+  const getUserAuthPreferences = useCallback(async () => {
+    const authData = await Authentication.getType();
 
-      //Setup UI to handle Biometric
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
+    //Setup UI to handle Biometric
+    const previouslyDisabled = await StorageWrapper.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
+
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+      setBiometryType(passcodeType(authData.currentAuthType));
+      setHasBiometricCredentials(!route?.params?.locked);
+      setBiometryChoice(
+        !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
       );
-      const passcodePreviouslyDisabled =
-        await StorageWrapper.getItem(PASSCODE_DISABLED);
+    } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
+      setHasBiometricCredentials(false);
+      setRememberMe(true);
+      setAllowLoginWithRememberMe(true);
+    } else if (authData.availableBiometryType) {
+      Logger.log('authData', authData);
+      setBiometryType(authData.availableBiometryType);
+      setHasBiometricCredentials(
+        authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+      setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
+    }
 
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
-        setBiometryType(passcodeType(authData.currentAuthType));
-        setHasBiometricCredentials(!route?.params?.locked);
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
-      } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
-        setHasBiometricCredentials(false);
-        setRememberMe(true);
-        setAllowLoginWithRememberMe(true);
-      } else if (authData.availableBiometryType) {
-        Logger.log('authData', authData);
-        setBiometryType(authData.availableBiometryType);
-        setHasBiometricCredentials(
-          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
-        );
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-      }
-    };
+    Logger.log(
+      `Login: Auth preferences loaded - authType: ${authData.currentAuthType}, locked: ${route?.params?.locked}`,
+    );
+  }, [route?.params?.locked, setAllowLoginWithRememberMe]);
 
-    getUserAuthPreferences();
-  }, [route?.params?.locked, refreshAuthPref]);
+  useEffect(() => {
+    getUserAuthPreferences().catch((err) => {
+      Logger.error(err as Error, 'Login: Error getting auth preferences');
+    });
+  }, [getUserAuthPreferences, refreshAuthPref]);
 
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
@@ -340,11 +357,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
-  const navigateToHome = async () => {
+  const navigateToHome = useCallback(async () => {
     navigation.replace(Routes.ONBOARDING.HOME_NAV);
-  };
+  }, [navigation]);
 
-  const checkMetricsUISeen = async (): Promise<void> => {
+  const checkMetricsUISeen = useCallback(async (): Promise<void> => {
     const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
       OPTIN_META_METRICS_UI_SEEN,
     );
@@ -366,7 +383,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } else {
       navigateToHome();
     }
-  };
+  }, [navigation, navigateToHome, isMetricsEnabled]);
 
   const handleUseOtherMethod = () => {
     if (isComingFromOauthOnboarding) {
@@ -712,7 +729,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
-  const tryBiometric = async () => {
+  const tryBiometric = useCallback(async () => {
     fieldRef.current?.blur();
     try {
       setLoading(true);
@@ -740,10 +757,23 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } catch (tryBiometricError) {
       setHasBiometricCredentials(true);
       setLoading(false);
-      Logger.log(tryBiometricError);
+
+      const errorMessage = (tryBiometricError as Error)?.message || '';
+      const isUserCancelled = errorMessage.includes('code: 13');
+
+      if (isUserCancelled) {
+        Logger.log(
+          'Login: Biometric cancelled by user - disabling biometry choice for this session',
+        );
+      } else {
+        Logger.error(
+          tryBiometricError as Error,
+          'Login: Biometric authentication failed',
+        );
+      }
     }
     fieldRef.current?.blur();
-  };
+  }, [isComingFromOauthOnboarding, navigateToHome, checkMetricsUISeen]);
 
   // show biometric switch to true even if biometric is disabled
   const shouldRenderBiometricLogin = biometryType;
