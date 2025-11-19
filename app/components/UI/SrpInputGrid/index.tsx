@@ -213,9 +213,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
               }));
             }
 
-            if (!text.includes(' ')) {
-              setCurrentInputWord(text);
-            }
+            setCurrentInputWord(!text.includes(' ') ? text : '');
           }
         } catch (err) {
           Logger.error(err as Error, 'Error handling seed phrase change');
@@ -353,6 +351,8 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       onSeedPhraseChange(['']);
       setErrorWordIndexes({});
       setNextSeedPhraseInputFocusedIndex(null);
+      setCurrentInputWord('');
+      setFocusedInputIndex(null);
     }, [onSeedPhraseChange]);
 
     const handleSuggestionSelect = useCallback(
