@@ -64,7 +64,6 @@ import {
   roundDown,
   roundUp,
   roundOrderAmount,
-  roundOrderAmounts,
   previewOrder,
   getAllowanceCalls,
 } from './utils';
@@ -2293,62 +2292,6 @@ describe('polymarket utils', () => {
     it('handles amounts that round up to exceed decimals', () => {
       expect(roundOrderAmount({ amount: 1.996, decimals: 2 })).toBe(1.99);
       expect(roundOrderAmount({ amount: 0.999999, decimals: 2 })).toBe(0.99);
-    });
-  });
-
-  describe('roundOrderAmounts', () => {
-    const mockRoundConfig = {
-      price: 4,
-      size: 2,
-      amount: 2,
-    };
-
-    it('rounds BUY order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('rounds SELL order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.SELL,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('handles price rounding down', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 100,
-        price: 0.456789,
-      });
-
-      expect(result.makerAmount).toBe(100);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('applies additional rounding when necessary', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 123.456789,
-        price: 0.123456789,
-      });
-
-      expect(result.makerAmount).toBeLessThanOrEqual(123.46);
-      expect(result.takerAmount).toBeGreaterThan(0);
     });
   });
 
