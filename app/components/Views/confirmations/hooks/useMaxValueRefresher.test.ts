@@ -13,7 +13,6 @@ import { updateEditableParams } from '../../../../util/transaction-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,

@@ -9,7 +9,6 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { useMaxValueMode } from './useMaxValueMode';
 
 jest.mock('../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,
