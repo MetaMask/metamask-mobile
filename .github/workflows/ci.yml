@@ -550,6 +550,10 @@ jobs:
               echo "iOS E2E tests failed"
               exit 1
             fi
+            if [[ "${{ needs.e2e-smoke-tests-android-flask.result }}" == "failure" ]]; then
+              echo "Android Flask E2E tests failed"
+              exit 1
+            fi
           fi
 
           echo "All required jobs passed"
