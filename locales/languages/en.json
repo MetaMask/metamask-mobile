@@ -6310,7 +6310,7 @@
         "title": "Verifying your identity",
         "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
         "timeout_title": "Verification in progress",
-        "timeout_description": "Your verification will take up to 12 hours. Please come back to the Card section in that time.",
+        "timeout_description": "Your verification will take up to 12 hours. Please come back to the Card section in that time or contact support at\n{{email}}\nfor assistance.",
         "rejected_title": "Verification incomplete",
         "rejected_description": "We need a bit more information to complete your verification.",
         "rejected_message": "Please reach out to our support team and we'll help you complete the process:\n{{email}}",

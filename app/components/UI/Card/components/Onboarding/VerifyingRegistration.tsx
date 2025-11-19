@@ -309,6 +309,7 @@ const VerifyingRegistration = () => {
       case 'timeout':
         return strings(
           'card.card_onboarding.verifying_registration.timeout_description',
+          { email: CARD_SUPPORT_EMAIL },
         );
       case 'polling':
       default:
