@@ -1391,7 +1391,11 @@ const Wallet = ({
         accessible={false}
       >
         {selectedInternalAccount ? (
-          <View style={styles.wrapper}>
+          <View
+            style={styles.wrapper}
+            accessible={false}
+            accessibilityRole="none"
+          >
             <ConditionalScrollView
               isScrollEnabled={isHomepageRedesignV1Enabled}
               scrollViewProps={{
