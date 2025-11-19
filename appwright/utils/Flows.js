@@ -124,7 +124,7 @@ export async function login(device, options = {}) {
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
 
-  await dissmissAllModals(device);
+  await dismissMultichainAccountsIntroModal(device);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   PerpsGTMModal.device = device;

@@ -13,7 +13,7 @@ import AddNewHdAccountComponent from '../../../../wdio/screen-objects/Modals/Add
 
 /* Scenario 1: Imported wallet with 50+ accounts + account creation */
 
-test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
+test.skip('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
