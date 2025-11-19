@@ -12,9 +12,10 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/analytics-controller');
 
 const mockPlatformAdapter = {
-  trackEvent: jest.fn(),
+  track: jest.fn(),
   identify: jest.fn(),
-  trackPage: jest.fn(),
+  view: jest.fn(),
+  onSetupCompleted: jest.fn(),
 };
 
 jest.mock('./platform-adapter', () => ({
@@ -30,6 +31,12 @@ describe('analyticsControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     analyticsControllerClassMock.mockReset();
+    analyticsControllerClassMock.mockImplementation(
+      () =>
+        ({
+          identify: jest.fn(),
+        }) as unknown as AnalyticsController,
+    );
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
@@ -40,7 +47,7 @@ describe('analyticsControllerInit', () => {
     const result = analyticsControllerInit(initRequestMock);
 
     expect(result.controller).toBeDefined();
-    expect(result.controller).toBeInstanceOf(AnalyticsController);
+    expect(result.controller).toHaveProperty('identify');
     expect(analyticsControllerClassMock).toHaveBeenCalledTimes(1);
   });
 
@@ -58,8 +65,8 @@ describe('analyticsControllerInit', () => {
   it('uses custom state when provided', () => {
     // state not similar to default state from mock analytics controller
     const customState: AnalyticsControllerState = {
-      enabled: false,
-      optedIn: true,
+      optedInForRegularAccount: false,
+      optedInForSocialAccount: true,
       analyticsId: 'dcc3154e-7440-4b18-81b6-d5cd1abd7a6b',
     };
 

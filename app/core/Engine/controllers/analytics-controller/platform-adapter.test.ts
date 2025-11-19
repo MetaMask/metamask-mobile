@@ -1,71 +1,146 @@
-// TODO: Code under test is createPlatformAdapter
-// import { createPlatformAdapter } from './platform-adapter';
+import { createPlatformAdapter } from './platform-adapter';
+import type { SegmentClient } from '@segment/analytics-react-native';
+import MetaMetricsPrivacySegmentPlugin from '../../../Analytics/MetaMetricsPrivacySegmentPlugin';
+
+// Mock Logger (not in global setup)
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    log: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+// Mock MetaMetricsPrivacySegmentPlugin (not in global setup)
+jest.mock('../../../Analytics/MetaMetricsPrivacySegmentPlugin', () => jest.fn().mockImplementation(() => ({
+    type: 'enrichment',
+  })));
+
+const mockMetaMetricsPrivacySegmentPlugin =
+  MetaMetricsPrivacySegmentPlugin as jest.MockedClass<
+    typeof MetaMetricsPrivacySegmentPlugin
+  >;
+
+// Mock segmentPersistor (needed for getSegmentClient, but createClient is already mocked in testSetup.js)
+jest.mock('../../../Analytics/SegmentPersistor', () => ({
+  segmentPersistor: {
+    get: jest.fn(),
+    set: jest.fn(),
+  },
+}));
+
+// Segment client is already mocked in testSetup.js via @segment/analytics-react-native
+interface GlobalWithSegmentClient {
+  segmentMockClient: SegmentClient;
+}
 
 describe('createPlatformAdapter', () => {
-  describe('trackEvent', () => {
-    // Test: Verify that trackEvent calls MetaMetrics.getInstance().trackEvent()
-    // with a MetricsEventBuilder-created event containing the eventName and properties
-    it.todo(
-      'calls MetaMetrics.trackEvent with event built from eventName and properties',
-    );
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    // Test: Verify that trackEvent works correctly when properties is an empty object
-    it.todo('handles empty properties object');
+  describe('track', () => {
+    it('calls Segment client.track with eventName and properties', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const eventName = 'test_event';
+      const properties = { key: 'value', count: 42 };
 
-    // Test: Verify that trackEvent correctly handles nested objects, arrays, and various Json types
-    it.todo('handles complex nested properties');
+      adapter.track(eventName, properties);
 
-    // Error case: Verify error handling when MetaMetrics.getInstance() throws or returns undefined
-    it.todo('handles MetaMetrics.getInstance() failure gracefully');
+      expect(segmentMockClient.track).toHaveBeenCalledWith(
+        eventName,
+        properties,
+      );
+    });
 
-    // Error case: Verify error handling when MetaMetrics.trackEvent() throws an error
-    it.todo('handles MetaMetrics.trackEvent() failure gracefully');
+    it('calls Segment client.track without properties', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const eventName = 'test_event';
+
+      adapter.track(eventName);
+
+      expect(segmentMockClient.track).toHaveBeenCalledWith(eventName);
+    });
   });
 
   describe('identify', () => {
-    // Test: Verify that identify calls MetaMetrics.getInstance().addTraitsToUser()
-    // with the provided traits, ignoring userId parameter
-    it.todo('calls MetaMetrics.addTraitsToUser with traits when provided');
+    it('calls Segment client.identify with userId and traits', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const userId = '123e4567-e89b-42d3-a456-426614174000';
+      const traits = { name: 'John', email: 'john@example.com' };
 
-    // Test: Verify that identify handles case when only userId is provided (traits undefined)
-    it.todo('handles userId without traits');
+      adapter.identify(userId, traits);
 
-    // Test: Verify that identify handles empty traits object correctly
-    it.todo('handles empty traits object');
+      expect(segmentMockClient.identify).toHaveBeenCalledWith(userId, traits);
+    });
 
-    // Error case: Verify that identify catches and handles Promise rejection from addTraitsToUser
-    // without throwing unhandled promise rejection
-    it.todo('handles async addTraitsToUser rejection without throwing');
+    it('calls Segment client.identify with only userId when no traits', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const userId = '550e8400-e29b-42d4-a716-446655440000';
 
-    // Error case: Verify error handling when MetaMetrics.getInstance() throws or returns undefined
-    it.todo('handles MetaMetrics.getInstance() failure gracefully');
+      adapter.identify(userId);
+
+      expect(segmentMockClient.identify).toHaveBeenCalledWith(userId);
+    });
   });
 
-  describe('trackPage', () => {
-    // Test: Verify that trackPage calls MetaMetrics.trackEvent() with event name
-    // following pattern 'page_view_${pageName}' and properties
-    it.todo('calls MetaMetrics.trackEvent with page view event name');
+  describe('view', () => {
+    it('calls Segment client.screen with name and properties', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const name = 'HomeScreen';
+      const properties = { category: 'navigation', timestamp: Date.now() };
 
-    // Test: Verify that trackPage works correctly when properties parameter is undefined
-    it.todo('handles pageName without properties');
+      adapter.view(name, properties);
 
-    // Test: Verify that trackPage works correctly when properties is an empty object
-    it.todo('handles empty properties object');
+      expect(segmentMockClient.screen).toHaveBeenCalledWith(name, properties);
+    });
 
-    // Error case: Verify error handling when MetaMetrics.getInstance() throws or returns undefined
-    it.todo('handles MetaMetrics.getInstance() failure gracefully');
+    it('calls Segment client.screen with name without properties', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const name = 'HomeScreen';
 
-    // Error case: Verify error handling when MetaMetrics.trackEvent() throws an error
-    it.todo('handles MetaMetrics.trackEvent() failure gracefully');
+      adapter.view(name);
+
+      expect(segmentMockClient.screen).toHaveBeenCalledWith(name);
+    });
+  });
+
+  describe('onSetupCompleted', () => {
+    it('adds MetaMetricsPrivacySegmentPlugin to Segment client with analyticsId', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const analyticsId = '6ba7b810-9dad-42d1-80b4-00c04fd430c8';
+
+      adapter.onSetupCompleted(analyticsId);
+
+      expect(mockMetaMetricsPrivacySegmentPlugin).toHaveBeenCalledWith(
+        analyticsId,
+      );
+      expect(segmentMockClient.add).toHaveBeenCalledWith({
+        plugin: expect.any(Object),
+      });
+    });
   });
 
   describe('adapter instance', () => {
-    // Test: Verify that each call to createPlatformAdapter returns a new object instance
-    // with independent method implementations
-    it.todo('creates independent adapter instances');
+    it('is not a singleton', () => {
+      const adapter1 = createPlatformAdapter();
+      const adapter2 = createPlatformAdapter();
 
-    // Test: Verify that all adapter instances share the same MetaMetrics singleton
-    // from MetaMetrics.getInstance()
-    it.todo('uses MetaMetrics singleton instance');
+      expect(adapter1).not.toBe(adapter2);
+    });
   });
 });

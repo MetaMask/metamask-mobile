@@ -116,6 +116,8 @@ import {
 import {
   AnalyticsController,
   AnalyticsControllerState,
+  AnalyticsControllerActions,
+  AnalyticsControllerEvents,
 } from '@metamask/analytics-controller';
 import {
   TransactionController,
@@ -490,7 +492,8 @@ type GlobalActions =
   | ErrorReportingServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
-  | NftDetectionControllerActions;
+  | NftDetectionControllerActions
+  | AnalyticsControllerActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -559,7 +562,8 @@ type GlobalEvents =
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   | DelegationControllerEvents
-  | NftDetectionControllerEvents;
+  | NftDetectionControllerEvents
+  | AnalyticsControllerEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
