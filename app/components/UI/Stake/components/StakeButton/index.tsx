@@ -23,11 +23,14 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
-  selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
   selectIsMusdConversionFlowEnabledFlag,
   selectMusdConversionPaymentTokensAllowlist,
 } from '../../../Earn/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../components/hooks/useFeatureFlag';
 import createStyles from '../../../Tokens/styles';
 import { BrowserTab, TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
@@ -65,7 +68,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isPooledStakingEnabled = useFeatureFlag(
+    FeatureFlagNames.earnPooledStakingEnabled,
+  );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
