@@ -20,15 +20,6 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/snaps-controllers');
 
-jest.mock('.../../../../store', () => ({
-  store: {
-    getState: jest.fn(),
-  },
-  runSaga: jest
-    .fn()
-    .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
-}));
-
 function getInitRequestMock(
   baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
