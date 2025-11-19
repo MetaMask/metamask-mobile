@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import {
@@ -81,7 +81,7 @@ import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
-import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { BRIDGE_MM_FEE_RATE, QuoteWarning } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
@@ -209,20 +209,34 @@ const BridgeView = () => {
   });
 
   const isSubmitDisabled =
-    isLoading ||
     hasInsufficientBalance ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
     !hasSufficientGas;
 
-  useBridgeQuoteEvents({
+  const warnings = useMemo(() => {
+    const latestWarnings: QuoteWarning[] = [];
+
+    isNoQuotesAvailable && latestWarnings.push('no_quotes');
+    !hasSufficientGas &&
+      latestWarnings.push('insufficient_gas_for_selected_quote');
+    hasInsufficientBalance && latestWarnings.push('insufficient_balance');
+    Boolean(blockaidError) && latestWarnings.push('tx_alert');
+    shouldShowPriceImpactWarning && latestWarnings.push('price_impact');
+
+    return latestWarnings;
+  }, [
+    isNoQuotesAvailable,
+    hasSufficientGas,
     hasInsufficientBalance,
-    hasNoQuotesAvailable: isNoQuotesAvailable,
-    hasInsufficientGas: !hasSufficientGas,
-    hasTxAlert: Boolean(blockaidError),
+    blockaidError,
+    shouldShowPriceImpactWarning,
+  ]);
+
+  useBridgeQuoteEvents({
+    warnings,
     isSubmitDisabled,
-    isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
   });
 
   // Compute error state directly from dependencies
@@ -325,6 +339,8 @@ const BridgeView = () => {
         dispatch(setIsSubmittingTx(true));
         await submitBridgeTx({
           quoteResponse: activeQuote,
+          isLoading,
+          warnings,
         });
       }
     } catch (error) {
