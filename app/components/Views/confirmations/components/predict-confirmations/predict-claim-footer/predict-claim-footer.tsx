@@ -21,7 +21,8 @@ import { selectPredictWonPositions } from '../../../../../UI/Predict/selectors/p
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { PredictPosition } from '../../../../../UI/Predict';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
-import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { BigNumber } from 'bignumber.js';
 
 export interface PredictClaimFooterProps {
   onPress: () => void;
@@ -71,13 +72,13 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
 }
 
 function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
-  const { formatFiat } = useTransactionPayFiat();
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   const position = wonPositions[0];
   const { amount } = position;
 
   const amountFormatted = useMemo(
-    () => formatFiat(amount),
+    () => formatFiat(new BigNumber(amount)),
     [amount, formatFiat],
   );
 
