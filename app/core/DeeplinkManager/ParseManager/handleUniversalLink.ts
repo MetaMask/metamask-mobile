@@ -14,6 +14,8 @@ import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../util/general';
+import { UniversalRouterIntegration } from '../router/integration/UniversalRouterIntegration';
+import Logger from '../../../util/Logger';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -82,6 +84,7 @@ async function handleUniversalLink({
   url: string;
   source: string;
 }) {
+  Logger.log('🔗 handleUniversalLink url', url);
   const validatedUrl = new URL(url);
 
   if (
@@ -208,6 +211,19 @@ async function handleUniversalLink({
   if (!shouldProceed) {
     return false;
   }
+
+  // 🔥 NEW ROUTER INTEGRATION 🔥
+  const wasHandledByNewRouter = await UniversalRouterIntegration.processWithNewRouter(
+    url,
+    source,
+    instance,
+    browserCallBack
+  );
+  Logger.log('🔗 handleUniversalLink wasHandledByNewRouter', wasHandledByNewRouter);
+  if (wasHandledByNewRouter) {
+    handled();
+    return;
+  }    
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   if (
