@@ -11,9 +11,11 @@ import { BridgeToken } from '../../Bridge/types';
 import { CardTokenAllowance } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
-import { setDestToken } from '../../../../core/redux/slices/bridge';
+import {
+  selectSelectedSourceChainIds,
+  setDestToken,
+} from '../../../../core/redux/slices/bridge';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
 export interface OpenSwapsParams {
@@ -32,10 +34,7 @@ export const useOpenSwaps = ({
   priorityToken,
 }: UseOpenSwapsOptions = {}) => {
   const dispatch = useDispatch();
-  const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
-  const chainIds = Object.entries(popularNetworks).map(
-    (network) => network[1].chainId,
-  );
+  const chainIds = useSelector(selectSelectedSourceChainIds);
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
   });
