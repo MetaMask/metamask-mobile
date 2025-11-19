@@ -3208,7 +3208,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USDC
+                                          USD Coin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -3222,7 +3222,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDC
                                         </Text>
                                       </View>
                                     </View>
@@ -3451,7 +3451,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USDT
+                                          Tether USD
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -3465,7 +3465,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDT
                                         </Text>
                                       </View>
                                     </View>
@@ -3667,7 +3667,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          BTC
+                                          Bitcoin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -3681,7 +3681,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          Bitcoin
+                                          BTC
                                         </Text>
                                       </View>
                                     </View>
@@ -3883,7 +3883,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          ETH
+                                          Ethereum
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -3897,7 +3897,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          ETH
                                         </Text>
                                       </View>
                                     </View>
@@ -4099,7 +4099,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USDC
+                                          USD Coin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -4113,7 +4113,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          Solana
+                                          USDC
                                         </Text>
                                       </View>
                                     </View>
