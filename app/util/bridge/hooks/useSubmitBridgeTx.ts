@@ -1,5 +1,9 @@
 import Engine from '../../../core/Engine';
-import { QuoteMetadata, QuoteResponse, QuoteWarning } from '@metamask/bridge-controller';
+import {
+  QuoteMetadata,
+  QuoteResponse,
+  QuoteWarning,
+} from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
