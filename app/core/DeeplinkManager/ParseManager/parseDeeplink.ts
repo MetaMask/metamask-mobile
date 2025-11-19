@@ -26,7 +26,7 @@ async function parseDeeplink({
 }) {
   try {
     const validatedUrl = new URL(url);
-    DevLogger.log('DeepLinkManager:parse validatedUrl', validatedUrl);
+    Logger.log('🔗 DeepLinkManager:parse validatedUrl', validatedUrl);
 
     const { urlObj, params } = extractURLParams(url);
 

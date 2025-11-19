@@ -3,7 +3,7 @@ import { HandlerContext } from '../interfaces/UniversalLinkHandler';
 import DeeplinkManager from '../../DeeplinkManager';
 import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
-import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
+import { selectPlatformNewLinkHandlerSystemEnabled } from '../../../../selectors/featureFlagController/platformNewLinkHandler/platformNewLinkHandler';
 
 /**
  * Integration layer between UniversalRouter and existing deeplink system
@@ -16,14 +16,11 @@ export class UniversalRouterIntegration {
   static shouldUseNewRouter(): boolean {
     try {
       const state = ReduxService.store.getState();
-      if (state) {
-        const remoteFlags = selectRemoteFeatureFlags(state);
-        return remoteFlags?.MM_UNIVERSAL_ROUTER === true;
-      }
+      return selectPlatformNewLinkHandlerSystemEnabled(state); // ✅ Use typed selector
     } catch (error) {
       Logger.error(error as Error, 'Failed to check feature flag');
+      return false;
     }
-    return false;
   }
 
   /**
@@ -37,14 +34,16 @@ export class UniversalRouterIntegration {
     browserCallBack?: (url: string) => void,
   ): Promise<boolean> {
     try {
+      Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter url', url);
       if (!this.shouldUseNewRouter()) {
+        Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter shouldUseNewRouter false');
         return false;
       }
 
       // Initialize router if needed
       const router = UniversalRouter.getInstance();
       router.initialize();
-
+      Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter router', router);
       // Create handler context
       const context: HandlerContext = {
         navigation: {
@@ -56,10 +55,10 @@ export class UniversalRouterIntegration {
         instance,
         browserCallBack,
       };
-
+      Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter context', context);
       // Route the deep link
       const result = await router.route(url, source, context);
-
+      Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter result', result);
       return result.handled;
     } catch (error) {
       Logger.error(error as Error, 'UniversalRouter integration failed');

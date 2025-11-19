@@ -9,7 +9,14 @@ import {
 import Logger from '../../../util/Logger';
 import { MetaMetrics } from '../../Analytics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
-import { NavigationHandler, SwapHandler, SendHandler } from './handlers';
+import {
+  NavigationHandler,
+  SwapHandler,
+  SendHandler,
+  HomeHandler,
+} from './handlers';
+import ReduxService from '../../redux/ReduxService';
+import { selectPlatformNewLinkHandlerSystemEnabled, selectPlatformNewLinkHandlerActions } from '../../../selectors/featureFlagController/platformNewLinkHandler/platformNewLinkHandler';
 
 /**
  * Universal Router for handling deep links
@@ -49,7 +56,8 @@ export class UniversalRouter {
       this.registry.register(new SwapHandler());
       this.registry.register(new SendHandler());
 
-      // Navigation handlers (priority 10)
+      // Navigation handlers (priority 100)
+      this.registry.register(new HomeHandler());
       this.registry.register(new NavigationHandler());
 
       Logger.log('✅ Universal Router initialized with handlers');
@@ -60,6 +68,27 @@ export class UniversalRouter {
       Logger.error(error as Error, 'Failed to register handlers');
       // Rethrow to prevent silent failures - caller should handle initialization errors
       throw error;
+    }
+  }
+
+  private isNewHandlerEnabled(action: string): boolean {
+    try {
+      const state = ReduxService.store.getState();
+      
+      // Use typed selectors with built-in safety
+      const isSystemEnabled = selectPlatformNewLinkHandlerSystemEnabled(state);
+      Logger.log(`🔗 UniversalRouter:isNewHandlerEnabled isSystemEnabled`, isSystemEnabled);
+      if (!isSystemEnabled) {
+        return false;
+      }
+      
+      const actions = selectPlatformNewLinkHandlerActions(state);
+      const isActionEnabled = actions[action] === true;
+      Logger.log(`🔗 UniversalRouter:isNewHandlerEnabled isActionEnabled`, isActionEnabled);
+      return isActionEnabled;
+    } catch (error) {
+      Logger.error(error as Error, 'Failed to check new handler feature flag');
+      return false;
     }
   }
 
@@ -76,6 +105,7 @@ export class UniversalRouter {
     context: HandlerContext,
   ): Promise<HandlerResult> {
     try {
+      Logger.log('🔗 UniversalRouter:route url', url);
       // Normalize the URL
       const link = CoreLinkNormalizer.normalize(url, source);
 
@@ -89,6 +119,7 @@ export class UniversalRouter {
       // Execute handlers in priority order
       for (const handler of handlers) {
         try {
+      
           // Call lifecycle hook
           handler.beforeHandle?.(link);
 
