@@ -136,7 +136,6 @@ const SpendingLimit = ({
         // If not loading or we're explicitly allowing navigation, allow it
         return;
       }
-      Logger.log('Blocking back navigation while loading');
 
       // Prevent default navigation behavior
       e.preventDefault();
