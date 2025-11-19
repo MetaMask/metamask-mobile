@@ -531,6 +531,7 @@ jobs:
       - needs_e2e_build
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
+      - e2e-smoke-tests-android-flask
     steps:
       - run: |
           # Check if all non-E2E jobs passed
