@@ -11,6 +11,7 @@ describe('Platform New Link Handler Selectors', () => {
       backgroundState: {
         RemoteFeatureFlagController: {
           remoteFeatureFlags,
+          cacheTimestamp: 0,
         },
       },
     },
@@ -144,4 +145,3 @@ describe('Platform New Link Handler Selectors', () => {
     });
   });
 });
-
