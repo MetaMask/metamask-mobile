@@ -2,10 +2,7 @@ import { store } from '../../../store';
 
 const isStoreReady = () => {
   try {
-    if (store && typeof store.dispatch === 'function' && store.getState().engine.backgroundState.NetworkController) {
-      return true;
-    }
-    return false;
+return Boolean(store && typeof store.dispatch === 'function' && store.getState().engine.backgroundState.NetworkController)
   } catch {
     return false;
   }
