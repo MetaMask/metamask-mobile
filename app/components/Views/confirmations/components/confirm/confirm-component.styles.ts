@@ -34,18 +34,6 @@ const styleSheet = (params: {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    footerSkeletonContainer: {
-      flexDirection: 'row',
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 32,
-      backgroundColor: theme.colors.background.alternative,
-      gap: 16,
-    },
-    footerButtonSkeleton: {
-      flex: 1,
-      borderRadius: 99,
-    },
   });
 };
 

@@ -60,6 +60,18 @@ const styleSheet = (params: {
       flexDirection: 'row',
       justifyContent: 'center',
     },
+    footerSkeletonContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 32,
+      backgroundColor: colors.background.alternative,
+      gap: 16,
+    },
+    footerButtonSkeleton: {
+      flex: 1,
+      borderRadius: 99,
+    },
   });
 };
 
