@@ -53,7 +53,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             }),
             outcome,
             shares: formatPrice(size, {
-              minimumDecimals: 2,
               maximumDecimals: 2,
             }),
           })}
