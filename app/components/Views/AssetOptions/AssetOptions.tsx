@@ -37,6 +37,7 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { removeNonEvmToken } from '../../UI/Tokens/util';
+import { toChecksumAddress } from '../../../util/address';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -208,7 +209,7 @@ const AssetOptions = (props: Props) => {
         ? extractTokenAddressFromCaip(address)
         : address;
       navigation.navigate('AssetDetails', {
-        address: tokenAddress,
+        address: toChecksumAddress(tokenAddress),
         chainId: networkId,
         asset,
       });
