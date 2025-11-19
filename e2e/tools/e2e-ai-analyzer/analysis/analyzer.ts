@@ -140,18 +140,28 @@ export async function analyzeWithAgent<M extends ModeKey>(
             },
           );
 
-          // Log tool result summary
+          // Log tool result with success indicator
+          const isError =
+            toolResult.startsWith('Error:') || toolResult.startsWith('Invalid');
+          const isNotFound =
+            toolResult.includes('not found') ||
+            toolResult.includes('No matches') ||
+            toolResult.includes('No git diff') ||
+            toolResult.includes('No related') ||
+            toolResult.includes('No importers');
+
+          let status = '✅';
+          if (isError) status = '❌';
+          else if (isNotFound) status = '📭';
+
           const resultPreview = toolResult
-            .substring(0, 150)
+            .substring(0, 120)
             .replace(/\n/g, ' ');
           console.log(
-            `   → ${resultPreview}${toolResult.length > 150 ? '...' : ''}`,
+            `   ${status} ${resultPreview}${
+              toolResult.length > 120 ? '...' : ''
+            }`,
           );
-
-          // Check for actual errors (starts with "Error:")
-          if (toolResult.startsWith('Error:')) {
-            console.log(`   ⚠️ Tool returned error`);
-          }
 
           // Handle finalize tool (mode-specific)
           if (toolUse.name === modeConfig.finalizeToolName) {
