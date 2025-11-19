@@ -124,6 +124,8 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
           onPress={() => {
             // Track retry attempt - reuse existing PERPS_UI_INTERACTION event
             track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+              [PerpsEventProperties.INTERACTION_TYPE]:
+                PerpsEventValues.INTERACTION_TYPE.TAP,
               [PerpsEventProperties.ACTION]:
                 PerpsEventValues.ACTION.CONNECTION_RETRY,
               [PerpsEventProperties.ATTEMPT_NUMBER]: retryAttempts + 1,

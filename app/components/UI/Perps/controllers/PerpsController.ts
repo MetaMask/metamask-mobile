@@ -2499,6 +2499,10 @@ export class PerpsController extends BaseController<
     const positionSize = params.trackingData?.positionSize;
     const source =
       params.trackingData?.source || PerpsEventValues.SOURCE.TP_SL_VIEW;
+    const takeProfitPercentage = params.trackingData?.takeProfitPercentage;
+    const stopLossPercentage = params.trackingData?.stopLossPercentage;
+    const isEditingExistingPosition =
+      params.trackingData?.isEditingExistingPosition;
 
     try {
       const traceSpan = trace({
@@ -2561,6 +2565,13 @@ export class PerpsController extends BaseController<
         [PerpsEventProperties.ASSET]: params.coin,
         [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
         [PerpsEventProperties.SOURCE]: source,
+        // Differentiate create vs edit TP/SL
+        [PerpsEventProperties.SCREEN_TYPE]: isEditingExistingPosition
+          ? PerpsEventValues.SCREEN_TYPE.EDIT_TPSL
+          : PerpsEventValues.SCREEN_TYPE.CREATE_TPSL,
+        // Track what user has set
+        [PerpsEventProperties.HAS_TAKE_PROFIT]: !!params.takeProfitPrice,
+        [PerpsEventProperties.HAS_STOP_LOSS]: !!params.stopLossPrice,
         ...(direction && {
           [PerpsEventProperties.DIRECTION]:
             direction === 'long'
@@ -2579,6 +2590,12 @@ export class PerpsController extends BaseController<
           [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
             params.stopLossPrice,
           ),
+        }),
+        ...(takeProfitPercentage !== undefined && {
+          [PerpsEventProperties.TAKE_PROFIT_PERCENTAGE]: takeProfitPercentage,
+        }),
+        ...(stopLossPercentage !== undefined && {
+          [PerpsEventProperties.STOP_LOSS_PERCENTAGE]: stopLossPercentage,
         }),
         ...(errorMessage && {
           [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,

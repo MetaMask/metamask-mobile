@@ -190,6 +190,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
       position,
       marketPrice: livePrices[position.coin]?.price,
+      source: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
     });
   };
 

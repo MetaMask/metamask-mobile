@@ -104,6 +104,20 @@ export const PerpsEventProperties = {
   // PnL Hero Card properties
   IMAGE_SELECTED: 'image_selected',
   TAB_NUMBER: 'tab_number',
+
+  // Entry point tracking properties
+  BUTTON_CLICKED: 'button_clicked',
+  BUTTON_LOCATION: 'button_location',
+
+  // Balance and DEX properties
+  HAS_PERP_BALANCE: 'has_perp_balance',
+  PERP_DEX: 'perp_dex',
+
+  // TP/SL differentiation properties
+  HAS_TAKE_PROFIT: 'has_take_profit',
+  HAS_STOP_LOSS: 'has_stop_loss',
+  TAKE_PROFIT_PERCENTAGE: 'take_profit_percentage',
+  STOP_LOSS_PERCENTAGE: 'stop_loss_percentage',
 } as const;
 
 /**
@@ -144,6 +158,17 @@ export const PerpsEventValues = {
     PERP_MARKET_SEARCH: 'perp_market_search',
     POSITION_SCREEN: 'position_screen',
     TP_SL_VIEW: 'tp_sl_view',
+    PERPS_HOME: 'perps_home',
+    PERPS_TUTORIAL: 'perps_tutorial',
+    PERPS_HOME_EMPTY_STATE: 'perps_home_empty_state',
+    PERPS_ASSET_SCREEN_NO_FUNDS: 'perps_asset_screen_no_funds',
+    TRADE_MENU_ACTION: 'trade_menu_action',
+    WALLET_HOME: 'wallet_home',
+    TOOLTIP: 'tooltip',
+    MAGNIFYING_GLASS: 'magnifying_glass',
+    CRYPTO_BUTTON: 'crypto_button',
+    STOCKS_BUTTON: 'stocks_button',
+    CLOSE_TOAST: 'close_toast',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
@@ -205,18 +230,23 @@ export const PerpsEventValues = {
   },
   SCREEN_TYPE: {
     MARKETS: 'markets',
+    MARKET_LIST: 'market_list',
     ASSET_DETAILS: 'asset_details',
     TRADING: 'trading',
     HOMESCREEN: 'homescreen',
+    PERPS_HOME: 'perps_home',
     POSITION_CLOSE: 'position_close',
     LEVERAGE: 'leverage',
     TUTORIAL: 'tutorial',
     WITHDRAWAL: 'withdrawal',
     TP_SL: 'tp_sl',
+    CREATE_TPSL: 'create_tpsl',
+    EDIT_TPSL: 'edit_tpsl',
     DEPOSIT_INPUT: 'deposit_input',
     DEPOSIT_REVIEW: 'deposit_review',
     CLOSE_ALL_POSITIONS: 'close_all_positions',
     CANCEL_ALL_ORDERS: 'cancel_all_orders',
+    PNL_HERO_CARD: 'pnl_hero_card',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
@@ -235,5 +265,31 @@ export const PerpsEventValues = {
     ORDERS: 'orders',
     FUNDING: 'funding',
     DEPOSITS: 'deposits',
+  },
+  PERP_DEX: {
+    HYPERLIQUID: 'hyperliquid',
+  },
+  BUTTON_CLICKED: {
+    DEPOSIT: 'deposit',
+    WITHDRAW: 'withdraw',
+    PERPS_HOME: 'perps_home',
+    TUTORIAL: 'tutorial',
+    TOOLTIP: 'tooltip',
+    MARKET_LIST: 'market_list',
+    OPEN_POSITION: 'open_position',
+    MAGNIFYING_GLASS: 'magnifying_glass',
+    CRYPTO: 'crypto',
+    STOCKS: 'stocks',
+  },
+  BUTTON_LOCATION: {
+    PERPS_HOME: 'perps_home',
+    PERPS_TUTORIAL: 'perps_tutorial',
+    PERPS_HOME_EMPTY_STATE: 'perps_home_empty_state',
+    PERPS_ASSET_SCREEN: 'perps_asset_screen',
+    PERPS_TAB: 'perps_tab',
+    TRADE_MENU_ACTION: 'trade_menu_action',
+    WALLET_HOME: 'wallet_home',
+    SCREEN: 'screen',
+    TOOLTIP: 'tooltip',
   },
 } as const;

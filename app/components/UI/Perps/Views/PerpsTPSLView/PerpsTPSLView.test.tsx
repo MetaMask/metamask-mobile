@@ -500,6 +500,10 @@ describe('PerpsTPSLView', () => {
         direction: 'long',
         source: 'tp_sl_view',
         positionSize: 0,
+        takeProfitPercentage: undefined,
+        stopLossPercentage: undefined,
+        isEditingExistingPosition: false,
+        entryPrice: '3000.00',
       });
     });
 
@@ -517,6 +521,10 @@ describe('PerpsTPSLView', () => {
         direction: 'long',
         source: 'tp_sl_view',
         positionSize: 0,
+        takeProfitPercentage: undefined,
+        stopLossPercentage: undefined,
+        isEditingExistingPosition: false,
+        entryPrice: '3000.00',
       });
     });
 

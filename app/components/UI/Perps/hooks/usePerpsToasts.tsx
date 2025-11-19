@@ -289,6 +289,7 @@ const usePerpsToasts = (): {
         navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
           position,
           marketPrice,
+          source: PerpsEventValues.SOURCE.CLOSE_TOAST,
         });
       },
     }),
