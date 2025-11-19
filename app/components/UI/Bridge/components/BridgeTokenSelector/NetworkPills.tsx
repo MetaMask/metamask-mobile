@@ -69,15 +69,17 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       (chain) => chain.chainId === selectedChainId,
     );
 
-    if (selectedIndex !== -1) {
-      // Calculate scroll position (accounting for "All" pill + selected pill)
+    // Only scroll if the selected network is beyond the first 2 visible networks
+    // The first few networks are already visible, no need to scroll
+    if (selectedIndex > 1) {
       const pillWidth = 90; // Average pill width including gap
+      // Scroll to position the selected network more towards the center
       scrollViewRef.current?.scrollTo({
-        x: (selectedIndex + 1) * pillWidth,
+        x: selectedIndex * pillWidth - pillWidth,
         animated: false,
       });
-      hasScrolledRef.current = true;
     }
+    hasScrolledRef.current = true;
   };
 
   const handleAllPress = () => {
