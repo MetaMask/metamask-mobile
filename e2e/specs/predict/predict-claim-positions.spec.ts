@@ -28,7 +28,6 @@ import {
 } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
 import { PredictHelpers } from './helpers/predict-helpers';
 import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response';
-import { formatPrice } from '../../../app/components/UI/Predict/utils/format';
 
 /*
 Test Scenario: Claim positions
@@ -115,9 +114,7 @@ describe(SmokePredictions('Predictions'), () => {
             },
           );
           // Verify the balance is displayed correctly
-          const expectedBalance = formatPrice(position.usdcSize, {
-            maximumDecimals: 2,
-          });
+          const expectedBalance = `$${position.usdcSize}`;
           await Assertions.expectTextDisplayed(expectedBalance, {
             description: `Balance should be displayed as "${expectedBalance}" for "${position.title}"`,
           });
