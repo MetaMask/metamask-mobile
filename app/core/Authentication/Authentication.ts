@@ -435,29 +435,28 @@ class AuthenticationService {
   };
 
   /**
-   * Fallback to password authType if the storePassword with non Password authType fails
+   * store password with fallback to password authType if the storePassword with non Password authType fails
    * it should only apply for account creation for now
    *
-   * @param authData - authentication data
    * @param password - password to store
-   * @param error - error thrown by storePassword
+   * @param authData - authentication data
    * @returns void
    */
-  storePasswordFallback = async (
-    authData: AuthData,
-    password: string,
-    error: unknown,
-  ) => {
-    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
-      throw error;
+  storePasswordWithFallback = async (password: string, authData: AuthData) => {
+    try {
+      await this.storePassword(password, authData.currentAuthType);
+      this.authData = authData;
+    } catch (error) {
+      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+        throw error;
+      }
+      // Fall back to password authType
+      await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+      this.authData = {
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: authData.availableBiometryType,
+      };
     }
-
-    // Fall back to password authType
-    await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
-    this.authData = {
-      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-      availableBiometryType: authData.availableBiometryType,
-    };
   };
 
   /**
@@ -535,23 +534,14 @@ class AuthenticationService {
       } else {
         await this.createWalletVaultAndKeychain(password);
       }
-      let isStorePasswordFallback = false;
-      try {
-        await this.storePassword(password, authData?.currentAuthType);
-      } catch (error) {
-        await this.storePasswordFallback(authData, password, error);
-        isStorePasswordFallback = true;
-      }
 
+      await this.storePasswordWithFallback(password, authData);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
       await this.dispatchLogin({
         clearAccountTreeState: true,
       });
-      if (!isStorePasswordFallback) {
-        this.authData = authData;
-      }
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -580,21 +570,12 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
-      let isStorePasswordFallback = false;
-      try {
-        await this.storePassword(password, authData.currentAuthType);
-      } catch (error) {
-        await this.storePasswordFallback(authData, password, error);
-        isStorePasswordFallback = true;
-      }
+      await this.storePasswordWithFallback(password, authData);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin({
         clearAccountTreeState: true,
       });
-      if (!isStorePasswordFallback) {
-        this.authData = authData;
-      }
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
