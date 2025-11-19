@@ -7,6 +7,7 @@ import {
   METAMETRICS_DELETION_REGULATION_ID,
   METAMETRICS_ID,
   METRICS_OPT_IN,
+  METRICS_OPT_IN_PRIOR_RESET,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 import axios, { AxiosError, AxiosResponse } from 'axios';
@@ -20,6 +21,9 @@ import { segmentPersistor } from './SegmentPersistor';
 import { createClient } from '@segment/analytics-react-native';
 import { validate } from 'uuid';
 import { isHexAddress } from '@metamask/utils';
+
+// mockstorage
+let mockStorage: Record<string, unknown> = {};
 
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
@@ -1028,6 +1032,139 @@ describe('MetaMetrics', () => {
         expect(deletionRequestDate).toBeUndefined();
       });
     });
+  });
+
+  describe('Metrics Opt In Backup Prior Reset and restore ', () => {
+    const mockStorageWrapper = jest.mocked(StorageWrapper);
+    beforeEach(() => {
+      mockStorage = {};
+      mockStorageWrapper.getItem.mockImplementation((key: string) =>
+        Promise.resolve(mockStorage[key]),
+      );
+      mockStorageWrapper.setItem.mockImplementation(
+        (key: string, value: unknown) => {
+          mockStorage[key] = value;
+          return Promise.resolve();
+        },
+      );
+      mockStorageWrapper.clearAll.mockImplementation(() => {
+        mockStorage = {};
+        return Promise.resolve();
+      });
+    });
+
+    it.each([
+      {
+        priorState: undefined,
+        currentState: undefined,
+        expectedEnabled: false,
+      },
+      {
+        priorState: undefined,
+        currentState: AGREED,
+        expectedEnabled: false,
+      },
+      {
+        priorState: undefined,
+        currentState: DENIED,
+        expectedEnabled: false,
+      },
+      {
+        priorState: AGREED,
+        currentState: undefined,
+        expectedEnabled: true,
+      },
+      {
+        priorState: AGREED,
+        currentState: AGREED,
+        expectedEnabled: true,
+      },
+      {
+        priorState: AGREED,
+        currentState: DENIED,
+        expectedEnabled: true,
+      },
+      {
+        priorState: DENIED,
+        currentState: undefined,
+        expectedEnabled: false,
+      },
+      {
+        priorState: DENIED,
+        currentState: AGREED,
+        expectedEnabled: false,
+      },
+      {
+        priorState: DENIED,
+        currentState: DENIED,
+        expectedEnabled: false,
+      },
+    ])(
+      'restores metrics opt in prior reset - priorState: $priorState, currentState: $currentState',
+      async ({ priorState, currentState, expectedEnabled }) => {
+        mockStorage[METRICS_OPT_IN_PRIOR_RESET] = priorState;
+        mockStorage[METRICS_OPT_IN] = currentState;
+        const metaMetrics = TestMetaMetrics.getInstance();
+        if (currentState === AGREED) {
+          await metaMetrics.enable();
+        }
+        await metaMetrics.restoreMetricsOptInPriorReset();
+        expect(metaMetrics.isEnabled()).toBe(expectedEnabled);
+        expect(await StorageWrapper.getItem(METRICS_OPT_IN)).toBe(priorState);
+      },
+    );
+
+    it.each([
+      {
+        priorState: undefined,
+        currentState: undefined,
+      },
+      {
+        priorState: undefined,
+        currentState: AGREED,
+      },
+      {
+        priorState: undefined,
+        currentState: DENIED,
+      },
+      {
+        priorState: AGREED,
+        currentState: undefined,
+      },
+      {
+        priorState: AGREED,
+        currentState: AGREED,
+      },
+      {
+        priorState: AGREED,
+        currentState: DENIED,
+      },
+      {
+        priorState: DENIED,
+        currentState: undefined,
+      },
+      {
+        priorState: DENIED,
+        currentState: AGREED,
+      },
+      {
+        priorState: DENIED,
+        currentState: DENIED,
+      },
+    ])(
+      'backup metrics opt in prior reset - priorState: $priorState, currentState: $currentState',
+      async ({ priorState, currentState }) => {
+        mockStorage[METRICS_OPT_IN_PRIOR_RESET] = priorState;
+        mockStorage[METRICS_OPT_IN] = currentState;
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.backupMetricsOptInPriorReset();
+
+        expect(await StorageWrapper.getItem(METRICS_OPT_IN_PRIOR_RESET)).toBe(
+          currentState,
+        );
+        expect(await StorageWrapper.getItem(METRICS_OPT_IN)).toBe(currentState);
+      },
+    );
   });
 
   describe('E2E Mode', () => {

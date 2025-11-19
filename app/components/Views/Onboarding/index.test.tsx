@@ -41,11 +41,6 @@ jest.mock('../../../util/test/utils', () => ({
 }));
 
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
-import {
-  AGREED,
-  DENIED,
-  METRICS_OPT_IN_PRIOR_RESET,
-} from '../../../constants/storage';
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
 
@@ -138,12 +133,14 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 });
+const mockRestorePriorReset = jest.fn();
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
     isEnabled: mockMetricsIsEnabled,
     trackEvent: mockTrackEvent,
     enable: mockEnable,
     createEventBuilder: mockCreateEventBuilder,
+    restoreMetricsOptInPriorReset: mockRestorePriorReset,
   }),
 }));
 
@@ -172,6 +169,7 @@ jest.mock(
           isEnabled: mockMetricsIsEnabled,
           trackEvent: mockTrackEvent,
           enable: mockEnable,
+          restoreMetricsOptInPriorReset: mockRestorePriorReset,
           createEventBuilder: mockCreateEventBuilder,
         }}
       />
@@ -241,6 +239,7 @@ describe('Onboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnable.mockClear();
+    mockRestorePriorReset.mockClear();
     mockCreateEventBuilder.mockClear();
 
     jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
@@ -563,6 +562,8 @@ describe('Onboarding', () => {
           onboardingTraceCtx: expect.any(Object),
         }),
       );
+
+      expect(mockRestorePriorReset).toHaveBeenCalled();
     });
   });
 
@@ -1243,139 +1244,8 @@ describe('Onboarding', () => {
       });
 
       expect(mockEnable).toHaveBeenCalledWith(true);
+      expect(mockRestorePriorReset).not.toHaveBeenCalled();
     });
-  });
-
-  describe('Metrics Enable/Disable Tests', () => {
-    const mockOAuthService = jest.requireMock(
-      '../../../core/OAuthService/OAuthService',
-    ).default;
-    const mockCreateLoginHandler = jest.requireMock(
-      '../../../core/OAuthService/OAuthLoginHandlers',
-    ).createLoginHandler;
-
-    let mockStorage: Record<string, string | undefined> = {};
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockSeedlessOnboardingEnabled.mockReturnValue(true);
-
-      mockStorage = {};
-      (StorageWrapper.getItem as jest.Mock).mockImplementation((key: string) =>
-        Promise.resolve(mockStorage[key]),
-      );
-      (StorageWrapper.setItem as jest.Mock).mockImplementation(
-        (key: string, value: unknown) => {
-          mockStorage[key] = value as string | undefined;
-        },
-      );
-    });
-
-    it.each([
-      {
-        priorState: undefined,
-        currentState: undefined,
-        expectedEnabled: true,
-      },
-      {
-        priorState: AGREED,
-        currentState: undefined,
-        expectedEnabled: true,
-      },
-      {
-        priorState: DENIED,
-        currentState: undefined,
-        expectedEnabled: true,
-      },
-    ])(
-      'enables metrics when Google OAuth succeeds with prior state $priorState',
-      async ({ priorState }) => {
-        mockStorage[METRICS_OPT_IN_PRIOR_RESET] = priorState;
-
-        mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
-        mockOAuthService.handleOAuthLogin.mockResolvedValue({
-          type: 'success',
-          existingUser: false,
-          accountName: 'test@example.com',
-        });
-
-        mockEnable.mockClear();
-        const { getByTestId } = renderScreen(
-          Onboarding,
-          { name: 'Onboarding' },
-          { state: mockInitialState },
-        );
-
-        const createWalletButton = getByTestId(
-          OnboardingSelectorIDs.NEW_WALLET_BUTTON,
-        );
-
-        await act(async () => {
-          fireEvent.press(createWalletButton);
-        });
-
-        const navCall = mockNavigate.mock.calls.find(
-          (call) =>
-            call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-            call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-        );
-        const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
-        await act(async () => {
-          await googleOAuthFunction(true);
-        });
-
-        expect(mockEnable).toHaveBeenCalledWith(true);
-      },
-    );
-
-    it.each([
-      {
-        priorState: undefined,
-        currentState: undefined,
-        expectedEnabled: false,
-      },
-      { priorState: AGREED, currentState: undefined, expectedEnabled: true },
-      { priorState: DENIED, currentState: undefined, expectedEnabled: false },
-    ])(
-      'calls enable with $expectedEnabled when creating wallet with prior state $priorState',
-      async ({ priorState, expectedEnabled, currentState }) => {
-        mockStorage[METRICS_OPT_IN_PRIOR_RESET] = priorState;
-
-        mockEnable.mockClear();
-        const { getByTestId } = renderScreen(
-          Onboarding,
-          { name: 'Onboarding' },
-          { state: mockInitialState },
-        );
-
-        const createWalletButton = getByTestId(
-          OnboardingSelectorIDs.NEW_WALLET_BUTTON,
-        );
-
-        await act(async () => {
-          fireEvent.press(createWalletButton);
-        });
-
-        const navCall = mockNavigate.mock.calls.find(
-          (call) =>
-            call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-            call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-        );
-
-        const createWalletFunction = navCall[1].params.onPressCreate;
-
-        await act(async () => {
-          await createWalletFunction(false);
-        });
-
-        if (priorState === currentState) {
-          expect(mockEnable).not.toHaveBeenCalled();
-        } else {
-          expect(mockEnable).toHaveBeenCalledWith(expectedEnabled);
-        }
-      },
-    );
   });
 
   describe('checkForMigrationFailureAndVaultBackup', () => {

@@ -93,6 +93,10 @@ const useMetrics = (): IUseMetricsHook =>
       isEnabled: MetaMetrics.getInstance().isEnabled,
       getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      restoreMetricsOptInPriorReset:
+        MetaMetrics.getInstance().restoreMetricsOptInPriorReset,
+      backupMetricsOptInPriorReset:
+        MetaMetrics.getInstance().backupMetricsOptInPriorReset,
     }),
     [],
   );

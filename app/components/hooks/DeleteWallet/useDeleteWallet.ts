@@ -9,11 +9,6 @@ import { useMetrics } from '../useMetrics';
 import Engine from '../../../core/Engine';
 import { Engine as EngineClass } from '../../../core/Engine/Engine';
 import { resetProviderToken as depositResetProviderToken } from '../../UI/Ramp/Deposit/utils/ProviderTokenVault';
-import {
-  METRICS_OPT_IN,
-  METRICS_OPT_IN_PRIOR_RESET,
-} from '../../../constants/storage';
-import storageWrapper from '../../../store/storage-wrapper';
 
 const useDeleteWallet = () => {
   const metrics = useMetrics();
@@ -22,8 +17,7 @@ const useDeleteWallet = () => {
   const resetWalletState = useCallback(async () => {
     try {
       // backup metrics state prior reset
-      const enabledPref = await storageWrapper.getItem(METRICS_OPT_IN);
-      await storageWrapper.setItem(METRICS_OPT_IN_PRIOR_RESET, enabledPref);
+      metrics.backupMetricsOptInPriorReset?.();
 
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
@@ -53,7 +47,7 @@ const useDeleteWallet = () => {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
       Logger.log(error, errorMsg);
     }
-  }, []);
+  }, [metrics]);
 
   const deleteUser = async () => {
     try {

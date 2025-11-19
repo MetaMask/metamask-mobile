@@ -18,6 +18,7 @@ import {
   METAMETRICS_DELETION_REGULATION_ID,
   METRICS_OPT_IN,
   MIXPANEL_METAMETRICS_ID,
+  METRICS_OPT_IN_PRIOR_RESET,
 } from '../../constants/storage';
 
 import {
@@ -628,6 +629,28 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Boolean indicating if MetaMetrics is enabled or disabled
    */
   isEnabled = () => this.enabled;
+
+  /**
+   *
+   */
+  restoreMetricsOptInPriorReset = async () => {
+    const metricsPriorReset = await StorageWrapper.getItem(
+      METRICS_OPT_IN_PRIOR_RESET,
+    );
+    const metricsEnabled = await StorageWrapper.getItem(METRICS_OPT_IN);
+    // if metrics prior reset does not match metrics enabled, set metrics enabled to metrics prior reset
+    if (metricsPriorReset !== metricsEnabled) {
+      await this.enable(metricsPriorReset === AGREED);
+    }
+  };
+
+  /**
+   * backup metrics state prior reset
+   */
+  backupMetricsOptInPriorReset = async () => {
+    const metricsEnabled = await StorageWrapper.getItem(METRICS_OPT_IN);
+    await StorageWrapper.setItem(METRICS_OPT_IN_PRIOR_RESET, metricsEnabled);
+  };
 
   /**
    * Add traits to the user and identify them

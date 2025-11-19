@@ -70,6 +70,10 @@ export interface IMetaMetrics {
   configure(): Promise<boolean>;
 
   getMetaMetricsId(): Promise<string>;
+
+  restoreMetricsOptInPriorReset(): Promise<void>;
+
+  backupMetricsOptInPriorReset(): Promise<void>;
 }
 
 /**
