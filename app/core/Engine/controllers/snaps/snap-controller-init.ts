@@ -18,10 +18,16 @@ import {
 } from '../../../Encryptor';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { store } from '../../../../store';
+import { store, runSaga } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
 import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { select, take } from 'redux-saga/effects';
+import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
+import {
+  SET_COMPLETED_ONBOARDING,
+  SetCompletedOnboardingAction,
+} from '../../../../actions/onboarding';
 
 /**
  * Initialize the Snap controller.
@@ -85,6 +91,30 @@ export const snapControllerInit: ControllerInitFunction<
     };
   }
 
+  function* ensureOnboardingCompleteSaga() {
+    const completedOnboarding: boolean = yield select(
+      selectCompletedOnboarding,
+    );
+
+    if (completedOnboarding) {
+      return;
+    }
+
+    while (true) {
+      const result = (yield take([
+        SET_COMPLETED_ONBOARDING,
+      ])) as SetCompletedOnboardingAction;
+
+      if (result.completedOnboarding) {
+        return;
+      }
+    }
+  }
+
+  const onboardingCompletePromise = runSaga(
+    ensureOnboardingCompleteSaga,
+  ).toPromise();
+
   const controller = new SnapController({
     environmentEndowmentPermissions: Object.values(EndowmentPermissions),
     excludedPermissions: {
@@ -125,6 +155,8 @@ export const snapControllerInit: ControllerInitFunction<
     // TODO: Update the controller to accept a readonly array.
     preinstalledSnaps: PREINSTALLED_SNAPS,
     getFeatureFlags,
+
+    ensureOnboardingComplete: () => onboardingCompletePromise,
 
     detectSnapLocation,
     clientCryptography: {

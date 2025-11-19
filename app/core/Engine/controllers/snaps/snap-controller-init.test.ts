@@ -24,6 +24,9 @@ jest.mock('.../../../../store', () => ({
   store: {
     getState: jest.fn(),
   },
+  runSaga: jest
+    .fn()
+    .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
 }));
 
 function getInitRequestMock(
@@ -79,6 +82,7 @@ describe('SnapControllerInit', () => {
       maxRequestTime: expect.any(Number),
       preinstalledSnaps: expect.any(Array),
       trackEvent: expect.any(Function),
+      ensureOnboardingComplete: expect.any(Function),
     });
   });
 
