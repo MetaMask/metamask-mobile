@@ -22,7 +22,6 @@ import { MarketDataService } from './services/MarketDataService';
 import { TradingService } from './services/TradingService';
 import Engine from '../../../../core/Engine';
 
-// Mock the HyperLiquidProvider
 jest.mock('./providers/HyperLiquidProvider');
 
 // Mock wait utility to speed up retry tests
@@ -307,6 +306,16 @@ describe('PerpsController', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Reset Engine.context mocks to default state to prevent test interdependence
+    (
+      Engine.context.RewardsController.getPerpsDiscountForAccount as jest.Mock
+    ).mockResolvedValue(null);
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({ configuration: { chainId: '0x1' } });
+
     // Create a fresh mock provider for each test
     mockProvider = createMockHyperLiquidProvider();
 
@@ -333,12 +342,10 @@ describe('PerpsController', () => {
     );
     mockProvider.getWithdrawalRoutes.mockReturnValue([]);
 
-    // Mock the HyperLiquidProvider constructor to return our mock
     (
       HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
     ).mockImplementation(() => mockProvider);
 
-    // Create mock messenger call function that handles RemoteFeatureFlagController:getState
     const mockCall = jest.fn().mockImplementation((action: string) => {
       if (action === 'RemoteFeatureFlagController:getState') {
         return {
@@ -352,7 +359,6 @@ describe('PerpsController', () => {
       return undefined;
     });
 
-    // Create a new controller instance
     controller = new TestablePerpsController({
       messenger: createMockMessenger({ call: mockCall }),
       state: getDefaultPerpsControllerState(),
@@ -518,7 +524,6 @@ describe('PerpsController', () => {
     });
 
     it('continues initialization when RemoteFeatureFlagController state call throws error', () => {
-      // Arrange: Mock messenger that throws error for RemoteFeatureFlagController:getState
       const mockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           throw new Error('RemoteFeatureFlagController not ready');
@@ -527,7 +532,6 @@ describe('PerpsController', () => {
       });
       const mockLoggerError = jest.spyOn(Logger, 'error');
 
-      // Act: Construct controller with fallback regions
       const testController = new TestablePerpsController({
         messenger: createMockMessenger({ call: mockCall }),
         state: getDefaultPerpsControllerState(),
@@ -536,7 +540,6 @@ describe('PerpsController', () => {
         },
       });
 
-      // Assert: Controller initializes successfully and uses fallback
       expect(testController).toBeDefined();
       const blockedRegionList = testController.testGetBlockedRegionList();
       expect(blockedRegionList.source).toBe('fallback');
@@ -603,7 +606,6 @@ describe('PerpsController', () => {
 
   describe('getActiveProvider', () => {
     it('should throw error when not initialized', () => {
-      // Mock the controller as not initialized
       controller.testSetInitialized(false);
 
       expect(() => controller.getActiveProvider()).toThrow(
@@ -647,7 +649,6 @@ describe('PerpsController', () => {
         throw networkError;
       });
 
-      // Create new controller with failing provider mock
       const mockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
@@ -1902,7 +1903,6 @@ describe('PerpsController', () => {
     });
 
     it('should skip data lake reporting for testnet', async () => {
-      // Arrange - create a new controller with testnet state
       const mockCallTestnet = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
@@ -2185,7 +2185,6 @@ describe('PerpsController', () => {
 
       const { result } = await controller.depositWithConfirmation('100');
 
-      // Wait for async promise resolution
       await result;
 
       // After promise resolves, lastDepositResult is set with new result
@@ -2249,7 +2248,6 @@ describe('PerpsController', () => {
 
       const { result } = await controller.depositWithConfirmation('100');
 
-      // Wait for transaction promise to resolve
       await result;
 
       // After promise resolves, deposit request is marked as completed
