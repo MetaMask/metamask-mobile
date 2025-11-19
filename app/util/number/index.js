@@ -292,6 +292,25 @@ export function limitToMaximumDecimalPlaces(num, maxDecimalPlaces = 5) {
 }
 
 /**
+ * Minimum display threshold for small values
+ */
+export const MINIMUM_DISPLAY_THRESHOLD = 0.00001;
+
+/**
+ * Formats a number with decimal capping and threshold handling.
+ * Shows "< 0.00001" for very small positive values, otherwise caps at maxDecimalPlaces.
+ * @param {number} num - The number to format
+ * @param {number} maxDecimalPlaces - Maximum decimal places to show (default 5)
+ * @returns {string} - Formatted number string
+ */
+export function formatAmountWithThreshold(num, maxDecimalPlaces = 5) {
+  if (num < MINIMUM_DISPLAY_THRESHOLD && num > 0) {
+    return `< ${MINIMUM_DISPLAY_THRESHOLD}`;
+  }
+  return limitToMaximumDecimalPlaces(num, maxDecimalPlaces);
+}
+
+/**
  * Converts fiat number as human-readable fiat string to token miniml unit expressed as a BN
  *
  * @param {number|string} fiat - Fiat number

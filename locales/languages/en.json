@@ -65,7 +65,7 @@
     },
     "signed_or_submitted_perps_deposit": {
       "title": "Deposit in progress",
-      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
+      "message": "Wait for the last deposit to finish before making another."
     },
     "pending_transaction": {
       "title": "Pending transaction",
@@ -83,18 +83,19 @@
       "message": "Insufficient funds"
     },
     "insufficient_pay_token_balance_fees": {
-      "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
+      "message": "Add less than {{amount}} or use a different token.",
       "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
-      "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
+      "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
+      "title": "Insufficient funds"
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
     },
     "perps_hardware_account": {
       "title": "Wallet not supported",
-      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+      "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },
     "burn_address": {
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
@@ -354,7 +355,7 @@
   "login": {
     "title": "Welcome Back!",
     "password": "Password",
-    "password_placeholder": "Enter MetaMask password",
+    "password_placeholder": "Enter password",
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
     "forgot_password": "Forgot password?",
@@ -442,7 +443,7 @@
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "i_understand": "I understand that MetaMask cannot recover this password for me.",
-    "learn_more": "Learn more.",
+    "learn_more": "Learn more",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
@@ -473,7 +474,7 @@
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "i_understand": "I understand that MetaMask cannot recover this password for me.",
-    "learn_more": "Learn more.",
+    "learn_more": "Learn more",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "password_updated": "New password saved",
@@ -635,7 +636,10 @@
       "select_a_token": "Select a Token",
       "select_token": "Select token",
       "search_by_name_or_address": "Search token by name or address",
-      "no_tokens_found": "No tokens match \"{{searchString}}\""
+      "no_tokens_found": "No tokens match \"{{searchString}}\"",
+      "unsupported_token_title": "Not available",
+      "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers",
+      "error_loading_tokens": "Unable to load tokens. Please try again later."
     },
     "networks_filter_bar": {
       "all_networks": "All networks"
@@ -1330,12 +1334,13 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
+      "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
-        "title": "Perps is temporarily offline",
+        "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
-        "retry": "Retry",
-        "go_back": "Go Back"
+        "retry": "Try again",
+        "go_back": "Go back"
       },
       "networkError": {
         "title": "Network Error",
@@ -1418,7 +1423,7 @@
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
       "trading_24_7": "This asset may be traded 24/7",
-      "expect_more_volatility": "Expect more volatility outside of regular market hours",
+      "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "badge": {
@@ -1783,7 +1788,10 @@
       "lost": "Lost",
       "market_unavailable": "Market unavailable",
       "amount_on_outcome": "${{amount}} on {{outcome}}",
-      "outcome_at_price": "{{outcome}} at {{price}}¢"
+      "outcome_at_price": "{{outcome}} at {{price}}¢",
+      "fee_exemption": "We don't charge any fees on this market.",
+      "ended": "Ended",
+      "resolved_early": "Resolved early"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1830,6 +1838,8 @@
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
+    "search_empty_state": "No {{category}} markets available",
+    "search_no_markets_found": "No results found for \"{{q}}\"",
     "claim_button": "Claim",
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
@@ -3470,6 +3480,7 @@
     "self_sent_dai": "Sent Yourself DAI",
     "received_dai": "Received DAI",
     "sent_tokens": "Sent Tokens",
+    "received_tokens": "Received Tokens",
     "ether": "Ether",
     "sent_unit": "Sent {{unit}}",
     "self_sent_unit": "Sent Yourself {{unit}}",
@@ -4584,6 +4595,11 @@
       "title": "Eligibility Check Failed",
       "description": "We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.",
       "contact_support": "Contact Support",
+      "got_it": "Got It"
+    },
+    "unsupported_region_modal": {
+      "title": "Unavailable in your region",
+      "description": "Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.",
       "got_it": "Got It"
     },
     "region": {
@@ -5837,8 +5853,9 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available: ",
-    "edit_amount_done": "Done",
-    "deposit_edit_amount_done": "Continue"
+    "edit_amount_done": "Continue",
+    "deposit_edit_amount_done": "Add funds",
+    "deposit_edit_amount_predict_withdraw": "Withdraw"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -6592,6 +6609,8 @@
     "activity_empty_link": "See ways to earn",
     "events": {
       "to": "to",
+      "musd_deposit_for": "For {{date}}",
+      "for_deposit_period": "For deposit period",
       "type": {
         "swap": "Swap",
         "perps": "Perps",
@@ -6605,6 +6624,8 @@
         "close_position": "Closed position",
         "take_profit": "TP/SL",
         "stop_loss": "TP/SL",
+        "predict": "Prediction",
+        "musd_deposit": "mUSD deposit",
         "uncategorized_event": "Uncategorized event"
       },
       "date": "Date",
@@ -6622,13 +6643,13 @@
       "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
       "not_supported_account_type_title": "Account type not supported",
-      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication Failed",
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
       "gtm_title": "Rewards are here",
       "gtm_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "gtm_confirm": "Get started",
@@ -6675,7 +6696,7 @@
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
       "link_account_button": "Add",
-      "link_account_failed_error": "Failed to link account",
+      "link_account_failed_error": "Failed to add account",
       "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
@@ -6771,6 +6792,16 @@
           "description": "Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).",
           "cta_label": "Manage Card"
         }
+      },
+      "deposit_musd": {
+        "title": "Deposit mUSD",
+        "description": "2 points per $100 deposited",
+        "sheet": {
+          "title": "Deposit mUSD",
+          "points": "2 points per $100",
+          "description": "Earn points on every $100 mUSD you deposit.",
+          "cta_label": "Deposit mUSD"
+        }
       }
     },
     "referral": {
@@ -6788,12 +6819,13 @@
     },
     "link_account_group": {
       "link_account": "Add account",
-      "tracked": "Tracked",
-      "untracked": "Untracked",
-      "unsupported": "Unsupported",
-      "tracked_count": "{{optedIn}}/{{total}} tracked",
+      "tracked": "Enrolled",
+      "untracked": "Not enrolled",
+      "unsupported": "Not supported",
+      "tracked_count": "{{optedIn}}/{{total}} enrolled",
       "link_account_success": "{{accountName}} added successfully",
-      "link_account_error": "Failed to add one or more addresses for {{accountName}}"
+      "link_account_error": "Failed to add one or more addresses for {{accountName}}",
+      "link_account_address_error": "Failed to add {{address}}"
     },
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
@@ -6824,7 +6856,9 @@
   "transaction_details": {
     "title": {
       "perps_deposit": "Funded Perps account",
+      "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
+      "predict_withdraw": "Withdrawal",
       "default": "Transaction details"
     },
     "label": {
@@ -6832,7 +6866,9 @@
       "network_fee": "Network fee",
       "paid_with": "Paid with",
       "retry_button": "Try again",
-      "total": "Total"
+      "total": "Total",
+      "account": "Account",
+      "received_total": "Received total"
     },
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",

@@ -23,19 +23,24 @@ import {
   lastTrendingScreenRef,
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
-import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
-import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
-import { PredictModalStack } from '../../UI/Predict/routes';
-import PredictionSection from './PredictionSection/PredictionSection';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  PredictMarketDetails,
+  PredictSellPreview,
+} from '../../UI/Predict';
+import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
+import QuickActions from './components/QuickActions/QuickActions';
+import SectionHeader from './components/SectionHeader/SectionHeader';
+import { HOME_SECTIONS_ARRAY } from './config/sections.config';
 
 const Stack = createStackNavigator();
 
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    marginTop: 10,
     paddingLeft: 16,
     paddingRight: 16,
   },
@@ -126,8 +131,14 @@ const TrendingFeed: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <PredictionSection />
-        <TrendingTokensSection />
+        <QuickActions />
+
+        {HOME_SECTIONS_ARRAY.map((section) => (
+          <React.Fragment key={section.id}>
+            <SectionHeader sectionId={section.id} />
+            {section.renderSection()}
+          </React.Fragment>
+        ))}
       </ScrollView>
     </Box>
   );
@@ -137,32 +148,62 @@ const TrendingView: React.FC = () => {
   const initialRoot = lastTrendingScreenRef.current || 'TrendingFeed';
 
   return (
-    <PerpsStreamProvider>
-      <Stack.Navigator
-        initialRouteName={initialRoot}
-        screenOptions={{
+    <Stack.Navigator
+      initialRouteName={initialRoot}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
+      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
+      <Stack.Screen
+        name={Routes.EXPLORE_SEARCH}
+        component={ExploreSearchScreen}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.ROOT}
+        component={PredictScreenStack}
+        options={{
+          headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.ROOT}
+        component={PredictModalStack}
+        options={{
+          headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MARKET_DETAILS}
+        component={PredictMarketDetails}
+        options={{
           headerShown: false,
         }}
-      >
-        <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-        <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
-        <Stack.Screen
-          name={Routes.EXPLORE_SEARCH}
-          component={ExploreSearchScreen}
-        />
-        <Stack.Screen
-          name={Routes.PREDICT.MODALS.ROOT}
-          component={PredictModalStack}
-          options={{
-            headerShown: false,
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            animationEnabled: false,
-          }}
-        />
-      </Stack.Navigator>
-    </PerpsStreamProvider>
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.BUY_PREVIEW}
+        component={PredictBuyPreview}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.SELL_PREVIEW}
+        component={PredictSellPreview}
+        options={{
+          headerShown: false,
+        }}
+      />
+    </Stack.Navigator>
   );
 };
 

@@ -25,6 +25,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'polygon-mainnet': () => process.env.QUICKNODE_POLYGON_URL,
   'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
   'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
+  'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -152,7 +153,7 @@ export const PopularList = [
     chainId: toHex('1329'),
     nickname: 'Sei',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: [],
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('sei-mainnet'),
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {

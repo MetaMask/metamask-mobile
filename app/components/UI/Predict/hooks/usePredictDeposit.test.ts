@@ -284,7 +284,7 @@ describe('usePredictDeposit', () => {
   });
 
   describe('deposit function', () => {
-    it('calls navigateToConfirmation with loader and stack parameters', async () => {
+    it('calls navigateToConfirmation with loader parameter', async () => {
       (
         Engine.context.PredictController.depositWithConfirmation as jest.Mock
       ).mockResolvedValue({
@@ -297,7 +297,6 @@ describe('usePredictDeposit', () => {
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
-        stack: 'Predict',
       });
     });
 

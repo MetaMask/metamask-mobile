@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
+import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
@@ -121,6 +122,7 @@ import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
+import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
@@ -139,6 +141,7 @@ import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/Mult
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
@@ -269,7 +272,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="Rehydrate"
-      component={Login}
+      component={OAuthRehydration}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -395,6 +398,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ELIGIBILITY_FAILED_MODAL}
       component={EligibilityFailedModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.UNSUPPORTED_REGION_MODAL}
+      component={RampUnsupportedModal}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
@@ -900,6 +907,11 @@ const AppFlow = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="Rehydrate"
+          component={OAuthRehydration}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
           component={MaxBrowserTabsModal}
         />
@@ -1052,7 +1064,7 @@ const AppFlow = () => {
   );
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);
   const isSeedlessOnboardingLoginFlow = useSelector(
@@ -1153,6 +1165,16 @@ const App: React.FC = () => {
       <ProfilerManager />
     </>
   );
+};
+
+const App: React.FC = () => {
+  const { isCheckingUpdates } = useOTAUpdates();
+
+  if (isCheckingUpdates) {
+    return <FoxLoader />;
+  }
+
+  return <AppContent />;
 };
 
 export default App;

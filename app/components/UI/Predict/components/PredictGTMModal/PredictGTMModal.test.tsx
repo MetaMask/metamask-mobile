@@ -140,6 +140,9 @@ describe('PredictGTMModal', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: expect.any(String),
+      },
     });
   });
 

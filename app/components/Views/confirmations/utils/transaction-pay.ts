@@ -14,6 +14,7 @@ import {
 import { getNativeTokenAddress } from './asset';
 import { strings } from '../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
+import { isTestNet } from '../../../../util/networks';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 
@@ -93,7 +94,8 @@ export function getAvailableTokens({
     .filter((token) => {
       if (
         token.standard !== TokenStandard.ERC20 ||
-        !token.accountType?.includes('eip155')
+        !token.accountType?.includes('eip155') ||
+        (token.chainId && isTestNet(token.chainId))
       ) {
         return false;
       }
