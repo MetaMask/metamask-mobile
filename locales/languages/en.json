@@ -83,7 +83,7 @@
       "message": "Insufficient funds"
     },
     "insufficient_pay_token_balance_fees": {
-      "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
+      "message": "Add less than {{amount}} or use a different token.",
       "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
@@ -638,7 +638,8 @@
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\"",
       "unsupported_token_title": "Not available",
-      "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers"
+      "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers",
+      "error_loading_tokens": "Unable to load tokens. Please try again later."
     },
     "networks_filter_bar": {
       "all_networks": "All networks"
@@ -1788,7 +1789,9 @@
       "market_unavailable": "Market unavailable",
       "amount_on_outcome": "${{amount}} on {{outcome}}",
       "outcome_at_price": "{{outcome}} at {{price}}¢",
-      "fee_exemption": "We don't charge any fees on this market."
+      "fee_exemption": "We don't charge any fees on this market.",
+      "ended": "Ended",
+      "resolved_early": "Resolved early"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -4594,6 +4597,11 @@
       "contact_support": "Contact Support",
       "got_it": "Got It"
     },
+    "unsupported_region_modal": {
+      "title": "Unavailable in your region",
+      "description": "Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.",
+      "got_it": "Got It"
+    },
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
       "sell_crypto_tokens": "Sell Crypto Tokens",
@@ -6635,13 +6643,13 @@
       "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
       "not_supported_account_type_title": "Account type not supported",
-      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication Failed",
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
       "gtm_title": "Rewards are here",
       "gtm_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "gtm_confirm": "Get started",
@@ -6688,7 +6696,7 @@
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
       "link_account_button": "Add",
-      "link_account_failed_error": "Failed to link account",
+      "link_account_failed_error": "Failed to add account",
       "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
@@ -6811,10 +6819,10 @@
     },
     "link_account_group": {
       "link_account": "Add account",
-      "tracked": "Tracked",
-      "untracked": "Untracked",
-      "unsupported": "Unsupported",
-      "tracked_count": "{{optedIn}}/{{total}} tracked",
+      "tracked": "Enrolled",
+      "untracked": "Not enrolled",
+      "unsupported": "Not supported",
+      "tracked_count": "{{optedIn}}/{{total}} enrolled",
       "link_account_success": "{{accountName}} added successfully",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}",
       "link_account_address_error": "Failed to add {{address}}"

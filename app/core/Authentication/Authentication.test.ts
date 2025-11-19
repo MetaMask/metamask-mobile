@@ -89,6 +89,7 @@ const mockSnapClient = {
 };
 
 const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+const mockResyncAccounts = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../SnapKeyring/MultichainWalletSnapClient'),
@@ -120,6 +121,7 @@ jest.mock('../Engine', () => ({
 
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
+      resyncAccounts: jest.fn().mockImplementation(() => mockResyncAccounts()),
     },
   },
 }));
@@ -1103,6 +1105,23 @@ describe('Authentication', () => {
           }
         });
 
+        it('resync accounts after login - state 2', async () => {
+          mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+          const mockCredentials = { username: 'test', password: 'test' };
+          SecureKeychain.getGenericPassword = jest
+            .fn()
+            .mockReturnValue(mockCredentials);
+
+          await Authentication.appTriggeredAuth();
+
+          // Wait for the asynchronous call to `postLoginAsyncOperations`.
+          await Promise.resolve();
+
+          // We should have ran account resynchronization after logging in.
+          expect(mockResyncAccounts).toHaveBeenCalled();
+        });
+
         it('runs discovery and alignment on all HD wallets - state 2', async () => {
           const Engine = jest.requireMock('../Engine');
           Engine.context.KeyringController.state.keyrings = [
@@ -1120,6 +1139,9 @@ describe('Authentication', () => {
             .mockReturnValue(mockCredentials);
 
           await Authentication.appTriggeredAuth();
+
+          // Wait for the asynchronous call to `postLoginAsyncOperations`.
+          await Promise.resolve();
 
           // We should have ran discovery + alignment on all HD keyrings only.
           expect(
