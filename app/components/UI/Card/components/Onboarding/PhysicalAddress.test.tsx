@@ -1049,7 +1049,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.COMPLETE,
+          Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION,
         );
       });
     });
@@ -1305,7 +1305,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.COMPLETE,
+          Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION,
         );
       });
     });
@@ -1420,7 +1420,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.COMPLETE,
+          Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION,
         );
       });
     });

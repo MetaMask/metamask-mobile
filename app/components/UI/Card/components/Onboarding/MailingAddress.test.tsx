@@ -300,6 +300,7 @@ jest.mock('../../../../../constants/navigation/Routes', () => ({
   CARD: {
     ONBOARDING: {
       COMPLETE: 'CardOnboardingComplete',
+      VERIFYING_REGISTRATION: 'CardOnboardingVerifyingRegistration',
       SIGN_UP: 'CardOnboardingSignUp',
     },
   },
@@ -1331,7 +1332,9 @@ describe('MailingAddress Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingComplete');
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardOnboardingVerifyingRegistration',
+        );
       });
     });
 
@@ -1729,7 +1732,9 @@ describe('MailingAddress Component', () => {
       expect(mockLinkUserToConsent).not.toHaveBeenCalled();
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingComplete');
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardOnboardingVerifyingRegistration',
+        );
       });
     });
 
