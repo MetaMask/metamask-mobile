@@ -335,26 +335,6 @@ const BrowserFlow = (props) => (
   </Stack.Navigator>
 );
 
-/* eslint-disable react/prop-types */
-// Wrapper component that redirects to Home tab when navigating from Stack Navigator
-// This preserves the tab bar visibility
-const BrowserFlowRedirect = (props) => {
-  const navigation = props.navigation;
-
-  React.useEffect(() => {
-    // Navigate to Home tab first, then to browser within the tab navigator
-    // This ensures the tab bar remains visible
-    const params = props.route?.params || {};
-    navigation.navigate('Home', {
-      screen: Routes.BROWSER.HOME,
-      params,
-    });
-  }, [navigation, props.route?.params]);
-
-  // Return null since we're redirecting
-  return null;
-};
-
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
@@ -709,12 +689,7 @@ const HomeTabs = () => {
       ) : (
         <Tab.Screen
           name={Routes.BROWSER.HOME}
-          options={{
-            ...options.browser,
-            tabBarButton: isAssetsTrendingTokensEnabled
-              ? () => null
-              : undefined,
-          }}
+          options={options.browser}
           component={BrowserFlow}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
@@ -953,6 +928,9 @@ const MainNavigator = () => {
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
   );
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
+  );
 
   return (
     <Stack.Navigator
@@ -989,6 +967,15 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      {/* when isAssetsTrendingTokensEnabled is true, we need to register the BrowserFlow in the Stack Navigator
+       so Routes.BROWSER.HOME can still be navigated to from Stack screens. */}
+      {isAssetsTrendingTokensEnabled && (
+        <Stack.Screen
+          name={Routes.BROWSER.HOME}
+          component={BrowserFlow}
+          options={{ headerShown: false }}
+        />
+      )}
       <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
