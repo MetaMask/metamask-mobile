@@ -50,12 +50,14 @@ interface UsePredictToastsParams {
   pendingToastConfig?: PendingToastConfig;
   confirmedToastConfig: ConfirmedToastConfig;
   errorToastConfig: ErrorToastConfig;
+  transactionBatchId?: string;
   clearTransaction?: () => void;
   onConfirmed?: () => void;
 }
 
 export const usePredictToasts = ({
   transactionType,
+  transactionBatchId,
   pendingToastConfig,
   confirmedToastConfig,
   errorToastConfig,
@@ -124,16 +126,16 @@ export const usePredictToasts = ({
           },
         ],
         iconName: IconName.CheckBold,
-        iconColor: theme.colors.success.default,
-        backgroundColor: theme.colors.accent04.normal,
+        iconColor: theme.colors.accent03.dark,
+        backgroundColor: theme.colors.accent03.normal,
         hasNoTimeout: false,
       });
     },
     [
       confirmedToastConfig.description,
       confirmedToastConfig.title,
-      theme.colors.accent04.normal,
-      theme.colors.success.default,
+      theme.colors.accent03.dark,
+      theme.colors.accent03.normal,
       toastRef,
     ],
   );
@@ -176,10 +178,17 @@ export const usePredictToasts = ({
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      const isTargetTransaction = transactionMeta?.nestedTransactions?.some(
-        (tx) => tx.type === transactionType,
-      );
-      if (!isTargetTransaction) {
+      const isTargetTransaction =
+        transactionMeta.batchId === transactionBatchId;
+
+      const isTargetNestedTransaction =
+        transactionMeta?.nestedTransactions?.some(
+          (tx) => tx.type === transactionType,
+        );
+
+      if (transactionBatchId && !isTargetTransaction) {
+        return;
+      } else if (!isTargetNestedTransaction) {
         return;
       }
 
@@ -222,6 +231,7 @@ export const usePredictToasts = ({
     showErrorToast,
     showPendingToast,
     toastRef,
+    transactionBatchId,
     transactionType,
   ]);
 

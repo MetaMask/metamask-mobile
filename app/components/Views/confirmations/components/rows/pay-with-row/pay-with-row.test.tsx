@@ -8,7 +8,6 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { Text as MockText } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
 import { isHardwareAccount } from '../../../../../../util/address';
 
 jest.mock('@react-navigation/native', () => ({
@@ -17,8 +16,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../hooks/pay/useTransactionBridgeQuotes');
-jest.mock('../../../hooks/pay/useTransactionRequiredFiat');
 jest.mock('../../../../../../util/address');
 
 jest.mock('../../token-icon/', () => ({
@@ -29,7 +26,6 @@ jest.mock('../../token-icon/', () => ({
 
 const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';
-const TOTAL_FIAT_MOCK = 123.456;
 
 const STATE_MOCK = {
   engine: {
@@ -45,23 +41,19 @@ describe('PayWithRow', () => {
   const navigateMock = jest.fn();
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
-  const useTransactionRequiredFiatMock = jest.mocked(
-    useTransactionRequiredFiat,
-  );
-
   beforeEach(() => {
     jest.resetAllMocks();
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: {
         address: ADDRESS_MOCK,
-        balance: '0',
+        balanceHuman: '0',
         balanceFiat: '$0',
         balanceRaw: '0',
+        balanceUsd: '0',
         chainId: CHAIN_ID_MOCK,
         decimals: 4,
         symbol: 'test',
-        tokenFiatAmount: 0,
       },
       setPayToken: jest.fn(),
     });
@@ -69,10 +61,6 @@ describe('PayWithRow', () => {
     jest.mocked(useNavigation).mockReturnValue({
       navigate: navigateMock,
     } as never);
-
-    useTransactionRequiredFiatMock.mockReturnValue({
-      totalFiat: TOTAL_FIAT_MOCK,
-    } as ReturnType<typeof useTransactionRequiredFiat>);
 
     isHardwareAccountMock.mockReturnValue(false);
   });
@@ -91,20 +79,7 @@ describe('PayWithRow', () => {
 
     expect(navigateMock).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
-      expect.any(Object),
     );
-  });
-
-  it('filters token picker using total fiat', async () => {
-    const { getByText } = render();
-
-    await act(() => {
-      fireEvent.press(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`));
-    });
-
-    expect(navigateMock).toHaveBeenCalledWith(expect.any(String), {
-      minimumFiatBalance: TOTAL_FIAT_MOCK,
-    });
   });
 
   it('renders skeleton when no pay token selected', () => {

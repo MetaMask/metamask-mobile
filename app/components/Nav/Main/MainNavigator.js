@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -50,7 +50,7 @@ import { Confirm as RedesignedConfirm } from '../../Views/confirmations/componen
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
-import TrendingView from '../../Views/TrendingView';
+import TrendingView from '../../Views/TrendingView/TrendingView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -60,6 +60,7 @@ import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
+import TokenListRoutes from '../../UI/Ramp/routes';
 
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -106,7 +107,6 @@ import {
   PredictModalStack,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
-import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -128,6 +128,13 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import ReferralBottomSheetModal from '../../UI/Rewards/components/ReferralBottomSheetModal';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { getImportTokenNavbarOptions } from '../../UI/Navbar';
+import {
+  TOKEN_TITLE,
+  NFT_TITLE,
+  TOKEN,
+} from '../../Views/AddAsset/AddAsset.constants';
+import { strings } from '../../../../locales/i18n';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -518,7 +525,6 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
@@ -641,11 +647,7 @@ const HomeTabs = () => {
     const currentRoute = state.routes[state.index];
 
     // Hide tab bar for rewards onboarding splash screen
-    if (
-      currentRoute.name?.startsWith('Rewards') &&
-      isRewardsEnabled &&
-      !rewardsSubscription
-    ) {
+    if (currentRoute.name?.startsWith('Rewards') && !rewardsSubscription) {
       return null;
     }
 
@@ -707,21 +709,12 @@ const HomeTabs = () => {
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-      {isRewardsEnabled ? (
-        <Tab.Screen
-          name={Routes.REWARDS_VIEW}
-          options={options.rewards}
-          component={RewardsHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
-      ) : (
-        <Tab.Screen
-          name={Routes.SETTINGS_VIEW}
-          options={options.settings}
-          component={SettingsFlow}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
-      )}
+      <Tab.Screen
+        name={Routes.REWARDS_VIEW}
+        options={options.rewards}
+        component={RewardsHome}
+        layout={({ children }) => UnmountOnBlurComponent(children)}
+      />
     </Tab.Navigator>
   );
 };
@@ -930,20 +923,16 @@ const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const isPerpsEnabled = useMemo(
-    () => perpsEnabledFlag && isEvmSelected,
-    [perpsEnabledFlag, isEvmSelected],
-  );
+  const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
-    () => predictEnabledFlag && isEvmSelected,
-    [predictEnabledFlag, isEvmSelected],
+    () => predictEnabledFlag,
+    [predictEnabledFlag],
   );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
   );
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   return (
     <Stack.Navigator
@@ -988,35 +977,41 @@ const MainNavigator = () => {
       <Stack.Screen
         name="AddAsset"
         component={AddAsset}
-        options={{ headerShown: false }}
+        options={({ route, navigation }) => ({
+          ...getImportTokenNavbarOptions(
+            navigation,
+            strings(
+              `add_asset.${route.params?.assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
+            ),
+          ),
+          headerShown: true,
+        })}
       />
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
         options={{ headerShown: true }}
       />
-      {isRewardsEnabled && (
-        <Stack.Screen
-          name={Routes.SETTINGS_VIEW}
-          component={SettingsFlow}
-          options={{
-            headerShown: false,
-            animationEnabled: true,
-            cardStyleInterpolator: ({ current, layouts }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
-          }}
-        />
-      )}
+      <Stack.Screen
+        name={Routes.SETTINGS_VIEW}
+        component={SettingsFlow}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name="Asset" component={AssetModalFlow} />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
@@ -1050,6 +1045,10 @@ const MainNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
+      <Stack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={TokenListRoutes}
+      />
       <Stack.Screen name={Routes.RAMP.BUY}>
         {() => <RampRoutes rampType={RampType.BUY} />}
       </Stack.Screen>
@@ -1177,7 +1176,7 @@ const MainNavigator = () => {
           ...GeneralSettings.navigationOptions,
         }}
       />
-      {process.env.NODE_ENV !== 'production' && (
+      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
         <Stack.Screen
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}

@@ -263,7 +263,7 @@ describe('Confirm', () => {
     expect(getByText('Est. annual reward')).toBeDefined();
     expect(getByText('Reward frequency')).toBeDefined();
     expect(getByText('Withdrawal time')).toBeDefined();
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
   });
 
@@ -275,7 +275,7 @@ describe('Confirm', () => {
     expect(getByText('Unstaking to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
   });
 
   it('renders information for staking claim', async () => {
@@ -287,7 +287,7 @@ describe('Confirm', () => {
     expect(getByText('Pooled Staking')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
   });
 
   it('renders information for contract interaction', async () => {
@@ -304,7 +304,7 @@ describe('Confirm', () => {
       getByText('Review request details before you confirm.'),
     ).toBeDefined();
     expect(getByText('Estimated changes')).toBeDefined();
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
   });
 
   it('renders splash page if present', async () => {

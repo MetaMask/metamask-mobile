@@ -170,6 +170,21 @@ describe('TokenList', () => {
 
       expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[1], '1');
     });
+
+    it('calls onSelect prop only if provided', () => {
+      const mockOnSelect = jest.fn();
+
+      const { getByTestId } = render(
+        <TokenList tokens={mockTokens} onSelect={mockOnSelect} />,
+      );
+
+      fireEvent.press(getByTestId('token-USDC'));
+
+      expect(mockOnSelect).toHaveBeenCalledTimes(1);
+      expect(mockOnSelect).toHaveBeenCalledWith(mockTokens[1]);
+      expect(mockUpdateAsset).not.toHaveBeenCalled();
+      expect(mockGotToSendScreen).not.toHaveBeenCalled();
+    });
   });
 
   describe('pagination functionality', () => {

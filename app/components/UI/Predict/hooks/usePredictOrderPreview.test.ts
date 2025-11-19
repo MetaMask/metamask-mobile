@@ -157,7 +157,7 @@ describe('usePredictOrderPreview', () => {
       expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
     });
 
-    it('auto-refreshes preview at specified interval', async () => {
+    it('schedules next refresh after receiving response', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
       const params = { ...defaultParams, autoRefreshTimeout: 2000 };
@@ -188,6 +188,109 @@ describe('usePredictOrderPreview', () => {
       await waitForNextUpdate();
 
       expect(mockPreviewOrder).toHaveBeenCalledTimes(3);
+    });
+
+    it('waits for response before starting timeout countdown', async () => {
+      let callCount = 0;
+      mockPreviewOrder.mockImplementation(async () => {
+        callCount += 1;
+        return mockPreview;
+      });
+
+      const params = { ...defaultParams, autoRefreshTimeout: 1000 };
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictOrderPreview(params),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(callCount).toBe(1);
+
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+
+      expect(callCount).toBe(1);
+
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+
+      await waitForNextUpdate();
+
+      expect(callCount).toBe(2);
+    });
+
+    it('schedules next refresh after error response', async () => {
+      mockPreviewOrder.mockRejectedValue(new Error('API Error'));
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {
+          // Suppress console.error output during test
+        });
+
+      const params = { ...defaultParams, autoRefreshTimeout: 2000 };
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictOrderPreview(params),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+
+      mockPreviewOrder.mockResolvedValue(mockPreview);
+
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      await waitForNextUpdate();
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('clears pending refresh timer when parameters change', async () => {
+      mockPreviewOrder.mockResolvedValue(mockPreview);
+
+      const params = { ...defaultParams, autoRefreshTimeout: 2000 };
+      const { waitForNextUpdate, rerender } = renderHook(
+        (props: PreviewOrderParams & { autoRefreshTimeout?: number }) =>
+          usePredictOrderPreview(props),
+        { initialProps: params },
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      rerender({ ...params, size: 200 });
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
     });
   });
 

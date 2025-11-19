@@ -431,7 +431,7 @@ describe('TokenListControlBar', () => {
       expect(filterButton.props.disabled).toBe(true);
     });
 
-    it('should disable add token button when EVM is not selected', () => {
+    it('should enable add token button when non-EVM is selected', () => {
       // Ensure EVM is not selected
       mockSelectIsEvmNetworkSelected.mockReturnValue(false);
       mockSelectChainId.mockReturnValue(
@@ -441,7 +441,7 @@ describe('TokenListControlBar', () => {
       const { getByTestId } = renderComponent();
       const addTokenButton = getByTestId('import-token-button');
 
-      expect(addTokenButton.props.disabled).toBe(true);
+      expect(addTokenButton.props.disabled).toBe(false);
     });
   });
 });

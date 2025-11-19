@@ -27,6 +27,7 @@ describe('SpendingLimitProgressBar', () => {
   it('renders with full remaining allowance', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="200"
         remainingAllowance="200"
@@ -41,6 +42,7 @@ describe('SpendingLimitProgressBar', () => {
   it('renders with partial allowance consumed', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="200"
         remainingAllowance="150"
@@ -55,6 +57,7 @@ describe('SpendingLimitProgressBar', () => {
   it('renders with most of allowance consumed', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="200"
         remainingAllowance="40"
@@ -69,6 +72,7 @@ describe('SpendingLimitProgressBar', () => {
   it('renders with full allowance consumed', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="200"
         remainingAllowance="0"
@@ -83,6 +87,7 @@ describe('SpendingLimitProgressBar', () => {
   it('handles zero total allowance', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="0"
         remainingAllowance="0"
@@ -97,6 +102,7 @@ describe('SpendingLimitProgressBar', () => {
   it('handles undefined allowance values', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance={undefined as unknown as string}
         remainingAllowance={undefined as unknown as string}
@@ -111,6 +117,7 @@ describe('SpendingLimitProgressBar', () => {
   it('handles small decimal values', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="1"
         remainingAllowance="0.5"
@@ -125,6 +132,7 @@ describe('SpendingLimitProgressBar', () => {
   it('handles consumed exceeding total allowance', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="100"
         remainingAllowance="-50"
@@ -139,6 +147,7 @@ describe('SpendingLimitProgressBar', () => {
   it('renders with different symbol', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={18}
         totalAllowance="1000"
         remainingAllowance="500"
@@ -153,6 +162,7 @@ describe('SpendingLimitProgressBar', () => {
   it('renders progress bar component', () => {
     const { toJSON } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="200"
         remainingAllowance="100"
@@ -166,6 +176,7 @@ describe('SpendingLimitProgressBar', () => {
   it('handles null allowance values', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="200"
         remainingAllowance={null as unknown as string}
@@ -180,6 +191,7 @@ describe('SpendingLimitProgressBar', () => {
   it('calculates consumed amount for 25% consumption', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="400"
         remainingAllowance="300"
@@ -193,6 +205,7 @@ describe('SpendingLimitProgressBar', () => {
   it('calculates consumed amount for 75% consumption', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="400"
         remainingAllowance="100"
@@ -206,6 +219,7 @@ describe('SpendingLimitProgressBar', () => {
   it('calculates consumed amount for 99% consumption', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
+        isLoading={false}
         decimals={6}
         totalAllowance="100"
         remainingAllowance="1"

@@ -75,6 +75,7 @@ describe('useFeeCalculations', () => {
       gas: '0x5572e9c22d00',
       shouldUseEIP1559FeeLogic: true,
       gasPrice: '0x5572e9c22d00',
+      receiptGasPrice: undefined,
     });
 
     expect(currentCurrencyFee).toBe(null);
@@ -159,6 +160,30 @@ describe('useFeeCalculations', () => {
     expect(result.current.estimatedFeeFiatPrecise).toBe('0.337875011');
     expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c23d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
+  });
+
+  it('returs fee calculations using receipt values if present', () => {
+    const state = cloneDeep(stakingDepositConfirmationState);
+
+    state.engine.backgroundState.TransactionController.transactions[0].txReceipt =
+      {
+        gasUsed: toHex(50000),
+        effectiveGasPrice: toHex(300000000000000),
+      };
+
+    const transactionWithReceipt =
+      state.engine.backgroundState.TransactionController.transactions[0];
+
+    const { result } = renderHookWithProvider(
+      () => useFeeCalculations(transactionWithReceipt),
+      {
+        state,
+      },
+    );
+
+    expect(result.current).toMatchObject({
+      estimatedFeeNative: '15',
+    });
   });
 
   it('returns fee calculations when gasUsed is present', () => {

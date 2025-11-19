@@ -141,43 +141,12 @@ const useGetCardExternalWalletDetails = (
         }
       }
 
-      // Filter to only get EVM tokens for Linea (exclude Solana and other non-EVM chains)
-      // The balance scanner contract only works with EVM addresses
-      const lineaEvmTokens = cardExternalWalletDetails.filter(
-        (detail) =>
-          detail.caipChainId === sdk.lineaChainId &&
-          detail.tokenDetails.address,
-      );
-
-      // Add timeout to prevent hanging indefinitely
-      const getTotalAllowanceWithTimeout = Promise.race([
-        sdk.getTotalAllowance(lineaEvmTokens),
-        new Promise<{ address: string; allowance: string | undefined }[]>(
-          (_, reject) =>
-            setTimeout(
-              () => reject(new Error('getTotalAllowance timeout')),
-              10000,
-            ),
-        ),
-      ]);
-
-      let totalAllowances: { address: string; allowance: string | undefined }[];
-      try {
-        totalAllowances = await getTotalAllowanceWithTimeout;
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'fetchCardExternalWalletDetails: getTotalAllowance failed or timed out, using empty array',
-        );
-        // If getTotalAllowance fails or times out, use empty array
-        // This allows Solana tokens to still be returned
-        totalAllowances = [];
-      }
-
+      // Map wallet details without totalAllowance
+      // totalAllowance will be fetched separately only for the priority token using logs
       const mappedWalletDetails =
         mapCardExternalWalletDetailToCardTokenAllowance(
           cardExternalWalletDetails,
-          totalAllowances,
+          [], // Empty array - totalAllowance will be populated later for priority token only
         ).filter(Boolean) as CardTokenAllowance[];
 
       // Get priority wallet detail
@@ -212,15 +181,24 @@ const useGetCardExternalWalletDetails = (
     },
   );
 
-  const { data, isLoading, fetchData } = cacheResult;
+  const { data, isLoading, error, fetchData } = cacheResult;
 
   // Manually trigger fetch when all prerequisites are ready
   // This avoids the race condition where SDK isn't available on first render
   useEffect(() => {
-    if (sdk && isAuthenticated && delegationSettings && !isLoading && !data) {
+    if (
+      sdk &&
+      isAuthenticated &&
+      delegationSettings &&
+      !isLoading &&
+      !error &&
+      !data
+    ) {
       fetchData();
     }
-  }, [sdk, isAuthenticated, delegationSettings, isLoading, data, fetchData]);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sdk, isAuthenticated, delegationSettings, isLoading, error, data]);
 
   return cacheResult;
 };
