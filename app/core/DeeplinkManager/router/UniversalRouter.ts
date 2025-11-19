@@ -8,7 +8,12 @@ import {
 import Logger from '../../../util/Logger';
 import { MetaMetrics } from '../../Analytics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
-import { NavigationHandler, SwapHandler, SendHandler } from './handlers';
+import {
+  NavigationHandler,
+  SwapHandler,
+  SendHandler,
+  HomeHandler,
+} from './handlers';
 
 /**
  * Universal Router for handling deep links
@@ -48,7 +53,8 @@ export class UniversalRouter {
       this.registry.register(new SwapHandler());
       this.registry.register(new SendHandler());
 
-      // Navigation handlers (priority 10)
+      // Navigation handlers (priority 100)
+      this.registry.register(new HomeHandler());
       this.registry.register(new NavigationHandler());
 
       Logger.log('✅ Universal Router initialized with handlers');

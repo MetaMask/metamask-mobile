@@ -13,7 +13,6 @@ import Logger from '../../../../util/Logger';
  */
 export class NavigationHandler extends BaseHandler {
   readonly supportedActions = [
-    ACTIONS.HOME,
     ACTIONS.CREATE_ACCOUNT,
     ACTIONS.REWARDS,
     ACTIONS.PREDICT,
