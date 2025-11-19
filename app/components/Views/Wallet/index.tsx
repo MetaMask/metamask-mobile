@@ -1385,7 +1385,11 @@ const Wallet = ({
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow} accessibilityRole="none">
+      <View
+        style={baseStyles.flexGrow}
+        accessibilityRole="none"
+        accessible={false}
+      >
         {selectedInternalAccount ? (
           <View style={styles.wrapper}>
             <ConditionalScrollView
