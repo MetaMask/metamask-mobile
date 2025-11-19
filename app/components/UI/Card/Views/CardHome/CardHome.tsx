@@ -735,7 +735,11 @@ const CardHome = () => {
               testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
             />
           ) : (
-            <CardAssetItem asset={asset} privacyMode={privacyMode} />
+            <CardAssetItem
+              asset={asset}
+              privacyMode={privacyMode}
+              balanceFormatted={balanceFormatted}
+            />
           )}
         </View>
 

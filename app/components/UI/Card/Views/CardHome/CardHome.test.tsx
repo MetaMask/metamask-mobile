@@ -722,6 +722,30 @@ describe('CardHome Component', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('passes formatted balance to CardAssetItem', () => {
+    // Given: asset balances with formatted balance
+    mockUseAssetBalances.mockReturnValue(
+      createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: {
+          symbol: 'USDC',
+          image: 'usdc-image-url',
+        },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        rawFiatNumber: 1000,
+      }),
+    );
+
+    // When: component renders
+    render();
+
+    // Then: CardAssetItem should be rendered with formatted balance
+    expect(
+      screen.queryByTestId(CardHomeSelectors.CARD_ASSET_ITEM_SKELETON),
+    ).not.toBeOnTheScreen();
+  });
+
   it('displays manage card section', () => {
     // Given: default state
     // When: component renders
