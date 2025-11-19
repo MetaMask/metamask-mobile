@@ -187,7 +187,7 @@ describe('useRegisterUserConsent', () => {
         });
 
         expect(mockCreateOnboardingConsent).toHaveBeenCalledWith({
-          policyType: 'US',
+          policyType: 'us',
           onboardingId: testOnboardingId,
           consents: [
             {
@@ -729,7 +729,7 @@ describe('useRegisterUserConsent', () => {
     const countryTestCases = [
       {
         country: 'US',
-        expectedPolicy: 'US',
+        expectedPolicy: 'us',
         description: 'US users',
       },
       {

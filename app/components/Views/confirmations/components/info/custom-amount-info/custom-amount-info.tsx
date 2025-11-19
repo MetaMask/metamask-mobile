@@ -46,6 +46,7 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import Button, {
+  ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
@@ -68,7 +69,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
     const hasTokens = availableTokens.length > 0;
-    const buttonLabel = useButtonLabel();
 
     const isResultReady = useIsResultReady({
       isKeyboardVisible,
@@ -128,7 +128,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
               alertMessage={alertTitle}
-              doneLabel={buttonLabel}
               value={amountFiat}
               onChange={updatePendingAmount}
               onDonePress={handleDone}
@@ -234,6 +233,7 @@ function ConfirmButton({
   return (
     <Button
       style={[disabled && styles.disabledButton]}
+      size={ButtonSize.Lg}
       label={alertTitle ?? buttonLabel}
       variant={ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
@@ -250,11 +250,20 @@ function useIsResultReady({
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
+  const requiredTokens = useTransactionPayRequiredTokens();
   const sourceAmounts = useTransactionPaySourceAmounts();
+
+  const hasSourceAmount = sourceAmounts?.some((a) =>
+    requiredTokens.some(
+      (rt) =>
+        rt.address.toLowerCase() === a.targetTokenAddress.toLowerCase() &&
+        !rt.skipIfBalance,
+    ),
+  );
 
   return (
     !isKeyboardVisible &&
-    (isQuotesLoading || Boolean(quotes?.length) || !sourceAmounts?.length)
+    (isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount)
   );
 }
 
