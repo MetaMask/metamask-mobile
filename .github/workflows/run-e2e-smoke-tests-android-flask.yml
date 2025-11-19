@@ -26,6 +26,7 @@ jobs:
       test_suite_tag: 'FlaskBuildTests'
       split_number: ${{ matrix.split }}
       total_splits: 3
+      changed_files: ${{ inputs.changed_files }}
       build_type: 'flask'
     secrets: inherit
 
