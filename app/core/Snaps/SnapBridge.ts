@@ -38,6 +38,8 @@ interface ISnapBridgeProps {
   getRPCMethodMiddleware: (args: any) => any;
 }
 
+// Trigger e2e test
+
 export default class SnapBridge {
   snapId: string;
   stream: Duplex;
