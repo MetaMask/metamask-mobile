@@ -5,7 +5,6 @@ import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import { InteractionManager, BackHandler, Alert, Image } from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
-import FOX_LOGO from '../../../images/branding/fox.png';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
 import { strings } from '../../../../locales/i18n';
@@ -27,9 +26,6 @@ import {
   TRUE,
 } from '../../../constants/storage';
 import { useMetrics } from '../../hooks/useMetrics';
-import styleSheet from './styles';
-import { colors as importedColors } from '../../../styles/common';
-import { Theme } from '../../../util/theme/models';
 import { setExistingUser } from '../../../actions/user';
 
 const mockNavigate = jest.fn();
@@ -1312,58 +1308,6 @@ describe('Login', () => {
     });
   });
 
-  describe('Login Styles', () => {
-    it('returns correct textField background color for light theme', () => {
-      // Arrange
-      const mockTheme = {
-        colors: {
-          background: { default: '#FFFFFF' },
-          text: { default: '#000000', alternative: '#666666' },
-          border: { default: '#E5E5E5' },
-          error: { default: '#FF0000' },
-          icon: { default: '#000000' },
-        },
-        themeAppearance: 'light',
-        typography: {},
-        shadows: {},
-        brandColors: {},
-      } as unknown as Theme;
-
-      // Act
-      const styles = styleSheet({ theme: mockTheme });
-
-      // Assert
-      expect(styles.textField.backgroundColor).toBe(
-        importedColors.gettingStartedPageBackgroundColorLightMode,
-      );
-    });
-
-    it('returns correct textField background color for dark theme', () => {
-      // Arrange
-      const mockDarkTheme = {
-        colors: {
-          background: { default: '#000000' },
-          text: { default: '#FFFFFF', alternative: '#CCCCCC' },
-          border: { default: '#333333' },
-          error: { default: '#FF6B6B' },
-          icon: { default: '#FFFFFF' },
-        },
-        themeAppearance: 'dark',
-        typography: {},
-        shadows: {},
-        brandColors: {},
-      } as unknown as Theme;
-
-      // Act
-      const styles = styleSheet({ theme: mockDarkTheme });
-
-      // Assert
-      expect(styles.textField.backgroundColor).toBe(
-        importedColors.gettingStartedTextColor,
-      );
-    });
-  });
-
   describe('Conditional Rendering Based on OAuth Status', () => {
     describe('Regular Login', () => {
       beforeEach(() => {
@@ -1375,14 +1319,13 @@ describe('Login', () => {
         });
       });
 
-      it('renders animations and hides OAuth-specific elements', () => {
+      it('renders static MetaMask logo and fox animation', () => {
         // Arrange & Act
         const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
           <Login />,
         );
 
-        // Assert - Animations are rendered
-        expect(getByTestId('onboarding-animation-mock')).toBeDefined();
+        // Assert - Fox animation is rendered
         expect(getByTestId('fox-animation-mock')).toBeDefined();
 
         // Assert - Regular login elements
@@ -1394,19 +1337,16 @@ describe('Login', () => {
           queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
         ).toBeNull();
 
-        // Assert - Static images are not rendered
+        // Assert - metaMask logo is rendered
         const images = UNSAFE_root.findAllByType(Image);
         const hasMetaMaskLogo = images.some(
           (img) => img.props.source === METAMASK_NAME,
         );
-        const hasStaticFox = images.some(
-          (img) => img.props.source === FOX_LOGO,
-        );
-        expect(hasMetaMaskLogo).toBe(false);
-        expect(hasStaticFox).toBe(false);
+
+        expect(hasMetaMaskLogo).toBe(true);
       });
 
-      it('starts onboarding animation after delay', () => {
+      it('checks for seedless password status after 100ms delay', () => {
         // Arrange
         jest.useFakeTimers();
         const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
