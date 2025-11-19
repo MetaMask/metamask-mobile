@@ -92,6 +92,7 @@ describe('HeroNft', () => {
     expect(getByTestId('hero-nft-placeholder')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('hero-nft-placeholder'));
+
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -106,6 +107,7 @@ describe('HeroNft', () => {
     expect(getByText('#12345')).toBeDefined();
 
     fireEvent.press(getByTestId('nft-image'));
+
     expect(mockNavigate).toHaveBeenCalledWith('NftDetailsFullImage', {
       collectible: mockNft,
     });
@@ -140,6 +142,7 @@ describe('HeroNft', () => {
     expect(getByText('#12345')).toBeDefined();
 
     fireEvent.press(getByTestId('nft-image'));
+
     expect(mockNavigate).toHaveBeenCalledWith('NftDetailsFullImage', {
       collectible: {
         ...mockNft,

@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { Nft } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
+import type { Hex } from '@metamask/utils';
 import { selectAllNftContracts } from '../../../../../selectors/nftController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
@@ -40,7 +41,7 @@ export const useNft = (): UseNftResponse => {
     transactionData?.args?._value ?? transactionData?.args[2]
   )?.toString();
 
-  const hexChainId = toHex(chainId);
+  const hexChainId = (chainId && toHex(chainId)) as Hex;
   const nfts: Nft[] = useSelector((state: RootState) =>
     selectAllCollectiblesByChain(state, hexChainId),
   );
