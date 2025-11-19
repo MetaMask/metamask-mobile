@@ -89,6 +89,54 @@ jest.mock(
   }),
 );
 
+// Mock Perps and Predict selectors
+const mockPerpsSelector = { enabled: false };
+const mockPredictSelector = { enabled: false };
+
+jest.mock('../../UI/Perps', () => ({
+  ...jest.requireActual('../../UI/Perps'),
+  selectPerpsEnabledFlag: () => mockPerpsSelector.enabled,
+}));
+
+jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../UI/Predict/selectors/featureFlags'),
+  selectPredictEnabledFlag: () => mockPredictSelector.enabled,
+}));
+
+// Mock Perps and Predict components
+const mockPerpsConnectionProvider = jest.fn();
+const mockPredictTransactionsView = jest.fn();
+const mockPerpsTransactionsView = jest.fn();
+
+jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: (props: {
+    children: React.ReactNode;
+    isVisible: boolean;
+  }) => {
+    mockPerpsConnectionProvider(props);
+    return props.children;
+  },
+}));
+
+jest.mock(
+  '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView',
+  () => ({
+    __esModule: true,
+    default: (props: { isVisible: boolean }) => {
+      mockPredictTransactionsView(props);
+      return null;
+    },
+  }),
+);
+
+jest.mock('../../UI/Perps/Views/PerpsTransactionsView', () => ({
+  __esModule: true,
+  default: (props: unknown) => {
+    mockPerpsTransactionsView(props);
+    return null;
+  },
+}));
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
@@ -477,6 +525,127 @@ describe('ActivityView', () => {
           headerRight: expect.any(Function),
         }),
       );
+    });
+  });
+
+  describe('isVisible prop on tab components', () => {
+    const createStateWithEvm = () => ({
+      ...mockInitialState,
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          MultichainNetworkController: {
+            ...backgroundState.MultichainNetworkController,
+            isEvmSelected: true,
+          },
+        },
+      },
+    });
+
+    const getLastCallProps = (mockFn: jest.Mock) =>
+      mockFn.mock.calls[mockFn.mock.calls.length - 1]?.[0];
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockPerpsConnectionProvider.mockClear();
+      mockPredictTransactionsView.mockClear();
+      mockPerpsSelector.enabled = false;
+      mockPredictSelector.enabled = false;
+    });
+
+    describe('PerpsConnectionProvider', () => {
+      it('passes isVisible={true} when active tab (index 2)', () => {
+        mockPerpsSelector.enabled = true;
+        const { UNSAFE_getAllByType } = renderComponent(createStateWithEvm());
+        const MockScrollableTabView = jest.requireMock(
+          '@tommasini/react-native-scrollable-tab-view',
+        );
+        const scrollableTabView = UNSAFE_getAllByType(MockScrollableTabView)[0];
+
+        fireEvent(scrollableTabView, 'changeTab', { i: 2 });
+
+        expect(getLastCallProps(mockPerpsConnectionProvider).isVisible).toBe(
+          true,
+        );
+      });
+
+      it('passes isVisible={false} when inactive tab', () => {
+        mockPerpsSelector.enabled = true;
+        renderComponent(createStateWithEvm());
+
+        expect(getLastCallProps(mockPerpsConnectionProvider).isVisible).toBe(
+          false,
+        );
+      });
+    });
+
+    describe('PredictTransactionsView', () => {
+      it('passes isVisible={true} when active tab with Perps enabled (index 3)', () => {
+        mockPerpsSelector.enabled = true;
+        mockPredictSelector.enabled = true;
+        const { UNSAFE_getAllByType } = renderComponent(createStateWithEvm());
+        const MockScrollableTabView = jest.requireMock(
+          '@tommasini/react-native-scrollable-tab-view',
+        );
+        const scrollableTabView = UNSAFE_getAllByType(MockScrollableTabView)[0];
+
+        fireEvent(scrollableTabView, 'changeTab', { i: 3 });
+
+        expect(getLastCallProps(mockPredictTransactionsView).isVisible).toBe(
+          true,
+        );
+      });
+
+      it('passes isVisible={true} when active tab with Perps disabled (index 2)', () => {
+        mockPredictSelector.enabled = true;
+        const { UNSAFE_getAllByType } = renderComponent(createStateWithEvm());
+        const MockScrollableTabView = jest.requireMock(
+          '@tommasini/react-native-scrollable-tab-view',
+        );
+        const scrollableTabView = UNSAFE_getAllByType(MockScrollableTabView)[0];
+
+        fireEvent(scrollableTabView, 'changeTab', { i: 2 });
+
+        expect(getLastCallProps(mockPredictTransactionsView).isVisible).toBe(
+          true,
+        );
+      });
+
+      it('passes isVisible={false} when inactive tab', () => {
+        mockPerpsSelector.enabled = true;
+        mockPredictSelector.enabled = true;
+        renderComponent(createStateWithEvm());
+
+        expect(getLastCallProps(mockPredictTransactionsView).isVisible).toBe(
+          false,
+        );
+      });
+
+      it('updates isVisible when switching tabs', () => {
+        mockPerpsSelector.enabled = true;
+        mockPredictSelector.enabled = true;
+        const { UNSAFE_getAllByType } = renderComponent(createStateWithEvm());
+        const MockScrollableTabView = jest.requireMock(
+          '@tommasini/react-native-scrollable-tab-view',
+        );
+        const scrollableTabView = UNSAFE_getAllByType(MockScrollableTabView)[0];
+
+        fireEvent(scrollableTabView, 'changeTab', { i: 2 });
+        expect(getLastCallProps(mockPerpsConnectionProvider).isVisible).toBe(
+          true,
+        );
+        expect(getLastCallProps(mockPredictTransactionsView).isVisible).toBe(
+          false,
+        );
+
+        fireEvent(scrollableTabView, 'changeTab', { i: 3 });
+        expect(getLastCallProps(mockPerpsConnectionProvider).isVisible).toBe(
+          false,
+        );
+        expect(getLastCallProps(mockPredictTransactionsView).isVisible).toBe(
+          true,
+        );
+      });
     });
   });
 });
