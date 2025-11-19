@@ -8,7 +8,7 @@ import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 // @ts-expect-error - No types declarations
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
-import { JsonRpcParams } from '@metamask/eth-query';
+import { JsonRpcParams, Json } from '@metamask/utils';
 import {
   createSelectedNetworkMiddleware,
   SelectedNetworkControllerMessenger,
@@ -18,7 +18,6 @@ import { SubjectType } from '@metamask/permission-controller';
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 import { SnapId } from '@metamask/snaps-sdk';
-import { Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Engine from '../Engine';
