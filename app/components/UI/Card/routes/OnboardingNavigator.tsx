@@ -114,8 +114,6 @@ const OnboardingNavigator: React.FC = () => {
   const { user, isLoading } = useCardSDK();
 
   const getInitialRouteName = useCallback(() => {
-    return Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION;
-
     if (!onboardingId || !user?.id) {
       return Routes.CARD.ONBOARDING.SIGN_UP;
     }

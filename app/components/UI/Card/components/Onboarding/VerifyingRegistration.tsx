@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -9,41 +10,41 @@ import { StackActions, useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { useCardSDK } from '../../sdk';
-import { getErrorMessage } from '../../util/getErrorMessage';
 import Logger from '../../../../../util/Logger';
-import NotificationManager from '../../../../../core/NotificationManager';
 import {
   Box,
-  Icon,
-  IconName,
   Text,
   TextVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
+import { CARD_SUPPORT_EMAIL } from '../../constants';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { useTheme } from '../../../../../util/theme';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { headerStyle } from '../../routes';
 
 const POLLING_INTERVAL = 3000; // 3 seconds
 const TIMEOUT_DURATION = 30000; // 30 seconds
 
-// Header component for close button (moved outside to avoid ESLint warning)
-const CloseHeaderButton = ({ onPress }: { onPress: () => void }) => (
-  <TouchableOpacity onPress={onPress}>
-    <Box twClassName="ml-4">
-      <Icon name={IconName.Close} />
-    </Box>
-  </TouchableOpacity>
-);
+type VerificationStep = 'polling' | 'timeout' | 'rejected' | 'error';
 
 const VerifyingRegistration = () => {
+  const theme = useTheme();
   const navigation = useNavigation();
+  const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { sdk, setUser } = useCardSDK();
-  const [isPolling, setIsPolling] = useState(true);
-  const [hasTimedOut, setHasTimedOut] = useState(false);
-  const [isRejected, setIsRejected] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { sdk } = useCardSDK();
+  const [step, setStep] = useState<VerificationStep>('polling');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
@@ -66,7 +67,8 @@ const VerifyingRegistration = () => {
         })
         .build(),
     );
-    navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
+
+    navigation.dispatch(StackActions.pop());
   }, [navigation, trackEvent, createEventBuilder]);
 
   const fetchUserDetails = useCallback(async () => {
@@ -82,18 +84,7 @@ const VerifyingRegistration = () => {
         return;
       }
 
-      // Update user in SDK context
-      // Map CardUserDetailsResponse to UserResponse format (convert null to undefined)
-      setUser({
-        ...response,
-        addressLine2: response.addressLine2 ?? undefined,
-        usState: response.usState ?? undefined,
-        ssn: response.ssn ?? undefined,
-      });
-
-      // Check if user is verified
       if (response.verificationState === 'VERIFIED') {
-        // Stop polling
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
@@ -103,18 +94,21 @@ const VerifyingRegistration = () => {
           timeoutRef.current = null;
         }
 
-        setIsPolling(false);
-
-        // Show success toast
-        NotificationManager.showSimpleNotification({
-          status: 'success',
-          title: strings(
-            'card.card_onboarding.verifying_registration.success_toast',
-          ),
-          duration: 3000,
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            {
+              label: strings(
+                'card.card_onboarding.verifying_registration.success_toast',
+              ),
+            },
+          ],
+          iconName: IconName.Confirmation,
+          iconColor: theme.colors.success.default,
+          backgroundColor: theme.colors.success.muted,
+          hasNoTimeout: false,
         });
 
-        // Navigate to Card Home
         setTimeout(() => {
           if (mountedRef.current) {
             navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
@@ -123,9 +117,7 @@ const VerifyingRegistration = () => {
         return;
       }
 
-      // Check if verification was rejected
       if (response.verificationState === 'REJECTED') {
-        // Stop polling
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
@@ -135,26 +127,35 @@ const VerifyingRegistration = () => {
           timeoutRef.current = null;
         }
 
-        setIsPolling(false);
-        setIsRejected(true);
+        if (mountedRef.current) {
+          setStep('rejected');
+        }
         return;
       }
-
-      // Continue polling if still PENDING or UNVERIFIED
     } catch (err) {
-      Logger.log(
-        'VerifyingRegistration: Error fetching registration status',
-        err,
-      );
-      const errorMessage = getErrorMessage(err);
+      Logger.log('VerifyingRegistration: Error fetching user details', err);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+
       if (mountedRef.current) {
-        setError(errorMessage);
+        setStep('error');
       }
     }
-  }, [sdk, setUser, navigation]);
+  }, [
+    sdk,
+    navigation,
+    theme.colors.success.default,
+    theme.colors.success.muted,
+    toastRef,
+  ]);
 
   const startPolling = useCallback(() => {
-    // Clear any existing intervals/timeouts
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
@@ -162,35 +163,28 @@ const VerifyingRegistration = () => {
       clearTimeout(timeoutRef.current);
     }
 
-    // Fetch immediately
     fetchUserDetails();
 
-    // Set up polling interval
     intervalRef.current = setInterval(() => {
       fetchUserDetails();
     }, POLLING_INTERVAL);
 
-    // Set up timeout after 30 seconds
     timeoutRef.current = setTimeout(() => {
       if (mountedRef.current) {
-        // Stop polling
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
 
-        setIsPolling(false);
-        setHasTimedOut(true);
+        setStep('timeout');
       }
     }, TIMEOUT_DURATION);
   }, [fetchUserDetails]);
 
-  // Start polling on mount
   useEffect(() => {
     mountedRef.current = true;
     startPolling();
 
-    // Cleanup on unmount
     return () => {
       mountedRef.current = false;
       if (intervalRef.current) {
@@ -202,95 +196,126 @@ const VerifyingRegistration = () => {
     };
   }, [startPolling]);
 
-  // Memoize the header left component to avoid recreating it on every render
-  const headerLeft = useMemo(
+  const headerRight = useMemo(
     () =>
-      hasTimedOut || isRejected
-        ? () => <CloseHeaderButton onPress={handleClose} />
-        : undefined,
-    [hasTimedOut, isRejected, handleClose],
+      step !== 'polling'
+        ? () => (
+            <ButtonIcon
+              style={headerStyle.icon}
+              size={ButtonIconSizes.Lg}
+              iconName={IconName.Close}
+              testID="close-button"
+              onPress={handleClose}
+            />
+          )
+        : () => <View />,
+    [step, handleClose],
   );
 
-  // Override the back button behavior when timed out or rejected to show X instead of back arrow
   useEffect(() => {
-    if (headerLeft) {
-      navigation.setOptions({
-        headerLeft,
-      });
-    }
-  }, [headerLeft, navigation]);
+    navigation.setOptions({
+      // eslint-disable-next-line react/no-unstable-nested-components
+      headerLeft: () => <View />,
+      headerRight,
+    });
+  }, [headerRight, navigation]);
 
   const renderFormFields = () => {
-    if (isRejected) {
-      return (
-        <Box twClassName="items-center justify-center py-8">
-          <Icon name={IconName.Danger} />
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-error-default text-center mt-4"
-          >
-            {strings(
-              'card.card_onboarding.verifying_registration.rejected_message',
-              { email: 'support@cryptolife.com' },
-            )}
-          </Text>
-        </Box>
-      );
-    }
+    switch (step) {
+      case 'error':
+        return (
+          <Box twClassName="items-center justify-center py-8 px-2">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              twClassName="text-default text-center mb-2"
+            >
+              {strings(
+                'card.card_onboarding.verifying_registration.server_error_title',
+              )}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-default text-center"
+            >
+              {strings(
+                'card.card_onboarding.verifying_registration.server_error_message',
+                { email: CARD_SUPPORT_EMAIL },
+              )}
+            </Text>
+          </Box>
+        );
 
-    if (error) {
-      return (
-        <Box twClassName="items-center justify-center py-8">
-          <Icon name={IconName.Danger} />
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-error-default text-center mt-4"
-          >
-            {error}
-          </Text>
-        </Box>
-      );
-    }
+      case 'rejected':
+        return (
+          <Box twClassName="items-center justify-center py-8 px-4">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-default text-center"
+            >
+              {strings(
+                'card.card_onboarding.verifying_registration.rejected_message',
+                { email: CARD_SUPPORT_EMAIL },
+              )}
+            </Text>
+          </Box>
+        );
 
-    if (isPolling) {
-      return (
-        <Box twClassName="items-center justify-center py-8">
-          <ActivityIndicator size="large" />
-        </Box>
-      );
-    }
+      case 'polling':
+        return (
+          <Box twClassName="items-center justify-center py-8">
+            <ActivityIndicator size="large" />
+          </Box>
+        );
 
-    return null;
+      case 'timeout':
+        return null;
+
+      default:
+        return null;
+    }
   };
 
   const renderActions = () => null;
 
   const getTitle = () => {
-    if (isRejected) {
-      return strings(
-        'card.card_onboarding.verifying_registration.rejected_title',
-      );
+    switch (step) {
+      case 'error':
+        return strings(
+          'card.card_onboarding.verifying_registration.server_error_title_main',
+        );
+      case 'rejected':
+        return strings(
+          'card.card_onboarding.verifying_registration.rejected_title',
+        );
+      case 'timeout':
+        return strings(
+          'card.card_onboarding.verifying_registration.timeout_title',
+        );
+      case 'polling':
+      default:
+        return strings('card.card_onboarding.verifying_registration.title');
     }
-    if (hasTimedOut) {
-      return strings(
-        'card.card_onboarding.verifying_registration.timeout_title',
-      );
-    }
-    return strings('card.card_onboarding.verifying_registration.title');
   };
 
   const getDescription = () => {
-    if (isRejected) {
-      return strings(
-        'card.card_onboarding.verifying_registration.rejected_description',
-      );
+    switch (step) {
+      case 'error':
+        return '';
+      case 'rejected':
+        return strings(
+          'card.card_onboarding.verifying_registration.rejected_description',
+        );
+      case 'timeout':
+        return strings(
+          'card.card_onboarding.verifying_registration.timeout_description',
+        );
+      case 'polling':
+      default:
+        return strings(
+          'card.card_onboarding.verifying_registration.description',
+        );
     }
-    if (hasTimedOut) {
-      return strings(
-        'card.card_onboarding.verifying_registration.timeout_description',
-      );
-    }
-    return strings('card.card_onboarding.verifying_registration.description');
   };
 
   return (

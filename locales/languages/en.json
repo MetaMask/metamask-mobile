@@ -6311,9 +6311,12 @@
         "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
         "timeout_title": "Verification in progress",
         "timeout_description": "Your verification will take up to 12 hours. Please come back to the Card section in that time.",
-        "rejected_title": "Verification failed",
-        "rejected_description": "We were unable to verify your identity at this time.",
-        "rejected_message": "Please contact support for assistance with your verification: {{email}}",
+        "rejected_title": "Verification incomplete",
+        "rejected_description": "We need a bit more information to complete your verification.",
+        "rejected_message": "Please reach out to our support team and we'll help you complete the process:\n{{email}}",
+        "server_error_title_main": "Something went wrong",
+        "server_error_title": "We're experiencing server issues",
+        "server_error_message": "Please try again later or contact support at\n{{email}}\nfor assistance.",
         "success_toast": "Your ID was verified!"
       },
       "kyc_failed": {
