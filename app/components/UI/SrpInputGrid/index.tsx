@@ -213,7 +213,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
               }));
             }
 
-            // Update current word for suggestions
             if (!text.includes(' ')) {
               setCurrentInputWord(text);
             }
@@ -275,7 +274,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         setNextSeedPhraseInputFocusedIndex(index);
         setFocusedInputIndex(index);
 
-        // Update current word for suggestions
         const currentWord = seedPhrase[index] || '';
         if (!currentWord.includes(' ')) {
           setCurrentInputWord(currentWord);
@@ -296,7 +294,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           }));
         }
 
-        // Clear focused index and current word
         setFocusedInputIndex(null);
         setCurrentInputWord('');
       },
@@ -362,14 +359,13 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       (word: string) => {
         if (focusedInputIndex === null) return;
 
-        // Update seed phrase with selected word + space to trigger next input
+        // Update seed phrase with selected word
         const updatedText = `${word}${SPACE_CHAR}`;
         handleSeedPhraseChangeAtIndexRef.current(
           updatedText,
           focusedInputIndex,
         );
 
-        // Clear current word
         setCurrentInputWord('');
       },
       [focusedInputIndex],
@@ -528,7 +524,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             : strings('import_from_seed.paste')}
         </Text>
 
-        {/* BIP39 Word Suggestions Bar */}
         {suggestions.length > 0 && (
           <View
             style={[
