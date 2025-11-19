@@ -88,19 +88,12 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   // Button should be enabled if we have standard funding options OR a custom onBuy function
   const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
 
-  const withNavigationLock = useCallback(
-    (callback: () => void | Promise<void>) => {
-      if (navigationLockRef.current) return;
-      navigationLockRef.current = true;
-      const result = callback();
-      if (result instanceof Promise) {
-        result.catch(() => {
-          navigationLockRef.current = false;
-        });
-      }
-    },
-    [],
-  );
+  // Wrapper to prevent rapid navigation clicks
+  const withNavigationLock = useCallback((callback: () => void) => {
+    if (navigationLockRef.current) return;
+    navigationLockRef.current = true;
+    callback();
+  }, []);
 
   const handleBuyPress = useCallback(() => {
     withNavigationLock(() => {

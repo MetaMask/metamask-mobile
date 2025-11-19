@@ -8,7 +8,6 @@ import {
   CaipAssetType,
   CaipChainId,
   isCaipAssetType,
-  parseCaipChainId,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -20,7 +19,6 @@ import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
-  selectNetworkConfigurationsByCaipChainId,
 } from '../../../selectors/networkController';
 import {
   selectCurrentCurrency,
@@ -98,8 +96,6 @@ import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBan
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { useAddNetwork } from '../../../components/hooks/useAddNetwork';
-import { PopularList } from '../../../util/networks/customNetworks';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTronResourcesBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
@@ -185,70 +181,22 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
+  const { goToSwaps, networkModal } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenDetails,
+    sourcePage: 'MainView',
+    sourceToken: {
+      ...asset,
+      address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      chainId: asset.chainId as Hex,
+      decimals: asset.decimals,
+      symbol: asset.symbol,
+      name: asset.name,
+      image: asset.image,
+    },
+  });
+
   // Hook for handling non-EVM asset sending
   const { sendNonEvmAsset } = useSendNonEvmAsset({ asset });
-
-  // Hook for adding network when network is not added
-  const { addPopularNetwork, networkModal: addNetworkModal } = useAddNetwork({
-    skipEnableNetwork: true,
-  });
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-
-  // Helper function to check if network is added and show modal if not
-  const checkNetworkAndShowModal = useCallback(
-    async (action: () => void | Promise<void>) => {
-      const assetCaipChainId = resultChainId as CaipChainId;
-      const isNetworkAdded = Boolean(networkConfigurations[assetCaipChainId]);
-
-      if (!isNetworkAdded) {
-        // Convert to hex for finding popular network
-        const { namespace, reference } = parseCaipChainId(assetCaipChainId);
-        const hexChainId =
-          namespace === 'eip155'
-            ? (`0x${Number(reference).toString(16)}` as Hex)
-            : (assetCaipChainId as Hex);
-
-        const popularNetwork = PopularList.find(
-          (network) => network.chainId === hexChainId,
-        );
-
-        if (popularNetwork) {
-          await addPopularNetwork(popularNetwork);
-          await action();
-          return;
-        }
-      }
-
-      // Network is added or not a popular network, proceed with action
-      await action();
-    },
-    [resultChainId, networkConfigurations, addPopularNetwork],
-  );
-
-  const { goToSwaps: goToSwapsOriginal, networkModal: swapNetworkModal } =
-    useSwapBridgeNavigation({
-      location: SwapBridgeNavigationLocation.TokenDetails,
-      sourcePage: 'MainView',
-      sourceToken: {
-        ...asset,
-        address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-        chainId: asset.chainId as Hex,
-        decimals: asset.decimals,
-        symbol: asset.symbol,
-        name: asset.name,
-        image: asset.image,
-      },
-    });
-
-  // Wrap goToSwaps with network check
-  const goToSwaps = useCallback(async () => {
-    // Check network and show modal if needed before proceeding with swap
-    await checkNetworkAndShowModal(async () => {
-      goToSwapsOriginal();
-    });
-  }, [checkNetworkAndShowModal, goToSwapsOriginal]);
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
@@ -326,52 +274,48 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    // Check network and show modal if needed before proceeding with send
-    await checkNetworkAndShowModal(async () => {
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      // Try non-EVM first, if handled, return early
-      const wasHandledAsNonEvm = await sendNonEvmAsset(
-        InitSendLocation.AssetOverview,
-      );
-      if (wasHandledAsNonEvm) {
-        return;
-      }
-      ///: END:ONLY_INCLUDE_IF
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Try non-EVM first, if handled, return early
+    const wasHandledAsNonEvm = await sendNonEvmAsset(
+      InitSendLocation.AssetOverview,
+    );
+    if (wasHandledAsNonEvm) {
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
 
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-
-      // For EVM networks, switch the network if needed
-      if (asset.chainId !== selectedChainId) {
-        const { NetworkController, MultichainNetworkController } =
-          Engine.context;
-        const networkConfiguration =
-          NetworkController.getNetworkConfigurationByChainId(
-            asset.chainId as Hex,
-          );
-
-        const networkClientId =
-          networkConfiguration?.rpcEndpoints?.[
-            networkConfiguration.defaultRpcEndpointIndex
-          ]?.networkClientId;
-
-        await MultichainNetworkController.setActiveNetwork(
-          networkClientId as string,
-        );
-      }
-
-      if ((asset.isETH || asset.isNative) && ticker) {
-        dispatch(newAssetTransaction(getEther(ticker)));
-      } else {
-        dispatch(newAssetTransaction(asset));
-      }
-
-      navigateToSendPage(InitSendLocation.AssetOverview, asset);
+    navigation.navigate(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
     });
+
+    // For EVM networks, switch the network if needed
+    if (asset.chainId !== selectedChainId) {
+      const { NetworkController, MultichainNetworkController } = Engine.context;
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          asset.chainId as Hex,
+        );
+
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
+
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
+    }
+
+    if ((asset.isETH || asset.isNative) && ticker) {
+      dispatch(newAssetTransaction(getEther(ticker)));
+    } else {
+      dispatch(newAssetTransaction(asset));
+    }
+
+    navigateToSendPage(InitSendLocation.AssetOverview, asset);
   };
 
   const onBuy = () => {
@@ -731,8 +675,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
-          {swapNetworkModal}
-          {addNetworkModal}
+          {networkModal}
         </View>
       )}
     </View>

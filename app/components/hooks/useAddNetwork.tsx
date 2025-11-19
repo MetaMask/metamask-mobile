@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { PopularList } from '../../util/networks/customNetworks';
 import { noop } from 'lodash';
 import NetworkModals from '../UI/NetworkModal';
 
 type PopularNetwork = (typeof PopularList)[number];
 
-export const useAddNetwork = (options?: { skipEnableNetwork?: boolean }) => {
+export const useAddNetwork = () => {
   const [popularNetwork, setPopularNetwork] = useState<PopularNetwork | null>(
     null,
   );
@@ -25,28 +25,17 @@ export const useAddNetwork = (options?: { skipEnableNetwork?: boolean }) => {
     setRejectAddNetwork(noop);
   };
 
-  const handleReject = useCallback(() => {
-    const rejectFn = rejectAddNetwork;
-    if (rejectFn !== noop) {
-      rejectFn();
-    }
-    setPopularNetwork(null);
-    setResolveAddNetwork(noop);
-    setRejectAddNetwork(noop);
-  }, [rejectAddNetwork]);
-
-  const networkModal = popularNetwork ? (
+  const networkModal = !popularNetwork ? null : (
     <NetworkModals
       isVisible
       onClose={onCloseModal}
       networkConfiguration={popularNetwork}
       showPopularNetworkModal
-      autoSwitchNetwork={!options?.skipEnableNetwork}
-      skipEnableNetwork={options?.skipEnableNetwork}
+      autoSwitchNetwork
       onAccept={resolveAddNetwork}
-      onReject={handleReject}
+      onReject={rejectAddNetwork}
     />
-  ) : null;
+  );
 
   return {
     addPopularNetwork,
