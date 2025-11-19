@@ -191,14 +191,14 @@ describe('PredictPositionDetail', () => {
     ).toBeOnTheScreen();
 
     expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-    expect(screen.getByText('+5.25%')).toBeOnTheScreen();
+    expect(screen.getByText('5%')).toBeOnTheScreen();
     expect(screen.getByText('Cash out')).toBeOnTheScreen();
   });
 
   it.each([
-    { value: -3.5, expected: '-3.50%' },
+    { value: -3.5, expected: '-3%' },
     { value: 0, expected: '0%' },
-    { value: 7.5, expected: '+7.50%' },
+    { value: 7.5, expected: '8%' },
   ])('formats percentPnl %p as %p for open market', ({ value, expected }) => {
     renderComponent({ percentPnl: value });
 
@@ -233,7 +233,7 @@ describe('PredictPositionDetail', () => {
       PredictMarketStatus.CLOSED,
     );
 
-    expect(screen.getByText('Lost $321.09')).toBeOnTheScreen();
+    expect(screen.getByText('Lost $321.08')).toBeOnTheScreen();
     expect(screen.queryByText('Cash out')).toBeNull();
   });
 
@@ -242,13 +242,13 @@ describe('PredictPositionDetail', () => {
 
     fireEvent.press(screen.getByText('Cash out'));
 
-    expect(global.__mockNavigate).toHaveBeenCalledWith('PREDICT_MODALS_ROOT', {
-      screen: 'PREDICT_SELL_PREVIEW',
-      params: expect.objectContaining({
+    expect(global.__mockNavigate).toHaveBeenCalledWith(
+      'PREDICT_SELL_PREVIEW',
+      expect.objectContaining({
         position: expect.objectContaining({ id: 'pos-1' }),
         outcome: expect.objectContaining({ id: 'outcome-1' }),
       }),
-    });
+    );
   });
 
   describe('optimistic updates UI', () => {

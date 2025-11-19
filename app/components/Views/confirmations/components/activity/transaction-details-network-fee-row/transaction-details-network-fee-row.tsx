@@ -3,21 +3,36 @@ import { TransactionDetailsRow } from '../transaction-details-row/transaction-de
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
+import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../../utils/transaction';
+import { useFeeCalculations } from '../../../hooks/gas/useFeeCalculations';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
+
+const FALLBACK_TYPES = [
+  TransactionType.predictClaim,
+  TransactionType.predictWithdraw,
+];
 
 export function TransactionDetailsNetworkFeeRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { transactionMeta } = useTransactionDetails();
-  const { metamaskPay } = transactionMeta;
-  const { networkFeeFiat } = metamaskPay || {};
+  const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
-  const networkFeeFiatFormatted = useMemo(
-    () => formatFiat(new BigNumber(networkFeeFiat ?? 0)),
-    [formatFiat, networkFeeFiat],
+  const { metamaskPay } = transactionMeta;
+  const { networkFeeFiat: payNetworkFeeFiat } = metamaskPay || {};
+
+  const networkFee = payNetworkFeeFiat ?? estimatedFeeFiatPrecise;
+
+  const networkFeeFormatted = useMemo(
+    () => formatFiat(new BigNumber(networkFee ?? 0)),
+    [formatFiat, networkFee],
   );
 
-  if (!networkFeeFiat) {
+  if (
+    !payNetworkFeeFiat &&
+    !hasTransactionType(transactionMeta, FALLBACK_TYPES)
+  ) {
     return null;
   }
 
@@ -25,7 +40,7 @@ export function TransactionDetailsNetworkFeeRow() {
     <TransactionDetailsRow
       label={strings('transaction_details.label.network_fee')}
     >
-      <Text>{networkFeeFiatFormatted}</Text>
+      <Text>{networkFeeFormatted}</Text>
     </TransactionDetailsRow>
   );
 }

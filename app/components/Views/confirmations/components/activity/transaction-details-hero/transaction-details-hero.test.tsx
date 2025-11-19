@@ -6,12 +6,12 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionDetailsHero } from './transaction-details-hero';
-import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
-jest.mock('../../../../../UI/Bridge/hooks/useTokensWithBalance');
+jest.mock('../../../hooks/tokens/useTokenWithBalance');
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';
@@ -36,7 +36,7 @@ function render() {
 
 describe('TransactionDetailsHero', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
-  const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
+  const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -45,14 +45,12 @@ describe('TransactionDetailsHero', () => {
       transactionMeta: TRANSACTION_META_MOCK,
     });
 
-    useTokensWithBalanceMock.mockReturnValue([
-      {
-        address: TOKEN_ADDRESS_MOCK,
-        chainId: CHAIN_ID_MOCK,
-        decimals: DECIMALS_MOCK,
-        symbol: 'TST',
-      },
-    ]);
+    useTokenWithBalanceMock.mockReturnValue({
+      address: TOKEN_ADDRESS_MOCK,
+      chainId: CHAIN_ID_MOCK,
+      decimals: DECIMALS_MOCK,
+      symbol: 'TST',
+    } as unknown as ReturnType<typeof useTokenWithBalance>);
   });
 
   it('renders human amount', () => {
@@ -114,7 +112,9 @@ describe('TransactionDetailsHero', () => {
   });
 
   it('renders nothing if no decimals', () => {
-    useTokensWithBalanceMock.mockReturnValue([]);
+    useTokenWithBalanceMock.mockReturnValue(
+      undefined as unknown as ReturnType<typeof useTokenWithBalance>,
+    );
 
     const { queryByTestId } = render();
     expect(queryByTestId('transaction-details-hero')).toBeNull();

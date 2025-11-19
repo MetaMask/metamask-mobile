@@ -3,7 +3,6 @@ import notifee, {
   AuthorizationStatus,
   EventDetail,
   EventType,
-  InitialNotification,
   Event as NotifeeEvent,
   Notification,
 } from '@notifee/react-native';
@@ -61,7 +60,9 @@ class NotificationsService {
     }
   }
 
-  async getAllPermissions(shouldOpenSettings = true) {
+  async getAllPermissions(
+    shouldOpenSettings = true,
+  ): Promise<{ permission: 'authorized' | 'denied' }> {
     const promises: Promise<string>[] = notificationChannels.map(
       async (channel: AndroidChannel) =>
         await withTimeout(this.createChannel(channel), 5000),
@@ -175,18 +176,24 @@ class NotificationsService {
 
   async hasPerimssion() {
     const settings = await notifee.getNotificationSettings();
-    return settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
-      settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
-      ? ('authorized' as const)
-      : ('denied' as const);
+    // status where we can assume authorized
+    if (
+      [
+        AuthorizationStatus.NOT_DETERMINED,
+        AuthorizationStatus.AUTHORIZED,
+        AuthorizationStatus.PROVISIONAL,
+      ].includes(settings.authorizationStatus)
+    ) {
+      return 'authorized' as const;
+    }
+
+    // Otherwise this settings has been denied
+    return 'denied' as const;
   }
 
   onForegroundEvent = (
     observer: (event: NotifeeEvent) => Promise<void>,
   ): (() => void) => notifee.onForegroundEvent(observer);
-
-  onBackgroundEvent = (observer: (event: NotifeeEvent) => Promise<void>) =>
-    notifee.onBackgroundEvent(observer);
 
   incrementBadgeCount = async (incrementBy?: number) => {
     notifee.incrementBadgeCount(incrementBy);
@@ -243,9 +250,6 @@ class NotificationsService {
     if (!id) return;
     await notifee.cancelTriggerNotification(id);
   };
-
-  getInitialNotification = async (): Promise<InitialNotification | null> =>
-    await notifee.getInitialNotification();
 
   cancelAllNotifications = async () => {
     await notifee.cancelAllNotifications();
@@ -317,4 +321,9 @@ export async function requestPushPermissions() {
 export async function hasPushPermission() {
   const result = await NotificationService.getAllPermissions(false);
   return result.permission === 'authorized';
+}
+
+export async function getPushPermission() {
+  const result = await NotificationService.getAllPermissions(false);
+  return result.permission;
 }

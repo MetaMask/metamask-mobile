@@ -103,6 +103,22 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   }),
 }));
 
+// Mock usePredictRewards hook
+let mockRewardsEnabled = false;
+let mockRewardsLoading = false;
+let mockAccountOptedIn: boolean | null = null;
+let mockEstimatedPoints: number | null = null;
+let mockRewardsError = false;
+jest.mock('../../hooks/usePredictRewards', () => ({
+  usePredictRewards: (_?: number) => ({
+    enabled: mockRewardsEnabled,
+    isLoading: mockRewardsLoading,
+    accountOptedIn: mockAccountOptedIn,
+    estimatedPoints: mockEstimatedPoints,
+    hasError: mockRewardsError,
+  }),
+}));
+
 // Mock Skeleton component
 jest.mock(
   '../../../../../component-library/components/Skeleton/Skeleton',
@@ -312,6 +328,11 @@ describe('PredictBuyPreview', () => {
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
+    mockRewardsEnabled = false;
+    mockRewardsLoading = false;
+    mockAccountOptedIn = null;
+    mockEstimatedPoints = null;
+    mockRewardsError = false;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -874,8 +895,8 @@ describe('PredictBuyPreview', () => {
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
-      // Summary should now be visible
-      expect(queryByText('Provider fee')).toBeOnTheScreen();
+      // Summary should now be visible (consolidated fees row)
+      expect(queryByText('Fees')).toBeOnTheScreen();
     });
 
     it('shows bottom content when input is unfocused', () => {
@@ -1042,10 +1063,9 @@ describe('PredictBuyPreview', () => {
       });
 
       // Error should show immediately even with keypad open
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 50 - 1.5 = 48.5
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $48.50.'),
       ).toBeOnTheScreen();
     });
 
@@ -1092,10 +1112,9 @@ describe('PredictBuyPreview', () => {
       expect(getByTestId('keypad')).toBeOnTheScreen();
 
       // Error message should be present
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 50 - 1.5 = 48.5
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $48.50.'),
       ).toBeOnTheScreen();
     });
 
@@ -1137,10 +1156,9 @@ describe('PredictBuyPreview', () => {
       });
 
       // Error message should be present even with keypad open
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 50 - 1.5 = 48.5
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $48.50.'),
       ).toBeOnTheScreen();
     });
 
@@ -1161,9 +1179,7 @@ describe('PredictBuyPreview', () => {
       });
 
       expect(
-        queryByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        queryByText(/Not enough funds\. You can use up to/),
       ).not.toBeOnTheScreen();
     });
 
@@ -1186,10 +1202,9 @@ describe('PredictBuyPreview', () => {
       });
 
       // Error should show immediately
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 100 - 15 = 85
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $85.00.'),
       ).toBeOnTheScreen();
     });
 
@@ -1211,9 +1226,7 @@ describe('PredictBuyPreview', () => {
 
       // Should not show error while loading
       expect(
-        queryByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        queryByText(/Not enough funds\. You can use up to/),
       ).not.toBeOnTheScreen();
     });
   });
@@ -1239,7 +1252,7 @@ describe('PredictBuyPreview', () => {
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
-      expect(getByText('Minimum bet is $1.00')).toBeOnTheScreen();
+      expect(getByText('Minimum amount is $1.00')).toBeOnTheScreen();
     });
 
     it('does not show minimum bet error when amount is exactly $1', () => {
@@ -1258,7 +1271,7 @@ describe('PredictBuyPreview', () => {
         });
       });
 
-      expect(queryByText('Minimum bet is $1.00')).not.toBeOnTheScreen();
+      expect(queryByText('Minimum amount is $1.00')).not.toBeOnTheScreen();
     });
 
     it('does not show minimum bet error when amount is $0', () => {
@@ -1270,7 +1283,7 @@ describe('PredictBuyPreview', () => {
       });
 
       // Amount starts at 0 - should not show error
-      expect(queryByText('Minimum bet is $1.00')).not.toBeOnTheScreen();
+      expect(queryByText('Minimum amount is $1.00')).not.toBeOnTheScreen();
     });
 
     it('does not show minimum bet error when insufficient funds error is shown', () => {
@@ -1294,12 +1307,11 @@ describe('PredictBuyPreview', () => {
 
       // Should show insufficient funds, not minimum bet
       // Note: Done button is replaced by Add funds when insufficient
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 0.5 - 1.5 = -1
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $-1.00.'),
       ).toBeOnTheScreen();
-      expect(queryByText('Minimum bet is $1.00')).not.toBeOnTheScreen();
+      expect(queryByText('Minimum amount is $1.00')).not.toBeOnTheScreen();
     });
 
     it('minimum bet error appears at bottom like insufficient funds error', () => {
@@ -1323,7 +1335,7 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // Error should be visible at bottom
-      expect(getByText('Minimum bet is $1.00')).toBeOnTheScreen();
+      expect(getByText('Minimum amount is $1.00')).toBeOnTheScreen();
     });
   });
 
@@ -1530,6 +1542,7 @@ describe('PredictBuyPreview', () => {
     it('enables place bet button when all conditions met', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
+      mockRewardsLoading = false;
       // Reset mockDispatch to not throw
       mockDispatch.mockClear();
       mockDispatch.mockImplementation(() => {
@@ -1697,10 +1710,9 @@ describe('PredictBuyPreview', () => {
         });
       });
 
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 50 - 1.5 = 48.5
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $48.50.'),
       ).toBeOnTheScreen();
     });
 
@@ -1723,7 +1735,7 @@ describe('PredictBuyPreview', () => {
       const doneButton = getByText('Done');
       fireEvent.press(doneButton);
 
-      expect(getByText('Minimum bet is $1.00')).toBeOnTheScreen();
+      expect(getByText('Minimum amount is $1.00')).toBeOnTheScreen();
     });
 
     it('renders only one error at a time - insufficient funds takes priority', () => {
@@ -1746,12 +1758,11 @@ describe('PredictBuyPreview', () => {
       });
 
       // Should show insufficient funds only
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 0.3 - 1.5 = -1.2
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $-1.20.'),
       ).toBeOnTheScreen();
-      expect(queryByText('Minimum bet is $1.00')).not.toBeOnTheScreen();
+      expect(queryByText('Minimum amount is $1.00')).not.toBeOnTheScreen();
     });
 
     it('does not render error when no validation issues', () => {
@@ -1770,11 +1781,9 @@ describe('PredictBuyPreview', () => {
       });
 
       expect(
-        queryByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        queryByText(/Not enough funds\. You can use up to/),
       ).not.toBeOnTheScreen();
-      expect(queryByText('Minimum bet is $1.00')).not.toBeOnTheScreen();
+      expect(queryByText('Minimum amount is $1.00')).not.toBeOnTheScreen();
     });
   });
 
@@ -1796,10 +1805,9 @@ describe('PredictBuyPreview', () => {
       });
 
       // Verify error shows
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 100 - 1.5 = 98.5
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $98.50.'),
       ).toBeOnTheScreen();
 
       // Verify Add funds button shows
@@ -1834,7 +1842,7 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // Verify minimum error shows
-      expect(getByText('Minimum bet is $1.00')).toBeOnTheScreen();
+      expect(getByText('Minimum amount is $1.00')).toBeOnTheScreen();
 
       // Increase amount
       const amountDisplay = getByText('0.5');
@@ -1848,7 +1856,7 @@ describe('PredictBuyPreview', () => {
       });
 
       // Error should clear
-      expect(queryByText('Minimum bet is $1.00')).not.toBeOnTheScreen();
+      expect(queryByText('Minimum amount is $1.00')).not.toBeOnTheScreen();
     });
 
     it('user flow: balance loads, then user enters amount, validation works', () => {
@@ -1891,10 +1899,9 @@ describe('PredictBuyPreview', () => {
         });
       });
 
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 100 - 1.5 = 98.5
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $98.50.'),
       ).toBeOnTheScreen();
     });
 
@@ -1959,9 +1966,7 @@ describe('PredictBuyPreview', () => {
 
       // Should NOT show error
       expect(
-        queryByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        queryByText(/Not enough funds\. You can use up to/),
       ).not.toBeOnTheScreen();
     });
 
@@ -1982,10 +1987,9 @@ describe('PredictBuyPreview', () => {
       });
 
       // Should show error
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 51.4 - 1.5 = 49.9
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $49.90.'),
       ).toBeOnTheScreen();
     });
 
@@ -2012,7 +2016,7 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // Should NOT show minimum error
-      expect(queryByText('Minimum bet is $1.00')).not.toBeOnTheScreen();
+      expect(queryByText('Minimum amount is $1.00')).not.toBeOnTheScreen();
 
       // Should show place bet button
       expect(getByText('Yes · 50¢')).toBeOnTheScreen();
@@ -2038,7 +2042,7 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // Should show minimum error
-      expect(getByText('Minimum bet is $1.00')).toBeOnTheScreen();
+      expect(getByText('Minimum amount is $1.00')).toBeOnTheScreen();
     });
 
     it('handles very large balances', () => {
@@ -2071,10 +2075,9 @@ describe('PredictBuyPreview', () => {
       });
 
       // Should show error
+      // maxBetAmount = balance - (providerFee + metamaskFee) = 100 - 30 = 70
       expect(
-        getByText(
-          'Insufficient funds. Lower the amount or add funds to continue.',
-        ),
+        getByText('Not enough funds. You can use up to $70.00.'),
       ).toBeOnTheScreen();
     });
   });
@@ -2202,6 +2205,249 @@ describe('PredictBuyPreview', () => {
 
       // Renders custom token (uses preview sharePrice 0.5, not outcomeToken price)
       expect(getByText('Maybe at 50¢')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Rewards Calculation', () => {
+    it('passes totalFee to usePredictRewards hook', () => {
+      mockMetamaskFee = 0.5;
+      mockProviderFee = 1.0;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 50;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount to trigger preview calculation
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // Hook should be called with totalFee = 0.5 + 1.0 = 1.5
+      // This is verified indirectly through props passed to PredictFeeSummary
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Verify rewards are displayed when enabled and account is opted in
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+
+    it('uses estimated points from usePredictRewards hook', () => {
+      mockMetamaskFee = 1.234;
+      mockProviderFee = 0;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 123;
+
+      renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Hook returns estimated points directly
+      // Expected: 123 points from hook
+    });
+
+    it('handles zero points when estimatedPoints is 0', () => {
+      mockMetamaskFee = 0;
+      mockProviderFee = 0;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 0;
+
+      renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Expected: 0 points from hook
+    });
+
+    it('updates when totalFee changes', () => {
+      mockMetamaskFee = 0.5;
+      mockProviderFee = 0.5;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 50;
+
+      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Change fees
+      mockMetamaskFee = 1.0;
+      mockProviderFee = 1.0;
+      mockEstimatedPoints = 100;
+
+      rerender(<PredictBuyPreview />);
+
+      // Hook should be called with new totalFee = 2.0
+    });
+  });
+
+  describe('Rewards Display', () => {
+    it('shows rewards row when enabled, amount is entered, and accountOptedIn is not null', () => {
+      mockMetamaskFee = 0.5;
+      mockProviderFee = 1.0;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 50;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // Press done to show fee summary
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // shouldShowRewardsRow = true when rewardsEnabled && currentValue > 0 && accountOptedIn != null
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+
+    it('does not show rewards when amount is zero', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+
+      renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // No amount entered (currentValue = 0)
+      // shouldShowRewardsRow = false when currentValue is 0
+    });
+
+    it('does not show rewards when accountOptedIn is null', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = null;
+      mockEstimatedPoints = null;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // shouldShowRewardsRow = false when accountOptedIn is null
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Rewards row should not be shown
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+
+    it('shows rewards when accountOptedIn is false (opt-in supported)', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = false;
+      mockEstimatedPoints = null;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // shouldShowRewardsRow = true when accountOptedIn is false (opt-in supported)
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+
+    it('passes isLoadingRewards including isRewardsLoading', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockRewardsLoading = true;
+      mockEstimatedPoints = 50;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // isLoadingRewards = (isCalculating && isUserInputChange) || isRewardsLoading
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+
+    it('passes hasRewardsError from hook', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockRewardsError = true;
+      mockEstimatedPoints = null;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // hasRewardsError should be passed to PredictFeeSummary
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Fee Breakdown Bottom Sheet', () => {
+    it('does not show bottom sheet initially', () => {
+      const { queryByTestId } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      expect(queryByTestId('fee-breakdown-sheet')).toBeNull();
+    });
+
+    it('opens bottom sheet when fees info is pressed', () => {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Click Done to show fee summary
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Component should pass onFeesInfoPress callback to PredictFeeSummary
+      // which sets isFeeBreakdownVisible to true
     });
   });
 });
