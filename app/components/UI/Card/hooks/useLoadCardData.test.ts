@@ -133,14 +133,14 @@ describe('useLoadCardData', () => {
     mockUseGetDelegationSettings.mockReturnValue({
       data: mockDelegationSettings,
       isLoading: false,
-      error: null,
+      error: false,
       fetchData: mockFetchDelegationSettings,
     });
 
     mockUseGetCardExternalWalletDetails.mockReturnValue({
       data: mockExternalWalletDetails,
       isLoading: false,
-      error: null,
+      error: false,
       fetchData: mockFetchExternalWalletDetails,
     });
 
@@ -231,7 +231,7 @@ describe('useLoadCardData', () => {
       mockUseGetDelegationSettings.mockReturnValue({
         data: null,
         isLoading: true,
-        error: null,
+        error: false,
         fetchData: mockFetchDelegationSettings,
       });
 
@@ -265,7 +265,7 @@ describe('useLoadCardData', () => {
       mockUseCardDetails.mockReturnValue({
         cardDetails: null,
         isLoading: false,
-        error: new Error(CardErrorType.UNKNOWN_ERROR),
+        error: CardErrorType.UNKNOWN_ERROR,
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
@@ -274,24 +274,20 @@ describe('useLoadCardData', () => {
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.error).toEqual(
-        new Error(CardErrorType.UNKNOWN_ERROR),
-      );
+      expect(result.current.error).toEqual(CardErrorType.UNKNOWN_ERROR);
     });
 
     it('returns error when delegation settings fetch fails', () => {
       mockUseGetDelegationSettings.mockReturnValue({
         data: null,
         isLoading: false,
-        error: new Error('Delegation settings error'),
+        error: true,
         fetchData: mockFetchDelegationSettings,
       });
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.error).toEqual(
-        new Error('Delegation settings error'),
-      );
+      expect(result.current.error).toBe(true);
     });
 
     it('returns warning from priority token', () => {
@@ -421,7 +417,7 @@ describe('useLoadCardData', () => {
       mockUseGetCardExternalWalletDetails.mockReturnValue({
         data: null,
         isLoading: true,
-        error: null,
+        error: false,
         fetchData: mockFetchExternalWalletDetails,
       });
 
@@ -440,13 +436,13 @@ describe('useLoadCardData', () => {
       mockUseGetCardExternalWalletDetails.mockReturnValue({
         data: null,
         isLoading: false,
-        error: new Error('External wallet error'),
+        error: true,
         fetchData: mockFetchExternalWalletDetails,
       });
 
       const { result } = renderHook(() => useLoadCardData());
 
-      expect(result.current.error).toEqual(new Error('External wallet error'));
+      expect(result.current.error).toBe(true);
     });
 
     it('returns empty array when external wallet details have no tokens', () => {
@@ -457,7 +453,7 @@ describe('useLoadCardData', () => {
           mappedWalletDetails: [],
         },
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: mockFetchExternalWalletDetails,
       });
 
@@ -540,7 +536,7 @@ describe('useLoadCardData', () => {
       mockUseGetDelegationSettings.mockReturnValue({
         data: null,
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: mockFetchDelegationSettings,
       });
 
@@ -554,7 +550,7 @@ describe('useLoadCardData', () => {
       mockUseGetCardExternalWalletDetails.mockReturnValue({
         data: null,
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: mockFetchExternalWalletDetails,
       });
 
@@ -592,7 +588,7 @@ describe('useLoadCardData', () => {
       mockUseCardDetails.mockReturnValue({
         cardDetails: null,
         isLoading: false,
-        error: new Error(CardErrorType.UNKNOWN_ERROR),
+        error: CardErrorType.UNKNOWN_ERROR,
         warning: null,
         fetchCardDetails: mockFetchCardDetails,
         pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,

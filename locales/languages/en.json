@@ -636,9 +636,7 @@
       "select_a_token": "Select a Token",
       "select_token": "Select token",
       "search_by_name_or_address": "Search token by name or address",
-      "no_tokens_found": "No tokens match \"{{searchString}}\"",
-      "unsupported_token_title": "Not available",
-      "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers"
+      "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
     "networks_filter_bar": {
       "all_networks": "All networks"
@@ -1333,7 +1331,6 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
-      "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
@@ -3479,7 +3476,6 @@
     "self_sent_dai": "Sent Yourself DAI",
     "received_dai": "Received DAI",
     "sent_tokens": "Sent Tokens",
-    "received_tokens": "Received Tokens",
     "ether": "Ether",
     "sent_unit": "Sent {{unit}}",
     "self_sent_unit": "Sent Yourself {{unit}}",
@@ -6475,7 +6471,7 @@
       "email_placeholder": "Enter your email address",
       "password_placeholder": "Enter your password",
       "login_button": "Log in",
-      "signup_button": "Sign up",
+      "signup_button": "I don't have an account",
       "errors": {
         "invalid_credentials": "Invalid login details",
         "unknown_error": "Unknown error, please try again later",
@@ -6818,8 +6814,7 @@
       "unsupported": "Unsupported",
       "tracked_count": "{{optedIn}}/{{total}} tracked",
       "link_account_success": "{{accountName}} added successfully",
-      "link_account_error": "Failed to add one or more addresses for {{accountName}}",
-      "link_account_address_error": "Failed to add {{address}}"
+      "link_account_error": "Failed to add one or more addresses for {{accountName}}"
     },
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",

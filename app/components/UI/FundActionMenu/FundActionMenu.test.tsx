@@ -8,13 +8,13 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { RampType } from '../../../reducers/fiatOrders/types';
+import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 
 // Internal dependencies.
 import { useMetrics } from '../../hooks/useMetrics';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
-import { useRampNavigation, RampMode } from '../Ramp/hooks/useRampNavigation';
 import { trace, TraceName } from '../../../util/trace';
 import FundActionMenu from './FundActionMenu';
 
@@ -56,7 +56,6 @@ jest.mock('../../hooks/useMetrics');
 jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
 jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled');
-jest.mock('../Ramp/hooks/useRampNavigation');
 jest.mock('../../../util/trace');
 jest.mock('../../../util/networks', () => ({
   getDecimalChainId: jest.fn(),
@@ -86,9 +85,6 @@ const mockUseRampsUnifiedV1Enabled =
   useRampsUnifiedV1Enabled as jest.MockedFunction<
     typeof useRampsUnifiedV1Enabled
   >;
-const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
-  typeof useRampNavigation
->;
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 const { getDecimalChainId } = jest.requireMock('../../../util/networks');
 const { createBuyNavigationDetails, createSellNavigationDetails } =
@@ -97,7 +93,6 @@ const { createBuyNavigationDetails, createSellNavigationDetails } =
 describe('FundActionMenu', () => {
   // Mock functions
   const mockNavigate = jest.fn();
-  const mockGoToRamps = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
   const mockBuild = jest.fn();
@@ -140,7 +135,6 @@ describe('FundActionMenu', () => {
     mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
-    mockUseRampNavigation.mockReturnValue({ goToRamps: mockGoToRamps });
     getDecimalChainId.mockReturnValue(1);
     createBuyNavigationDetails.mockReturnValue(['BuyScreen', {}] as never);
     createSellNavigationDetails.mockReturnValue(['SellScreen', {}] as never);
@@ -271,7 +265,9 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({ mode: RampMode.DEPOSIT });
+        expect(mockNavigate).toHaveBeenCalledWith(
+          ...createDepositNavigationDetails(),
+        );
       });
     });
 
@@ -283,10 +279,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
-        });
+        expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
       });
     });
 
@@ -318,10 +311,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
-        });
+        expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
       });
     });
   });
@@ -360,13 +350,10 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: {
-            rampType: expect.anything(),
-            intent: { assetId: 'eip155:137/slip44:60' },
-          },
+        expect(createBuyNavigationDetails).toHaveBeenCalledWith({
+          assetId: 'eip155:137/slip44:60',
         });
+        expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
       });
     });
 
@@ -382,10 +369,8 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
-        });
+        expect(createBuyNavigationDetails).toHaveBeenCalledWith();
+        expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
       });
     });
 
@@ -563,10 +548,7 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
-        });
+        expect(createBuyNavigationDetails).toHaveBeenCalledWith();
       });
     });
 
@@ -585,9 +567,8 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
+        expect(createBuyNavigationDetails).toHaveBeenCalledWith({
+          assetId: undefined,
         });
       });
     });

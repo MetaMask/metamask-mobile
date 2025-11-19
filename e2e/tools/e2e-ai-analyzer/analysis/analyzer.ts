@@ -140,19 +140,6 @@ export async function analyzeWithAgent<M extends ModeKey>(
             },
           );
 
-          // Log tool result summary
-          const resultPreview = toolResult
-            .substring(0, 150)
-            .replace(/\n/g, ' ');
-          console.log(
-            `   → ${resultPreview}${toolResult.length > 150 ? '...' : ''}`,
-          );
-
-          // Check for actual errors (starts with "Error:")
-          if (toolResult.startsWith('Error:')) {
-            console.log(`   ⚠️ Tool returned error`);
-          }
-
           // Handle finalize tool (mode-specific)
           if (toolUse.name === modeConfig.finalizeToolName) {
             const analysis = await modeConfig.processAnalysis(

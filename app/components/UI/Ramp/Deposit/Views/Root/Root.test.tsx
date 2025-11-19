@@ -12,6 +12,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 const mockReset = jest.fn();
 const mockCheckExistingToken = jest.fn();
+let mockGetStarted = true;
 const mockSelectedRegion = {
   isoCode: 'US',
   flag: '🇺🇸',
@@ -35,6 +36,7 @@ jest.mock('../../sdk', () => {
     ...actual,
     useDepositSDK: () => ({
       checkExistingToken: mockCheckExistingToken,
+      getStarted: mockGetStarted,
       selectedRegion: mockSelectedRegion,
     }),
   };
@@ -43,6 +45,8 @@ jest.mock('../../sdk', () => {
 jest.mock('../../../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../../../reducers/fiatOrders'),
   getAllDepositOrders: jest.fn(),
+  fiatOrdersGetStartedDeposit: jest.fn((_state: unknown) => true),
+  setFiatOrdersGetStartedDeposit: jest.fn(),
   fiatOrdersRegionSelectorDeposit: jest.fn(
     (_state: unknown) => mockSelectedRegion,
   ),
@@ -68,6 +72,7 @@ function render(Component: React.ComponentType) {
 describe('Root Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetStarted = true;
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue([]);
@@ -86,8 +91,8 @@ describe('Root Component', () => {
     });
   });
 
-  it('redirects to BUILD_QUOTE when existing token has been checked', async () => {
-    mockCheckExistingToken.mockResolvedValue(true);
+  it('redirects to BUILD_QUOTE when getStarted is true', async () => {
+    mockCheckExistingToken.mockResolvedValue(false);
     render(Root);
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
@@ -99,6 +104,15 @@ describe('Root Component', () => {
           },
         ],
       });
+    });
+  });
+
+  it('does not redirect when getStarted is false', async () => {
+    mockGetStarted = false;
+    mockCheckExistingToken.mockResolvedValue(false);
+    render(Root);
+    await waitFor(() => {
+      expect(mockReset).not.toHaveBeenCalled();
     });
   });
 

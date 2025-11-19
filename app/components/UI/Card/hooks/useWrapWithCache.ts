@@ -21,8 +21,8 @@ interface CacheHookReturn<T> {
   data: T | null;
   /** Loading state - true when actively fetching */
   isLoading: boolean;
-  /** Error object if last fetch failed, null otherwise */
-  error: Error | null;
+  /** Error state - true if last fetch failed */
+  error: boolean;
   /** Function to manually trigger data fetch */
   fetchData: () => Promise<T | null>;
 }
@@ -63,7 +63,7 @@ export const useWrapWithCache = <T>(
 
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<boolean>(false);
 
   // Get cached data and timestamp from Redux store (card.cache)
   const cachedData = useSelector(
@@ -88,28 +88,26 @@ export const useWrapWithCache = <T>(
   // Fetch function that updates cache
   const fetchData: () => Promise<T | null> = useCallback(async () => {
     setIsLoading(true);
-    setError(null);
+    setError(false);
 
     try {
       const result = await fetchFn();
-      const normalizedResult = result ?? null;
 
       // Only update cache if we got actual data (not null from missing dependencies)
       // This prevents caching "null" responses when dependencies aren't ready
-      if (normalizedResult !== null) {
+      if (result !== null) {
         dispatch(
           setCacheData({
             key: cacheKey,
-            data: normalizedResult,
+            data: result,
             timestamp: Date.now(),
           }),
         );
       }
 
-      return normalizedResult;
+      return result;
     } catch (err) {
-      const errorObject = err instanceof Error ? err : new Error(String(err));
-      setError(errorObject);
+      setError(true);
       return null;
     } finally {
       setIsLoading(false);
@@ -124,17 +122,6 @@ export const useWrapWithCache = <T>(
       return;
     }
 
-    // Don't fetch if already loading (prevents infinite loops on re-renders)
-    if (isLoading) {
-      return;
-    }
-
-    // Don't fetch if there was an error (prevents retry loops on failed requests)
-    // User must manually call fetchData() to retry
-    if (error) {
-      return;
-    }
-
     // If cache is valid and we have data, don't fetch
     if (cacheIsValid && cachedData !== null) {
       return;
@@ -146,7 +133,7 @@ export const useWrapWithCache = <T>(
     // when the fetch function reference changes but the cache is still valid
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cacheIsValid, cachedData, fetchOnMount, isLoading, error]);
+  }, [cacheIsValid, cachedData, fetchOnMount]);
 
   // Determine loading state: only show loading if actively fetching AND no cached data
   const shouldShowLoading = isLoading && (!cachedData || !cacheIsValid);

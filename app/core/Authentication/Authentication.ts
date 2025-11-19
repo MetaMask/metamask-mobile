@@ -448,6 +448,31 @@ class AuthenticationService {
   };
 
   /**
+   * store password with fallback to password authType if the storePassword with non Password authType fails
+   * it should only apply for create wallet, import wallet and reset password flows for now
+   *
+   * @param password - password to store
+   * @param authData - authentication data
+   * @returns void
+   */
+  storePasswordWithFallback = async (password: string, authData: AuthData) => {
+    try {
+      await this.storePassword(password, authData.currentAuthType);
+      this.authData = authData;
+    } catch (error) {
+      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+        throw error;
+      }
+      // Fall back to password authType
+      await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+      this.authData = {
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: authData.availableBiometryType,
+      };
+    }
+  };
+
+  /**
    * Fetches the password from the keychain using the auth method it was originally stored
    */
   getPassword: () => Promise<false | UserCredentials | null> = async () =>
@@ -523,14 +548,13 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
-      await this.storePassword(password, authData?.currentAuthType);
+      await this.storePasswordWithFallback(password, authData);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
       await this.dispatchLogin({
         clearAccountTreeState: true,
       });
-      this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -559,13 +583,12 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
-      await this.storePassword(password, authData.currentAuthType);
+      await this.storePasswordWithFallback(password, authData);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin({
         clearAccountTreeState: true,
       });
-      this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {

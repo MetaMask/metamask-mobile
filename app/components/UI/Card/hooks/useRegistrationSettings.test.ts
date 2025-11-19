@@ -35,7 +35,7 @@ describe('useRegistrationSettings', () => {
   const mockCacheReturn = {
     data: null,
     isLoading: false,
-    error: null,
+    error: false,
     fetchData: jest.fn(),
   };
 
@@ -126,7 +126,7 @@ describe('useRegistrationSettings', () => {
       const mockReturn = {
         data: mockRegistrationSettingsResponse,
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: jest.fn(),
       };
       mockUseWrapWithCache.mockReturnValue(mockReturn);
@@ -140,7 +140,7 @@ describe('useRegistrationSettings', () => {
       const mockReturn = {
         data: null,
         isLoading: true,
-        error: null,
+        error: false,
         fetchData: jest.fn(),
       };
       mockUseWrapWithCache.mockReturnValue(mockReturn);
@@ -155,16 +155,14 @@ describe('useRegistrationSettings', () => {
       const mockReturn = {
         data: null,
         isLoading: false,
-        error: new Error('Registration settings error'),
+        error: true,
         fetchData: jest.fn(),
       };
       mockUseWrapWithCache.mockReturnValue(mockReturn);
 
       const { result } = renderHook(() => useRegistrationSettings());
 
-      expect(result.current.error).toEqual(
-        new Error('Registration settings error'),
-      );
+      expect(result.current.error).toBe(true);
       expect(result.current.data).toBeNull();
     });
 
@@ -173,7 +171,7 @@ describe('useRegistrationSettings', () => {
       const mockReturn = {
         data: null,
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: mockFetchData,
       };
       mockUseWrapWithCache.mockReturnValue(mockReturn);

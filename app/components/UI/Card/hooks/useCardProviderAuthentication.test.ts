@@ -359,37 +359,6 @@ describe('useCardProviderAuthentication', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    it('handles ACCOUNT_DISABLED error with custom message from error', async () => {
-      const loginParams = {
-        location: 'us' as CardLocation,
-        email: 'test@example.com',
-        password: 'password123',
-      };
-
-      const accountDisabledMessage =
-        'Your account has been disabled. Please contact support.';
-      const accountDisabledError = new CardError(
-        CardErrorType.ACCOUNT_DISABLED,
-        accountDisabledMessage,
-      );
-      mockSdk.initiateCardProviderAuthentication.mockRejectedValue(
-        accountDisabledError,
-      );
-
-      const { result } = renderHook(() => useCardProviderAuthentication());
-
-      await act(async () => {
-        try {
-          await result.current.login(loginParams);
-        } catch {
-          // Expected to throw
-        }
-      });
-
-      expect(result.current.error).toBe(accountDisabledMessage);
-      expect(result.current.loading).toBe(false);
-    });
-
     it('handles non-CardError instances with unknown error message', async () => {
       const loginParams = {
         location: 'us' as CardLocation,
@@ -728,30 +697,6 @@ describe('useCardProviderAuthentication', () => {
       expect(result.current.otpError).toBe(
         'mocked_card.card_authentication.errors.network_error',
       );
-      expect(result.current.otpLoading).toBe(false);
-    });
-
-    it('handles ACCOUNT_DISABLED error when sending OTP', async () => {
-      const otpParams = {
-        userId: 'user-123',
-        location: 'us' as CardLocation,
-      };
-
-      const accountDisabledMessage =
-        'Your account has been disabled. Please contact support.';
-      const accountDisabledError = new CardError(
-        CardErrorType.ACCOUNT_DISABLED,
-        accountDisabledMessage,
-      );
-      mockSdk.sendOtpLogin.mockRejectedValue(accountDisabledError);
-
-      const { result } = renderHook(() => useCardProviderAuthentication());
-
-      await act(async () => {
-        await result.current.sendOtpLogin(otpParams);
-      });
-
-      expect(result.current.otpError).toBe(accountDisabledMessage);
       expect(result.current.otpLoading).toBe(false);
     });
 

@@ -22,43 +22,18 @@ describe('useWrapWithCache', () => {
     fetchOnMount: true,
   };
 
-  // Simulated Redux state that gets updated when dispatch is called
-  let mockCacheState: {
-    data: Record<string, unknown>;
-    timestamps: Record<string, number>;
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFetchFunction.mockReset();
-    mockFetchFunction.mockImplementation(() => new Promise(() => undefined));
-
-    // Reset cache state
-    mockCacheState = {
-      data: {},
-      timestamps: {},
-    };
-
-    // Mock dispatch to update cache state (simulating Redux behavior)
-    mockDispatch.mockImplementation(
-      (action: {
-        type: string;
-        payload?: { key: string; data: unknown; timestamp: number };
-      }) => {
-        if (action.type === 'card/setCacheData' && action.payload) {
-          mockCacheState.data[action.payload.key] = action.payload.data;
-          mockCacheState.timestamps[action.payload.key] =
-            action.payload.timestamp;
-        }
-      },
-    );
     mockUseDispatch.mockReturnValue(mockDispatch);
 
-    // Mock selector to return current cache state
+    // Default Redux state - no cached data
     mockUseSelector.mockImplementation((selector) => {
       const mockState = {
         card: {
-          cache: mockCacheState,
+          cache: {
+            data: {},
+            timestamps: {},
+          },
         },
       };
       return selector(mockState);
@@ -66,7 +41,7 @@ describe('useWrapWithCache', () => {
   });
 
   describe('Initial State', () => {
-    it('initializes with correct default state when no cached data exists', () => {
+    it('should initialize with correct default state when no cached data exists', () => {
       // Given: No cached data in Redux (default state)
 
       // When: Hook is rendered with fetchOnMount disabled
@@ -79,16 +54,25 @@ describe('useWrapWithCache', () => {
       // Then: Should have correct initial state
       expect(result.current.data).toBeNull();
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe(false);
     });
 
-    it('initializes with cached data when available in Redux', () => {
+    it('should initialize with cached data when available in Redux', () => {
       const cachedData = mockData;
       const cachedTimestamp = Date.now() - 1000; // 1 second ago
 
       // Given: Cached data exists in Redux
-      mockCacheState.data[mockCacheKey] = cachedData;
-      mockCacheState.timestamps[mockCacheKey] = cachedTimestamp;
+      mockUseSelector.mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            cache: {
+              data: { [mockCacheKey]: cachedData },
+              timestamps: { [mockCacheKey]: cachedTimestamp },
+            },
+          },
+        };
+        return selector(mockState);
+      });
 
       // When: Hook is rendered
       const { result } = renderHook(() =>
@@ -99,7 +83,7 @@ describe('useWrapWithCache', () => {
       expect(result.current.data).toEqual(mockData);
     });
 
-    it('handles null cached data gracefully', () => {
+    it('should handle null cached data gracefully', () => {
       // Given: Cached data is null (default state handles this)
 
       // When: Hook is rendered
@@ -113,14 +97,23 @@ describe('useWrapWithCache', () => {
   });
 
   describe('Cache Validation', () => {
-    it('considers cache valid when data is fresh', () => {
+    it('should consider cache valid when data is fresh', () => {
       // Given: Fresh cached data (within the 5 minute default cache duration)
       const cachedData = mockData;
       // Use a timestamp that's definitely fresh (30 seconds ago)
       const recentTimestamp = Date.now() - 30 * 1000; // 30 seconds ago
 
-      mockCacheState.data[mockCacheKey] = cachedData;
-      mockCacheState.timestamps[mockCacheKey] = recentTimestamp;
+      mockUseSelector.mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            cache: {
+              data: { [mockCacheKey]: cachedData },
+              timestamps: { [mockCacheKey]: recentTimestamp },
+            },
+          },
+        };
+        return selector(mockState);
+      });
 
       // When: Hook is rendered with fresh cache and fetchOnMount disabled to isolate cache logic
       const { result } = renderHook(() =>
@@ -134,19 +127,23 @@ describe('useWrapWithCache', () => {
       expect(mockFetchFunction).not.toHaveBeenCalled();
     });
 
-    it('considers cache invalid when data is stale', () => {
+    it('should consider cache invalid when data is stale', () => {
       const staleTimestamp = Date.now() - 6 * 60 * 1000; // 6 minutes ago (older than 5min cache duration)
       const cachedData = mockData;
 
       // Given: Stale cached data and fetchOnMount enabled
-      mockCacheState.data[mockCacheKey] = cachedData;
-      mockCacheState.timestamps[mockCacheKey] = staleTimestamp;
-      mockFetchFunction.mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves – we only need to know fetch was triggered
-          }),
-      );
+      mockUseSelector.mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            cache: {
+              data: { [mockCacheKey]: cachedData },
+              timestamps: { [mockCacheKey]: staleTimestamp },
+            },
+          },
+        };
+        return selector(mockState);
+      });
+      mockFetchFunction.mockResolvedValue(mockData);
 
       // When: Hook is rendered
       renderHook(() =>
@@ -157,18 +154,22 @@ describe('useWrapWithCache', () => {
       expect(mockFetchFunction).toHaveBeenCalledTimes(1);
     });
 
-    it('considers cache invalid when lastFetched is null', () => {
+    it('should consider cache invalid when lastFetched is null', () => {
       const cachedData = mockData;
 
       // Given: Cached data without lastFetched timestamp
-      mockCacheState.data[mockCacheKey] = cachedData;
-      // No timestamp for this key - intentionally omitted
-      mockFetchFunction.mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves – we only need to know fetch was triggered
-          }),
-      );
+      mockUseSelector.mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            cache: {
+              data: { [mockCacheKey]: cachedData },
+              timestamps: {}, // No timestamp for this key
+            },
+          },
+        };
+        return selector(mockState);
+      });
+      mockFetchFunction.mockResolvedValue(mockData);
 
       // When: Hook is rendered
       renderHook(() =>
@@ -181,14 +182,9 @@ describe('useWrapWithCache', () => {
   });
 
   describe('Fetch Behavior', () => {
-    it('fetches data on mount when fetchOnMount is true and no valid cache', () => {
+    it('should fetch data on mount when fetchOnMount is true and no valid cache', () => {
       // Given: No cached data and fetchOnMount enabled (default state)
-      mockFetchFunction.mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves – we only need to know fetch was triggered
-          }),
-      );
+      mockFetchFunction.mockResolvedValue(mockData);
 
       // When: Hook is rendered
       renderHook(() =>
@@ -199,58 +195,7 @@ describe('useWrapWithCache', () => {
       expect(mockFetchFunction).toHaveBeenCalledTimes(1);
     });
 
-    it('prevents infinite loops by not fetching when already loading', () => {
-      // Given: Hook with slow fetch
-      mockFetchFunction.mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves - simulates long fetch
-          }),
-      );
-
-      // When: Hook is rendered and re-renders while loading
-      const { rerender } = renderHook(() =>
-        useWrapWithCache(mockCacheKey, mockFetchFunction, defaultConfig),
-      );
-
-      // Force multiple re-renders while loading
-      rerender();
-      rerender();
-      rerender();
-
-      // Then: Should only call fetch once despite re-renders
-      expect(mockFetchFunction).toHaveBeenCalledTimes(1);
-    });
-
-    it('prevents retry loops by not auto-fetching when error exists', async () => {
-      const mockError = new Error('Network error');
-
-      // Given: Initial fetch fails with error
-      mockFetchFunction.mockRejectedValueOnce(mockError);
-
-      // When: Hook is rendered and encounters error
-      const { result, waitForNextUpdate, rerender } = renderHook(() =>
-        useWrapWithCache(mockCacheKey, mockFetchFunction, defaultConfig),
-      );
-
-      await waitForNextUpdate();
-
-      // Then: Error state is set
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toBe('Network error');
-
-      // Clear the mock to track new calls
-      mockFetchFunction.mockClear();
-
-      // When: Component re-renders with error state
-      rerender();
-      rerender();
-
-      // Then: Should not retry fetch automatically (user must manually retry)
-      expect(mockFetchFunction).not.toHaveBeenCalled();
-    });
-
-    it('does not fetch data on mount when fetchOnMount is false', () => {
+    it('should not fetch data on mount when fetchOnMount is false', () => {
       const config = { ...defaultConfig, fetchOnMount: false };
 
       // Given: fetchOnMount is disabled (default state)
@@ -264,23 +209,41 @@ describe('useWrapWithCache', () => {
       expect(mockFetchFunction).not.toHaveBeenCalled();
     });
 
-    it('stores fetched data when fetchData resolves', async () => {
-      // Given: No cached data and manual fetch
-      const fetchPromise = Promise.resolve(mockData);
-      mockFetchFunction.mockReturnValue(fetchPromise);
+    it('should handle successful data fetch', async () => {
+      // Given: No cached data and successful fetch
+      mockFetchFunction.mockResolvedValue(mockData);
 
-      // When: Hook is rendered with fetchOnMount disabled
-      const { result } = renderHook(() =>
+      // Mock the selector to return updated data after dispatch
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation((selector) => {
+        selectorCallCount++;
+        const mockState = {
+          card: {
+            cache: {
+              // After the first few calls (initial render), simulate updated cache
+              data: selectorCallCount > 2 ? { [mockCacheKey]: mockData } : {},
+              timestamps:
+                selectorCallCount > 2 ? { [mockCacheKey]: Date.now() } : {},
+            },
+          },
+        };
+        return selector(mockState);
+      });
+
+      // When: Hook is rendered and data is fetched
+      const { result, waitForNextUpdate } = renderHook(() =>
         useWrapWithCache(mockCacheKey, mockFetchFunction, {
-          fetchOnMount: false,
+          fetchOnMount: true,
         }),
       );
 
-      await act(async () => {
-        await result.current.fetchData();
-      });
+      // Wait for the fetch to complete
+      await waitForNextUpdate();
 
-      // Then: Should dispatch action with fetched data
+      // Then: Should update state with fetched data
+      expect(result.current.data).toEqual(mockData);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'card/setCacheData',
         payload: {
@@ -289,10 +252,9 @@ describe('useWrapWithCache', () => {
           timestamp: expect.any(Number),
         },
       });
-      expect(result.current.isLoading).toBe(false);
     });
 
-    it('handles Error instances from fetch failures', async () => {
+    it('should handle fetch errors', async () => {
       const mockError = new Error('Test error');
 
       // Given: No cached data and fetch will fail (default state)
@@ -303,53 +265,17 @@ describe('useWrapWithCache', () => {
         useWrapWithCache(mockCacheKey, mockFetchFunction, defaultConfig),
       );
 
+      // Wait for the fetch to complete
       await waitForNextUpdate();
 
-      // Then: Should update state with error object
+      // Then: Should update state with error
       expect(result.current.data).toBeNull();
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toBe('Test error');
+      expect(result.current.error).toBe(true);
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('converts non-Error objects to Error instances', async () => {
-      const nonErrorObject = { message: 'API returned error', code: 500 };
-
-      // Given: Fetch fails with non-Error object
-      mockFetchFunction.mockRejectedValue(nonErrorObject);
-
-      // When: Hook is rendered and fetch fails
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useWrapWithCache(mockCacheKey, mockFetchFunction, defaultConfig),
-      );
-
-      await waitForNextUpdate();
-
-      // Then: Should convert to Error instance
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toBe('[object Object]');
-    });
-
-    it('converts string errors to Error instances', async () => {
-      const stringError = 'Something went wrong';
-
-      // Given: Fetch fails with string error
-      mockFetchFunction.mockRejectedValue(stringError);
-
-      // When: Hook is rendered and fetch fails
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useWrapWithCache(mockCacheKey, mockFetchFunction, defaultConfig),
-      );
-
-      await waitForNextUpdate();
-
-      // Then: Should convert to Error instance
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toBe('Something went wrong');
-    });
-
-    it('sets loading state during fetch', () => {
+    it('should set loading state during fetch', () => {
       // Given: No cached data and slow fetch (default state)
       mockFetchFunction.mockImplementation(
         () =>
@@ -365,27 +291,38 @@ describe('useWrapWithCache', () => {
 
       // Then: Should be in loading state
       expect(result.current.isLoading).toBe(true);
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe(false);
     });
   });
 
   describe('Manual Fetch', () => {
-    it('allows manual data fetching via fetchData function', async () => {
-      // Given: Hook with cached data and fetchOnMount disabled
+    it('should allow manual data fetching via fetchData function', async () => {
+      // Given: Hook with cached data
       const cachedData = mockData;
       const cachedTimestamp = Date.now() - 1000;
-      mockCacheState.data[mockCacheKey] = cachedData;
-      mockCacheState.timestamps[mockCacheKey] = cachedTimestamp;
+      mockUseSelector.mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            cache: {
+              data: { [mockCacheKey]: cachedData },
+              timestamps: { [mockCacheKey]: cachedTimestamp },
+            },
+          },
+        };
+        return selector(mockState);
+      });
 
       const newData = { id: 2, name: 'New Data' };
       mockFetchFunction.mockResolvedValue(newData);
 
       // When: Manual fetch is triggered
       const { result } = renderHook(() =>
-        useWrapWithCache(mockCacheKey, mockFetchFunction, {
-          fetchOnMount: false, // Disable auto-fetch
-        }),
+        useWrapWithCache(mockCacheKey, mockFetchFunction, defaultConfig),
       );
+
+      // Clear any initial calls from useEffect
+      mockFetchFunction.mockClear();
+      mockDispatch.mockClear();
 
       await act(async () => {
         await result.current.fetchData();
@@ -403,14 +340,23 @@ describe('useWrapWithCache', () => {
       });
     });
 
-    it('handles manual fetch errors', async () => {
+    it('should handle manual fetch errors', async () => {
       const mockError = new Error('Test error');
 
       // Given: Hook with cached data
       const cachedData = mockData;
       const cachedTimestamp = Date.now() - 1000;
-      mockCacheState.data[mockCacheKey] = cachedData;
-      mockCacheState.timestamps[mockCacheKey] = cachedTimestamp;
+      mockUseSelector.mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            cache: {
+              data: { [mockCacheKey]: cachedData },
+              timestamps: { [mockCacheKey]: cachedTimestamp },
+            },
+          },
+        };
+        return selector(mockState);
+      });
       mockFetchFunction.mockRejectedValue(mockError);
 
       // When: Manual fetch fails
@@ -424,21 +370,29 @@ describe('useWrapWithCache', () => {
 
       // Then: Should update error state but keep cached data
       expect(result.current.data).toEqual(mockData); // Should keep cached data
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toBe('Test error');
+      expect(result.current.error).toBe(true);
       expect(result.current.isLoading).toBe(false);
     });
   });
 
   describe('Configuration Options', () => {
-    it('respects custom cache duration', () => {
+    it('should respect custom cache duration', () => {
       // Given: Fresh cached data with custom cache duration
       const cachedData = mockData;
       const recentTimestamp = Date.now() - 30000; // 30 seconds ago
       const customConfig = { cacheDuration: 60000, fetchOnMount: false }; // 1 minute cache, no fetch on mount
 
-      mockCacheState.data[mockCacheKey] = cachedData;
-      mockCacheState.timestamps[mockCacheKey] = recentTimestamp;
+      mockUseSelector.mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            cache: {
+              data: { [mockCacheKey]: cachedData },
+              timestamps: { [mockCacheKey]: recentTimestamp },
+            },
+          },
+        };
+        return selector(mockState);
+      });
 
       // When: Hook is rendered with custom cache duration
       renderHook(() =>
@@ -449,20 +403,24 @@ describe('useWrapWithCache', () => {
       expect(mockFetchFunction).not.toHaveBeenCalled();
     });
 
-    it('handles zero cache duration by always fetching', () => {
+    it('should handle zero cache duration (always fetch)', () => {
       // Given: Cached data with zero cache duration (always fetch)
       const cachedData = mockData;
       const recentTimestamp = Date.now() - 1000; // 1 second ago
       const zeroConfig = { cacheDuration: 0, fetchOnMount: true }; // Always fetch
 
-      mockCacheState.data[mockCacheKey] = cachedData;
-      mockCacheState.timestamps[mockCacheKey] = recentTimestamp;
-      mockFetchFunction.mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves – we only need to know fetch was triggered
-          }),
-      );
+      mockUseSelector.mockImplementation((selector) => {
+        const mockState = {
+          card: {
+            cache: {
+              data: { [mockCacheKey]: cachedData },
+              timestamps: { [mockCacheKey]: recentTimestamp },
+            },
+          },
+        };
+        return selector(mockState);
+      });
+      mockFetchFunction.mockResolvedValue(mockData);
 
       // When: Hook is rendered with zero cache duration
       renderHook(() =>
@@ -475,7 +433,7 @@ describe('useWrapWithCache', () => {
   });
 
   describe('Redux Integration', () => {
-    it('uses correct selector for cache key', () => {
+    it('should use correct selector for cache key', () => {
       // Given: Hook with specific cache key (default state)
 
       // When: Hook is rendered
@@ -487,20 +445,16 @@ describe('useWrapWithCache', () => {
       expect(mockUseSelector).toHaveBeenCalledWith(expect.any(Function));
     });
 
-    it('dispatches cache updates with correct structure', async () => {
-      // Given: No cached data and manual fetch trigger
+    it('should dispatch cache updates with correct structure', async () => {
+      // Given: No cached data (default state)
       mockFetchFunction.mockResolvedValue(mockData);
 
-      // When: Data is fetched via fetchData
-      const { result } = renderHook(() =>
-        useWrapWithCache(mockCacheKey, mockFetchFunction, {
-          fetchOnMount: false,
-        }),
+      // When: Data is fetched successfully
+      const { waitForNextUpdate } = renderHook(() =>
+        useWrapWithCache(mockCacheKey, mockFetchFunction, defaultConfig),
       );
 
-      await act(async () => {
-        await result.current.fetchData();
-      });
+      await waitForNextUpdate();
 
       // Then: Should dispatch correct action structure
       expect(mockDispatch).toHaveBeenCalledWith({
@@ -511,54 +465,45 @@ describe('useWrapWithCache', () => {
           timestamp: expect.any(Number),
         },
       });
-      expect(result.current.isLoading).toBe(false);
     });
   });
 
   describe('Edge Cases', () => {
-    it('skips caching when fetch returns null', async () => {
-      // Given: Fetch function returns null via manual fetch
+    it('should handle fetch function that returns null', async () => {
+      // Given: Fetch function returns null (default state)
       mockFetchFunction.mockResolvedValue(null);
 
-      // When: fetchData is called manually
-      const { result } = renderHook(() =>
-        useWrapWithCache(mockCacheKey, mockFetchFunction, {
-          fetchOnMount: false,
-        }),
+      // When: Hook fetches data
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useWrapWithCache(mockCacheKey, mockFetchFunction, defaultConfig),
       );
 
-      await act(async () => {
-        await result.current.fetchData();
-      });
+      await waitForNextUpdate();
 
-      // Then: Should not cache null responses
-      expect(mockDispatch).not.toHaveBeenCalled();
-      expect(result.current.isLoading).toBe(false);
+      // Then: Should handle null return value but NOT cache it (null indicates missing dependencies)
       expect(result.current.data).toBeNull();
+      expect(result.current.error).toBe(false);
+      // Null values are not cached to prevent caching "null" responses when dependencies aren't ready
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('skips caching when fetch returns undefined', async () => {
-      // Given: Fetch function returns undefined and manual fetch trigger
+    it('should handle fetch function that returns undefined', async () => {
+      // Given: Fetch function returns undefined (default state)
       mockFetchFunction.mockResolvedValue(undefined);
 
-      // When: fetchData is called manually
-      const { result } = renderHook(() =>
-        useWrapWithCache(mockCacheKey, mockFetchFunction, {
-          fetchOnMount: false,
-        }),
+      // When: Hook fetches data
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useWrapWithCache(mockCacheKey, mockFetchFunction, defaultConfig),
       );
 
-      await act(async () => {
-        await result.current.fetchData();
-      });
+      await waitForNextUpdate();
 
-      // Then: Should not cache undefined responses
-      expect(mockDispatch).not.toHaveBeenCalled();
-      expect(result.current.isLoading).toBe(false);
+      // Then: Should handle undefined return value
       expect(result.current.data).toBeNull();
+      expect(result.current.error).toBe(false);
     });
 
-    it('handles empty cache key', () => {
+    it('should handle empty cache key', () => {
       // Given: Empty cache key
       const emptyCacheKey = '';
 
@@ -576,7 +521,7 @@ describe('useWrapWithCache', () => {
   });
 
   describe('Memory Management', () => {
-    it('cleans up properly on unmount', () => {
+    it('should cleanup properly on unmount', () => {
       // Given: Hook with ongoing fetch (default state)
       mockFetchFunction.mockImplementation(
         () =>

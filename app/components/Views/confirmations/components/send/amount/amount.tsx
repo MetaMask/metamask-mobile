@@ -52,6 +52,7 @@ export const Amount = () => {
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles } = useStyles(styleSheet, {
     contentLength: amount.length + assetDisplaySymbol.length,
+    isNFT,
   });
   const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
@@ -96,14 +97,6 @@ export const Amount = () => {
   const balanceUnit =
     assetSymbol ??
     (parseInt(balance) === 1 ? strings('send.unit') : strings('send.units'));
-
-  const balanceDisplayValue = useMemo(
-    () =>
-      fiatMode
-        ? `${getFiatDisplayValue(balance)} ${strings('send.available')}`
-        : `${balance} ${balanceUnit} ${strings('send.available')}`,
-    [balance, balanceUnit, fiatMode, getFiatDisplayValue],
-  );
 
   const defaultValue = fiatMode ? '0.00' : '0';
   let textColor = TextColor.Default;
@@ -170,15 +163,19 @@ export const Amount = () => {
             </TagBase>
           </TouchableOpacity>
         )}
-        <Text style={styles.balanceText} color={TextColor.Alternative}>
-          {balanceDisplayValue}
-        </Text>
       </View>
-      <AmountKeyboard
-        amount={amount}
-        fiatMode={fiatMode}
-        updateAmount={setAmount}
-      />
+      <View>
+        <View style={styles.balanceSection}>
+          <Text
+            color={TextColor.Alternative}
+          >{`${balance} ${balanceUnit} ${strings('send.available')}`}</Text>
+        </View>
+        <AmountKeyboard
+          amount={amount}
+          fiatMode={fiatMode}
+          updateAmount={setAmount}
+        />
+      </View>
     </SafeAreaView>
   );
 };

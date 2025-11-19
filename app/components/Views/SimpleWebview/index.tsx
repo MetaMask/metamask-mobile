@@ -34,11 +34,8 @@ const SimpleWebView = () => {
 
   useEffect(() => {
     navigation.setOptions(getWebviewNavbar(navigation, route, colors));
-  }, [navigation, route, colors]);
-
-  useEffect(() => {
-    navigation.setParams({ dispatch: share });
-  }, [navigation, share]);
+    navigation && navigation.setParams({ dispatch: share });
+  }, [navigation, route, share, colors]);
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>

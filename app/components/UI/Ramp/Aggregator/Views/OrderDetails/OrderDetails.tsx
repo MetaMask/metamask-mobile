@@ -31,8 +31,10 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import ErrorView from '../../components/ErrorView';
 import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
-import { useRampNavigation, RampMode } from '../../../hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../../types';
+import {
+  createBuyNavigationDetails,
+  createSellNavigationDetails,
+} from '../../routes/utils';
 import { useAggregatorOrderNetworkName } from '../../hooks/useAggregatorOrderNetworkName';
 
 interface OrderDetailsParams {
@@ -59,7 +61,6 @@ const OrderDetails = () => {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const getAggregatorOrderNetworkName = useAggregatorOrderNetworkName();
-  const { goToRamps } = useRampNavigation();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
@@ -188,17 +189,11 @@ const OrderDetails = () => {
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
     if (order?.orderType === OrderOrderTypeEnum.Buy) {
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.BUY },
-      });
+      navigation.navigate(...createBuyNavigationDetails());
     } else {
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.SELL },
-      });
+      navigation.navigate(...createSellNavigationDetails());
     }
-  }, [navigation, order?.orderType, goToRamps]);
+  }, [navigation, order?.orderType]);
 
   useInterval(
     () => {

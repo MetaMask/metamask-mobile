@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
@@ -12,14 +12,8 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
 
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 
@@ -29,24 +23,18 @@ interface TokenListItemProps {
   onPress: () => void;
   textColor?: string;
   isDisabled?: boolean;
-  onInfoPress?: () => void;
 }
 
 function TokenListItem({
   token,
   isSelected,
   onPress,
-  textColor = TextColor.Alternative,
+  textColor,
   isDisabled = false,
-  onInfoPress,
 }: Readonly<TokenListItemProps>) {
   const getTokenNetworkInfo = useTokenNetworkInfo();
   const { networkName, depositNetworkName, networkImageSource } =
     getTokenNetworkInfo(token.chainId);
-
-  const handleInfoPress = useCallback(() => {
-    onInfoPress?.();
-  }, [onInfoPress]);
 
   return (
     <ListItemSelect
@@ -76,16 +64,6 @@ function TokenListItem({
           {depositNetworkName ?? networkName}
         </Text>
       </ListItemColumn>
-      {isDisabled && onInfoPress && (
-        <ListItemColumn widthType={WidthType.Auto}>
-          <ButtonIcon
-            size={ButtonIconSize.Md}
-            iconName={IconName.Info}
-            onPress={handleInfoPress}
-            testID="token-unsupported-info-button"
-          />
-        </ListItemColumn>
-      )}
     </ListItemSelect>
   );
 }

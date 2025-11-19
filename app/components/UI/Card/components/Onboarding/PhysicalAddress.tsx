@@ -262,7 +262,6 @@ const PhysicalAddress = () => {
   const {
     createOnboardingConsent,
     linkUserToConsent,
-    getOnboardingConsentSetByOnboardingId,
     isLoading: consentLoading,
     isError: consentIsError,
     error: consentError,
@@ -453,32 +452,12 @@ const PhysicalAddress = () => {
           .build(),
       );
 
-      // Step 7: Create or retrieve consent record
+      // Step 7: Create consent record (get consentSetId for later linking)
+      // Only create consent if it doesn't already exist to avoid server errors
       let consentSetId = existingConsentSetId;
-      let shouldLinkConsent = true;
-
       if (!consentSetId) {
-        // Check if consent already exists for this onboarding
-        const consentSet =
-          await getOnboardingConsentSetByOnboardingId(onboardingId);
-
-        if (consentSet) {
-          // Check if consent is already completed (both fields must be present)
-          if (consentSet.completedAt && consentSet.userId) {
-            // Consent already linked - skip consent operations entirely
-            shouldLinkConsent = false;
-            consentSetId = null;
-          } else {
-            // Consent exists but not completed - reuse it
-            consentSetId = consentSet.consentSetId;
-            // Store it in Redux for future use
-            dispatch(setConsentSetId(consentSetId));
-          }
-        } else {
-          // No consent exists - create a new one
-          consentSetId = await createOnboardingConsent(onboardingId);
-          dispatch(setConsentSetId(consentSetId));
-        }
+        consentSetId = await createOnboardingConsent(onboardingId);
+        dispatch(setConsentSetId(consentSetId));
       }
 
       // Step 8: Register physical address
@@ -514,11 +493,8 @@ const PhysicalAddress = () => {
           dispatch(setUserCardLocation(location));
         }
 
-        // Step 10: Link consent to user (only if needed)
-        if (shouldLinkConsent && consentSetId) {
-          await linkUserToConsent(consentSetId, updatedUser.id);
-          dispatch(setConsentSetId(null));
-        }
+        // Step 10: Link consent to user (complete audit trail)
+        await linkUserToConsent(consentSetId, updatedUser.id);
 
         // Navigate to completion screen
         navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);

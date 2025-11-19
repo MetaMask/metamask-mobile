@@ -9,10 +9,7 @@ import { IconName } from '../../../../../../../component-library/components/Icon
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import MenuItem from '../../../../components/MenuItem';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../../hooks/useRampNavigation';
+import { createDepositNavigationDetails } from '../../../../Deposit/routes/utils';
 import useAnalytics from '../../../../hooks/useAnalytics';
 import { useRampSDK } from '../../../sdk';
 
@@ -24,7 +21,6 @@ export const createBuySettingsModalNavigationDetails = createNavigationDetails(
 function SettingsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const { goToRamps } = useRampNavigation();
   const { selectedRegion } = useRampSDK();
 
   const trackEvent = useAnalytics();
@@ -47,8 +43,8 @@ function SettingsModal() {
     });
     sheetRef.current?.onCloseBottomSheet();
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    goToRamps({ mode: RampMode.DEPOSIT, overrideUnifiedBuyFlag: true });
-  }, [navigation, goToRamps, selectedRegion?.id, trackEvent]);
+    navigation.navigate(...createDepositNavigationDetails());
+  }, [navigation, selectedRegion?.id, trackEvent]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

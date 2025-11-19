@@ -12,8 +12,8 @@ import {
   selectDestToken,
   selectSourceAmount,
 } from '../../../../../core/redux/slices/bridge';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { getFormattedAddressFromInternalAccount } from '../../../../../core/Multichain/utils';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { selectChainId } from '../../../../../selectors/networkController';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import {
   toCaipAccountId,
@@ -68,7 +68,6 @@ interface UseRewardsResult {
   isLoading: boolean;
   estimatedPoints: number | null;
   hasError: boolean;
-  accountOptedIn: boolean | null;
 }
 
 /**
@@ -99,26 +98,16 @@ export const useRewards = ({
   const [estimatedPoints, setEstimatedPoints] = useState<number | null>(null);
   const [shouldShowRewardsRow, setShouldShowRewardsRow] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [accountOptedIn, setAccountOptedIn] = useState<boolean | null>(null);
   const prevRequestId = usePrevious(activeQuote?.quote?.requestId);
 
   // Selectors
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const getSelectedAccountByScope = useSelector(
-    selectSelectedInternalAccountByScope,
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
   );
-
-  const sourceChainId = sourceToken?.chainId
-    ? formatChainIdToCaip(sourceToken.chainId)
-    : undefined;
-  const selectedAccount = sourceChainId
-    ? getSelectedAccountByScope(sourceChainId)
-    : undefined;
-  const selectedAddress = selectedAccount
-    ? getFormattedAddressFromInternalAccount(selectedAccount)
-    : undefined;
+  const currentChainId = useSelector(selectChainId);
 
   const estimatePoints = useCallback(async () => {
     // Skip if no active quote or missing required data
@@ -128,7 +117,7 @@ export const useRewards = ({
       !destToken ||
       !sourceAmount ||
       !selectedAddress ||
-      !sourceChainId
+      !currentChainId
     ) {
       setEstimatedPoints(null);
       return;
@@ -145,22 +134,6 @@ export const useRewards = ({
 
       if (!isRewardsEnabled) {
         setEstimatedPoints(null);
-        setShouldShowRewardsRow(false);
-        setAccountOptedIn(null);
-        setIsLoading(false);
-        return;
-      }
-
-      // Check if there's a subscription first
-      const firstSubscriptionId = await Engine.controllerMessenger.call(
-        'RewardsController:getFirstSubscriptionId',
-      );
-
-      if (!firstSubscriptionId) {
-        setEstimatedPoints(null);
-        setShouldShowRewardsRow(false);
-        setAccountOptedIn(null);
-        setHasError(false);
         setIsLoading(false);
         return;
       }
@@ -168,13 +141,11 @@ export const useRewards = ({
       // Format account to CAIP-10
       const caipAccount = formatAccountToCaipAccountId(
         selectedAddress,
-        sourceChainId,
+        currentChainId,
       );
 
       if (!caipAccount) {
         setEstimatedPoints(null);
-        setShouldShowRewardsRow(false);
-        setAccountOptedIn(null);
         setIsLoading(false);
         return;
       }
@@ -185,28 +156,13 @@ export const useRewards = ({
         caipAccount,
       );
 
-      setAccountOptedIn(hasOptedIn);
-
-      // Determine if we should show the rewards row
-      // Show row if: opted in OR (not opted in AND opt-in is supported)
-      let shouldShow = hasOptedIn;
-
-      if (!hasOptedIn && selectedAccount) {
-        const isOptInSupported = await Engine.controllerMessenger.call(
-          'RewardsController:isOptInSupported',
-          selectedAccount,
-        );
-        shouldShow = isOptInSupported;
-      }
-
-      setShouldShowRewardsRow(shouldShow);
-
       if (!hasOptedIn) {
         setEstimatedPoints(null);
-        setHasError(false);
         setIsLoading(false);
         return;
       }
+
+      setShouldShowRewardsRow(true);
 
       // Convert source amount to atomic unit
       const atomicSourceAmount = activeQuote.quote.srcTokenAmount;
@@ -271,13 +227,12 @@ export const useRewards = ({
       setIsLoading(false);
     }
   }, [
-    activeQuote?.quote,
+    activeQuote,
     sourceToken,
     destToken,
     sourceAmount,
     selectedAddress,
-    sourceChainId,
-    selectedAccount,
+    currentChainId,
   ]);
 
   // Estimate points when dependencies change
@@ -292,30 +247,10 @@ export const useRewards = ({
     prevRequestId,
   ]);
 
-  // Subscribe to account linked event to retrigger estimate
-  useEffect(() => {
-    const handleAccountLinked = () => {
-      estimatePoints();
-    };
-
-    Engine.controllerMessenger.subscribe(
-      'RewardsController:accountLinked',
-      handleAccountLinked,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'RewardsController:accountLinked',
-        handleAccountLinked,
-      );
-    };
-  }, [estimatePoints]);
-
   return {
     shouldShowRewardsRow,
     isLoading: isLoading || isQuoteLoading,
     estimatedPoints,
     hasError,
-    accountOptedIn,
   };
 };

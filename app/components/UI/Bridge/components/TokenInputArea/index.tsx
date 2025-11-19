@@ -48,8 +48,10 @@ import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import { isNativeAddress } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
+import { zeroAddress } from 'ethereumjs-util';
 import parseAmount from '../../../../../util/parseAmount';
-import { useTokenAddress } from '../../hooks/useTokenAddress';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -302,7 +304,13 @@ export const TokenInputArea = forwardRef<
           }`
         : undefined;
 
-    const tokenAddress = useTokenAddress(token);
+    // Polygon native token address can be 0x0000000000000000000000000000000000001010
+    // so we need to use the zero address for the token address
+    const tokenAddress =
+      token?.chainId === CHAIN_IDS.POLYGON &&
+      token?.address === POLYGON_NATIVE_TOKEN
+        ? zeroAddress()
+        : token?.address;
 
     const isNativeAsset = isNativeAddress(tokenAddress);
     const formattedAddress =
@@ -409,7 +417,6 @@ export const TokenInputArea = forwardRef<
                         variant={ButtonVariants.Link}
                         label={strings('bridge.max')}
                         onPress={onMaxPress}
-                        testID="token-input-area-max-button"
                       />
                     </Box>
                   ) : (
@@ -433,5 +440,3 @@ export const TokenInputArea = forwardRef<
     );
   },
 );
-
-TokenInputArea.displayName = 'TokenInputArea';

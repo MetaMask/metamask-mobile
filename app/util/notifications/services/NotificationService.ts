@@ -3,6 +3,7 @@ import notifee, {
   AuthorizationStatus,
   EventDetail,
   EventType,
+  InitialNotification,
   Event as NotifeeEvent,
   Notification,
 } from '@notifee/react-native';
@@ -184,6 +185,9 @@ class NotificationsService {
     observer: (event: NotifeeEvent) => Promise<void>,
   ): (() => void) => notifee.onForegroundEvent(observer);
 
+  onBackgroundEvent = (observer: (event: NotifeeEvent) => Promise<void>) =>
+    notifee.onBackgroundEvent(observer);
+
   incrementBadgeCount = async (incrementBy?: number) => {
     notifee.incrementBadgeCount(incrementBy);
   };
@@ -239,6 +243,9 @@ class NotificationsService {
     if (!id) return;
     await notifee.cancelTriggerNotification(id);
   };
+
+  getInitialNotification = async (): Promise<InitialNotification | null> =>
+    await notifee.getInitialNotification();
 
   cancelAllNotifications = async () => {
     await notifee.cancelAllNotifications();

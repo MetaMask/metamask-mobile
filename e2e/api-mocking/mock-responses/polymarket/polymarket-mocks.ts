@@ -300,123 +300,28 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      // Check if eventId parameter is present for filtering
-      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
-      const eventId = eventIdMatch ? eventIdMatch[1] : null;
-
       // Combine lost positions with winning positions if includeWinnings is true
-      let resolvedMarkets = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE;
-      let winningPositions = includeWinnings
-        ? POLYMARKET_WINNING_POSITIONS_RESPONSE
-        : [];
+      const resolvedMarkets = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE.map(
+        (position) => ({
+          ...position,
+          proxyWallet: userAddress,
+        }),
+      );
 
-      // Filter by eventId if provided
-      if (eventId) {
-        resolvedMarkets = resolvedMarkets.filter(
-          (position) => position.eventId === eventId,
+      let resolvedPositions = resolvedMarkets;
+      if (includeWinnings) {
+        const winningPositions = POLYMARKET_WINNING_POSITIONS_RESPONSE.map(
+          (position) => ({
+            ...position,
+            proxyWallet: userAddress,
+          }),
         );
-        winningPositions = winningPositions.filter(
-          (position) => position.eventId === eventId,
-        );
+        resolvedPositions = [...resolvedMarkets, ...winningPositions];
       }
-
-      const resolvedMarketsWithAddress = resolvedMarkets.map((position) => ({
-        ...position,
-        proxyWallet: userAddress,
-      }));
-
-      const winningPositionsWithAddress = winningPositions.map((position) => ({
-        ...position,
-        proxyWallet: userAddress,
-      }));
-
-      const resolvedPositions = [
-        ...resolvedMarketsWithAddress,
-        ...winningPositionsWithAddress,
-      ];
 
       return {
         statusCode: 200,
         json: resolvedPositions,
-      };
-    });
-};
-
-/**
- * Mock for Polymarket CLOB prices API
- * Returns BUY (best ask) and SELL (best bid) prices for outcome tokens
- * This is used to display current market prices in the UI
- */
-export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
-  await mockServer
-    .forPost('/proxy')
-    .matching(async (request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
-      if (!urlParam?.includes('clob.polymarket.com/prices')) {
-        return false;
-      }
-
-      try {
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : undefined;
-        // Check if it's an array of price queries
-        return Array.isArray(body) && body.length > 0;
-      } catch {
-        return false;
-      }
-    })
-    .asPriority(PRIORITY.BASE)
-    .thenCallback(async (request) => {
-      const bodyText = await request.body.getText();
-      const body = bodyText ? JSON.parse(bodyText) : [];
-
-      // Extract unique token IDs from the request
-      const tokenIds = new Set<string>();
-      body.forEach((query: { token_id: string; side: string }) => {
-        if (query.token_id) {
-          tokenIds.add(query.token_id);
-        }
-      });
-
-      // Build response with prices for each token
-      const pricesResponse: Record<string, { BUY: string; SELL: string }> = {};
-
-      tokenIds.forEach((tokenId) => {
-        // Spurs token
-        if (
-          tokenId ===
-          '110743925263777693447488608878982152642205002490046349037358337248548507433643'
-        ) {
-          // Best ask (BUY) = 0.62, Best bid (SELL) = 0.61
-          // Using mid price for display: (0.62 + 0.61) / 2 = 0.615, but for accuracy use best ask for BUY and best bid for SELL
-          pricesResponse[tokenId] = {
-            BUY: '0.62', // Best ask - what you'd pay to buy
-            SELL: '0.61', // Best bid - what you'd receive to sell
-          };
-        }
-        // Pelicans token
-        else if (
-          tokenId ===
-          '38489710206351002266036612280230748165102516187175290608628298208123746725814'
-        ) {
-          // Best ask (BUY) = 0.38, Best bid (SELL) = 0.37
-          pricesResponse[tokenId] = {
-            BUY: '0.38', // Best ask - what you'd pay to buy
-            SELL: '0.37', // Best bid - what you'd receive to sell
-          };
-        }
-        // Default prices for other tokens (can be extended as needed)
-        else {
-          pricesResponse[tokenId] = {
-            BUY: '0.50',
-            SELL: '0.50',
-          };
-        }
-      });
-
-      return {
-        statusCode: 200,
-        json: pricesResponse,
       };
     });
 };
@@ -522,22 +427,12 @@ export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS = async (
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      // Check if eventId parameter is present for filtering
-      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
-      const eventId = eventIdMatch ? eventIdMatch[1] : null;
-
-      // Filter positions by eventId if provided
-      let filteredPositions = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE;
-      if (eventId) {
-        filteredPositions = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE.filter(
-          (position) => position.eventId === eventId,
-        );
-      }
-
-      const dynamicResponse = filteredPositions.map((position) => ({
-        ...position,
-        proxyWallet: userAddress,
-      }));
+      const dynamicResponse = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE.map(
+        (position) => ({
+          ...position,
+          proxyWallet: userAddress,
+        }),
+      );
 
       return {
         statusCode: 200,
@@ -557,7 +452,7 @@ export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?user=0x[a-fA-F0-9]{40}$/.test(
+          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
             url,
           ),
       );
@@ -981,75 +876,11 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
 /**
  * Mocks for cash-out transaction and balance update
  * This mock should be triggered before tapping the cash-out button
- * - Mocks the MetaMask relayer endpoint (predict.dev-api.cx.metamask.io/order)
- * - Mocks the CLOB API (polymarket order submission) as fallback
+ * - Mocks the CLOB API (polymarket order submission)
  * - Updates global USDC balance to post-cash-out amount (58.66 USDC)
  */
 export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
-  // Mock MetaMask relayer endpoint for order submission (cash-out uses SELL orders)
-  // In e2e, all requests go through /proxy with the actual URL in the url query parameter
-  // Matches request payload structure with PROXY_WALLET_ADDRESS as maker and USER_WALLET_ADDRESS as signer
-  // Response uses decimal string format (not wei)
-  await mockServer
-    .forPost('/proxy')
-    .matching(async (request) => {
-      try {
-        const urlParam = new URL(request.url).searchParams.get('url');
-        const relayerEndpointPattern =
-          /predict\.(dev-)?api\.cx\.metamask\.io\/order/;
-        if (!urlParam || !relayerEndpointPattern.test(urlParam)) {
-          return false;
-        }
-
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : {};
-        const order = body?.order;
-
-        // Verify the request matches cash-out order structure
-        // Only check consistent fields - allow variable values for dynamic fields (salt, tokenId, amounts, signature, owner)
-        return (
-          order &&
-          body.orderType === 'FOK' &&
-          order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase() &&
-          order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase() &&
-          order.taker === '0x0000000000000000000000000000000000000000' &&
-          order.expiration === '0' &&
-          order.nonce === '0' &&
-          order.feeRateBps === '0' &&
-          order.side === 'SELL' &&
-          order.signatureType === 2 &&
-          typeof order.salt === 'number' &&
-          typeof order.tokenId === 'string' &&
-          order.tokenId.length > 0 &&
-          typeof order.makerAmount === 'string' &&
-          order.makerAmount.length > 0 &&
-          typeof order.takerAmount === 'string' &&
-          order.takerAmount.length > 0 &&
-          typeof order.signature === 'string' &&
-          order.signature.startsWith('0x') &&
-          order.signature.length > 10
-        );
-      } catch {
-        return false;
-      }
-    })
-    .asPriority(PRIORITY.API_OVERRIDE)
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: {
-        success: true,
-        orderID:
-          '0xa16ab020abcd8e48100463d7bcbe75e3a3e659dcee1c42e09ef2ef8cecb0ce2c',
-        transactionsHashes: [
-          '0x24ca9d1399d72efc9c5f83b0f37c88fb7d42e61095cf657f9dcfa857249adf6f',
-        ],
-        takingAmount: '30.50',
-        makingAmount: '5.00',
-      },
-    }));
-
-  // Mock CLOB API for cash-out order submission (fallback for direct CLOB calls)
-  // Response uses decimal string format (not wei)
+  // Mock CLOB API for cash-out order submission
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
@@ -1062,14 +893,16 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
       const response = {
         statusCode: 200,
         json: {
-          success: true,
+          errorMsg: '',
           orderID:
-            '0xa16ab020abcd8e48100463d7bcbe75e3a3e659dcee1c42e09ef2ef8cecb0ce2c',
-          transactionsHashes: [
-            '0x24ca9d1399d72efc9c5f83b0f37c88fb7d42e61095cf657f9dcfa857249adf6f',
-          ],
+            '0x58531391ac95ce6430875c66d13187bc7813c2dab20c9217ce51b57ce7d215bf',
           takingAmount: '30.50',
           makingAmount: '5.00',
+          status: 'matched',
+          transactionsHashes: [
+            '0x935d74ec29bcbe63d2144430669b250c1fd476ac38cba7c0ecab97774cbc152e',
+          ],
+          success: true,
         },
       };
 
@@ -1170,7 +1003,7 @@ export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?user=0x[a-fA-F0-9]{40}$/.test(
+          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
             url,
           ),
       );
@@ -1353,6 +1186,5 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Uses default balance
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
-  await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
 };

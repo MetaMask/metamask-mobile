@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -44,12 +44,11 @@ const Complete = () => {
     try {
       const token = await getCardBaanxToken();
       if (token.success && token.tokenData?.accessToken) {
-        dispatch(resetOnboardingState());
-        navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
+        navigation.navigate(Routes.CARD.HOME);
       } else {
-        dispatch(resetOnboardingState());
-        navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
+        navigation.navigate(Routes.CARD.AUTHENTICATION);
       }
+      dispatch(resetOnboardingState());
     } catch (error) {
       Logger.log('Complete::handleContinue error', error);
     } finally {

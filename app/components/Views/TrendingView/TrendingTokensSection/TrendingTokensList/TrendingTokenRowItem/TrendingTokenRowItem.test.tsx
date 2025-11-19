@@ -325,7 +325,7 @@ describe('TrendingTokenRowItem', () => {
       rpcPrefs: {
         imageSource: 'https://popular-network.png',
       },
-    });
+    } as never);
     mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
 
     const token = createMockToken();
@@ -352,7 +352,7 @@ describe('TrendingTokenRowItem', () => {
       rpcPrefs: {
         imageSource: 'https://unpopular-network.png',
       },
-    });
+    } as never);
     mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
 
     const token = createMockToken();

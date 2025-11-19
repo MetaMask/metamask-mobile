@@ -22,7 +22,6 @@ import {
   handleUnifiedSwapsTxHistoryItemClick,
 } from '../Bridge/utils/transaction-history';
 import { ethers } from 'ethers';
-import { formatAmountWithThreshold } from '../../../util/number';
 
 const MultichainBridgeTransactionListItem = ({
   transaction,
@@ -69,14 +68,10 @@ const MultichainBridgeTransactionListItem = ({
       bridgeHistoryItem.status.destChain?.txHash,
   );
 
-  const rawAmount = parseFloat(
-    ethers.utils.formatUnits(
-      bridgeHistoryItem.quote.srcTokenAmount,
-      bridgeHistoryItem.quote.srcAsset.decimals,
-    ),
+  const displayAmount = ethers.utils.formatUnits(
+    bridgeHistoryItem.quote.srcTokenAmount,
+    bridgeHistoryItem.quote.srcAsset.decimals,
   );
-
-  const displayAmount = formatAmountWithThreshold(rawAmount, 5);
 
   return (
     <>

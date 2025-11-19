@@ -126,6 +126,7 @@ const PerpsScreenStack = () => (
           options={{
             title: strings('perps.markets.title'),
             headerShown: false,
+            animationEnabled: false,
           }}
         />
 

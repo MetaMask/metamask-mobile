@@ -183,6 +183,7 @@ import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
@@ -1090,6 +1091,7 @@ const Wallet = ({
   );
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
@@ -1111,6 +1113,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         shouldDisplayCardButton,
+        isRewardsEnabled,
       ),
     );
   }, [
@@ -1126,6 +1129,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     shouldDisplayCardButton,
+    isRewardsEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(

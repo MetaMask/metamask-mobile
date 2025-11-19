@@ -7,6 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
@@ -66,6 +67,7 @@ import {
 } from '../../providers/PerpsStreamManager';
 import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import PerpsOrderView from './PerpsOrderView';
+import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -131,10 +133,6 @@ jest.mock('../../hooks', () => ({
   usePerpsTrading: jest.fn(),
   usePerpsNetwork: jest.fn(),
   usePerpsPrices: jest.fn(),
-  usePerpsLivePrices: jest.fn(() => ({
-    ETH: { price: '3000', percentChange24h: '2.5' },
-    BTC: { price: '3000', percentChange24h: '2.5' },
-  })),
   usePerpsPaymentTokens: jest.fn(),
   usePerpsConnection: jest.fn(() => ({
     isConnected: true,
@@ -283,7 +281,10 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-// Rewards feature flag removed - rewards are always enabled
+// Mock rewards selector
+jest.mock('../../../../../selectors/featureFlagController/rewards', () => ({
+  selectRewardsEnabledFlag: jest.fn(() => false),
+}));
 
 // Mock DevLogger (module appears to use default export with .log())
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
@@ -1248,9 +1249,7 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton).toBeDefined();
 
       // Verify validation errors are shown (indicating disabled state)
-      // Wait for error to appear after isDataReady becomes true
-      const errorText = await screen.findByText('Insufficient balance');
-      expect(errorText).toBeDefined();
+      expect(screen.getByText('Insufficient balance')).toBeDefined();
     });
 
     it('disables button when order is placing', async () => {
@@ -1904,8 +1903,15 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Rewards Points Row', () => {
-    it('displays points row when rewards should show', async () => {
-      // Arrange - Rewards are always enabled
+    it('should display points row when rewards are enabled and should show', async () => {
+      // Arrange - Enable rewards
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
       (usePerpsRewards as jest.Mock).mockReturnValue({
         shouldShowRewardsRow: true,
         estimatedPoints: 100,
@@ -1925,8 +1931,43 @@ describe('PerpsOrderView', () => {
       });
     });
 
-    it('handles points tooltip interaction', async () => {
-      // Arrange - Rewards are always enabled
+    it('should not display points row when rewards are disabled', async () => {
+      // Arrange - Disable rewards
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: false,
+        estimatedPoints: undefined,
+        isLoading: false,
+        hasError: false,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.queryByText('perps.estimated_points')).toBeFalsy();
+      });
+    });
+
+    it('should handle points tooltip interaction', async () => {
+      // Arrange
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
       (usePerpsRewards as jest.Mock).mockReturnValue({
         shouldShowRewardsRow: true,
         estimatedPoints: 150,
@@ -1948,8 +1989,15 @@ describe('PerpsOrderView', () => {
       expect(screen.getByText('perps.estimated_points')).toBeTruthy();
     });
 
-    it('renders RewardsAnimations component with correct props when rewards shown', async () => {
-      // Arrange - Rewards are always enabled
+    it('should render RewardsAnimations component with correct props when rewards shown', async () => {
+      // Arrange - Enable rewards with specific values
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
       (usePerpsRewards as jest.Mock).mockReturnValue({
         shouldShowRewardsRow: true,
         estimatedPoints: 1000,
@@ -1971,8 +2019,15 @@ describe('PerpsOrderView', () => {
       });
     });
 
-    it('renders RewardsAnimations in loading state', async () => {
-      // Arrange - Rewards are always enabled, in loading state
+    it('should render RewardsAnimations in loading state', async () => {
+      // Arrange - Enable rewards in loading state
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
       (usePerpsRewards as jest.Mock).mockReturnValue({
         shouldShowRewardsRow: true,
         estimatedPoints: 0,
@@ -1992,8 +2047,15 @@ describe('PerpsOrderView', () => {
       });
     });
 
-    it('renders RewardsAnimations in error state', async () => {
-      // Arrange - Rewards are always enabled, in error state
+    it('should render RewardsAnimations in error state', async () => {
+      // Arrange - Enable rewards in error state
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
       (usePerpsRewards as jest.Mock).mockReturnValue({
         shouldShowRewardsRow: true,
         estimatedPoints: 0,
@@ -2014,8 +2076,15 @@ describe('PerpsOrderView', () => {
       });
     });
 
-    it('renders RewardsAnimations with bonus bips when provided', async () => {
-      // Arrange - Rewards are always enabled, with bonus
+    it('should render RewardsAnimations with bonus bips when provided', async () => {
+      // Arrange - Enable rewards with bonus
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
       (usePerpsRewards as jest.Mock).mockReturnValue({
         shouldShowRewardsRow: true,
         estimatedPoints: 2500,
@@ -2212,8 +2281,16 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Points section with rewards', () => {
-    it('displays points row and handles tooltip when rewards should show', async () => {
-      // Arrange - Rewards are always enabled
+    it('should display points row and handle tooltip when rewards enabled', async () => {
+      // Enable rewards flag
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      // Mock rewards with points
       (usePerpsRewards as jest.Mock).mockReturnValue({
         shouldShowRewardsRow: true,
         isLoading: false,
@@ -2224,10 +2301,9 @@ describe('PerpsOrderView', () => {
         isRefresh: false,
       });
 
-      // Act
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      // Assert - Verify points section is displayed
+      // Verify points section is displayed
       await waitFor(() => {
         expect(screen.getByText('perps.estimated_points')).toBeDefined();
       });
@@ -2398,8 +2474,16 @@ describe('PerpsOrderView', () => {
       });
     });
 
-    it('shows rewards state integration with fee discount', async () => {
-      // Arrange - Rewards are always enabled
+    it('should show rewards state integration with fee discount', async () => {
+      // Enable rewards and mock state
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      // Mock rewards state with all properties
       (usePerpsRewards as jest.Mock).mockReturnValue({
         shouldShowRewardsRow: true,
         isLoading: false,
@@ -2845,7 +2929,7 @@ describe('PerpsOrderView', () => {
       expect(orderTypeText).toBeOnTheScreen();
     });
 
-    it('should display correct asset and price in header', async () => {
+    it('should display correct asset and price in header', () => {
       // Arrange - Mock specific asset data
       (usePerpsOrderContext as jest.Mock).mockReturnValue({
         ...defaultMockHooks.usePerpsOrderContext,
@@ -2855,7 +2939,7 @@ describe('PerpsOrderView', () => {
         },
       });
 
-      const { getByTestId, findByText } = render(
+      const { getByTestId, getByText } = render(
         <SafeAreaProvider initialMetrics={initialMetrics}>
           <TestWrapper>
             <PerpsOrderView />
@@ -2866,9 +2950,7 @@ describe('PerpsOrderView', () => {
       // Assert - Should display asset in header title using testID to avoid duplicate text matches
       const headerTitle = getByTestId('perps-order-header-asset-title');
       expect(headerTitle).toHaveTextContent('Long BTC');
-      // Wait for price to appear after isDataReady becomes true
-      const priceText = await findByText('$3,000');
-      expect(priceText).toBeOnTheScreen();
+      expect(getByText('$3,000')).toBeOnTheScreen(); // Price from mock data
     });
   });
 });

@@ -6131,8 +6131,8 @@
       "title": "Habilitar las funciones de la tarjeta MetaMask",
       "description": "Cambia tu token de gasto y red iniciando sesión con tu correo electrónico y contraseña de Crypto Life.",
       "verify_account_button": "Iniciar sesión",
-      "non_cardholder_title": "Bienvenido a la Tarjeta MetaMask",
-      "non_cardholder_description": "La forma gratuita y sencilla de gastar tus criptomonedas y obtener grandes recompensas onchain.",
+      "non_cardholder_title": "Bienvenido a Trajeta MetaMask",
+      "non_cardholder_description": "Tarjeta MetaMask es la forma gratuita y sencilla de gastar tus criptomonedas, con grandes recompensas en cadena.",
       "non_cardholder_verify_account_button": "Comenzar",
       "sign_up": {
         "title": "Inscribirse",

@@ -97,7 +97,7 @@ import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionB
 import { regex } from '../../../../../../util/regex';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
-import { withRampNavigation } from '../../../../../UI/Ramp/hooks/withRampNavigation';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import SDKConnect from '../../../../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { WC2Manager } from '../../../../../../core/WalletConnect/WalletConnectV2';
@@ -142,18 +142,6 @@ class ApproveTransactionReview extends PureComponent {
      * Current provider ticker
      */
     ticker: PropTypes.string,
-    /**
-     * Function to navigate to ramp flows
-     */
-    goToRamps: PropTypes.func,
-    /**
-     * RampMode enum
-     */
-    RampMode: PropTypes.object,
-    /**
-     * AggregatorRampType enum
-     */
-    AggregatorRampType: PropTypes.object,
     /**
      * Number of tokens
      */
@@ -1241,14 +1229,11 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   buyEth = () => {
-    const { goToRamps, RampMode, AggregatorRampType } = this.props;
+    const { navigation } = this.props;
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.BUY },
-      });
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1397,9 +1382,7 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps,
 )(
-  withRampNavigation(
-    withNavigation(
-      withQRHardwareAwareness(withMetricsAwareness(ApproveTransactionReview)),
-    ),
+  withNavigation(
+    withQRHardwareAwareness(withMetricsAwareness(ApproveTransactionReview)),
   ),
 );

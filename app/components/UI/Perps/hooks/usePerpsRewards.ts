@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { OrderFeesResult } from './usePerpsOrderFees';
 
@@ -40,6 +42,9 @@ export const usePerpsRewards = ({
   isFeesLoading = false,
   orderAmount = '',
 }: UsePerpsRewardsParams): UsePerpsRewardsResult => {
+  // Get rewards feature flag
+  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
+
   // Track previous points to detect refresh state
   const [previousPoints, setPreviousPoints] = useState<number | undefined>();
 
@@ -64,8 +69,8 @@ export const usePerpsRewards = ({
 
   // Determine if we should show rewards row
   const shouldShowRewardsRow = useMemo(
-    () => hasValidAmount, // Show row if we have valid amount (even if there's an error or points are undefined)
-    [hasValidAmount],
+    () => rewardsEnabled && hasValidAmount, // Show row if we have valid amount (even if there's an error or points are undefined)
+    [rewardsEnabled, hasValidAmount],
   );
 
   // Determine loading state

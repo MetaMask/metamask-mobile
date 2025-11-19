@@ -355,7 +355,7 @@ describe('useGetCardExternalWalletDetails', () => {
   const mockCacheReturn = {
     data: null,
     isLoading: false,
-    error: null,
+    error: false,
     fetchData: mockFetchData,
   };
 
@@ -394,7 +394,7 @@ describe('useGetCardExternalWalletDetails', () => {
 
       expect(result.current.data).toBeNull();
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe(false);
       expect(result.current.fetchData).toBe(mockFetchData);
     });
 
@@ -628,7 +628,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: mockFetchData,
       });
 
@@ -649,7 +649,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: mockFetchData,
       });
 
@@ -664,7 +664,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: mockFetchData,
       });
 
@@ -677,7 +677,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: mockFetchData,
       });
 
@@ -690,7 +690,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: true,
-        error: null,
+        error: false,
         fetchData: mockFetchData,
       });
 
@@ -707,21 +707,7 @@ describe('useGetCardExternalWalletDetails', () => {
           priorityWalletDetail: null,
         },
         isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      });
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      expect(mockFetchData).not.toHaveBeenCalled();
-    });
-
-    it('does not trigger fetch when error exists', () => {
-      const mockError = new Error('Previous fetch failed');
-      mockUseWrapWithCache.mockReturnValue({
-        data: null,
-        isLoading: false,
-        error: mockError,
+        error: false,
         fetchData: mockFetchData,
       });
 
@@ -734,7 +720,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: null,
+        error: false,
         fetchData: mockFetchData,
       });
 

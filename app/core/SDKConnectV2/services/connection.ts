@@ -46,16 +46,7 @@ export class Connection {
 
       // If the payload includes an id, its a JSON-RPC response, otherwise its a notification
       if ('data' in payload && 'id' in payload.data) {
-        const responseData = payload.data;
-        // Check if the response is an error (JSON-RPC error responses have an 'error' property)
-        const isError =
-          'error' in responseData && responseData.error !== undefined;
-
-        if (isError) {
-          this.hostApp.showConnectionError(this.info);
-        } else {
-          this.hostApp.showReturnToApp(this.info);
-        }
+        this.hostApp.showReturnToApp(this.info);
       }
 
       this.client.sendResponse(payload);

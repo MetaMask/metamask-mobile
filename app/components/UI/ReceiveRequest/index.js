@@ -26,7 +26,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/Aggregator/utils';
-import { withRampNavigation } from '../Ramp/hooks/withRampNavigation';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import {
   getDetectedGeolocation,
@@ -77,18 +77,6 @@ class ReceiveRequest extends PureComponent {
      /* Triggers global alert
      */
     showAlert: PropTypes.func,
-    /**
-     * Function to navigate to ramp flows
-     */
-    goToRamps: PropTypes.func,
-    /**
-     * RampMode enum
-     */
-    RampMode: PropTypes.object,
-    /**
-     * AggregatorRampType enum
-     */
-    AggregatorRampType: PropTypes.object,
     /**
      * Network provider chain id
      */
@@ -156,18 +144,14 @@ class ReceiveRequest extends PureComponent {
    * Shows an alert message with a coming soon message
    */
   onBuy = async () => {
-    const { isNetworkBuySupported, goToRamps, RampMode, AggregatorRampType } =
-      this.props;
+    const { navigation, isNetworkBuySupported } = this.props;
     if (!isNetworkBuySupported) {
       Alert.alert(
         strings('fiat_on_ramp.network_not_supported'),
         strings('fiat_on_ramp.switch_network'),
       );
     } else {
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.BUY },
-      });
+      navigation.navigate(...createBuyNavigationDetails());
 
       this.props.metrics.trackEvent(
         this.props.metrics
@@ -286,4 +270,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withRampNavigation(withMetricsAwareness(ReceiveRequest)));
+)(withMetricsAwareness(ReceiveRequest));

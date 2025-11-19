@@ -7,6 +7,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
 import { ToastContext } from '../../../../../../../component-library/components/Toast';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
 const mockShowToast = jest.fn();
 const mockToastRef = {
@@ -45,7 +46,6 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockClearAuthToken = jest.fn();
-const mockGoToRamps = jest.fn();
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
@@ -78,11 +78,6 @@ jest.mock('react-native', () => {
 const mockUseDepositSDK = jest.fn();
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
-}));
-
-jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
 }));
 
 jest.mock('../../../../../../../component-library/components/Toast', () => {
@@ -126,14 +121,8 @@ describe('ConfigurationModal', () => {
   it('navigates to aggregator when more ways to buy is pressed', () => {
     const { getByText } = renderWithProvider(ConfigurationModal);
     const moreWaysToBuyButton = getByText('More ways to buy');
-
     fireEvent.press(moreWaysToBuyButton);
-
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: 'AGGREGATOR',
-      params: { rampType: expect.anything() },
-      overrideUnifiedBuyFlag: true,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuyNavigationDetails());
   });
 
   it('should open support URL when contact support is pressed', () => {

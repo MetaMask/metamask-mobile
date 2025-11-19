@@ -70,11 +70,10 @@ export const Recipient = () => {
       }
       setIsSubmittingTransaction(true);
       setPastedRecipient(undefined);
+      handleSubmitPress(resolvedAddress || to);
       captureRecipientSelected(
         isPasted ? RecipientInputMethod.Pasted : RecipientInputMethod.Manual,
       );
-      await handleSubmitPress(resolvedAddress || to);
-      setIsSubmittingTransaction(false);
     },
     [
       to,
@@ -114,7 +113,7 @@ export const Recipient = () => {
         | typeof RecipientInputMethod.SelectAccount
         | typeof RecipientInputMethod.SelectContact,
     ) =>
-      async (recipient: RecipientType) => {
+      (recipient: RecipientType) => {
         if (isSubmittingTransaction) {
           return;
         }
@@ -126,9 +125,8 @@ export const Recipient = () => {
         const selectedAddress = recipient.address;
         setIsRecipientSelectedFromList(true);
         updateTo(selectedAddress);
+        handleSubmitPress(selectedAddress);
         captureRecipientSelected(recipientInputMethod);
-        await handleSubmitPress(selectedAddress);
-        setIsSubmittingTransaction(false);
       },
     [
       updateTo,

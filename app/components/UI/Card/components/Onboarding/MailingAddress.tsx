@@ -14,7 +14,6 @@ import {
   selectConsentSetId,
   selectOnboardingId,
   selectSelectedCountry,
-  setConsentSetId,
   setIsAuthenticatedCard,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
@@ -39,11 +38,7 @@ const MailingAddress = () => {
   const consentSetId = useSelector(selectConsentSetId);
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const {
-    createOnboardingConsent,
-    linkUserToConsent,
-    getOnboardingConsentSetByOnboardingId,
-  } = useRegisterUserConsent();
+  const { linkUserToConsent } = useRegisterUserConsent();
 
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -179,36 +174,10 @@ const MailingAddress = () => {
           dispatch(setUserCardLocation(location));
         }
 
-        // Step 10: Handle consent with defensive checks (similar to PhysicalAddress)
-        // Defensive fallback in case Redux state was lost or consent creation failed
-        let finalConsentSetId = consentSetId;
-        let shouldLinkConsent = true;
-
-        if (!finalConsentSetId) {
-          // Fallback: Check if consent already exists for this onboarding
-          const consentSet =
-            await getOnboardingConsentSetByOnboardingId(onboardingId);
-
-          if (consentSet) {
-            // Check if consent is already completed (both fields must be present)
-            if (consentSet.completedAt && consentSet.userId) {
-              // Consent already linked - skip consent operations
-              shouldLinkConsent = false;
-            } else {
-              // Consent exists but not completed - reuse it
-              finalConsentSetId = consentSet.consentSetId;
-            }
-          } else {
-            // Safety net: Create consent if it doesn't exist
-            // This shouldn't normally happen, but protects against edge cases
-            finalConsentSetId = await createOnboardingConsent(onboardingId);
-          }
-        }
-
-        // Link consent to user (only if needed)
-        if (shouldLinkConsent && finalConsentSetId) {
-          await linkUserToConsent(finalConsentSetId, updatedUser.id);
-          dispatch(setConsentSetId(null));
+        // Step 10: Link consent to user (complete audit trail)
+        // This should only happen if we have a consentSetId from the PhysicalAddress step
+        if (consentSetId) {
+          await linkUserToConsent(consentSetId, updatedUser.id);
         }
 
         // Registration complete

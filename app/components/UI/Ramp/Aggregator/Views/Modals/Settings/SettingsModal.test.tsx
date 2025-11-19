@@ -9,12 +9,12 @@ import {
 } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import { createDepositNavigationDetails } from '../../../../Deposit/routes/utils';
 import { RampSDK } from '../../../sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
-const mockGoToRamps = jest.fn();
 const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -31,11 +31,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
-
-jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
-}));
 
 const mockUseRampSDKValues: DeepPartial<RampSDK> = {
   selectedRegion: { id: 'us' },
@@ -117,10 +112,9 @@ describe('SettingsModal', () => {
     fireEvent.press(newBuyExperienceButton);
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: 'DEPOSIT',
-      overrideUnifiedBuyFlag: true,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createDepositNavigationDetails(),
+    );
   });
 
   it('navigates back through parent navigation when deposit is pressed', () => {

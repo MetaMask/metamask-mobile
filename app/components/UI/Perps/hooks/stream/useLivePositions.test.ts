@@ -383,7 +383,7 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
-    it('uses price over mark price when available', async () => {
+    it('uses mark price over mid price when available', async () => {
       let positionsCallback: (positions: Position[]) => void = jest.fn();
       let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
         jest.fn();
@@ -428,7 +428,7 @@ describe('usePerpsLivePositions', () => {
 
       await waitFor(() => {
         const updatedPosition = result.current.positions[0];
-        expect(updatedPosition.unrealizedPnl).toBe('1000');
+        expect(updatedPosition.unrealizedPnl).toBe('1500');
       });
     });
 
@@ -709,22 +709,16 @@ describe('usePerpsLivePositions', () => {
       expect(enriched[0]).toEqual(position);
     });
 
-    it('calculates PnL even when margin is NaN (uses leverage instead)', () => {
+    it('returns position unchanged when margin is NaN', () => {
       const position: Position = {
         ...mockPosition,
-        entryPrice: '50000',
-        size: '1.0',
         marginUsed: 'invalid',
-        leverage: {
-          type: 'isolated',
-          value: 10,
-        },
+        unrealizedPnl: '500',
       };
 
       const enriched = enrichPositionsWithLivePnL([position], basePriceData);
 
-      expect(enriched[0].unrealizedPnl).toBe('2000');
-      expect(enriched[0].returnOnEquity).toBe('0.4');
+      expect(enriched[0]).toEqual(position);
     });
 
     it('handles multiple positions with mixed price availability', () => {

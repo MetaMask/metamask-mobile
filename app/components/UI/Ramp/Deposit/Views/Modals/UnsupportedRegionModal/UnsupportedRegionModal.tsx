@@ -28,11 +28,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 
 import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
 import { useDepositSDK } from '../../../sdk';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../../hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../../../../Aggregator/types';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
 export interface UnsupportedRegionModalParams {
   regions: DepositRegion[];
@@ -48,7 +44,6 @@ function UnsupportedRegionModal() {
   const navigation = useNavigation();
   const { selectedRegion } = useDepositSDK();
   const { regions } = useParams<UnsupportedRegionModalParams>();
-  const { goToRamps } = useRampNavigation();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -56,13 +51,9 @@ function UnsupportedRegionModal() {
     sheetRef.current?.onCloseBottomSheet(() => {
       // @ts-expect-error navigation prop mismatch
       navigation.dangerouslyGetParent()?.pop();
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.BUY },
-        overrideUnifiedBuyFlag: true,
-      });
+      navigation.navigate(...createBuyNavigationDetails());
     });
-  }, [navigation, goToRamps]);
+  }, [navigation]);
 
   const handleSelectDifferentRegion = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {

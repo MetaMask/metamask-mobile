@@ -6,7 +6,6 @@ import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
-import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -33,7 +32,6 @@ function renderWithProvider(component: React.ComponentType) {
         },
         fiatOrders: {
           detectedGeolocation: 'US',
-          rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
         },
       },
     },
@@ -53,7 +51,8 @@ describe('TokenSelection Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({
-      intent: undefined,
+      rampType: 'BUY',
+      selectedCryptoAssetId: undefined,
     });
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
   });
@@ -82,11 +81,10 @@ describe('TokenSelection Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('marks token as selected when intent assetId matches', () => {
+  it('marks token as selected when selectedCryptoAssetId matches', () => {
     (useParams as jest.Mock).mockReturnValue({
-      intent: {
-        assetId: mockTokens[0].assetId,
-      },
+      rampType: 'BUY',
+      selectedCryptoAssetId: mockTokens[0].assetId,
     });
 
     const { toJSON } = renderWithProvider(TokenSelection);
@@ -106,17 +104,6 @@ describe('TokenSelection Component', () => {
           searchString: 'USDC',
         }),
       );
-    });
-  });
-
-  it('navigates to unsupported token modal when info button is pressed', () => {
-    const { getAllByTestId } = renderWithProvider(TokenSelection);
-
-    const infoButtons = getAllByTestId('token-unsupported-info-button');
-    fireEvent.press(infoButtons[0]);
-
-    expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
-      screen: 'RampUnsupportedTokenModal',
     });
   });
 });

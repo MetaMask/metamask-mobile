@@ -1,18 +1,16 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import {
   RampIntent,
   RampType as AggregatorRampType,
 } from '../Aggregator/types';
 import { DepositNavigationParams } from '../Deposit/types/navigationParams';
-import { createRampNavigationDetails } from '../Aggregator/routes/utils';
+import {
+  createBuyNavigationDetails,
+  createSellNavigationDetails,
+} from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../reducers/fiatOrders';
 
 export enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -27,13 +25,11 @@ interface AggregatorParams {
 interface AggregatorGoToRampsParams {
   mode: RampMode.AGGREGATOR;
   params?: AggregatorParams;
-  overrideUnifiedBuyFlag?: boolean;
 }
 
 interface DepositGoToRampsParams {
   mode: RampMode.DEPOSIT;
   params?: DepositNavigationParams;
-  overrideUnifiedBuyFlag?: boolean;
 }
 
 type GoToRampsParams = AggregatorGoToRampsParams | DepositGoToRampsParams;
@@ -47,34 +43,11 @@ type GoToRampsParams = AggregatorGoToRampsParams | DepositGoToRampsParams;
 export const useRampNavigation = () => {
   const navigation = useNavigation();
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
   const goToRamps = useCallback(
-    ({ mode, params, overrideUnifiedBuyFlag }: GoToRampsParams) => {
-      const routingParam =
-        mode === RampMode.AGGREGATOR
-          ? (params?.rampType ?? AggregatorRampType.BUY)
-          : undefined;
-      if (
-        (mode === RampMode.DEPOSIT ||
-          routingParam === AggregatorRampType.BUY) &&
-        isRampsUnifiedV1Enabled &&
-        !overrideUnifiedBuyFlag
-      ) {
-        if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
-          navigation.navigate(
-            ...createDepositNavigationDetails(
-              mode === RampMode.DEPOSIT ? params : undefined,
-            ),
-          );
-        } else {
-          const aggregatorParams =
-            mode === RampMode.AGGREGATOR ? params : undefined;
-          const { intent, rampType = AggregatorRampType.BUY } =
-            aggregatorParams || {};
-
-          navigation.navigate(...createRampNavigationDetails(rampType, intent));
-        }
+    ({ mode, params }: GoToRampsParams) => {
+      if (isRampsUnifiedV1Enabled) {
+        // TODO: Implement smart routing hook
         return;
       }
 
@@ -82,10 +55,15 @@ export const useRampNavigation = () => {
         navigation.navigate(...createDepositNavigationDetails(params));
       } else {
         const { intent, rampType = AggregatorRampType.BUY } = params || {};
-        navigation.navigate(...createRampNavigationDetails(rampType, intent));
+
+        if (rampType === AggregatorRampType.BUY) {
+          navigation.navigate(...createBuyNavigationDetails(intent));
+        } else {
+          navigation.navigate(...createSellNavigationDetails(intent));
+        }
       }
     },
-    [navigation, isRampsUnifiedV1Enabled, rampRoutingDecision],
+    [navigation, isRampsUnifiedV1Enabled],
   );
 
   return { goToRamps };
