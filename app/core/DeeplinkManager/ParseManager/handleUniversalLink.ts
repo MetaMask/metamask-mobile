@@ -213,17 +213,21 @@ async function handleUniversalLink({
   }
 
   // 🔥 NEW ROUTER INTEGRATION 🔥
-  const wasHandledByNewRouter = await UniversalRouterIntegration.processWithNewRouter(
-    url,
-    source,
-    instance,
-    browserCallBack
+  const wasHandledByNewRouter =
+    await UniversalRouterIntegration.processWithNewRouter(
+      url,
+      source,
+      instance,
+      browserCallBack,
+    );
+  Logger.log(
+    '🔗 handleUniversalLink wasHandledByNewRouter',
+    wasHandledByNewRouter,
   );
-  Logger.log('🔗 handleUniversalLink wasHandledByNewRouter', wasHandledByNewRouter);
   if (wasHandledByNewRouter) {
     handled();
     return;
-  }    
+  }
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   if (

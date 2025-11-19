@@ -136,7 +136,7 @@ export class UniversalRouter {
   ): Promise<HandlerResult> {
     // Simply signal that the router couldn't handle it
     return {
-      handled: false,  // ← KEY CHANGE: Let caller know we didn't handle it
+      handled: false, // Let caller know we didn't handle it
       metadata: {
         reason: 'no_handler',
         action: link.action,

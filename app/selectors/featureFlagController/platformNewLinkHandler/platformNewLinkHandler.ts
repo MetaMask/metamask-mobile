@@ -26,11 +26,14 @@ export interface PlatformNewLinkHandlerActionsFlag {
 export const selectPlatformNewLinkHandlerSystemEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    const flagValue = remoteFeatureFlags?.[NEW_LINK_HANDLER_SYSTEM_FLAG]
-    const isEnabled = flagValue === true
-    Logger.log(`🔗 selectPlatformNewLinkHandlerSystemEnabled isEnabled`, isEnabled);
+    const flagValue = remoteFeatureFlags?.[NEW_LINK_HANDLER_SYSTEM_FLAG];
+    const isEnabled = flagValue === true;
+    Logger.log(
+      `🔗 selectPlatformNewLinkHandlerSystemEnabled isEnabled`,
+      isEnabled,
+    );
     return isEnabled;
-  }
+  },
 );
 
 /**
@@ -43,8 +46,7 @@ export const selectPlatformNewLinkHandlerSystemEnabled = createSelector(
 export const selectPlatformNewLinkHandlerActions = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): PlatformNewLinkHandlerActionsFlag => {
-    const actions =
-      remoteFeatureFlags?.[NEW_LINK_HANDLER_ACTIONS_FLAG];
+    const actions = remoteFeatureFlags?.[NEW_LINK_HANDLER_ACTIONS_FLAG];
 
     // Validate and provide fallback for malformed data
     if (
@@ -52,12 +54,17 @@ export const selectPlatformNewLinkHandlerActions = createSelector(
       actions === null ||
       Array.isArray(actions)
     ) {
-      Logger.log(`🔗 selectPlatformNewLinkHandlerActions actions are not an object`, actions);
+      Logger.log(
+        `🔗 selectPlatformNewLinkHandlerActions actions are not an object`,
+        actions,
+      );
       return {}; // Safe fallback - no actions enabled
     }
 
-    Logger.log(`🔗 selectPlatformNewLinkHandlerActions actions are an object`, actions);
+    Logger.log(
+      `🔗 selectPlatformNewLinkHandlerActions actions are an object`,
+      actions,
+    );
     return actions as PlatformNewLinkHandlerActionsFlag;
   },
 );
-

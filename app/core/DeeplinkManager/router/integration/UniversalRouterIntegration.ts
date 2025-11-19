@@ -3,7 +3,10 @@ import { HandlerContext } from '../interfaces/UniversalLinkHandler';
 import DeeplinkManager from '../../DeeplinkManager';
 import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
-import { selectPlatformNewLinkHandlerActions, selectPlatformNewLinkHandlerSystemEnabled } from '../../../../selectors/featureFlagController/platformNewLinkHandler/platformNewLinkHandler';
+import {
+  selectPlatformNewLinkHandlerActions,
+  selectPlatformNewLinkHandlerSystemEnabled,
+} from '../../../../selectors/featureFlagController/platformNewLinkHandler/platformNewLinkHandler';
 import { CoreLinkNormalizer } from '../../CoreLinkNormalizer';
 
 /**
@@ -36,32 +39,38 @@ export class UniversalRouterIntegration {
   ): Promise<boolean> {
     try {
       Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter url', url);
-      
+
       const state = ReduxService.store.getState();
       const isSystemEnabled = selectPlatformNewLinkHandlerSystemEnabled(state);
-      Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter isSystemEnabled', isSystemEnabled);
+      Logger.log(
+        '🔗 UniversalRouterIntegration:processWithNewRouter isSystemEnabled',
+        isSystemEnabled,
+      );
       // Check system flag
       if (!isSystemEnabled) {
         Logger.log('System not enabled');
         return false; // Legacy handles it
       }
-      
+
       // Parse URL to get action
       const link = CoreLinkNormalizer.normalize(url, source);
-      
+
       // Check action-specific flag
       const actions = selectPlatformNewLinkHandlerActions(state);
       const isActionEnabled = actions[link.action] === true;
-      Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter isActionEnabled', isActionEnabled);
+      Logger.log(
+        '🔗 UniversalRouterIntegration:processWithNewRouter isActionEnabled',
+        isActionEnabled,
+      );
       if (!isActionEnabled) {
         Logger.log(`Action '${link.action}' not enabled by feature flag`);
         return false; // Legacy handles it
       }
-      
+
       // Both flags enabled - proceed with new router
       const router = UniversalRouter.getInstance();
       router.initialize();
-      
+
       const context: HandlerContext = {
         navigation: {
           navigate: (routeName: string, params?: Record<string, unknown>) => {
@@ -73,7 +82,7 @@ export class UniversalRouterIntegration {
         browserCallBack,
       };
       const result = await router.route(url, source, context);
-      
+
       return result.handled;
     } catch (error) {
       Logger.error(error as Error, 'UniversalRouter integration failed');
