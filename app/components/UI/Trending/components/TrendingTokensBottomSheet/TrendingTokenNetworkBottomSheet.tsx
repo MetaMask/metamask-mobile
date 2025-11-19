@@ -31,6 +31,7 @@ export enum NetworkOption {
 const EXCLUDED_NETWORKS: CaipChainId[] = [
   'eip155:11297108109', // Palm
   'eip155:999', // Hyper EVM
+  'eip155:143', // Monad
 ];
 
 export interface TrendingTokenNetworkBottomSheetProps {
