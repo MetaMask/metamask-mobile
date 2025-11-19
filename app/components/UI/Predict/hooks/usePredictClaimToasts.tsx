@@ -1,5 +1,5 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectPredictWonPositions } from '../selectors/predictController';
@@ -39,6 +39,18 @@ export const usePredictClaimToasts = () => {
     maximumDecimals: 2,
   });
 
+  const handleClaimConfirmed = useCallback(() => {
+    Engine.context.PredictController.confirmClaim({
+      providerId: 'polymarket',
+    });
+    loadPositions({ isRefresh: true }).catch(() => {
+      // Ignore errors when refreshing positions
+    });
+    loadBalance({ isRefresh: true }).catch(() => {
+      // Ignore errors when refreshing balance
+    });
+  }, [loadBalance, loadPositions]);
+
   usePredictToasts({
     transactionType: TransactionType.predictClaim,
     pendingToastConfig: {
@@ -63,16 +75,6 @@ export const usePredictClaimToasts = () => {
       retryLabel: strings('predict.claim.toasts.error.try_again'),
       onRetry: claim,
     },
-    onConfirmed: () => {
-      Engine.context.PredictController.confirmClaim({
-        providerId: 'polymarket',
-      });
-      loadBalance().catch(() => {
-        // Ignore errors when refreshing balance
-      });
-      loadPositions({ isRefresh: true }).catch(() => {
-        // Ignore errors when refreshing positions
-      });
-    },
+    onConfirmed: handleClaimConfirmed,
   });
 };
