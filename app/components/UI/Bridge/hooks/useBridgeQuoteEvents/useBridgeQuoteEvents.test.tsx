@@ -39,12 +39,8 @@ describe('useBridgeQuoteEvents', () => {
       renderHookWithProvider(
         () =>
           useBridgeQuoteEvents({
-            hasNoQuotesAvailable: false,
-            hasInsufficientBalance: false,
-            hasInsufficientGas: false,
-            hasTxAlert: false,
             isSubmitDisabled: false,
-            isPriceImpactWarningVisible: false,
+            warnings: [],
           }),
         { state: testState },
       );
@@ -80,12 +76,8 @@ describe('useBridgeQuoteEvents', () => {
       renderHookWithProvider(
         () =>
           useBridgeQuoteEvents({
-            hasNoQuotesAvailable: false,
-            hasInsufficientBalance: false,
-            hasInsufficientGas: false,
-            hasTxAlert: false,
             isSubmitDisabled: false,
-            isPriceImpactWarningVisible: false,
+            warnings: [],
             ...hookArgs,
           }),
         { state: testState },

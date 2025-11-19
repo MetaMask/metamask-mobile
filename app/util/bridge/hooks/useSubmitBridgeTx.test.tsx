@@ -152,6 +152,8 @@ describe('useSubmitBridgeTx', () => {
 
     const txResult = await result.current.submitBridgeTx({
       quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      isLoading: false,
+      warnings: [],
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
@@ -197,6 +199,8 @@ describe('useSubmitBridgeTx', () => {
 
     const txResult = await result.current.submitBridgeTx({
       quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      isLoading: false,
+      warnings: [],
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
@@ -235,6 +239,8 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        isLoading: false,
+        warnings: [],
       }),
     ).rejects.toThrow('Approval failed');
   });
@@ -255,6 +261,8 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        isLoading: false,
+        warnings: [],
       }),
     ).rejects.toThrow('Bridge transaction failed');
   });
@@ -280,6 +288,8 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: invalidQuoteResponse as QuoteResponse & QuoteMetadata,
+        isLoading: false,
+        warnings: [],
       }),
     ).rejects.toThrow('Serialization failed');
   });
@@ -300,6 +310,8 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        isLoading: false,
+        warnings: [],
       }),
     ).rejects.toThrow('Wallet address is not set');
   });
