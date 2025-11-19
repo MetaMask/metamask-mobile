@@ -28,31 +28,22 @@ export const selectMultipleTokenScanResults = createDeepEqualSelector(
     return tokens
       .map((token) => {
         const { address, chainId } = token;
-        const checksumAddress = safeToChecksumAddress(address);
 
-        if (!checksumAddress) {
+        if (!address || !chainId) {
           return null;
         }
 
-        let cacheEntry;
-        if (chainId) {
-          const cacheKey = `${chainId}:${checksumAddress.toLowerCase()}`;
-          cacheEntry = tokenScanCache[cacheKey];
-        }
-
-        if (!cacheEntry) {
-          cacheEntry =
-            tokenScanCache[checksumAddress] ||
-            tokenScanCache[checksumAddress.toLowerCase()] ||
-            tokenScanCache[address.toLowerCase()];
-        }
+        const cacheKey = `${chainId}:${address.toLowerCase()}`;
+        const cacheEntry = tokenScanCache[cacheKey];
 
         return {
-          address: checksumAddress,
+          address: address.toLowerCase(),
           chainId,
           scanResult: cacheEntry?.data,
         };
       })
-      .filter((result) => result !== null);
+      .filter(
+        (result): result is NonNullable<typeof result> => result !== null,
+      );
   },
 );
