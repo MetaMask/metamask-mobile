@@ -54,6 +54,13 @@ const createStyles = (params: { theme: Theme }) => {
     },
     tokensList: {
       marginTop: 10,
+      flex: 1,
+    },
+    tokensListContent: {
+      paddingBottom: 0,
+    },
+    tokensListContainer: {
+      flex: 1,
     },
     searchInput: {
       borderRadius: 12,
@@ -242,9 +249,10 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> =
           </Box>
 
           {/* Need this extra View to fix tokens not being reliably pressable on Android hardware, no idea why */}
-          <View>
+          <View style={styles.tokensListContainer}>
             <ListComponent
               style={styles.tokensList}
+              contentContainerStyle={styles.tokensListContent}
               key={scrollResetKey}
               data={
                 shouldRenderOverallLoading

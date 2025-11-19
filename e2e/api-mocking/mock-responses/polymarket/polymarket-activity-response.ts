@@ -1,6 +1,7 @@
 /**
  * Mock response data for Polymarket activity API endpoints
- * Endpoint: /activity?user
+ * Endpoint: /activity?user&excludeLostRedeems=true
+ * Note: Lost redeems (claim activities with no payout) are excluded by the API
  */
 
 import { PROXY_WALLET_ADDRESS } from './polymarket-constants';
