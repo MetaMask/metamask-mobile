@@ -16,6 +16,7 @@ import Text, {
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect, ConnectedProps } from 'react-redux';
+import { Dispatch } from 'redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
@@ -37,6 +38,11 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
+import {
+  NavigationProp,
+  ParamListBase,
+  RouteProp,
+} from '@react-navigation/native';
 import {
   TraceName,
   TraceOperation,
@@ -63,9 +69,11 @@ import Button, {
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import type { IUseMetricsHook } from '../../hooks/useMetrics/useMetrics.types';
+import type { IWithMetricsAwarenessProps } from '../../hooks/useMetrics/withMetricsAwareness.types';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
@@ -93,7 +101,12 @@ interface OAuthLoginResult {
   error?: Error;
 }
 
-// Redux connection
+interface OnboardingRouteParams {
+  [PREVIOUS_SCREEN]: string;
+  delete_wallet_toast_visible?: boolean;
+  delete?: string;
+}
+
 const mapStateToProps = (state: RootState) => ({
   accounts: selectAccounts(state),
   passwordSet: state.user.passwordSet,
@@ -102,9 +115,7 @@ const mapStateToProps = (state: RootState) => ({
   loadingMsg: state.user.loadingMsg || '',
 });
 
-// TODO: Replace "any" with proper dispatch type (multiple action types involved)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapDispatchToProps = (dispatch: any) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   setLoading: (msg?: string) => dispatch(loadingSet(msg || '')),
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
@@ -121,15 +132,13 @@ interface OwnProps {
   /**
    * Navigation object required to push new views
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationProp<ParamListBase> & {
+    replace: (name: string, params?: object) => void;
+  };
   /**
    * Object that represents the current route info like params passed to it
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  route: any;
+  route: RouteProp<{ params: OnboardingRouteParams }, 'params'>;
   /**
    * Metrics injected by withMetricsAwareness HOC
    */
@@ -137,6 +146,8 @@ interface OwnProps {
 }
 
 type OnboardingProps = PropsFromRedux & OwnProps;
+
+export type OnboardingComponentProps = Omit<OwnProps, 'metrics'>;
 
 class Onboarding extends PureComponent<OnboardingProps, OnboardingState> {
   // Helper to get typed context
@@ -315,8 +326,7 @@ class Onboarding extends PureComponent<OnboardingProps, OnboardingState> {
     if (this.state.existingUser) {
       this.alertExistingUser(action);
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      action();
+      void action();
     }
   };
 
@@ -464,7 +474,7 @@ class Onboarding extends PureComponent<OnboardingProps, OnboardingState> {
 
   onPressContinueWithSocialLogin = async (
     createWallet: boolean,
-    provider: string,
+    provider: AuthConnection,
   ): Promise<void> => {
     // check for internet connection
     try {
@@ -526,9 +536,7 @@ class Onboarding extends PureComponent<OnboardingProps, OnboardingState> {
 
     const action = async () => {
       this.props.setLoading();
-      // TODO: createLoginHandler should accept Platform.OS type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const loginHandler = createLoginHandler(Platform.OS, provider as any);
+      const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
         !createWallet,
@@ -552,10 +560,10 @@ class Onboarding extends PureComponent<OnboardingProps, OnboardingState> {
   };
 
   onPressContinueWithApple = async (createWallet: boolean): Promise<void> =>
-    this.onPressContinueWithSocialLogin(createWallet, 'apple');
+    this.onPressContinueWithSocialLogin(createWallet, AuthConnection.Apple);
 
   onPressContinueWithGoogle = async (createWallet: boolean): Promise<void> =>
-    this.onPressContinueWithSocialLogin(createWallet, 'google');
+    this.onPressContinueWithSocialLogin(createWallet, AuthConnection.Google);
 
   handleLoginError = (error: Error, socialConnectionType: string): void => {
     if (error instanceof OAuthError) {
@@ -650,8 +658,7 @@ class Onboarding extends PureComponent<OnboardingProps, OnboardingState> {
 
   alertExistingUser = (callback: () => void | Promise<void>): void => {
     this.warningCallback = () => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      callback();
+      void callback();
       this.toggleWarningModal();
       return true;
     };
@@ -868,6 +875,9 @@ class Onboarding extends PureComponent<OnboardingProps, OnboardingState> {
 
 Onboarding.contextType = ThemeContext;
 
-// TODO: Replace "any" with proper HOC typing when withMetricsAwareness is typed
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default connector(withMetricsAwareness(Onboarding as any) as any);
+const ConnectedOnboarding = connector(Onboarding);
+const OnboardingWithMetrics = withMetricsAwareness(
+  ConnectedOnboarding as unknown as React.ComponentType<IWithMetricsAwarenessProps>,
+);
+
+export default OnboardingWithMetrics as React.ComponentType<OnboardingComponentProps>;
