@@ -63,6 +63,7 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import useTronUnstake from '../../hooks/useTronUnstake';
 import ResourceToggle, {
   type ResourceType,
@@ -75,6 +76,7 @@ import { isTronChainId } from '../../../../../core/Multichain/utils';
 import {
   buildTronEarnTokenIfEligible,
   handleTronStakingNavigationResult,
+  getStakedTrxTotalFromResources,
 } from '../../utils/tron';
 ///: END:ONLY_INCLUDE_IF
 
@@ -98,29 +100,44 @@ const EarnWithdrawInputView = () => {
   const [resourceType, setResourceType] = useState<ResourceType>(
     TRON_RESOURCE.ENERGY,
   );
+  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+  const stakedTrxTotal = useMemo(
+    () =>
+      isTrxStakingEnabled && isTronAsset
+        ? getStakedTrxTotalFromResources(tronResources)
+        : 0,
+    [isTrxStakingEnabled, isTronAsset, tronResources],
+  );
   const { validate: tronValidateUnstake, confirm: tronConfirmUnstake } =
     useTronUnstake();
   ///: END:ONLY_INCLUDE_IF
-
   const earnToken = React.useMemo(() => {
-    if (earnTokenFromMap) return earnTokenFromMap;
-
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     const tronEarnToken = buildTronEarnTokenIfEligible(token, {
       isTrxStakingEnabled,
       isTronEligible: isTronAsset,
+      stakedBalanceOverride:
+        stakedTrxTotal && stakedTrxTotal > 0
+          ? stakedTrxTotal
+          : isTrxStakingEnabled && isTronAsset && token.isStaked
+            ? token.balance
+            : undefined,
     });
-
     if (tronEarnToken) {
       return tronEarnToken;
     }
     ///: END:ONLY_INCLUDE_IF
+    if (earnTokenFromMap) {
+      return earnTokenFromMap;
+    }
+
     return undefined;
   }, [
     earnTokenFromMap,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTrxStakingEnabled,
     isTronAsset,
+    stakedTrxTotal,
     token,
     ///: END:ONLY_INCLUDE_IF
   ]);
@@ -647,8 +664,13 @@ const EarnWithdrawInputView = () => {
       return strings('stake.enter_amount');
     }
     if (isOverMaximum.isOverMaximumToken) {
+      const tickerForError =
+        isTrxStakingEnabled && isTronAsset
+          ? (token.ticker ?? token.symbol ?? '')
+          : (withdrawalToken?.ticker ?? withdrawalToken?.symbol ?? '');
+
       return strings('stake.not_enough_token', {
-        ticker: withdrawalToken?.ticker ?? withdrawalToken?.symbol ?? '',
+        ticker: tickerForError,
       });
     }
     if (isOverMaximum.isOverMaximumEth) {
@@ -671,6 +693,8 @@ const EarnWithdrawInputView = () => {
     isTronAsset,
     withdrawalToken?.ticker,
     withdrawalToken?.symbol,
+    token.symbol,
+    token.ticker,
   ]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
@@ -819,7 +843,7 @@ const EarnWithdrawInputView = () => {
           <View style={styles.earnTokenSelectorContainer}>
             <View style={styles.spacer} />
             <EarnTokenSelector
-              token={withdrawalToken as TokenI}
+              token={token as TokenI}
               action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
             />
           </View>

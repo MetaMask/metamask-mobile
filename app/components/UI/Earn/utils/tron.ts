@@ -48,15 +48,28 @@ export const buildTronEarnTokenIfEligible = (
   {
     isTrxStakingEnabled,
     isTronEligible,
-  }: { isTrxStakingEnabled: boolean; isTronEligible: boolean },
+    stakedBalanceOverride,
+  }: {
+    isTrxStakingEnabled: boolean;
+    isTronEligible: boolean;
+    /**
+     * Optional override for the token balance, used for flows that operate on
+     * staked TRX (sTRX) rather than the liquid TRX balance.
+     */
+    stakedBalanceOverride?: number | string;
+  },
 ): EarnTokenDetails | undefined => {
   if (!isTrxStakingEnabled || !isTronEligible) {
     return undefined;
   }
 
-  const normalized = normalizeToDotDecimal(token.balance);
+  const balanceSource =
+    stakedBalanceOverride !== undefined
+      ? normalizeToDotDecimal(stakedBalanceOverride)
+      : normalizeToDotDecimal(token.balance);
+
   const balanceMinimalUnit = toTokenMinimalUnit(
-    normalized,
+    balanceSource,
     token.decimals ?? 0,
   ).toString();
 
@@ -68,7 +81,10 @@ export const buildTronEarnTokenIfEligible = (
     ...token,
     isETH: false,
     balanceMinimalUnit,
-    balanceFormatted: token.balance ?? '0',
+    balanceFormatted:
+      stakedBalanceOverride !== undefined
+        ? String(stakedBalanceOverride)
+        : (token.balance ?? '0'),
     balanceFiat: token.balanceFiat ?? '0',
     tokenUsdExchangeRate: 0,
     experiences,

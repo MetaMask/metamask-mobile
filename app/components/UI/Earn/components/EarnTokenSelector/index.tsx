@@ -46,10 +46,13 @@ const EarnTokenSelector = ({
   const earnToken = getEarnToken(someEarnToken);
   const outputToken = getOutputToken(someEarnToken);
 
-  const tokenToRender = (earnToken || outputToken || someEarnToken) as
-    | EarnTokenDetails
-    | TokenI
-    | undefined;
+  // For withdrawal flows we want to display the asset the user is
+  // actually interacting with (e.g. sTRX), not a paired underlying.
+  const tokenToRender = (
+    action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
+      ? someEarnToken
+      : earnToken || outputToken || someEarnToken
+  ) as EarnTokenDetails | TokenI | undefined;
 
   const rawApr =
     (tokenToRender as EarnTokenDetails | undefined)?.experience?.apr ?? '';

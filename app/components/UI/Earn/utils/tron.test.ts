@@ -149,6 +149,18 @@ describe('tron utils', () => {
       });
       expect(result.balanceMinimalUnit).toBeDefined();
     });
+
+    it('uses stakedBalanceOverride when provided', () => {
+      const result = buildTronEarnTokenIfEligible(baseToken, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+        stakedBalanceOverride: 24,
+      }) as EarnTokenDetails;
+
+      expect(result.balanceFormatted).toBe('24');
+      // 24 TRX with 6 decimals = 24 * 10^6
+      expect(result.balanceMinimalUnit).toBe('24000000');
+    });
   });
 
   describe('handleTronStakingNavigationResult', () => {
