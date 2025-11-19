@@ -138,6 +138,18 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
         imageSource: undefined,
       },
     },
+    {
+      chainId: '0x2105' as const, // Base Mainnet chainId
+      nickname: 'Base',
+      ticker: 'ETH',
+      rpcUrl: 'https://mainnet.base.org',
+      failoverRpcUrls: [],
+      rpcPrefs: {
+        blockExplorerUrl: 'https://basescan.org',
+        imageUrl: 'https://base.png',
+        imageSource: undefined,
+      },
+    },
   ];
 
   return {
@@ -552,6 +564,67 @@ describe('TrendingTokenRowItem', () => {
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
         pricePercentChange1d: 3.44,
       });
+    });
+
+    it('shows network modal when network is not added', () => {
+      const token = createMockToken({
+        assetId: 'eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+      });
+
+      // Mock networkConfigurations to include Linea and Ethereum, but NOT Base
+      const networkNotAddedState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              networkConfigurations: {},
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  caipChainId: 'eip155:1',
+                  name: 'Ethereum Mainnet',
+                },
+                '0xE708': {
+                  chainId: '0xE708',
+                  caipChainId: 'eip155:59144',
+                  name: 'Linea Mainnet',
+                },
+                // Base (0x2105) is NOT in this object, so it's not added
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: networkNotAddedState },
+        false,
+      );
+
+      // Modal should not be visible initially
+      expect(queryByTestId('network-modal')).toBeNull();
+
+      const tokenRow = getByTestId(
+        'trending-token-row-item-eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      );
+      fireEvent.press(tokenRow);
+
+      // Modal should be visible after pressing
+      const networkModal = getByTestId('network-modal');
+      expect(networkModal).toBeDefined();
+
+      // Verify modal shows the network name
+      const networkName = getByTestId('network-modal-network-name');
+      expect(networkName.props.children).toBe('Base');
+
+      // Navigation should NOT be called since modal is shown instead
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });
