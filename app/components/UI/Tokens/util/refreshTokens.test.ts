@@ -18,7 +18,7 @@ jest.mock('../../../../core/Engine', () => ({
       updateExchangeRate: jest.fn(),
     },
     TokenRatesController: {
-      updateExchangeRatesByChainId: jest.fn(),
+      updateExchangeRates: jest.fn(),
     },
     MultichainBalancesController: {
       updateBalance: jest.fn(),
