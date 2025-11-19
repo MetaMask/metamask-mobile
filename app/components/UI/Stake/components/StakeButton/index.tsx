@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useCallback } from 'react';
 import { Alert, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
+import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -98,6 +99,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   );
 
   const { initiateConversion } = useEvmTokenConversion();
+
+  const hasSeenEducation = useSelector(selectMusdConversionEducationSeen);
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
@@ -243,19 +246,35 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Asset address or chain ID is not set');
       }
 
+      const outputToken = {
+        address: MUSD_ADDRESS_ETHEREUM as Hex,
+        // We want to convert to mUSD on Ethereum Mainnet only for now.
+        chainId: ETHEREUM_MAINNET_CHAIN_ID as Hex,
+        symbol: MUSD_TOKEN_MAINNET.symbol,
+        name: MUSD_TOKEN_MAINNET.name,
+        decimals: MUSD_TOKEN_MAINNET.decimals,
+      };
+
+      const preferredPaymentToken = {
+        address: toHex(asset.address),
+        chainId: toHex(asset.chainId),
+      };
+
+      if (!hasSeenEducation) {
+        navigation.navigate(Routes.EARN.ROOT, {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken,
+            outputToken,
+            allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
+          },
+        });
+        return;
+      }
+
       await initiateConversion({
-        outputToken: {
-          address: MUSD_ADDRESS_ETHEREUM,
-          // We want to convert to mUSD on Ethereum Mainnet only for now.
-          chainId: ETHEREUM_MAINNET_CHAIN_ID,
-          symbol: MUSD_TOKEN_MAINNET.symbol,
-          name: MUSD_TOKEN_MAINNET.name,
-          decimals: MUSD_TOKEN_MAINNET.decimals,
-        },
-        preferredPaymentToken: {
-          address: toHex(asset.address),
-          chainId: toHex(asset.chainId),
-        },
+        outputToken,
+        preferredPaymentToken,
         allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
         navigationStack: Routes.EARN.ROOT,
       });
@@ -276,6 +295,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   }, [
     asset?.address,
     asset?.chainId,
+    hasSeenEducation,
+    navigation,
     initiateConversion,
     musdConversionPaymentTokensAllowlist,
   ]);

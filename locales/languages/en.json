@@ -5475,6 +5475,11 @@
         "success": "{{tokenSymbol}} conversion succeeded",
         "failed": "{{tokenSymbol}} conversion failed"
       }
+    },
+    "musd_conversion_education": {
+      "heading": "Earn rewards with mUSD",
+      "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
+      "continue_button": "Continue"
     }
   },
   "stake": {
