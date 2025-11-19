@@ -136,6 +136,8 @@
     ]
   },
   "resolutions": {
+    "@metamask/bridge-status-controller@^60.1.0": "npm:@metamask-previews/bridge-status-controller@61.0.0-preview-89bb4b56",
+    "@metamask/bridge-controller@^60.1.0": "npm:@metamask-previews/bridge-controller@61.0.0-preview-89bb4b56",
     "json-schema": "^0.4.0",
     "node-fetch": "^2.6.7",
     "xml2js": ">=0.5.0",
