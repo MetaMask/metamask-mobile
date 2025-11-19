@@ -287,6 +287,7 @@ class Onboarding extends PureComponent {
   channelName = null;
   incomingDataStr = '';
   dataToSync = null;
+  animationTimeoutId = null;
   mounted = false;
   hasCheckedVaultBackup = false; // Prevent multiple vault backup checks
 
@@ -334,7 +335,10 @@ class Onboarding extends PureComponent {
       if (this.props.route.params?.delete) {
         this.showNotification();
       }
-      this.setState({ startOnboardingAnimation: true });
+
+      this.animationTimeoutId = setTimeout(() => {
+        this.setState({ startOnboardingAnimation: true });
+      }, 100);
     });
   }
 
@@ -342,6 +346,9 @@ class Onboarding extends PureComponent {
     this.mounted = false;
     this.props.unsetLoading();
     InteractionManager.runAfterInteractions(PreventScreenshot.allow);
+    if (this.animationTimeoutId) {
+      clearTimeout(this.animationTimeoutId);
+    }
   }
 
   componentDidUpdate = () => {
