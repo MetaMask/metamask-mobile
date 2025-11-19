@@ -27,6 +27,7 @@ import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { useEvmTokenConversion } from '../../../Earn/hooks/useEvmTokenConversion';
 import { Alert } from 'react-native';
 import { Hex } from '@metamask/utils';
+import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
 
 const mockNavigate = jest.fn();
 
@@ -93,6 +94,10 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
   selectIsMusdConversionFlowEnabledFlag: jest.fn().mockReturnValue(false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../../reducers/user/selectors', () => ({
+  selectMusdConversionEducationSeen: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../../Earn/hooks/useEvmTokenConversion', () => ({
@@ -386,6 +391,9 @@ describe('StakeButton', () => {
     const selectMusdConversionPaymentTokensAllowlistMock = jest.mocked(
       selectMusdConversionPaymentTokensAllowlist,
     );
+    const selectMusdConversionEducationSeenMock = jest.mocked(
+      selectMusdConversionEducationSeen,
+    );
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -394,6 +402,7 @@ describe('StakeButton', () => {
         initiateConversion: mockInitiateConversion,
         error: null,
       });
+      selectMusdConversionEducationSeenMock.mockReturnValue(false);
     });
 
     it('renders Convert CTA for convertible stablecoin when flag enabled', () => {
@@ -417,6 +426,7 @@ describe('StakeButton', () => {
       selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
         '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
       });
+      selectMusdConversionEducationSeenMock.mockReturnValue(true);
 
       const { getByTestId } = renderWithProvider(
         <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
@@ -441,6 +451,7 @@ describe('StakeButton', () => {
       selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue(
         mockAllowlist,
       );
+      selectMusdConversionEducationSeenMock.mockReturnValue(true);
 
       const { getByTestId } = renderWithProvider(
         <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
@@ -478,6 +489,7 @@ describe('StakeButton', () => {
       selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
         '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
       });
+      selectMusdConversionEducationSeenMock.mockReturnValue(true);
 
       const { getByTestId } = renderWithProvider(
         <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
@@ -492,7 +504,7 @@ describe('StakeButton', () => {
         expect(mockAlert).toHaveBeenCalledWith(
           'Conversion Failed',
           expect.stringContaining('Conversion failed'),
-          expect.any(Array),
+          [{ text: 'OK' }],
         );
       });
 
@@ -543,6 +555,220 @@ describe('StakeButton', () => {
       const { queryByText } = renderComponent();
 
       expect(queryByText('Convert')).toBeNull();
+    });
+
+    describe('Education Navigation', () => {
+      it('navigates to education screen when Convert button pressed', async () => {
+        selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
+        selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
+          '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
+        });
+        selectMusdConversionEducationSeenMock.mockReturnValue(false);
+
+        const { getByTestId } = renderWithProvider(
+          <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
+          {
+            state: STATE_MOCK,
+          },
+        );
+
+        fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledTimes(1);
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+            screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+            params: {
+              preferredPaymentToken: {
+                address: '0xaBc',
+                chainId: '0x1',
+              },
+              outputToken: {
+                address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+                chainId: '0x1',
+                symbol: 'MUSD',
+                name: 'MUSD',
+                decimals: 6,
+              },
+              allowedPaymentTokens: {
+                '0x1': [MOCK_USDC_MAINNET_ASSET.address],
+              },
+            },
+          });
+        });
+      });
+
+      it('does not call initiateConversion when navigating to education', async () => {
+        selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
+        selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
+          '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
+        });
+        selectMusdConversionEducationSeenMock.mockReturnValue(false);
+
+        const { getByTestId } = renderWithProvider(
+          <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
+          {
+            state: STATE_MOCK,
+          },
+        );
+
+        fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledTimes(1);
+        });
+
+        expect(mockInitiateConversion).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Direct Conversion After Education', () => {
+      it('calls initiateConversion directly when user has seen education', async () => {
+        selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
+        selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
+          '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
+        });
+        selectMusdConversionEducationSeenMock.mockReturnValue(true);
+
+        const { getByTestId } = renderWithProvider(
+          <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
+          {
+            state: STATE_MOCK,
+          },
+        );
+
+        fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+        await waitFor(() => {
+          expect(mockInitiateConversion).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('passes correct outputToken to initiateConversion when education seen', async () => {
+        selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
+        selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
+          '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
+        });
+        selectMusdConversionEducationSeenMock.mockReturnValue(true);
+
+        const { getByTestId } = renderWithProvider(
+          <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
+          {
+            state: STATE_MOCK,
+          },
+        );
+
+        fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+        await waitFor(() => {
+          expect(mockInitiateConversion).toHaveBeenCalledWith({
+            outputToken: {
+              address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+              chainId: '0x1',
+              symbol: 'MUSD',
+              name: 'MUSD',
+              decimals: 6,
+            },
+            preferredPaymentToken: {
+              address: '0xaBc',
+              chainId: '0x1',
+            },
+            allowedPaymentTokens: {
+              '0x1': [MOCK_USDC_MAINNET_ASSET.address],
+            },
+            navigationStack: Routes.EARN.ROOT,
+          });
+        });
+      });
+
+      it('does not navigate to education screen when user has seen education', async () => {
+        selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
+        selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
+          '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
+        });
+        selectMusdConversionEducationSeenMock.mockReturnValue(true);
+
+        const { getByTestId } = renderWithProvider(
+          <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
+          {
+            state: STATE_MOCK,
+          },
+        );
+
+        fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+        await waitFor(() => {
+          expect(mockInitiateConversion).toHaveBeenCalledTimes(1);
+        });
+
+        const educationNavigationCalls = mockNavigate.mock.calls.filter(
+          (call) => call[1]?.screen === Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        );
+        expect(educationNavigationCalls).toHaveLength(0);
+      });
+    });
+
+    describe('Error Handling in Conversion Flow', () => {
+      it('shows Alert with error message when conversion fails', async () => {
+        const mockAlert = jest.spyOn(Alert, 'alert');
+        const testError = new Error('Network timeout');
+        mockInitiateConversion.mockRejectedValue(testError);
+
+        selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
+        selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
+          '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
+        });
+        selectMusdConversionEducationSeenMock.mockReturnValue(true);
+
+        const { getByTestId } = renderWithProvider(
+          <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
+          {
+            state: STATE_MOCK,
+          },
+        );
+
+        fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+        await waitFor(() => {
+          expect(mockAlert).toHaveBeenCalledWith(
+            'Conversion Failed',
+            'Unable to start mUSD conversion: Network timeout',
+            [{ text: 'OK' }],
+          );
+        });
+
+        mockAlert.mockRestore();
+      });
+
+      it('shows Alert with unknown error message when error is not Error instance', async () => {
+        const mockAlert = jest.spyOn(Alert, 'alert');
+        mockInitiateConversion.mockRejectedValue('String error');
+
+        selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
+        selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
+          '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
+        });
+        selectMusdConversionEducationSeenMock.mockReturnValue(true);
+
+        const { getByTestId } = renderWithProvider(
+          <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
+          {
+            state: STATE_MOCK,
+          },
+        );
+
+        fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+        await waitFor(() => {
+          expect(mockAlert).toHaveBeenCalledWith(
+            'Conversion Failed',
+            'Unable to start mUSD conversion: Unknown error occurred',
+            [{ text: 'OK' }],
+          );
+        });
+
+        mockAlert.mockRestore();
+      });
     });
   });
 });

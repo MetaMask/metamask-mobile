@@ -2268,3 +2268,41 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
     ),
   };
 }
+
+/**
+ * Function that returns the navigation options for the mUSD Conversion Education screen
+ *
+ * @param {Object} navigation - Navigation object required to navigate
+ * @param {Object} themeColors - Theme colors object
+ * @returns {Object} - Corresponding navbar options
+ */
+export function getMusdConversionEducationNavbar(navigation, themeColors) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerRight: {
+      marginHorizontal: 16,
+    },
+  });
+
+  const handleClosePress = () => {
+    navigation.goBack();
+  };
+
+  return {
+    headerTitle: () => null,
+    headerLeft: () => null,
+    headerRight: () => (
+      <ButtonIcon
+        size={ButtonIconSize.Lg}
+        iconName={IconName.Close}
+        onPress={handleClosePress}
+        style={innerStyles.headerRight}
+      />
+    ),
+    headerStyle: innerStyles.headerStyle,
+  };
+}
