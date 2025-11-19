@@ -76,9 +76,10 @@ function TokenSelection() {
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
+      navigation.dangerouslyGetParent()?.goBack();
       goToBuy({ assetId });
     },
-    [goToBuy],
+    [goToBuy, navigation],
   );
 
   const scrollToTop = useCallback(() => {

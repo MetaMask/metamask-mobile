@@ -433,22 +433,7 @@ const BuildQuote = () => {
         chain_id_source: selectedAsset.network.chainId,
       });
     }
-
-    // @ts-expect-error navigation prop mismatch
-    navigation.dangerouslyGetParent()?.pop();
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
-  }, [
-    screenLocation,
-    isBuy,
-    selectedAsset?.network?.chainId,
-    trackEvent,
-    navigation,
-  ]);
+  }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
   const handleConfigurationPress = useCallback(() => {
     navigation.navigate(...createBuySettingsModalNavigationDetails());

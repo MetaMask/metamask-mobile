@@ -155,15 +155,6 @@ const BuildQuote = () => {
     tokens: cryptoCurrencies,
   });
 
-  const handleClose = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
-  }, [navigation]);
-
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -180,10 +171,9 @@ const BuildQuote = () => {
           },
         },
         theme,
-        handleClose,
       ),
     );
-  }, [navigation, theme, handleClose]);
+  }, [navigation, theme]);
 
   useEffect(() => {
     endTrace({
