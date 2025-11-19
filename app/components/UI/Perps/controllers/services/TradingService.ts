@@ -1,6 +1,7 @@
 import Logger from '../../../../../util/Logger';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../utils/perpsErrorHandler';
+import { isTPSLOrder } from '../../constants/orderTypes';
 import {
   trace,
   endTrace,
@@ -730,7 +731,6 @@ export class TradingService {
         let ordersToCancel = orders;
         if (params.cancelAll || (!params.coins && !params.orderIds)) {
           // Cancel all orders (excluding TP/SL orders for positions)
-          const { isTPSLOrder } = await import('../../constants/orderTypes');
           ordersToCancel = orders.filter(
             (o) => !isTPSLOrder(o.detailedOrderType),
           );

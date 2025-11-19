@@ -3,6 +3,23 @@ import { ensureError } from '../../utils/perpsErrorHandler';
 import type { ServiceContext } from './ServiceContext';
 import type { IPerpsProvider, WithdrawParams, WithdrawResult } from '../types';
 import type { TransactionStatus } from '../../types/transactionTypes';
+import { v4 as uuidv4 } from 'uuid';
+import {
+  trace,
+  TraceName,
+  TraceOperation,
+  endTrace,
+} from '../../../../../util/trace';
+import performance from 'react-native-performance';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { USDC_SYMBOL } from '../../constants/hyperLiquidConfig';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * AccountService
@@ -37,23 +54,6 @@ export class AccountService {
     refreshAccountState: () => Promise<void>;
   }): Promise<WithdrawResult> {
     const { provider, params, context, refreshAccountState } = options;
-    const { v4: uuidv4 } = await import('uuid');
-    const { trace, TraceName, TraceOperation } = await import(
-      '../../../../../util/trace'
-    );
-    const { default: performance } = await import('react-native-performance');
-    const { MetricsEventBuilder } = await import(
-      '../../../../../core/Analytics/MetricsEventBuilder'
-    );
-    const { MetaMetricsEvents } = await import('../../../../../core/Analytics');
-    const { PerpsEventProperties, PerpsEventValues } = await import(
-      '../../constants/eventNames'
-    );
-    const { USDC_SYMBOL } = await import('../../constants/hyperLiquidConfig');
-    const { PERPS_ERROR_CODES } = await import('../perpsErrorCodes');
-    const { DevLogger } = await import(
-      '../../../../../core/SDKConnect/utils/DevLogger'
-    );
 
     const traceId = uuidv4();
     const startTime = performance.now();
@@ -262,11 +262,10 @@ export class AccountService {
 
       return result;
     } catch (error) {
-      const { PERPS_ERROR_CODES: ERROR_CODES } = await import(
-        '../perpsErrorCodes'
-      );
       const errorMessage =
-        error instanceof Error ? error.message : ERROR_CODES.WITHDRAW_FAILED;
+        error instanceof Error
+          ? error.message
+          : PERPS_ERROR_CODES.WITHDRAW_FAILED;
 
       Logger.error(
         ensureError(error),
@@ -305,22 +304,14 @@ export class AccountService {
 
       // Track withdrawal transaction failed (catch block)
       const completionDuration = performance.now() - startTime;
-      const { MetricsEventBuilder: EventBuilder } = await import(
-        '../../../../../core/Analytics/MetricsEventBuilder'
-      );
-      const { MetaMetricsEvents: Events } = await import(
-        '../../../../../core/Analytics'
-      );
-      const { PerpsEventProperties: Properties, PerpsEventValues: Values } =
-        await import('../../constants/eventNames');
 
-      const eventBuilder = EventBuilder.createEventBuilder(
-        Events.PERPS_WITHDRAWAL_TRANSACTION,
+      const eventBuilder = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
       ).addProperties({
-        [Properties.STATUS]: Values.STATUS.FAILED,
-        [Properties.WITHDRAWAL_AMOUNT]: params.amount,
-        [Properties.COMPLETION_DURATION]: completionDuration,
-        [Properties.ERROR_MESSAGE]: errorMessage,
+        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
+        [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+        [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+        [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
       });
       context.analytics.trackEvent(eventBuilder.build());
 
@@ -331,11 +322,8 @@ export class AccountService {
 
       return { success: false, error: errorMessage };
     } finally {
-      const { endTrace: endTraceUtil, TraceName: Name } = await import(
-        '../../../../../util/trace'
-      );
-      endTraceUtil({
-        name: Name.PerpsWithdraw,
+      endTrace({
+        name: TraceName.PerpsWithdraw,
         id: traceId,
         data: traceData,
       });

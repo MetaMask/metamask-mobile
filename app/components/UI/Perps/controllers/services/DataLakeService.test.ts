@@ -23,8 +23,8 @@ jest.mock('react-native-performance', () => ({
 global.fetch = jest.fn();
 global.setTimeout = jest.fn((fn: () => void) => {
   fn();
-  return 0 as never;
-});
+  return 0 as unknown as NodeJS.Timeout;
+}) as unknown as typeof setTimeout;
 
 describe('DataLakeService', () => {
   let mockContext: ServiceContext;

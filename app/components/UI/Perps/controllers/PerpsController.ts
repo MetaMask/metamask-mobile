@@ -628,12 +628,12 @@ export class PerpsController extends BaseController<
   PerpsControllerState,
   PerpsControllerMessenger
 > {
-  private providers: Map<string, IPerpsProvider>;
-  private isInitialized = false;
+  protected providers: Map<string, IPerpsProvider>;
+  protected isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
 
-  private blockedRegionList: BlockedRegionList = {
+  protected blockedRegionList: BlockedRegionList = {
     list: [],
     source: 'fallback',
   };
@@ -704,7 +704,10 @@ export class PerpsController extends BaseController<
     this.providers = new Map();
   }
 
-  private setBlockedRegionList(list: string[], source: 'remote' | 'fallback') {
+  protected setBlockedRegionList(
+    list: string[],
+    source: 'remote' | 'fallback',
+  ) {
     FeatureFlagConfigurationService.setBlockedRegions({
       list,
       source,
@@ -727,7 +730,7 @@ export class PerpsController extends BaseController<
    * Uses fallback configuration when remote feature flag is undefined.
    * Note: Initial eligibility is set in the constructor if fallback regions are provided.
    */
-  private refreshEligibilityOnFeatureFlagChange(
+  protected refreshEligibilityOnFeatureFlagChange(
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
   ): void {
     FeatureFlagConfigurationService.refreshEligibility({
@@ -2233,7 +2236,7 @@ export class PerpsController extends BaseController<
    * Report order events to data lake API with retry (non-blocking)
    * Thin delegation to DataLakeService
    */
-  private async reportOrderToDataLake(params: {
+  protected async reportOrderToDataLake(params: {
     action: 'open' | 'close';
     coin: string;
     sl_price?: number;

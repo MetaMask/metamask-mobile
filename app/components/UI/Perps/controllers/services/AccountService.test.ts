@@ -5,6 +5,8 @@ import Logger from '../../../../../util/Logger';
 import { trace, endTrace } from '../../../../../util/trace';
 import type { ServiceContext } from './ServiceContext';
 import type { IPerpsProvider, WithdrawParams, WithdrawResult } from '../types';
+import type { PerpsControllerState } from '../PerpsController';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../util/trace');
@@ -59,7 +61,7 @@ describe('AccountService', () => {
   let mockRefreshAccountState: jest.Mock;
 
   const mockWithdrawParams: WithdrawParams = {
-    assetId: 'eip155:42161/erc20:0xTokenAddress',
+    assetId: 'eip155:42161/erc20:0xTokenAddress/default',
     amount: '100',
     destination: '0xDestination',
   };
@@ -73,6 +75,17 @@ describe('AccountService', () => {
     mockRefreshAccountState = jest.fn().mockResolvedValue(undefined);
 
     jest.clearAllMocks();
+
+    // Mock Date.now() to return a stable timestamp
+    jest.spyOn(Date, 'now').mockReturnValue(1234567890000);
+
+    // Reinitialize MetricsEventBuilder mock after clearAllMocks
+    (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(
+      () => ({
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({ event: 'mock-event' }),
+      }),
+    );
   });
 
   afterEach(() => {
@@ -183,7 +196,14 @@ describe('AccountService', () => {
 
       const updateCall = (mockContext.stateManager?.update as jest.Mock).mock
         .calls[0][0];
-      const mockState = {
+      const mockState: Pick<
+        PerpsControllerState,
+        | 'withdrawInProgress'
+        | 'withdrawalRequests'
+        | 'lastError'
+        | 'lastUpdateTimestamp'
+        | 'lastWithdrawResult'
+      > = {
         withdrawInProgress: false,
         withdrawalRequests: [],
         lastError: null,
@@ -356,10 +376,24 @@ describe('AccountService', () => {
       const updateCalls = (mockContext.stateManager?.update as jest.Mock).mock
         .calls;
       const failureUpdateCall = updateCalls[updateCalls.length - 1][0];
-      const mockState = {
+      const mockState: Pick<
+        PerpsControllerState,
+        | 'withdrawInProgress'
+        | 'withdrawalRequests'
+        | 'lastError'
+        | 'lastUpdateTimestamp'
+        | 'lastWithdrawResult'
+      > = {
         withdrawInProgress: true,
         withdrawalRequests: [
-          { id: expect.any(String), status: 'pending', success: false },
+          {
+            id: expect.any(String) as string,
+            status: 'pending',
+            success: false,
+            amount: '100',
+            asset: 'USDC',
+            timestamp: Date.now(),
+          },
         ],
         lastError: null,
         lastUpdateTimestamp: 0,
@@ -517,7 +551,14 @@ describe('AccountService', () => {
 
       const updateCall = (mockContext.stateManager?.update as jest.Mock).mock
         .calls[0][0];
-      const mockState = {
+      const mockState: Pick<
+        PerpsControllerState,
+        | 'withdrawInProgress'
+        | 'withdrawalRequests'
+        | 'lastError'
+        | 'lastUpdateTimestamp'
+        | 'lastWithdrawResult'
+      > = {
         withdrawInProgress: false,
         withdrawalRequests: [],
         lastError: null,

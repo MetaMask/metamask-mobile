@@ -733,9 +733,9 @@ describe('TradingService', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(mockProvider.cancelOrders).toHaveBeenCalledWith({
-        orderIds: ['order-1'],
-      });
+      expect(mockProvider.cancelOrders).toHaveBeenCalledWith([
+        { coin: 'BTC', orderId: 'order-1' },
+      ]);
     });
 
     it('allows canceling TP/SL orders when specified by orderId', async () => {
@@ -782,9 +782,10 @@ describe('TradingService', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(mockProvider.cancelOrders).toHaveBeenCalledWith({
-        orderIds: ['order-1'],
-      });
+      expect(mockProvider.cancelOrders).toHaveBeenCalledWith([
+        { coin: 'BTC', orderId: 'order-1' },
+        { coin: 'BTC', orderId: 'order-3' },
+      ]);
     });
 
     it('returns empty results when no orders match filters', async () => {
@@ -801,7 +802,7 @@ describe('TradingService', () => {
         withStreamPause: mockWithStreamPause,
       });
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
       expect(result.results).toEqual([]);
       expect(mockProvider.cancelOrders).not.toHaveBeenCalled();
     });
@@ -858,13 +859,9 @@ describe('TradingService', () => {
       };
 
       mockGetOpenOrders.mockResolvedValue(mockOrders);
-      mockWithStreamPause.mockImplementation(async (callback) => {
-        try {
-          await callback();
-        } catch {
-          // Ensure cleanup happens
-        }
-      });
+      mockWithStreamPause.mockImplementation(
+        async (callback) => await callback(),
+      );
       (mockProvider.cancelOrders as jest.Mock).mockRejectedValue(
         new Error('Cancel failed'),
       );
@@ -1167,6 +1164,12 @@ describe('TradingService', () => {
       };
 
       mockGetPositions.mockResolvedValue(mockPositions);
+      (mockProvider.closePositions as jest.Mock).mockResolvedValue({
+        success: false,
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      });
 
       const result = await TradingService.closePositions({
         provider: mockProvider,
@@ -1174,7 +1177,7 @@ describe('TradingService', () => {
         context: { ...mockContext, getPositions: mockGetPositions },
       });
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
       expect(result.results).toEqual([]);
     });
 
@@ -1367,6 +1370,11 @@ describe('TradingService', () => {
       const params: UpdatePositionTPSLParams = {
         coin: 'BTC',
         stopLossPrice: '45000',
+        trackingData: {
+          direction: 'long',
+          positionSize: 0.5,
+          source: 'tp_sl_view',
+        },
       };
       const mockResult: OrderResult = {
         success: true,
@@ -1388,7 +1396,7 @@ describe('TradingService', () => {
         expect.objectContaining({
           properties: expect.objectContaining({
             direction: expect.any(String),
-            position_size: expect.any(String),
+            position_size: expect.any(Number),
           }),
         }),
       );

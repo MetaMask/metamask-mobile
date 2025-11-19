@@ -138,7 +138,10 @@ export class EligibilityService {
       // Only set to eligible if we have valid geolocation and it's not blocked
       if (geoLocation !== 'UNKNOWN') {
         const isEligible = blockedRegions.every(
-          (geoBlockedRegion) => !geoLocation.startsWith(geoBlockedRegion),
+          (geoBlockedRegion) =>
+            !geoLocation
+              .toUpperCase()
+              .startsWith(geoBlockedRegion.toUpperCase()),
         );
 
         DevLogger.log('EligibilityService: Eligibility check completed', {

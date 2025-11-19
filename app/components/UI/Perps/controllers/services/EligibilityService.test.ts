@@ -25,7 +25,7 @@ describe('EligibilityService', () => {
       const mockLocation = 'US';
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
       (successfulFetch as jest.Mock).mockResolvedValue({
-        location: mockLocation,
+        text: async () => mockLocation,
       });
 
       const result = await EligibilityService.fetchGeoLocation();
@@ -40,7 +40,7 @@ describe('EligibilityService', () => {
       const mockLocation = 'UK';
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
       (successfulFetch as jest.Mock).mockResolvedValue({
-        location: mockLocation,
+        text: async () => mockLocation,
       });
 
       const firstResult = await EligibilityService.fetchGeoLocation();
@@ -57,8 +57,8 @@ describe('EligibilityService', () => {
     it('refetches geo-location after cache expiry (5 minutes)', async () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
       (successfulFetch as jest.Mock)
-        .mockResolvedValueOnce({ location: 'US' })
-        .mockResolvedValueOnce({ location: 'CA' });
+        .mockResolvedValueOnce({ text: async () => 'US' })
+        .mockResolvedValueOnce({ text: async () => 'CA' });
 
       const firstResult = await EligibilityService.fetchGeoLocation();
 
@@ -75,7 +75,7 @@ describe('EligibilityService', () => {
       const mockLocation = 'FR';
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
 
-      let resolvePromise!: (value: { location: string }) => void;
+      let resolvePromise!: (value: { text: () => Promise<string> }) => void;
       const fetchPromise = new Promise((resolve) => {
         resolvePromise = resolve;
       });
@@ -85,7 +85,7 @@ describe('EligibilityService', () => {
       const promise2 = EligibilityService.fetchGeoLocation();
       const promise3 = EligibilityService.fetchGeoLocation();
 
-      resolvePromise({ location: mockLocation });
+      resolvePromise({ text: async () => mockLocation });
 
       const [result1, result2, result3] = await Promise.all([
         promise1,
@@ -101,7 +101,9 @@ describe('EligibilityService', () => {
 
     it('uses DEV endpoint when environment is DEV', async () => {
       (getEnvironment as jest.Mock).mockReturnValue('DEV');
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'US' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'US',
+      });
 
       await EligibilityService.fetchGeoLocation();
 
@@ -112,7 +114,9 @@ describe('EligibilityService', () => {
 
     it('uses PROD endpoint when environment is PROD', async () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'US' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'US',
+      });
 
       await EligibilityService.fetchGeoLocation();
 
@@ -162,7 +166,7 @@ describe('EligibilityService', () => {
         mockError,
         expect.objectContaining({
           controller: 'EligibilityService',
-          method: 'fetchGeoLocation',
+          method: 'performGeoLocationFetch',
         }),
       );
     });
@@ -174,7 +178,9 @@ describe('EligibilityService', () => {
     });
 
     it('returns true when user is not in blocked regions', async () => {
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'FR' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'FR',
+      });
 
       const result = await EligibilityService.checkEligibility(['US', 'CN']);
 
@@ -182,7 +188,9 @@ describe('EligibilityService', () => {
     });
 
     it('returns false when user is in blocked region', async () => {
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'US' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'US',
+      });
 
       const result = await EligibilityService.checkEligibility(['US', 'CN']);
 
@@ -190,7 +198,9 @@ describe('EligibilityService', () => {
     });
 
     it('returns false when user is in any blocked region from list', async () => {
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'CN' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'CN',
+      });
 
       const result = await EligibilityService.checkEligibility([
         'US',
@@ -203,7 +213,9 @@ describe('EligibilityService', () => {
     });
 
     it('returns true when blocked regions list is empty', async () => {
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'US' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'US',
+      });
 
       const result = await EligibilityService.checkEligibility([]);
 
@@ -219,7 +231,9 @@ describe('EligibilityService', () => {
     });
 
     it('handles partial region codes (e.g., US-NY)', async () => {
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'US-NY' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'US-NY',
+      });
 
       const resultWithUS = await EligibilityService.checkEligibility(['US']);
 
@@ -227,7 +241,9 @@ describe('EligibilityService', () => {
     });
 
     it('performs case-insensitive region matching', async () => {
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'us' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'us',
+      });
 
       const result = await EligibilityService.checkEligibility(['US']);
 
@@ -235,7 +251,9 @@ describe('EligibilityService', () => {
     });
 
     it('caches eligibility check results', async () => {
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'FR' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'FR',
+      });
 
       const result1 = await EligibilityService.checkEligibility(['US']);
       const result2 = await EligibilityService.checkEligibility(['US']);
@@ -256,7 +274,9 @@ describe('EligibilityService', () => {
     });
 
     it('handles multiple concurrent eligibility checks', async () => {
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'FR' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'FR',
+      });
 
       const [result1, result2, result3] = await Promise.all([
         EligibilityService.checkEligibility(['US']),
@@ -275,8 +295,8 @@ describe('EligibilityService', () => {
     it('clears cached geo-location', async () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
       (successfulFetch as jest.Mock)
-        .mockResolvedValueOnce({ location: 'US' })
-        .mockResolvedValueOnce({ location: 'CA' });
+        .mockResolvedValueOnce({ text: async () => 'US' })
+        .mockResolvedValueOnce({ text: async () => 'CA' });
 
       const firstResult = await EligibilityService.fetchGeoLocation();
 
@@ -292,13 +312,13 @@ describe('EligibilityService', () => {
     it('clears in-flight fetch promise', async () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
 
-      let resolveFirst!: (value: { location: string }) => void;
+      let resolveFirst!: (value: { text: () => Promise<string> }) => void;
       const firstPromise = new Promise((resolve) => {
         resolveFirst = resolve;
       });
       (successfulFetch as jest.Mock)
         .mockReturnValueOnce(firstPromise)
-        .mockResolvedValueOnce({ location: 'CA' });
+        .mockResolvedValueOnce({ text: async () => 'CA' });
 
       const fetchPromise = EligibilityService.fetchGeoLocation();
 
@@ -306,7 +326,7 @@ describe('EligibilityService', () => {
 
       const newFetchResult = await EligibilityService.fetchGeoLocation();
 
-      resolveFirst({ location: 'US' });
+      resolveFirst({ text: async () => 'US' });
       await fetchPromise;
 
       expect(newFetchResult).toBe('CA');
@@ -315,7 +335,9 @@ describe('EligibilityService', () => {
 
     it('allows new cache to be built after clearing', async () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'UK' });
+      (successfulFetch as jest.Mock).mockResolvedValue({
+        text: async () => 'UK',
+      });
 
       await EligibilityService.fetchGeoLocation();
 
@@ -337,8 +359,8 @@ describe('EligibilityService', () => {
     it('respects 5-minute cache TTL exactly', async () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
       (successfulFetch as jest.Mock)
-        .mockResolvedValueOnce({ location: 'US' })
-        .mockResolvedValueOnce({ location: 'CA' });
+        .mockResolvedValueOnce({ text: async () => 'US' })
+        .mockResolvedValueOnce({ text: async () => 'CA' });
 
       await EligibilityService.fetchGeoLocation();
 
@@ -355,21 +377,23 @@ describe('EligibilityService', () => {
       expect(successfulFetch).toHaveBeenCalledTimes(2);
     });
 
-    it('updates cache timestamp on each fetch', async () => {
+    it('cache expires after 5 minutes from initial fetch', async () => {
       (getEnvironment as jest.Mock).mockReturnValue('PROD');
-      (successfulFetch as jest.Mock).mockResolvedValue({ location: 'US' });
+      (successfulFetch as jest.Mock)
+        .mockResolvedValueOnce({ text: async () => 'US' })
+        .mockResolvedValueOnce({ text: async () => 'CA' });
 
       await EligibilityService.fetchGeoLocation();
 
       jest.advanceTimersByTime(3 * 60 * 1000); // 3 minutes
 
-      await EligibilityService.fetchGeoLocation();
+      await EligibilityService.fetchGeoLocation(); // Still within cache TTL
 
-      jest.advanceTimersByTime(3 * 60 * 1000); // Another 3 minutes (6 total, but only 3 since last fetch)
+      jest.advanceTimersByTime(3 * 60 * 1000); // Another 3 minutes (6 total from first fetch)
 
-      await EligibilityService.fetchGeoLocation();
+      await EligibilityService.fetchGeoLocation(); // Cache expired, new fetch
 
-      expect(successfulFetch).toHaveBeenCalledTimes(1);
+      expect(successfulFetch).toHaveBeenCalledTimes(2);
     });
   });
 });
