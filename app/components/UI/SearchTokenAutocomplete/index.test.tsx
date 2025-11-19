@@ -11,6 +11,7 @@ import Engine from '../../../core/Engine';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const mockAllTokens: BridgeToken[] = [
   {
@@ -96,12 +97,14 @@ jest.mock('react-native', () => {
   };
 });
 
-const mockIsNonEvmChainId = jest.fn();
-
 jest.mock('../../../core/Multichain/utils', () => ({
   ...jest.requireActual('../../../core/Multichain/utils'),
-  isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
+  isNonEvmChainId: jest.fn(),
 }));
+
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
 
 const mockSelectInternalAccountByScope = jest.fn();
 
