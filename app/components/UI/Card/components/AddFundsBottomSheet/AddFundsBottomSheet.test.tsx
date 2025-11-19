@@ -61,6 +61,18 @@ jest.mock('../../../../../util/theme', () => ({
       },
     },
   })),
+  mockTheme: {
+    colors: {
+      background: {
+        default: '#ffffff',
+      },
+      text: {
+        default: '#000000',
+        alternative: '#666666',
+      },
+    },
+    themeAppearance: 'light',
+  },
 }));
 
 jest.mock('./AddFundsBottomSheet.styles', () => ({
