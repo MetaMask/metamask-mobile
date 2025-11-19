@@ -113,8 +113,8 @@ describe(SmokePredictions('Predictions'), () => {
               description: `Activity details should be visible for "${position.title}"`,
             },
           );
-          // Verify the balance is displayed correctly
-          const expectedBalance = `$${position.usdcSize}`;
+          // Verify the balance is displayed correctly (formatted as $XX.XX)
+          const expectedBalance = `$${position.usdcSize.toFixed(2)}`;
           await Assertions.expectTextDisplayed(expectedBalance, {
             description: `Balance should be displayed as "${expectedBalance}" for "${position.title}"`,
           });
