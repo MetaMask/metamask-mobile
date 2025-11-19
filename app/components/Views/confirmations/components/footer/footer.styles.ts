@@ -41,11 +41,15 @@ const styleSheet = (params: {
         isFullScreenConfirmation,
       );
 
+  const baseFooterStyle = {
+    backgroundColor: colors.background.alternative,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  };
+
   return StyleSheet.create({
     base: {
-      backgroundColor: colors.background.alternative,
-      paddingHorizontal: 16,
-      paddingTop: 16,
+      ...baseFooterStyle,
       paddingBottom: basePaddingBottom,
     },
     linkText: {
@@ -61,11 +65,9 @@ const styleSheet = (params: {
       justifyContent: 'center',
     },
     footerSkeletonContainer: {
+      ...baseFooterStyle,
       flexDirection: 'row',
-      paddingHorizontal: 16,
-      paddingTop: 16,
       paddingBottom: 32,
-      backgroundColor: colors.background.alternative,
       gap: 16,
     },
     footerButtonSkeleton: {
