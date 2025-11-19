@@ -4,12 +4,18 @@ import { useSelector } from 'react-redux';
 import TronStakingButtons from './TronStakingButtons';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
+import { selectAsset } from '../../../../../../selectors/assets/assets-list';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../../../../../../selectors/assets/assets-list', () => ({
+  selectAsset: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockSelectAsset = selectAsset as jest.MockedFunction<typeof selectAsset>;
 
 const mockNavigate = jest.fn();
 
@@ -60,7 +66,8 @@ describe('TronStakingButtons', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelector.mockReturnValue(undefined);
+    mockUseSelector.mockImplementation(() => undefined);
+    mockSelectAsset.mockReset();
   });
 
   const baseAsset = {
@@ -72,13 +79,9 @@ describe('TronStakingButtons', () => {
     isStaked: false,
   } as TokenI;
 
-  it('navigates to stake screen with base asset TRX when not staked', () => {
+  it('navigates to stake screen with base asset TRX when not staked and uses default hasStakedPositions', () => {
     const { getByTestId, getByText } = render(
-      <TronStakingButtons
-        asset={baseAsset}
-        hasStakedPositions={false}
-        showUnstake={false}
-      />,
+      <TronStakingButtons asset={baseAsset} showUnstake={false} />,
     );
 
     expect(getByText('stake.stake')).toBeTruthy();
@@ -101,10 +104,14 @@ describe('TronStakingButtons', () => {
       nativeAsset: undefined,
     } as TokenI;
 
-    mockUseSelector.mockReturnValue({
+    mockSelectAsset.mockReturnValue({
       ...baseAsset,
       isStaked: false,
-    });
+    } as TokenI);
+
+    mockUseSelector.mockImplementation((selector) =>
+      selector({} as unknown as ReturnType<typeof Object>),
+    );
 
     const { getByTestId } = render(
       <TronStakingButtons asset={stakedTrx} hasStakedPositions />,
