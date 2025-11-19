@@ -356,7 +356,7 @@ const SignUp = () => {
           testID="signup-i-already-have-an-account-text"
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="text-primary-default text-center p-4 underline"
+          twClassName="text-default text-center p-4"
         >
           {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
         </Text>
