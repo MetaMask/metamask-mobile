@@ -16,10 +16,7 @@ import Text, {
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
-import {
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../util/networks';
 import { TokenI } from '../../../Tokens/types';
 import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
@@ -37,10 +34,11 @@ import Engine from '../../../../../core/Engine';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { useSelector } from 'react-redux';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../selectors/featureFlags';
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../components/hooks/useFeatureFlag';
 import useEarnNetworkPolling from '../../hooks/useEarnNetworkPolling';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
@@ -102,7 +100,9 @@ const EarnTokenList = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const traceEndedRef = useRef(false);
 
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isPooledStakingEnabled = useFeatureFlag(
+    FeatureFlagNames.earnPooledStakingEnabled,
+  );
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
 
   const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
@@ -359,7 +359,7 @@ const EarnTokenListWrapper = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  if (isStablecoinLendingEnabled && isPortfolioViewEnabled()) {
+  if (isStablecoinLendingEnabled) {
     return <EarnTokenList />;
   }
 

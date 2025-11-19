@@ -6,7 +6,11 @@ If you are a designer you can visit the [MetaMask Design System Guides (Design)]
 
 ## Storybook
 
-We document our components using Storybook. To run storybook run application as normal and [uncomment these lines in index.js](https://github.com/MetaMask/metamask-mobile/blob/main/index.js#L84-L86)
+We document our components using Storybook.
+
+For instructions on how to run Storybook locally see our [Storybook documentation](../../docs/readme/storybook.md).
+
+**Quick Start**: Modify `index.js` to uncomment the Storybook imports and comment out the regular app registration, then run the app as normal.
 
 ```
 /* Uncomment and comment regular registration below */

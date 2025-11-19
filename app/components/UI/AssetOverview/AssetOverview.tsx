@@ -62,7 +62,8 @@ import {
 } from '../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { useRampNavigation, RampMode } from '../Ramp/hooks/useRampNavigation';
+import { RampType as AggregatorRampType } from '../Ramp/Aggregator/types';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import {
@@ -87,9 +88,17 @@ import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+///: END:ONLY_INCLUDE_IF
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { getTokenExchangeRate } from '../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { selectTronResourcesBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import { createStakedTrxAsset } from './utils/createStakedTrxAsset';
+///: END:ONLY_INCLUDE_IF
+import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -139,6 +148,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
+
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
@@ -146,7 +157,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     multichainAssetsRates?.[asset.address as CaipAssetType];
   ///: END:ONLY_INCLUDE_IF
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+
+  const strxEnergy = tronResources.find(
+    (a) => a.symbol.toLowerCase() === 'strx-energy',
+  );
+  const strxBandwidth = tronResources.find(
+    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
+  );
+  ///: END:ONLY_INCLUDE_IF
+
   const currentAddress = asset.address as Hex;
+  const { goToRamps } = useRampNavigation();
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
@@ -316,11 +339,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       assetId = undefined;
     }
 
-    navigation.navigate(
-      ...createBuyNavigationDetails({
-        assetId,
-      }),
-    );
+    goToRamps({
+      mode: RampMode.AGGREGATOR,
+      params: {
+        rampType: AggregatorRampType.BUY,
+        intent: assetId ? { assetId } : undefined,
+      },
+    });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
@@ -328,6 +353,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
+          region: rampGeodetectedRegion,
         })
         .build(),
     );
@@ -460,6 +486,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTronNative =
+    asset.ticker === 'TRX' && String(asset.chainId).startsWith('tron:');
+
+  // create Staked TRX derived asset (same as native TRX but with a new name and balance)
+  const stakedTrxAsset = isTronNative
+    ? createStakedTrxAsset(asset, strxEnergy?.balance, strxBandwidth?.balance)
+    : undefined;
+  ///: END:ONLY_INCLUDE_IF
+
   if (isMultichainAccountsState2Enabled) {
     balance = asset.balance;
   } else if (isMultichainAsset) {
@@ -565,7 +601,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               chainId,
             }}
           />
-
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && <TronEnergyBandwidthDetail />
+            ///: END:ONLY_INCLUDE_IF
+          }
           {balance != null && (
             <Balance
               asset={asset}
@@ -574,6 +614,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             />
           )}
 
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && stakedTrxAsset && (
+              <Balance
+                asset={stakedTrxAsset}
+                mainBalance={stakedTrxAsset.balance}
+                secondaryBalance={`${stakedTrxAsset.balance} ${stakedTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>

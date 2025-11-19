@@ -2,13 +2,14 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
-import { selectPredictClaimablePositions } from '../selectors/predictController';
-import { PredictPosition, PredictPositionStatus } from '../types';
+import { selectPredictWonPositions } from '../selectors/predictController';
+import { PredictPosition } from '../types';
 import { formatPrice } from '../utils/format';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictPositions } from './usePredictPositions';
 import { usePredictToasts } from './usePredictToasts';
+import Engine from '../../../../core/Engine';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 
 export const usePredictClaimToasts = () => {
   const { claim } = usePredictClaim();
@@ -17,13 +18,10 @@ export const usePredictClaimToasts = () => {
     loadOnMount: true,
   });
 
-  const claimablePositions = useSelector(selectPredictClaimablePositions);
-  const wonPositions = useMemo(
-    () =>
-      claimablePositions.filter(
-        (position) => position.status === PredictPositionStatus.WON,
-      ),
-    [claimablePositions],
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedAddress = evmAccount?.address ?? '0x0';
+  const wonPositions = useSelector(
+    selectPredictWonPositions({ address: selectedAddress }),
   );
 
   const totalClaimableAmount = useMemo(
@@ -63,9 +61,10 @@ export const usePredictClaimToasts = () => {
       retryLabel: strings('predict.claim.toasts.error.try_again'),
       onRetry: claim,
     },
-    clearTransaction: () =>
-      Engine.context.PredictController.clearClaimTransaction(),
     onConfirmed: () => {
+      Engine.context.PredictController.confirmClaim({
+        providerId: 'polymarket',
+      });
       loadPositions({ isRefresh: true }).catch(() => {
         // Ignore errors when refreshing positions
       });

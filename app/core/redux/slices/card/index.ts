@@ -234,8 +234,8 @@ export const selectCardPriorityToken = (
     authenticated
       ? card.authenticatedPriorityToken
       : address
-      ? card.priorityTokensByAddress[address.toLowerCase()] || null
-      : null,
+        ? card.priorityTokensByAddress[address.toLowerCase()] || null
+        : null,
   );
 
 export const selectCardPriorityTokenLastFetched = (
@@ -246,8 +246,8 @@ export const selectCardPriorityTokenLastFetched = (
     authenticated
       ? card.authenticatedPriorityTokenLastFetched
       : address
-      ? card.lastFetchedByAddress[address.toLowerCase()] || null
-      : null,
+        ? card.lastFetchedByAddress[address.toLowerCase()] || null
+        : null,
   );
 
 export const selectIsCardCacheValid = (

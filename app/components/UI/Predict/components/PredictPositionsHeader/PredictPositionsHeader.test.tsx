@@ -1,10 +1,29 @@
-import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import MarketsWonCard from './PredictPositionsHeader';
+import React from 'react';
+import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictPositionStatus, PredictPosition } from '../../types';
+import { PredictPosition, PredictPositionStatus } from '../../types';
+import MarketsWonCard from './PredictPositionsHeader';
+
+// Mock Engine with AccountTreeController - MUST BE FIRST
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'test-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
+  },
+}));
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -78,11 +97,52 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonVariant: {
       Secondary: 'secondary',
     },
+    ButtonSize: {
+      Lg: 'lg',
+      Md: 'md',
+      Sm: 'sm',
+    },
+    TextColor: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+      PrimaryInverse: 'primary-inverse',
+      Alternative: 'alternative',
+      Muted: 'muted',
+      Success: 'success',
+      Error: 'error',
+      Warning: 'warning',
+      Info: 'info',
+    },
     IconColor: {
       Alternative: '#8A8A8A',
     },
   };
 });
+
+jest.mock(
+  '../../../../../component-library/components-temp/Buttons/ButtonHero',
+  () => {
+    const { TouchableOpacity } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        onPress,
+        testID,
+        children,
+        ...props
+      }: {
+        onPress?: () => void;
+        testID?: string;
+        children?: React.ReactNode;
+        [key: string]: unknown;
+      }) => (
+        <TouchableOpacity testID={testID} onPress={onPress} {...props}>
+          {children}
+        </TouchableOpacity>
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -191,6 +251,16 @@ const mockBalanceResult: {
 };
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockBalanceResult,
+}));
+
+// Mock usePredictActionGuard hook
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: mockExecuteGuardedAction,
+    isEligible: true,
+    hasNoBalance: false,
+  }),
 }));
 
 // Mock usePredictClaimablePositions hook
@@ -311,32 +381,54 @@ function setupMarketsWonCardTest(
 
   const ref = React.createRef<{ refresh: () => Promise<void> }>();
 
+  // Test address and account ID to use in state
+  const testAddress = '0x1234567890123456789012345678901234567890';
+  const testAccountId = 'test-account-id';
+
   // Build claimable positions for Redux state
-  const claimablePositions =
+  const claimablePositionsArray =
     claimablePositionsOverrides.positions !== undefined
       ? (claimablePositionsOverrides.positions as unknown as PredictPosition[])
       : props.totalClaimableAmount
-      ? ([
-          {
-            id: 'position-1',
-            status: PredictPositionStatus.WON,
-            cashPnl: props.totalClaimableAmount,
-            marketId: 'market-1',
-            tokenId: 'token-1',
-            outcome: 'Yes',
-            shares: '100',
-            avgPrice: 0.5,
-            currentValue: props.totalClaimableAmount,
-          },
-        ] as unknown as PredictPosition[])
-      : [];
+        ? ([
+            {
+              id: 'position-1',
+              status: PredictPositionStatus.WON,
+              cashPnl: props.totalClaimableAmount,
+              marketId: 'market-1',
+              tokenId: 'token-1',
+              outcome: 'Yes',
+              shares: '100',
+              avgPrice: 0.5,
+              currentValue: props.totalClaimableAmount,
+            },
+          ] as unknown as PredictPosition[])
+        : [];
 
-  // Create Redux state
+  // Create Redux state with claimablePositions keyed by address
   const state = {
     engine: {
       backgroundState: {
         PredictController: {
-          claimablePositions,
+          claimablePositions: {
+            [testAddress]: claimablePositionsArray,
+          },
+        },
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: testAccountId,
+            accounts: {
+              [testAccountId]: {
+                id: testAccountId,
+                address: testAddress,
+                name: 'Test Account',
+                type: 'eip155:eoa' as const,
+                metadata: {
+                  lastSelected: 0,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -363,6 +455,10 @@ describe('MarketsWonCard', () => {
     mockClaimResult.loading = false;
     mockClaimResult.completed = false;
     mockClaimResult.error = false;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('Component Rendering', () => {
@@ -413,7 +509,7 @@ describe('MarketsWonCard', () => {
       expect(screen.getByText('Available Balance')).toBeOnTheScreen();
       expect(screen.getByText('$100.50')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('+$8.63 (+3.9%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$8.63 (+4%)')).toBeOnTheScreen();
     });
     it('renders claim button without loading indicator when isLoading is false', () => {
       setupMarketsWonCardTest({ isLoading: false });
@@ -436,7 +532,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$123.46 (+5.7%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$123.46 (+6%)')).toBeOnTheScreen();
     });
 
     it('formats negative unrealized amount correctly', () => {
@@ -451,7 +547,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('-$50.25 (-2.1%)')).toBeOnTheScreen();
+      expect(screen.getByText('-$50.25 (-2%)')).toBeOnTheScreen();
     });
 
     it('handles zero unrealized amount correctly', () => {
@@ -466,7 +562,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.00 (+0%)')).toBeOnTheScreen();
     });
 
     it('formats available balance to 2 decimal places', () => {
@@ -536,7 +632,7 @@ describe('MarketsWonCard', () => {
       expect(screen.getByText('Available Balance')).toBeOnTheScreen();
       expect(screen.getByText('$75.50')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('+$100.00 (+10.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$100.00 (+10%)')).toBeOnTheScreen();
     });
   });
 
@@ -553,7 +649,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$999999.99 (+999.9%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$999999.99 (+>99%)')).toBeOnTheScreen();
     });
 
     it('handles very small unrealized amounts', () => {
@@ -568,7 +664,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$0.01 (+0.1%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.01 (+<1%)')).toBeOnTheScreen();
     });
 
     it('handles very large available balance', () => {
@@ -596,7 +692,7 @@ describe('MarketsWonCard', () => {
       );
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('+$50.00 (+5.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$50.00 (+5%)')).toBeOnTheScreen();
     });
   });
 
@@ -624,7 +720,7 @@ describe('MarketsWonCard', () => {
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       // Should show fallback values when there's an error
-      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.00 (+0%)')).toBeOnTheScreen();
     });
 
     it('handles null unrealized P&L data gracefully', () => {
@@ -643,7 +739,7 @@ describe('MarketsWonCard', () => {
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       // Should show fallback values when data is null
-      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.00 (+0%)')).toBeOnTheScreen();
     });
 
     it('displays correct unrealized P&L data from hook', () => {
@@ -661,7 +757,7 @@ describe('MarketsWonCard', () => {
       );
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('-$15.75 (-8.2%)')).toBeOnTheScreen();
+      expect(screen.getByText('-$15.75 (-8%)')).toBeOnTheScreen();
     });
 
     it('does not show unrealized P&L section when hook returns null data', () => {
@@ -767,6 +863,66 @@ describe('MarketsWonCard', () => {
     });
   });
 
+  describe('View All Navigation', () => {
+    it('navigates to market list when available balance card is pressed', () => {
+      setupMarketsWonCardTest({ availableBalance: 100.5 });
+
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        fireEvent.press(balanceTouchable);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: expect.any(String),
+        },
+      });
+    });
+
+    it('navigates when balance is present and not loading', () => {
+      setupMarketsWonCardTest({ availableBalance: 50.25, isLoading: false });
+
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        fireEvent.press(balanceTouchable);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: expect.any(String),
+        },
+      });
+    });
+
+    it('does not render touchable area when balance is undefined', () => {
+      setupMarketsWonCardTest({ availableBalance: undefined });
+
+      expect(screen.queryByTestId('markets-won-count')).not.toBeOnTheScreen();
+    });
+
+    it('navigates with correct route structure', () => {
+      setupMarketsWonCardTest({ availableBalance: 200 });
+
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        fireEvent.press(balanceTouchable);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.stringContaining('Predict'),
+        expect.objectContaining({
+          screen: expect.any(String),
+        }),
+      );
+    });
+  });
+
   describe('User Interactions', () => {
     it('calls onClaimPress when claim button is pressed', () => {
       const mockOnClaimPress = jest.fn();
@@ -776,21 +932,6 @@ describe('MarketsWonCard', () => {
 
       // Verify the callback was passed correctly
       expect(props.onClaimPress).toBe(mockOnClaimPress);
-    });
-
-    it('navigates to predict modals when available balance is pressed', () => {
-      setupMarketsWonCardTest();
-
-      const balanceTouchable =
-        screen.getByTestId('markets-won-count').parent?.parent;
-      if (balanceTouchable) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        fireEvent.press(balanceTouchable as any);
-      }
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-      });
     });
 
     it('calls refresh method and triggers data reloading', async () => {
@@ -813,6 +954,36 @@ describe('MarketsWonCard', () => {
 
       // Verify the callback is undefined
       expect(props.onClaimPress).toBeUndefined();
+    });
+
+    it('uses fallback address when selectedAddress is undefined', () => {
+      // Arrange - create state with undefined selected account
+      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      const stateWithNoAddress = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              claimablePositions: {
+                '0x0': [],
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: undefined,
+                accounts: {},
+              },
+            },
+          },
+        },
+      };
+
+      // Act
+      const { getByTestId } = renderWithProvider(<MarketsWonCard ref={ref} />, {
+        state: stateWithNoAddress,
+      });
+
+      // Assert - component renders without crashing
+      expect(getByTestId('markets-won-card')).toBeDefined();
     });
   });
 });

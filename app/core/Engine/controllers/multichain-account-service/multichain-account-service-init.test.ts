@@ -1,22 +1,24 @@
 import {
   MultichainAccountService,
   AccountProviderWrapper,
+  MultichainAccountServiceMessenger,
 } from '@metamask/multichain-account-service';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
 import { multichainAccountServiceInit } from './multichain-account-service-init';
 import {
   MultichainAccountServiceInitMessenger,
-  MultichainAccountServiceMessenger,
   getMultichainAccountServiceMessenger,
   getMultichainAccountServiceInitMessenger,
-  Actions,
-  Events,
-  AllowedInitializationActions,
-  AllowedInitializationEvents,
 } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
-import { Messenger } from '@metamask/base-controller';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  MockAnyNamespace,
+} from '@metamask/messenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('@metamask/multichain-account-service');
@@ -24,12 +26,17 @@ jest.mock('@metamask/multichain-account-service');
 const mockRemoteFeatureFlagControllerGetState = jest.fn();
 
 type MockInitMessenger = Messenger<
-  Actions | AllowedInitializationActions,
-  Events | AllowedInitializationEvents
+  MockAnyNamespace,
+  | MessengerActions<MultichainAccountServiceMessenger>
+  | MessengerActions<MultichainAccountServiceInitMessenger>,
+  | MessengerEvents<MultichainAccountServiceMessenger>
+  | MessengerEvents<MultichainAccountServiceInitMessenger>
 >;
 
 function getBaseMessenger(): MockInitMessenger {
-  return new Messenger();
+  return new Messenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 }
 
 function getInitRequestMock({
@@ -58,7 +65,9 @@ function getInitRequestMock({
   const initMessenger = getMultichainAccountServiceInitMessenger(messenger);
 
   // Create extended messenger for the base mock
-  const extendedControllerMessenger = new ExtendedControllerMessenger();
+  const extendedControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   // Build the base mock with extended messenger
   const baseMock = buildControllerInitRequestMock(extendedControllerMessenger);
@@ -132,7 +141,6 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should not be enabled
-      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
       expect(setEnabledSpy).toHaveBeenCalledWith(false);
       expect(alignWalletsSpy).not.toHaveBeenCalled();
     });
@@ -152,7 +160,6 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should not be enabled
-      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
       expect(setEnabledSpy).toHaveBeenCalledWith(false);
       expect(alignWalletsSpy).not.toHaveBeenCalled();
     });
@@ -172,7 +179,6 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should be enabled
-      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
       expect(setEnabledSpy).toHaveBeenCalledWith(true);
 
       // And alignment triggered
@@ -196,9 +202,12 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should not have been called, nor the alignement process
-      expect(setEnabledSpy).toHaveBeenCalledTimes(1);
       expect(setEnabledSpy).toHaveBeenCalledWith(false);
       expect(alignWalletsSpy).not.toHaveBeenCalled();
+
+      // Reset spies to check subsequent calls
+      setEnabledSpy.mockClear();
+      alignWalletsSpy.mockClear();
 
       // Enabling the remote feature flag would enable the Bitcoin provider
       messenger.publish(
@@ -216,7 +225,130 @@ describe('MultichainAccountServiceInit', () => {
       );
 
       // Then Bitcoin provider should be enabled
-      expect(setEnabledSpy).toHaveBeenCalledTimes(2);
+      expect(setEnabledSpy).toHaveBeenCalledWith(true);
+
+      // And alignment triggered
+      expect(alignWalletsSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Tron provider feature flag', () => {
+    let setEnabledSpy: jest.SpyInstance;
+    let alignWalletsSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      setEnabledSpy = jest.spyOn(
+        AccountProviderWrapper.prototype,
+        'setEnabled',
+      );
+      setEnabledSpy.mockReturnValue(undefined);
+
+      alignWalletsSpy = jest.spyOn(
+        MultichainAccountService.prototype,
+        'alignWallets',
+      );
+      alignWalletsSpy.mockResolvedValue(undefined);
+    });
+
+    it('does not enable Tron provider when feature flag is disabled', () => {
+      // When initializing the service
+      multichainAccountServiceInit(
+        getInitRequestMock({
+          // Given the feature flag is disabled
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: false,
+              minimumVersion: '1.0.0',
+            },
+          },
+        }),
+      );
+
+      // Then Tron provider should not be enabled
+      expect(setEnabledSpy).toHaveBeenCalledWith(false);
+      expect(alignWalletsSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not enable Tron provider when app version is below minimum', () => {
+      // When initializing the service
+      multichainAccountServiceInit(
+        getInitRequestMock({
+          // Given the feature flag indicates version requirement not met
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: true,
+              minimumVersion: '99.99.99',
+            },
+          },
+        }),
+      );
+
+      // Then Tron provider should not be enabled
+      expect(setEnabledSpy).toHaveBeenCalledWith(false);
+      expect(alignWalletsSpy).not.toHaveBeenCalled();
+    });
+
+    it('enables Tron provider when feature flag is enabled and version meets minimum', () => {
+      // When initializing the service
+      multichainAccountServiceInit(
+        getInitRequestMock({
+          // Given the feature flag is enabled and version meets minimum
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        }),
+      );
+
+      // Then Tron provider should be enabled
+      expect(setEnabledSpy).toHaveBeenCalledWith(true);
+
+      // And alignment triggered
+      expect(alignWalletsSpy).toHaveBeenCalled();
+    });
+
+    it('enables Tron provider when feature flag is enabled at runtime', () => {
+      // When initializing the service
+      const messenger = getBaseMessenger();
+      multichainAccountServiceInit(
+        getInitRequestMock({
+          messenger,
+          // Given the feature flag is not enabled yet
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: false,
+              minimumVersion: '1.0.0',
+            },
+          },
+        }),
+      );
+
+      // Then Tron provider should not have been called, nor the alignement process
+      expect(setEnabledSpy).toHaveBeenCalledWith(false);
+      expect(alignWalletsSpy).not.toHaveBeenCalled();
+
+      // Reset spies to check subsequent calls
+      setEnabledSpy.mockClear();
+      alignWalletsSpy.mockClear();
+
+      // Enabling the remote feature flag would enable the Tron provider
+      messenger.publish(
+        'RemoteFeatureFlagController:stateChange',
+        {
+          remoteFeatureFlags: {
+            tronAccounts: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+          cacheTimestamp: 0,
+        },
+        [],
+      );
+
+      // Then Tron provider should be enabled
       expect(setEnabledSpy).toHaveBeenCalledWith(true);
 
       // And alignment triggered

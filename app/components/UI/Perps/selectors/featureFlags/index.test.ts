@@ -1,6 +1,7 @@
 import {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
+  selectHip3ConfigVersion,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
@@ -457,6 +458,48 @@ describe('Perps Feature Flag Selectors', () => {
         const result = validatedVersionGatedFeatureFlag(wrongTypeFlag);
         expect(result).toBeUndefined();
       });
+    });
+  });
+
+  describe('selectHip3ConfigVersion', () => {
+    it('returns 0 when version is not set', () => {
+      const stateWithoutVersion = {
+        engine: {
+          backgroundState: {
+            PerpsController: {},
+          },
+        },
+      } as unknown as Parameters<typeof selectHip3ConfigVersion>[0];
+      const result = selectHip3ConfigVersion(stateWithoutVersion);
+      expect(result).toBe(0);
+    });
+
+    it('returns the version number when set', () => {
+      const stateWithVersion = {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              hip3ConfigVersion: 5,
+            },
+          },
+        },
+      } as unknown as Parameters<typeof selectHip3ConfigVersion>[0];
+      const result = selectHip3ConfigVersion(stateWithVersion);
+      expect(result).toBe(5);
+    });
+
+    it('handles null version gracefully', () => {
+      const stateWithNullVersion = {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              hip3ConfigVersion: null,
+            },
+          },
+        },
+      } as unknown as Parameters<typeof selectHip3ConfigVersion>[0];
+      const result = selectHip3ConfigVersion(stateWithNullVersion);
+      expect(result).toBe(0);
     });
   });
 });

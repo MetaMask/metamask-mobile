@@ -1,8 +1,6 @@
-import { useMemo, useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
-import { OrderFeesResult } from './usePerpsOrderFees';
+import { useEffect, useMemo, useState } from 'react';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
+import { OrderFeesResult } from './usePerpsOrderFees';
 
 interface UsePerpsRewardsParams {
   /** Result from usePerpsOrderFees hook containing rewards data */
@@ -42,9 +40,6 @@ export const usePerpsRewards = ({
   isFeesLoading = false,
   orderAmount = '',
 }: UsePerpsRewardsParams): UsePerpsRewardsResult => {
-  // Get rewards feature flag
-  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
-
   // Track previous points to detect refresh state
   const [previousPoints, setPreviousPoints] = useState<number | undefined>();
 
@@ -53,7 +48,7 @@ export const usePerpsRewards = ({
   const shouldSimulateError = useMemo(
     () =>
       __DEV__ &&
-      parseFloat(orderAmount) ===
+      Number.parseFloat(orderAmount) ===
         DEVELOPMENT_CONFIG.SIMULATE_REWARDS_ERROR_AMOUNT,
     [orderAmount],
   );
@@ -62,15 +57,15 @@ export const usePerpsRewards = ({
   const shouldSimulateLoading = useMemo(
     () =>
       __DEV__ &&
-      parseFloat(orderAmount) ===
+      Number.parseFloat(orderAmount) ===
         DEVELOPMENT_CONFIG.SIMULATE_REWARDS_LOADING_AMOUNT,
     [orderAmount],
   );
 
   // Determine if we should show rewards row
   const shouldShowRewardsRow = useMemo(
-    () => rewardsEnabled && hasValidAmount, // Show row if we have valid amount (even if there's an error or points are undefined)
-    [rewardsEnabled, hasValidAmount],
+    () => hasValidAmount, // Show row if we have valid amount (even if there's an error or points are undefined)
+    [hasValidAmount],
   );
 
   // Determine loading state

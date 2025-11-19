@@ -11,8 +11,48 @@ import type {
 // Export navigation types
 export * from '../../types/navigation';
 
+// Import adapter types
+import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
+
+// User history item for deposits and withdrawals
+export interface UserHistoryItem {
+  id: string;
+  timestamp: number;
+  type: 'deposit' | 'withdrawal';
+  amount: string;
+  asset: string;
+  txHash: string;
+  status: 'completed' | 'failed' | 'pending';
+  details: {
+    source: string;
+    bridgeContract?: string;
+    recipient?: string;
+    blockNumber?: string;
+    chainId?: string;
+    synthetic?: boolean;
+  };
+}
+
+// Parameters for getting user history
+export interface GetUserHistoryParams {
+  startTime?: number;
+  endTime?: number;
+  accountId?: CaipAccountId;
+}
+
+// Trade configuration saved per market per network
+export interface TradeConfiguration {
+  leverage?: number; // Last used leverage for this market
+}
+
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
+
+// Market asset type classification (reusable across components)
+export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
+
+// Market type filter including 'all' option and combined 'stocks_and_commodities' for UI filtering
+export type MarketTypeFilter = MarketType | 'all' | 'stocks_and_commodities';
 
 // Input method for amount entry tracking
 export type InputMethod =
@@ -52,20 +92,27 @@ export interface TPSLTrackingData {
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
   isBuy: boolean; // true = BUY order, false = SELL order
-  size: string; // Order size as string
+  size: string; // Order size as string (derived for validation, provider recalculates from usdAmount)
   orderType: OrderType; // Order type
   price?: string; // Limit price (required for limit orders)
   reduceOnly?: boolean; // Reduce-only flag
+  isFullClose?: boolean; // Indicates closing 100% of position (skips $10 minimum validation)
   timeInForce?: 'GTC' | 'IOC' | 'ALO'; // Time in force
+
+  // USD as source of truth (hybrid approach)
+  usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
+  priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
+  maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
 
   // Advanced order features
   takeProfitPrice?: string; // Take profit price
   stopLossPrice?: string; // Stop loss price
   clientOrderId?: string; // Optional client-provided order ID
-  slippage?: number; // Slippage tolerance for market orders (e.g., 0.01 = 1%)
+  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000 = 3%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
+  existingPositionLeverage?: number; // Existing position leverage for validation (protocol constraint)
 
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
@@ -106,13 +153,32 @@ export type Position = {
   stopLossCount: number; // Stop loss count, how many sls can affect the position
 };
 
+// Using 'type' instead of 'interface' for BaseController Json compatibility
 export type AccountState = {
   availableBalance: string; // Based on HyperLiquid: withdrawable
   totalBalance: string; // Based on HyperLiquid: accountValue
   marginUsed: string; // Based on HyperLiquid: marginUsed
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
   returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
-  totalValue: string; // Based on HyperLiquid: accountValue
+  /**
+   * Per-sub-account balance breakdown (protocol-specific, optional)
+   * Maps sub-account identifier to its balance details.
+   *
+   * Protocol examples:
+   * - HyperLiquid HIP-3: '' or 'main' (main DEX), 'xyz' (HIP-3 builder DEX)
+   * - dYdX: Sub-account numbers (e.g., '0', '1', '2')
+   * - Other protocols: Vault IDs, pool IDs, margin account IDs, etc.
+   *
+   * Key: Sub-account identifier (protocol-specific string)
+   * Value: Balance details for that sub-account
+   */
+  subAccountBreakdown?: Record<
+    string,
+    {
+      availableBalance: string;
+      totalBalance: string;
+    }
+  >;
 };
 
 export type ClosePositionParams = {
@@ -121,8 +187,30 @@ export type ClosePositionParams = {
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
   currentPrice?: number; // Current market price for validation
+
+  // USD as source of truth (hybrid approach - same as OrderParams)
+  usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
+  priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
+  maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
+
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
+};
+
+export type ClosePositionsParams = {
+  coins?: string[]; // Optional: specific coins to close (omit or empty array to close all)
+  closeAll?: boolean; // Explicitly close all positions
+};
+
+export type ClosePositionsResult = {
+  success: boolean; // Overall success (true if at least one position closed)
+  successCount: number; // Number of positions closed successfully
+  failureCount: number; // Number of positions that failed to close
+  results: {
+    coin: string;
+    success: boolean;
+    error?: string;
+  }[];
 };
 
 export interface InitializeResult {
@@ -187,6 +275,10 @@ export interface PerpsMarketData {
    */
   volume: string;
   /**
+   * Open interest as formatted string (e.g., '$24.5M', '$1.2B')
+   */
+  openInterest?: string;
+  /**
    * Next funding time in milliseconds since epoch (optional, market-specific)
    */
   nextFundingTime?: number;
@@ -198,6 +290,20 @@ export interface PerpsMarketData {
    * Current funding rate as decimal (optional, from predictedFundings API)
    */
   fundingRate?: number;
+  /**
+   * Market source DEX identifier (HIP-3 support)
+   * - null or undefined: Main validator DEX
+   * - "xyz", "abc", etc: HIP-3 builder-deployed DEX
+   */
+  marketSource?: string | null;
+  /**
+   * Market asset type classification (optional)
+   * - crypto: Cryptocurrency (default for most markets)
+   * - equity: Stock/equity markets (HIP-3)
+   * - commodity: Commodity markets (HIP-3)
+   * - forex: Foreign exchange pairs (HIP-3)
+   */
+  marketType?: MarketType;
 }
 
 export interface ToggleTestnetResult {
@@ -238,6 +344,29 @@ export interface CancelOrderResult {
   orderId?: string; // Cancelled order ID
   error?: string;
 }
+
+export type BatchCancelOrdersParams = {
+  orderId: string;
+  coin: string;
+}[];
+
+export type CancelOrdersParams = {
+  coins?: string[]; // Optional: specific coins (omit to cancel all orders)
+  orderIds?: string[]; // Optional: specific order IDs (omit to cancel all orders for specified coins)
+  cancelAll?: boolean; // Explicitly cancel all orders
+};
+
+export type CancelOrdersResult = {
+  success: boolean; // Overall success (true if at least one order cancelled)
+  successCount: number; // Number of orders cancelled successfully
+  failureCount: number; // Number of orders that failed to cancel
+  results: {
+    orderId: string;
+    coin: string;
+    success: boolean;
+    error?: string;
+  }[];
+};
 
 export interface EditOrderParams {
   orderId: string | number; // Order ID or client order ID to modify
@@ -296,6 +425,18 @@ export interface WithdrawResult {
   estimatedArrivalTime?: number; // Provider-specific arrival time
 }
 
+export interface TransferBetweenDexsParams {
+  sourceDex: string; // Source DEX name ('' = main DEX, 'xyz' = HIP-3 DEX)
+  destinationDex: string; // Destination DEX name ('' = main DEX, 'xyz' = HIP-3 DEX)
+  amount: string; // USDC amount to transfer
+}
+
+export interface TransferBetweenDexsResult {
+  success: boolean;
+  txHash?: string;
+  error?: string;
+}
+
 export interface GetHistoricalPortfolioParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
@@ -317,6 +458,28 @@ export interface PerpsControllerConfig {
    * The fallback is set by default if defined and replaced with remote block list once available.
    */
   fallbackBlockedRegions?: string[];
+  /**
+   * Fallback HIP-3 equity perps master switch to use when RemoteFeatureFlagController fails to fetch.
+   * Controls whether HIP-3 (builder-deployed) DEXs are enabled.
+   * The fallback is set by default if defined and replaced with remote feature flag once available.
+   */
+  fallbackHip3Enabled?: boolean;
+  /**
+   * Fallback HIP-3 market allowlist to use when RemoteFeatureFlagController fails to fetch.
+   * Empty array = enable all markets (discovery mode), non-empty = allowlist specific markets.
+   * Supports wildcards: "xyz:*" (all xyz markets), "xyz" (shorthand for "xyz:*"), "BTC" (main DEX market).
+   * Only applies when HIP-3 is enabled.
+   * The fallback is set by default if defined and replaced with remote feature flag once available.
+   */
+  fallbackHip3AllowlistMarkets?: string[];
+  /**
+   * Fallback HIP-3 market blocklist to use when RemoteFeatureFlagController fails to fetch.
+   * Empty array = no blocking, non-empty = block specific markets.
+   * Supports wildcards: "xyz:*" (block all xyz markets), "xyz" (shorthand for "xyz:*"), "BTC" (block main DEX market).
+   * Always applied regardless of HIP-3 enabled state.
+   * The fallback is set by default if defined and replaced with remote feature flag once available.
+   */
+  fallbackHip3BlocklistMarkets?: string[];
 }
 
 export interface PriceUpdate {
@@ -361,6 +524,7 @@ export interface OrderFill {
 export interface GetPositionsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   includeHistory?: boolean; // Optional: include historical positions
+  skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
 }
 
 export interface GetAccountStateParams {
@@ -370,7 +534,7 @@ export interface GetAccountStateParams {
 
 export interface GetOrderFillsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
-  user: Hex; // Optional: user address
+  user?: Hex; // Optional: user address (defaults to selected account)
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
@@ -383,6 +547,7 @@ export interface GetOrdersParams {
   endTime?: number; // Optional: end timestamp (Unix milliseconds)
   limit?: number; // Optional: max number of results for pagination
   offset?: number; // Optional: offset for pagination
+  skipCache?: boolean; // Optional: bypass WebSocket cache and force API call (default: false)
 }
 
 export interface GetFundingParams {
@@ -398,6 +563,16 @@ export interface GetSupportedPathsParams {
   assetId?: CaipAssetId; // Optional: filter by specific asset
   symbol?: string; // Optional: filter by asset symbol (e.g., 'USDC')
   chainId?: CaipChainId; // Optional: filter by chain (CAIP-2 format)
+}
+
+export interface GetAvailableDexsParams {
+  // Reserved for future extensibility (filters, pagination, etc.)
+}
+
+export interface GetMarketsParams {
+  symbols?: string[]; // Optional symbol filter (e.g., ['BTC', 'xyz:XYZ100'])
+  dex?: string; // HyperLiquid HIP-3: DEX name (empty string '' or undefined for main DEX). Other protocols: ignored.
+  skipFilters?: boolean; // Skip market filtering (both allowlist and blocklist, default: false). When true, returns all markets without filtering.
 }
 
 export interface SubscribePricesParams {
@@ -430,6 +605,12 @@ export interface SubscribeAccountParams {
   callback: (account: AccountState) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
+
+export interface SubscribeOICapsParams {
+  callback: (caps: string[]) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -448,19 +629,20 @@ export interface FeeCalculationParams {
   orderType: 'market' | 'limit';
   isMaker?: boolean;
   amount?: string;
+  coin: string; // Required: Asset symbol for HIP-3 fee calculation (e.g., 'BTC', 'xyz:TSLA')
 }
 
 export interface FeeCalculationResult {
   // Total fees (protocol + MetaMask)
-  feeRate: number; // Total fee rate as decimal (e.g., 0.00145 for 0.145%)
+  feeRate?: number; // Total fee rate as decimal (e.g., 0.00145 for 0.145%), undefined when unavailable
   feeAmount?: number; // Total fee amount in USD (when amount is provided)
 
   // Protocol-specific base fees
-  protocolFeeRate: number; // Protocol fee rate (e.g., 0.00045 for HyperLiquid taker)
+  protocolFeeRate?: number; // Protocol fee rate (e.g., 0.00045 for HyperLiquid taker), undefined when unavailable
   protocolFeeAmount?: number; // Protocol fee amount in USD
 
   // MetaMask builder/revenue fee
-  metamaskFeeRate: number; // MetaMask fee rate (e.g., 0.001 for 0.1%)
+  metamaskFeeRate?: number; // MetaMask fee rate (e.g., 0.001 for 0.1%), undefined when unavailable
   metamaskFeeAmount?: number; // MetaMask fee amount in USD
 
   // Optional detailed breakdown for transparency
@@ -496,6 +678,8 @@ export interface Order {
   // TODO: Consider creating separate type for OpenOrders (UI Orders) potentially if optional properties muddy up the original Order type
   takeProfitPrice?: string; // Take profit price (if set)
   stopLossPrice?: string; // Stop loss price (if set)
+  stopLossOrderId?: string; // Stop loss order ID
+  takeProfitOrderId?: string; // Take profit order ID
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
@@ -520,11 +704,13 @@ export interface IPerpsProvider {
   placeOrder(params: OrderParams): Promise<OrderResult>;
   editOrder(params: EditOrderParams): Promise<OrderResult>;
   cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult>;
+  cancelOrders?(params: BatchCancelOrdersParams): Promise<CancelOrdersResult>; // Optional: batch cancel for protocols that support it
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
+  closePositions?(params: ClosePositionsParams): Promise<ClosePositionsResult>; // Optional: batch close for protocols that support it
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
-  getMarkets(): Promise<MarketInfo[]>;
+  getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]>;
   getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
@@ -581,6 +767,24 @@ export interface IPerpsProvider {
    */
   getFunding(params?: GetFundingParams): Promise<Funding[]>;
 
+  /**
+   * Get user non-funding ledger updates (deposits, transfers, withdrawals)
+   */
+  getUserNonFundingLedgerUpdates(params?: {
+    accountId?: string;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<RawHyperLiquidLedgerUpdate[]>;
+
+  /**
+   * Get user history (deposits, withdrawals, transfers)
+   */
+  getUserHistory(params?: {
+    accountId?: CaipAccountId;
+    startTime?: number;
+    endTime?: number;
+  }): Promise<UserHistoryItem[]>;
+
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
   calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
@@ -593,6 +797,7 @@ export interface IPerpsProvider {
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
+  subscribeToOICaps(params: SubscribeOICapsParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;
@@ -609,4 +814,12 @@ export interface IPerpsProvider {
 
   // Fee discount context (optional - for MetaMask reward discounts)
   setUserFeeDiscount?(discountBips: number | undefined): void;
+
+  // HIP-3 (Builder-deployed DEXs) operations - optional for backward compatibility
+  /**
+   * Get list of available HIP-3 builder-deployed DEXs
+   * @param params - Optional parameters (reserved for future filters/pagination)
+   * @returns Array of DEX names (empty string '' represents main DEX)
+   */
+  getAvailableDexs?(params?: GetAvailableDexsParams): Promise<string[]>;
 }

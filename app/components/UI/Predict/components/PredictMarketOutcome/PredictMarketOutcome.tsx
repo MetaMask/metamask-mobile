@@ -33,9 +33,13 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { formatPercentage, formatVolume } from '../../utils/format';
+import {
+  formatCents,
+  formatPercentage,
+  formatVolume,
+} from '../../utils/format';
 import styleSheet from './PredictMarketOutcome.styles';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
   outcome: PredictOutcomeType;
@@ -43,6 +47,8 @@ interface PredictMarketOutcomeProps {
   outcomeToken?: PredictOutcomeToken;
   isClosed?: boolean;
 }
+
+const MAX_LABEL_LENGTH = 6;
 
 const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   market,
@@ -56,7 +62,10 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const { hasNoBalance } = usePredictBalance();
+  const { executeGuardedAction } = usePredictActionGuard({
+    providerId: market.providerId,
+    navigation,
+  });
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -80,42 +89,25 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
 
   const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
 
-  const handleYes = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
+  const isBiggerLabel =
+    outcome.tokens[0].title.length > MAX_LABEL_LENGTH ||
+    outcome.tokens[1].title.length > MAX_LABEL_LENGTH;
 
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[0],
-        entryPoint,
+  const handleBuy = (token: PredictOutcomeToken) => {
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome,
+          outcomeToken: token,
+          entryPoint,
+        });
       },
-    });
-  };
-
-  const handleNo = () => {
-    if (hasNoBalance) {
-      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-      params: {
-        market,
-        outcome,
-        outcomeToken: outcome.tokens[1],
-        entryPoint,
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
       },
-    });
+    );
   };
 
   return (
@@ -126,7 +118,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="flex-1 gap-3"
         >
-          <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden self-start">
             {getImageUrl() ? (
               <Image
                 source={{ uri: getImageUrl() }}
@@ -137,50 +129,58 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               <Box twClassName="w-full h-full bg-muted" />
             )}
           </Box>
-          <View style={tw.style('flex-1')}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+          <Box twClassName="flex-1 -mt-1">
+            <Text
+              variant={TextVariant.HeadingMD}
+              color={TextColor.Default}
+              style={tw.style('font-medium')}
             >
-              <Text
-                variant={TextVariant.HeadingMD}
-                color={TextColor.Default}
-                style={tw.style('font-medium')}
-              >
-                {getTitle()}
-              </Text>
-              {isClosed && outcomeToken && outcomeToken.price === 1 && (
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Success}
-                  style={tw.style('bg-success-muted px-1 py-0.5 rounded-sm')}
-                >
-                  Winner
-                </Text>
-              )}
-            </Box>
+              {getTitle()}
+            </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
             </Text>
-          </View>
-          <Text>
+          </Box>
+          <Box>
             {isClosed && outcomeToken ? (
-              <Icon
-                name={
-                  outcomeToken.price === 1
-                    ? IconName.CheckBold
-                    : IconName.CircleX
-                }
-                size={IconSize.Md}
-                color={
-                  outcomeToken.price === 1 ? TextColor.Success : TextColor.Muted
-                }
-              />
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1"
+              >
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={
+                    outcomeToken.price === 1
+                      ? TextColor.Default
+                      : TextColor.Alternative
+                  }
+                >
+                  {outcomeToken.price === 1
+                    ? strings('predict.outcome_winner')
+                    : strings('predict.outcome_loser')}
+                </Text>
+                {outcomeToken.price === 1 && (
+                  <Icon
+                    name={IconName.Confirmation}
+                    size={IconSize.Md}
+                    color={
+                      outcomeToken.price === 1
+                        ? TextColor.Success
+                        : TextColor.Muted
+                    }
+                  />
+                )}
+              </Box>
             ) : (
-              <Text>{getYesPercentage()}</Text>
+              <Text
+                style={tw.style('text-[20px] font-medium')}
+                color={TextColor.Default}
+              >
+                {getYesPercentage()}
+              </Text>
             )}
-          </Text>
+          </Box>
         </Box>
       </View>
       {!isClosed && (
@@ -190,26 +190,34 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text style={tw.style('font-medium')} color={TextColor.Success}>
-                {strings('predict.buy_yes')} •{' '}
-                {(outcome.tokens[0].price * 100).toFixed(2)}¢
+              <Text
+                style={tw.style('font-medium text-center')}
+                color={TextColor.Success}
+              >
+                {outcome.tokens[0].title}
+                {isBiggerLabel ? '\n' : ' • '}
+                {formatCents(outcome.tokens[0].price)}
               </Text>
             }
-            onPress={handleYes}
-            style={styles.buttonYes}
+            onPress={() => handleBuy(outcome.tokens[0])}
+            style={[styles.buttonYes, isBiggerLabel && tw.style('h-18')]}
           />
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {strings('predict.buy_no')} •{' '}
-                {(outcome.tokens[1].price * 100).toFixed(2)}¢
+              <Text
+                style={tw.style('font-medium text-center')}
+                color={TextColor.Error}
+              >
+                {outcome.tokens[1].title}
+                {isBiggerLabel ? '\n' : ' • '}
+                {formatCents(outcome.tokens[1].price)}
               </Text>
             }
-            onPress={handleNo}
-            style={styles.buttonNo}
+            onPress={() => handleBuy(outcome.tokens[1])}
+            style={[styles.buttonNo, isBiggerLabel && tw.style('h-18')]}
           />
         </View>
       )}

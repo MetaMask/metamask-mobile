@@ -1,3 +1,4 @@
+import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import {
   useFocusEffect,
@@ -60,16 +61,73 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+///: END:ONLY_INCLUDE_IF
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
   const { token } = route.params;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
+  ///: END:ONLY_INCLUDE_IF
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
-  const { getPairedEarnTokens } = useEarnTokens();
+  const { getPairedEarnTokens, getEarnToken } = useEarnTokens();
   const { outputToken: receiptToken } = getPairedEarnTokens(token);
+
+  const earnTokenFromMap = getEarnToken(token);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTronAsset = token.chainId?.startsWith('tron:');
+  ///: END:ONLY_INCLUDE_IF
+
+  const earnToken = React.useMemo(() => {
+    if (earnTokenFromMap) return earnTokenFromMap;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTrxStakingEnabled && isTronAsset) {
+      const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
+      return {
+        ...token,
+        isETH: false,
+        balanceMinimalUnit: '0',
+        balanceFormatted: token.balance ?? '0',
+        balanceFiat: token.balanceFiat ?? '0',
+        tokenUsdExchangeRate: 0,
+        experiences,
+        experience: experiences[0],
+      } as EarnTokenDetails;
+    }
+    ///: END:ONLY_INCLUDE_IF
+    return undefined;
+  }, [
+    earnTokenFromMap,
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTrxStakingEnabled,
+    isTronAsset,
+    token,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
+
+  const receiptTokenToUse: EarnTokenDetails | undefined =
+    receiptToken as EarnTokenDetails;
+
+  const withdrawalToken: EarnTokenDetails | undefined = useMemo(() => {
+    if (
+      receiptTokenToUse?.experience?.type ===
+        EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING
+    ) {
+      return receiptTokenToUse;
+    }
+    if (earnToken) {
+      return earnToken as EarnTokenDetails;
+    }
+    return undefined;
+  }, [receiptTokenToUse, earnToken]);
 
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
@@ -120,21 +178,20 @@ const EarnWithdrawInputView = () => {
     handleKeypadChange,
     earnBalanceValue,
   } = useEarnWithdrawInput({
-    earnToken: receiptToken as EarnTokenDetails,
+    earnToken: withdrawalToken as EarnTokenDetails,
     conversionRate,
     exchangeRate,
   });
-
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
         .addProperties({
           action_type: 'withdrawal',
-          token: receiptToken?.symbol,
-          token_name: receiptToken?.name,
+          token: withdrawalToken?.symbol,
+          token_name: withdrawalToken?.name,
           network: network?.name,
-          user_token_balance: receiptToken?.balanceFormatted,
-          experience: receiptToken?.experience?.type,
+          user_token_balance: withdrawalToken?.balanceFormatted,
+          experience: withdrawalToken?.experience?.type,
         })
         .build(),
     );
@@ -153,10 +210,11 @@ const EarnWithdrawInputView = () => {
   // For lending withdrawals, fetch AAVE pool metadata once on render.
   useEffect(() => {
     if (
-      receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      withdrawalToken?.experience?.type !==
+        EARN_EXPERIENCES.STABLECOIN_LENDING ||
       !selectedAccount?.address ||
-      !receiptToken?.address ||
-      !receiptToken?.chainId
+      !withdrawalToken?.address ||
+      !withdrawalToken?.chainId
     )
       return;
     setMaxRiskAwareWithdrawalAmount(undefined);
@@ -165,7 +223,7 @@ const EarnWithdrawInputView = () => {
 
     getAaveV3MaxRiskAwareWithdrawalAmount(
       selectedAccount.address,
-      receiptToken as EarnTokenDetails,
+      withdrawalToken,
     )
       .then((maxAmount) => {
         setMaxRiskAwareWithdrawalAmount(maxAmount);
@@ -176,10 +234,10 @@ const EarnWithdrawInputView = () => {
     // Call once on render and only once
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    receiptToken?.experience?.type,
+    withdrawalToken?.experience?.type,
     selectedAccount?.address,
-    receiptToken?.address,
-    receiptToken?.chainId,
+    withdrawalToken?.address,
+    withdrawalToken?.chainId,
   ]);
 
   const stakedBalanceText = strings('stake.staked_balance');
@@ -245,19 +303,33 @@ const EarnWithdrawInputView = () => {
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
 
+  const isLending =
+    receiptToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
+  const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
+
   useEffect(() => {
+    const title = isLending
+      ? `${strings('earn.withdraw')} ${tokenLabel}`
+      : `${strings('stake.unstake')} ${tokenLabel}`;
+
     navigation.setOptions(
       // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-      // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
       getStakingNavbar(
-        strings('earn.withdraw'),
+        title,
         navigation,
         theme.colors,
         navBarOptions,
         navBarEventOptions,
       ),
     );
-  }, [navigation, theme.colors, navBarOptions, navBarEventOptions]);
+  }, [
+    navigation,
+    theme.colors,
+    navBarOptions,
+    navBarEventOptions,
+    isLending,
+    tokenLabel,
+  ]);
 
   // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
   // This ref will allow one insufficient funds error to fire per visit to the page.
@@ -322,12 +394,12 @@ const EarnWithdrawInputView = () => {
         createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
           .addProperties({
             action_type: 'withdrawal',
-            token: receiptToken?.symbol,
+            token: withdrawalToken?.symbol,
             network: network?.name,
-            user_token_balance: receiptToken?.balanceFormatted,
-            transaction_value: `${amountToken} ${receiptToken?.symbol}`,
+            user_token_balance: withdrawalToken?.balanceFormatted,
+            transaction_value: `${amountToken} ${withdrawalToken?.symbol}`,
             lastQuickAmountButtonPressed: lastQuickAmountButtonPressed.current,
-            experience: receiptToken?.experience?.type,
+            experience: withdrawalToken?.experience?.type,
           })
           .build(),
       );
@@ -337,9 +409,9 @@ const EarnWithdrawInputView = () => {
     // We likely want to inform the user if this data is missing and the withdrawal fails.
     if (
       !selectedAccount?.address ||
-      !receiptToken?.experience?.market?.underlying.address ||
-      !receiptToken?.address ||
-      !receiptToken?.chainId
+      !withdrawalToken?.experience?.market?.underlying.address ||
+      !withdrawalToken?.address ||
+      !withdrawalToken?.chainId
     )
       return;
 
@@ -347,7 +419,7 @@ const EarnWithdrawInputView = () => {
       await calculateAaveV3HealthFactorAfterWithdrawal(
         selectedAccount.address,
         amountTokenMinimalUnit.toString(),
-        receiptToken as EarnTokenDetails,
+        withdrawalToken,
       );
 
     setIsSubmittingStakeWithdrawalTransaction(true);
@@ -356,15 +428,17 @@ const EarnWithdrawInputView = () => {
 
     try {
       const lendingPoolContractAddress =
-        CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[receiptToken.chainId] ?? '';
+        CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[
+          withdrawalToken?.chainId as Hex
+        ] ?? '';
 
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION,
         params: {
-          token: receiptToken,
+          token: withdrawalToken,
           amountTokenMinimalUnit: amountToWithdraw,
           amountFiat: amountFiatNumber,
-          lendingProtocol: receiptToken.experience?.market?.protocol,
+          lendingProtocol: withdrawalToken?.experience?.market?.protocol,
           lendingContractAddress: lendingPoolContractAddress,
           healthFactorSimulation: simulatedHealthFactorAfterWithdrawal,
         },
@@ -381,7 +455,7 @@ const EarnWithdrawInputView = () => {
     createEventBuilder,
     navigation,
     network?.name,
-    receiptToken,
+    withdrawalToken,
     trackEvent,
   ]);
 
@@ -471,16 +545,16 @@ const EarnWithdrawInputView = () => {
   // should we be able to, consider the implications of not being able to
   const handleWithdrawPress = useCallback(async () => {
     if (
-      receiptToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+      withdrawalToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
       return handleLendingWithdrawalFlow();
     }
 
-    if (receiptToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (withdrawalToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleUnstakeWithdrawalFlow();
     }
   }, [
-    receiptToken?.experience?.type,
+    withdrawalToken?.experience?.type,
     handleLendingWithdrawalFlow,
     handleUnstakeWithdrawalFlow,
   ]);
@@ -495,7 +569,7 @@ const EarnWithdrawInputView = () => {
     if (isLoadingMaxSafeWithdrawalAmount) return;
 
     // We don't want to display the max safe withdrawal text if it isn't applicable.
-    if (maxRiskAwareWithdrawalAmount === receiptToken?.balanceMinimalUnit)
+    if (maxRiskAwareWithdrawalAmount === withdrawalToken?.balanceMinimalUnit)
       return;
 
     if (!maxRiskAwareWithdrawalAmount) {
@@ -504,19 +578,19 @@ const EarnWithdrawInputView = () => {
 
     return renderFromTokenMinimalUnit(
       maxRiskAwareWithdrawalAmount,
-      receiptToken?.decimals as number,
+      withdrawalToken?.decimals as number,
     );
   }, [
     isLoadingMaxSafeWithdrawalAmount,
     maxRiskAwareWithdrawalAmount,
-    receiptToken?.balanceMinimalUnit,
-    receiptToken?.decimals,
+    withdrawalToken?.balanceMinimalUnit,
+    withdrawalToken?.decimals,
   ]);
 
   const isWithdrawingMoreThanAvailableForLendingToken = useMemo(() => {
     // This check only applies to lending experience.
     if (
-      receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
+      withdrawalToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
       return false;
     }
@@ -530,7 +604,7 @@ const EarnWithdrawInputView = () => {
     );
   }, [
     amountTokenMinimalUnit,
-    receiptToken?.experience?.type,
+    withdrawalToken?.experience?.type,
     maxRiskAwareWithdrawalAmount,
   ]);
 
@@ -540,7 +614,7 @@ const EarnWithdrawInputView = () => {
     }
     if (isOverMaximum.isOverMaximumToken) {
       return strings('stake.not_enough_token', {
-        ticker: receiptToken?.ticker ?? receiptToken?.symbol ?? '',
+        ticker: withdrawalToken?.ticker ?? withdrawalToken?.symbol ?? '',
       });
     }
     if (isOverMaximum.isOverMaximumEth) {
@@ -557,8 +631,8 @@ const EarnWithdrawInputView = () => {
     isOverMaximum.isOverMaximumToken,
     isOverMaximum.isOverMaximumEth,
     isWithdrawingMoreThanAvailableForLendingToken,
-    receiptToken?.ticker,
-    receiptToken?.symbol,
+    withdrawalToken?.ticker,
+    withdrawalToken?.symbol,
   ]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
@@ -576,6 +650,10 @@ const EarnWithdrawInputView = () => {
             // We want to track the currency switching to. Not the current currency.
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
+            token_symbol: receiptToken?.symbol,
+            chain_id: receiptToken?.chainId
+              ? toHex(receiptToken.chainId)
+              : undefined,
           })
           .build(),
       );
@@ -591,6 +669,10 @@ const EarnWithdrawInputView = () => {
             // We want to track the currency switching to. Not the current currency.
             currency_type: isFiat ? 'native' : 'fiat',
             experience: receiptToken?.experience?.type,
+            token_symbol: receiptToken?.symbol,
+            chain_id: receiptToken?.chainId
+              ? toHex(receiptToken.chainId)
+              : undefined,
           })
           .build(),
       );
@@ -603,6 +685,8 @@ const EarnWithdrawInputView = () => {
     createEventBuilder,
     isFiat,
     receiptToken?.experience?.type,
+    receiptToken?.symbol,
+    receiptToken?.chainId,
   ]);
 
   const handleQuickAmountPressWithTracking = useCallback(
@@ -690,7 +774,7 @@ const EarnWithdrawInputView = () => {
           <View style={styles.earnTokenSelectorContainer}>
             <View style={styles.spacer} />
             <EarnTokenSelector
-              token={receiptToken as TokenI}
+              token={withdrawalToken as TokenI}
               action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
             />
           </View>
@@ -706,7 +790,7 @@ const EarnWithdrawInputView = () => {
         style={styles.keypad}
         // TODO: this should be the underlying token symbol/ticker if not ETH
         // once this data is available in the state we can use that
-        currency={token.isETH ? 'ETH' : token.ticker ?? token.symbol}
+        currency={token.isETH ? 'ETH' : (token.ticker ?? token.symbol)}
         decimals={isFiat ? 2 : 5}
       />
       <View style={styles.reviewButtonContainer}>

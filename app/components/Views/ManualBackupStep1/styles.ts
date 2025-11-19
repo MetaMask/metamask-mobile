@@ -139,5 +139,10 @@ export const createStyles = (colors: any) =>
     buttonContainer: {
       paddingHorizontal: 0,
       marginBottom: Platform.OS === 'android' ? 16 : 0,
+      gap: 16,
+    },
+    actionViewContainer: {
+      flex: 1,
+      justifyContent: 'space-between',
     },
   });

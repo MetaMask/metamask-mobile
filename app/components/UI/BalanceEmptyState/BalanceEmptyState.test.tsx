@@ -5,13 +5,11 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import BalanceEmptyState from './BalanceEmptyState';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 
-// Mock navigation (component requires it)
-const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
+// Mock useRampNavigation hook
+const mockGoToRamps = jest.fn();
+jest.mock('../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
+  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
 }));
 
 describe('BalanceEmptyState', () => {
@@ -43,16 +41,17 @@ describe('BalanceEmptyState', () => {
     });
   });
 
-  it('has action button that can be pressed', () => {
+  it('navigates to buy flow when action button is pressed', () => {
     const { getByTestId } = renderComponent();
     const actionButton = getByTestId('balance-empty-state-action-button');
 
     expect(actionButton).toBeDefined();
 
-    // Press the button
     fireEvent.press(actionButton);
 
-    // Verify that navigation was triggered
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockGoToRamps).toHaveBeenCalledWith({
+      mode: 'AGGREGATOR',
+      params: { rampType: expect.anything() },
+    });
   });
 });

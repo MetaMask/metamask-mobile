@@ -7,7 +7,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -21,7 +21,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -187,14 +187,14 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
 </RNCSafeAreaView>
 `;
 
-exports[`AccountStatus Snapshots android renders correctly with type="found and statusbar current height to zero" 1`] = `
+exports[`AccountStatus Snapshots android renders correctly with type="found" 1`] = `
 <RNCSafeAreaView
   edges={
     {
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -208,7 +208,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -381,7 +381,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -395,7 +395,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -568,7 +568,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -582,7 +582,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -755,7 +755,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -769,7 +769,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >
@@ -942,7 +942,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       "bottom": "additive",
       "left": "off",
       "right": "off",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -956,7 +956,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
       {
         "flex": 1,
         "paddingHorizontal": 16,
-        "paddingTop": 24,
+        "paddingTop": 16,
       }
     }
   >

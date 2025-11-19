@@ -78,7 +78,7 @@ jobs:
         continue-on-error: true
         with:
           path: all-test-artifacts/
-          pattern: '*-android-*-test-*'
+          pattern: 'test-e2e-*-android-*'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3

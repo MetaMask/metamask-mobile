@@ -52,6 +52,9 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   [NETWORKS_CHAIN_ID.SEI]: new Set([
     '0x3894085Ef7Ff0f0aeDf52E2A2704928d1Ec074F1', // USDC
   ]),
+  [NETWORKS_CHAIN_ID.MONAD]: new Set([
+    '0x754704Bc059F8C67012fEd69BC8A327a5aafb603', // USDC
+  ]),
 };
 
 /**

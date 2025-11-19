@@ -50,7 +50,7 @@ describe('usePredictOrderPreview', () => {
   };
 
   describe('basic functionality', () => {
-    it('should initialize with null preview and not calculating', () => {
+    it('initializes with null preview and not calculating', () => {
       const { result } = renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
@@ -60,7 +60,7 @@ describe('usePredictOrderPreview', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('should calculate preview when size is valid', async () => {
+    it('calculates preview when size is valid', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
       const { result, waitForNextUpdate } = renderHook(() =>
@@ -87,7 +87,7 @@ describe('usePredictOrderPreview', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('should not calculate preview when size is 0', () => {
+    it('does not calculate preview when size is 0', () => {
       const params = { ...defaultParams, size: 0 };
       const { result } = renderHook(() => usePredictOrderPreview(params));
 
@@ -100,7 +100,7 @@ describe('usePredictOrderPreview', () => {
       expect(result.current.isCalculating).toBe(false);
     });
 
-    it('should not calculate preview when size is negative', () => {
+    it('does not calculate preview when size is negative', () => {
       const params = { ...defaultParams, size: -10 };
       const { result } = renderHook(() => usePredictOrderPreview(params));
 
@@ -113,7 +113,7 @@ describe('usePredictOrderPreview', () => {
       expect(result.current.isCalculating).toBe(false);
     });
 
-    it('should calculate preview for SELL side', async () => {
+    it('calculates preview for SELL side', async () => {
       mockPreviewOrder.mockResolvedValue({ ...mockPreview, side: Side.SELL });
 
       const params = { ...defaultParams, side: Side.SELL };
@@ -135,7 +135,7 @@ describe('usePredictOrderPreview', () => {
   });
 
   describe('auto-refresh', () => {
-    it('should not auto-refresh when autoRefreshTimeout is not provided', async () => {
+    it('does not auto-refresh when autoRefreshTimeout is not provided', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
       const { waitForNextUpdate } = renderHook(() =>
@@ -157,7 +157,7 @@ describe('usePredictOrderPreview', () => {
       expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
     });
 
-    it('should auto-refresh preview at specified interval', async () => {
+    it('schedules next refresh after receiving response', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
       const params = { ...defaultParams, autoRefreshTimeout: 2000 };
@@ -189,10 +189,113 @@ describe('usePredictOrderPreview', () => {
 
       expect(mockPreviewOrder).toHaveBeenCalledTimes(3);
     });
+
+    it('waits for response before starting timeout countdown', async () => {
+      let callCount = 0;
+      mockPreviewOrder.mockImplementation(async () => {
+        callCount += 1;
+        return mockPreview;
+      });
+
+      const params = { ...defaultParams, autoRefreshTimeout: 1000 };
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictOrderPreview(params),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(callCount).toBe(1);
+
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+
+      expect(callCount).toBe(1);
+
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+
+      await waitForNextUpdate();
+
+      expect(callCount).toBe(2);
+    });
+
+    it('schedules next refresh after error response', async () => {
+      mockPreviewOrder.mockRejectedValue(new Error('API Error'));
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {
+          // Suppress console.error output during test
+        });
+
+      const params = { ...defaultParams, autoRefreshTimeout: 2000 };
+      const { waitForNextUpdate } = renderHook(() =>
+        usePredictOrderPreview(params),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+
+      mockPreviewOrder.mockResolvedValue(mockPreview);
+
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      await waitForNextUpdate();
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('clears pending refresh timer when parameters change', async () => {
+      mockPreviewOrder.mockResolvedValue(mockPreview);
+
+      const params = { ...defaultParams, autoRefreshTimeout: 2000 };
+      const { waitForNextUpdate, rerender } = renderHook(
+        (props: PreviewOrderParams & { autoRefreshTimeout?: number }) =>
+          usePredictOrderPreview(props),
+        { initialProps: params },
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      rerender({ ...params, size: 200 });
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('error handling', () => {
-    it('should handle preview calculation errors', async () => {
+    it('handles preview calculation errors', async () => {
       const errorMessage = 'Failed to calculate preview';
       mockPreviewOrder.mockRejectedValue(new Error(errorMessage));
 
@@ -212,14 +315,14 @@ describe('usePredictOrderPreview', () => {
 
       await waitForNextUpdate();
 
-      expect(result.current.error).toBe(errorMessage);
+      expect(result.current.error).toBe('Failed to preview order');
       expect(result.current.preview).toBeNull();
       expect(result.current.isCalculating).toBe(false);
 
       consoleErrorSpy.mockRestore();
     });
 
-    it('should handle non-Error exceptions', async () => {
+    it('handles non-Error exceptions', async () => {
       mockPreviewOrder.mockRejectedValue('String error');
 
       const consoleErrorSpy = jest
@@ -238,13 +341,13 @@ describe('usePredictOrderPreview', () => {
 
       await waitForNextUpdate();
 
-      expect(result.current.error).toBe('String error');
+      expect(result.current.error).toBe('Failed to preview order');
       expect(result.current.isCalculating).toBe(false);
 
       consoleErrorSpy.mockRestore();
     });
 
-    it('should set isCalculating to false after error', async () => {
+    it('sets isCalculating to false after error', async () => {
       mockPreviewOrder.mockRejectedValue(new Error('Error'));
 
       const consoleErrorSpy = jest
@@ -264,14 +367,14 @@ describe('usePredictOrderPreview', () => {
       await waitForNextUpdate();
 
       expect(result.current.isCalculating).toBe(false);
-      expect(result.current.error).toBe('Error');
+      expect(result.current.error).toBe('Failed to preview order');
 
       consoleErrorSpy.mockRestore();
     });
   });
 
   describe('parameter changes', () => {
-    it('should react to outcomeTokenId changes', async () => {
+    it('reacts to outcomeTokenId changes', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
       const { waitForNextUpdate } = renderHook(() =>
@@ -292,7 +395,7 @@ describe('usePredictOrderPreview', () => {
       );
     });
 
-    it('should react to providerId changes', async () => {
+    it('reacts to providerId changes', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
       const { waitForNextUpdate } = renderHook(() =>
@@ -315,7 +418,7 @@ describe('usePredictOrderPreview', () => {
   });
 
   describe('cleanup', () => {
-    it('should cleanup on unmount', () => {
+    it('cleans up on unmount', () => {
       const { unmount } = renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
@@ -323,7 +426,7 @@ describe('usePredictOrderPreview', () => {
       expect(() => unmount()).not.toThrow();
     });
 
-    it('should clear timers on unmount', () => {
+    it('clears timers on unmount', () => {
       const { unmount } = renderHook(() =>
         usePredictOrderPreview({ ...defaultParams, autoRefreshTimeout: 1000 }),
       );

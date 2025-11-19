@@ -231,6 +231,7 @@ exports[`AssetOverview should render correctly 1`] = `
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-around",
+          "marginBottom": 16,
           "paddingHorizontal": 10,
           "paddingTop": 20,
         }
@@ -880,230 +881,27 @@ exports[`AssetOverview should render correctly 1`] = `
         </View>
       </View>
     </View>
-    <View
-      style={
-        {
-          "flex": 1,
-          "paddingHorizontal": 16,
-          "paddingTop": 24,
-        }
-      }
-    >
+    <View>
       <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Bold",
-            "fontSize": 18,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
+        testID="tokenDetailsName"
       >
-        Your balance
+        Ethereum
       </Text>
-      <TouchableOpacity
-        disabled={false}
-        onLongPress={[Function]}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "height": 64,
-          }
-        }
-        testID="asset-ETH"
+      <Text
+        testID="tokenDetailsBalance"
       >
-        <View
-          onLayout={[Function]}
-          style={
-            {
-              "alignSelf": "center",
-              "position": "relative",
-            }
-          }
-          testID="badge-wrapper-badge"
-        >
-          <View>
-            <View
-              style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 20,
-                  "height": 40,
-                  "overflow": "hidden",
-                  "width": 40,
-                }
-              }
-            >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={
-                  {
-                    "uri": "",
-                  }
-                }
-                style={
-                  {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
-                  }
-                }
-                testID="token-avatar-image"
-              />
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "aspectRatio": 1,
-                "bottom": 0,
-                "height": 0,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "transform": [
-                  {
-                    "translateX": 0,
-                  },
-                  {
-                    "translateY": 0,
-                  },
-                ],
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "aspectRatio": 1,
-                  "height": "50%",
-                  "justifyContent": "center",
-                  "maxHeight": 24,
-                  "minHeight": 8,
-                  "opacity": 0,
-                }
-              }
-              testID="badgenetwork"
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
-                    "borderRadius": 8,
-                    "borderWidth": 2,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "overflow": "hidden",
-                    "shadowColor": "#0000001a",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 1,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                    "width": 32,
-                  }
-                }
-              >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source={1}
-                  style={
-                    {
-                      "height": 32,
-                      "width": 32,
-                    }
-                  }
-                  testID="network-avatar-image"
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            {
-              "alignContent": "flex-start",
-              "alignItems": "flex-start",
-              "flex": 1,
-              "flexDirection": "column",
-              "paddingLeft": 16,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Ethereum
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "Geist Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-            testID="token-amount-balance-test-id"
-          >
-            0 ETH
-          </Text>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "flex-end",
-              "flexShrink": 0,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-            testID="balance-test-id"
-          >
-            1500
-          </Text>
-        </View>
-      </TouchableOpacity>
+        400
+      </Text>
+      <Text
+        testID="balance-test-id"
+      >
+        1500
+      </Text>
+      <Text
+        testID="token-amount-balance-test-id"
+      >
+        0 ETH
+      </Text>
     </View>
     <View
       style={
@@ -1357,6 +1155,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-around",
+          "marginBottom": 16,
           "paddingHorizontal": 10,
           "paddingTop": 20,
         }
@@ -2006,264 +1805,27 @@ exports[`AssetOverview should render native balances even if there are no accoun
         </View>
       </View>
     </View>
-    <View
-      style={
-        {
-          "flex": 1,
-          "paddingHorizontal": 16,
-          "paddingTop": 24,
-        }
-      }
-    >
+    <View>
       <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Bold",
-            "fontSize": 18,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
+        testID="tokenDetailsName"
       >
-        Your balance
+        Ethereum
       </Text>
-      <TouchableOpacity
-        disabled={true}
-        onLongPress={[Function]}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "height": 64,
-          }
-        }
-        testID="asset-ETH"
+      <Text
+        testID="tokenDetailsBalance"
       >
-        <View
-          onLayout={[Function]}
-          style={
-            {
-              "alignSelf": "center",
-              "position": "relative",
-            }
-          }
-          testID="badge-wrapper-badge"
-        >
-          <View>
-            <View
-              useNativeDriver={true}
-            >
-              <View
-                fadeIn={true}
-                source={
-                  {
-                    "uri": "",
-                  }
-                }
-                style={
-                  [
-                    {
-                      "borderRadius": 12,
-                      "height": 24,
-                      "width": 24,
-                    },
-                    undefined,
-                    false,
-                    false,
-                    {
-                      "borderRadius": 20,
-                      "height": 40,
-                      "overflow": "hidden",
-                      "width": 40,
-                    },
-                  ]
-                }
-                testID="Ethereum"
-              />
-              <View
-                collapsable={false}
-                style={
-                  {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
-                  }
-                }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 20,
-                        "height": 40,
-                        "overflow": "hidden",
-                        "width": 40,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "aspectRatio": 1,
-                "bottom": 0,
-                "height": 0,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "transform": [
-                  {
-                    "translateX": 0,
-                  },
-                  {
-                    "translateY": 0,
-                  },
-                ],
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "aspectRatio": 1,
-                  "height": "50%",
-                  "justifyContent": "center",
-                  "maxHeight": 24,
-                  "minHeight": 8,
-                  "opacity": 0,
-                }
-              }
-              testID="badgenetwork"
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#f3f5f9",
-                    "borderColor": "#ffffff",
-                    "borderRadius": 16,
-                    "borderWidth": 2,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "overflow": "hidden",
-                    "shadowColor": "#0000001a",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 1,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                    "width": 32,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  ?
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            {
-              "alignContent": "flex-start",
-              "alignItems": "flex-start",
-              "flex": 1,
-              "flexDirection": "column",
-              "paddingLeft": 16,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Ethereum
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "Geist Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-            testID="token-amount-balance-test-id"
-          >
-            0 ETH
-          </Text>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "flex-end",
-              "flexShrink": 0,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-            testID="balance-test-id"
-          >
-            1500
-          </Text>
-        </View>
-      </TouchableOpacity>
+        400
+      </Text>
+      <Text
+        testID="balance-test-id"
+      >
+        1500
+      </Text>
+      <Text
+        testID="token-amount-balance-test-id"
+      >
+        0 ETH
+      </Text>
     </View>
     <View
       style={
@@ -2462,6 +2024,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-around",
+          "marginBottom": 16,
           "paddingHorizontal": 10,
           "paddingTop": 20,
         }
@@ -3111,262 +2674,27 @@ exports[`AssetOverview should render native balances when non evm network is sel
         </View>
       </View>
     </View>
-    <View
-      style={
-        {
-          "flex": 1,
-          "paddingHorizontal": 16,
-          "paddingTop": 24,
-        }
-      }
-    >
+    <View>
       <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Bold",
-            "fontSize": 18,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
+        testID="tokenDetailsName"
       >
-        Your balance
+        Ethereum
       </Text>
-      <TouchableOpacity
-        disabled={true}
-        onLongPress={[Function]}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "height": 64,
-          }
-        }
-        testID="asset-ETH"
+      <Text
+        testID="tokenDetailsBalance"
       >
-        <View
-          onLayout={[Function]}
-          style={
-            {
-              "alignSelf": "center",
-              "position": "relative",
-            }
-          }
-          testID="badge-wrapper-badge"
-        >
-          <View>
-            <View
-              useNativeDriver={true}
-            >
-              <View
-                fadeIn={true}
-                source={
-                  {
-                    "uri": "",
-                  }
-                }
-                style={
-                  [
-                    {
-                      "borderRadius": 12,
-                      "height": 24,
-                      "width": 24,
-                    },
-                    undefined,
-                    false,
-                    false,
-                    {
-                      "borderRadius": 20,
-                      "height": 40,
-                      "overflow": "hidden",
-                      "width": 40,
-                    },
-                  ]
-                }
-                testID="Ethereum"
-              />
-              <View
-                collapsable={false}
-                style={
-                  {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
-                  }
-                }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 20,
-                        "height": 40,
-                        "overflow": "hidden",
-                        "width": 40,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "aspectRatio": 1,
-                "bottom": 0,
-                "height": 0,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "transform": [
-                  {
-                    "translateX": 0,
-                  },
-                  {
-                    "translateY": 0,
-                  },
-                ],
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "aspectRatio": 1,
-                  "height": "50%",
-                  "justifyContent": "center",
-                  "maxHeight": 24,
-                  "minHeight": 8,
-                  "opacity": 0,
-                }
-              }
-              testID="badgenetwork"
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
-                    "borderRadius": 8,
-                    "borderWidth": 2,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "overflow": "hidden",
-                    "shadowColor": "#0000001a",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 1,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                    "width": 32,
-                  }
-                }
-              >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source={1}
-                  style={
-                    {
-                      "height": 32,
-                      "width": 32,
-                    }
-                  }
-                  testID="network-avatar-image"
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            {
-              "alignContent": "flex-start",
-              "alignItems": "flex-start",
-              "flex": 1,
-              "flexDirection": "column",
-              "paddingLeft": 16,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Ethereum
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "Geist Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-            testID="token-amount-balance-test-id"
-          >
-            400 ETH
-          </Text>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "flex-end",
-              "flexShrink": 0,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-            testID="balance-test-id"
-          >
-            1500
-          </Text>
-        </View>
-      </TouchableOpacity>
+        400
+      </Text>
+      <Text
+        testID="balance-test-id"
+      >
+        1500
+      </Text>
+      <Text
+        testID="token-amount-balance-test-id"
+      >
+        400 ETH
+      </Text>
     </View>
     <View
       style={

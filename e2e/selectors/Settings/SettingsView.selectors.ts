@@ -12,7 +12,6 @@ export const SettingsViewSelectorsIDs = {
   SECURITY: 'security-settings',
   ADVANCED: 'advanced-settings',
   CONTACTS: 'contacts-settings',
-  NETWORKS: 'networks-settings',
   ON_RAMP: 'on-ramp-settings',
   EXPERIMENTAL: 'experimental-settings',
   ABOUT_METAMASK: 'about-metamask-settings',
@@ -23,5 +22,6 @@ export const SettingsViewSelectorsIDs = {
   AES_CRYPTO_TEST_FORM: 'aes-crypto-settings',
   PERMISSIONS: 'permissions',
   BACKUP_AND_SYNC: 'backup-and-sync-settings',
+  DEVELOPER_OPTIONS: 'developer-options-settings',
   SNAPS: 'snaps',
 };

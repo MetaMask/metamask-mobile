@@ -2,7 +2,6 @@ import {
   TransactionParams,
   TransactionController,
   TransactionMeta,
-  TransactionType,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import {
@@ -24,23 +23,26 @@ import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import { RAMPS_SEND } from '../../components/UI/Ramp/Aggregator/constants';
-import { Messenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/messenger';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
-import { isPerDappSelectedNetworkEnabled } from '../networks';
 import { isLegacyTransaction } from '../transactions';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
-export type AllowedActions = never;
+type AllowedActions = never;
 
-export type AllowedEvents = SmartTransactionsControllerSmartTransactionEvent;
+type AllowedEvents = SmartTransactionsControllerSmartTransactionEvent;
 
 export interface SubmitSmartTransactionRequest {
   transactionMeta: TransactionMeta;
   signedTransactionInHex?: Hex;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
-  controllerMessenger: Messenger<AllowedActions, AllowedEvents>;
+  controllerMessenger: Messenger<
+    'SmartPublishHook',
+    AllowedActions,
+    AllowedEvents
+  >;
   shouldUseSmartTransaction: boolean;
   approvalController: ApprovalController;
   featureFlags: {
@@ -180,9 +182,7 @@ class SmartTransactionHook {
     if (
       !this.#shouldUseSmartTransaction ||
       this.#transactionMeta.origin === RAMPS_SEND ||
-      isLegacyTransaction(this.#transactionMeta) ||
-      this.#transactionMeta.type === TransactionType.bridge ||
-      this.#transactionMeta.type === TransactionType.bridgeApproval
+      isLegacyTransaction(this.#transactionMeta)
     ) {
       return useRegularTransactionSubmit;
     }
@@ -353,9 +353,7 @@ class SmartTransactionHook {
       return await this.#smartTransactionsController.getFees(
         { ...this.#txParams, chainId: this.#chainId },
         undefined,
-        isPerDappSelectedNetworkEnabled()
-          ? { networkClientId: this.#transactionMeta.networkClientId }
-          : undefined,
+        { networkClientId: this.#transactionMeta.networkClientId },
       );
     } catch (error) {
       return undefined;

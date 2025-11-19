@@ -72,6 +72,10 @@ export enum TraceName {
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SampleFeatureListPetNames = 'Sample Feature List Pet Names',
+  SampleFeatureAddPetName = 'Sample Feature Add Pet Name',
+  ///: END:ONLY_INCLUDE_IF
   OnboardingNewSocialAccountExists = 'Onboarding - New Social Account Exists',
   OnboardingNewSocialCreateWallet = 'Onboarding - New Social Create Wallet',
   OnboardingNewSrpCreateWallet = 'Onboarding - New SRP Create Wallet',
@@ -163,6 +167,38 @@ export enum TraceName {
   PerpsWithdrawView = 'Perps Withdraw View',
   PerpsConnectionEstablishment = 'Perps Connection Establishment',
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
+  // Predict
+  PredictFeedView = 'Predict Feed View',
+  PredictMarketDetailsView = 'Predict Market Details View',
+  PredictBuyPreviewView = 'Predict Buy Preview View',
+  PredictSellPreviewView = 'Predict Sell Preview View',
+  PredictActivityDetailView = 'Predict Activity Detail View',
+  PredictTransactionHistoryView = 'Predict Transaction History View',
+  PredictTabView = 'Predict Tab View',
+  PredictAddFundsModal = 'Predict Add Funds Modal',
+  PredictUnavailableModal = 'Predict Unavailable Modal',
+  PredictOrderSubmissionToast = 'Predict Order Submission Toast',
+  PredictOrderConfirmationToast = 'Predict Order Confirmation Toast',
+  PredictCashoutSubmissionToast = 'Predict Cashout Submission Toast',
+  PredictCashoutConfirmationToast = 'Predict Cashout Confirmation Toast',
+
+  // Predict Operations
+  PredictPlaceOrder = 'Predict Place Order',
+  PredictOrderPreview = 'Predict Order Preview',
+  PredictClaim = 'Predict Claim',
+  PredictDeposit = 'Predict Deposit',
+  PredictWithdraw = 'Predict Withdraw',
+
+  // Predict Data Fetches
+  PredictGetMarkets = 'Predict Get Markets',
+  PredictGetMarket = 'Predict Get Market',
+  PredictGetPositions = 'Predict Get Positions',
+  PredictGetActivity = 'Predict Get Activity',
+  PredictGetBalance = 'Predict Get Balance',
+  PredictGetAccountState = 'Predict Get Account State',
+  PredictGetPriceHistory = 'Predict Get Price History',
+  PredictGetPrices = 'Predict Get Prices',
+  PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
 }
 
 export enum TraceOperation {
@@ -185,6 +221,10 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
   DiscoverAccounts = 'discover.accounts',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SampleFeatureListPetNames = 'sample.feature.list.pet.names',
+  SampleFeatureAddPetName = 'sample.feature.add.pet.name',
+  ///: END:ONLY_INCLUDE_IF
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
@@ -200,6 +240,10 @@ export enum TraceOperation {
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
+  // Predict
+  PredictOperation = 'predict.operation',
+  PredictOrderSubmission = 'predict.order_submission',
+  PredictDataFetch = 'predict.data_fetch',
 }
 
 const ID_DEFAULT = 'default';

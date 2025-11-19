@@ -8,6 +8,8 @@ import {
   Linking,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { createStyles } from './styles';
 import Text, {
   TextVariant,
@@ -17,13 +19,13 @@ import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Authentication } from '../../../core';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import Logger from '../../../util/Logger';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,
@@ -52,19 +54,21 @@ const WalletRestored = () => {
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
-      await Authentication.appTriggeredAuth();
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    } catch (e) {
-      // we were not able to log in automatically so we will go back to login
-      navigation.replace(Routes.ONBOARDING.LOGIN);
+      await FilesystemStorage.removeItem(MIGRATION_ERROR_HAPPENED);
+    } catch (error) {
+      Logger.error(error as Error, 'Failed to clear migration error flag');
     }
+
+    navigation.replace(Routes.ONBOARDING.LOGIN, {
+      isVaultRecovery: true,
+    });
   }, [navigation]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {
     Linking.openURL(SRP_GUIDE_URL);
   }, []);
 
-  const handleOnNext = useCallback(async (): Promise<void> => {
+  const handleOnNext = useCallback((): void => {
     setLoading(true);
     trackEvent(
       createEventBuilder(
@@ -73,7 +77,7 @@ const WalletRestored = () => {
         .addProperties({ ...deviceMetaData })
         .build(),
     );
-    await finishWalletRestore();
+    finishWalletRestore();
   }, [deviceMetaData, finishWalletRestore, trackEvent, createEventBuilder]);
 
   return (

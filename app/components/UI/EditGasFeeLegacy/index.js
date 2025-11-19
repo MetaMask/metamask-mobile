@@ -489,8 +489,8 @@ const EditGasFeeLegacy = ({
                 showRangeInfoModal === 'gas_limit'
                   ? strings('edit_gas_fee_eip1559.gas_limit')
                   : showRangeInfoModal === 'gas_price'
-                  ? strings('edit_gas_fee_eip1559.gas_price')
-                  : null
+                    ? strings('edit_gas_fee_eip1559.gas_price')
+                    : null
               }
               toggleModal={() => setShowRangeInfoModal(null)}
               body={

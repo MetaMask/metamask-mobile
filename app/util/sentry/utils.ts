@@ -110,10 +110,6 @@ export const sentryStateMask = {
       NftController: {
         [AllProperties]: false,
       },
-      PPOMController: {
-        storageMetadata: [],
-        versionInfo: [],
-      },
       PermissionController: {
         [AllProperties]: false,
       },
@@ -406,37 +402,40 @@ export function maskObject(
     ? (Reflect.get(mask, AllProperties) as MaskValue | undefined)
     : undefined;
 
-  return Object.keys(objectToMask).reduce((maskedObject, key) => {
-    // Start with the AllProperties mask if available
-    let maskKey = allPropertiesMask;
+  return Object.keys(objectToMask).reduce(
+    (maskedObject, key) => {
+      // Start with the AllProperties mask if available
+      let maskKey = allPropertiesMask;
 
-    // If a key-specific mask exists, it overrides the AllProperties mask
-    if (mask[key] !== undefined && mask[key] !== AllProperties) {
-      maskKey = mask[key];
-    }
+      // If a key-specific mask exists, it overrides the AllProperties mask
+      if (mask[key] !== undefined && mask[key] !== AllProperties) {
+        maskKey = mask[key];
+      }
 
-    const shouldPrintValue = maskKey === true;
-    const shouldIterateSubMask =
-      maskKey !== AllProperties &&
-      Boolean(maskKey) &&
-      typeof maskKey === 'object';
-    const shouldPrintType = maskKey === undefined || maskKey === false;
+      const shouldPrintValue = maskKey === true;
+      const shouldIterateSubMask =
+        maskKey !== AllProperties &&
+        Boolean(maskKey) &&
+        typeof maskKey === 'object';
+      const shouldPrintType = maskKey === undefined || maskKey === false;
 
-    if (shouldPrintValue) {
-      maskedObject[key] = objectToMask[key];
-    } else if (shouldIterateSubMask) {
-      maskedObject[key] = maskObject(
-        objectToMask[key] as Record<string, unknown>,
-        maskKey as Record<string, MaskValue>,
-      );
-    } else if (shouldPrintType) {
-      // For excluded fields, return their type or a placeholder
-      maskedObject[key] =
-        objectToMask[key] === null ? 'null' : typeof objectToMask[key];
-    }
+      if (shouldPrintValue) {
+        maskedObject[key] = objectToMask[key];
+      } else if (shouldIterateSubMask) {
+        maskedObject[key] = maskObject(
+          objectToMask[key] as Record<string, unknown>,
+          maskKey as Record<string, MaskValue>,
+        );
+      } else if (shouldPrintType) {
+        // For excluded fields, return their type or a placeholder
+        maskedObject[key] =
+          objectToMask[key] === null ? 'null' : typeof objectToMask[key];
+      }
 
-    return maskedObject;
-  }, {} as Record<string, unknown>);
+      return maskedObject;
+    },
+    {} as Record<string, unknown>,
+  );
 }
 
 export function rewriteReport(report: SentryEvent): SentryEvent {

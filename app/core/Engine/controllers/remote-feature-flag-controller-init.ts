@@ -3,8 +3,8 @@ import {
   ClientConfigApiService,
   ClientType,
   RemoteFeatureFlagController,
+  type RemoteFeatureFlagControllerMessenger,
 } from '@metamask/remote-feature-flag-controller';
-import { RemoteFeatureFlagControllerMessenger } from '../messengers/remote-feature-flag-controller-messenger';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';

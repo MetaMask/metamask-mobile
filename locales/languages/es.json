@@ -97,7 +97,7 @@
       "message": "Los contratos perpetuos no admiten billeteras físicas.\nCambia de cuenta para seguir depositando fondos."
     },
     "burn_address": {
-      "message": "Estás enviando tus activos a una dirección de quema. Si continúas, perderás tus activos.",
+      "message": "Estás enviando tus activos a una dirección de correo electrónico que se puede quemar. Si continúas, perderás tus activos.",
       "title": "Envío de activos a la dirección de quema"
     }
   },

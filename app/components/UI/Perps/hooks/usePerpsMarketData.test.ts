@@ -1,10 +1,28 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsTrading } from './usePerpsTrading';
+import usePerpsToasts, { type PerpsToastOptionsConfig } from './usePerpsToasts';
 import type { MarketInfo } from '../controllers/types';
 
 // Mock the usePerpsTrading hook
 jest.mock('./usePerpsTrading');
+
+// Mock usePerpsToasts hook
+jest.mock('./usePerpsToasts', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    showToast: jest.fn(),
+    PerpsToastOptions: {
+      dataFetching: {
+        market: {
+          error: {
+            marketDataUnavailable: jest.fn(),
+          },
+        },
+      },
+    },
+  })),
+}));
 
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -145,5 +163,104 @@ describe('usePerpsMarketData', () => {
 
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['ETH'] });
+  });
+
+  describe('showErrorToast parameter', () => {
+    it('should NOT show toast by default when using string parameter', async () => {
+      const error = new Error('Network error');
+      mockGetMarkets.mockRejectedValue(error);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        usePerpsMarketData('BTC'),
+      );
+
+      await waitForNextUpdate();
+
+      expect(result.current.error).toBe('Network error');
+      // Toast should not be called with default string parameter
+    });
+
+    it('should NOT show toast when showErrorToast is false', async () => {
+      const error = new Error('Network error');
+      mockGetMarkets.mockRejectedValue(error);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        usePerpsMarketData({ asset: 'BTC', showErrorToast: false }),
+      );
+
+      await waitForNextUpdate();
+
+      expect(result.current.error).toBe('Network error');
+      // Toast should not be called
+    });
+
+    it('should show toast when showErrorToast is true and error occurs', async () => {
+      const mockShowToast = jest.fn();
+      const mockToastConfig = {
+        variant: 'error' as const,
+        hasNoTimeout: false,
+      };
+      const mockMarketDataUnavailable = jest.fn(() => mockToastConfig);
+
+      // Override the mock for this test (use mockReturnValue for all calls in this test)
+      const mockedUsePerpsToasts = jest.mocked(usePerpsToasts);
+      mockedUsePerpsToasts.mockReturnValue({
+        showToast: mockShowToast,
+        PerpsToastOptions: {
+          dataFetching: {
+            market: {
+              error: {
+                marketDataUnavailable: mockMarketDataUnavailable,
+              },
+            },
+          },
+        } as unknown as PerpsToastOptionsConfig,
+      });
+
+      const error = new Error('Network error');
+      mockGetMarkets.mockRejectedValue(error);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        usePerpsMarketData({ asset: 'BTC', showErrorToast: true }),
+      );
+
+      await waitForNextUpdate();
+
+      expect(result.current.error).toBe('Network error');
+      expect(mockMarketDataUnavailable).toHaveBeenCalledWith('BTC');
+      expect(mockShowToast).toHaveBeenCalledWith(mockToastConfig);
+
+      // Reset mock to default for other tests
+      mockedUsePerpsToasts.mockReturnValue({
+        showToast: jest.fn(),
+        PerpsToastOptions: {
+          dataFetching: {
+            market: {
+              error: {
+                marketDataUnavailable: jest.fn(),
+              },
+            },
+          },
+        } as unknown as PerpsToastOptionsConfig,
+      });
+    });
+
+    it('should support both string and object parameter formats', async () => {
+      mockGetMarkets.mockResolvedValue([mockMarketData]);
+
+      // Test string format
+      const { result: stringResult, waitForNextUpdate: wait1 } = renderHook(
+        () => usePerpsMarketData('BTC'),
+      );
+      await wait1();
+      expect(stringResult.current.marketData).toEqual(mockMarketData);
+
+      // Test object format
+      const { result: objectResult, waitForNextUpdate: wait2 } = renderHook(
+        () => usePerpsMarketData({ asset: 'BTC', showErrorToast: false }),
+      );
+      await wait2();
+      expect(objectResult.current.marketData).toEqual(mockMarketData);
+    });
   });
 });

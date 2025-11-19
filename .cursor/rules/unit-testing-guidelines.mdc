@@ -185,6 +185,92 @@ jest.setSystemTime(new Date('2024-01-01'));
 
 - Avoid relying on global state or hardcoded values (e.g., dates) or mock it.
 
+## Async Testing and act() - CRITICAL
+
+**ALWAYS use `act()` when testing async operations that trigger React state updates.**
+
+### When to Use act()
+
+Use `act()` when you:
+- Call async functions via component props (e.g., `onRefresh`, `onPress` with async handlers)
+- Invoke functions that perform state updates asynchronously
+- Test pull-to-refresh or other async interactions
+
+### Symptoms of Missing act()
+
+Tests fail intermittently with:
+- `TypeError: terminated`
+- `SocketError: other side closed`
+- Warnings about state updates not being wrapped in act()
+
+### Examples
+
+```ts
+// ❌ WRONG - Causes flaky tests
+it('calls Logger.error when handleOnRefresh fails', async () => {
+  const mockLoggerError = jest.spyOn(Logger, 'error');
+  render(BankDetails);
+
+  // Async function called without act() - causes race condition
+  screen
+    .getByTestId('refresh-control-scrollview')
+    .props.refreshControl.props.onRefresh();
+
+  await waitFor(() => {
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+});
+
+// ✅ CORRECT - Properly handles async state updates
+it('calls Logger.error when handleOnRefresh fails', async () => {
+  const mockLoggerError = jest.spyOn(Logger, 'error');
+  render(BankDetails);
+
+  // Wrap async operation in act()
+  await act(async () => {
+    await screen
+      .getByTestId('refresh-control-scrollview')
+      .props.refreshControl.props.onRefresh();
+  });
+
+  await waitFor(() => {
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+});
+```
+
+### Common Patterns Requiring act()
+
+```ts
+// RefreshControl callbacks
+await act(async () => {
+  await refreshControl.props.onRefresh();
+});
+
+// Async button press handlers
+await act(async () => {
+  await button.props.onPress();
+});
+
+// Any async callback that updates state
+await act(async () => {
+  await component.props.onSomeAsyncAction();
+});
+```
+
+### Why This Matters
+
+Without `act()`:
+1. Async function starts executing
+2. Test continues and waits only for specific assertion
+3. Jest cleanup/termination happens while promises are still pending
+4. Results in "terminated" or "other side closed" errors
+
+With `act()`:
+1. React Testing Library waits for all state updates
+2. All promises resolve before test proceeds
+3. Clean, deterministic test execution
+
 # Reviewer Responsibilities
 
 - Validate that tests fail when the code is broken (test the test).
@@ -215,6 +301,7 @@ Before submitting any test file, verify:
 - [ ] **Assertions are specific**
 - [ ] **Test names are descriptive**
 - [ ] **No test duplication**
+- [ ] **Async operations wrapped in act()** when they trigger state updates
 
 # Common Mistakes to AVOID - CRITICAL
 
@@ -226,6 +313,7 @@ Before submitting any test file, verify:
 - ❌ **Not following AAA pattern** - Always Arrange, Act, Assert
 - ❌ **Not testing edge cases** - Test null, undefined, empty values
 - ❌ **Using weak matchers** - Use specific assertions like `toBe()`, `toEqual()`
+- ❌ **Not wrapping async state updates in act()** - Causes flaky "terminated" errors
 
 # Anti-patterns to Avoid
 

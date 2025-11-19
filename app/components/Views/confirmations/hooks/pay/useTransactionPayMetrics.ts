@@ -1,28 +1,31 @@
 import { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectTransactionBridgeQuotesById,
-  updateConfirmationMetric,
-} from '../../../../../core/redux/slices/confirmationMetrics';
+import { useDispatch } from 'react-redux';
+import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import { RootState } from '../../../../../reducers';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { BigNumber } from 'bignumber.js';
-import { useTokenAmount } from '../useTokenAmount';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
+import {
+  useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
+  useTransactionPayTotals,
+} from './useTransactionPayData';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
+import { BigNumber } from 'bignumber.js';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
-  const { amountPrecise } = useTokenAmount();
+  const requiredTokens = useTransactionPayRequiredTokens();
   const automaticPayToken = useRef<BridgeToken>();
+  const quotes = useTransactionPayQuotes();
+  const totals = useTransactionPayTotals();
 
   const { count: availableTokenCount } = useAutomaticTransactionPayToken({
     countOnly: true,
@@ -30,10 +33,8 @@ export function useTransactionPayMetrics() {
 
   const transactionId = transactionMeta?.id ?? '';
   const { chainId, type } = transactionMeta ?? {};
-
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
-  );
+  const primaryRequiredToken = requiredTokens.find((t) => !t.skipIfBalance);
+  const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
 
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
@@ -62,7 +63,7 @@ export function useTransactionPayMetrics() {
 
   if (payToken && type === TransactionType.perpsDeposit) {
     properties.mm_pay_use_case = 'perps_deposit';
-    properties.simulation_sending_assets_total_value = amountPrecise ?? null;
+    properties.simulation_sending_assets_total_value = sendingValue;
   }
 
   if (
@@ -70,7 +71,7 @@ export function useTransactionPayMetrics() {
     hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
   ) {
     properties.mm_pay_use_case = 'predict_deposit';
-    properties.simulation_sending_assets_total_value = amountPrecise ?? null;
+    properties.simulation_sending_assets_total_value = sendingValue;
   }
 
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
@@ -80,12 +81,27 @@ export function useTransactionPayMetrics() {
   );
 
   if (nonGasQuote) {
-    properties.mm_pay_dust_usd = new BigNumber(
-      nonGasQuote.quote?.minDestTokenAmount,
+    properties.mm_pay_dust_usd = nonGasQuote.dust.usd;
+  }
+
+  const strategy = quotes?.[0]?.strategy;
+
+  if (strategy === TransactionPayStrategy.Bridge) {
+    properties.mm_pay_strategy = 'mm_swaps_bridge';
+  }
+
+  if (strategy === TransactionPayStrategy.Relay) {
+    properties.mm_pay_strategy = 'relay';
+  }
+
+  if (totals) {
+    properties.mm_pay_network_fee_usd = new BigNumber(
+      totals.fees.sourceNetwork.estimate.usd,
     )
-      .minus(nonGasQuote.request?.targetAmountMinimum)
-      .shiftedBy(-6)
+      .plus(totals.fees.targetNetwork.usd)
       .toString(10);
+
+    properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
   }
 
   const params = useDeepMemo(

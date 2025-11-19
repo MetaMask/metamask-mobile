@@ -1,56 +1,60 @@
-import { RestrictedMessenger } from '@metamask/base-controller';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import {
-  getBackendWebSocketServiceMessenger,
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+  MOCK_ANY_NAMESPACE,
+} from '@metamask/messenger';
+import {
   getBackendWebSocketServiceInitMessenger,
+  getBackendWebSocketServiceMessenger,
 } from './backend-websocket-service-messenger';
+import { BackendWebSocketServiceMessenger } from '@metamask/core-backend';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
+
+type RootMessenger = ExtendedMessenger<
+  MockAnyNamespace,
+  MessengerActions<BackendWebSocketServiceMessenger>,
+  MessengerEvents<BackendWebSocketServiceMessenger>
+>;
+
+const getRootMessenger = (): RootMessenger =>
+  new ExtendedMessenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
 describe('getBackendWebSocketServiceMessenger', () => {
-  it('returns a restricted messenger', () => {
-    // Arrange
-    const messenger = new ExtendedControllerMessenger<never, never>();
-
-    // Act
+  it('returns a messenger', () => {
+    const rootMessenger = getRootMessenger();
     const backendWebSocketServiceMessenger =
-      getBackendWebSocketServiceMessenger(messenger);
+      getBackendWebSocketServiceMessenger(rootMessenger);
 
     // Assert
-    expect(backendWebSocketServiceMessenger).toBeInstanceOf(
-      RestrictedMessenger,
-    );
+    expect(backendWebSocketServiceMessenger).toBeInstanceOf(Messenger);
   });
 
   it('allows required actions and events', () => {
-    // Arrange
-    const messenger = new ExtendedControllerMessenger<never, never>();
-
-    // Act & Assert - no error means messenger is configured correctly
-    expect(() => getBackendWebSocketServiceMessenger(messenger)).not.toThrow();
+    const rootMessenger = getRootMessenger();
+    expect(() =>
+      getBackendWebSocketServiceMessenger(rootMessenger),
+    ).not.toThrow();
   });
 });
 
 describe('getBackendWebSocketServiceInitMessenger', () => {
-  it('returns a restricted messenger', () => {
-    // Arrange
-    const messenger = new ExtendedControllerMessenger<never, never>();
+  it('returns a messenger', () => {
+    const rootMessenger = getRootMessenger();
 
-    // Act
     const backendWebSocketServiceInitMessenger =
-      getBackendWebSocketServiceInitMessenger(messenger);
+      getBackendWebSocketServiceInitMessenger(rootMessenger);
 
-    // Assert
-    expect(backendWebSocketServiceInitMessenger).toBeInstanceOf(
-      RestrictedMessenger,
-    );
+    expect(backendWebSocketServiceInitMessenger).toBeInstanceOf(Messenger);
   });
-
   it('allows required actions', () => {
-    // Arrange
-    const messenger = new ExtendedControllerMessenger<never, never>();
+    const rootMessenger = getRootMessenger();
 
-    // Act & Assert - no error means messenger is configured correctly
     expect(() =>
-      getBackendWebSocketServiceInitMessenger(messenger),
+      getBackendWebSocketServiceInitMessenger(rootMessenger),
     ).not.toThrow();
   });
 });

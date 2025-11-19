@@ -8,7 +8,7 @@ import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '../Permissions/constants';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
 import { SnapId } from '@metamask/snaps-sdk';
-import { BaseControllerMessenger, EngineContext } from '../Engine';
+import { RootExtendedMessenger, EngineContext } from '../Engine';
 import { handleSnapRequest } from './utils';
 import { captureException } from '@sentry/react-native';
 import {
@@ -36,6 +36,8 @@ import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { Json } from '@metamask/utils';
 import { SchedulableBackgroundEvent } from '@metamask/snaps-controllers';
 import { endTrace, trace } from '../../util/trace';
+import { AppState } from 'react-native';
+import { getVersion } from 'react-native-device-info';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -49,7 +51,7 @@ export function getSnapIdFromRequest(
     */
 const snapMethodMiddlewareBuilder = (
   engineContext: EngineContext,
-  controllerMessenger: BaseControllerMessenger,
+  controllerMessenger: RootExtendedMessenger,
   origin: string,
   subjectType: SubjectType,
 ) =>
@@ -190,8 +192,20 @@ const snapMethodMiddlewareBuilder = (
       engineContext.ApprovalController.addAndShowApprovalRequest.bind(
         engineContext.ApprovalController,
       ),
-    getIsActive: () => true, // For now we consider the app to be always active.
+    getIsActive: () =>
+      AppState.currentState === 'active' &&
+      engineContext.KeyringController.isUnlocked(),
     getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
+    getVersion: () => {
+      const baseVersion = getVersion();
+      const buildType = process.env.METAMASK_BUILD_TYPE;
+
+      if (buildType === 'main' || buildType === 'qa') {
+        return baseVersion;
+      }
+
+      return `${baseVersion}-${buildType}.0`;
+    },
     getEntropySources: () => {
       const state = controllerMessenger.call('KeyringController:getState');
 

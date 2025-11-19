@@ -59,7 +59,7 @@ const handleAssetNavigation = async (symbol: string) => {
       '[handlePerpsUrl] No symbol provided, fallback to markets list',
     );
     NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKETS,
+      screen: Routes.PERPS.PERPS_HOME,
     });
     return;
   }
@@ -166,7 +166,7 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
       case 'markets':
         DevLogger.log('[handlePerpsUrl] Navigating to markets list');
         NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKETS,
+          screen: Routes.PERPS.PERPS_HOME,
         });
         break;
 
@@ -191,7 +191,7 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     DevLogger.log('Failed to handle perps deeplink:', error);
     // Fallback to markets list on error
     NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKETS,
+      screen: Routes.PERPS.PERPS_HOME,
     });
   }
 };

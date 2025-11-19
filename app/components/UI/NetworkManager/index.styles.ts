@@ -75,6 +75,20 @@ const createStyles = (params: { theme: Theme }) => {
     textCentred: {
       textAlign: 'center',
     },
+    // RPC modal styles
+    rpcMenu: {
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+    },
+    cellBorder: { borderWidth: 0, paddingTop: 10, paddingBottom: 5 },
+    baseHeader: { paddingVertical: 8 },
+    rpcText: {
+      width: '100%',
+    },
+    alternativeText: {
+      color: textAlternative,
+    },
   });
 };
 

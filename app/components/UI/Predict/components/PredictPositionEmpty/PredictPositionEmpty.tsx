@@ -8,25 +8,28 @@ import Button, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import styleSheet from './PredictPositionEmpty.styles';
+import PredictionsDark from '../../../../../images/predictions-dark.svg';
+import PredictionsLight from '../../../../../images/predictions-light.svg';
+import { useAssetFromTheme } from '../../../../../util/theme';
+import { PredictEventValues } from '../../constants/eventNames';
 
 interface PredictPositionEmptyProps {}
 
 const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const ThemedPredictions = useAssetFromTheme(
+    PredictionsLight,
+    PredictionsDark,
+  );
 
   return (
     <Box testID="predict-position-empty" style={styles.emptyState}>
-      <Icon
-        name={IconName.Sparkle}
-        size={IconSize.XXL}
-        color={IconColor.Muted}
+      <ThemedPredictions
+        testID="icon"
+        width={72}
+        height={72}
         style={styles.emptyStateIcon}
       />
       <Text
@@ -40,13 +43,10 @@ const PredictPositionEmpty: React.FC<PredictPositionEmptyProps> = () => {
         variant={ButtonVariants.Secondary}
         size={ButtonSize.Lg}
         onPress={() =>
-          navigation.navigate(Routes.WALLET.HOME, {
-            screen: Routes.WALLET.TAB_STACK_FLOW,
+          navigation.navigate(Routes.PREDICT.ROOT, {
+            screen: Routes.PREDICT.MARKET_LIST,
             params: {
-              screen: Routes.PREDICT.ROOT,
-              params: {
-                screen: Routes.PREDICT.MARKET_LIST,
-              },
+              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
             },
           })
         }

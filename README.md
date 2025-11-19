@@ -29,6 +29,26 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 
 ## Getting started
 
+### Infura Project Setup
+
+MetaMask Mobile requires an Infura project ID to connect to blockchain networks.
+
+#### Internal Contributors
+
+1. Grab the `.js.env` file from 1Password, ask around for the correct vault. This file contains the `MM_INFURA_PROJECT_ID`.
+
+#### External Contributors
+
+1. Go to [https://developer.metamask.io](https://developer.metamask.io) and create an account
+2. Generate an API key
+3. Add API key to `MM_INFURA_PROJECT_ID` in `.js.env.example`
+4. Rename `.js.env.example` to `.js.env`
+5. Rebuild the app
+
+[!CAUTION]
+
+> Without an Infura project ID, the app cannot connect to blockchain networks.
+
 ### Using Expo (recommended)
 
 Expo is the fastest way to start developing. With the Expo framework, developers don't need to compile the native side of the application as before, hence no need for any native environment setup, developers only need to download a precompiled development build and run the javascript bundler. The development build will then connect with the bundler to load the javascript code.

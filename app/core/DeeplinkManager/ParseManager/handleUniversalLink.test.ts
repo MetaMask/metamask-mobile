@@ -10,7 +10,9 @@ import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
+import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 
+jest.mock('./handleMetaMaskDeeplink');
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/SDKConnect');
@@ -47,6 +49,7 @@ describe('handleUniversalLinks', () => {
   const mockHandleCreateAccount = jest.fn();
   const mockHandlePerps = jest.fn();
   const mockHandleRewards = jest.fn();
+  const mockHandlePredict = jest.fn();
   const mockHandleFastOnboarding = jest.fn();
   const mockHandleEnableCardButton = jest.fn();
   const mockConnectToChannel = jest.fn();
@@ -57,6 +60,10 @@ describe('handleUniversalLinks', () => {
   const mockBindAndroidSDK = jest.fn();
 
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
+  const mockHandleMetaMaskDeeplink =
+    handleMetaMaskDeeplink as jest.MockedFunction<
+      typeof handleMetaMaskDeeplink
+    >;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;
 
@@ -71,6 +78,7 @@ describe('handleUniversalLinks', () => {
     _handleCreateAccount: mockHandleCreateAccount,
     _handlePerps: mockHandlePerps,
     _handleRewards: mockHandleRewards,
+    _handlePredict: mockHandlePredict,
     _handleFastOnboarding: mockHandleFastOnboarding,
     _handleEnableCardButton: mockHandleEnableCardButton,
   } as unknown as DeeplinkManager;
@@ -117,6 +125,42 @@ describe('handleUniversalLinks', () => {
     });
 
     url = 'https://metamask.app.link';
+  });
+
+  describe('SDK Actions', () => {
+    const testCases = [
+      { action: ACTIONS.ANDROID_SDK },
+      { action: ACTIONS.CONNECT },
+      { action: ACTIONS.MMSDK },
+    ] as const;
+
+    it.each(testCases)(
+      'calls handleMetaMaskDeeplink when deeplink is $url',
+      async ({ action }) => {
+        const url = `https://link.metamask.io/${action}`;
+        const expectedMappedUrl = `metamask://${action}`;
+        const { urlObj, params } = extractURLParams(expectedMappedUrl);
+        const wcURL = params?.uri || urlObj.href;
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj,
+          browserCallBack: mockBrowserCallBack,
+          url,
+          source: 'origin',
+        });
+
+        expect(mockHandleMetaMaskDeeplink).toHaveBeenCalledWith({
+          instance,
+          handled,
+          wcURL,
+          origin: 'origin',
+          params,
+          url: expectedMappedUrl,
+        });
+      },
+    );
   });
 
   describe('ACTIONS.BUY_CRYPTO', () => {
@@ -536,6 +580,108 @@ describe('handleUniversalLinks', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockHandleRewards).toHaveBeenCalledWith('?referral=code123');
+    });
+  });
+
+  describe('ACTIONS.PREDICT', () => {
+    it('calls _handlePredict when action is PREDICT without market parameter', async () => {
+      const predictUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PREDICT}`;
+      const predictUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: predictUrl,
+        pathname: `/${ACTIONS.PREDICT}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: predictUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: predictUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandlePredict).toHaveBeenCalledWith('', 'test-source');
+    });
+
+    it('calls _handlePredict when action is PREDICT with market parameter', async () => {
+      const predictUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PREDICT}?market=23246`;
+      const predictUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: predictUrl,
+        pathname: `/${ACTIONS.PREDICT}`,
+        search: '?market=23246',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: predictUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: predictUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandlePredict).toHaveBeenCalledWith(
+        '?market=23246',
+        'test-source',
+      );
+    });
+
+    it('calls _handlePredict when action is PREDICT with marketId parameter', async () => {
+      const predictUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PREDICT}?marketId=12345`;
+      const predictUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: predictUrl,
+        pathname: `/${ACTIONS.PREDICT}`,
+        search: '?marketId=12345',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: predictUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: predictUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandlePredict).toHaveBeenCalledWith(
+        '?marketId=12345',
+        'test-source',
+      );
+    });
+
+    it('calls _handlePredict with full query string when multiple parameters present', async () => {
+      const predictUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PREDICT}?market=23246&utm_source=campaign`;
+      const predictUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: predictUrl,
+        pathname: `/${ACTIONS.PREDICT}`,
+        search: '?market=23246&utm_source=campaign',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: predictUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: predictUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandlePredict).toHaveBeenCalledWith(
+        '?market=23246&utm_source=campaign',
+        'test-source',
+      );
     });
   });
 
