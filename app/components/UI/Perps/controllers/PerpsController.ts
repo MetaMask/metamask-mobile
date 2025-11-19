@@ -745,7 +745,7 @@ export class PerpsController extends BaseController<
     // Subscribe to FeatureFlagOverrideController state changes
     this.messenger.subscribe(
       'FeatureFlagOverrideController:stateChange',
-      this.refreshHip3ConfigOnOverrideChange.bind(this),
+      this.refreshHip3ConfigOnFeatureFlagChange.bind(this),
     );
 
     this.providers = new Map();
@@ -798,35 +798,10 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Refresh HIP-3 configuration when override changes.
-   * This method checks for overrides first, then falls back to remote flags.
-   *
-   */
-  private refreshHip3ConfigOnOverrideChange(): void {
-    // Refresh config - override controller now manages remote state internally
-    this.refreshHip3ConfigWithOverrides();
-  }
-
-  /**
-   * Refresh HIP-3 configuration when remote feature flags change.
-   * This method extracts HIP-3 settings from remote flags, validates them,
-   * and updates internal state if they differ from current values.
-   * When config changes, increments hip3ConfigVersion to trigger ConnectionManager reconnection.
-   *
-   * Follows the "sticky remote" pattern: once remote config is loaded, never downgrade to fallback.
-   *
-   * @param remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
-   */
-  private refreshHip3ConfigOnFeatureFlagChange(): void {
-    // Refresh config - override controller now manages remote state internally
-    this.refreshHip3ConfigWithOverrides();
-  }
-
-  /**
    * Refresh HIP-3 configuration with overrides applied.
    * Checks for overrides first, then falls back to remote flags.
    */
-  private refreshHip3ConfigWithOverrides(): void {
+  private refreshHip3ConfigOnFeatureFlagChange(): void {
     // Get override controller and use the enhanced method to get version-gated flag
     const overrideController = Engine.context.FeatureFlagOverrideController;
     const equityFlag =
