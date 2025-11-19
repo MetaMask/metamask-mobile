@@ -1110,7 +1110,18 @@ describe('MetaMetrics', () => {
         }
         await metaMetrics.restoreMetricsOptInPriorReset();
         expect(metaMetrics.isEnabled()).toBe(expectedEnabled);
-        expect(await StorageWrapper.getItem(METRICS_OPT_IN)).toBe(priorState);
+
+        // no update when priorState is the same as currentState
+        if (priorState === currentState) {
+          expect(await StorageWrapper.getItem(METRICS_OPT_IN)).toBe(
+            currentState,
+          );
+        } else {
+          const expectedState = priorState === AGREED ? AGREED : DENIED;
+          expect(await StorageWrapper.getItem(METRICS_OPT_IN)).toBe(
+            expectedState,
+          );
+        }
       },
     );
 
