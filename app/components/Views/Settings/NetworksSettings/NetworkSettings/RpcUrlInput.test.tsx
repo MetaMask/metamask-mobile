@@ -12,7 +12,7 @@ describe('RpcUrlInput', () => {
     jest.clearAllMocks();
   });
 
-  it('should not show an error when a valid RPC URL is pasted', async () => {
+  it('does not show an error when a valid RPC URL is pasted', async () => {
     mockCheckIfNetworkExists.mockResolvedValue([]);
     mockCheckIfRpcUrlExists.mockResolvedValue([]);
 
@@ -64,7 +64,7 @@ describe('RpcUrlInput', () => {
       existingRPCs: [{ network: 'mainnet' }],
     },
   ])(
-    'should show an error when the RPC URL $description',
+    'shows an error when the RPC URL $description',
     async ({ rpcUrl, errorMessage, existingNetworks, existingRPCs }) => {
       mockCheckIfNetworkExists.mockResolvedValue(existingNetworks);
       mockCheckIfRpcUrlExists.mockResolvedValue(existingRPCs);
