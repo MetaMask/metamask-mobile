@@ -75,6 +75,10 @@ jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
 jest.mock('../components/Onboarding/MailingAddress', () => 'MailingAddress');
+jest.mock(
+  '../components/Onboarding/VerifyingRegistration',
+  () => 'VerifyingRegistration',
+);
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
 jest.mock('../components/Onboarding/KYCWebview', () => 'KYCWebview');
 
@@ -140,6 +144,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       PERSONAL_DETAILS: 'PERSONAL_DETAILS',
       PHYSICAL_ADDRESS: 'PHYSICAL_ADDRESS',
       MAILING_ADDRESS: 'MAILING_ADDRESS',
+      VERIFYING_REGISTRATION: 'VERIFYING_REGISTRATION',
       COMPLETE: 'COMPLETE',
       WEBVIEW: 'WEBVIEW',
     },

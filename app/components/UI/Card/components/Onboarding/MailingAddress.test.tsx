@@ -393,6 +393,7 @@ const createTestStore = (initialState = {}) =>
 
 // Mock functions
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -419,6 +420,7 @@ describe('MailingAddress Component', () => {
     // Mock navigation
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
     } as unknown as ReturnType<typeof useNavigation>);
 
     // Mock useRegisterMailingAddress
@@ -1331,11 +1333,16 @@ describe('MailingAddress Component', () => {
         fireEvent.press(button);
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          'CardOnboardingVerifyingRegistration',
-        );
-      });
+      // Wait for token storage and Redux updates before navigation
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [{ name: 'CardOnboardingVerifyingRegistration' }],
+          });
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('navigates to sign up when Onboarding ID not found error occurs', async () => {
@@ -1414,10 +1421,10 @@ describe('MailingAddress Component', () => {
   });
 
   describe('Input Change Handler Error Resets', () => {
-    let mockReset: jest.Mock;
+    let mockResetHandler: jest.Mock;
 
     beforeEach(() => {
-      mockReset = jest.fn();
+      mockResetHandler = jest.fn();
       mockUseRegisterMailingAddress.mockReturnValue({
         registerAddress: jest.fn(),
         isLoading: false,
@@ -1425,7 +1432,7 @@ describe('MailingAddress Component', () => {
         isError: false,
         error: null,
         clearError: jest.fn(),
-        reset: mockReset,
+        reset: mockResetHandler,
       });
     });
 
@@ -1439,7 +1446,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('address-line-1-input');
       fireEvent.changeText(input, '123 Main St');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when address line 2 changes', () => {
@@ -1452,7 +1459,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('address-line-2-input');
       fireEvent.changeText(input, 'Apt 4B');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when city changes', () => {
@@ -1465,7 +1472,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('city-input');
       fireEvent.changeText(input, 'San Francisco');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when state changes', () => {
@@ -1478,7 +1485,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('state-select');
       fireEvent.press(input);
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
 
     it('calls reset when zip code changes', () => {
@@ -1491,7 +1498,7 @@ describe('MailingAddress Component', () => {
       const input = getByTestId('zip-code-input');
       fireEvent.changeText(input, '94102');
 
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetHandler).toHaveBeenCalled();
     });
   });
 
@@ -1731,11 +1738,16 @@ describe('MailingAddress Component', () => {
       expect(mockCreateOnboardingConsent).not.toHaveBeenCalled();
       expect(mockLinkUserToConsent).not.toHaveBeenCalled();
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          'CardOnboardingVerifyingRegistration',
-        );
-      });
+      // Wait for token storage and Redux updates before navigation
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [{ name: 'CardOnboardingVerifyingRegistration' }],
+          });
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('uses existing consent set ID from Redux when available', async () => {
