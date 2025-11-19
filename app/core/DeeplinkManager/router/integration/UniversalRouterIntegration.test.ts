@@ -14,6 +14,15 @@ jest.mock(
 );
 jest.mock('../../../../util/Logger');
 
+const mockSelectPlatformNewLinkHandlerSystemEnabled =
+  selectPlatformNewLinkHandlerSystemEnabled as jest.MockedFunction<
+    typeof selectPlatformNewLinkHandlerSystemEnabled
+  >;
+const mockSelectPlatformNewLinkHandlerActions =
+  selectPlatformNewLinkHandlerActions as jest.MockedFunction<
+    typeof selectPlatformNewLinkHandlerActions
+  >;
+
 describe('UniversalRouterIntegration', () => {
   let mockRouter: jest.Mocked<UniversalRouter>;
   let mockDeeplinkManager: DeeplinkManager;
@@ -44,9 +53,7 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectPlatformNewLinkHandlerSystemEnabled as jest.Mock).mockReturnValue(
-        true,
-      );
+      mockSelectPlatformNewLinkHandlerSystemEnabled.mockReturnValue(true);
 
       expect(UniversalRouterIntegration.shouldUseNewRouter()).toBe(true);
     });
@@ -55,9 +62,7 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectPlatformNewLinkHandlerSystemEnabled as jest.Mock).mockReturnValue(
-        false,
-      );
+      mockSelectPlatformNewLinkHandlerSystemEnabled.mockReturnValue(false);
 
       expect(UniversalRouterIntegration.shouldUseNewRouter()).toBe(false);
     });
@@ -68,10 +73,8 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectPlatformNewLinkHandlerSystemEnabled as jest.Mock).mockReturnValue(
-        true,
-      );
-      (selectPlatformNewLinkHandlerActions as jest.Mock).mockReturnValue({
+      mockSelectPlatformNewLinkHandlerSystemEnabled.mockReturnValue(true);
+      mockSelectPlatformNewLinkHandlerActions.mockReturnValue({
         home: true,
       });
       mockRouter.route.mockResolvedValue({
@@ -102,9 +105,7 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectPlatformNewLinkHandlerSystemEnabled as jest.Mock).mockReturnValue(
-        false,
-      );
+      mockSelectPlatformNewLinkHandlerSystemEnabled.mockReturnValue(false);
 
       const result = await UniversalRouterIntegration.processWithNewRouter(
         'metamask://home',
@@ -121,10 +122,8 @@ describe('UniversalRouterIntegration', () => {
       (ReduxService.store.getState as jest.Mock).mockReturnValue({
         some: 'state',
       });
-      (selectPlatformNewLinkHandlerSystemEnabled as jest.Mock).mockReturnValue(
-        true,
-      );
-      (selectPlatformNewLinkHandlerActions as jest.Mock).mockReturnValue({
+      mockSelectPlatformNewLinkHandlerSystemEnabled.mockReturnValue(true);
+      mockSelectPlatformNewLinkHandlerActions.mockReturnValue({
         swap: true,
       });
       mockRouter.route.mockRejectedValue(routeError);
