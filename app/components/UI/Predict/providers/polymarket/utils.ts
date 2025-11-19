@@ -52,7 +52,6 @@ import {
   PolymarketPosition,
   TickSize,
   OrderBook,
-  RoundConfig,
 } from './types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 
@@ -1119,35 +1118,6 @@ export const roundOrderAmount = ({
   return amount;
 };
 
-export const roundOrderAmounts = ({
-  roundConfig,
-  side,
-  size,
-  price,
-}: {
-  roundConfig: RoundConfig;
-  side: Side;
-  size: number;
-  price: number;
-}): { makerAmount: number; takerAmount: number } => {
-  const rawPrice = roundDown(price, roundConfig.price);
-  const rawMakerAmt = roundDown(size, roundConfig.size);
-  let rawTakerAmt;
-  if (side === Side.BUY) {
-    rawTakerAmt = rawMakerAmt / rawPrice;
-  } else {
-    rawTakerAmt = rawMakerAmt * rawPrice;
-  }
-  rawTakerAmt = roundOrderAmount({
-    amount: rawTakerAmt,
-    decimals: roundConfig.amount,
-  });
-  return {
-    makerAmount: rawMakerAmt,
-    takerAmount: rawTakerAmt,
-  };
-};
-
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'>,
 ): Promise<OrderPreview> => {
@@ -1167,12 +1137,10 @@ export const previewOrder = async (
       asks,
       dollarAmount: size,
     });
-    const avgPrice = size / shareAmount;
-    const { makerAmount, takerAmount } = roundOrderAmounts({
-      roundConfig,
-      side,
-      size,
-      price: avgPrice,
+    const makerAmount = roundDown(size, roundConfig.size);
+    const takerAmount = roundOrderAmount({
+      amount: shareAmount,
+      decimals: roundConfig.amount,
     });
     return {
       marketId,
@@ -1201,12 +1169,10 @@ export const previewOrder = async (
     bids,
     shareAmount: size,
   });
-  const avgPrice = dollarAmount / size;
-  const { makerAmount, takerAmount } = roundOrderAmounts({
-    roundConfig,
-    side,
-    size,
-    price: avgPrice,
+  const makerAmount = roundDown(size, roundConfig.size);
+  const takerAmount = roundOrderAmount({
+    amount: dollarAmount,
+    decimals: roundConfig.amount,
   });
   return {
     marketId,
