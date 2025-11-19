@@ -35,7 +35,7 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
-import { formatPriceWithDecimals } from '../../../Predict/utils/format';
+import { formatPrice } from '../../../Predict/utils/format';
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import NetworkModals from '../../../NetworkModal';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
@@ -298,7 +298,7 @@ const TrendingTokenRowItem = ({
         </View>
         <View style={styles.rightContainer}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {formatPriceWithDecimals(token.price, {
+            {formatPrice(token.price, {
               minimumDecimals: 2,
               maximumDecimals: 4,
             })}

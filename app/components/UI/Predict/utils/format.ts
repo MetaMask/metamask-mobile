@@ -1,114 +1,108 @@
 import { Dimensions } from 'react-native';
 import { PredictSeries, Recurrence } from '../types';
-import { formatWithThreshold } from '../../../../util/assets';
 
 /**
- * Formats a percentage value with no decimals
+ * Formats a percentage value
  * @param value - Raw percentage value (e.g., 5.25 for 5.25%, not 0.0525)
- * @returns Format: "X%" with no decimals
- * - For values >= 99: ">99%"
- * - For values < 1 (but > 0): "<1%"
- * - For negative values: rounded normally (e.g., "-3%", "-99%")
- * @example formatPercentage(5.25) => "5%"
- * @example formatPercentage(99.5) => ">99%"
- * @example formatPercentage(0.5) => "<1%"
- * @example formatPercentage(-2.75) => "-3%"
- * @example formatPercentage(-99.5) => "-100%"
- * @example formatPercentage(0) => "0%"
+ * @param options - Optional formatting options
+ * @param options.truncate - Whether to truncate values with >99% and <1% (default: false)
+ * @returns Format depends on truncate option:
+ * - truncate=false (default): Shows actual percentage with up to 2 decimals, hides decimals for integers
+ * - truncate=true: ">99%" for values >= 99, "<1%" for values < 1, rounded integer otherwise
+ * @example formatPercentage(5.25) => "5.25%"
+ * @example formatPercentage(5.25, { truncate: true }) => "5%"
+ * @example formatPercentage(99.5) => "99.5%"
+ * @example formatPercentage(99.5, { truncate: true }) => ">99%"
+ * @example formatPercentage(0.5) => "0.5%"
+ * @example formatPercentage(0.5, { truncate: true }) => "<1%"
+ * @example formatPercentage(5) => "5%"
+ * @example formatPercentage(-2.75) => "-2.75%"
+ * @example formatPercentage(-2.75, { truncate: true }) => "-3%"
  */
-export const formatPercentage = (value: string | number): string => {
+export const formatPercentage = (
+  value: string | number,
+  options?: { truncate?: boolean },
+): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
+  const truncate = options?.truncate ?? false;
 
   if (isNaN(num)) {
     return '0%';
   }
 
-  // Handle special cases for positive numbers only
-  if (num >= 99) {
-    return '>99%';
+  // Handle truncation mode (when explicitly enabled)
+  if (truncate) {
+    // Handle special cases for positive numbers only
+    if (num >= 99) {
+      return '>99%';
+    }
+
+    if (num > 0 && num < 1) {
+      return '<1%';
+    }
+
+    // Round to nearest integer
+    return `${Math.round(num)}%`;
   }
 
-  if (num > 0 && num < 1) {
-    return '<1%';
+  // Non-truncated mode: show up to 2 decimals
+  // Check if the number is an integer
+  if (num === Math.floor(num)) {
+    return `${num}%`;
   }
 
-  // Round to nearest integer
-  return `${Math.round(num)}%`;
+  // Format with up to 2 decimals, removing trailing zeros
+  const formatted = num.toFixed(2).replace(/\.?0+$/, '');
+
+  // Handle edge case: toFixed can return "-0" for very small negative numbers
+  if (formatted === '-0') {
+    return '0%';
+  }
+
+  return `${formatted}%`;
 };
 
 /**
- * Formats a price value as USD currency with exactly 2 decimal places (truncated, no rounding)
+ * Formats a price value as USD currency with rounding up to nearest cent
  * @param price - Raw numeric price value
  * @param options - Optional formatting options (kept for backwards compatibility, but not used)
- * @returns USD formatted string with exactly 2 decimals (truncated, not rounded)
- * @example formatPrice(1234.5678) => "$1,234.56"
- * @example formatPrice(0.1234) => "$0.12"
- * @example formatPrice(50000) => "$50,000.00"
- * @example formatPrice(1234.999) => "$1,234.99" (truncated, not rounded to $1,235.00)
+ * @returns USD formatted string, hiding .00 for integer values, rounding up to nearest cent for 3+ decimals
+ * @example formatPrice(1234.5678) => "$1,234.57" (rounds up from .5678)
+ * @example formatPrice(0.1234) => "$0.13" (rounds up from .1234)
+ * @example formatPrice(50000) => "$50,000" (no .00 for integers)
+ * @example formatPrice(1234.999) => "$1,235" (rounds up to next dollar)
+ * @example formatPrice(0.991) => "$1" (rounds up from .991)
  */
 export const formatPrice = (
   price: string | number,
   _options?: { minimumDecimals?: number; maximumDecimals?: number },
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
+  const maximumDecimals = _options?.maximumDecimals ?? 2;
+  const minimumDecimals = _options?.minimumDecimals;
+
   if (isNaN(num)) {
     return '$0.00';
   }
 
-  // Truncate to 2 decimal places (no rounding)
-  const truncated = Math.floor(num * 100) / 100;
+  // Round to the specified maximum decimal places
+  const multiplier = Math.pow(10, maximumDecimals);
+  const rounded = Math.round(num * multiplier) / multiplier;
 
-  // Format with exactly 2 decimal places
+  // Check if it's an integer (no decimal part)
+  const isInteger = rounded === Math.floor(rounded);
+
+  // Format with appropriate decimal places
+  // If user explicitly set minimumDecimals, use it; otherwise, show no decimals for integers
+  const minFractionDigits =
+    minimumDecimals !== undefined ? minimumDecimals : isInteger ? 0 : 2;
+
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(truncated);
-};
-
-/**
- * Formats a price value as USD currency with variable decimal places based on magnitude
- * @param price - Raw numeric price value
- * @param options - Optional formatting options
- * @param options.minimumDecimals - Minimum decimal places (default: 2, use 0 for whole numbers)
- * @param options.maximumDecimals - Maximum decimal places (default: 2 for prices >= $1000, 4 for prices < $1000)
- * @returns USD formatted string with variable decimals:
- * - Prices >= $1000: "$X,XXX.XX" (2 decimals by default)
- * - Prices < $1000: "$X.XXXX" (up to 4 decimals)
- * @example formatPrice(1234.5678) => "$1,234.57"
- * @example formatPrice(0.1234) => "$0.1234"
- * @example formatPrice(50000, { minimumDecimals: 0 }) => "$50,000"
- */
-export const formatPriceWithDecimals = (
-  price: string | number,
-  options?: { minimumDecimals?: number; maximumDecimals?: number },
-): string => {
-  const num = typeof price === 'string' ? parseFloat(price) : price;
-  const minDecimals = options?.minimumDecimals ?? 2;
-  const maxDecimals = options?.maximumDecimals ?? 4;
-  if (isNaN(num)) {
-    return minDecimals === 0 ? '$0' : '$0.00';
-  }
-
-  // For prices >= 1000, use specified minimum decimal places
-  if (num >= 1000) {
-    return formatWithThreshold(num, 1000, 'en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: minDecimals,
-      maximumFractionDigits:
-        options?.maximumDecimals ?? Math.max(minDecimals, 2),
-    });
-  }
-
-  // For prices < 1000, use up to 4 decimal places
-  return formatWithThreshold(num, 0.0001, 'en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: minDecimals,
-    maximumFractionDigits: maxDecimals,
-  });
+    minimumFractionDigits: minFractionDigits,
+    maximumFractionDigits: maximumDecimals,
+  }).format(rounded);
 };
 
 /**
