@@ -12,7 +12,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'predict.market_details.resolved_early': 'Resolved early',
       'predict.market_details.ended': 'Ended',
-      'predict.market_details.amount_on_outcome': `$${params?.amount} on ${params?.outcome}`,
+      'predict.market_details.amount_on_outcome': `${params?.amount} on ${params?.outcome}`,
       'predict.market_details.won': 'Won',
       'predict.market_details.lost': 'Lost',
     };
@@ -87,7 +87,7 @@ describe('PredictPositionResolved', () => {
       percentPnl: -50,
     });
 
-    expect(screen.getByText(/\$100\.00 on Yes/)).toBeOnTheScreen();
+    expect(screen.getByText(/\$100 on Yes/)).toBeOnTheScreen();
     expect(screen.getByText(/Ended 2 days ago/)).toBeOnTheScreen();
     expect(screen.getByText(/Lost\s+\$50/)).toBeOnTheScreen();
   });

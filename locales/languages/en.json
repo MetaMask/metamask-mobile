@@ -1787,7 +1787,7 @@
       "won": "Won",
       "lost": "Lost",
       "market_unavailable": "Market unavailable",
-      "amount_on_outcome": "${{amount}} on {{outcome}}",
+      "amount_on_outcome": "{{amount}} on {{outcome}}",
       "outcome_at_price": "{{outcome}} at {{price}}¢",
       "fee_exemption": "We don't charge any fees on this market.",
       "ended": "Ended",
