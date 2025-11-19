@@ -202,6 +202,7 @@ const TrendingTokenRowItem = ({
     // Network has been added by NetworkModals' closeModal function
     // Now navigate to Asset page
     const [caipChainId, assetIdentifier] = token.assetId.split('/');
+    const isEvmChain = caipChainId.startsWith('eip155:');
     const address = assetIdentifier?.split(':')[1] as Hex | undefined;
 
     if (address && isCaipChainId(caipChainId)) {
@@ -213,10 +214,14 @@ const TrendingTokenRowItem = ({
 
       navigation.navigate('Asset', {
         chainId: hexChainId,
-        address,
+        address: isEvmChain ? address : token.assetId,
         symbol: token.symbol,
         name: token.name,
+        image: getTrendingTokenImageUrl(token.assetId),
         decimals: token.decimals,
+        pricePercentChange1d: token.priceChangePct?.h24
+          ? parseFloat(token.priceChangePct.h24)
+          : undefined,
       });
     }
 
