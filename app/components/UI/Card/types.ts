@@ -370,7 +370,7 @@ export interface Consent {
 }
 
 export interface CreateOnboardingConsentRequest {
-  policyType: 'US' | 'global';
+  policyType: 'us' | 'global';
   onboardingId: string;
   consents: Consent[];
   tenantId: string;

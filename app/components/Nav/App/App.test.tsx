@@ -1010,7 +1010,27 @@ describe('App', () => {
       const { getByTestId } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByTestId('eligibility-failed-modal')).toBeTruthy();
+        expect(getByTestId('eligibility-failed-modal')).toBeOnTheScreen();
+      });
+    });
+
+    it('registers the ramp unsupported modal route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.ROOT_MODAL_FLOW,
+            params: {
+              screen: Routes.SHEET.UNSUPPORTED_REGION_MODAL,
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('ramp-unsupported-modal')).toBeOnTheScreen();
       });
     });
   });
