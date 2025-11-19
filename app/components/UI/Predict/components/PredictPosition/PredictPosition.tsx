@@ -49,7 +49,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {strings('predict.position_info', {
             initialValue: formatPrice(initialValue, {
-              minimumDecimals: 0,
               maximumDecimals: 2,
             }),
             outcome,

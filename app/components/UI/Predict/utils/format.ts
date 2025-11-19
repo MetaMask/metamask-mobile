@@ -78,23 +78,27 @@ export const formatPrice = (
   _options?: { minimumDecimals?: number; maximumDecimals?: number },
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
+  const maximumDecimals = _options?.maximumDecimals ?? 2;
+  const minimumDecimals = _options?.minimumDecimals ?? 2;
 
   if (isNaN(num)) {
     return '$0.00';
   }
 
-  // Round to 2 decimal places
-  const rounded = Math.round(num * 100) / 100;
+  // Round to the specified maximum decimal places
+  const multiplier = Math.pow(10, maximumDecimals);
+  const rounded = Math.round(num * multiplier) / multiplier;
 
   // Check if it's an integer (no decimal part)
   const isInteger = rounded === Math.floor(rounded);
 
   // Format with appropriate decimal places
+  // For integers, show no decimals; for non-integers, enforce minimumDecimals
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: isInteger ? 0 : 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: isInteger ? 0 : minimumDecimals,
+    maximumFractionDigits: maximumDecimals,
   }).format(rounded);
 };
 

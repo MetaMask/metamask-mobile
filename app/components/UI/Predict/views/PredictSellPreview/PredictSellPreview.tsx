@@ -64,6 +64,7 @@ const PredictSellPreview = () => {
     size,
   } = position;
 
+  const outcomeGroupTitle = outcome?.groupItemTitle ?? '';
   const outcomeTitle = title;
 
   // Prepare analytics properties for sell/cash-out action
@@ -143,9 +144,25 @@ const PredictSellPreview = () => {
 
   const currentValue = preview?.minAmountReceived ?? 0;
   const currentPrice = preview?.sharePrice ?? 0;
-  const { cashPnl, percentPnl, avgPrice } = position;
+  const { avgPrice } = position;
 
-  const signal = useMemo(() => (cashPnl >= 0 ? '+' : '-'), [cashPnl]);
+  // Recalculate PnL based on preview data
+  const cashPnl = useMemo(
+    () => currentValue - initialValue,
+    [currentValue, initialValue],
+  );
+
+  const percentPnl = useMemo(
+    () => (initialValue > 0 ? (cashPnl / initialValue) * 100 : 0),
+    [cashPnl, initialValue],
+  );
+
+  const signal = useMemo(() => {
+    if (cashPnl === 0) {
+      return '';
+    }
+    return cashPnl > 0 ? '+' : '-';
+  }, [cashPnl]);
 
   const onCashOut = useCallback(async () => {
     if (!preview) return;
@@ -259,7 +276,7 @@ const PredictSellPreview = () => {
                 variant={TextVariant.BodyMDMedium}
               >
                 {`${signal}${formatPrice(Math.abs(cashPnl), {
-                  maximumDecimals: 2,
+                  maximumDecimals: 4,
                 })} (${formatPercentage(percentPnl)})`}
               </Text>
             </>
@@ -287,11 +304,18 @@ const PredictSellPreview = () => {
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Alternative}
               >
-                {strings('predict.cashout_info', {
-                  amount: formatPrice(initialValue),
-                  outcome: outcomeSideText,
-                  initialPrice: formatCents(avgPrice),
-                })}
+                {outcomeGroupTitle
+                  ? strings('predict.cashout_info_multiple', {
+                      amount: formatPrice(initialValue),
+                      outcomeGroupTitle,
+                      outcome: outcomeSideText,
+                      initialPrice: formatCents(avgPrice),
+                    })
+                  : strings('predict.cashout_info', {
+                      amount: formatPrice(initialValue),
+                      outcome: outcomeSideText,
+                      initialPrice: formatCents(avgPrice),
+                    })}
               </Text>
             </Box>
           </Box>

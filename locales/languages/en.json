@@ -1809,6 +1809,7 @@
     "cash_out_info": "Funds will be added to your available balance",
     "at_price_per_share": "Selling {{size}} shares at {{price}}",
     "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}",
+    "cashout_info_multiple": "{{amount}} on {{outcomeGroupTitle}} • {{outcome}} at {{initialPrice}}",
     "position_info": "{{initialValue}} on {{outcome}} to win {{shares}}",
     "buy_yes": "Yes",
     "buy_no": "No",
