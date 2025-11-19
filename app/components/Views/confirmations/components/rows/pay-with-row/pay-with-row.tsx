@@ -25,7 +25,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 
 export interface PayWithRowProps {
   /**
@@ -42,7 +42,7 @@ export const PayWithRow: React.FC<PayWithRowProps> = ({
 }) => {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { formatFiat } = useTransactionPayFiat();
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
 
   const {
@@ -60,8 +60,8 @@ export const PayWithRow: React.FC<PayWithRowProps> = ({
   }, [canEdit, navigation, allowedPaymentTokens]);
 
   const balanceUsdFormatted = useMemo(
-    () => formatFiat(new BigNumber(payToken?.balanceFiat ?? '0')),
-    [formatFiat, payToken?.balanceFiat],
+    () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
+    [formatFiat, payToken?.balanceUsd],
   );
 
   if (!payToken) {

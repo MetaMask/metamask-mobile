@@ -278,11 +278,20 @@ function useIsResultReady({
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
+  const requiredTokens = useTransactionPayRequiredTokens();
   const sourceAmounts = useTransactionPaySourceAmounts();
+
+  const hasSourceAmount = sourceAmounts?.some((a) =>
+    requiredTokens.some(
+      (rt) =>
+        rt.address.toLowerCase() === a.targetTokenAddress.toLowerCase() &&
+        !rt.skipIfBalance,
+    ),
+  );
 
   return (
     !isKeyboardVisible &&
-    (isQuotesLoading || Boolean(quotes?.length) || !sourceAmounts?.length)
+    (isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount)
   );
 }
 
