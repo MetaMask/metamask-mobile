@@ -15,6 +15,7 @@ import { IndividualFiatDisplay } from '../FiatDisplay/FiatDisplay';
 import styleSheet from './BalanceChangeRow.styles';
 import AlertRow from '../../../Views/confirmations/components/UI/info-row/alert-row';
 import { RowAlertKey } from '../../../Views/confirmations/components/UI/info-row/alert-row/constants';
+import alertRowStyleSheet from '../../../Views/confirmations/components/UI/info-row/alert-row/alert-row.styles';
 
 interface BalanceChangeRowProperties extends ViewProps {
   approveMethod?: ApproveMethod;
@@ -37,6 +38,7 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
   hasIncomingTokens,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { styles: alertRowStyles } = useStyles(alertRowStyleSheet, {});
   const { asset, amount, fiatAmount, isAllApproval, isUnlimitedApproval } =
     balanceChange;
   const isERC20 = balanceChange.asset.type === AssetType.ERC20;
@@ -47,7 +49,13 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
       return null;
     }
     if (hasIncomingTokens) {
-      return <AlertRow alertField={RowAlertKey.IncomingTokens} label={label} />;
+      return (
+        <AlertRow
+          alertField={RowAlertKey.IncomingTokens}
+          label={label}
+          style={alertRowStyles.alertRowOverride}
+        />
+      );
     }
     return (
       <Text
