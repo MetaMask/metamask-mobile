@@ -11,13 +11,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
-import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -37,33 +31,17 @@ import { selectAccountsByChainId } from '../../../selectors/accountTrackerContro
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import {
-  selectChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-} from '../../../selectors/networkController';
-import { selectNetworkName } from '../../../selectors/networkInfos';
+import { selectChainId } from '../../../selectors/networkController';
 import { useParams } from '../../../util/navigation/navUtils';
-import {
-  getNetworkImageSource,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import TabBar from '../../Base/TabBar';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
-import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
-import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
-import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
-import {
-  NetworkType,
-  useNetworksByNamespace,
-} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
 import MultichainTransactionsView from '../MultichainTransactionsView';
@@ -90,43 +68,6 @@ const createStyles = (params) => {
     headerTitleContainer: {
       flex: 1,
     },
-    controlButtonOuterWrapper: {
-      flexDirection: 'row',
-      width: '100%',
-      justifyContent: 'space-between',
-      paddingVertical: 16,
-      paddingHorizontal: 8,
-    },
-    controlButton: {
-      backgroundColor: colors.background.default,
-      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
-        ? colors.border.default
-        : undefined,
-      borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
-      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
-      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
-      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
-    },
-    controlButtonDisabled: {
-      backgroundColor: colors.background.default,
-      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
-        ? colors.border.default
-        : undefined,
-      borderStyle: 'solid',
-      marginRight: 4,
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
-      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
-      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
-      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
-      opacity: 0.5,
-    },
-    networkManagerWrapper: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
     header: {
       backgroundColor: colors.background.default,
       flexDirection: 'row',
@@ -138,9 +79,6 @@ const createStyles = (params) => {
       color: colors.text.default,
       ...typography.sHeadingMD,
       fontFamily: getFontFamily(TextVariant.HeadingMD),
-    },
-    titleText: {
-      color: colors.text.default,
     },
   });
 };
@@ -160,19 +98,8 @@ const ActivityView = () => {
   );
 
   const currentChainId = useSelector(selectChainId);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const networkName = useSelector(selectNetworkName);
   const accountsByChainId = useSelector(selectAccountsByChainId);
-
-  const { enabledNetworks, getNetworkInfo, isDisabled } =
-    useCurrentNetworkInfo();
-  const { areAllNetworksSelected } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
-
-  const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   const tabViewRef = useRef();
   const params = useParams();
@@ -210,14 +137,6 @@ const ActivityView = () => {
     createEventBuilder,
   ]);
 
-  const showFilterControls = () => {
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate(...createNetworkManagerNavDetails({}));
-    } else {
-      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
-    }
-  };
-
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -251,15 +170,6 @@ const ActivityView = () => {
 
   const renderTabBar = () => <TabBar />;
 
-  // Calculate if Perps tab is currently active
-  // Perps is the last tab, so its index depends on what other tabs are shown
-  const perpsTabIndex = 2;
-  const predictTabIndex = isPerpsEnabled ? 3 : 2;
-  const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
-  const isPredictTabActive =
-    isPredictEnabled && activeTabIndex === predictTabIndex;
-  const isOrdersTabActive = activeTabIndex === 1;
-
   useFocusEffect(
     useCallback(() => {
       if (params.redirectToOrders) {
@@ -278,12 +188,6 @@ const ActivityView = () => {
       params.redirectToPerpsTransactions,
     ]),
   );
-
-  // TODO: Placeholder variable for now until we update the network enablement controller
-  const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
-  const networkImageSource = getNetworkImageSource({
-    chainId: firstEnabledChainId,
-  });
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -308,78 +212,18 @@ const ActivityView = () => {
           </View>
           <View style={styles.headerTitleContainer}>
             <TextComponent variant={TextVariant.HeadingMD}>
-              {strings('transactions_view.title')}
+              {strings('activity_view.title')}
             </TextComponent>
           </View>
         </View>
       ) : (
         <View style={[styles.header, { marginTop: insets.top }]}>
           <Text style={styles.title} variant={TextVariant.HeadingSM}>
-            {strings('transactions_view.title')}
+            {strings('activity_view.title')}
           </Text>
         </View>
       )}
       <View style={styles.wrapper}>
-        {!(isPerpsTabActive || isOrdersTabActive || isPredictTabActive) && (
-          <View style={styles.controlButtonOuterWrapper}>
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-              label={
-                <>
-                  {isRemoveGlobalNetworkSelectorEnabled() ? (
-                    <View style={styles.networkManagerWrapper}>
-                      {!areAllNetworksSelected && (
-                        <Avatar
-                          variant={AvatarVariant.Network}
-                          size={AvatarSize.Xs}
-                          name={networkName}
-                          imageSource={networkImageSource}
-                        />
-                      )}
-                      <TextComponent
-                        variant={TextVariant.BodyMDMedium}
-                        style={styles.controlButtonText}
-                        numberOfLines={1}
-                      >
-                        {enabledNetworks.length > 1
-                          ? strings('wallet.popular_networks')
-                          : (currentNetworkName ??
-                            strings('wallet.current_network'))}
-                      </TextComponent>
-                    </View>
-                  ) : (
-                    <TextComponent
-                      variant={TextVariant.BodyMDMedium}
-                      style={styles.titleText}
-                      numberOfLines={1}
-                    >
-                      {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
-                        ? strings('wallet.popular_networks')
-                        : (networkName ?? strings('wallet.current_network'))}
-                    </TextComponent>
-                  )}
-                </>
-              }
-              isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
-              onPress={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? showFilterControls
-                  : () => null
-              }
-              endIconName={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? IconName.ArrowDown
-                  : undefined
-              }
-              style={
-                isDisabled && !isMultichainAccountsState2Enabled
-                  ? styles.controlButtonDisabled
-                  : styles.controlButton
-              }
-              disabled={isDisabled && !isMultichainAccountsState2Enabled}
-            />
-          </View>
-        )}
         <ScrollableTabView
           ref={tabViewRef}
           renderTabBar={renderTabBar}
@@ -405,7 +249,7 @@ const ActivityView = () => {
           {isPerpsEnabled && (
             <PerpsConnectionProvider
               tabLabel={strings('perps.transactions.title')}
-              isVisible={isPerpsTabActive}
+              isVisible={activeTabIndex === 2}
             >
               <PerpsTransactionsView />
             </PerpsConnectionProvider>
@@ -414,7 +258,7 @@ const ActivityView = () => {
           {isPredictEnabled && (
             <PredictTransactionsView
               tabLabel={strings('predict.transactions.title')}
-              isVisible={isPredictTabActive}
+              isVisible={activeTabIndex === (isPerpsEnabled ? 3 : 2)}
             />
           )}
         </ScrollableTabView>

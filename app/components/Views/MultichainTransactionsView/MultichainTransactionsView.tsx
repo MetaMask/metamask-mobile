@@ -27,6 +27,7 @@ import PriceChartContext, {
 import MultichainBridgeTransactionListItem from '../../../components/UI/MultichainBridgeTransactionListItem';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { ActivityNetworkSelector } from '../ActivityView/NetworkSelector';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -169,6 +170,7 @@ const MultichainTransactionsView = ({
   return (
     <PriceChartProvider>
       <View style={style.wrapper}>
+        <ActivityNetworkSelector />
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList

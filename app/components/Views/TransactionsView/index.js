@@ -6,6 +6,7 @@ import { KnownCaipNamespace } from '@metamask/utils';
 import { withNavigation } from '@react-navigation/compat';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
+import { ActivityNetworkSelector } from '../ActivityView/NetworkSelector';
 import {
   TX_UNAPPROVED,
   TX_SUBMITTED,
@@ -244,6 +245,7 @@ const TransactionsView = ({
 
   return (
     <View style={styles.wrapper}>
+      <ActivityNetworkSelector />
       <Transactions
         navigation={navigation}
         transactions={allTransactions}

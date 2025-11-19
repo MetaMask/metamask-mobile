@@ -172,9 +172,7 @@ describe('ActivityView', () => {
       );
       fireEvent.press(filterControlsButton);
 
-      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        14,
-      );
+      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
       expect(spyOnCreateNetworkManagerNavDetails).toHaveBeenCalledWith({});
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         ...mockNetworkManagerNavDetails,
@@ -204,9 +202,7 @@ describe('ActivityView', () => {
       );
       fireEvent.press(filterControlsButton);
 
-      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        14,
-      );
+      expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
       expect(spyOnCreateTokenBottomSheetFilterNavDetails).toHaveBeenCalledWith(
         {},
       );

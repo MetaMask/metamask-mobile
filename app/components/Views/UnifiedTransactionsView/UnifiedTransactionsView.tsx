@@ -63,6 +63,7 @@ import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { ActivityNetworkSelector } from '../ActivityView/NetworkSelector';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
@@ -642,6 +643,7 @@ const UnifiedTransactionsView = ({
   return (
     <PriceChartProvider>
       <View style={styles.container}>
+        <ActivityNetworkSelector />
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList
