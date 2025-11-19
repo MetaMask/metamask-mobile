@@ -28,6 +28,7 @@ import {
   SET_COMPLETED_ONBOARDING,
   SetCompletedOnboardingAction,
 } from '../../../../actions/onboarding';
+import { SagaIterator } from 'redux-saga';
 
 /**
  * Initialize the Snap controller.
@@ -91,7 +92,7 @@ export const snapControllerInit: ControllerInitFunction<
     };
   }
 
-  function* ensureOnboardingCompleteSaga() {
+  function* ensureOnboardingCompleteSaga(): SagaIterator {
     const completedOnboarding: boolean = yield select(
       selectCompletedOnboarding,
     );
