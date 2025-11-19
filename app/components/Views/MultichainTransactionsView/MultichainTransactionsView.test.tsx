@@ -65,6 +65,36 @@ jest.mock('react-native', () => {
 
 jest.mock('../../../util/networks', () => ({
   getBlockExplorerName: jest.fn(() => 'Explorer'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
+  getNetworkImageSource: jest.fn(() => ({ uri: 'test' })),
+}));
+
+jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
+  useCurrentNetworkInfo: jest.fn(() => ({
+    enabledNetworks: [{ chainId: '0x1', enabled: true }],
+    getNetworkInfo: jest.fn(() => ({ networkName: 'Test Network' })),
+    isDisabled: false,
+  })),
+}));
+
+jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: jest.fn(() => ({
+    areAllNetworksSelected: true,
+  })),
+  NetworkType: {
+    Popular: 'popular',
+  },
+}));
+
+jest.mock('../../UI/NetworkManager', () => ({
+  createNetworkManagerNavDetails: jest.fn(() => ['NetworkManager', {}]),
+}));
+
+jest.mock('../../UI/Tokens/TokensBottomSheet', () => ({
+  createTokenBottomSheetFilterNavDetails: jest.fn(() => [
+    'TokensBottomSheet',
+    {},
+  ]),
 }));
 
 describe('MultichainTransactionsView', () => {
@@ -121,7 +151,8 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return mockTransactionsData;
       }
-      return null;
+      // Return defaults for other selectors
+      return false;
     });
   });
 
@@ -133,7 +164,7 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return null;
       }
-      return null;
+      return false;
     });
 
     const { getByText } = customRender(
