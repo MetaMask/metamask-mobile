@@ -11,6 +11,7 @@ import {
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsOHLCVBar.styles';
 import type { PerpsOHLCVBarProps } from './PerpsOHLCVBar.types';
+import { strings } from '../../../../../../locales/i18n';
 
 /**
  * PerpsOHLCVBar Component
@@ -119,28 +120,28 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
       <View style={styles.labelsRow}>
         <View style={styles.column}>
           <Text style={styles.labelText} color={TextColor.Alternative}>
-            Open
+            {strings('perps.chart.ohlc.open')}
           </Text>
         </View>
         <View style={styles.column}>
           <Text style={styles.labelText} color={TextColor.Alternative}>
-            Close
+            {strings('perps.chart.ohlc.close')}
           </Text>
         </View>
         <View style={styles.column}>
           <Text style={styles.labelText} color={TextColor.Alternative}>
-            High
+            {strings('perps.chart.ohlc.high')}
           </Text>
         </View>
         <View style={styles.column}>
           <Text style={styles.labelText} color={TextColor.Alternative}>
-            Low
+            {strings('perps.chart.ohlc.low')}
           </Text>
         </View>
         {formattedValues.volume && (
           <View style={styles.column}>
             <Text style={styles.labelText} color={TextColor.Alternative}>
-              Volume
+              {strings('perps.chart.ohlc.volume')}
             </Text>
           </View>
         )}

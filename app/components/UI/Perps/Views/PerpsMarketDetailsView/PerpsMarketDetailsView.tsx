@@ -46,7 +46,10 @@ import {
   TimeDuration,
   PERPS_CHART_CONFIG,
 } from '../../constants/chartConfig';
-import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
+import {
+  PERFORMANCE_CONFIG,
+  PERPS_CONSTANTS,
+} from '../../constants/perpsConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -77,6 +80,8 @@ import PerpsNavigationCard, {
   type NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../utils/perpsErrorHandler';
 import TradingViewChart, {
   type TradingViewChartRef,
   type OhlcData,
@@ -448,7 +453,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         await refreshCandleData();
       }
     } catch (error) {
-      console.error('Failed to refresh candle data:', error);
+      Logger.error(ensureError(error), {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        message: 'Failed to refresh candle data',
+      });
     } finally {
       setRefreshing(false);
     }
@@ -601,16 +609,25 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       // Initialize deposit in the background without blocking
       depositWithConfirmation().catch((error) => {
-        console.error('Failed to initialize deposit:', error);
+        Logger.error(ensureError(error), {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          message: 'Failed to initialize deposit',
+        });
       });
     } catch (error) {
-      console.error('Failed to navigate to deposit:', error);
+      Logger.error(ensureError(error), {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        message: 'Failed to navigate to deposit',
+      });
     }
   };
 
   const handleTradingViewPress = useCallback(() => {
     Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
-      console.error('Failed to open Trading View URL:', error);
+      Logger.error(ensureError(error), {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        message: 'Failed to open Trading View URL',
+      });
     });
   }, []);
 
@@ -628,7 +645,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleChartError = useCallback(() => {
     // Log the error but don't block the UI
-    console.error('Chart rendering error in market details view');
+    Logger.error(new Error('Chart rendering error in market details view'), {
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
+    });
   }, []);
 
   // Determine market hours content key based on current status - recalculated on each render to stay current

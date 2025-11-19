@@ -1553,6 +1553,13 @@
         "minutes": "Minutes",
         "hours": "Hours",
         "days": "Days"
+      },
+      "ohlc": {
+        "open": "Open",
+        "high": "High",
+        "low": "Low",
+        "close": "Close",
+        "volume": "Volume"
       }
     },
     "cancel": "Cancel",

@@ -23,6 +23,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { strings } from '../../../../../../locales/i18n';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -513,18 +514,22 @@ const TradingViewChart = React.forwardRef<
           <Box style={styles.ohlcLegend}>
             <Box style={styles.ohlcRow}>
               <Text variant={TextVariant.BodyXs}>
-                O: {formattedOhlcData.open}
+                {strings('perps.chart.ohlc.open').charAt(0)}:{' '}
+                {formattedOhlcData.open}
               </Text>
               <Text variant={TextVariant.BodyXs}>
-                C: {formattedOhlcData.close}
+                {strings('perps.chart.ohlc.close').charAt(0)}:{' '}
+                {formattedOhlcData.close}
               </Text>
             </Box>
             <Box style={styles.ohlcRow}>
               <Text variant={TextVariant.BodyXs}>
-                H: {formattedOhlcData.high}
+                {strings('perps.chart.ohlc.high').charAt(0)}:{' '}
+                {formattedOhlcData.high}
               </Text>
               <Text variant={TextVariant.BodyXs}>
-                L: {formattedOhlcData.low}
+                {strings('perps.chart.ohlc.low').charAt(0)}:{' '}
+                {formattedOhlcData.low}
               </Text>
             </Box>
           </Box>

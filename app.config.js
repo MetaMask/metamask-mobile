@@ -47,7 +47,6 @@ module.exports = {
     bundleIdentifier: 'io.metamask.MetaMask',
     usesAppleSignIn: true,
     jsEngine: 'hermes',
-    requireFullScreen: true, // Required for iPad orientation locking
   },
   expo: {
     owner: 'metamask-test',
