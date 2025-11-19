@@ -21,7 +21,6 @@ import {
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './AssetOptions.styles';
 import { selectTokenList } from '../../../selectors/tokenListController';
-import { selectAllTokens } from '../../../selectors/tokensController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -32,19 +31,13 @@ import {
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { appendURLParams } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { removeNonEvmToken } from '../../UI/Tokens/util';
-import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
-import { areAddressesEqual } from '../../../util/address';
-import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
-import { PopularList } from '../../../util/networks/customNetworks';
-import type { RpcEndpoint } from '@metamask/network-controller/dist/NetworkController.d.cts';
-import etherscanLink from '@metamask/etherscan-link';
-import { NetworkConfiguration } from '@metamask/network-controller';
+
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
 
@@ -121,40 +114,6 @@ const AssetOptions = (props: Props) => {
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
-  const allTokens = useSelector(selectAllTokens);
-  const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
-  const selectedAccountAddress = selectedAccountAddressEvm?.address;
-  const multichainAssets = useSelector(selectMultichainAssets);
-
-  // Check if the token exists in the user's token list
-  const isTokenInList = useMemo(() => {
-    if (isNonEvmChainId(networkId)) {
-      // For non-EVM chains, check MultichainAssetsController
-      const selectedNonEvmAccount = selectInternalAccountByScope(
-        networkId as CaipChainId,
-      );
-      if (!selectedNonEvmAccount?.id) {
-        return false;
-      }
-      const accountAssets = multichainAssets?.[selectedNonEvmAccount.id] || [];
-      // Check if the address (which may be in CAIP format) exists in the account's assets
-      return accountAssets.some(
-        (assetAddress: string) => assetAddress === address,
-      );
-    }
-    const tokensByChain =
-      allTokens?.[networkId as Hex]?.[selectedAccountAddress as Hex] ?? [];
-    return tokensByChain.some((token) =>
-      areAddressesEqual(token.address, address),
-    );
-  }, [
-    allTokens,
-    networkId,
-    selectedAccountAddress,
-    address,
-    multichainAssets,
-    selectInternalAccountByScope,
-  ]);
 
   // Memoize the provider config for the token explorer
   const { providerConfigTokenExplorer } = useMemo(() => {
@@ -163,29 +122,16 @@ const AssetOptions = (props: Props) => {
         providerConfigTokenExplorer: null,
       };
     }
-    // if tokenNetworkConfig is undefined, check popularList, token can
-    // be from trending and network is not added hence it wont be in networkConfigurations
-    let tokenNetworkConfig = networkConfigurations[networkId as Hex];
-    let tokenRpcEndpoint =
+    const tokenNetworkConfig = networkConfigurations[networkId as Hex];
+    const tokenRpcEndpoint =
       tokenNetworkConfig?.rpcEndpoints?.[
         tokenNetworkConfig?.defaultRpcEndpointIndex
       ];
-    if (!tokenNetworkConfig) {
-      const popularNetwork = PopularList.find(
-        (network) => network.chainId === networkId,
-      );
-      tokenNetworkConfig = popularNetwork as unknown as NetworkConfiguration;
-      tokenRpcEndpoint = {
-        type: 'custom',
-        url: popularNetwork?.rpcUrl as unknown as string,
-        failoverUrls: popularNetwork?.failoverRpcUrls as string[],
-      } as unknown as RpcEndpoint;
-    }
-
     const providerConfigToken = createProviderConfig(
       tokenNetworkConfig,
       tokenRpcEndpoint,
     );
+
     const providerConfigTokenExplorerToken = providerConfigToken;
 
     return {
@@ -193,112 +139,26 @@ const AssetOptions = (props: Props) => {
     };
   }, [networkId, networkConfigurations]);
 
-  // this is to be removed if we eventually decide to add network before going to asset page
-  const shouldUseBlockExplorer = useMemo(() => {
-    if (!providerConfigTokenExplorer?.chainId) {
-      return false;
-    }
-    const chainIdExists = Boolean(
-      networkConfigurations[providerConfigTokenExplorer.chainId as Hex],
-    );
-
-    return chainIdExists;
-  }, [providerConfigTokenExplorer, networkConfigurations]);
-
-  // Always call the hook (React requirement), but conditionally use the result
-  const explorerResult = useBlockExplorer(
+  const explorer = useBlockExplorer(
     networkConfigurations,
     providerConfigTokenExplorer,
   );
-
-  // TODO this to be removed if we eventually decide to add network before going to asset page
-  // Use the explorer result only if chainId exists, otherwise use default/empty
-  const explorer = useMemo(() => {
-    if (shouldUseBlockExplorer) {
-      return explorerResult;
-    }
-    // based on networkId, get the block explorer url from popularList
-    const popularNetwork = PopularList.find(
-      (network) => network.chainId === networkId,
-    );
-
-    const blockExplorerUrl = popularNetwork?.rpcPrefs?.blockExplorerUrl;
-
-    // If no popular network found, return default explorer object
-    if (!popularNetwork || !blockExplorerUrl) {
-      return {
-        name: '',
-        value: null,
-        isValid: false,
-        isRPC: false,
-        baseUrl: '',
-        tx: () => '',
-        account: () => '',
-        token: () => '',
-      };
-    }
-
-    // Create callback functions similar to useBlockExplorer implementation
-    const tx = (hash: string) => {
-      if (!blockExplorerUrl) {
-        return '';
-      }
-      return etherscanLink.createCustomExplorerLink(hash, blockExplorerUrl);
-    };
-
-    const account = (accountAddress: string) => {
-      if (!blockExplorerUrl) {
-        return '';
-      }
-      return etherscanLink.createCustomAccountLink(
-        accountAddress,
-        blockExplorerUrl,
-      );
-    };
-
-    const token = (tokenAddress: string) => {
-      if (!blockExplorerUrl) {
-        return '';
-      }
-      return etherscanLink.createCustomTokenTrackerLink(
-        tokenAddress,
-        blockExplorerUrl,
-      );
-    };
-
-    return {
-      name: popularNetwork.nickname,
-      value: blockExplorerUrl,
-      isValid: true,
-      isRPC: false,
-      baseUrl: blockExplorerUrl,
-      tx,
-      account,
-      token,
-    };
-  }, [shouldUseBlockExplorer, explorerResult, networkId]);
-
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
       (async () => {
-        try {
-          if (await InAppBrowser.isAvailable()) {
-            await InAppBrowser.open(url);
-            return;
-          }
-        } catch (error) {
-          // InAppBrowser failed (e.g., already open), fallback to Webview
+        if (await InAppBrowser.isAvailable()) {
+          await InAppBrowser.open(url);
+        } else {
+          navigation.navigate('Webview', {
+            screen: 'SimpleWebview',
+            params: {
+              url,
+              title,
+            },
+          });
         }
-        // Fallback to Webview navigation
-        navigation.navigate('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url,
-            title,
-          },
-        });
       })();
     });
   };
@@ -356,43 +216,41 @@ const AssetOptions = (props: Props) => {
   };
 
   const openPortfolio = () => {
-    modalRef.current?.dismissModal(() => {
-      const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
-        isPortfolioUrl(url),
-      );
+    const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
+      isPortfolioUrl(url),
+    );
 
-      let existingTabId;
-      let newTabUrl;
-      if (existingPortfolioTab) {
-        existingTabId = existingPortfolioTab.id;
-      } else {
-        const analyticsEnabled = isEnabled();
+    let existingTabId;
+    let newTabUrl;
+    if (existingPortfolioTab) {
+      existingTabId = existingPortfolioTab.id;
+    } else {
+      const analyticsEnabled = isEnabled();
 
-        const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-          metamaskEntry: 'mobile',
-          metricsEnabled: analyticsEnabled,
-          marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-        });
-
-        newTabUrl = portfolioUrl.href;
-      }
-      const params = {
-        ...(newTabUrl && { newTabUrl }),
-        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
-        timestamp: Date.now(),
-      };
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params,
+      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
+        metamaskEntry: 'mobile',
+        metricsEnabled: analyticsEnabled,
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
       });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
-          .addProperties({
-            portfolioUrl: AppConstants.PORTFOLIO.URL,
-          })
-          .build(),
-      );
+
+      newTabUrl = portfolioUrl.href;
+    }
+    const params = {
+      ...(newTabUrl && { newTabUrl }),
+      ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+      timestamp: Date.now(),
+    };
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params,
     });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+        .addProperties({
+          portfolioUrl: AppConstants.PORTFOLIO.URL,
+        })
+        .build(),
+    );
   };
 
   const removeToken = () => {
@@ -484,7 +342,6 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
-      isTokenInList &&
       options.push({
         label: strings('asset_details.options.remove_token'),
         onPress: removeToken,

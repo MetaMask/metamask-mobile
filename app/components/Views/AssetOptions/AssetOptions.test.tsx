@@ -13,9 +13,6 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { selectAllTokens } from '../../../selectors/tokensController';
-import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
-import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
 import Logger from '../../../util/Logger';
 import { removeNonEvmToken } from '../../UI/Tokens/util';
 
@@ -184,20 +181,6 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(() => ({})),
-}));
-
-jest.mock('../../../selectors/accountsController', () => ({
-  selectLastSelectedEvmAccount: jest.fn(() => ({
-    address: '0x1234567890123456789012345678901234567890',
-  })),
-}));
-
-jest.mock('../../../selectors/multichain/multichain', () => ({
-  selectMultichainAssets: jest.fn(() => ({})),
-}));
-
 jest.mock('react-native-inappbrowser-reborn', () => ({
   isAvailable: jest.fn(),
   open: jest.fn(),
@@ -270,24 +253,10 @@ describe('AssetOptions Component', () => {
       if (
         selectorStr.includes('selectSelectedInternalAccountByScope') ||
         selectorName === 'selectSelectedInternalAccountByScope' ||
-        selectorStr.includes('selectedInternalAccountByScope') ||
-        selector === selectSelectedInternalAccountByScope
+        selectorStr.includes('selectedInternalAccountByScope')
       ) {
         return mockSelectInternalAccountByScope;
       }
-      if (selector === selectAllTokens)
-        return {
-          '0x1': {
-            '0x1234567890123456789012345678901234567890': [
-              { address: '0x123' },
-            ],
-          },
-        };
-      if (selector === selectLastSelectedEvmAccount)
-        return {
-          address: '0x1234567890123456789012345678901234567890',
-        };
-      if (selector === selectMultichainAssets) return {};
       if (selector.name === 'selectEvmChainId') return '1';
       if (selector.name === 'selectProviderConfig') return {};
       if (selector.name === 'selectTokenList')
@@ -612,10 +581,6 @@ describe('AssetOptions Component', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockAccountSelector;
         }
-        if (selector === selectMultichainAssets)
-          return {
-            'account-123': [mockNonEvmTokenAddress],
-          };
         if (selector.name === 'selectEvmChainId') return '1';
         if (selector.name === 'selectTokenList') return {};
         return {};
@@ -673,24 +638,10 @@ describe('AssetOptions Component', () => {
         if (
           selectorStr.includes('selectSelectedInternalAccountByScope') ||
           selectorName === 'selectSelectedInternalAccountByScope' ||
-          selectorStr.includes('selectedInternalAccountByScope') ||
-          selector === selectSelectedInternalAccountByScope
+          selectorStr.includes('selectedInternalAccountByScope')
         ) {
           return mockSelectInternalAccountByScope;
         }
-        if (selector === selectAllTokens)
-          return {
-            '0x1': {
-              '0x1234567890123456789012345678901234567890': [
-                { address: '0x123' },
-              ],
-            },
-          };
-        if (selector === selectLastSelectedEvmAccount)
-          return {
-            address: '0x1234567890123456789012345678901234567890',
-          };
-        if (selector === selectMultichainAssets) return {};
         if (selector.name === 'selectEvmChainId') return '0x1';
         if (selector.name === 'selectTokenList')
           return { '0x123': { symbol: 'TEST' } };
@@ -757,10 +708,6 @@ describe('AssetOptions Component', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockAccountSelector;
         }
-        if (selector === selectMultichainAssets)
-          return {
-            'account-123': [mockNonEvmTokenAddress],
-          };
         if (selector.name === 'selectEvmChainId') return '1';
         if (selector.name === 'selectTokenList') return {};
         return {};
@@ -810,24 +757,10 @@ describe('AssetOptions Component', () => {
         if (
           selectorStr.includes('selectSelectedInternalAccountByScope') ||
           selectorName === 'selectSelectedInternalAccountByScope' ||
-          selectorStr.includes('selectedInternalAccountByScope') ||
-          selector === selectSelectedInternalAccountByScope
+          selectorStr.includes('selectedInternalAccountByScope')
         ) {
           return mockSelectInternalAccountByScope;
         }
-        if (selector === selectAllTokens)
-          return {
-            '0x1': {
-              '0x1234567890123456789012345678901234567890': [
-                { address: '0x123' },
-              ],
-            },
-          };
-        if (selector === selectLastSelectedEvmAccount)
-          return {
-            address: '0x1234567890123456789012345678901234567890',
-          };
-        if (selector === selectMultichainAssets) return {};
         if (selector.name === 'selectEvmChainId') return '0x1';
         if (selector.name === 'selectTokenList')
           return { '0x123': { symbol: 'TEST' } };
