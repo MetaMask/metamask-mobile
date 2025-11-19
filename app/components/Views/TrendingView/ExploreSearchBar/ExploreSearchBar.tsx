@@ -74,7 +74,6 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       ) : (
         <>
           <TextInput
-            value={props.searchQuery}
             onChangeText={props.onSearchChange}
             placeholder={strings('trending.search_placeholder')}
             placeholderTextColor={colors.text.muted}
