@@ -1,11 +1,14 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = (_params: { theme: Theme }) =>
+const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      paddingInline: 8,
-      paddingVertical: 4,
+      borderRadius: 9999,
+      backgroundColor: params.theme.colors.background.default,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      margin: 'auto',
     },
 
     spinner: {

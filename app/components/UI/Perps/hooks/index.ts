@@ -30,7 +30,10 @@ export { usePerpsPrices } from './usePerpsPrices';
 export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
-export { usePerpsMarketData } from './usePerpsMarketData';
+export {
+  usePerpsMarketData,
+  type UsePerpsMarketDataParams,
+} from './usePerpsMarketData';
 export { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Withdrawal specific hooks

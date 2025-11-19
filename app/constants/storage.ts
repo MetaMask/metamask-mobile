@@ -3,6 +3,7 @@ const prefix = `@${mm}:`;
 const USE_TERMS_VERSION = 'v1.0';
 
 export const EXISTING_USER = `${prefix}existingUser`;
+export const MIGRATION_ERROR_HAPPENED = `${prefix}migrationErrorHappened`;
 export const BIOMETRY_CHOICE = `${prefix}biometryChoice`;
 export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 
@@ -69,6 +70,8 @@ export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;
 export const TRON_DISCOVERY_PENDING = `${prefix}tronDiscoveryPending`;
 
 export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
+
+export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 

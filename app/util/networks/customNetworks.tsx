@@ -25,6 +25,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'polygon-mainnet': () => process.env.QUICKNODE_POLYGON_URL,
   'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
   'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
+  'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -89,6 +90,19 @@ export const PopularList = [
     },
   },
   {
+    chainId: toHex('999'),
+    nickname: 'HyperEVM',
+    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
+    failoverRpcUrls: [],
+    ticker: 'HYPE',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://hyperevmscan.io/',
+      imageUrl: 'HYPE',
+      imageSource: require('../../images/hyperevm.png'),
+    },
+  },
+  {
     chainId: toHex('10'),
     nickname: 'OP',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -139,7 +153,7 @@ export const PopularList = [
     chainId: toHex('1329'),
     nickname: 'Sei',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: [],
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('sei-mainnet'),
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
@@ -350,6 +364,7 @@ export const NETWORK_CHAIN_ID: {
   readonly INJECTIVE: '0x6f0';
   readonly PLASMA: '0x2611';
   readonly CRONOS: '0x19';
+  readonly HYPE: '0x3e7';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -384,6 +399,7 @@ export const NETWORK_CHAIN_ID: {
   INJECTIVE: '0x6f0',
   PLASMA: '0x2611',
   CRONOS: '0x19',
+  HYPE: '0x3e7',
   ...CHAIN_IDS,
 };
 
@@ -424,4 +440,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.INJECTIVE]: require('../../images/injective.png'),
   [NETWORK_CHAIN_ID.PLASMA]: require('../../images/plasma.png'),
   [NETWORK_CHAIN_ID.CRONOS]: require('../../images/cronos.png'),
+  [NETWORK_CHAIN_ID.HYPE]: require('../../images/hyperevm.png'),
 };

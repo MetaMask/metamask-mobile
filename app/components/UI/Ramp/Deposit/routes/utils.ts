@@ -8,5 +8,6 @@ export function createDepositNavigationDetails(
   if (!params) {
     return [route] as const;
   }
+
   return [route, { screen: route, params }] as const;
 }

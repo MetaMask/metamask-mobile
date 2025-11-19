@@ -45,6 +45,7 @@ import {
   CardNetwork,
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
+  GetOnboardingConsentResponse,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
@@ -53,6 +54,7 @@ import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
+import { isZeroValue } from '../../../../util/number';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -132,7 +134,7 @@ export class CardSDK {
     return provider;
   }
 
-  private async getBalanceScannerInstance() {
+  private getBalanceScannerInstance() {
     const balanceScannerAddress =
       this.cardFeatureFlag.chains?.[this.lineaChainId]?.balanceScannerAddress;
 
@@ -339,7 +341,7 @@ export class CardSDK {
       foxConnectUsAddress,
     ]);
 
-    const balanceScannerInstance = await this.getBalanceScannerInstance();
+    const balanceScannerInstance = this.getBalanceScannerInstance();
     const spendersAllowancesForTokens: [boolean, string][][] =
       await balanceScannerInstance.spendersAllowancesForTokens(
         address,
@@ -585,6 +587,13 @@ export class CardSDK {
         // If we can't parse response, continue without it
       }
 
+      if (responseBody?.message?.includes('Your account has been disabled')) {
+        throw new CardError(
+          CardErrorType.ACCOUNT_DISABLED,
+          responseBody?.message,
+        );
+      }
+
       // Handle specific HTTP status codes
       if (
         response.status === 401 ||
@@ -666,8 +675,6 @@ export class CardSDK {
       );
       throw error;
     }
-
-    return;
   };
 
   authorize = async (body: {
@@ -865,7 +872,10 @@ export class CardSDK {
           'Failed to get card priority wallet details. Please try again.',
         );
       } catch (error) {
-        // If we can't parse response, continue without it
+        Logger.error(
+          error as Error,
+          'Failed to get parse external wallet details.',
+        );
       }
 
       throw new CardError(
@@ -889,7 +899,11 @@ export class CardSDK {
     const combinedDetails = externalWalletDetails
       .map((wallet: CardWalletExternalResponse) => {
         const networkLower = wallet.network?.toLowerCase();
-        if (!SUPPORTED_ASSET_NETWORKS.includes(networkLower)) {
+        if (
+          !SUPPORTED_ASSET_NETWORKS.includes(networkLower) ||
+          isNaN(parseInt(wallet.allowance)) ||
+          isZeroValue(parseInt(wallet.allowance))
+        ) {
           return null;
         }
 
@@ -948,7 +962,7 @@ export class CardSDK {
             name: tokenDetails?.name ?? '',
           },
           network: wallet.network,
-          totalAllowance: null, // Will be populated by getTotalAllowance
+          totalAllowance: null, // Will be populated later for priority token only
           delegationContractAddress:
             tokenDetails?.delegationContractAddress ?? '',
           stagingTokenAddress: tokenDetails?.stagingTokenAddress ?? '',
@@ -1015,82 +1029,73 @@ export class CardSDK {
     };
   };
 
-  // Get total allowance for a list of tokens. Used for authenticated mode.
-  // Currently only supporting Linea.
-  getTotalAllowance = async (
-    tokens: CardExternalWalletDetail[],
-  ): Promise<{ address: string; allowance: string | undefined }[]> => {
-    if (!tokens || tokens.length === 0) {
-      return [];
+  /**
+   * Get the most recent user-initiated allowance amount from approval events for a specific token.
+   * This returns the last approval value set by the user, which represents their intended spending limit.
+   * Note: ERC20 spending does not create approval events, so all approval events are user-initiated.
+   *
+   * @param walletAddress - The user's wallet address
+   * @param tokenAddress - The ERC20 token contract address
+   * @param delegationContractAddress - The delegation/spender contract address
+   * @param currentAllowance - The current remaining allowance (from API) - unused but kept for API compatibility
+   * @returns The most recent user-initiated approval value as a string (in wei), or null if no logs found
+   */
+  getLatestAllowanceFromLogs = async (
+    walletAddress: string,
+    tokenAddress: string,
+    delegationContractAddress: string,
+  ): Promise<string | null> => {
+    try {
+      const approvalInterface = new ethers.utils.Interface([
+        'event Approval(address indexed owner, address indexed spender, uint256 value)',
+      ]);
+
+      const approvalTopic = approvalInterface.getEventTopic('Approval');
+      const ownerTopic = ethers.utils.hexZeroPad(
+        walletAddress.toLowerCase(),
+        32,
+      );
+      const spenderTopic = ethers.utils.hexZeroPad(
+        delegationContractAddress.toLowerCase(),
+        32,
+      );
+
+      const spendersDeployedBlock = 2715910; // Block where the delegation contracts were deployed
+      const ethersProvider = this.getEthersProvider();
+
+      // Get all approval logs for this specific wallet + token + spender combination
+      const logs = await ethersProvider.getLogs({
+        address: tokenAddress,
+        fromBlock: spendersDeployedBlock,
+        toBlock: 'latest',
+        topics: [approvalTopic, ownerTopic, spenderTopic],
+      });
+
+      if (logs.length === 0) {
+        return null;
+      }
+
+      // Sort chronologically (newest first)
+      logs.sort((a, b) =>
+        b.blockNumber === a.blockNumber
+          ? b.logIndex - a.logIndex
+          : b.blockNumber - a.blockNumber,
+      );
+
+      // Get the most recent approval event
+      // This represents the last limit the user set, regardless of how much has been spent
+      const latestLog = logs[0];
+      const parsedLog = approvalInterface.parseLog(latestLog);
+      const value = parsedLog.args.value as ethers.BigNumber;
+
+      return value.toString();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        `getLatestAllowanceFromLogs: Failed to get latest allowance for token ${tokenAddress}`,
+      );
+      return null;
     }
-
-    const balanceScannerInstance = await this.getBalanceScannerInstance();
-
-    // Query each wallet for its specific token's allowance
-    // This avoids querying wallet A for token B's address (which doesn't make sense)
-    const promises = tokens.map(async (token) => {
-      const tokenAddress =
-        token.stagingTokenAddress ?? token.tokenDetails.address ?? '';
-
-      // Skip if not a valid EVM address (e.g., Solana addresses)
-      if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) {
-        return {
-          address: tokenAddress,
-          allowance: undefined,
-        };
-      }
-
-      try {
-        // Query this specific wallet for this specific token
-        const spendersAllowances =
-          await balanceScannerInstance.spendersAllowancesForTokens(
-            token.walletAddress,
-            [tokenAddress], // Only query for this token's address
-            [[token.delegationContractAddress ?? '']], // Only this token's delegation contract
-          );
-
-        // spendersAllowances is Result[][] - 2D array
-        // Outer array: one element per token (we queried 1 token)
-        // Inner array: one element per spender (we queried 1 spender)
-        // Each element is [success, allowance]
-        const tokenResults = spendersAllowances[0]; // First (and only) token
-        const spenderResult = tokenResults?.[0]; // First (and only) spender
-        const allowanceHex = spenderResult?.[1]; // The allowance value (hex-encoded bytes)
-
-        // Convert hex to human-readable number using token decimals
-        let allowance: string | undefined;
-        if (allowanceHex) {
-          try {
-            const allowanceBigNumber = ethers.BigNumber.from(allowanceHex);
-            // Format with token decimals (e.g., if decimals=6, divides by 10^6)
-            const decimals = token.tokenDetails.decimals ?? 18; // Default to 18 if not specified
-            allowance = ethers.utils.formatUnits(allowanceBigNumber, decimals);
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              `getTotalAllowance: Failed to parse allowance hex for token ${tokenAddress}`,
-            );
-            allowance = undefined;
-          }
-        }
-
-        return {
-          address: tokenAddress,
-          allowance,
-        };
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          `getTotalAllowance: Failed to get allowance for token ${tokenAddress} at wallet ${token.walletAddress}`,
-        );
-        return {
-          address: tokenAddress,
-          allowance: undefined,
-        };
-      }
-    });
-
-    return await Promise.all(promises);
   };
 
   provisionCard = async (): Promise<{ success: boolean }> => {
@@ -1110,7 +1115,10 @@ export class CardSDK {
         const errorResponse = await response.json();
         Logger.log(errorResponse, 'Failed to provision card.');
       } catch (error) {
-        // If we can't parse response, continue without it
+        Logger.error(
+          error as Error,
+          'Failed to parse provision card response.',
+        );
       }
 
       throw new CardError(
@@ -1238,8 +1246,6 @@ export class CardSDK {
     sigMessage: string;
     token: string;
   }): Promise<{ success: boolean }> => {
-    Logger.log('completeEVMDelegation', params);
-
     // Validate address format (must be valid Ethereum address)
     const addressRegex = /^0x[a-fA-F0-9]{40}$/;
     if (!addressRegex.test(params.address)) {
@@ -2005,17 +2011,78 @@ export class CardSDK {
     }
   };
 
+  getConsentSetByOnboardingId = async (
+    onboardingId: string,
+  ): Promise<GetOnboardingConsentResponse | null> => {
+    try {
+      const response = await this.makeRequest(
+        `/v2/consent/onboarding/${onboardingId}`,
+        {
+          method: 'GET',
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status === 404) {
+          return null;
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              'Failed to get consent set by onboarding id',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting consent set by onboarding id',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('getConsentSetByOnboardingId response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('getConsentSetByOnboardingId error', error);
+      if (error instanceof CardError) {
+        throw error;
+      }
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to get consent set by onboarding id',
+        error as Error,
+      );
+    }
+  };
+
   createOnboardingConsent = async (
-    request: CreateOnboardingConsentRequest,
+    request: Omit<CreateOnboardingConsentRequest, 'tenantId'>,
   ): Promise<CreateOnboardingConsentResponse> => {
     this.logDebugInfo('createOnboardingConsent', { request });
+    const requestBody = {
+      ...request,
+      tenantId: this.cardBaanxApiKey || 'tenant_baanx_global',
+    } as CreateOnboardingConsentRequest;
 
     try {
       const response = await this.makeRequest(
         '/v2/consent/onboarding',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestBody),
           headers: {
             'Content-Type': 'application/json',
             'x-secret-key': this.cardBaanxApiKey || '',
@@ -2132,12 +2199,11 @@ export class CardSDK {
   };
 
   private mapAPINetworkToCaipChainId(network: CardNetwork): CaipChainId {
-    switch (network) {
-      case 'solana':
-        return SOLANA_MAINNET.chainId;
-      default:
-        return this.lineaChainId;
+    if (network === 'solana') {
+      return SOLANA_MAINNET.chainId;
     }
+
+    return this.lineaChainId;
   }
 
   private getFirstSupportedTokenOrNull(): CardToken | null {

@@ -1152,6 +1152,25 @@ describe('CardSDK', () => {
       );
     });
 
+    it('throws ACCOUNT_DISABLED error when account has been disabled', async () => {
+      const disabledAccountMessage =
+        'Your account has been disabled. Please contact support.';
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({
+          message: disabledAccountMessage,
+        }),
+      });
+
+      await expect(cardSDK.login(mockLoginData)).rejects.toThrow(CardError);
+
+      await expect(cardSDK.login(mockLoginData)).rejects.toMatchObject({
+        type: CardErrorType.ACCOUNT_DISABLED,
+        message: disabledAccountMessage,
+      });
+    });
+
     it('throws error with invalid credentials', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
@@ -1753,6 +1772,48 @@ describe('CardSDK', () => {
   });
 
   describe('getCardExternalWalletDetails', () => {
+    const createMockWalletData = (
+      externalWallets: {
+        address: string;
+        currency: string;
+        allowance: string;
+        network?: string;
+      }[],
+    ) => {
+      const mockExternalWalletResponse = externalWallets.map((wallet) => ({
+        address: wallet.address,
+        currency: wallet.currency,
+        balance: '1000.00',
+        allowance: wallet.allowance,
+        network: wallet.network || 'linea',
+      }));
+
+      const mockPriorityWalletResponse = externalWallets.map(
+        (wallet, index) => ({
+          id: index + 1,
+          address: wallet.address,
+          currency: wallet.currency,
+          network: wallet.network || 'linea',
+          priority: index + 1,
+        }),
+      );
+
+      let callCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            ok: true,
+            json: jest.fn().mockResolvedValue(mockExternalWalletResponse),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockPriorityWalletResponse),
+        });
+      });
+    };
+
     it('gets external wallet details successfully', async () => {
       const mockExternalWalletResponse = [
         {
@@ -1989,6 +2050,106 @@ describe('CardSDK', () => {
       const result = await cardSDK.getCardExternalWalletDetails([]);
 
       expect(result).toEqual([]);
+    });
+
+    it.each([
+      ['invalid', 'NaN allowance'],
+      ['0', 'string zero allowance'],
+      ['0x0', 'hex zero allowance'],
+    ])(
+      'filters out wallets with %s',
+      async (invalidAllowance, _description) => {
+        createMockWalletData([
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            currency: 'USDC',
+            allowance: invalidAllowance,
+          },
+          {
+            address: '0x0987654321098765432109876543210987654321',
+            currency: 'USDT',
+            allowance: '500',
+          },
+        ]);
+
+        const result = await cardSDK.getCardExternalWalletDetails([]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].currency).toBe('USDT');
+        expect(result[0].allowance).toBe('500');
+      },
+    );
+
+    it('includes wallets with valid non-zero allowance', async () => {
+      createMockWalletData([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'USDC',
+          allowance: '500',
+        },
+        {
+          address: '0x0987654321098765432109876543210987654321',
+          currency: 'USDT',
+          allowance: '1500',
+        },
+      ]);
+
+      const result = await cardSDK.getCardExternalWalletDetails([]);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].currency).toBe('USDC');
+      expect(result[1].currency).toBe('USDT');
+    });
+
+    it('filters out multiple wallets with mixed invalid allowances', async () => {
+      createMockWalletData([
+        {
+          address: '0x1111111111111111111111111111111111111111',
+          currency: 'USDC',
+          allowance: 'abc',
+        },
+        {
+          address: '0x2222222222222222222222222222222222222222',
+          currency: 'USDT',
+          allowance: '0',
+        },
+        {
+          address: '0x3333333333333333333333333333333333333333',
+          currency: 'DAI',
+          allowance: '0x0',
+        },
+        {
+          address: '0x4444444444444444444444444444444444444444',
+          currency: 'WETH',
+          allowance: '250',
+        },
+      ]);
+
+      const result = await cardSDK.getCardExternalWalletDetails([]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].currency).toBe('WETH');
+    });
+
+    it('filters out wallets with unsupported network', async () => {
+      createMockWalletData([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          currency: 'USDC',
+          allowance: '500',
+          network: 'ethereum',
+        },
+        {
+          address: '0x0987654321098765432109876543210987654321',
+          currency: 'USDT',
+          allowance: '1000',
+        },
+      ]);
+
+      const result = await cardSDK.getCardExternalWalletDetails([]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].currency).toBe('USDT');
     });
   });
 
@@ -2550,11 +2711,10 @@ describe('CardSDK', () => {
 
   describe('createOnboardingConsent', () => {
     it('creates onboarding consent successfully', async () => {
-      const mockRequest: CreateOnboardingConsentRequest = {
-        policyType: 'US',
+      const mockRequest: Omit<CreateOnboardingConsentRequest, 'tenantId'> = {
+        policyType: 'us',
         onboardingId: 'onboarding123',
         consents: [],
-        tenantId: 'tenant_baanx_global',
         metadata: {
           userAgent: AppConstants.USER_AGENT,
           timestamp: new Date().toISOString(),
@@ -2579,17 +2739,19 @@ describe('CardSDK', () => {
         expect.stringContaining('/v2/consent/onboarding'),
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify(mockRequest),
+          body: JSON.stringify({
+            ...mockRequest,
+            tenantId: 'test-api-key',
+          }),
         }),
       );
     });
 
     it('handles create onboarding consent error', async () => {
-      const mockRequest: CreateOnboardingConsentRequest = {
-        policyType: 'US',
+      const mockRequest: Omit<CreateOnboardingConsentRequest, 'tenantId'> = {
+        policyType: 'us',
         onboardingId: 'onboarding123',
         consents: [],
-        tenantId: 'tenant_baanx_global',
         metadata: {
           userAgent: AppConstants.USER_AGENT,
           timestamp: new Date().toISOString(),
@@ -2610,6 +2772,169 @@ describe('CardSDK', () => {
         type: CardErrorType.CONFLICT_ERROR,
         message: 'Failed to create onboarding consent',
       });
+    });
+  });
+
+  describe('getConsentSetByOnboardingId', () => {
+    const onboardingId = 'onboarding123';
+
+    it('gets consent set successfully', async () => {
+      const mockResponse = {
+        consentSetId: 'consentSet123',
+        onboardingId,
+        consents: [
+          {
+            consentId: 'consent1',
+            title: 'Terms of Service',
+            accepted: true,
+          },
+        ],
+        policyType: 'us',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await cardSDK.getConsentSetByOnboardingId(onboardingId);
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/v2/consent/onboarding/${onboardingId}`),
+        expect.objectContaining({
+          method: 'GET',
+        }),
+      );
+    });
+
+    it('returns null when consent set not found (404)', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: jest.fn().mockResolvedValue({
+          message: 'Consent set not found',
+        }),
+      });
+
+      const result = await cardSDK.getConsentSetByOnboardingId(onboardingId);
+
+      expect(result).toBeNull();
+    });
+
+    it('throws CONFLICT_ERROR for 4xx errors (except 404)', async () => {
+      const errorMessage = 'Bad request - invalid onboarding id';
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          message: errorMessage,
+        }),
+      });
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.CONFLICT_ERROR,
+        message: errorMessage,
+      });
+    });
+
+    it('throws CONFLICT_ERROR with default message when response has no message', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.CONFLICT_ERROR,
+        message: 'Failed to get consent set by onboarding id',
+      });
+    });
+
+    it('throws SERVER_ERROR for 5xx errors', async () => {
+      const errorMessage = 'Internal server error';
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({
+          message: errorMessage,
+        }),
+      });
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: errorMessage,
+      });
+    });
+
+    it('throws SERVER_ERROR with default message when response parsing fails', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 503,
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+      });
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Server error while getting consent set by onboarding id',
+      });
+    });
+
+    it('handles network errors', async () => {
+      const networkError = new Error('Network failure');
+      (global.fetch as jest.Mock).mockRejectedValue(networkError);
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+        message: 'Network error. Please check your connection.',
+      });
+    });
+
+    it('handles timeout errors from makeRequest', async () => {
+      const timeoutError = new Error('Request timeout');
+      timeoutError.name = 'AbortError';
+      (global.fetch as jest.Mock).mockRejectedValue(timeoutError);
+
+      await expect(
+        cardSDK.getConsentSetByOnboardingId(onboardingId),
+      ).rejects.toMatchObject({
+        type: CardErrorType.TIMEOUT_ERROR,
+      });
+    });
+
+    it('makes unauthenticated request', async () => {
+      const mockResponse = {
+        consentSetId: 'consentSet123',
+        onboardingId,
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      await cardSDK.getConsentSetByOnboardingId(onboardingId);
+
+      // Verify it's called without Authorization header (unauthenticated)
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.not.objectContaining({
+            Authorization: expect.anything(),
+          }),
+        }),
+      );
     });
   });
 
@@ -2789,6 +3114,388 @@ describe('CardSDK', () => {
           decimals: mockSupportedTokens[0].decimals || null,
         });
       });
+    });
+  });
+
+  describe('getLatestAllowanceFromLogs', () => {
+    const mockWalletAddress = '0x1234567890123456789012345678901234567890';
+    const mockTokenAddress = '0x0987654321098765432109876543210987654321';
+    const mockDelegationContract = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset ethers mocks
+      (ethers.utils.hexZeroPad as jest.Mock).mockImplementation((val) => val);
+      (ethers.utils.Interface as unknown as jest.Mock).mockReturnValue({
+        getEventTopic: jest.fn().mockReturnValue('0xtopic'),
+        parseLog: jest.fn().mockImplementation((log) => ({
+          args: {
+            value: ethers.BigNumber.from(log.data || '0'),
+          },
+        })),
+      });
+    });
+
+    it('returns most recent approval event', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 1,
+          data: '11806489',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        }, // Most recent approval
+        {
+          blockNumber: 99,
+          logIndex: 0,
+          data: '15000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        }, // Older approval
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: (other: { toString: () => string }) =>
+          parseInt(val, 10) > parseInt(other.toString(), 10),
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBe('11806489');
+      expect(mockProvider.getLogs).toHaveBeenCalledWith({
+        address: mockTokenAddress,
+        fromBlock: 2715910,
+        toBlock: 'latest',
+        topics: expect.any(Array),
+      });
+    });
+
+    it('returns latest approval when no current allowance provided', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: '15000000',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        },
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: () => true,
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBe('15000000');
+    });
+
+    it('returns most recent approval regardless of value', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 102,
+          logIndex: 0,
+          data: '11806489',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        }, // Most recent
+        {
+          blockNumber: 101,
+          logIndex: 0,
+          data: '10000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        }, // Older
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: '15000000',
+          blockHash: '0x3',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xc',
+        }, // Oldest
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: (other: { toString: () => string }) =>
+          parseInt(val, 10) > parseInt(other.toString(), 10),
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBe('11806489');
+    });
+
+    it('returns most recent log when no approval greater than current found', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: '5000000',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        },
+        {
+          blockNumber: 99,
+          logIndex: 0,
+          data: '3000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        },
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: () => false,
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBe('5000000'); // Returns latest log
+    });
+
+    it('returns null when no logs found', async () => {
+      mockProvider.getLogs.mockResolvedValue([]);
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('sorts logs chronologically (newest first)', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 98,
+          logIndex: 0,
+          data: '1000000',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        },
+        {
+          blockNumber: 100,
+          logIndex: 2,
+          data: '3000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        },
+        {
+          blockNumber: 100,
+          logIndex: 1,
+          data: '2000000',
+          blockHash: '0x3',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xc',
+        },
+        {
+          blockNumber: 99,
+          logIndex: 0,
+          data: '1500000',
+          blockHash: '0x4',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xd',
+        },
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: () => true,
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      // Most recent should be block 100, logIndex 2
+      expect(result).toBe('3000000');
+    });
+
+    it('returns most recent approval even when value is zero', async () => {
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: '0',
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        }, // Most recent (revoked)
+        {
+          blockNumber: 99,
+          logIndex: 0,
+          data: '15000000',
+          blockHash: '0x2',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xb',
+        }, // Older approval
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: (other: { toString: () => string }) =>
+          parseInt(val, 10) > parseInt(other.toString(), 10),
+        isZero: () => val === '0',
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBe('0'); // Returns most recent, even if zero
+    });
+
+    it('logs error and returns null when getLogs fails', async () => {
+      const mockError = new Error('RPC error');
+      mockProvider.getLogs.mockRejectedValue(mockError);
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBeNull();
+      expect(Logger.error).toHaveBeenCalledWith(
+        mockError,
+        `getLatestAllowanceFromLogs: Failed to get latest allowance for token ${mockTokenAddress}`,
+      );
+    });
+
+    it('calls getLogs with correct parameters', async () => {
+      mockProvider.getLogs.mockResolvedValue([]);
+      (ethers.utils.hexZeroPad as jest.Mock).mockImplementation(
+        (addr) => `padded_${addr}`,
+      );
+
+      await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(mockProvider.getLogs).toHaveBeenCalledWith({
+        address: mockTokenAddress,
+        fromBlock: 2715910,
+        toBlock: 'latest',
+        topics: [
+          '0xtopic',
+          `padded_${mockWalletAddress.toLowerCase()}`,
+          `padded_${mockDelegationContract.toLowerCase()}`,
+        ],
+      });
+    });
+
+    it('handles large approval values correctly', async () => {
+      const largeValue = '2199023255551000000'; // Unlimited approval
+      const mockLogs = [
+        {
+          blockNumber: 100,
+          logIndex: 0,
+          data: largeValue,
+          blockHash: '0x1',
+          transactionIndex: 0,
+          removed: false,
+          address: mockTokenAddress,
+          topics: [],
+          transactionHash: '0xa',
+        },
+      ];
+      mockProvider.getLogs.mockResolvedValue(mockLogs);
+      (ethers.BigNumber.from as jest.Mock).mockImplementation((val) => ({
+        toString: () => val,
+        gt: () => true,
+        isZero: () => false,
+      }));
+
+      const result = await cardSDK.getLatestAllowanceFromLogs(
+        mockWalletAddress,
+        mockTokenAddress,
+        mockDelegationContract,
+      );
+
+      expect(result).toBe(largeValue);
     });
   });
 });

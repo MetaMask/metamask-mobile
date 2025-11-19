@@ -88,73 +88,6 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   },
 }));
 
-// Mock usePredictAgreement hook
-let mockIsAgreementAccepted = true; // Default to true to not break existing tests
-const mockAcceptAgreement = jest.fn(() => {
-  // When acceptAgreement is called, update the mock value
-  mockIsAgreementAccepted = true;
-});
-
-jest.mock('../../hooks/usePredictAgreement', () => ({
-  usePredictAgreement: () => ({
-    isAgreementAccepted: mockIsAgreementAccepted,
-    acceptAgreement: mockAcceptAgreement,
-  }),
-}));
-
-// Mock PredictConsentSheet component
-let mockConsentSheetRef: {
-  onOpenBottomSheet: jest.Mock;
-  onCloseBottomSheet: jest.Mock;
-} | null = null;
-let mockConsentSheetOnAgree: (() => void) | null = null;
-let mockConsentSheetProviderId: string | null = null;
-
-jest.mock('../../components/PredictConsentSheet', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ReactActual.forwardRef(
-      (
-        {
-          providerId,
-          onAgree,
-        }: {
-          providerId: string;
-          onDismiss?: () => void;
-          onAgree?: () => void;
-        },
-        ref: React.Ref<{
-          onOpenBottomSheet: () => void;
-          onCloseBottomSheet: () => void;
-        }>,
-      ) => {
-        mockConsentSheetRef = {
-          onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn(),
-        };
-        // Wrap onAgree to call acceptAgreement first, just like the real component
-        mockConsentSheetOnAgree = onAgree
-          ? () => {
-              mockAcceptAgreement();
-              onAgree();
-            }
-          : null;
-        mockConsentSheetProviderId = providerId;
-
-        ReactActual.useImperativeHandle(ref, () => mockConsentSheetRef);
-
-        return ReactActual.createElement(
-          View,
-          { testID: 'predict-consent-sheet' },
-          null,
-        );
-      },
-    ),
-  };
-});
-
 // Mock usePredictOrderPreview hook
 let mockPreview = {
   marketId: 'market-1',
@@ -393,10 +326,6 @@ describe('PredictSellPreview', () => {
     mockLoadingState = false;
     mockPlaceOrderResult = null;
     mockPlaceOrderError = undefined;
-    mockIsAgreementAccepted = true; // Reset to default
-    mockConsentSheetRef = null;
-    mockConsentSheetOnAgree = null;
-    mockConsentSheetProviderId = null;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -440,16 +369,16 @@ describe('PredictSellPreview', () => {
 
   describe('rendering', () => {
     it('renders cash out screen with position details', () => {
-      const { getByText, queryByText } = renderWithProvider(
+      const { getAllByText, getByText, queryByText } = renderWithProvider(
         <PredictSellPreview />,
         {
           state: initialState,
         },
       );
 
-      expect(getByText('Cash Out')).toBeOnTheScreen();
+      expect(getAllByText('Cash out').length).toBeGreaterThan(0);
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
-      expect(getByText('$50.00 on Yes')).toBeOnTheScreen();
+      expect(getByText('$50.00 on Yes at 50¢')).toBeOnTheScreen();
 
       expect(
         queryByText('Funds will be added to your available balance'),
@@ -510,6 +439,29 @@ describe('PredictSellPreview', () => {
       });
 
       expect(mockFormatPercentage).toHaveBeenCalledWith(-20);
+    });
+
+    it('uses position price when preview sharePrice is undefined', () => {
+      mockPreview = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        timestamp: Date.now(),
+        side: 'SELL',
+        sharePrice: undefined as unknown as number,
+        maxAmountSpent: 100,
+        minAmountReceived: 60,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
+      const { getByText } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(getByText('At price: 50¢ per share')).toBeOnTheScreen();
     });
 
     it('renders position icon with correct source', () => {
@@ -690,46 +642,8 @@ describe('PredictSellPreview', () => {
     });
   });
 
-  describe('consent check', () => {
-    it('proceeds with cash out immediately when agreement is already accepted', async () => {
-      mockIsAgreementAccepted = true;
-      mockPlaceOrderResult = {
-        success: true,
-        response: { transactionHash: '0xabc123' },
-      };
-
-      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
-
-      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
-
-      await fireEvent.press(cashOutButton);
-
-      // Should place order immediately without opening consent sheet
-      expect(mockPlaceOrder).toHaveBeenCalled();
-      expect(mockConsentSheetRef?.onOpenBottomSheet).not.toHaveBeenCalled();
-    });
-
-    it('opens consent sheet when agreement is not accepted', async () => {
-      mockIsAgreementAccepted = false;
-
-      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
-
-      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
-
-      await fireEvent.press(cashOutButton);
-
-      // Should not place order yet
-      expect(mockPlaceOrder).not.toHaveBeenCalled();
-      // Should open consent sheet
-      expect(mockConsentSheetRef?.onOpenBottomSheet).toHaveBeenCalled();
-    });
-
-    it('places order after user agrees to consent', async () => {
-      mockIsAgreementAccepted = false;
+  describe('cash out flow', () => {
+    it('does not block cash out when order preview is available', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -744,48 +658,13 @@ describe('PredictSellPreview', () => {
 
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      // Press cash out button to open consent sheet
       await fireEvent.press(cashOutButton);
 
-      // Should open consent sheet
-      expect(mockConsentSheetRef?.onOpenBottomSheet).toHaveBeenCalled();
+      expect(mockPlaceOrder).toHaveBeenCalled();
 
-      // Simulate user agreeing to consent
-      // The mock consent sheet will call acceptAgreement() which updates mockIsAgreementAccepted to true
-      if (mockConsentSheetOnAgree) {
-        await mockConsentSheetOnAgree();
-      }
-
-      // Force a re-render to get the updated isAgreementAccepted value
       rerender(<PredictSellPreview />);
 
-      // Should have called acceptAgreement
-      expect(mockAcceptAgreement).toHaveBeenCalled();
-
-      // Press cash out button again now that agreement is accepted
-      await fireEvent.press(
-        getByTestId('predict-sell-preview-cash-out-button'),
-      );
-
-      // Should place order
-      expect(mockPlaceOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
-        analyticsProperties: expect.objectContaining({
-          marketId: 'market-123',
-          transactionType: 'mm_predict_sell',
-        }),
-        preview: expect.objectContaining({
-          side: 'SELL',
-        }),
-      });
-    });
-
-    it('renders PredictConsentSheet with correct providerId', () => {
-      renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
-
-      expect(mockConsentSheetProviderId).toBe('polymarket');
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });
 });

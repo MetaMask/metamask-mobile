@@ -18,13 +18,14 @@ import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
 import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
-import { getGanachePort } from '../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../framework/Constants';
 import { setupMockRequest } from '../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../api-mocking/mock-responses/feature-flags-mocks';
 
-const port = getGanachePort(8545, process.pid);
+// API spec tests use a mock RPC server instead of Ganache (disableLocalNodes: true)
+// Fixed port is fine since tests don't run in parallel
+const port = 8545;
 const chainId = 1337;
 
 const main = async () => {
