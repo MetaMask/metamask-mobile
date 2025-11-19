@@ -53,8 +53,6 @@ function TokenListItem({
       isSelected={isSelected}
       onPress={onPress}
       isDisabled={isDisabled}
-      accessibilityRole="button"
-      accessible
       testID={`token-list-item-${token.assetId}`}
     >
       <ListItemColumn widthType={WidthType.Auto}>

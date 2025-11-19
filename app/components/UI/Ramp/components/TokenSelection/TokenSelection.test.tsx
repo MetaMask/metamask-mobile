@@ -8,7 +8,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
 import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders/types';
 import { useRampTokens } from '../../hooks/useRampTokens';
-import { useParams } from '../../../../../util/navigation/navUtils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -68,11 +67,6 @@ jest.mock('../../hooks/useRampNavigation', () => ({
 
 jest.mock('../../hooks/useRampTokens', () => ({
   useRampTokens: jest.fn(),
-}));
-
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
-  useParams: jest.fn(),
 }));
 
 const mockTokens = MOCK_CRYPTOCURRENCIES;
@@ -140,49 +134,16 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  describe('token selection navigation', () => {
-    it('renders correctly when rampType is DEPOSIT', () => {
-      (useParams as jest.Mock).mockReturnValue({
-        rampType: 'DEPOSIT',
-      });
+  it('calls goToBuy when token is pressed', () => {
+    const { getByTestId } = renderWithProvider(TokenSelection);
 
-      const { toJSON } = renderWithProvider(TokenSelection);
+    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
+    fireEvent.press(firstToken);
 
-      expect(toJSON()).toMatchSnapshot();
+    expect(mockGoToBuy).toHaveBeenCalledWith({
+      assetId: mockTokens[0].assetId,
     });
-
-    it('renders correctly when rampType is BUY', () => {
-      (useParams as jest.Mock).mockReturnValue({
-        rampType: 'BUY',
-      });
-
-      const { toJSON } = renderWithProvider(TokenSelection);
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders correctly when rampType is undefined', () => {
-      (useParams as jest.Mock).mockReturnValue({
-        rampType: undefined,
-      });
-
-      const { toJSON } = renderWithProvider(TokenSelection);
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('calls goToBuy when token is pressed', () => {
-      const { getByTestId } = renderWithProvider(TokenSelection);
-
-      const firstToken = getByTestId(
-        `token-list-item-${mockTokens[0].assetId}`,
-      );
-      fireEvent.press(firstToken);
-
-      expect(mockGoToBuy).toHaveBeenCalledWith({
-        assetId: mockTokens[0].assetId,
-      });
-    });
+    expect(mockParentGoBack).toHaveBeenCalled();
   });
 
   it('navigates to unsupported token modal when info button is pressed', () => {

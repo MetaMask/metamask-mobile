@@ -3019,8 +3019,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3262,8 +3260,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3478,8 +3474,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3694,8 +3688,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3910,8 +3902,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={

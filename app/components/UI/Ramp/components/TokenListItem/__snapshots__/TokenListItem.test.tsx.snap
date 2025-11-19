@@ -2,8 +2,6 @@
 
 exports[`TokenListItem basic rendering renders correctly and matches snapshot 1`] = `
 <TouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
   disabled={false}
   onPress={[MockFunction]}
   style={
@@ -219,8 +217,6 @@ exports[`TokenListItem basic rendering renders correctly and matches snapshot 1`
 
 exports[`TokenListItem basic rendering renders disabled token with info button and matches snapshot 1`] = `
 <TouchableOpacity
-  accessibilityRole="button"
-  accessible={true}
   disabled={true}
   onPress={[MockFunction]}
   style={

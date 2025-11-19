@@ -55,30 +55,9 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
   useEffect(() => {
     if (cryptoCurrencies && cryptoCurrencies.length > 0) {
       if (intent?.assetId) {
-        const intentCrypto = cryptoCurrencies.find((token) => {
-          if (!token.assetId) {
-            return false;
-          }
-
-          if (token.assetId === intent.assetId) {
-            return true;
-          }
-
-          if (intent?.assetId?.includes('/')) {
-            const [chainId, assetId] = intent.assetId.split('/');
-
-            if (
-              chainId &&
-              assetId &&
-              token.chainId === chainId &&
-              token.assetId === assetId
-            ) {
-              return true;
-            }
-          }
-
-          return false;
-        });
+        const intentCrypto = cryptoCurrencies.find(
+          (token) => token.assetId === intent.assetId,
+        );
 
         setIntent((prevIntent) =>
           prevIntent ? { ...prevIntent, assetId: undefined } : undefined,
