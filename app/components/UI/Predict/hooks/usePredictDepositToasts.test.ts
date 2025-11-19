@@ -13,6 +13,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
   })),
+  createNavigatorFactory: () => ({}),
 }));
 
 // Mock @react-navigation/stack
