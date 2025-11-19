@@ -105,6 +105,7 @@ jest.mock('../../../selectors/tokensController', () => ({
 
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(() => null),
+  selectInternalAccountsById: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../selectors/preferencesController', () => ({
@@ -167,6 +168,7 @@ const mockIsRemoveGlobalNetworkSelectorEnabled = jest.fn(() => false);
 
 jest.mock('../../../util/networks', () => ({
   isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
+  getNetworkImageSource: jest.fn(() => ({ uri: 'test' })),
 }));
 
 jest.mock('../../UI/Transactions', () => jest.fn());
@@ -192,6 +194,56 @@ jest.mock('../../../selectors/bridgeStatusController', () => ({
 
 jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () => jest.fn());
 jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () => jest.fn());
+
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../../selectors/multichainNetworkController', () => ({
+  selectIsEvmNetworkSelected: jest.fn(() => true),
+}));
+
+jest.mock('../../../selectors/networkInfos', () => ({
+  selectNetworkName: jest.fn(() => 'Test Network'),
+}));
+
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountTreeControllerState: jest.fn(() => ({})),
+  }),
+);
+
+jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
+  useCurrentNetworkInfo: jest.fn(() => ({
+    enabledNetworks: [{ chainId: '0x1', enabled: true }],
+    getNetworkInfo: jest.fn(() => ({ networkName: 'Test Network' })),
+    isDisabled: false,
+  })),
+}));
+
+jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: jest.fn(() => ({
+    areAllNetworksSelected: true,
+  })),
+  NetworkType: {
+    Popular: 'popular',
+  },
+}));
+
+jest.mock('../../UI/NetworkManager', () => ({
+  createNetworkManagerNavDetails: jest.fn(() => ['NetworkManager', {}]),
+}));
+
+jest.mock('../../UI/Tokens/TokensBottomSheet', () => ({
+  createTokenBottomSheetFilterNavDetails: jest.fn(() => [
+    'TokensBottomSheet',
+    {},
+  ]),
+}));
 
 import TransactionsView from './index';
 import initialRootState from '../../../util/test/initial-root-state';
