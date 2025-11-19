@@ -10,6 +10,7 @@ import { usePredictPositions } from './usePredictPositions';
 import { usePredictToasts } from './usePredictToasts';
 import Engine from '../../../../core/Engine';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { usePredictBalance } from './usePredictBalance';
 
 export const usePredictClaimToasts = () => {
   const { claim } = usePredictClaim();
@@ -17,6 +18,7 @@ export const usePredictClaimToasts = () => {
     claimable: true,
     loadOnMount: true,
   });
+  const { loadBalance } = usePredictBalance({ loadOnMount: false });
 
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
@@ -64,6 +66,9 @@ export const usePredictClaimToasts = () => {
     onConfirmed: () => {
       Engine.context.PredictController.confirmClaim({
         providerId: 'polymarket',
+      });
+      loadBalance().catch(() => {
+        // Ignore errors when refreshing balance
       });
       loadPositions({ isRefresh: true }).catch(() => {
         // Ignore errors when refreshing positions
