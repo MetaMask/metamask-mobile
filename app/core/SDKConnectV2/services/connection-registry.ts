@@ -190,21 +190,12 @@ export class ConnectionRegistry {
    * Sets up the listener for app state lifecycle events to handle reconnection.
    */
   private setupAppStateListener(): void {
-    let isColdStart = true;
-
     AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus): void => {
         if (nextAppState !== 'active') {
           return;
         }
-
-        // // First 'active' event on a cold start is ignored
-        // if (isColdStart) {
-        //   isColdStart = false;
-        //   Logger.log('App state changed: cold start');
-        //   return;
-        // }
 
         // For all subsequent 'active' events, we reconnect, but only after
         // the initial setup is guaranteed to be complete to avoid race conditions.
