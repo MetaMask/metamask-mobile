@@ -35,10 +35,6 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../selectors/featureFlags';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { isTronChainId } from '../../../../../core/Multichain/utils';
 import {
