@@ -140,6 +140,8 @@ const TrendingTokenRowItem = ({
     // Parse assetId to extract chainId and address
     // Format: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
     const [caipChainId, assetIdentifier] = token.assetId.split('/');
+    // check if caipChainId is evm or non-evm
+    const isEvmChain = caipChainId.startsWith('eip155:');
     const address = assetIdentifier?.split(':')[1] as Hex | undefined;
 
     if (!address || !isCaipChainId(caipChainId)) {
@@ -182,7 +184,7 @@ const TrendingTokenRowItem = ({
     // Navigate to Asset page with token data
     navigation.navigate('Asset', {
       chainId: hexChainId,
-      address,
+      address: isEvmChain ? address : token.assetId,
       symbol: token.symbol,
       name: token.name,
       decimals: token.decimals,
