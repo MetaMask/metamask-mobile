@@ -12,7 +12,9 @@ import React, {
 import {
   ActivityIndicator,
   Linking,
+  Pressable,
   StyleSheet as RNStyleSheet,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
@@ -192,6 +194,12 @@ import { useRewardsIntroModal } from '../../UI/Rewards/hooks/useRewardsIntroModa
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
+import FilesystemMeasurementModal from './FilesystemMeasurementModal';
+import { PerformanceDebugModal } from './PerformanceDebugModal';
+import {
+  runFilesystemMeasurement,
+  MeasurementResult,
+} from '../../../util/performance/filesystemMeasurement';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -595,6 +603,16 @@ const Wallet = ({
     },
   });
   ///: END:ONLY_INCLUDE_IF
+
+  // Performance measurement state
+  const [measurementModalVisible, setMeasurementModalVisible] = useState(false);
+  const [measurementResult, setMeasurementResult] = useState<MeasurementResult | null>(null);
+  const [isMeasurementRunning, setIsMeasurementRunning] = useState(false);
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Account sync performance debug modal state
+  const [perfDebugModalVisible, setPerfDebugModalVisible] = useState(false);
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
@@ -1003,6 +1021,66 @@ const Wallet = ({
   }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   /**
+   * Run filesystem measurement test
+   */
+  const handleRunMeasurement = useCallback(async () => {
+    setIsMeasurementRunning(true);
+    setMeasurementModalVisible(true);
+    setMeasurementResult(null);
+    
+    try {
+      const result = await runFilesystemMeasurement();
+      setMeasurementResult(result);
+    } catch (error) {
+      Logger.error(error as Error, 'Failed to run filesystem measurement');
+      setMeasurementResult(null);
+    } finally {
+      setIsMeasurementRunning(false);
+    }
+  }, []);
+
+  /**
+   * Handle taps on balance component (5 rapid taps to trigger measurement)
+   */
+  const handleBalanceTap = useCallback(() => {
+    tapCountRef.current += 1;
+    
+    // Clear existing timer
+    if (tapTimerRef.current) {
+      clearTimeout(tapTimerRef.current);
+    }
+    
+    // Reset tap count after 1 second of inactivity
+    tapTimerRef.current = setTimeout(() => {
+      tapCountRef.current = 0;
+    }, 1000);
+    
+    // Trigger measurement on 5th tap
+    if (tapCountRef.current === 5) {
+      tapCountRef.current = 0;
+      if (tapTimerRef.current) {
+        clearTimeout(tapTimerRef.current);
+      }
+      console.log('🔬 5 taps detected - starting filesystem measurement');
+      handleRunMeasurement();
+    }
+  }, [handleRunMeasurement]);
+
+  /**
+   * Close measurement modal
+   */
+  const handleCloseMeasurementModal = useCallback(() => {
+    setMeasurementModalVisible(false);
+  }, []);
+
+  /**
+   * Run measurement again
+   */
+  const handleRunAgain = useCallback(() => {
+    handleRunMeasurement();
+  }, [handleRunMeasurement]);
+
+  /**
    * Handle network filter called when app is mounted and tokenNetworkFilter is empty
    * TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
    */
@@ -1344,10 +1422,48 @@ const Wallet = ({
         <NetworkConnectionBanner />
       </View>
       <>
+        <Pressable onPress={handleBalanceTap}>
         {isMultichainAccountsState2Enabled ? (
           <AccountGroupBalance />
         ) : (
           <PortfolioBalance />
+          )}
+        </Pressable>
+
+        {/* Temporary debug button for filesystem measurement - REMOVE AFTER TESTING */}
+        {__DEV__ && (
+          <>
+            <Pressable
+              onPress={handleRunMeasurement}
+              style={{
+                backgroundColor: '#037DD6',
+                padding: 12,
+                marginHorizontal: 16,
+                borderRadius: 8,
+                alignItems: 'center',
+              }}
+            >
+              <CustomText color={TextColor.Inverse}>
+                🔬 Run Filesystem Performance Test
+              </CustomText>
+            </Pressable>
+            
+            <Pressable
+              onPress={() => setPerfDebugModalVisible(true)}
+              style={{
+                backgroundColor: '#10B981',
+                padding: 12,
+                marginHorizontal: 16,
+                marginTop: 8,
+                borderRadius: 8,
+                alignItems: 'center',
+              }}
+            >
+              <CustomText color={TextColor.Inverse}>
+                📊 View Account Sync Performance
+              </CustomText>
+            </Pressable>
+          </>
         )}
 
         <AssetDetailsActions
@@ -1405,6 +1521,17 @@ const Wallet = ({
           renderLoader()
         )}
       </View>
+      <FilesystemMeasurementModal
+        isVisible={measurementModalVisible}
+        result={measurementResult}
+        isRunning={isMeasurementRunning}
+        onClose={handleCloseMeasurementModal}
+        onRunAgain={handleRunAgain}
+      />
+      <PerformanceDebugModal
+        visible={perfDebugModalVisible}
+        onClose={() => setPerfDebugModalVisible(false)}
+      />
     </ErrorBoundary>
   );
 };

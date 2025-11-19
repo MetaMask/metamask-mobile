@@ -189,6 +189,14 @@ export class EngineService {
   private setupEnginePersistence = () => {
     try {
       if (UntypedEngine.controllerMessenger) {
+        // Performance measurement tracking
+        let updateCount = 0;
+        let totalFilteringTime = 0;
+        let totalPersistTime = 0;
+        const measurementStartTime = Date.now();
+        
+        console.log('⏱️  [PERSISTENCE MEASUREMENT] Starting controller persistence tracking');
+        
         BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
           const controllerName = eventName.split(':')[0];
 
@@ -208,14 +216,46 @@ export class EngineService {
           UntypedEngine.controllerMessenger.subscribe(
             eventName,
             async (controllerState: StateConstraint) => {
+              const updateStartTime = performance.now();
+              updateCount++;
+              
               try {
+                // Measure filtering time
+                const filterStartTime = performance.now();
                 const filteredState = getPersistentState(
                   controllerState,
                   // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available
                   UntypedEngine.context[controllerName]?.metadata,
                 );
+                const filterEndTime = performance.now();
+                const filterTime = filterEndTime - filterStartTime;
 
+                // Measure persist time
+                const persistStartTime = performance.now();
                 await persistController(filteredState, controllerName);
+                const persistEndTime = performance.now();
+                const persistTime = persistEndTime - persistStartTime;
+                
+                // Calculate totals
+                const updateTotalTime = persistEndTime - updateStartTime;
+                totalFilteringTime += filterTime;
+                totalPersistTime += persistTime;
+                
+                // Log every update with timing breakdown
+                // Commented out to reduce console noise - summaries still available at 60s and 5min
+                // console.log(`⏱️  [UPDATE #${updateCount}] ${controllerName}:`, {
+                //   filtering: `${filterTime.toFixed(2)}ms`,
+                //   persist: `${persistTime.toFixed(2)}ms`,
+                //   total: `${updateTotalTime.toFixed(2)}ms`,
+                //   cumulative: {
+                //     updates: updateCount,
+                //     filtering: `${totalFilteringTime.toFixed(0)}ms`,
+                //     persist: `${totalPersistTime.toFixed(0)}ms`,
+                //     total: `${(totalFilteringTime + totalPersistTime).toFixed(0)}ms`,
+                //     elapsed: `${((Date.now() - measurementStartTime) / 1000).toFixed(1)}s`
+                //   }
+                // });
+
               } catch (error) {
                 // Log and track persistence failures but don't crash
                 // Expected failures (low disk space, I/O errors) shouldn't crash the app
@@ -229,6 +269,45 @@ export class EngineService {
             },
           );
         });
+        
+        // Log summary after 60 seconds
+        setTimeout(() => {
+          const totalElapsed = (Date.now() - measurementStartTime) / 1000;
+          const totalOverhead = totalFilteringTime + totalPersistTime;
+          const persistPercentage = totalPersistTime > 0 
+            ? ((totalPersistTime / totalOverhead) * 100).toFixed(1)
+            : '0.0';
+          
+          console.log('📊 [PERSISTENCE SUMMARY - 60s]', {
+            totalUpdates: updateCount,
+            filteringTime: `${totalFilteringTime.toFixed(0)}ms`,
+            persistTime: `${totalPersistTime.toFixed(0)}ms`,
+            totalOverhead: `${totalOverhead.toFixed(0)}ms`,
+            persistPercentage: `${persistPercentage}%`,
+            elapsed: `${totalElapsed.toFixed(1)}s`,
+            avgPerUpdate: `${(totalOverhead / updateCount).toFixed(2)}ms`
+          });
+        }, 60000);
+        
+        // Log summary after 5 minutes
+        setTimeout(() => {
+          const totalElapsed = (Date.now() - measurementStartTime) / 1000;
+          const totalOverhead = totalFilteringTime + totalPersistTime;
+          const persistPercentage = totalPersistTime > 0 
+            ? ((totalPersistTime / totalOverhead) * 100).toFixed(1)
+            : '0.0';
+          
+          console.log('📊 [PERSISTENCE SUMMARY - 5min]', {
+            totalUpdates: updateCount,
+            filteringTime: `${totalFilteringTime.toFixed(0)}ms`,
+            persistTime: `${totalPersistTime.toFixed(0)}ms`,
+            totalOverhead: `${totalOverhead.toFixed(0)}ms`,
+            persistPercentage: `${persistPercentage}%`,
+            elapsed: `${totalElapsed.toFixed(1)}s`,
+            avgPerUpdate: `${(totalOverhead / updateCount).toFixed(2)}ms`
+          });
+        }, 300000);
+        
         Logger.log(
           'Individual controller persistence subscriptions set up successfully',
         );

@@ -34,6 +34,7 @@ import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { AccountSyncTracker } from '../../../util/performance/AccountSyncTracker';
 
 // Internal dependencies.
 import { useStyles } from '../../../component-library/hooks';
@@ -195,6 +196,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [],
   );
 
+  // Performance measurement for account sync investigation
+  const accountSyncStartTimeRef = useRef<number | null>(null);
+
   // Tracing for the account list rendering:
   const isAccountSelector = useMemo(
     () => screen === AccountSelectorScreens.AccountSelector,
@@ -202,22 +206,46 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
   useEffect(() => {
     if (isAccountSelector) {
+      accountSyncStartTimeRef.current = performance.now();
+      // Start tracking session when account selector opens
+      AccountSyncTracker.startSession(`account_selector_${Date.now()}`);
+      AccountSyncTracker.startPhase('accountSelectorOpen', {
+        accountCount: accounts?.length || 0,
+      });
+      
       trace({
         name: TraceName.ShowAccountList,
         op: TraceOperation.AccountUi,
         tags: getTraceTags(store.getState()),
       });
     }
-  }, [isAccountSelector]);
+  }, [isAccountSelector, accounts?.length]);
+  
   // We want to track the full render of the account list, meaning when the full animation is done, so
   // we hook the open animation and end the trace there.
   const onOpen = useCallback(() => {
     if (isAccountSelector) {
+      if (accountSyncStartTimeRef.current !== null) {
+        const totalTime = performance.now() - accountSyncStartTimeRef.current;
+        // End the accountSelectorOpen phase but DON'T end the session yet
+        // This allows other operations (ENS, token refresh) to continue being tracked
+        AccountSyncTracker.endPhase('accountSelectorOpen', {
+          totalTime: `${totalTime.toFixed(2)}ms`,
+          accountCount: accounts?.length || 0,
+        });
+        
+        // DON'T end the session here - let ENS lookups complete first
+        // The session will be ended when ENS lookups finish (see useAccounts.ts)
+        console.log('🔍 [DEBUG] Account selector animation complete, waiting for ENS lookups...');
+        
+        accountSyncStartTimeRef.current = null;
+      }
+      
       endTrace({
         name: TraceName.ShowAccountList,
       });
     }
-  }, [isAccountSelector]);
+  }, [isAccountSelector, accounts?.length]);
 
   const addAccountButtonProps: ButtonProps[] = useMemo(
     () => [

@@ -24,6 +24,7 @@ import { CaipAccountId, CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
 import { anyScopesMatch } from '../components/hooks/useAccountGroupsForPermissions/utils';
 import { defaultAccountsControllerState } from '../core/Engine/controllers/accounts-controller/constants';
+import { AccountSyncTracker } from '../util/performance/AccountSyncTracker';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -54,6 +55,9 @@ export const selectInternalAccounts = createDeepEqualSelector(
   selectAccountsControllerState,
   selectFlattenedKeyringAccounts,
   (accountControllerState, orderedKeyringAccounts): InternalAccount[] => {
+    // Don't track here - only track when account selector is actually opened
+    // This selector runs on every app state change, not just when opening account selector
+    
     const keyringAccountsMap = new Map(
       orderedKeyringAccounts.map((account, index) => [
         toFormattedAddress(account),
@@ -67,6 +71,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
         (keyringAccountsMap.get(toFormattedAddress(a.address)) || 0) -
         (keyringAccountsMap.get(toFormattedAddress(b.address)) || 0),
     );
+    
     return sortedAccounts;
   },
 );
