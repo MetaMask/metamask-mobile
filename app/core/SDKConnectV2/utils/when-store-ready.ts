@@ -2,7 +2,14 @@ import { store } from '../../../store';
 
 const isStoreReady = () => {
   try {
-return Boolean(store && typeof store.dispatch === 'function' && store.getState().engine.backgroundState.NetworkController)
+    return Boolean(
+      store &&
+        typeof store.dispatch === 'function' &&
+        // This check is needed because the BackgroundBridge requires the NetworkController state
+        // for initialization. This check is brittle as reliance on other controller state during
+        // resumption would not be accounted for. We should figure out something more robust.
+        store.getState().engine.backgroundState.NetworkController,
+    );
   } catch {
     return false;
   }
