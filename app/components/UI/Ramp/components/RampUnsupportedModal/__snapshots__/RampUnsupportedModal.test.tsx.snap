@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EligibilityFailedModal renders modal with title and description 1`] = `
+exports[`RampUnsupportedModal renders modal with title and description 1`] = `
 <View
   style={
     {
@@ -124,7 +124,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                   }
                 }
               >
-                EligibilityFailedModal
+                UnsupportedRegionModal
               </Text>
             </View>
           </View>
@@ -357,7 +357,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             }
                           }
                         >
-                          Eligibility Check Failed
+                          Unavailable in your region
                         </Text>
                       </View>
                       <View
@@ -408,10 +408,15 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                     </View>
                     <View
                       style={
-                        {
-                          "paddingBottom": 24,
-                          "paddingHorizontal": 24,
-                        }
+                        [
+                          {
+                            "display": "flex",
+                            "paddingBottom": 24,
+                            "paddingLeft": 24,
+                            "paddingRight": 24,
+                          },
+                          undefined,
+                        ]
                       }
                     >
                       <Text
@@ -426,56 +431,23 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                           }
                         }
                       >
-                        We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.
+                        Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.
                       </Text>
                     </View>
                     <View
                       style={
-                        {
-                          "gap": 16,
-                          "paddingBottom": 24,
-                          "paddingHorizontal": 24,
-                        }
+                        [
+                          {
+                            "display": "flex",
+                            "gap": 16,
+                            "paddingBottom": 24,
+                            "paddingLeft": 24,
+                            "paddingRight": 24,
+                          },
+                          undefined,
+                        ]
                       }
                     >
-                      <TouchableOpacity
-                        accessibilityRole="button"
-                        accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "alignSelf": "stretch",
-                            "backgroundColor": "#3c4d9d0f",
-                            "borderColor": "transparent",
-                            "borderRadius": 12,
-                            "borderWidth": 1,
-                            "flexDirection": "row",
-                            "height": 48,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                          }
-                        }
-                      >
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#121314",
-                              "fontFamily": "Geist Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
-                          }
-                        >
-                          Contact Support
-                        </Text>
-                      </TouchableOpacity>
                       <TouchableOpacity
                         accessibilityRole="button"
                         accessible={true}

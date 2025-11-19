@@ -3,6 +3,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  BoxBorderColor,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useRef, useState } from 'react';
 import {
@@ -19,18 +20,12 @@ import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
 import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const HORIZONTAL_PADDING = 0;
-const CARD_SPACING = 0; // Gap between cards
-const CONTENT_WIDTH = SCREEN_WIDTH - HORIZONTAL_PADDING * 2; // Available width after padding
-const PEEK_CARD_WIDTH = CONTENT_WIDTH * 0.8; // 80% for peek cards (increased from 80%)
-const LAST_CARD_WIDTH = CONTENT_WIDTH * 0.8; // 90% for last card (increased from 90%)
-const CARD_CONTAINER_WIDTH = PEEK_CARD_WIDTH + CARD_SPACING; // Uniform container width
-const SNAP_INTERVAL = CARD_CONTAINER_WIDTH;
-const CARD_HEIGHT = 220; // Fixed height for all cards (based on cards with three options)
+const CONTENT_WIDTH = SCREEN_WIDTH;
+const CARD_WIDTH = CONTENT_WIDTH * 0.8;
+const CARD_HEIGHT = 220;
 
 interface SectionCarrouselStylesVars {
   activeIndex: number;
-  cardWidth: number;
 }
 
 const styleSheet = (params: {
@@ -42,29 +37,14 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     carouselItemContainer: {
-      width: CARD_CONTAINER_WIDTH,
+      width: CARD_WIDTH,
       height: CARD_HEIGHT,
     },
     carouselItem: {
-      width: PEEK_CARD_WIDTH,
-      height: CARD_HEIGHT,
       borderRadius: 16,
       paddingHorizontal: 8,
       overflow: 'hidden',
-      borderColor: colors.border.default,
       shadowColor: colors.shadow.default,
-    },
-    carouselItemLast: {
-      width: LAST_CARD_WIDTH,
-      height: CARD_HEIGHT,
-      borderRadius: 16,
-      paddingHorizontal: 8,
-      overflow: 'hidden',
-      borderColor: colors.border.default,
-      shadowColor: colors.shadow.default,
-    },
-    carouselContentContainer: {
-      paddingHorizontal: HORIZONTAL_PADDING,
     },
     paginationContainer: {
       marginTop: 16,
@@ -99,7 +79,6 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
 
   const { styles } = useStyles(styleSheet, {
     activeIndex,
-    cardWidth: CONTENT_WIDTH,
   });
 
   const skeletonCount = 3;
@@ -110,7 +89,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const scrollPosition = event.nativeEvent.contentOffset.x;
-      const index = Math.round(scrollPosition / SNAP_INTERVAL);
+      const index = Math.round(scrollPosition / CARD_WIDTH);
       setActiveIndex(Math.min(index, displayDataLength - 1));
     },
     [displayDataLength],
@@ -125,33 +104,31 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
   }, []);
 
   const renderSkeletonItem = useCallback(
-    ({ index }: { item: unknown; index: number }) => {
-      const isLast = index === skeletonCount - 1;
-
-      return (
-        <Box style={styles.carouselItemContainer}>
-          <Box style={isLast ? styles.carouselItemLast : styles.carouselItem}>
-            {section.renderSkeleton()}
-          </Box>
+    () => (
+      <Box style={styles.carouselItemContainer}>
+        <Box
+          borderColor={BoxBorderColor.BorderDefault}
+          style={styles.carouselItem}
+        >
+          {section.renderSkeleton()}
         </Box>
-      );
-    },
+      </Box>
+    ),
     [styles, section],
   );
 
   const renderDataItem = useCallback(
-    ({ item, index }: { item: unknown; index: number }) => {
-      const isLast = index === data.length - 1;
-
-      return (
-        <Box style={styles.carouselItemContainer}>
-          <Box style={isLast ? styles.carouselItemLast : styles.carouselItem}>
-            {section.renderRowItem(item, navigation)}
-          </Box>
+    ({ item }: { item: unknown }) => (
+      <Box style={styles.carouselItemContainer}>
+        <Box
+          borderColor={BoxBorderColor.BorderDefault}
+          style={styles.carouselItem}
+        >
+          {section.renderRowItem(item, navigation)}
         </Box>
-      );
-    },
-    [styles, data.length, section, navigation],
+      </Box>
+    ),
+    [styles, section, navigation],
   );
 
   const renderPaginationDots = useCallback(
@@ -192,11 +169,10 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
             horizontal
             pagingEnabled={false}
             showsHorizontalScrollIndicator={false}
-            snapToInterval={SNAP_INTERVAL}
+            snapToInterval={CARD_WIDTH}
             decelerationRate="fast"
             onScroll={handleScroll}
             scrollEventThrottle={16}
-            contentContainerStyle={styles.carouselContentContainer}
             testID={`${sectionId}-flash-list`}
           />
         )}
@@ -209,11 +185,10 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
             horizontal
             pagingEnabled={false}
             showsHorizontalScrollIndicator={false}
-            snapToInterval={SNAP_INTERVAL}
+            snapToInterval={CARD_WIDTH}
             decelerationRate="fast"
             onScroll={handleScroll}
             scrollEventThrottle={16}
-            contentContainerStyle={styles.carouselContentContainer}
             testID={`${sectionId}-flash-list`}
           />
         )}

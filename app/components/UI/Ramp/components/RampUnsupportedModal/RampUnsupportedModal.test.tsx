@@ -1,19 +1,10 @@
 import React from 'react';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import EligibilityFailedModal from './EligibilityFailedModal';
+import RampUnsupportedModal from './RampUnsupportedModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
-
 const mockOnCloseBottomSheet = jest.fn();
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn().mockResolvedValue(undefined),
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeEventListener: jest.fn(),
-  canOpenURL: jest.fn().mockResolvedValue(true),
-}));
 
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
@@ -41,7 +32,7 @@ function render(component: React.ComponentType) {
   return renderScreen(
     component,
     {
-      name: Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
+      name: Routes.SHEET.UNSUPPORTED_REGION_MODAL,
     },
     {
       state: initialRootState,
@@ -49,27 +40,21 @@ function render(component: React.ComponentType) {
   );
 }
 
-describe('EligibilityFailedModal', () => {
+describe('RampUnsupportedModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders modal with title and description', () => {
-    const { toJSON } = render(EligibilityFailedModal);
+    const component = render(RampUnsupportedModal);
 
-    expect(toJSON()).toMatchSnapshot();
-  });
-  it('navigates to contact support when the contact support button is pressed', () => {
-    const { getByText } = render(EligibilityFailedModal);
-    const contactSupportButton = getByText('Contact Support');
+    const result = component.toJSON();
 
-    fireEvent.press(contactSupportButton);
-
-    expect(Linking.openURL).toHaveBeenCalledWith('https://support.metamask.io');
+    expect(result).toMatchSnapshot();
   });
 
   it('closes the modal when the close button is pressed', () => {
-    const { getByTestId } = render(EligibilityFailedModal);
+    const { getByTestId } = render(RampUnsupportedModal);
     const closeButton = getByTestId('bottomsheetheader-close-button');
 
     fireEvent.press(closeButton);
@@ -78,7 +63,7 @@ describe('EligibilityFailedModal', () => {
   });
 
   it('closes the modal when the got it button is pressed', () => {
-    const { getByText } = render(EligibilityFailedModal);
+    const { getByText } = render(RampUnsupportedModal);
     const gotItButton = getByText('Got It');
 
     fireEvent.press(gotItButton);
