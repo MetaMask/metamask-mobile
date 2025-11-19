@@ -243,6 +243,12 @@ import {
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller';
 import {
+  FeatureFlagOverrideController,
+  FeatureFlagOverrideControllerState,
+  FeatureFlagOverrideControllerActions,
+  FeatureFlagOverrideControllerEvents,
+} from './controllers/feature-flag-override-controller';
+import {
   Messenger,
   ActionConstraint,
   EventConstraint,
@@ -470,6 +476,7 @@ type GlobalActions =
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
+  | FeatureFlagOverrideControllerActions
   | TokenSearchDiscoveryControllerActions
   | TokenSearchDiscoveryDataControllerActions
   | MultichainNetworkControllerActions
@@ -540,6 +547,7 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
+  | FeatureFlagOverrideControllerEvents
   | TokenSearchDiscoveryControllerEvents
   | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
@@ -617,6 +625,7 @@ export type Controllers = {
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
+  FeatureFlagOverrideController: FeatureFlagOverrideController;
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
@@ -690,6 +699,7 @@ export type EngineState = {
   NetworkEnablementController: NetworkEnablementControllerState;
   PreferencesController: PreferencesState;
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
+  FeatureFlagOverrideController: FeatureFlagOverrideControllerState;
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
@@ -814,6 +824,7 @@ export type ControllersToInitialize =
   | 'NftDetectionController'
   | 'PhishingController'
   | 'RemoteFeatureFlagController'
+  | 'FeatureFlagOverrideController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'

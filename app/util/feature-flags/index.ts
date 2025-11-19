@@ -11,10 +11,20 @@ export interface FeatureFlagInfo {
     | 'number'
     | 'array'
     | 'boolean with minimumVersion'
+    | 'ab test'
     | 'boolean nested'
     | 'object';
   description: string | undefined;
   isOverridden: boolean;
+}
+
+interface AbTestValueType {
+  name: string;
+  value: boolean;
+  scope: {
+    type: string;
+    value: number;
+  };
 }
 
 /**
@@ -30,8 +40,6 @@ export const getFeatureFlagType = (value: unknown): FeatureFlagInfo['type'] => {
     return 'string';
   } else if (typeof value === 'number') {
     return 'number';
-  } else if (Array.isArray(value)) {
-    return 'array';
   } else if (
     value &&
     typeof value === 'object' &&
@@ -40,10 +48,21 @@ export const getFeatureFlagType = (value: unknown): FeatureFlagInfo['type'] => {
   ) {
     return 'boolean with minimumVersion';
   } else if (
+    value &&
+    Array.isArray(value) &&
+    !!(value as unknown as AbTestValueType[])[0]?.name &&
+    typeof (value as unknown as AbTestValueType[])[0].value === 'boolean' &&
+    typeof (value as unknown as AbTestValueType[])[0].scope === 'object'
+  ) {
+    return 'ab test';
+  } else if (
     typeof value === 'object' &&
-    typeof (value as { value: boolean })?.value === 'boolean'
+    Array.isArray(value) &&
+    typeof (value as unknown as { value: boolean }[])[0]?.value === 'boolean'
   ) {
     return 'boolean nested';
+  } else if (Array.isArray(value)) {
+    return 'array';
   } else if (typeof value === 'object') {
     return 'object';
   }

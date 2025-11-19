@@ -122,6 +122,7 @@ import {
   getTransactionPayControllerInitMessenger,
   getTransactionPayControllerMessenger,
 } from './transaction-pay-controller-messenger';
+import { getFeatureFlagOverrideControllerMessenger } from './feature-flag-override-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -351,6 +352,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   RemoteFeatureFlagController: {
     getMessenger: getRemoteFeatureFlagControllerMessenger,
+    getInitMessenger: noop,
+  },
+  FeatureFlagOverrideController: {
+    getMessenger: getFeatureFlagOverrideControllerMessenger,
     getInitMessenger: noop,
   },
   RewardsController: {

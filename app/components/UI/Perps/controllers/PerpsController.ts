@@ -112,6 +112,11 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
+import type {
+  FeatureFlagOverrideControllerState,
+  FeatureFlagOverrideControllerStateChangeEvent,
+  FeatureFlagOverrideControllerGetStateAction,
+} from '../../../../core/Engine/controllers/feature-flag-override-controller';
 import {
   type VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
@@ -613,7 +618,8 @@ export type PerpsControllerActions =
 export type AllowedActions =
   | NetworkControllerGetStateAction
   | AuthenticationController.AuthenticationControllerGetBearerToken
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | FeatureFlagOverrideControllerGetStateAction;
 
 /**
  * External events the PerpsController can subscribe to
@@ -622,7 +628,8 @@ export type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent
-  | RemoteFeatureFlagControllerStateChangeEvent;
+  | RemoteFeatureFlagControllerStateChangeEvent
+  | FeatureFlagOverrideControllerStateChangeEvent;
 
 /**
  * PerpsController messenger constraints
@@ -739,6 +746,12 @@ export class PerpsController extends BaseController<
       this.refreshEligibilityOnFeatureFlagChange.bind(this),
     );
 
+    // Subscribe to FeatureFlagOverrideController state changes
+    this.messenger.subscribe(
+      'FeatureFlagOverrideController:stateChange',
+      this.refreshHip3ConfigOnOverrideChange.bind(this),
+    );
+
     this.providers = new Map();
   }
 
@@ -789,6 +802,25 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Refresh HIP-3 configuration when override changes.
+   * This method checks for overrides first, then falls back to remote flags.
+   *
+   * @param featureFlagOverrideControllerState - State from FeatureFlagOverrideController
+   */
+  private refreshHip3ConfigOnOverrideChange(
+    featureFlagOverrideControllerState: FeatureFlagOverrideControllerState,
+  ): void {
+    // Get current remote feature flag state
+    const remoteFeatureFlagState = this.messenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+    this.refreshHip3ConfigWithOverrides(
+      remoteFeatureFlagState,
+      featureFlagOverrideControllerState,
+    );
+  }
+
+  /**
    * Refresh HIP-3 configuration when remote feature flags change.
    * This method extracts HIP-3 settings from remote flags, validates them,
    * and updates internal state if they differ from current values.
@@ -801,11 +833,44 @@ export class PerpsController extends BaseController<
   private refreshHip3ConfigOnFeatureFlagChange(
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
   ): void {
+    // Get current override state
+    const overrideState = this.messenger.call(
+      'FeatureFlagOverrideController:getState',
+    );
+    this.refreshHip3ConfigWithOverrides(
+      remoteFeatureFlagControllerState,
+      overrideState,
+    );
+  }
+
+  /**
+   * Refresh HIP-3 configuration with overrides applied.
+   * Checks for overrides first, then falls back to remote flags.
+   *
+   * @param remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
+   */
+  private refreshHip3ConfigWithOverrides(
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+  ): void {
     const remoteFlags = remoteFeatureFlagControllerState.remoteFeatureFlags;
 
-    // Extract and validate remote HIP-3 equity enabled flag
-    const equityFlag =
-      remoteFlags?.perpsHip3Enabled as unknown as VersionGatedFeatureFlag;
+    // Check for override first
+    const overrideController = Engine.context.FeatureFlagOverrideController;
+    const hasOverride = overrideController.hasOverride('perpsHip3Enabled');
+
+    let equityFlag: VersionGatedFeatureFlag | undefined;
+    if (hasOverride) {
+      const overrideValue = overrideController.getOverride('perpsHip3Enabled');
+      equityFlag = overrideValue as unknown as VersionGatedFeatureFlag;
+      DevLogger.log('PerpsController: Using overridden perpsHip3Enabled flag', {
+        overrideValue: equityFlag,
+      });
+    } else {
+      // Extract and validate remote HIP-3 equity enabled flag
+      equityFlag =
+        remoteFlags?.perpsHip3Enabled as unknown as VersionGatedFeatureFlag;
+    }
+
     const validatedEquity = validatedVersionGatedFeatureFlag(equityFlag);
 
     DevLogger.log('PerpsController: HIP-3 equity flag validation', {

@@ -29,12 +29,14 @@ export function getPerpsControllerMessenger(
       'NetworkController:getState',
       'AuthenticationController:getBearerToken',
       'RemoteFeatureFlagController:getState',
+      'FeatureFlagOverrideController:getState',
     ],
     events: [
       'TransactionController:transactionSubmitted',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
       'RemoteFeatureFlagController:stateChange',
+      'FeatureFlagOverrideController:stateChange',
     ],
     messenger,
   });

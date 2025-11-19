@@ -34,6 +34,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'PhishingController:stateChange',
   'PreferencesController:stateChange',
   'RemoteFeatureFlagController:stateChange',
+  'FeatureFlagOverrideController:stateChange',
   'SelectedNetworkController:stateChange',
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',

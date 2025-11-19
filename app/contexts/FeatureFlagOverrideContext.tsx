@@ -5,6 +5,7 @@ import React, {
   useCallback,
   ReactNode,
   useMemo,
+  useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
@@ -20,6 +21,9 @@ import {
 } from '../component-library/components/Toast';
 import { MinimumVersionFlagValue } from '../components/Views/FeatureFlagOverride/FeatureFlagOverride';
 import useMetrics from '../components/hooks/useMetrics/useMetrics';
+import Engine from '../core/Engine';
+import type { FeatureFlagOverrideControllerState } from '../core/Engine/controllers/feature-flag-override-controller';
+import { whenEngineReady } from '../core/SDKConnectV2/utils/when-engine-ready';
 
 interface FeatureFlagOverrides {
   [key: string]: unknown;
@@ -62,49 +66,148 @@ export const FeatureFlagOverrideProvider: React.FC<
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
 
-  // Local state for overrides
+  // Get the FeatureFlagOverrideController from Engine (may not be available initially)
+  const [controller, setController] = useState<
+    typeof Engine.context.FeatureFlagOverrideController | null
+  >(null);
+
+  // Sync overrides from controller state
   const [overrides, setOverrides] = useState<FeatureFlagOverrides>({});
 
-  const setOverride = useCallback((key: string, value: unknown) => {
-    setOverrides((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+  // Wait for Engine to be initialized and get the controller
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeController = async () => {
+      try {
+        // Wait for Engine to be ready
+        await whenEngineReady();
+
+        if (!isMounted) {
+          return;
+        }
+
+        // Get the controller once Engine is ready
+        const engineController = Engine.context.FeatureFlagOverrideController;
+        setController(engineController);
+        setOverrides(engineController.state.overrides);
+      } catch (error) {
+        // Engine initialization failed or component unmounted
+        // Silently handle - component will work with local state
+      }
+    };
+
+    // Try to get controller immediately (in case Engine is already initialized)
+    try {
+      const engineController = Engine.context.FeatureFlagOverrideController;
+      setController(engineController);
+      setOverrides(engineController.state.overrides);
+    } catch (error) {
+      // Engine not initialized yet, wait for it
+      initializeController();
+    }
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const removeOverride = useCallback((key: string) => {
-    setOverrides((prev) => {
-      const newOverrides = { ...prev };
-      delete newOverrides[key];
-      return newOverrides;
-    });
-  }, []);
+  // Subscribe to controller state changes once controller is available
+  useEffect(() => {
+    if (!controller) {
+      return;
+    }
+
+    const handleStateChange = (
+      state: FeatureFlagOverrideControllerState,
+    ): void => {
+      setOverrides(state.overrides);
+    };
+
+    try {
+      Engine.controllerMessenger.subscribe(
+        'FeatureFlagOverrideController:stateChange',
+        handleStateChange,
+      );
+
+      return () => {
+        try {
+          Engine.controllerMessenger.unsubscribe(
+            'FeatureFlagOverrideController:stateChange',
+            handleStateChange,
+          );
+        } catch (error) {
+          // Engine might be destroyed, ignore unsubscribe errors
+        }
+      };
+    } catch (error) {
+      // Engine might not be available, ignore subscription errors
+      return undefined;
+    }
+  }, [controller]);
+
+  const setOverride = useCallback(
+    (key: string, value: unknown) => {
+      if (controller) {
+        controller.setOverride(key, value);
+      }
+    },
+    [controller],
+  );
+
+  const removeOverride = useCallback(
+    (key: string) => {
+      if (controller) {
+        controller.removeOverride(key);
+      }
+    },
+    [controller],
+  );
 
   const clearAllOverrides = useCallback(() => {
-    setOverrides({});
-  }, []);
+    if (controller) {
+      controller.clearAllOverrides();
+    }
+  }, [controller]);
 
   const hasOverride = useCallback(
-    (key: string): boolean => key in overrides,
-    [overrides],
+    (key: string): boolean => {
+      if (controller) {
+        return controller.hasOverride(key);
+      }
+      return key in overrides;
+    },
+    [controller, overrides],
   );
 
   const getOverride = useCallback(
-    (key: string): unknown => overrides[key],
-    [overrides],
+    (key: string): unknown => {
+      if (controller) {
+        return controller.getOverride(key);
+      }
+      return overrides[key];
+    },
+    [controller, overrides],
   );
 
-  const getAllOverrides = useCallback(
-    (): FeatureFlagOverrides => ({ ...overrides }),
-    [overrides],
-  );
+  const getAllOverrides = useCallback((): FeatureFlagOverrides => {
+    if (controller) {
+      return controller.getAllOverrides();
+    }
+    return { ...overrides };
+  }, [controller, overrides]);
 
   const applyOverrides = useCallback(
-    (originalFlags: FeatureFlagOverrides): FeatureFlagOverrides => ({
-      ...originalFlags,
-      ...overrides,
-    }),
-    [overrides],
+    (originalFlags: FeatureFlagOverrides): FeatureFlagOverrides => {
+      if (controller) {
+        return controller.applyOverrides(originalFlags);
+      }
+      return {
+        ...originalFlags,
+        ...overrides,
+      };
+    },
+    [controller, overrides],
   );
 
   const featureFlagsWithOverrides = useMemo(
@@ -208,10 +311,12 @@ export const FeatureFlagOverrideProvider: React.FC<
     [featureFlags, validateMinimumVersion, addTraitsToUser],
   );
 
-  const getOverrideCount = useCallback(
-    (): number => Object.keys(overrides).length,
-    [overrides],
-  );
+  const getOverrideCount = useCallback((): number => {
+    if (controller) {
+      return controller.getOverrideCount();
+    }
+    return Object.keys(overrides).length;
+  }, [controller, overrides]);
 
   const contextValue: FeatureFlagOverrideContextType = useMemo(
     () => ({
