@@ -388,12 +388,23 @@ describe('format utils', () => {
       expect(result).toBe('$50,000');
     });
 
-    it('formats prices ignoring custom maximum decimals option', () => {
+    it('formats prices respecting custom minimum decimals option', () => {
       // Arrange & Act
-      const result = formatPrice(1234.5678, { minimumDecimals: 4 });
+      const result = formatPrice(1234.5678, {
+        minimumDecimals: 4,
+        maximumDecimals: 4,
+      });
 
       // Assert
-      expect(result).toBe('$1,234.57');
+      expect(result).toBe('$1,234.5678');
+    });
+
+    it('respects minimumDecimals for integer values', () => {
+      // Arrange & Act
+      const result = formatPrice(100, { minimumDecimals: 2 });
+
+      // Assert
+      expect(result).toBe('$100.00');
     });
 
     it('formats small prices with 2 decimal places (rounded)', () => {
@@ -525,7 +536,7 @@ describe('format utils', () => {
     it.each([
       [1234.56, '$1,234.56'],
       [-789.1, '$789.10'],
-      [0, '$0'],
+      [0, '$0.00'],
     ])('formats %s without sign by default as %s', (input, expected) => {
       const result = formatCurrencyValue(input);
 
@@ -535,7 +546,7 @@ describe('format utils', () => {
     it.each([
       [123.45, '+$123.45'],
       [-123.45, '-$123.45'],
-      [0, '$0'],
+      [0, '$0.00'],
     ])('formats %s with sign when showSign=true as %s', (input, expected) => {
       const result = formatCurrencyValue(input, { showSign: true });
 

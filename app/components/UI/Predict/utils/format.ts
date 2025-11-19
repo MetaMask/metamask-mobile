@@ -79,7 +79,7 @@ export const formatPrice = (
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
   const maximumDecimals = _options?.maximumDecimals ?? 2;
-  const minimumDecimals = _options?.minimumDecimals ?? 2;
+  const minimumDecimals = _options?.minimumDecimals;
 
   if (isNaN(num)) {
     return '$0.00';
@@ -93,11 +93,14 @@ export const formatPrice = (
   const isInteger = rounded === Math.floor(rounded);
 
   // Format with appropriate decimal places
-  // For integers, show no decimals; for non-integers, enforce minimumDecimals
+  // If user explicitly set minimumDecimals, use it; otherwise, show no decimals for integers
+  const minFractionDigits =
+    minimumDecimals !== undefined ? minimumDecimals : isInteger ? 0 : 2;
+
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: isInteger ? 0 : minimumDecimals,
+    minimumFractionDigits: minFractionDigits,
     maximumFractionDigits: maximumDecimals,
   }).format(rounded);
 };
