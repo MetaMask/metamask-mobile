@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -273,6 +274,8 @@ export const BridgeTokenSelector: React.FC = () => {
     setSelectedChainId(chainId);
     // Reset search when changing network
     setSearchString('');
+    // Cancel any pending debounced searches
+    debouncedSearch.cancel();
     resetSearch();
   };
 
@@ -394,6 +397,23 @@ export const BridgeTokenSelector: React.FC = () => {
     searchTokens,
   ]);
 
+  // Custom scroll handler for pagination (replaces buggy onEndReached)
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { layoutMeasurement, contentOffset, contentSize } =
+        event.nativeEvent;
+      const paddingToBottom = 300; // Distance from bottom to trigger load
+      const isCloseToBottom =
+        layoutMeasurement.height + contentOffset.y >=
+        contentSize.height - paddingToBottom;
+
+      if (isCloseToBottom) {
+        handleLoadMore();
+      }
+    },
+    [handleLoadMore],
+  );
+
   // Render footer for pagination loading indicator
   const renderFooter = useCallback(() => {
     if (!isLoadingMore) {
@@ -420,16 +440,21 @@ export const BridgeTokenSelector: React.FC = () => {
       </Box>
 
       <FlatList
+        key={selectedChainId || 'all'}
         style={styles.tokensList}
         contentContainerStyle={styles.tokensListContainer}
         data={displayData}
         renderItem={renderToken}
         keyExtractor={keyExtractor}
+        extraData={displayData.length}
         showsVerticalScrollIndicator
         showsHorizontalScrollIndicator={false}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
+        onScroll={handleScroll}
+        scrollEventThrottle={400}
         ListFooterComponent={renderFooter}
+        maxToRenderPerBatch={20}
+        windowSize={10}
+        initialNumToRender={20}
       />
     </SafeAreaView>
   );

@@ -86,9 +86,9 @@ export const useSearchTokens = ({
       }
 
       try {
-        const parsedIncludeAssets: IncludeAsset[] = JSON.parse(
-          includeAssetsRef.current,
-        );
+        const parsedIncludeAssets: IncludeAsset[] = isPagination
+          ? []
+          : JSON.parse(includeAssetsRef.current);
 
         const requestBody: {
           chainIds: CaipChainId[];
