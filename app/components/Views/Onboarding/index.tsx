@@ -888,4 +888,6 @@ const OnboardingWithMetrics = withMetricsAwareness(
   ConnectedOnboarding as unknown as React.ComponentType<IWithMetricsAwarenessProps>,
 );
 
-export default OnboardingWithMetrics as React.ComponentType<OnboardingComponentProps>;
+export default OnboardingWithMetrics as React.ComponentType<
+  Partial<OnboardingComponentProps>
+>;
