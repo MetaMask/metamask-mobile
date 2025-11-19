@@ -476,9 +476,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           testID="badge-wrapper-badge"
                                         >
                                           <View>
-                                            <View
-                                              useNativeDriver={true}
-                                            >
+                                            <View>
                                               <View
                                                 fadeIn={true}
                                                 source={
@@ -504,35 +502,6 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                                   ]
                                                 }
                                               />
-                                              <View
-                                                collapsable={false}
-                                                style={
-                                                  {
-                                                    "bottom": 0,
-                                                    "left": 0,
-                                                    "opacity": 1,
-                                                    "position": "absolute",
-                                                    "right": 0,
-                                                    "top": 0,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    [
-                                                      {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      },
-                                                      {
-                                                        "backgroundColor": "#eee",
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                />
-                                              </View>
                                             </View>
                                           </View>
                                           <View
@@ -918,6 +887,175 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       ]
                                     }
                                   >
+                                    <View
+                                      style={
+                                        {
+                                          "display": "flex",
+                                          "flexDirection": "row",
+                                          "gap": 12,
+                                          "justifyContent": "space-between",
+                                          "paddingBottom": 16,
+                                          "paddingHorizontal": 24,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          25%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          50%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          75%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          90%
+                                        </Text>
+                                      </TouchableOpacity>
+                                    </View>
                                     <View
                                       style={
                                         [
@@ -2138,9 +2276,7 @@ exports[`BridgeView renders 1`] = `
                                           testID="badge-wrapper-badge"
                                         >
                                           <View>
-                                            <View
-                                              useNativeDriver={true}
-                                            >
+                                            <View>
                                               <View
                                                 fadeIn={true}
                                                 source={
@@ -2166,35 +2302,6 @@ exports[`BridgeView renders 1`] = `
                                                   ]
                                                 }
                                               />
-                                              <View
-                                                collapsable={false}
-                                                style={
-                                                  {
-                                                    "bottom": 0,
-                                                    "left": 0,
-                                                    "opacity": 1,
-                                                    "position": "absolute",
-                                                    "right": 0,
-                                                    "top": 0,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    [
-                                                      {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
-                                                        "width": 32,
-                                                      },
-                                                      {
-                                                        "backgroundColor": "#eee",
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                />
-                                              </View>
                                             </View>
                                           </View>
                                           <View
@@ -2580,6 +2687,175 @@ exports[`BridgeView renders 1`] = `
                                       ]
                                     }
                                   >
+                                    <View
+                                      style={
+                                        {
+                                          "display": "flex",
+                                          "flexDirection": "row",
+                                          "gap": 12,
+                                          "justifyContent": "space-between",
+                                          "paddingBottom": 16,
+                                          "paddingHorizontal": 24,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          25%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          50%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          75%
+                                        </Text>
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        activeOpacity={1}
+                                        onPress={[Function]}
+                                        onPressIn={[Function]}
+                                        onPressOut={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "alignSelf": "flex-start",
+                                            "backgroundColor": "#3c4d9d0f",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
+                                            "paddingHorizontal": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Medium",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          90%
+                                        </Text>
+                                      </TouchableOpacity>
+                                    </View>
                                     <View
                                       style={
                                         [
