@@ -685,7 +685,12 @@ const HomeTabs = () => {
       ) : (
         <Tab.Screen
           name={Routes.BROWSER.HOME}
-          options={options.browser}
+          options={{
+            ...options.browser,
+            tabBarButton: isAssetsTrendingTokensEnabled
+              ? () => null
+              : undefined,
+          }}
           component={BrowserFlow}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
@@ -967,15 +972,6 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
-      {/* when isAssetsTrendingTokensEnabled is true, we need to register the BrowserFlow in the Stack Navigator
-       so Routes.BROWSER.HOME can still be navigated to from Stack screens. */}
-      {isAssetsTrendingTokensEnabled && (
-        <Stack.Screen
-          name={Routes.BROWSER.HOME}
-          component={BrowserFlow}
-          options={{ headerShown: false }}
-        />
-      )}
       <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
