@@ -240,7 +240,7 @@ describe('PredictActivityDetail', () => {
     expect(screen.getByText('Price per share')).toBeOnTheScreen();
     expect(screen.getByText(expectedPricePerShare)).toBeOnTheScreen();
     expect(screen.getByText('Net PnL')).toBeOnTheScreen();
-    expect(screen.getByText('-$10')).toBeOnTheScreen();
+    expect(screen.getByText('-$10.00')).toBeOnTheScreen();
     expect(screen.queryByText('Predicted amount')).toBeNull();
     expect(screen.queryByText('Price impact')).toBeNull();
   });
@@ -260,11 +260,11 @@ describe('PredictActivityDetail', () => {
 
     expect(screen.getByText('Claim')).toBeOnTheScreen();
     expect(screen.getByLabelText('USDC')).toBeOnTheScreen();
-    expect(screen.getByText('$200')).toBeOnTheScreen();
+    expect(screen.getByText('$200.00')).toBeOnTheScreen();
     expect(screen.getByText('Total net PnL')).toBeOnTheScreen();
-    expect(screen.getByText('+$150')).toBeOnTheScreen();
+    expect(screen.getByText('+$150.00')).toBeOnTheScreen();
     expect(screen.getByText('Market X')).toBeOnTheScreen();
-    expect(screen.getByText('+$120')).toBeOnTheScreen();
+    expect(screen.getByText('+$120.00')).toBeOnTheScreen();
     expect(screen.queryByText('Market')).toBeNull();
     expect(screen.queryByText('Outcome')).toBeNull();
   });
