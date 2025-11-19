@@ -7,17 +7,17 @@ import { PredictSeries, Recurrence } from '../types';
  * @param options - Optional formatting options
  * @param options.truncate - Whether to truncate values with >99% and <1% (default: false)
  * @returns Format depends on truncate option:
- * - truncate=true (default): ">99%" for values >= 99, "<1%" for values < 1, rounded integer otherwise
- * - truncate=false: Shows actual percentage with up to 2 decimals, hides decimals for integers
- * @example formatPercentage(5.25) => "5%"
- * @example formatPercentage(5.25, { truncate: false }) => "5.25%"
- * @example formatPercentage(99.5) => ">99%"
- * @example formatPercentage(99.5, { truncate: false }) => "99.5%"
- * @example formatPercentage(0.5) => "<1%"
- * @example formatPercentage(0.5, { truncate: false }) => "0.5%"
- * @example formatPercentage(5, { truncate: false }) => "5%"
- * @example formatPercentage(-2.75) => "-3%"
- * @example formatPercentage(-2.75, { truncate: false }) => "-2.75%"
+ * - truncate=false (default): Shows actual percentage with up to 2 decimals, hides decimals for integers
+ * - truncate=true: ">99%" for values >= 99, "<1%" for values < 1, rounded integer otherwise
+ * @example formatPercentage(5.25) => "5.25%"
+ * @example formatPercentage(5.25, { truncate: true }) => "5%"
+ * @example formatPercentage(99.5) => "99.5%"
+ * @example formatPercentage(99.5, { truncate: true }) => ">99%"
+ * @example formatPercentage(0.5) => "0.5%"
+ * @example formatPercentage(0.5, { truncate: true }) => "<1%"
+ * @example formatPercentage(5) => "5%"
+ * @example formatPercentage(-2.75) => "-2.75%"
+ * @example formatPercentage(-2.75, { truncate: true }) => "-3%"
  */
 export const formatPercentage = (
   value: string | number,
@@ -30,7 +30,7 @@ export const formatPercentage = (
     return '0%';
   }
 
-  // Handle truncation mode (default behavior)
+  // Handle truncation mode (when explicitly enabled)
   if (truncate) {
     // Handle special cases for positive numbers only
     if (num >= 99) {
