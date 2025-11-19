@@ -25,13 +25,20 @@ export const useSignedOrSubmittedAlert = () => {
   const { chainId, id: transactionId, txParams } = transactionMetadata || {};
   const { from } = txParams ?? {};
 
-  const existingTransaction = transactions.find(
-    (transaction) =>
-      BLOCK_STATUS.includes(transaction.status) &&
+  const existingTransaction = transactions.find((transaction) => {
+    const blockStatuses = [...BLOCK_STATUS];
+
+    if (hasTransactionType(transactionMetadata, PAY_TYPES)) {
+      blockStatuses.push(TransactionStatus.submitted);
+    }
+
+    return (
+      blockStatuses.includes(transaction.status) &&
       transaction.id !== transactionId &&
       transaction.chainId === chainId &&
-      transaction.txParams.from.toLowerCase() === from?.toLowerCase(),
-  );
+      transaction.txParams.from.toLowerCase() === from?.toLowerCase()
+    );
+  });
 
   const isTransactionPay = PAY_TYPES.some(
     (payType) =>

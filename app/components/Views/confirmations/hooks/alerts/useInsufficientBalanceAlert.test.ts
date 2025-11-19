@@ -17,6 +17,12 @@ import { noop } from 'lodash';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+import {
+  TransactionPayRequiredToken,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({
@@ -30,6 +36,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn().mockImplementation((selector) => selector()),
 }));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -39,6 +46,7 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayToken');
@@ -54,6 +62,8 @@ jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
 }));
 jest.mock('../gas/useIsGaslessSupported');
+jest.mock('../pay/useTransactionPayData');
+jest.mock('../pay/useTransactionPayData');
 
 describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -69,8 +79,12 @@ describe('useInsufficientBalanceAlert', () => {
   const mockUseRampNavigation = jest.mocked(useRampNavigation);
   const mockGoToRamps = jest.fn();
   const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
+  );
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 
-  const mockChainId = '0x1';
+  const mockChainId = '0x1' as Hex;
   const mockFromAddress = '0x123';
   const mockNativeCurrency = 'ETH';
   const mockTransaction = {
@@ -125,6 +139,13 @@ describe('useInsufficientBalanceAlert', () => {
     } as unknown as ReturnType<typeof useConfirmationContext>);
     mockUseRampNavigation.mockReturnValue({
       goToRamps: mockGoToRamps,
+    });
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([]);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+      setPayToken: jest.fn(),
     });
   });
 
@@ -229,12 +250,46 @@ describe('useInsufficientBalanceAlert', () => {
   it('returns empty array if transaction type ignored', () => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...mockTransaction,
-      type: TransactionType.perpsDeposit,
+      type: TransactionType.predictWithdraw,
     } as unknown as TransactionMeta);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert if pay token', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: '0x123' as Hex,
+      } as TransactionPaymentToken,
+      setPayToken: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert if pay token matches required token', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: '0x123' as Hex,
+        chainId: mockChainId,
+      } as TransactionPaymentToken,
+      setPayToken: jest.fn(),
+    });
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: '0x123' as Hex,
+        chainId: mockChainId,
+      } as TransactionPayRequiredToken,
+    ]);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toHaveLength(1);
   });
 
   describe('when ignoreGasFeeToken is true', () => {
