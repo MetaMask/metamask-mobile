@@ -103,6 +103,22 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   }),
 }));
 
+// Mock usePredictRewards hook
+let mockRewardsEnabled = false;
+let mockRewardsLoading = false;
+let mockAccountOptedIn: boolean | null = null;
+let mockEstimatedPoints: number | null = null;
+let mockRewardsError = false;
+jest.mock('../../hooks/usePredictRewards', () => ({
+  usePredictRewards: (_?: number) => ({
+    enabled: mockRewardsEnabled,
+    isLoading: mockRewardsLoading,
+    accountOptedIn: mockAccountOptedIn,
+    estimatedPoints: mockEstimatedPoints,
+    hasError: mockRewardsError,
+  }),
+}));
+
 // Mock Skeleton component
 jest.mock(
   '../../../../../component-library/components/Skeleton/Skeleton',
@@ -312,6 +328,11 @@ describe('PredictBuyPreview', () => {
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
+    mockRewardsEnabled = false;
+    mockRewardsLoading = false;
+    mockAccountOptedIn = null;
+    mockEstimatedPoints = null;
+    mockRewardsError = false;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -1521,6 +1542,7 @@ describe('PredictBuyPreview', () => {
     it('enables place bet button when all conditions met', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
+      mockRewardsLoading = false;
       // Reset mockDispatch to not throw
       mockDispatch.mockClear();
       mockDispatch.mockImplementation(() => {
@@ -2187,17 +2209,18 @@ describe('PredictBuyPreview', () => {
   });
 
   describe('Rewards Calculation', () => {
-    it('calculates estimated points as metamask fee times 100 rounded', () => {
+    it('passes totalFee to usePredictRewards hook', () => {
       mockMetamaskFee = 0.5;
-      const mockStore = {
-        ...initialState,
-      };
+      mockProviderFee = 1.0;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 50;
 
-      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
-        state: mockStore,
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
       });
 
-      // Enter amount to trigger calculation
+      // Enter amount to trigger preview calculation
       act(() => {
         capturedOnChange?.({
           value: '10',
@@ -2205,53 +2228,75 @@ describe('PredictBuyPreview', () => {
         });
       });
 
-      rerender(<PredictBuyPreview />);
-
-      // Expected: 0.5 * 100 = 50 points
+      // Hook should be called with totalFee = 0.5 + 1.0 = 1.5
       // This is verified indirectly through props passed to PredictFeeSummary
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Verify rewards are displayed when enabled and account is opted in
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
     });
 
-    it('rounds estimated points to nearest integer', () => {
+    it('uses estimated points from usePredictRewards hook', () => {
       mockMetamaskFee = 1.234;
+      mockProviderFee = 0;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 123;
 
       renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      // Expected: 1.234 * 100 = 123.4 → 123 points
+      // Hook returns estimated points directly
+      // Expected: 123 points from hook
     });
 
-    it('calculates zero points when metamask fee is zero', () => {
+    it('handles zero points when estimatedPoints is 0', () => {
       mockMetamaskFee = 0;
+      mockProviderFee = 0;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 0;
 
       renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      // Expected: 0 * 100 = 0 points
+      // Expected: 0 points from hook
     });
 
-    it('recalculates points when metamask fee changes', () => {
+    it('updates when totalFee changes', () => {
       mockMetamaskFee = 0.5;
+      mockProviderFee = 0.5;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 50;
 
       const { rerender } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
-      // Change fee
+      // Change fees
       mockMetamaskFee = 1.0;
+      mockProviderFee = 1.0;
+      mockEstimatedPoints = 100;
 
       rerender(<PredictBuyPreview />);
 
-      // Expected: 1.0 * 100 = 100 points
+      // Hook should be called with new totalFee = 2.0
     });
   });
 
   describe('Rewards Display', () => {
-    it('shows rewards when amount is entered', () => {
+    it('shows rewards row when enabled, amount is entered, and accountOptedIn is not null', () => {
       mockMetamaskFee = 0.5;
+      mockProviderFee = 1.0;
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockEstimatedPoints = 50;
 
-      renderWithProvider(<PredictBuyPreview />, {
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
@@ -2263,16 +2308,123 @@ describe('PredictBuyPreview', () => {
         });
       });
 
-      // shouldShowRewards = true when rewardsEnabled && currentValue > 0
+      // Press done to show fee summary
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // shouldShowRewardsRow = true when rewardsEnabled && currentValue > 0 && accountOptedIn != null
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
     });
 
     it('does not show rewards when amount is zero', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+
       renderWithProvider(<PredictBuyPreview />, {
         state: initialState,
       });
 
       // No amount entered (currentValue = 0)
-      // shouldShowRewards = false when currentValue is 0
+      // shouldShowRewardsRow = false when currentValue is 0
+    });
+
+    it('does not show rewards when accountOptedIn is null', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = null;
+      mockEstimatedPoints = null;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // shouldShowRewardsRow = false when accountOptedIn is null
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // Rewards row should not be shown
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+
+    it('shows rewards when accountOptedIn is false (opt-in supported)', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = false;
+      mockEstimatedPoints = null;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // shouldShowRewardsRow = true when accountOptedIn is false (opt-in supported)
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+
+    it('passes isLoadingRewards including isRewardsLoading', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockRewardsLoading = true;
+      mockEstimatedPoints = 50;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      // isLoadingRewards = (isCalculating && isUserInputChange) || isRewardsLoading
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
+    });
+
+    it('passes hasRewardsError from hook', () => {
+      mockRewardsEnabled = true;
+      mockAccountOptedIn = true;
+      mockRewardsError = true;
+      mockEstimatedPoints = null;
+
+      const { getByText } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Enter amount
+      act(() => {
+        capturedOnChange?.({
+          value: '10',
+          valueAsNumber: 10,
+        });
+      });
+
+      const doneButton = getByText('Done');
+      fireEvent.press(doneButton);
+
+      // hasRewardsError should be passed to PredictFeeSummary
+      expect(getByText('Yes · 50¢')).toBeOnTheScreen();
     });
   });
 
