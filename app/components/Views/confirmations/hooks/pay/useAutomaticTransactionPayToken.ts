@@ -76,75 +76,91 @@ export function useAutomaticTransactionPayToken({
   const isHardwareWallet = isHardwareAccount(from ?? '');
   const requiredBalance = getRequiredBalance(transactionMeta);
 
-  let automaticToken: { address: string; chainId?: string } | undefined;
-  let count = 0;
-
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
 
-  if (!disable && (!isUpdated.current || countOnly)) {
-    const targetToken =
-      requiredTokens.find((token) => token.address !== nativeTokenAddress) ??
-      requiredTokens[0];
+  const { automaticToken, count } = useMemo(() => {
+    let token: { address: string; chainId?: string } | undefined;
+    let tokenCount = 0;
 
-    const sufficientBalanceTokens = orderBy(
-      tokens.filter((token) =>
-        isTokenSupported(token, tokens, requiredBalance),
-      ),
-      (token) => token?.tokenFiatAmount ?? 0,
-      'desc',
-    );
+    if (!disable && (!isUpdated.current || countOnly)) {
+      const targetToken =
+        requiredTokens.find(
+          (requiredToken) => requiredToken.address !== nativeTokenAddress,
+        ) ?? requiredTokens[0];
 
-    count = sufficientBalanceTokens.length;
-
-    // Use preferred payment token if set.
-    if (preferredPaymentToken) {
-      const preferredToken = sufficientBalanceTokens.find(
-        (token) =>
-          token.address.toLowerCase() ===
-            preferredPaymentToken.address.toLowerCase() &&
-          token.chainId === preferredPaymentToken.chainId,
+      const sufficientBalanceTokens = orderBy(
+        tokens.filter((t) => isTokenSupported(t, tokens, requiredBalance)),
+        (t) => t?.tokenFiatAmount ?? 0,
+        'desc',
       );
 
-      if (preferredToken) {
-        automaticToken = {
-          address: preferredToken.address,
-          chainId: preferredToken.chainId,
-        };
+      tokenCount = sufficientBalanceTokens.length;
+
+      // Use preferred payment token if set.
+      if (preferredPaymentToken) {
+        const preferredToken = sufficientBalanceTokens.find(
+          (sufficientBalanceToken) =>
+            sufficientBalanceToken.address.toLowerCase() ===
+              preferredPaymentToken.address.toLowerCase() &&
+            sufficientBalanceToken.chainId === preferredPaymentToken.chainId,
+        );
+
+        if (preferredToken) {
+          token = {
+            address: preferredToken.address,
+            chainId: preferredToken.chainId,
+          };
+        }
+      }
+
+      if (!token) {
+        const requiredToken = sufficientBalanceTokens.find(
+          (sufficientBalanceToken) =>
+            sufficientBalanceToken.address === targetToken?.address &&
+            sufficientBalanceToken.chainId === chainId,
+        );
+
+        const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
+          (sufficientBalanceToken) =>
+            sufficientBalanceToken.chainId === chainId,
+        );
+
+        const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
+          (sufficientBalanceToken) =>
+            sufficientBalanceToken.chainId !== chainId,
+        );
+
+        const targetTokenFallback = targetToken
+          ? {
+              address: targetToken.address,
+              chainId,
+            }
+          : undefined;
+
+        token =
+          requiredToken ??
+          sameChainHighestBalanceToken ??
+          alternateChainHighestBalanceToken ??
+          targetTokenFallback;
+
+        if (isHardwareWallet) {
+          token = targetTokenFallback;
+        }
       }
     }
 
-    if (!automaticToken) {
-      const requiredToken = sufficientBalanceTokens.find(
-        (token) =>
-          token.address === targetToken?.address && token.chainId === chainId,
-      );
-
-      const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
-        (token) => token.chainId === chainId,
-      );
-
-      const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
-        (token) => token.chainId !== chainId,
-      );
-
-      const targetTokenFallback = targetToken
-        ? {
-            address: targetToken.address,
-            chainId,
-          }
-        : undefined;
-
-      automaticToken =
-        requiredToken ??
-        sameChainHighestBalanceToken ??
-        alternateChainHighestBalanceToken ??
-        targetTokenFallback;
-
-      if (isHardwareWallet) {
-        automaticToken = targetTokenFallback;
-      }
-    }
-  }
+    return { automaticToken: token, count: tokenCount };
+  }, [
+    disable,
+    countOnly,
+    requiredTokens,
+    nativeTokenAddress,
+    tokens,
+    requiredBalance,
+    preferredPaymentToken,
+    chainId,
+    isHardwareWallet,
+  ]);
 
   useEffect(() => {
     if (
