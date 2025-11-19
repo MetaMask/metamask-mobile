@@ -737,6 +737,84 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                         }
                       >
                         <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": undefined,
+                                "borderRadius": 8,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "maxWidth": "80%",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 12,
+                              }
+                            }
+                            testID="tokens-network-filter"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Popular networks
+                              </Text>
+                            </View>
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        <View
                           collapsable={false}
                           onLayout={[Function]}
                           style={
@@ -2511,6 +2589,84 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                         }
                       >
                         <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": undefined,
+                                "borderRadius": 8,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "maxWidth": "80%",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 12,
+                              }
+                            }
+                            testID="tokens-network-filter"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Popular networks
+                              </Text>
+                            </View>
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        <View
                           collapsable={false}
                           onLayout={[Function]}
                           style={
@@ -4284,6 +4440,84 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                           }
                         }
                       >
+                        <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": undefined,
+                                "borderRadius": 8,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "maxWidth": "80%",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 12,
+                              }
+                            }
+                            testID="tokens-network-filter"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Popular networks
+                              </Text>
+                            </View>
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
                         <View
                           collapsable={false}
                           onLayout={[Function]}
@@ -6100,6 +6334,84 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                         }
                       >
                         <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": undefined,
+                                "borderRadius": 8,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "maxWidth": "80%",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 12,
+                              }
+                            }
+                            testID="tokens-network-filter"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Popular networks
+                              </Text>
+                            </View>
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        <View
                           collapsable={false}
                           onLayout={[Function]}
                           style={
@@ -7874,6 +8186,84 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                         }
                       >
                         <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": undefined,
+                                "borderRadius": 8,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "maxWidth": "80%",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 12,
+                              }
+                            }
+                            testID="tokens-network-filter"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Popular networks
+                              </Text>
+                            </View>
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        <View
                           collapsable={false}
                           onLayout={[Function]}
                           style={
@@ -9647,6 +10037,84 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                           }
                         }
                       >
+                        <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": undefined,
+                                "borderRadius": 8,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "maxWidth": "80%",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 12,
+                              }
+                            }
+                            testID="tokens-network-filter"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Popular networks
+                              </Text>
+                            </View>
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
                         <View
                           collapsable={false}
                           onLayout={[Function]}
@@ -11993,6 +12461,84 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                         }
                       >
                         <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": undefined,
+                                "borderRadius": 8,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "maxWidth": "80%",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 12,
+                              }
+                            }
+                            testID="tokens-network-filter"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Popular networks
+                              </Text>
+                            </View>
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        <View
                           collapsable={false}
                           onLayout={[Function]}
                           style={
@@ -13766,6 +14312,84 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                           }
                         }
                       >
+                        <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": undefined,
+                                "borderRadius": 8,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "maxWidth": "80%",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 12,
+                              }
+                            }
+                            testID="tokens-network-filter"
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "gap": 4,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                numberOfLines={1}
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Popular networks
+                              </Text>
+                            </View>
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
                         <View
                           collapsable={false}
                           onLayout={[Function]}

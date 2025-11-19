@@ -81,6 +81,7 @@ jest.mock('../../../selectors/multichain/multichain', () => ({
 }));
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
+  selectInternalAccountsById: jest.fn(() => ({})),
 }));
 jest.mock('../../../selectors/tokensController', () => ({
   selectTokens: jest.fn(),
@@ -89,6 +90,7 @@ jest.mock(
   '../../../selectors/multichainAccounts/accountTreeController',
   () => ({
     selectSelectedAccountGroupInternalAccounts: jest.fn(),
+    selectAccountTreeControllerState: jest.fn(() => ({})),
   }),
 );
 jest.mock('../../../selectors/networkController', () => ({
@@ -108,6 +110,49 @@ jest.mock('../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../../selectors/multichainNetworkController', () => ({
+  selectIsEvmNetworkSelected: jest.fn(() => true),
+}));
+
+jest.mock('../../../selectors/networkInfos', () => ({
+  selectNetworkName: jest.fn(() => 'Test Network'),
+}));
+
+jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
+  useCurrentNetworkInfo: jest.fn(() => ({
+    enabledNetworks: [{ chainId: '0x1', enabled: true }],
+    getNetworkInfo: jest.fn(() => ({ networkName: 'Test Network' })),
+    isDisabled: false,
+  })),
+}));
+
+jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: jest.fn(() => ({
+    areAllNetworksSelected: true,
+  })),
+  NetworkType: {
+    Popular: 'popular',
+  },
+}));
+
+jest.mock('../../UI/NetworkManager', () => ({
+  createNetworkManagerNavDetails: jest.fn(() => ['NetworkManager', {}]),
+}));
+
+jest.mock('../../UI/Tokens/TokensBottomSheet', () => ({
+  createTokenBottomSheetFilterNavDetails: jest.fn(() => [
+    'TokensBottomSheet',
+    {},
+  ]),
+}));
+
 // Mock utilities used in memo pipeline
 jest.mock('../../../util/activity', () => ({
   filterByAddress: jest.fn(() => true),
@@ -123,6 +168,7 @@ jest.mock('../../../util/networks', () => ({
   isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
   findBlockExplorerForRpc: jest.fn(() => 'https://explorer.example'),
   getBlockExplorerAddressUrl: jest.fn(),
+  getNetworkImageSource: jest.fn(() => ({ uri: 'test' })),
 }));
 jest.mock('../../UI/Transactions/utils', () => ({
   filterDuplicateOutgoingTransactions: jest.fn((arr: unknown[]) => arr),
