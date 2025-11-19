@@ -520,8 +520,8 @@ const PhysicalAddress = () => {
           dispatch(setConsentSetId(null));
         }
 
-        // Navigate to completion screen
-        navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
+        // Navigate to verification screen to verify registration status
+        navigation.navigate(Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION);
         return;
       }
 

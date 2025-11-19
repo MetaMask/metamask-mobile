@@ -386,6 +386,7 @@ const Routes = {
       PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
+      VERIFYING_REGISTRATION: 'CardOnboardingVerifyingRegistration',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       WEBVIEW: 'CardOnboardingWebview',

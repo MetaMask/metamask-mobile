@@ -211,8 +211,8 @@ const MailingAddress = () => {
           dispatch(setConsentSetId(null));
         }
 
-        // Registration complete
-        navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
+        // Navigate to verification screen to verify registration status
+        navigation.navigate(Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION);
       }
 
       // Something is wrong. We need to display the registerError or restart the flow

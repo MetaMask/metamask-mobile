@@ -6306,6 +6306,16 @@
         "title": "Validating your KYC...",
         "timeout_button": "Restart verification"
       },
+      "verifying_registration": {
+        "title": "Verifying your identity",
+        "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
+        "timeout_title": "Verification in progress",
+        "timeout_description": "Your verification will take up to 12 hours. Please come back to the Card section in that time.",
+        "rejected_title": "Verification failed",
+        "rejected_description": "We were unable to verify your identity at this time.",
+        "rejected_message": "Please contact support for assistance with your verification: {{email}}",
+        "success_toast": "Your ID was verified!"
+      },
       "kyc_failed": {
         "title": "Rejected",
         "description": "Your KYC was rejected. Please try again."
