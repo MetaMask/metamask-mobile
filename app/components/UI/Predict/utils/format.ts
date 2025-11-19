@@ -5,7 +5,7 @@ import { PredictSeries, Recurrence } from '../types';
  * Formats a percentage value
  * @param value - Raw percentage value (e.g., 5.25 for 5.25%, not 0.0525)
  * @param options - Optional formatting options
- * @param options.truncate - Whether to truncate values with >99% and <1% (default: true)
+ * @param options.truncate - Whether to truncate values with >99% and <1% (default: false)
  * @returns Format depends on truncate option:
  * - truncate=true (default): ">99%" for values >= 99, "<1%" for values < 1, rounded integer otherwise
  * - truncate=false: Shows actual percentage with up to 2 decimals, hides decimals for integers
