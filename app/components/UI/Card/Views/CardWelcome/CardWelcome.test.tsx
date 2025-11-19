@@ -38,10 +38,6 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({ colors: { background: { default: '#fff' } } }),
 }));
 
-jest.mock('../../hooks/useIsCardholder', () => ({
-  useIsCardholder: jest.fn(() => true),
-}));
-
 const createTestStore = () =>
   configureStore({
     reducer: {

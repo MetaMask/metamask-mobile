@@ -4,7 +4,6 @@ import useLoadCardData from './useLoadCardData';
 import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 import useCardDetails from './useCardDetails';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
-import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
@@ -28,7 +27,6 @@ jest.mock('react-redux', () => ({
 jest.mock('./isBaanxLoginEnabled');
 jest.mock('./useCardDetails');
 jest.mock('./useGetPriorityCardToken');
-jest.mock('./useIsCardholder');
 jest.mock('./useGetCardExternalWalletDetails');
 jest.mock('./useGetDelegationSettings');
 jest.mock('./useGetLatestAllowanceForPriorityToken');
@@ -42,9 +40,6 @@ const mockUseGetPriorityCardToken =
   useGetPriorityCardToken as jest.MockedFunction<
     typeof useGetPriorityCardToken
   >;
-const mockUseIsCardholder = useIsCardholder as jest.MockedFunction<
-  typeof useIsCardholder
->;
 const mockUseGetCardExternalWalletDetails =
   useGetCardExternalWalletDetails as jest.MockedFunction<
     typeof useGetCardExternalWalletDetails
@@ -127,8 +122,6 @@ describe('useLoadCardData', () => {
     mockUseSelector.mockReturnValue(false); // isAuthenticated = false by default
 
     mockUseIsBaanxLoginEnabled.mockReturnValue(true);
-
-    mockUseIsCardholder.mockReturnValue(true);
 
     mockUseGetDelegationSettings.mockReturnValue({
       data: mockDelegationSettings,
@@ -330,7 +323,6 @@ describe('useLoadCardData', () => {
 
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.isBaanxLoginEnabled).toBe(true);
-      expect(result.current.isCardholder).toBe(true);
     });
 
     it('calls fetchPriorityToken when fetchAllData is invoked', async () => {
@@ -499,7 +491,6 @@ describe('useLoadCardData', () => {
 
       expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.isBaanxLoginEnabled).toBe(true);
-      expect(result.current.isCardholder).toBe(true);
     });
   });
 
@@ -635,14 +626,6 @@ describe('useLoadCardData', () => {
       const { result } = renderHook(() => useLoadCardData());
 
       expect(result.current.isBaanxLoginEnabled).toBe(false);
-    });
-
-    it('handles non-cardholder state', () => {
-      mockUseIsCardholder.mockReturnValue(false);
-
-      const { result } = renderHook(() => useLoadCardData());
-
-      expect(result.current.isCardholder).toBe(false);
     });
   });
 

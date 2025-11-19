@@ -4,7 +4,6 @@ import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 import useCardDetails from './useCardDetails';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
-import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
@@ -40,7 +39,6 @@ import { CardTokenAllowance, CardWarning } from '../types';
 const useLoadCardData = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
-  const isCardholder = useIsCardholder();
 
   // Get delegation settings (only used in authenticated mode)
   const {
@@ -224,7 +222,6 @@ const useLoadCardData = () => {
     warning,
     isAuthenticated,
     isBaanxLoginEnabled,
-    isCardholder,
     // Fetch functions
     fetchAllData,
     refetchAllData,
