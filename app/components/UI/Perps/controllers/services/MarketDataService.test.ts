@@ -132,6 +132,20 @@ describe('MarketDataService', () => {
 
       expect(mockProvider.getPositions).toHaveBeenCalledWith(params);
     });
+
+    it('handles provider exception during getPositions', async () => {
+      const error = new Error('Network timeout');
+      mockProvider.getPositions.mockRejectedValue(error);
+
+      await expect(
+        MarketDataService.getPositions({
+          provider: mockProvider,
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Network timeout');
+
+      expect(mockContext.stateManager?.update).toHaveBeenCalled();
+    });
   });
 
   describe('getOrderFills', () => {

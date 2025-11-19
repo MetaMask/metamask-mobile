@@ -400,6 +400,95 @@ describe('TradingService', () => {
       );
       expect(endTrace).toHaveBeenCalled();
     });
+
+    it('handles order placement failure', async () => {
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+      };
+      mockProvider.placeOrder.mockResolvedValue({
+        success: false,
+        error: 'Insufficient margin',
+      });
+      (
+        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
+      ).mockResolvedValue(undefined);
+
+      const result = await TradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Insufficient margin');
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('handles provider exception during order placement', async () => {
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+      };
+      const error = new Error('Network timeout');
+      mockProvider.placeOrder.mockRejectedValue(error);
+      (
+        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
+      ).mockResolvedValue(undefined);
+
+      await expect(
+        TradingService.placeOrder({
+          provider: mockProvider,
+          params: orderParams,
+          context: mockContext,
+          reportOrderToDataLake: mockReportOrderToDataLake,
+        }),
+      ).rejects.toThrow('Network timeout');
+
+      expect(Logger.error).toHaveBeenCalledWith(error, expect.any(Object));
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('handles data lake reporting failure', async () => {
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+      };
+      const mockOrderResult: OrderResult = {
+        success: true,
+        orderId: 'order-123',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      };
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockReportOrderToDataLake.mockRejectedValue(
+        new Error('Data lake unavailable'),
+      );
+      (
+        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
+      ).mockResolvedValue(undefined);
+
+      const result = await TradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(result.success).toBe(true);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Data lake unavailable' }),
+        expect.any(Object),
+      );
+    });
   });
 
   describe('editOrder', () => {
@@ -570,6 +659,57 @@ describe('TradingService', () => {
         undefined,
       );
     });
+
+    it('handles order edit failure', async () => {
+      const editParams: EditOrderParams = {
+        orderId: 'order-123',
+        newOrder: {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.2',
+          orderType: 'market',
+        },
+      };
+      mockProvider.editOrder.mockResolvedValue({
+        success: false,
+        error: 'Order not found',
+      });
+
+      const result = await TradingService.editOrder({
+        provider: mockProvider,
+        params: editParams,
+        context: mockContext,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Order not found');
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('handles provider exception during order edit', async () => {
+      const editParams: EditOrderParams = {
+        orderId: 'order-123',
+        newOrder: {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.2',
+          orderType: 'market',
+        },
+      };
+      const error = new Error('Network timeout');
+      mockProvider.editOrder.mockRejectedValue(error);
+
+      await expect(
+        TradingService.editOrder({
+          provider: mockProvider,
+          params: editParams,
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Network timeout');
+
+      expect(Logger.error).toHaveBeenCalledWith(error, expect.any(Object));
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('cancelOrder', () => {
@@ -662,6 +802,47 @@ describe('TradingService', () => {
       ).rejects.toThrow('Cancel failed');
 
       expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('handles order cancel failure', async () => {
+      const cancelParams: CancelOrderParams = {
+        orderId: 'order-123',
+        coin: 'BTC',
+      };
+      mockProvider.cancelOrder.mockResolvedValue({
+        success: false,
+        error: 'Order already filled',
+      });
+
+      const result = await TradingService.cancelOrder({
+        provider: mockProvider,
+        params: cancelParams,
+        context: mockContext,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Order already filled');
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('handles provider exception during order cancel', async () => {
+      const cancelParams: CancelOrderParams = {
+        orderId: 'order-123',
+        coin: 'BTC',
+      };
+      const error = new Error('Network error');
+      mockProvider.cancelOrder.mockRejectedValue(error);
+
+      await expect(
+        TradingService.cancelOrder({
+          provider: mockProvider,
+          params: cancelParams,
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Network error');
+
+      expect(Logger.error).toHaveBeenCalledWith(error, expect.any(Object));
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalled();
     });
   });
 
