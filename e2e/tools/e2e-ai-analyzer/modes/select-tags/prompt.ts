@@ -66,21 +66,12 @@ export function buildTaskPrompt(
     otherFiles.forEach((f) => fileList.push(`  ${f}`));
   }
 
-  const instruction = `Analyze the changes and identify which E2E test tags can be skipped, so all the rest are selected to run.`;
-  const tagsSection = `AVAILABLE TEST TAGS (select from these and don't search for additional tags): ${tagCoverageList}`;
+  const instruction = `Analyze the changed files and the impacted codebase to select the E2E test tags to run so the changes can be verified safely with minimal risk.`;
+  const tagsSection = `AVAILABLE TEST TAGS (select from these and don't search for additional tags):\n${tagCoverageList}`;
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;
-  const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection.
-
-Example:
-{
-  "selected_tags": ["SmokeCore", "SmokeAssets"],
-  "risk_level": "medium",
-  "confidence": 81,
-  "reasoning": "Token controller changes affect asset display..."
-}`;
-
+  const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready`;
   const prompt = [instruction, tagsSection, filesSection, closing].join('\n\n');
 
   return prompt;
