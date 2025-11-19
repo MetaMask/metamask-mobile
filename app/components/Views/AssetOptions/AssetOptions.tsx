@@ -259,41 +259,43 @@ const AssetOptions = (props: Props) => {
   };
 
   const openPortfolio = () => {
-    const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
-      isPortfolioUrl(url),
-    );
+    modalRef.current?.dismissModal(() => {
+      const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
+        isPortfolioUrl(url),
+      );
 
-    let existingTabId;
-    let newTabUrl;
-    if (existingPortfolioTab) {
-      existingTabId = existingPortfolioTab.id;
-    } else {
-      const analyticsEnabled = isEnabled();
+      let existingTabId;
+      let newTabUrl;
+      if (existingPortfolioTab) {
+        existingTabId = existingPortfolioTab.id;
+      } else {
+        const analyticsEnabled = isEnabled();
 
-      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-        metamaskEntry: 'mobile',
-        metricsEnabled: analyticsEnabled,
-        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+        const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
+          metamaskEntry: 'mobile',
+          metricsEnabled: analyticsEnabled,
+          marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+        });
+
+        newTabUrl = portfolioUrl.href;
+      }
+      const params = {
+        ...(newTabUrl && { newTabUrl }),
+        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+        timestamp: Date.now(),
+      };
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params,
       });
-
-      newTabUrl = portfolioUrl.href;
-    }
-    const params = {
-      ...(newTabUrl && { newTabUrl }),
-      ...(existingTabId && { existingTabId, newTabUrl: undefined }),
-      timestamp: Date.now(),
-    };
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params,
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+          .addProperties({
+            portfolioUrl: AppConstants.PORTFOLIO.URL,
+          })
+          .build(),
+      );
     });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
-        .addProperties({
-          portfolioUrl: AppConstants.PORTFOLIO.URL,
-        })
-        .build(),
-    );
   };
 
   const removeToken = () => {
