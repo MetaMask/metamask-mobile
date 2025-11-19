@@ -21,29 +21,14 @@ export const selectTokenScanResult = createDeepEqualSelector(
   (phishingControllerState, params) => {
     const { tokenAddress, chainId } = params;
 
-    if (!tokenAddress) {
-      return undefined;
-    }
-
-    const checksumAddress = safeToChecksumAddress(tokenAddress);
-    if (!checksumAddress) {
+    if (!tokenAddress || !chainId) {
       return undefined;
     }
 
     const tokenScanCache = phishingControllerState?.tokenScanCache || {};
 
-    let cacheEntry;
-    if (chainId) {
-      const cacheKey = `${chainId}:${checksumAddress.toLowerCase()}`;
-      cacheEntry = tokenScanCache[cacheKey];
-    }
-
-    if (!cacheEntry) {
-      cacheEntry =
-        tokenScanCache[checksumAddress] ||
-        tokenScanCache[checksumAddress.toLowerCase()] ||
-        tokenScanCache[tokenAddress.toLowerCase()];
-    }
+    const cacheKey = `${chainId}:${tokenAddress.toLowerCase()}`;
+    const cacheEntry = tokenScanCache[cacheKey];
 
     return cacheEntry?.data;
   },
@@ -98,8 +83,6 @@ export const selectMultipleTokenScanResults = createDeepEqualSelector(
           scanResult: cacheEntry?.data,
         };
       })
-      .filter(
-        (result): result is NonNullable<typeof result> => result !== null,
-      );
+      .filter((result) => result !== null);
   },
 );
