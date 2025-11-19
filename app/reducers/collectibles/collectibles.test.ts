@@ -43,7 +43,7 @@ describe('selectAllCollectiblesByChain', () => {
     },
   };
 
-  it('should return collectibles for valid address and chain', () => {
+  it('returns collectibles for valid address and chain', () => {
     const { mockSelectSelectedInternalAccountAddress, mockSelectAllNfts } =
       arrange();
     mockSelectSelectedInternalAccountAddress.mockReturnValue(mockAddress);
@@ -80,17 +80,15 @@ describe('selectAllCollectiblesByChain', () => {
       allNfts: mockNftContracts,
       chainId: '0xnonexistent' as Hex,
     },
-  ])(
-    'should return empty array - $case',
-    ({ selectedAddress, allNfts, chainId }) => {
-      const { mockSelectSelectedInternalAccountAddress, mockSelectAllNfts } =
-        arrange();
+  ])('returns empty array - $case', ({ selectedAddress, allNfts, chainId }) => {
+    const { mockSelectSelectedInternalAccountAddress, mockSelectAllNfts } =
+      arrange();
 
-      mockSelectSelectedInternalAccountAddress.mockReturnValue(selectedAddress);
-      mockSelectAllNfts.mockReturnValue(allNfts);
+    mockSelectSelectedInternalAccountAddress.mockReturnValue(selectedAddress);
+    mockSelectAllNfts.mockReturnValue(allNfts);
 
-      const result = selectAllCollectiblesByChain(mockState, chainId);
-      expect(result).toEqual([]);
-    },
-  );
+    const result = selectAllCollectiblesByChain(mockState, chainId);
+
+    expect(result).toEqual([]);
+  });
 });
