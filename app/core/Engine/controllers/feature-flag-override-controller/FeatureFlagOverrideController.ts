@@ -4,6 +4,12 @@ import {
   StateMetadata,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
+import type {
+  RemoteFeatureFlagControllerState,
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
+import type { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 
 /**
  * State shape for FeatureFlagOverrideController
@@ -52,22 +58,29 @@ export interface FeatureFlagOverrideControllerGetStateAction {
 /**
  * Events emitted by the FeatureFlagOverrideController
  */
-export type FeatureFlagOverrideControllerEvents =
-  ControllerStateChangeEvent<FeatureFlagOverrideControllerState>;
+export type FeatureFlagOverrideControllerEvents = ControllerStateChangeEvent<
+  'FeatureFlagOverrideController',
+  FeatureFlagOverrideControllerState
+>;
 
 /**
  * State change event type
  */
 export type FeatureFlagOverrideControllerStateChangeEvent =
-  ControllerStateChangeEvent<FeatureFlagOverrideControllerState>;
+  ControllerStateChangeEvent<
+    'FeatureFlagOverrideController',
+    FeatureFlagOverrideControllerState
+  >;
 
 /**
  * Messenger type for FeatureFlagOverrideController
  */
 export type FeatureFlagOverrideControllerMessenger = Messenger<
   'FeatureFlagOverrideController',
-  FeatureFlagOverrideControllerActions,
-  FeatureFlagOverrideControllerEvents
+  | FeatureFlagOverrideControllerActions
+  | RemoteFeatureFlagControllerGetStateAction,
+  | FeatureFlagOverrideControllerEvents
+  | RemoteFeatureFlagControllerStateChangeEvent
 >;
 
 /**
@@ -90,6 +103,13 @@ export class FeatureFlagOverrideController extends BaseController<
   FeatureFlagOverrideControllerState,
   FeatureFlagOverrideControllerMessenger
 > {
+  /**
+   * Cached state from RemoteFeatureFlagController
+   * This is updated automatically when RemoteFeatureFlagController state changes
+   */
+  private remoteFeatureFlagState: RemoteFeatureFlagControllerState | null =
+    null;
+
   constructor({ messenger, state = {} }: FeatureFlagOverrideControllerOptions) {
     super({
       name: 'FeatureFlagOverrideController',
@@ -100,6 +120,52 @@ export class FeatureFlagOverrideController extends BaseController<
         ...state,
       },
     });
+
+    // Subscribe to RemoteFeatureFlagController state changes
+    this.messenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      this.handleRemoteFeatureFlagStateChange.bind(this),
+    );
+
+    // Get initial RemoteFeatureFlagController state
+    try {
+      const initialState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      this.remoteFeatureFlagState = initialState;
+    } catch (error) {
+      // RemoteFeatureFlagController might not be initialized yet
+      // This is okay, we'll get the state when it changes
+    }
+  }
+
+  /**
+   * Handle RemoteFeatureFlagController state changes
+   * @param state - The new state from RemoteFeatureFlagController
+   */
+  private handleRemoteFeatureFlagStateChange(
+    state: RemoteFeatureFlagControllerState,
+  ): void {
+    this.remoteFeatureFlagState = state;
+  }
+
+  /**
+   * Get the current RemoteFeatureFlagController state
+   * @returns The current remote feature flag state, or null if not available
+   */
+  private getRemoteFeatureFlagState(): RemoteFeatureFlagControllerState | null {
+    // Try to get fresh state if we don't have it cached
+    if (!this.remoteFeatureFlagState) {
+      try {
+        this.remoteFeatureFlagState = this.messenger.call(
+          'RemoteFeatureFlagController:getState',
+        );
+      } catch (error) {
+        // RemoteFeatureFlagController might not be initialized yet
+        return null;
+      }
+    }
+    return this.remoteFeatureFlagState;
   }
 
   /**
@@ -194,5 +260,127 @@ export class FeatureFlagOverrideController extends BaseController<
       return this.getOverride(key);
     }
     return originalFlags[key];
+  }
+
+  /**
+   * Get a feature flag value with overrides applied
+   * This method automatically gets the remote feature flags and applies overrides
+   * @param key - The feature flag key
+   * @returns The feature flag value with overrides applied, or undefined if not found
+   */
+  getFeatureFlag(key: string): unknown {
+    const remoteState = this.getRemoteFeatureFlagState();
+    const originalFlags = remoteState?.remoteFeatureFlags ?? {};
+    return this.getFeatureFlagWithOverride(key, originalFlags);
+  }
+
+  /**
+   * Get a boolean feature flag value with overrides applied
+   * @param key - The feature flag key
+   * @param fallback - Optional fallback value if flag is not found (defaults to false)
+   * @returns The boolean feature flag value with overrides applied
+   */
+  getBooleanFeatureFlag(key: string, fallback: boolean = false): boolean {
+    const value = this.getFeatureFlag(key);
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    return fallback;
+  }
+
+  /**
+   * Get a string feature flag value with overrides applied
+   * @param key - The feature flag key
+   * @param fallback - Optional fallback value if flag is not found
+   * @returns The string feature flag value with overrides applied, or fallback
+   */
+  getStringFeatureFlag(key: string, fallback?: string): string | undefined {
+    const value = this.getFeatureFlag(key);
+    if (typeof value === 'string') {
+      return value;
+    }
+    return fallback;
+  }
+
+  /**
+   * Get a number feature flag value with overrides applied
+   * @param key - The feature flag key
+   * @param fallback - Optional fallback value if flag is not found
+   * @returns The number feature flag value with overrides applied, or fallback
+   */
+  getNumberFeatureFlag(key: string, fallback?: number): number | undefined {
+    const value = this.getFeatureFlag(key);
+    if (typeof value === 'number') {
+      return value;
+    }
+    return fallback;
+  }
+
+  /**
+   * Get an array feature flag value with overrides applied
+   * @param key - The feature flag key
+   * @param fallback - Optional fallback value if flag is not found (defaults to empty array)
+   * @returns The array feature flag value with overrides applied
+   */
+  getArrayFeatureFlag<T = unknown>(key: string, fallback: T[] = []): T[] {
+    const value = this.getFeatureFlag(key);
+    if (Array.isArray(value)) {
+      return value as T[];
+    }
+    return fallback;
+  }
+
+  /**
+   * Get an object feature flag value with overrides applied
+   * @param key - The feature flag key
+   * @param fallback - Optional fallback value if flag is not found
+   * @returns The object feature flag value with overrides applied, or fallback
+   */
+  getObjectFeatureFlag<T = Record<string, unknown>>(
+    key: string,
+    fallback?: T,
+  ): T | undefined {
+    const value = this.getFeatureFlag(key);
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return value as T;
+    }
+    return fallback;
+  }
+
+  /**
+   * Get a version-gated feature flag value with overrides applied
+   * This is a convenience method for flags that have the structure { enabled: boolean, minimumVersion: string }
+   * @param key - The feature flag key
+   * @param fallback - Optional fallback value if flag is not found
+   * @returns The version-gated feature flag value with overrides applied, or fallback
+   */
+  getVersionGatedFeatureFlag(
+    key: string,
+    fallback?: VersionGatedFeatureFlag,
+  ): VersionGatedFeatureFlag | undefined {
+    const value = this.getFeatureFlag(key);
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      'enabled' in value &&
+      'minimumVersion' in value &&
+      typeof (value as VersionGatedFeatureFlag).enabled === 'boolean' &&
+      typeof (value as VersionGatedFeatureFlag).minimumVersion === 'string'
+    ) {
+      return value as VersionGatedFeatureFlag;
+    }
+    return fallback;
+  }
+
+  /**
+   * Apply all overrides to remote feature flags
+   * This returns a new object with all overrides applied, useful when you need multiple flags
+   * @returns A new object with all remote feature flags and overrides applied
+   */
+  applyOverridesToRemoteFlags(): Record<string, unknown> {
+    const remoteState = this.getRemoteFeatureFlagState();
+    const originalFlags = remoteState?.remoteFeatureFlags ?? {};
+    return this.applyOverrides(originalFlags);
   }
 }

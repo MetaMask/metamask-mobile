@@ -15,7 +15,7 @@ import {
   TransactionParams,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { parseCaipAssetId, type Hex, hasProperty } from '@metamask/utils';
+import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import type { Span } from '@sentry/core';
@@ -113,14 +113,10 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
 } from '@metamask/remote-feature-flag-controller';
 import type {
-  FeatureFlagOverrideControllerState,
   FeatureFlagOverrideControllerStateChangeEvent,
   FeatureFlagOverrideControllerGetStateAction,
 } from '../../../../core/Engine/controllers/feature-flag-override-controller';
-import {
-  type VersionGatedFeatureFlag,
-  validatedVersionGatedFeatureFlag,
-} from '../../../../util/remoteFeatureFlag';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import { parseCommaSeparatedString } from '../utils/stringParseUtils';
 import { wait } from '../utils/wait';
 
@@ -798,26 +794,17 @@ export class PerpsController extends BaseController<
     }
 
     // Also check for HIP-3 config changes
-    this.refreshHip3ConfigOnFeatureFlagChange(remoteFeatureFlagControllerState);
+    this.refreshHip3ConfigOnFeatureFlagChange();
   }
 
   /**
    * Refresh HIP-3 configuration when override changes.
    * This method checks for overrides first, then falls back to remote flags.
    *
-   * @param featureFlagOverrideControllerState - State from FeatureFlagOverrideController
    */
-  private refreshHip3ConfigOnOverrideChange(
-    featureFlagOverrideControllerState: FeatureFlagOverrideControllerState,
-  ): void {
-    // Get current remote feature flag state
-    const remoteFeatureFlagState = this.messenger.call(
-      'RemoteFeatureFlagController:getState',
-    );
-    this.refreshHip3ConfigWithOverrides(
-      remoteFeatureFlagState,
-      featureFlagOverrideControllerState,
-    );
+  private refreshHip3ConfigOnOverrideChange(): void {
+    // Refresh config - override controller now manages remote state internally
+    this.refreshHip3ConfigWithOverrides();
   }
 
   /**
@@ -830,48 +817,30 @@ export class PerpsController extends BaseController<
    *
    * @param remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
    */
-  private refreshHip3ConfigOnFeatureFlagChange(
-    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
-  ): void {
-    // Get current override state
-    const overrideState = this.messenger.call(
-      'FeatureFlagOverrideController:getState',
-    );
-    this.refreshHip3ConfigWithOverrides(
-      remoteFeatureFlagControllerState,
-      overrideState,
-    );
+  private refreshHip3ConfigOnFeatureFlagChange(): void {
+    // Refresh config - override controller now manages remote state internally
+    this.refreshHip3ConfigWithOverrides();
   }
 
   /**
    * Refresh HIP-3 configuration with overrides applied.
    * Checks for overrides first, then falls back to remote flags.
-   *
-   * @param remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
    */
-  private refreshHip3ConfigWithOverrides(
-    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
-  ): void {
-    const remoteFlags = remoteFeatureFlagControllerState.remoteFeatureFlags;
-
-    // Check for override first
+  private refreshHip3ConfigWithOverrides(): void {
+    // Get override controller and use the enhanced method to get version-gated flag
     const overrideController = Engine.context.FeatureFlagOverrideController;
-    const hasOverride = overrideController.hasOverride('perpsHip3Enabled');
+    const equityFlag =
+      overrideController.getVersionGatedFeatureFlag('perpsHip3Enabled');
 
-    let equityFlag: VersionGatedFeatureFlag | undefined;
-    if (hasOverride) {
-      const overrideValue = overrideController.getOverride('perpsHip3Enabled');
-      equityFlag = overrideValue as unknown as VersionGatedFeatureFlag;
+    if (overrideController.hasOverride('perpsHip3Enabled')) {
       DevLogger.log('PerpsController: Using overridden perpsHip3Enabled flag', {
         overrideValue: equityFlag,
       });
-    } else {
-      // Extract and validate remote HIP-3 equity enabled flag
-      equityFlag =
-        remoteFlags?.perpsHip3Enabled as unknown as VersionGatedFeatureFlag;
     }
 
-    const validatedEquity = validatedVersionGatedFeatureFlag(equityFlag);
+    const validatedEquity = equityFlag
+      ? validatedVersionGatedFeatureFlag(equityFlag)
+      : undefined;
 
     DevLogger.log('PerpsController: HIP-3 equity flag validation', {
       equityFlag,
@@ -879,11 +848,12 @@ export class PerpsController extends BaseController<
       willUse: validatedEquity !== undefined ? 'remote' : 'fallback',
     });
 
-    // Extract and validate remote HIP-3 allowlist markets (allowlist)
+    // Extract and validate remote HIP-3 allowlist markets (allowlist) with overrides
     let validatedAllowlistMarkets: string[] | undefined;
-    if (hasProperty(remoteFlags, 'perpsHip3AllowlistMarkets')) {
-      const remoteMarkets = remoteFlags.perpsHip3AllowlistMarkets;
-
+    const remoteMarkets = overrideController.getFeatureFlag(
+      'perpsHip3AllowlistMarkets',
+    );
+    if (remoteMarkets !== undefined) {
       DevLogger.log('PerpsController: HIP-3 allowlistMarkets validation', {
         remoteMarkets,
         type: typeof remoteMarkets,
@@ -934,11 +904,12 @@ export class PerpsController extends BaseController<
       }
     }
 
-    // Extract and validate remote HIP-3 blocklist markets (blocklist)
+    // Extract and validate remote HIP-3 blocklist markets (blocklist) with overrides
     let validatedBlocklistMarkets: string[] | undefined;
-    if (hasProperty(remoteFlags, 'perpsHip3BlocklistMarkets')) {
-      const remoteBlocked = remoteFlags.perpsHip3BlocklistMarkets;
-
+    const remoteBlocked = overrideController.getFeatureFlag(
+      'perpsHip3BlocklistMarkets',
+    );
+    if (remoteBlocked !== undefined) {
       DevLogger.log('PerpsController: HIP-3 blocklistMarkets validation', {
         remoteBlocked,
         type: typeof remoteBlocked,

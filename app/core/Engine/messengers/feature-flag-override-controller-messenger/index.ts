@@ -25,10 +25,10 @@ export function getFeatureFlagOverrideControllerMessenger(
     parent: rootExtendedMessenger,
   });
 
-  // No external dependencies needed for this controller
+  // Allow access to RemoteFeatureFlagController to get remote feature flags
   rootExtendedMessenger.delegate({
-    actions: [],
-    events: [],
+    actions: ['RemoteFeatureFlagController:getState'],
+    events: ['RemoteFeatureFlagController:stateChange'],
     messenger,
   });
 
