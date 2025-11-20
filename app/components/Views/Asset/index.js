@@ -82,7 +82,6 @@ import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
 import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -240,13 +239,8 @@ class Asset extends PureComponent {
     const shouldShowMoreOptionsInNavBar =
       isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
     const asset = navigation && params;
-    // add lookup of chainId in popular list of networks
-    const popularNetwork = PopularList.find(
-      (network) => network.chainId === asset.chainId,
-    );
     const currentNetworkName =
-      this.props.networkConfigurations[asset.chainId]?.name ||
-      popularNetwork?.nickname;
+      this.props.networkConfigurations[asset.chainId]?.name;
     navigation.setOptions(
       getNetworkNavbarOptions(
         route.params?.symbol ?? '',
