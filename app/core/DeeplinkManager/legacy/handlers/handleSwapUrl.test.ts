@@ -10,15 +10,18 @@ jest.mock('../../../NavigationService', () => ({
 }));
 
 // Mock fetchAssetMetadata from the utils module
-jest.mock('../../../components/UI/Bridge/hooks/useAssetMetadata/utils', () => ({
-  ...jest.requireActual(
-    '../../../components/UI/Bridge/hooks/useAssetMetadata/utils',
-  ),
-  fetchAssetMetadata: jest.fn(),
-}));
+jest.mock(
+  '../../../../components/UI/Bridge/hooks/useAssetMetadata/utils',
+  () => ({
+    ...jest.requireActual(
+      '../../../../components/UI/Bridge/hooks/useAssetMetadata/utils',
+    ),
+    fetchAssetMetadata: jest.fn(),
+  }),
+);
 
 // Mock Engine and related utilities
-jest.mock('../../Engine', () => ({
+jest.mock('../../../Engine', () => ({
   context: {
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn().mockReturnValue({

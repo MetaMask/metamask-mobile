@@ -18,15 +18,15 @@ jest.mock('eth-url-parser', () => ({
   parse: jest.fn(),
 }));
 
-jest.mock('../../../util/networks', () => ({
+jest.mock('../../../../util/networks', () => ({
   getDecimalChainId: jest.fn(),
 }));
 
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-jest.mock('../../Engine', () => ({
+jest.mock('../../../Engine', () => ({
   context: {
     MultichainNetworkController: {
       state: {
@@ -37,7 +37,7 @@ jest.mock('../../Engine', () => ({
   },
 }));
 
-jest.mock('../../../components/Views/confirmations/utils/deeplink');
+jest.mock('../../../../components/Views/confirmations/utils/deeplink');
 
 describe('handleEthereumUrl', () => {
   let deeplinkManager: DeeplinkManager;

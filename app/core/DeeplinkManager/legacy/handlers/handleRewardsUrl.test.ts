@@ -8,14 +8,14 @@ import { setOnboardingReferralCode } from '../../../../reducers/rewards';
 
 // Mock dependencies
 jest.mock('../../../NavigationService');
-jest.mock('../../SDKConnect/utils/DevLogger');
-jest.mock('../../../util/Logger');
-jest.mock('../../../store', () => ({
+jest.mock('../../../SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/Logger');
+jest.mock('../../../../store', () => ({
   store: {
     dispatch: jest.fn(),
   },
 }));
-jest.mock('../../../reducers/rewards', () => ({
+jest.mock('../../../../reducers/rewards', () => ({
   setOnboardingReferralCode: jest.fn((code: string | null) => ({
     type: 'SET_ONBOARDING_REFERRAL_CODE',
     payload: code,

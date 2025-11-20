@@ -13,8 +13,8 @@ import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 jest.mock('../../../AppConstants');
 jest.mock('../../../SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../SDKConnect/SDKConnect');
-jest.mock('../../../core/WalletConnect/WalletConnectV2');
-jest.mock('../../../core/NativeModules', () => ({
+jest.mock('../../../WalletConnect/WalletConnectV2');
+jest.mock('../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },

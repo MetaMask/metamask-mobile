@@ -13,7 +13,7 @@ import ReduxService from '../../redux';
 
 // Mock dependencies
 jest.mock('./CoreLinkNormalizer');
-jest.mock('../adapters/LegacyLinkAdapter');
+jest.mock('../legacy/LegacyLinkAdapter');
 jest.mock('../../../util/Logger');
 jest.mock('../../Analytics', () => ({
   MetaMetrics: {

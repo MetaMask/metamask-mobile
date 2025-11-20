@@ -13,16 +13,16 @@ import { DeepLinkModalLinkType } from '../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 
 jest.mock('./handleMetaMaskDeeplink');
-jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
-jest.mock('../../../core/AppConstants');
-jest.mock('../../../core/SDKConnect/SDKConnect');
-jest.mock('../../../core/WalletConnect/WalletConnectV2');
-jest.mock('../../../core/NativeModules', () => ({
+jest.mock('../../../SDKConnect/handlers/handleDeeplink');
+jest.mock('../../../AppConstants');
+jest.mock('../../../SDKConnect/SDKConnect');
+jest.mock('../../../WalletConnect/WalletConnectV2');
+jest.mock('../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },
 }));
-jest.mock('../Handlers/handleDeepLinkModalDisplay');
+jest.mock('../handlers/handleDeepLinkModalDisplay');
 jest.mock('react-native-quick-crypto', () => ({
   webcrypto: {
     subtle: {

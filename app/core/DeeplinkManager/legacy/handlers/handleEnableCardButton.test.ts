@@ -5,11 +5,11 @@ import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagC
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 
-jest.mock('../../../store');
-jest.mock('../../../core/redux/slices/card');
-jest.mock('../../../selectors/featureFlagController/card');
-jest.mock('../../SDKConnect/utils/DevLogger');
-jest.mock('../../../util/Logger');
+jest.mock('../../../../store');
+jest.mock('../../../../core/redux/slices/card');
+jest.mock('../../../../selectors/featureFlagController/card');
+jest.mock('../../../SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/Logger');
 
 describe('handleEnableCardButton', () => {
   const mockGetState = jest.fn();
