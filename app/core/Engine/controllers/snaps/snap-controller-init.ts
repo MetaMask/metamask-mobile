@@ -22,7 +22,7 @@ import { store, runSaga } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
 import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
-import { select, take } from 'redux-saga/effects';
+import { take } from 'redux-saga/effects';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -93,14 +93,6 @@ export const snapControllerInit: ControllerInitFunction<
   }
 
   function* ensureOnboardingCompleteSaga(): SagaIterator {
-    const completedOnboarding: boolean = yield select(
-      selectCompletedOnboarding,
-    );
-
-    if (completedOnboarding) {
-      return;
-    }
-
     while (true) {
       const result = (yield take([
         SET_COMPLETED_ONBOARDING,
@@ -112,9 +104,20 @@ export const snapControllerInit: ControllerInitFunction<
     }
   }
 
-  const onboardingCompletePromise = runSaga(
-    ensureOnboardingCompleteSaga,
-  ).toPromise();
+  let onboardingPromise: Promise<void> | null = null;
+
+  async function ensureOnboardingComplete() {
+    if (selectCompletedOnboarding(store.getState())) {
+      return;
+    }
+
+    if (!onboardingPromise) {
+      onboardingPromise = runSaga(ensureOnboardingCompleteSaga).toPromise();
+    }
+
+    await onboardingPromise;
+    onboardingPromise = null;
+  }
 
   const controller = new SnapController({
     environmentEndowmentPermissions: Object.values(EndowmentPermissions),
@@ -157,7 +160,7 @@ export const snapControllerInit: ControllerInitFunction<
     preinstalledSnaps: PREINSTALLED_SNAPS,
     getFeatureFlags,
 
-    ensureOnboardingComplete: () => onboardingCompletePromise,
+    ensureOnboardingComplete,
 
     detectSnapLocation,
     clientCryptography: {
