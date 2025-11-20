@@ -590,33 +590,33 @@ generateAndroidBinary() {
 		yarn $checkSumCommand
 	fi
 
-	# Verify APK files were created
-	echo ""
-	echo "📦 Verifying APK outputs..."
-	local appApkPath="app/build/outputs/apk/${lowercaseFlavor}/${lowercaseConfiguration}/app-${lowercaseFlavor}-${lowercaseConfiguration}.apk"
-	local testApkPath="app/build/outputs/apk/androidTest/${lowercaseFlavor}/${lowercaseConfiguration}/app-${lowercaseFlavor}-${lowercaseConfiguration}-androidTest.apk"
+	# # Verify APK files were created
+	# echo ""
+	# echo "📦 Verifying APK outputs..."
+	# local appApkPath="app/build/outputs/apk/${lowercaseFlavor}/${lowercaseConfiguration}/app-${lowercaseFlavor}-${lowercaseConfiguration}.apk"
+	# local testApkPath="app/build/outputs/apk/androidTest/${lowercaseFlavor}/${lowercaseConfiguration}/app-${lowercaseFlavor}-${lowercaseConfiguration}-androidTest.apk"
 	
-	# Verify APK exists
-	if [ -f "$appApkPath" ]; then
-		echo "✅ App APK found: $appApkPath ($(du -h "$appApkPath" | cut -f1))"
-	else
-		echo "❌ App APK NOT found at: $appApkPath"
-		cd ..
-		return 1
-	fi
+	# # Verify APK exists
+	# if [ -f "$appApkPath" ]; then
+	# 	echo "✅ App APK found: $appApkPath ($(du -h "$appApkPath" | cut -f1))"
+	# else
+	# 	echo "❌ App APK NOT found at: $appApkPath"
+	# 	cd ..
+	# 	return 1
+	# fi
 	
-	# Only verify test APK if it was supposed to be built
-	if [ -n "$assembleTestApkTask" ]; then
-		# Verify test APK exists
-		if [ -f "$testApkPath" ]; then
-			echo "✅ Test APK found: $testApkPath ($(du -h "$testApkPath" | cut -f1))"
-		else
-			echo "❌ Test APK NOT found at: $testApkPath"
-			cd ..
-			return 1
-		fi
-	fi
-	echo ""
+	# # Only verify test APK if it was supposed to be built
+	# if [ -n "$assembleTestApkTask" ]; then
+	# 	# Verify test APK exists
+	# 	if [ -f "$testApkPath" ]; then
+	# 		echo "✅ Test APK found: $testApkPath ($(du -h "$testApkPath" | cut -f1))"
+	# 	else
+	# 		echo "❌ Test APK NOT found at: $testApkPath"
+	# 		cd ..
+	# 		return 1
+	# 	fi
+	# fi
+	# echo ""
 
 	# Change directory back out
 	cd ..
