@@ -1333,6 +1333,7 @@ export default {
       MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      AnalyticsController,
     } = instance.datamodel.state;
 
     return {
@@ -1394,6 +1395,7 @@ export default {
       MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      AnalyticsController,
     };
   },
 
