@@ -62,8 +62,7 @@ import {
 } from '../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { useRampNavigation, RampMode } from '../Ramp/hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../Ramp/Aggregator/types';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import {
@@ -87,7 +86,7 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
-import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
+import parseRampIntent from '../Ramp/utils/parseRampIntent';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -169,7 +168,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
@@ -339,13 +338,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       assetId = undefined;
     }
 
-    goToRamps({
-      mode: RampMode.AGGREGATOR,
-      params: {
-        rampType: AggregatorRampType.BUY,
-        intent: assetId ? { assetId } : undefined,
-      },
-    });
+    goToBuy({ assetId });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)

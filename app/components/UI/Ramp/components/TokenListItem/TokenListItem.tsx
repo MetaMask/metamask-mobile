@@ -53,6 +53,7 @@ function TokenListItem({
       isSelected={isSelected}
       onPress={onPress}
       isDisabled={isDisabled}
+      testID={`token-list-item-${token.assetId}`}
     >
       <ListItemColumn widthType={WidthType.Auto}>
         <BadgeWrapper
