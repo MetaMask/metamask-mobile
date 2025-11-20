@@ -172,18 +172,9 @@ const PersonalDetails = () => {
       !lastName ||
       !dateOfBirth ||
       !nationality ||
-      (!SSN && selectedCountry === 'US')
+      (!debouncedSSN && selectedCountry === 'US')
     ) {
       return;
-    }
-
-    // Validate SSN before submitting if it's a US user
-    if (selectedCountry === 'US') {
-      const isSSNValid = /^\d{9}$/.test(SSN);
-      if (!isSSNValid) {
-        setIsSSNError(true);
-        return;
-      }
     }
 
     try {
@@ -201,7 +192,7 @@ const PersonalDetails = () => {
         lastName,
         dateOfBirth: formatDateOfBirth(dateOfBirth),
         countryOfNationality: nationality,
-        ssn: SSN,
+        ssn: debouncedSSN,
       });
 
       if (user) {
@@ -232,35 +223,32 @@ const PersonalDetails = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const isDisabled = useMemo(() => {
-    // Check the actual SSN value, not the debounced one
-    const isSSNValid =
-      SSN && selectedCountry === 'US' ? /^\d{9}$/.test(SSN) : true;
-
-    return (
+  const isDisabled = useMemo(
+    () =>
       registerLoading ||
       registerIsError ||
       !firstName ||
       !lastName ||
       !dateOfBirth ||
       !nationality ||
-      (!SSN && selectedCountry === 'US') ||
-      !isSSNValid ||
+      (!debouncedSSN && selectedCountry === 'US') ||
+      isSSNError ||
       !!dateError ||
-      !onboardingId
-    );
-  }, [
-    registerLoading,
-    registerIsError,
-    firstName,
-    lastName,
-    dateOfBirth,
-    nationality,
-    SSN,
-    selectedCountry,
-    dateError,
-    onboardingId,
-  ]);
+      !onboardingId,
+    [
+      registerLoading,
+      registerIsError,
+      firstName,
+      lastName,
+      dateOfBirth,
+      nationality,
+      debouncedSSN,
+      selectedCountry,
+      isSSNError,
+      dateError,
+      onboardingId,
+    ],
+  );
 
   const renderFormFields = () => (
     <>

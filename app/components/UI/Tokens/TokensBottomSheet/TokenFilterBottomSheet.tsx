@@ -27,6 +27,7 @@ import {
   NetworkType,
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 enum FilterOption {
   AllNetworks,
@@ -69,7 +70,9 @@ const TokenFilterBottomSheet = () => {
       default:
         break;
     }
-    selectNetwork(chainId);
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      selectNetwork(chainId);
+    }
   };
 
   const isCurrentNetwork = Boolean(

@@ -495,14 +495,6 @@ export class HyperLiquidSubscriptionService {
     const firstDexAccount =
       this.dexAccountCache.values().next().value || ({} as AccountState);
 
-    // Calculate returnOnEquity across all DEXs (same formula as HyperLiquidProvider.getAccountState)
-    let returnOnEquity = '0';
-    if (totalMarginUsed > 0) {
-      returnOnEquity = ((totalUnrealizedPnl / totalMarginUsed) * 100).toFixed(
-        1,
-      );
-    }
-
     return {
       ...firstDexAccount,
       availableBalance: totalAvailableBalance.toString(),
@@ -510,7 +502,6 @@ export class HyperLiquidSubscriptionService {
       marginUsed: totalMarginUsed.toString(),
       unrealizedPnl: totalUnrealizedPnl.toString(),
       subAccountBreakdown,
-      returnOnEquity,
     };
   }
 

@@ -195,11 +195,6 @@ jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
 
-jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
-}));
-
 jest.mock('../../hooks/useIsSwapEnabledForPriorityToken', () => ({
   useIsSwapEnabledForPriorityToken: jest.fn(),
 }));
@@ -616,13 +611,6 @@ describe('CardHome Component', () => {
 
     (useOpenSwaps as jest.Mock).mockReturnValue({
       openSwaps: mockOpenSwaps,
-    });
-
-    const { useRampNavigation } = jest.requireMock(
-      '../../../Ramp/hooks/useRampNavigation',
-    );
-    (useRampNavigation as jest.Mock).mockReturnValue({
-      goToBuy: jest.fn(),
     });
 
     (useMetrics as jest.Mock).mockReturnValue({

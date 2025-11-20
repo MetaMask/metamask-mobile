@@ -106,69 +106,55 @@ const SignUp = () => {
     setIsConfirmPasswordError(debouncedConfirmPassword !== debouncedPassword);
   }, [debouncedConfirmPassword, debouncedPassword]);
 
-  const isDisabled = useMemo(() => {
-    // Check the actual values, not the debounced ones
-    const isEmailValid = email ? validateEmail(email) : false;
-    const isPasswordValid = password ? validatePassword(password) : false;
-    const isConfirmPasswordValid = confirmPassword
-      ? confirmPassword === password
-      : false;
-
-    return (
-      !email ||
-      !password ||
-      !confirmPassword ||
+  const isDisabled = useMemo(
+    () =>
+      !debouncedEmail ||
+      !debouncedPassword ||
+      !debouncedConfirmPassword ||
       !selectedCountry ||
-      !isEmailValid ||
-      !isPasswordValid ||
-      !isConfirmPasswordValid ||
+      isPasswordError ||
+      isConfirmPasswordError ||
+      isEmailError ||
       emailVerificationIsError ||
-      emailVerificationIsLoading
-    );
-  }, [
-    email,
-    password,
-    confirmPassword,
-    selectedCountry,
-    emailVerificationIsError,
-    emailVerificationIsLoading,
-  ]);
+      emailVerificationIsLoading,
+    [
+      debouncedEmail,
+      debouncedPassword,
+      debouncedConfirmPassword,
+      selectedCountry,
+      isPasswordError,
+      isConfirmPasswordError,
+      isEmailError,
+      emailVerificationIsError,
+      emailVerificationIsLoading,
+    ],
+  );
 
   const handleEmailChange = useCallback(
-    (emailText: string) => {
+    (email: string) => {
       resetEmailVerificationSend();
-      setEmail(emailText);
+      setEmail(email);
     },
     [resetEmailVerificationSend],
   );
 
   const handlePasswordChange = useCallback(
-    (passwordText: string) => {
+    (password: string) => {
       resetEmailVerificationSend();
-      setPassword(passwordText);
+      setPassword(password);
     },
     [resetEmailVerificationSend],
   );
 
   const handleContinue = useCallback(async () => {
-    // Use actual values, not debounced ones
-    if (!email || !password || !confirmPassword || !selectedCountry) {
+    if (
+      !debouncedEmail ||
+      !debouncedPassword ||
+      !debouncedConfirmPassword ||
+      !selectedCountry
+    ) {
       return;
     }
-
-    // Validate current values before submitting
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
-    const isConfirmPasswordValid = confirmPassword === password;
-
-    if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
-      // Set error states
-      setIsEmailError(!isEmailValid);
-      setIsPasswordError(!isPasswordValid);
-      setIsConfirmPasswordError(!isConfirmPasswordValid);
-      return;
-    }
-
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -177,14 +163,15 @@ const SignUp = () => {
           })
           .build(),
       );
-      const { contactVerificationId } = await sendEmailVerification(email);
+      const { contactVerificationId } =
+        await sendEmailVerification(debouncedEmail);
 
       dispatch(setContactVerificationId(contactVerificationId));
 
       if (contactVerificationId) {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
-          email,
-          password: confirmPassword,
+          email: debouncedEmail,
+          password: debouncedConfirmPassword,
         });
       } else {
         // If no contactVerificationId, assume user is registered or email not valid
@@ -194,9 +181,9 @@ const SignUp = () => {
       // Allow error message to display
     }
   }, [
-    confirmPassword,
-    email,
-    password,
+    debouncedConfirmPassword,
+    debouncedEmail,
+    debouncedPassword,
     dispatch,
     navigation,
     selectedCountry,
@@ -237,7 +224,7 @@ const SignUp = () => {
           isError={debouncedEmail.length > 0 && isEmailError}
           testID="signup-email-input"
         />
-        {email.length > 0 && emailVerificationIsError ? (
+        {debouncedEmail.length > 0 && emailVerificationIsError ? (
           <Text
             testID="signup-email-error-text"
             variant={TextVariant.BodySm}

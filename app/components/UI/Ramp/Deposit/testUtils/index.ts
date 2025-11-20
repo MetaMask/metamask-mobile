@@ -24,5 +24,4 @@ export const createMockNavigation = () => ({
   mockGoBack: jest.fn(),
   mockSetNavigationOptions: jest.fn(),
   mockSetParams: jest.fn(),
-  mockPop: jest.fn(),
 });
