@@ -6,6 +6,7 @@ import Engine from '../../../../../core/Engine';
 import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
+import EngineService from '../../../../../core/EngineService';
 
 export function useTransactionPayToken() {
   const { id: transactionId } = useTransactionMetadataRequest() || { id: '' };
@@ -33,6 +34,8 @@ export function useTransactionPayToken() {
           tokenAddress: newPayToken.address,
           chainId: newPayToken.chainId,
         });
+
+        EngineService.flushState();
       } catch (e) {
         console.error('Error updating payment token', e);
       }
