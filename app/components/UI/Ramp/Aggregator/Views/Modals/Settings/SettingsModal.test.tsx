@@ -83,10 +83,6 @@ describe('SettingsModal', () => {
     });
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
   it('renders snapshot correctly', () => {
     const { toJSON } = render();
     expect(toJSON()).toMatchSnapshot();

@@ -4,11 +4,23 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import BalanceEmptyState from './BalanceEmptyState';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
+import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 // Mock useRampNavigation hook
 const mockGoToBuy = jest.fn();
 jest.mock('../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
+}));
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: null,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../Ramp/hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
 describe('BalanceEmptyState', () => {
