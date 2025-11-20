@@ -122,13 +122,7 @@ class NetworkManager {
    * Note: Gets the first instance in case of duplicates during render cycles
    */
   getTokenBySymbol(symbol: string): DetoxElement {
-    console.log('--------------------------------');
-    console.log('QUERYING FOR TOKEN', symbol);
-    console.log('--------------------------------');
-    const tokenElement = Matchers.getElementByID(`asset-${symbol}`, 0);
-    console.log('TOKEN ELEMENT', tokenElement);
-    console.log('--------------------------------');
-    return tokenElement;
+    return Matchers.getElementByID(`asset-${symbol}`, 0);
   }
 
   /**
