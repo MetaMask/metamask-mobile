@@ -14,7 +14,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
-import { useRampNavigation, RampMode } from '../Ramp/hooks/useRampNavigation';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { trace, TraceName } from '../../../util/trace';
 import FundActionMenu from './FundActionMenu';
 
@@ -51,7 +51,14 @@ jest.mock(
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
-jest.mock('react-redux');
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
+}));
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  connect: jest.fn(() => (component: React.ComponentType) => component),
+}));
 jest.mock('../../hooks/useMetrics');
 jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
@@ -97,7 +104,10 @@ const { createBuyNavigationDetails, createSellNavigationDetails } =
 describe('FundActionMenu', () => {
   // Mock functions
   const mockNavigate = jest.fn();
-  const mockGoToRamps = jest.fn();
+  const mockGoToBuy = jest.fn();
+  const mockGoToAggregator = jest.fn();
+  const mockGoToSell = jest.fn();
+  const mockGoToDeposit = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
   const mockBuild = jest.fn();
@@ -140,7 +150,12 @@ describe('FundActionMenu', () => {
     mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
-    mockUseRampNavigation.mockReturnValue({ goToRamps: mockGoToRamps });
+    mockUseRampNavigation.mockReturnValue({
+      goToBuy: mockGoToBuy,
+      goToAggregator: mockGoToAggregator,
+      goToSell: mockGoToSell,
+      goToDeposit: mockGoToDeposit,
+    });
     getDecimalChainId.mockReturnValue(1);
     createBuyNavigationDetails.mockReturnValue(['BuyScreen', {}] as never);
     createSellNavigationDetails.mockReturnValue(['SellScreen', {}] as never);
@@ -271,11 +286,15 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({ mode: RampMode.DEPOSIT });
+        expect(mockGoToDeposit).toHaveBeenCalled();
       });
     });
 
-    it('calls buy action when buy button is pressed', async () => {
+    it('calls aggregator action when buy button is pressed', async () => {
+      mockUseRoute.mockReturnValue({
+        params: { asset: { assetId: 'eip155:1/slip44:60' } },
+      } as never);
+
       const { getByTestId } = render(<FundActionMenu />);
 
       fireEvent.press(
@@ -283,9 +302,8 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
+        expect(mockGoToAggregator).toHaveBeenCalledWith({
+          assetId: 'eip155:1/slip44:60',
         });
       });
     });
@@ -308,8 +326,11 @@ describe('FundActionMenu', () => {
       expect(sellButton.props.accessibilityState.disabled).toBe(true);
     });
 
-    it('calls same navigation as buy button when unified buy button is pressed', async () => {
+    it('calls buy action when unified buy button is pressed and useRampsUnifiedV1Enabled is true', async () => {
       mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+      mockUseRoute.mockReturnValue({
+        params: { asset: { assetId: 'eip155:1/slip44:60' } },
+      } as never);
 
       const { getByTestId } = render(<FundActionMenu />);
 
@@ -318,9 +339,8 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
+        expect(mockGoToBuy).toHaveBeenCalledWith({
+          assetId: 'eip155:1/slip44:60',
         });
       });
     });
@@ -360,12 +380,8 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: {
-            rampType: expect.anything(),
-            intent: { assetId: 'eip155:137/slip44:60' },
-          },
+        expect(mockGoToAggregator).toHaveBeenCalledWith({
+          assetId: 'eip155:137/slip44:60',
         });
       });
     });
@@ -382,9 +398,8 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
+        expect(mockGoToAggregator).toHaveBeenCalledWith({
+          assetId: undefined,
         });
       });
     });
@@ -563,9 +578,8 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
+        expect(mockGoToAggregator).toHaveBeenCalledWith({
+          assetId: undefined,
         });
       });
     });
@@ -585,9 +599,8 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockGoToRamps).toHaveBeenCalledWith({
-          mode: RampMode.AGGREGATOR,
-          params: { rampType: expect.anything() },
+        expect(mockGoToAggregator).toHaveBeenCalledWith({
+          assetId: undefined,
         });
       });
     });

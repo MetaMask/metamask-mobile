@@ -28,6 +28,7 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
+import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -920,7 +921,6 @@ const MainNavigator = () => {
   const perpsEnabledFlag = useFeatureFlag(
     FeatureFlagNames.perpsPerpTradingEnabled,
   );
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
   const predictEnabledFlag = useFeatureFlag(
@@ -932,6 +932,9 @@ const MainNavigator = () => {
   );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
+  );
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
   );
 
   return (
@@ -1013,6 +1016,25 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen
+        name="TrendingTokensFullView"
+        component={TrendingTokensFullView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
