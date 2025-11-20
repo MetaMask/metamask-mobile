@@ -5,11 +5,13 @@ import type { CandleData } from '../../types/perps-types';
 
 // Mock the stream provider
 const mockCandleSubscribe = jest.fn();
+const mockFetchHistoricalCandles = jest.fn();
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     candles: {
       subscribe: mockCandleSubscribe,
+      fetchHistoricalCandles: mockFetchHistoricalCandles,
     },
   })),
 }));
@@ -35,6 +37,7 @@ describe('usePerpsLiveCandles', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetchHistoricalCandles.mockReset();
   });
 
   it('subscribes to candles on mount', () => {
@@ -273,5 +276,206 @@ describe('usePerpsLiveCandles', () => {
       callback: expect.any(Function),
       throttleMs: 1000,
     });
+  });
+
+  it('resets state when coin changes', () => {
+    mockCandleSubscribe.mockReturnValue(jest.fn());
+
+    const { result, rerender } = renderHook(
+      ({ coin }) =>
+        usePerpsLiveCandles({
+          coin,
+          interval: CandlePeriod.ONE_HOUR,
+          duration: TimeDuration.ONE_DAY,
+        }),
+      {
+        initialProps: { coin: 'BTC' },
+      },
+    );
+
+    // Verify initial state
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.candleData).toBeNull();
+
+    rerender({ coin: 'ETH' });
+
+    // State should be reset for new coin
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.candleData).toBeNull();
+  });
+
+  it('resets state when interval changes', () => {
+    mockCandleSubscribe.mockReturnValue(jest.fn());
+
+    const { result, rerender } = renderHook(
+      ({ interval }) =>
+        usePerpsLiveCandles({
+          coin: 'BTC',
+          interval,
+          duration: TimeDuration.ONE_DAY,
+        }),
+      {
+        initialProps: { interval: CandlePeriod.ONE_HOUR },
+      },
+    );
+
+    // Verify initial state
+    expect(result.current.isLoading).toBe(true);
+
+    rerender({ interval: CandlePeriod.FIVE_MINUTES });
+
+    // State should be reset for new interval
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.candleData).toBeNull();
+  });
+
+  it('resubscribes when duration changes', () => {
+    const mockUnsubscribe = jest.fn();
+    mockCandleSubscribe.mockReturnValue(mockUnsubscribe);
+
+    const { rerender } = renderHook(
+      ({ duration }) =>
+        usePerpsLiveCandles({
+          coin: 'BTC',
+          interval: CandlePeriod.ONE_HOUR,
+          duration,
+        }),
+      {
+        initialProps: { duration: TimeDuration.ONE_DAY },
+      },
+    );
+
+    expect(mockCandleSubscribe).toHaveBeenCalledTimes(1);
+
+    rerender({ duration: TimeDuration.ONE_WEEK });
+
+    expect(mockUnsubscribe).toHaveBeenCalled();
+    expect(mockCandleSubscribe).toHaveBeenCalledTimes(2);
+    expect(mockCandleSubscribe).toHaveBeenLastCalledWith({
+      coin: 'BTC',
+      interval: CandlePeriod.ONE_HOUR,
+      duration: TimeDuration.ONE_WEEK,
+      callback: expect.any(Function),
+      throttleMs: 1000,
+    });
+  });
+
+  it('passes custom throttleMs to subscription', () => {
+    mockCandleSubscribe.mockReturnValue(jest.fn());
+
+    renderHook(() =>
+      usePerpsLiveCandles({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+        throttleMs: 2000,
+      }),
+    );
+
+    expect(mockCandleSubscribe).toHaveBeenCalledWith({
+      coin: 'BTC',
+      interval: CandlePeriod.ONE_HOUR,
+      duration: TimeDuration.ONE_DAY,
+      callback: expect.any(Function),
+      throttleMs: 2000,
+    });
+  });
+
+  it('handles subscription error gracefully', () => {
+    const subscriptionError = new Error('WebSocket connection failed');
+    mockCandleSubscribe.mockImplementation(() => {
+      throw subscriptionError;
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsLiveCandles({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+      }),
+    );
+
+    expect(result.current.error).toEqual(subscriptionError);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.candleData).toBeNull();
+  });
+
+  it('does not fetch more history when coin is empty', async () => {
+    mockCandleSubscribe.mockReturnValue(jest.fn());
+
+    const { result } = renderHook(() =>
+      usePerpsLiveCandles({
+        coin: '',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.fetchMoreHistory();
+    });
+
+    expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
+    expect(result.current.isLoadingMore).toBe(false);
+  });
+
+  it('fetches more historical candles successfully', async () => {
+    mockCandleSubscribe.mockReturnValue(jest.fn());
+    mockFetchHistoricalCandles.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() =>
+      usePerpsLiveCandles({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.fetchMoreHistory();
+    });
+
+    expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
+      'BTC',
+      CandlePeriod.ONE_HOUR,
+      TimeDuration.ONE_DAY,
+    );
+  });
+
+  it('sets isLoadingMore during fetch', async () => {
+    let resolvePromise: (() => void) | undefined;
+    const fetchPromise = new Promise<void>((resolve) => {
+      resolvePromise = resolve;
+    });
+
+    mockCandleSubscribe.mockReturnValue(jest.fn());
+    mockFetchHistoricalCandles.mockReturnValue(fetchPromise);
+
+    const { result } = renderHook(() =>
+      usePerpsLiveCandles({
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
+      }),
+    );
+
+    let fetchPromiseFromHook: Promise<void> | undefined;
+
+    act(() => {
+      fetchPromiseFromHook = result.current.fetchMoreHistory();
+    });
+
+    expect(result.current.isLoadingMore).toBe(true);
+
+    await act(async () => {
+      if (resolvePromise) {
+        resolvePromise();
+      }
+      if (fetchPromiseFromHook) {
+        await fetchPromiseFromHook;
+      }
+    });
+
+    expect(result.current.isLoadingMore).toBe(false);
   });
 });
