@@ -3,7 +3,7 @@
  */
 
 import { LegacyLinkAdapter } from './LegacyLinkAdapter';
-import { CoreLinkNormalizer } from '../CoreLinkNormalizer';
+import { CoreLinkNormalizer } from '../core/CoreLinkNormalizer';
 import { CoreUniversalLink, CoreLinkParams } from '../types/CoreUniversalLink';
 import { ACTIONS } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';

@@ -7,7 +7,7 @@ import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import SDKConnect from '../../SDKConnect/SDKConnect';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
-import extractURLParams from './extractURLParams';
+import extractURLParams from '../../utils/extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 
 jest.mock('../../../core/AppConstants');

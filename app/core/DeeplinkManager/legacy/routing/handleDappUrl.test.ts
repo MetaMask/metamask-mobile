@@ -1,6 +1,6 @@
 import UrlParser from 'url-parse';
 import DeeplinkManager from '../DeeplinkManager';
-import extractURLParams from './extractURLParams';
+import extractURLParams from '../../utils/extractURLParams';
 import handleDappUrl from './handleDappUrl';
 
 // Mock DeeplinkManager and extractURLParams

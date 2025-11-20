@@ -1,5 +1,5 @@
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
-import extractURLParams from './extractURLParams';
+import extractURLParams from '../../utils/extractURLParams';
 
 export function connectWithWC({
   handled,

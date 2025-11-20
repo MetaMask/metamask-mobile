@@ -1,6 +1,6 @@
-import { UniversalRouter } from '../UniversalRouter';
-import { HandlerContext } from '../interfaces/UniversalLinkHandler';
-import DeeplinkManager from '../../DeeplinkManager';
+import { UniversalRouter } from './UniversalRouter';
+import { HandlerContext } from './interfaces/UniversalLinkHandler';
+import DeeplinkManager from '../legacy/DeeplinkManager';
 import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';

@@ -6,9 +6,9 @@ import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
-import extractURLParams from './extractURLParams';
+import extractURLParams from '../../utils/extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
-import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
+import handleDeepLinkModalDisplay from '../handlers/handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 

@@ -1,5 +1,5 @@
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import DeeplinkManager from './DeeplinkManager';
+import DeeplinkManager from '../legacy/DeeplinkManager';
 
 let instance: DeeplinkManager;
 

@@ -1,5 +1,5 @@
 import DeeplinkManager from '../DeeplinkManager';
-import extractURLParams from './extractURLParams';
+import extractURLParams from '../../utils/extractURLParams';
 import handleDappUrl from './handleDappUrl';
 import handleUniversalLink from './handleUniversalLink';
 import connectWithWC from './connectWithWC';

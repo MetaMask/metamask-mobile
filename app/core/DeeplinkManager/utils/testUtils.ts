@@ -1,4 +1,4 @@
-import { HandlerContext } from './interfaces/UniversalLinkHandler';
+import { HandlerContext } from '../core/interfaces/UniversalLinkHandler';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
 
 export const createMockContext = (overrides = {}): HandlerContext => ({

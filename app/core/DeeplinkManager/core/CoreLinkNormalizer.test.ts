@@ -1,5 +1,5 @@
 import { CoreLinkNormalizer } from './CoreLinkNormalizer';
-import { CoreUniversalLink } from './types/CoreUniversalLink';
+import { CoreUniversalLink } from '../types/CoreUniversalLink';
 import AppConstants from '../AppConstants';
 
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;

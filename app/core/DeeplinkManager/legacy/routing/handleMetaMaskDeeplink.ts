@@ -8,8 +8,8 @@ import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
-import parseOriginatorInfo from '../parseOriginatorInfo';
-import extractURLParams from './extractURLParams';
+import parseOriginatorInfo from '../../utils/parseOriginatorInfo';
+import extractURLParams from '../../utils/extractURLParams';
 
 export function handleMetaMaskDeeplink({
   instance,

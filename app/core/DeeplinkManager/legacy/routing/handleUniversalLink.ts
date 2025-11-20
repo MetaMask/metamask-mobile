@@ -2,16 +2,16 @@ import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
-import extractURLParams from './extractURLParams';
+import extractURLParams from '../../utils/extractURLParams';
 import {
   hasSignature,
   verifyDeeplinkSignature,
   INVALID,
   MISSING,
   VALID,
-} from './utils/verifySignature';
+} from '../../utils/verifySignature';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
-import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
+import handleDeepLinkModalDisplay from '../handlers/handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../util/general';
 

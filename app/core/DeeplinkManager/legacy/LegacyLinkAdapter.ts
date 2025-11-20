@@ -12,8 +12,8 @@ import qs from 'qs';
 import { ACTIONS } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import { CoreUniversalLink, CoreLinkParams } from '../types/CoreUniversalLink';
-import { DeeplinkUrlParams } from '../ParseManager/extractURLParams';
-import { CoreLinkNormalizer } from '../CoreLinkNormalizer';
+import { DeeplinkUrlParams } from '../utils/extractURLParams';
+import { CoreLinkNormalizer } from '../core/CoreLinkNormalizer';
 
 /**
  * Handler context type used by legacy handlers

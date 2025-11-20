@@ -13,7 +13,7 @@ import {
   PERPS_ACTIONS,
   AUTH_REQUIRED_ACTIONS,
   SUPPORTED_PROTOCOLS,
-} from './types/CoreUniversalLink';
+} from '../types/CoreUniversalLink';
 
 const { HTTPS, METAMASK, DAPP, HTTP } = PROTOCOLS;
 

@@ -1,7 +1,7 @@
 import { HandlerRegistry } from './HandlerRegistry';
-import { CoreLinkNormalizer } from '../CoreLinkNormalizer';
+import { CoreLinkNormalizer } from './CoreLinkNormalizer';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
-import { LegacyLinkAdapter } from '../adapters/LegacyLinkAdapter';
+import { LegacyLinkAdapter } from '../legacy/LegacyLinkAdapter';
 import {
   HandlerContext,
   HandlerResult,
