@@ -67,17 +67,17 @@ const SRPListItem = ({
         `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`
       }
     >
-      <View style={styles.srpItem}>
-        <View style={styles.srpItemContent}>
-          <View>
-            <View style={styles.srpItemIconContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.srpItem}>
+        <View accessibilityRole="none" accessible={false} style={styles.srpItemContent}>
+          <View accessibilityRole="none" accessible={false}>
+            <View accessibilityRole="none" accessible={false} style={styles.srpItemIconContainer}>
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
               >
                 {name}
               </Text>
-              <View style={styles.srpIconContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.srpIconContainer}>
                 {Boolean(showArrowName) && (
                   <Text
                     variant={TextVariant.BodyMDMedium}
@@ -127,8 +127,8 @@ const SRPListItem = ({
           </View>
           {showAccounts && (
             <>
-              <View style={styles.horizontalLine} />
-              <View style={styles.accountsList}>
+              <View accessibilityRole="none" accessible={false} style={styles.horizontalLine} />
+              <View accessibilityRole="none" accessible={false} style={styles.accountsList}>
                 <FlatList
                   testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_ACCOUNTS_LIST}-${keyring.metadata.id}`}
                   contentContainerStyle={styles.accountsListContentContainer}
@@ -139,7 +139,7 @@ const SRPListItem = ({
                       return null;
                     }
                     return (
-                      <View style={styles.accountItem}>
+                      <View accessibilityRole="none" accessible={false} style={styles.accountItem}>
                         <Avatar
                           variant={AvatarVariant.Account}
                           type={accountAvatarType}

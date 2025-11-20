@@ -169,16 +169,16 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       onPress={handleCardPress}
     >
       {/* Header - Always shown */}
-      <View style={[styles.header, expanded && styles.headerExpanded]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.header, expanded && styles.headerExpanded]}>
         {/* Icon Section - Conditionally shown (only in collapsed mode) */}
         {showIcon && !expanded && (
-          <View style={styles.perpIcon}>
+          <View accessibilityRole="none" accessible={false} style={styles.perpIcon}>
             <PerpsTokenLogo symbol={order.symbol} size={40} />
           </View>
         )}
 
-        <View style={styles.headerLeft}>
-          <View style={styles.headerRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.headerLeft}>
+          <View accessibilityRole="none" accessible={false} style={styles.headerRow}>
             {/* Show order type or direction */}
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {order.detailedOrderType === 'Limit'
@@ -187,7 +187,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             </Text>
             {/* Chart activity indicators */}
             {isActiveOnChart && (
-              <View style={styles.indicatorContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.indicatorContainer}>
                 {activeType === 'TP' || activeType === 'BOTH' ? (
                   <View
                     style={[styles.activeChartIndicator, styles.tpIndicator]}
@@ -217,7 +217,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             {/* Fill percentage badge with icon */}
             {derivedData.fillPercentage > 0 &&
               derivedData.fillPercentage < 100 && (
-                <View style={styles.fillBadge}>
+                <View accessibilityRole="none" accessible={false} style={styles.fillBadge}>
                   <Icon
                     name={IconName.Loading}
                     size={IconSize.Xss}
@@ -239,8 +239,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
           </Text>
         </View>
 
-        <View style={styles.headerRight}>
-          <View style={styles.headerRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.headerRight}>
+          <View accessibilityRole="none" accessible={false} style={styles.headerRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {formatPerpsFiat(derivedData.sizeInUSD, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -255,15 +255,15 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
 
         {/* Right Accessory - Conditionally shown */}
         {rightAccessory && (
-          <View style={styles.rightAccessory}>{rightAccessory}</View>
+          <View accessibilityRole="none" accessible={false} style={styles.rightAccessory}>{rightAccessory}</View>
         )}
       </View>
 
       {/* Body - Only shown when expanded */}
       {expanded && (
-        <View style={styles.body}>
-          <View style={styles.bodyRow}>
-            <View style={styles.bodyItem}>
+        <View accessibilityRole="none" accessible={false} style={styles.body}>
+          <View accessibilityRole="none" accessible={false} style={styles.bodyRow}>
+            <View accessibilityRole="none" accessible={false} style={styles.bodyItem}>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {order.isTrigger
                   ? strings('perps.order.trigger_price')
@@ -278,7 +278,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             {/* Only show TP/SL for non-trigger orders */}
             {!order.isTrigger && (
               <>
-                <View style={styles.bodyItem}>
+                <View accessibilityRole="none" accessible={false} style={styles.bodyItem}>
                   <Text
                     variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
@@ -294,7 +294,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                       : strings('perps.position.card.not_set')}
                   </Text>
                 </View>
-                <View style={styles.bodyItem}>
+                <View accessibilityRole="none" accessible={false} style={styles.bodyItem}>
                   <Text
                     variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
@@ -314,7 +314,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             )}
             {/* Show reduce only status for trigger orders */}
             {order.isTrigger && order.reduceOnly && (
-              <View style={[styles.bodyItem, styles.bodyItemReduceOnly]}>
+              <View accessibilityRole="none" accessible={false} style={[styles.bodyItem, styles.bodyItemReduceOnly]}>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -332,7 +332,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
 
       {/* Footer - Only shown when expanded */}
       {expanded && (
-        <View style={styles.footer}>
+        <View accessibilityRole="none" accessible={false} style={styles.footer}>
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Md}
@@ -348,8 +348,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       )}
 
       {isEligibilityModalVisible && (
-        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
-        <View>
+        // Android Compatibility: Wrap the <Modal> in a plain <View accessibilityRole="none" accessible={false}> component to prevent rendering issues and freezing.
+        <View accessibilityRole="none" accessible={false}>
           <Modal visible transparent animationType="fade">
             <PerpsBottomSheetTooltip
               isVisible

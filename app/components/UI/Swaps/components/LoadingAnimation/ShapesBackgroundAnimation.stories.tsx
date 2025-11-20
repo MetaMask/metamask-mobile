@@ -46,8 +46,8 @@ export default ShapesBackgroundAnimationMeta;
 
 export const ShapesBackgroundAnimation = {
   render: ({ width, height }: { width: number; height: number }) => (
-    <View style={styles.storyContainer}>
-      <View style={styles.animationContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.storyContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.animationContainer}>
         <ShapesBackgroundAnimationComponent width={width} height={height} />
       </View>
     </View>

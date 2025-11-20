@@ -105,7 +105,7 @@ jest.mock('../../recipient-list/recipient-list', () => ({
     const listType = data === mockAccounts ? 'accounts' : 'contacts';
 
     return (
-      <View testID={`recipient-list-${listType}`}>
+      <View accessibilityRole="none" accessible={false} testID={`recipient-list-${listType}`}>
         {data.map((recipient: RecipientType) => (
           <Pressable
             key={recipient.address}
@@ -128,7 +128,7 @@ jest.mock('../../recipient-input', () => ({
   any) => {
     const { View, Text, Pressable } = jest.requireActual('react-native');
     return (
-      <View testID="recipient-input">
+      <View accessibilityRole="none" accessible={false} testID="recipient-input">
         <Text>
           RecipientInput - isRecipientSelectedFromList:{' '}
           {isRecipientSelectedFromList.toString()}

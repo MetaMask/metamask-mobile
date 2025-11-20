@@ -30,7 +30,7 @@ const PerformanceTracker = () => {
   const rendersRef = useRef(0);
   rendersRef.current += 1;
 
-  return <View testID="performance" data-renders={rendersRef.current} />;
+  return <View accessibilityRole="none" accessible={false} testID="performance" data-renders={rendersRef.current} />;
 };
 
 const SnapUIRendererComponent = ({
@@ -76,7 +76,7 @@ const SnapUIRendererComponent = ({
 
   const { state: initialState } = interfaceState;
   return (
-    <View style={[styles.root, style]}>
+    <View accessibilityRole="none" accessible={false} style={[styles.root, style]}>
       <SnapInterfaceContextProvider
         snapId={snapId}
         interfaceId={interfaceId}

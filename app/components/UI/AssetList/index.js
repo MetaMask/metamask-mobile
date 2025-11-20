@@ -60,7 +60,7 @@ export default class AssetList extends PureComponent {
     const { searchResults = [], handleSelectAsset, selectedAsset } = this.props;
 
     return (
-      <View style={styles.rowWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.rowWrapper}>
         {searchResults.length > 0 ? (
           <Text style={styles.normalText}>{strings('token.select_token')}</Text>
         ) : null}
@@ -80,7 +80,7 @@ export default class AssetList extends PureComponent {
               onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
               key={i}
             >
-              <View style={styles.assetListElement}>
+              <View accessibilityRole="none" accessible={false} style={styles.assetListElement}>
                 <AssetIcon address={address} logo={iconUrl} />
                 <Text style={styles.text}>
                   {name} ({symbol})

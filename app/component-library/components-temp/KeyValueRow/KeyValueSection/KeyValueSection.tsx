@@ -25,7 +25,7 @@ const KeyValueSection = ({
   const { styles } = useStyles(stylesSheet, {});
 
   return (
-    <View style={{ ...styles.keyValueSectionContainer, alignItems: align }}>
+    <View accessibilityRole="none" accessible={false} style={{ ...styles.keyValueSectionContainer, alignItems: align }}>
       {children}
     </View>
   );

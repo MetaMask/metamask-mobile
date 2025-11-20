@@ -23,7 +23,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
   >
     Your earnings
   </Text>
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       style={
         {
@@ -302,7 +302,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
         </Text>
       </View>
     </View>
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <TouchableOpacity
         accessibilityRole="button"
         accessible={true}
@@ -370,7 +370,7 @@ exports[`Staking Earnings should render correctly 1`] = `
   >
     Your earnings
   </Text>
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       style={
         {
@@ -590,7 +590,7 @@ exports[`Staking Earnings should render correctly 1`] = `
         </Text>
       </View>
     </View>
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <TouchableOpacity
         accessibilityRole="button"
         accessible={true}

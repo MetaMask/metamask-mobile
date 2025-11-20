@@ -29,7 +29,7 @@ export const TagUrl = {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: ({ label, ctaLabel }: any) => (
-    <View style={{ alignItems: 'flex-start' }}>
+    <View accessibilityRole="none" accessible={false} style={{ alignItems: 'flex-start' }}>
       <TagUrlComponent
         label={label}
         imageSource={SAMPLE_TAGURL_PROPS.imageSource}

@@ -251,7 +251,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             {strings('perps.close_all_modal.title')}
           </Text>
         </BottomSheetHeader>
-        <View style={styles.loadingContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.loadingContainer}>
           <ActivityIndicator
             size="large"
             color={theme.colors.primary.default}
@@ -274,7 +274,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             {strings('perps.close_all_modal.title')}
           </Text>
         </BottomSheetHeader>
-        <View style={styles.emptyContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.emptyContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.position.no_positions')}
           </Text>
@@ -295,7 +295,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.contentContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
@@ -305,7 +305,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         </Text>
 
         {isClosing ? (
-          <View style={styles.loadingContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.loadingContainer}>
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}

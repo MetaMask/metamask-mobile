@@ -281,8 +281,8 @@ const ImportNewSecretRecoveryPhrase = () => {
           {strings('import_new_secret_recovery_phrase.import_wallet_title')}
         </Text>
 
-        <View style={styles.contentContainer}>
-          <View style={styles.subtitleContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.subtitleContainer}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('import_new_secret_recovery_phrase.enter_srp_subtitle')}
             </Text>
@@ -308,7 +308,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             uniqueId={uniqueId}
           />
 
-          <View style={styles.buttonWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
             <StyledButton
               containerStyle={styles.button}
               type={'confirm'}

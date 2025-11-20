@@ -539,7 +539,7 @@ class Asset extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.loader}>
+      <View accessibilityRole="none" accessible={false} style={styles.loader}>
         <ActivityIndicator style={styles.loader} size="small" />
       </View>
     );
@@ -591,7 +591,7 @@ class Asset extends PureComponent {
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
     return (
-      <View style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
         {loading ? (
           this.renderLoader()
         ) : isNonEvmAsset ? (

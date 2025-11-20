@@ -205,7 +205,7 @@ export default class AppInformation extends PureComponent {
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >
         <ScrollView contentContainerStyle={styles.wrapperContent}>
-          <View style={styles.logoWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.logoWrapper}>
             <TouchableOpacity
               delayLongPress={10 * 1000} // 10 seconds
               onLongPress={this.handleLongPressFox}
@@ -269,7 +269,7 @@ export default class AppInformation extends PureComponent {
             )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
-          <View style={styles.links}>
+          <View accessibilityRole="none" accessible={false} style={styles.links}>
             <TouchableOpacity onPress={this.onPrivacyPolicy}>
               <Text style={styles.link}>
                 {strings('app_information.privacy_policy')}
@@ -286,8 +286,8 @@ export default class AppInformation extends PureComponent {
               </Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.division} />
-          <View style={styles.links}>
+          <View accessibilityRole="none" accessible={false} style={styles.division} />
+          <View accessibilityRole="none" accessible={false} style={styles.links}>
             <TouchableOpacity onPress={this.onSupportCenter}>
               <Text style={styles.link}>
                 {strings('app_information.support_center')}

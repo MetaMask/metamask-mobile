@@ -39,7 +39,7 @@ describe('TabsList', () => {
     const { toJSON } = render(
       <TabsList>
         {tabs.map((label, index) => (
-          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <Text>{label} Content</Text>
           </View>
         ))}
@@ -125,7 +125,7 @@ describe('TabsList', () => {
     const { getAllByText } = render(
       <TabsList onChangeTab={mockOnChangeTab}>
         {tabs.map((label, index) => (
-          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <Text>{label} Content</Text>
           </View>
         ))}
@@ -154,7 +154,7 @@ describe('TabsList', () => {
     // Act
     const { getAllByText, getByText } = render(
       <TabsList onChangeTab={mockOnChangeTab}>
-        <View key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
+        <View accessibilityRole="none" accessible={false} key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
           <Text>{tabs[0].content}</Text>
         </View>
         <View
@@ -182,7 +182,7 @@ describe('TabsList', () => {
     const { getByText } = render(
       <TabsList ref={ref}>
         {tabs.map((label, index) => (
-          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <Text>{label} Content</Text>
           </View>
         ))}
@@ -207,7 +207,7 @@ describe('TabsList', () => {
     render(
       <TabsList ref={ref} initialActiveIndex={1}>
         {tabs.map((label, index) => (
-          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <Text>{label} Content</Text>
           </View>
         ))}
@@ -230,7 +230,7 @@ describe('TabsList', () => {
     // Act
     const { getByText } = render(
       <TabsList ref={ref} initialActiveIndex={0}>
-        <View key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
+        <View accessibilityRole="none" accessible={false} key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
           <Text>{tabs[0].content}</Text>
         </View>
         <View
@@ -239,7 +239,7 @@ describe('TabsList', () => {
         >
           <Text>{tabs[1].content}</Text>
         </View>
-        <View key="tab2" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
+        <View accessibilityRole="none" accessible={false} key="tab2" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
           <Text>{tabs[2].content}</Text>
         </View>
       </TabsList>,
@@ -305,7 +305,7 @@ describe('TabsList', () => {
     const { toJSON } = render(
       <TabsList twClassName="bg-background-alternative" padding={4}>
         {tabs.map((label, index) => (
-          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <Text>{label} Content</Text>
           </View>
         ))}
@@ -364,10 +364,10 @@ describe('TabsList', () => {
         >
           <Text>{tabs[0].content}</Text>
         </View>
-        <View key="tab1" {...({ tabLabel: tabs[1].label } as TabViewProps)}>
+        <View accessibilityRole="none" accessible={false} key="tab1" {...({ tabLabel: tabs[1].label } as TabViewProps)}>
           <Text>{tabs[1].content}</Text>
         </View>
-        <View key="tab2" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
+        <View accessibilityRole="none" accessible={false} key="tab2" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
           <Text>{tabs[2].content}</Text>
         </View>
       </TabsList>,
@@ -389,7 +389,7 @@ describe('TabsList', () => {
     const { rerender, getByText, getAllByText, queryByText } = render(
       <TabsList>
         {initialTabs.map((tab) => (
-          <View key={tab.key} {...({ tabLabel: tab.label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key={tab.key} {...({ tabLabel: tab.label } as TabViewProps)}>
             <Text>{tab.content}</Text>
           </View>
         ))}
@@ -415,7 +415,7 @@ describe('TabsList', () => {
     rerender(
       <TabsList>
         {tabsWithoutPerps.map((tab) => (
-          <View key={tab.key} {...({ tabLabel: tab.label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key={tab.key} {...({ tabLabel: tab.label } as TabViewProps)}>
             <Text>{tab.content}</Text>
           </View>
         ))}
@@ -438,7 +438,7 @@ describe('TabsList', () => {
     rerender(
       <TabsList>
         {tabsWithPerpsAgain.map((tab) => (
-          <View key={tab.key} {...({ tabLabel: tab.label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key={tab.key} {...({ tabLabel: tab.label } as TabViewProps)}>
             <Text>{tab.content}</Text>
           </View>
         ))}
@@ -468,10 +468,10 @@ describe('TabsList', () => {
       // Act
       const { getByText } = render(
         <TabsList initialActiveIndex={0}>
-          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Content 1</Text>
           </View>
-          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
             <Text>Content 2</Text>
           </View>
         </TabsList>,
@@ -486,10 +486,10 @@ describe('TabsList', () => {
       // Arrange & Act
       const { queryByText } = render(
         <TabsList initialActiveIndex={0}>
-          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Content 1</Text>
           </View>
-          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
             <Text>Content 2</Text>
           </View>
         </TabsList>,
@@ -512,13 +512,13 @@ describe('TabsList', () => {
 
       const { getAllByText } = render(
         <TabsList initialActiveIndex={0}>
-          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Content 1</Text>
           </View>
-          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
             <Text>Content 2</Text>
           </View>
-          <View {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
             <Text>Content 3</Text>
           </View>
         </TabsList>,
@@ -549,10 +549,10 @@ describe('TabsList', () => {
 
       const { getAllByText, getByText } = render(
         <TabsList initialActiveIndex={0}>
-          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Content 1</Text>
           </View>
-          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
             <Text>Content 2</Text>
           </View>
         </TabsList>,
@@ -584,10 +584,10 @@ describe('TabsList', () => {
       // Arrange & Act
       const { getByTestId } = render(
         <TabsList testID="tabs-list">
-          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Tab 1 Content</Text>
           </View>
-          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
             <Text>Tab 2 Content</Text>
           </View>
         </TabsList>,
@@ -602,13 +602,13 @@ describe('TabsList', () => {
       // Arrange & Act
       const { getByText, queryByText } = render(
         <TabsList initialActiveIndex={1} testID="tabs-list">
-          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Tab 1 Content</Text>
           </View>
-          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
             <Text>Tab 2 Content</Text>
           </View>
-          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
             <Text>Tab 3 Content</Text>
           </View>
         </TabsList>,
@@ -625,13 +625,13 @@ describe('TabsList', () => {
       const ref = React.createRef<TabsListRef>();
       const { getByText } = render(
         <TabsList testID="tabs-list" ref={ref} initialActiveIndex={1}>
-          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Tab 1 Content</Text>
           </View>
-          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
             <Text>Tab 2 Content</Text>
           </View>
-          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
             <Text>Tab 3 Content</Text>
           </View>
         </TabsList>,
@@ -667,7 +667,7 @@ describe('TabsList', () => {
       // Act
       const { toJSON } = render(
         <TabsList>
-          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Tab 1 Content</Text>
           </View>
           {nonReactElementChild as unknown as React.ReactElement}
@@ -690,13 +690,13 @@ describe('TabsList', () => {
       // Act - initialActiveIndex points to Tab 3 (index 2) which is enabled
       const { getByText } = render(
         <TabsList ref={ref} initialActiveIndex={2}>
-          <View key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
             <Text>{tabs[0].content}</Text>
           </View>
-          <View key="tab1" {...({ tabLabel: tabs[1].label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab1" {...({ tabLabel: tabs[1].label } as TabViewProps)}>
             <Text>{tabs[1].content}</Text>
           </View>
-          <View key="tab2" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
+          <View accessibilityRole="none" accessible={false} key="tab2" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
             <Text>{tabs[2].content}</Text>
           </View>
         </TabsList>,

@@ -119,13 +119,13 @@ export default class EnterPasswordSimple extends PureComponent {
 
     return (
       <SafeAreaView style={styles.mainWrapper}>
-        <View style={styles.wrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
           <KeyboardAwareScrollView
             style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View style={baseStyles.flexGrow}>
-              <View>
+            <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
+              <View accessibilityRole="none" accessible={false}>
                 <Text style={styles.enterPassword}>
                   {strings('enter_password.desc')}
                 </Text>
@@ -139,7 +139,7 @@ export default class EnterPasswordSimple extends PureComponent {
                   keyboardAppearance={themeAppearance}
                 />
               </View>
-              <View style={styles.ctaWrapper}>
+              <View accessibilityRole="none" accessible={false} style={styles.ctaWrapper}>
                 <StyledButton
                   type={'blue'}
                   onPress={this.onPressConfirm}

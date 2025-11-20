@@ -57,7 +57,7 @@ function NetworkSearchTextInput({
         : styles.inputWrapper;
 
   return (
-    <View style={containerInputStylesWhichAreFeatureFlagged}>
+    <View accessibilityRole="none" accessible={false} style={containerInputStylesWhichAreFeatureFlagged}>
       <Icon name="search" size={20} color={colors.icon.default} />
       <TextInput
         style={inputStylesWhichAreFeatureFlagged}

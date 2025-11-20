@@ -250,11 +250,11 @@ const NetworkMultiSelectList = ({
   const renderNetworkItem: ListRenderItem<NetworkListItem> = useCallback(
     ({ item }) => {
       if (isAdditionalNetworkSection(item)) {
-        return <View>{item.component}</View>;
+        return <View accessibilityRole="none" accessible={false}>{item.component}</View>;
       }
 
       if (isSelectAllNetworksSection(item)) {
-        return <View>{item.component}</View>;
+        return <View accessibilityRole="none" accessible={false}>{item.component}</View>;
       }
 
       const network = item as ProcessedNetwork;
@@ -271,7 +271,7 @@ const NetworkMultiSelectList = ({
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
 
       return (
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Cell
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}

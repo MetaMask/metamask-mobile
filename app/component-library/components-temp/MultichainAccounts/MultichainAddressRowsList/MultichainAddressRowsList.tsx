@@ -121,7 +121,7 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
       : 'multichain_accounts.address_rows_list.no_networks_available';
 
     return (
-      <View style={styles.emptyContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.emptyContainer}>
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
@@ -134,8 +134,8 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
   };
 
   return (
-    <View style={styles.container} testID={testID}>
-      <View style={styles.searchContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.container} testID={testID}>
+      <View accessibilityRole="none" accessible={false} style={styles.searchContainer}>
         <TextFieldSearch
           placeholder={strings(
             'multichain_accounts.address_rows_list.search_placeholder',

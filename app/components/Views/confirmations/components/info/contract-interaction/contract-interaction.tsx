@@ -21,7 +21,7 @@ const ContractInteraction = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <View testID={ConfirmationInfoComponentIDs.CONTRACT_INTERACTION}>
+    <View accessibilityRole="none" accessible={false} testID={ConfirmationInfoComponentIDs.CONTRACT_INTERACTION}>
       <AccountNetworkInfoRow />
       {isBatchedUpgrade && <SwitchAccountTypeInfoRow />}
       <SimulationDetails

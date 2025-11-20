@@ -39,7 +39,7 @@ export default class TransactionSummary extends PureComponent {
     const styles = createStyles(colors);
 
     return !gasEstimationReady ? (
-      <View style={styles.loader}>
+      <View accessibilityRole="none" accessible={false} style={styles.loader}>
         <ActivityIndicator size="small" />
       </View>
     ) : (

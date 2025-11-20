@@ -313,10 +313,10 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     }));
 
     return (
-      <View style={styles.seedPhraseRoot}>
-        <View style={styles.seedPhraseContainer}>
-          <View style={styles.seedPhraseInnerContainer}>
-            <View style={styles.seedPhraseInputContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.seedPhraseRoot}>
+        <View accessibilityRole="none" accessible={false} style={styles.seedPhraseContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.seedPhraseInnerContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.seedPhraseInputContainer}>
               {/* Grid Inputs on multiple words mode. hidden when first input mode.
               Need to use style hidden instead of condition rendering to avoid
               keyboard flicker when change input */}

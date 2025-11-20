@@ -207,14 +207,14 @@ const AccountBackupStep1 = (props) => {
         style={styles.mainWrapper}
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
-        <View style={styles.wrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('manual_backup_step_1.steps', {
               currentStep: 2,
               totalSteps: 3,
             })}
           </Text>
-          <View style={styles.content}>
+          <View accessibilityRole="none" accessible={false} style={styles.content}>
             <Text
               variant={TextVariant.DisplayMD}
               color={TextColor.Default}
@@ -230,7 +230,7 @@ const AccountBackupStep1 = (props) => {
               }
               style={styles.srpDesign}
             />
-            <View style={styles.text}>
+            <View accessibilityRole="none" accessible={false} style={styles.text}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('account_backup_step_1.info_text_1_1')}{' '}
                 <Text
@@ -250,8 +250,8 @@ const AccountBackupStep1 = (props) => {
             </View>
           </View>
 
-          <View style={styles.buttonWrapper}>
-            <View>
+          <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
+            <View accessibilityRole="none" accessible={false}>
               <Button
                 variant={ButtonVariants.Primary}
                 onPress={goNext}
@@ -261,7 +261,7 @@ const AccountBackupStep1 = (props) => {
               />
             </View>
             {!hasFunds && (
-              <View>
+              <View accessibilityRole="none" accessible={false}>
                 <Button
                   variant={ButtonVariants.Secondary}
                   onPress={showRemindLater}

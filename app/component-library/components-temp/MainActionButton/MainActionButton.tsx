@@ -67,7 +67,7 @@ const MainActionButton = ({
         disabled={isDisabled}
         {...props}
       >
-        <View style={styles.container}>
+        <View accessibilityRole="none" accessible={false} style={styles.container}>
           <Icon
             name={iconName}
             size={IconSize.Lg}

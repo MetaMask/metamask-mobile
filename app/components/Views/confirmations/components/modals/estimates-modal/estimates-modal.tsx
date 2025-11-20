@@ -26,7 +26,7 @@ export const EstimatesModal = ({
       onBackButtonPress={handleCloseModals}
       onSwipeComplete={handleCloseModals}
     >
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <GasModalHeader
           onBackButtonClick={handleCloseModals}
           title={strings('transactions.gas_modal.edit_network_fee')}

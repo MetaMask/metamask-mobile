@@ -89,8 +89,8 @@ const RestoreWallet = () => {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.content}>
-        <View style={styles.images}>
+      <View accessibilityRole="none" accessible={false} style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.images}>
           <Image source={onboardingDeviceImage} />
         </View>
         <Text variant={TextVariant.HeadingLG} style={styles.title}>
@@ -100,7 +100,7 @@ const RestoreWallet = () => {
           {strings('restore_wallet.restore_needed_description')}
         </Text>
       </View>
-      <View style={styles.actionButtonWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.actionButtonWrapper}>
         <StyledButton
           type="confirm"
           containerStyle={styles.actionButton}

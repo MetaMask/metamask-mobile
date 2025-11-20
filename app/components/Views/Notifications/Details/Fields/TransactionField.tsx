@@ -34,7 +34,7 @@ function TransactionField(props: TransactionFieldProps) {
   const copyToClipboard = useCopyClipboard();
 
   return (
-    <View style={styles.row}>
+    <View accessibilityRole="none" accessible={false} style={styles.row}>
       <Avatar
         variant={AvatarVariant.Icon}
         size={AvatarSize.Md}
@@ -43,7 +43,7 @@ function TransactionField(props: TransactionFieldProps) {
         backgroundColor={theme.colors.success.muted}
         iconColor={IconColor.Success}
       />
-      <View style={styles.boxLeft}>
+      <View accessibilityRole="none" accessible={false} style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('transactions.status')}
         </Text>
@@ -52,7 +52,7 @@ function TransactionField(props: TransactionFieldProps) {
           {strings(`transaction.confirmed`)}
         </Text>
       </View>
-      <View style={styles.rightSection}>
+      <View accessibilityRole="none" accessible={false} style={styles.rightSection}>
         <Pressable
           onPress={() => {
             const otherNotificationProperties = () => {

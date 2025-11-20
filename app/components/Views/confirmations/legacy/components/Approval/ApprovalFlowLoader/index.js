@@ -32,8 +32,8 @@ const ApprovalFlowLoader = ({ loadingText }) => {
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.root}>
-      <View style={styles.spinnerWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.root}>
+      <View accessibilityRole="none" accessible={false} style={styles.spinnerWrapper}>
         <Spinner />
       </View>
       <Text primary centered noMargin style={styles.text}>

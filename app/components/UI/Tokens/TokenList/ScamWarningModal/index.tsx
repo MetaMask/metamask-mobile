@@ -56,7 +56,7 @@ export const ScamWarningModal = ({
       backdropOpacity={1}
     >
       <Box style={styles.box}>
-        <View style={styles.notch} />
+        <View accessibilityRole="none" accessible={false} style={styles.notch} />
         <SheetHeader title={strings('wallet.potential_scam')} />
 
         <Box style={styles.boxContent}>

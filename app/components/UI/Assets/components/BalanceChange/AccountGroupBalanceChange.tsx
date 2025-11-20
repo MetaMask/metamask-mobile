@@ -44,7 +44,7 @@ const AccountGroupBalanceChange = ({
   );
 
   return (
-    <View style={styles.wrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
       <SensitiveText
         isHidden={Boolean(privacyMode)}
         length="10"

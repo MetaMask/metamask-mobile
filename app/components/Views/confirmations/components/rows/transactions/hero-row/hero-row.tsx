@@ -10,7 +10,7 @@ import styleSheet from './hero-row.styles';
 
 const LoadingHeroRow = () => {
   const { styles } = useStyles(styleSheet, {});
-  return <View style={styles.loadingWrapper} />;
+  return <View accessibilityRole="none" accessible={false} style={styles.loadingWrapper} />;
 };
 
 export const HeroRow = ({ amountWei }: { amountWei?: string }) => {

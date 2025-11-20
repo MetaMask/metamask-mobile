@@ -67,7 +67,7 @@ const TestForm = ({
         {title}
       </Text>
       {textFields.map((textField, index) => (
-        <View key={index} style={styles.input}>
+        <View accessibilityRole="none" accessible={false} key={index} style={styles.input}>
           <TextInput
             autoCorrect={false}
             autoComplete={'off'}

@@ -23,18 +23,18 @@ export const GasOption = ({ option }: { option: GasOptionType }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.optionWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.optionWrapper}>
       {isSelected && (
-        <View style={styles.selectionIndicator} testID="selection-indicator" />
+        <View accessibilityRole="none" accessible={false} style={styles.selectionIndicator} testID="selection-indicator" />
       )}
       <TouchableOpacity
         testID={`gas-option-${key}`}
         style={[styles.optionContainer, isSelected && styles.selectedOption]}
         onPress={() => onSelect()}
       >
-        <View style={styles.leftSection}>
+        <View accessibilityRole="none" accessible={false} style={styles.leftSection}>
           <RNText style={styles.emoji}>{emoji}</RNText>
-          <View style={styles.optionTextContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.optionTextContainer}>
             <Text variant={TextVariant.BodyMDMedium} style={styles.optionName}>
               {name}
             </Text>
@@ -48,7 +48,7 @@ export const GasOption = ({ option }: { option: GasOptionType }) => {
             )}
           </View>
         </View>
-        <View style={styles.rightSection}>
+        <View accessibilityRole="none" accessible={false} style={styles.rightSection}>
           <Text variant={TextVariant.BodyMDMedium} style={styles.valueInFiat}>
             {valueInFiat}
           </Text>

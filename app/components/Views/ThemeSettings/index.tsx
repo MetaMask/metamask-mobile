@@ -66,7 +66,7 @@ const ThemeSettings = () => {
   /* eslint-disable-next-line */
   const renderThemeOptions = useCallback(() => {
     return (
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         {Object.keys(AppThemeKey).map((themeKeyId) => {
           const key = `${themeKeyId}-theme`;
           const selectedThemeKey = AppThemeKey[themeKeyId as AppThemeKey];
@@ -80,7 +80,7 @@ const ThemeSettings = () => {
             ) : null;
 
           return (
-            <View key={key} style={styles.option}>
+            <View accessibilityRole="none" accessible={false} key={key} style={styles.option}>
               <TouchableOpacity
                 onPress={() => {
                   triggerSetAppTheme(selectedThemeKey);
@@ -103,8 +103,8 @@ const ThemeSettings = () => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={styles.sheet}>
-        <View style={styles.notch} />
+      <View accessibilityRole="none" accessible={false} style={styles.sheet}>
+        <View accessibilityRole="none" accessible={false} style={styles.notch} />
         {renderThemeOptions()}
       </View>
     </ReusableModal>

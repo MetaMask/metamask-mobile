@@ -24,7 +24,7 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
   const { styles } = useStyles(selectorStyleSheet, {});
 
   return (
-    <View style={styles.intervalSelector} testID={testID}>
+    <View accessibilityRole="none" accessible={false} style={styles.intervalSelector} testID={testID}>
       {CHART_INTERVALS.map((interval) => (
         <TouchableOpacity
           key={interval.value}

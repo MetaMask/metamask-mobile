@@ -33,7 +33,7 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }: Props) {
   return (
     <ScreenLayout>
       <ScreenLayout.Content style={styles.content}>
-        <View style={styles.errorIconContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.errorIconContainer}>
           <Icon
             name={IconName.Close}
             size={IconSize.Xl}

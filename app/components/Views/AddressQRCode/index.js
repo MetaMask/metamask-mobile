@@ -144,8 +144,8 @@ class AddressQRCode extends PureComponent {
       : this.props.selectedAddress;
 
     return (
-      <View style={styles.root}>
-        <View style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.root}>
+        <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
           <TouchableOpacity
             style={styles.closeIcon}
             onPress={this.closeQrModal}
@@ -156,15 +156,15 @@ class AddressQRCode extends PureComponent {
               color={colors.primary.inverse}
             />
           </TouchableOpacity>
-          <View style={styles.qrCodeContainer}>
-            <View style={styles.qrCode}>
+          <View accessibilityRole="none" accessible={false} style={styles.qrCodeContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.qrCode}>
               <QRCode
                 value={qrValue}
                 size={Dimensions.get('window').width - 160}
               />
             </View>
           </View>
-          <View style={styles.addressWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.addressWrapper}>
             <Text style={styles.addressTitle}>
               {strings('receive_request.public_address_qr_code')}
             </Text>

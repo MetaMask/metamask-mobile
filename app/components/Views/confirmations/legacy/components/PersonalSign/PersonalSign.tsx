@@ -269,7 +269,7 @@ const PersonalSign = ({
       testID={SigningBottomSheetSelectorsIDs.PERSONAL_REQUEST}
       networkType={networkType}
     >
-      <View style={styles.messageWrapper}>{renderMessageText()}</View>
+      <View accessibilityRole="none" accessible={false} style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>
   );
   return rootView;

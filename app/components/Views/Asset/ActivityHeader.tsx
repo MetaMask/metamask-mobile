@@ -15,7 +15,7 @@ interface ActivityHeaderProps {
 const ActivityHeader = ({ asset }: ActivityHeaderProps) => {
   const { styles } = useStyles(styleSheet, {});
   return (
-    <View style={styles.wrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
       <Text style={styles.title} variant={TextVariant.HeadingMD}>
         {strings('asset_overview.activity', {
           symbol: asset.name || asset.symbol,

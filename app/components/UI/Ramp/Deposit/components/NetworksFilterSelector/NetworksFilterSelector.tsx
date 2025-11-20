@@ -102,7 +102,7 @@ function NetworksFilterSelector({
         }}
         keyExtractor={(item) => item}
       ></FlatList>
-      <View style={styles.buttonContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}

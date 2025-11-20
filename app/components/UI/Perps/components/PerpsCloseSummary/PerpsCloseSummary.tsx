@@ -150,19 +150,19 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       ]}
     >
       {/* Margin with P&L breakdown */}
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryLabel}>
+      <View accessibilityRole="none" accessible={false} style={styles.summaryRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.summaryLabel}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.close_position.margin')}
           </Text>
         </View>
-        <View style={styles.summaryValue}>
+        <View accessibilityRole="none" accessible={false} style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD}>
             {formatPerpsFiat(totalMargin, {
               ranges: PRICE_RANGES_MINIMAL_VIEW,
             })}
           </Text>
-          <View style={styles.inclusiveFeeRow}>
+          <View accessibilityRole="none" accessible={false} style={styles.inclusiveFeeRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Default}>
               {strings('perps.close_position.includes_pnl')}
             </Text>
@@ -180,8 +180,8 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       </View>
 
       {/* Fees with discount */}
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryLabel}>
+      <View accessibilityRole="none" accessible={false} style={styles.summaryRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.summaryLabel}>
           {enableTooltips ? (
             <TouchableOpacity
               onPress={() =>
@@ -210,9 +210,9 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             </Text>
           )}
         </View>
-        <View style={styles.summaryValue}>
+        <View accessibilityRole="none" accessible={false} style={styles.summaryValue}>
           {isLoadingFees ? (
-            <View style={styles.loadingContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.loadingContainer}>
               <ActivityIndicator
                 size="small"
                 color={theme.colors.icon.alternative}
@@ -233,8 +233,8 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       </View>
 
       {/* You'll receive */}
-      <View style={[styles.summaryRow, styles.summaryTotalRow]}>
-        <View style={styles.summaryLabel}>
+      <View accessibilityRole="none" accessible={false} style={[styles.summaryRow, styles.summaryTotalRow]}>
+        <View accessibilityRole="none" accessible={false} style={styles.summaryLabel}>
           {enableTooltips ? (
             <TouchableOpacity
               onPress={() => handleTooltipPress('close_position_you_receive')}
@@ -256,7 +256,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
             </Text>
           )}
         </View>
-        <View style={styles.summaryValue}>
+        <View accessibilityRole="none" accessible={false} style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {formatPerpsFiat(receiveAmount, {
               ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -267,8 +267,8 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
 
       {/* Estimated Points */}
       {shouldShowRewards && (
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryLabel}>
+        <View accessibilityRole="none" accessible={false} style={styles.summaryRow}>
+          <View accessibilityRole="none" accessible={false} style={styles.summaryLabel}>
             {enableTooltips ? (
               <TouchableOpacity
                 onPress={() => handleTooltipPress('points')}
@@ -290,7 +290,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
               </Text>
             )}
           </View>
-          <View style={styles.summaryValue}>
+          <View accessibilityRole="none" accessible={false} style={styles.summaryValue}>
             <RewardsAnimations
               value={estimatedPoints}
               bonusBips={bonusBips}

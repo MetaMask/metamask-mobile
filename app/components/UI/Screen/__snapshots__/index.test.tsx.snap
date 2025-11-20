@@ -15,7 +15,7 @@ exports[`Screen should render correctly 1`] = `
       }
     }
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       Foobar
     </View>
   </RCTSafeAreaView>

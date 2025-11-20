@@ -111,7 +111,7 @@ const PageNavigation: React.FC<{
   }
 
   return (
-    <View style={styles.pageNavigation}>
+    <View accessibilityRole="none" accessible={false} style={styles.pageNavigation}>
       <NavigationAlertHeader
         arrLength={alerts.length}
         onBack={onBackButtonClick}

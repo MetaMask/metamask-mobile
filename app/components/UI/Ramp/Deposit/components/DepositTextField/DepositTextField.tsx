@@ -47,13 +47,13 @@ const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
     const { styles, theme } = useStyles(styleSheet, {});
 
     return (
-      <View style={[styles.field, containerStyle]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.field, containerStyle]}>
         {typeof label === 'string' ? (
           <Label variant={TextVariant.BodyMD} style={styles.label}>
             {label}
           </Label>
         ) : (
-          <View style={styles.label}>{label}</View>
+          <View accessibilityRole="none" accessible={false} style={styles.label}>{label}</View>
         )}
         <TextField
           size={TextFieldSize.Lg}

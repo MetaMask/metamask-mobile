@@ -44,7 +44,7 @@ const AssetSelectorButton: React.FC<Props> = ({
     compact
     {...props}
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       {loading ? (
         <ListItem>
           <ListItemColumn>

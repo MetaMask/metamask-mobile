@@ -68,7 +68,7 @@ jest.mock(
           disabled?: boolean;
         }[];
       }) => (
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           {buttonPropsArray?.map((buttonProps, index) => (
             <TouchableOpacity
               key={index}

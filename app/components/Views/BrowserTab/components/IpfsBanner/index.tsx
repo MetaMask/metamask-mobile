@@ -22,7 +22,7 @@ const IpfsBanner = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   return (
-    <View style={styles.bannerContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.bannerContainer}>
       <Banner
         title={strings('ipfs_gateway_banner.ipfs_gateway_banner_title')}
         description={

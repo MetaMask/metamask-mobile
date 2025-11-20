@@ -45,12 +45,12 @@ const BatchAccountBalanceSettings = () => {
   );
 
   return (
-    <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
-      <View style={styles.titleContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
+      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.batch_balance_requests_title')}
         </Text>
-        <View style={styles.switchElement}>
+        <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
           <Switch
             value={isMultiAccountBalancesEnabled}
             onValueChange={toggleIsMultiAccountBalancesEnabled}

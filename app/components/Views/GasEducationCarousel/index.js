@@ -225,7 +225,7 @@ const GasEducationCarousel = ({
     route?.params?.navigateTo?.();
   };
 
-  const renderTabBar = () => <View />;
+  const renderTabBar = () => <View accessibilityRole="none" accessible={false} />;
 
   const onChangeTab = (obj) => {
     setCurrentTab(obj.i + 1);
@@ -242,7 +242,7 @@ const GasEducationCarousel = ({
   const renderText = (key) => {
     if (key === 1) {
       return (
-        <View style={styles.tab}>
+        <View accessibilityRole="none" accessible={false} style={styles.tab}>
           <Text noMargin bold black style={styles.title}>
             {strings('fiat_on_ramp.gas_education_carousel.step_1.title', {
               ticker: getTicker(ticker),
@@ -274,7 +274,7 @@ const GasEducationCarousel = ({
     }
     if (key === 2) {
       return (
-        <View style={styles.tab}>
+        <View accessibilityRole="none" accessible={false} style={styles.tab}>
           <Text noMargin bold black style={styles.title}>
             {strings('fiat_on_ramp.gas_education_carousel.step_2.title')}
           </Text>
@@ -296,7 +296,7 @@ const GasEducationCarousel = ({
     }
     if (key === 3) {
       return (
-        <View style={styles.tab}>
+        <View accessibilityRole="none" accessible={false} style={styles.tab}>
           <Text noMargin bold black style={styles.title}>
             {strings('fiat_on_ramp.gas_education_carousel.step_3.title')}
           </Text>
@@ -321,13 +321,13 @@ const GasEducationCarousel = ({
   };
 
   return (
-    <View style={baseStyles.flexGrow}>
+    <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
       <OnboardingScreenWithBg screen={'carousel'}>
         <ScrollView
           style={baseStyles.flexGrow}
           contentContainerStyle={styles.scroll}
         >
-          <View style={styles.wrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
             <ScrollableTabView
               style={styles.scrollTabs}
               renderTabBar={renderTabBar}
@@ -337,19 +337,19 @@ const GasEducationCarousel = ({
                 const key = index + 1;
                 const imgStyleKey = `carouselImage${key}`;
                 return (
-                  <View key={key} style={baseStyles.flexGrow}>
-                    <View style={styles.carouselImageWrapper}>
+                  <View accessibilityRole="none" accessible={false} key={key} style={baseStyles.flexGrow}>
+                    <View accessibilityRole="none" accessible={false} style={styles.carouselImageWrapper}>
                       <Image
                         source={carousel_images[index]}
                         style={[styles.carouselImage, styles[imgStyleKey]]}
                         resizeMethod={'auto'}
                       />
                     </View>
-                    <View style={baseStyles.flexGrow}>
+                    <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
                       {renderText(key)}
                       {key === 3 && (
-                        <View style={styles.ctas}>
-                          <View style={styles.ctaWrapper}>
+                        <View accessibilityRole="none" accessible={false} style={styles.ctas}>
+                          <View accessibilityRole="none" accessible={false} style={styles.ctaWrapper}>
                             <StyledButton
                               type={'confirm'}
                               onPress={onPresGetStarted}
@@ -370,7 +370,7 @@ const GasEducationCarousel = ({
               })}
             </ScrollableTabView>
 
-            <View style={styles.progessContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.progessContainer}>
               {[1, 2, 3].map((i) => (
                 <View
                   key={i}

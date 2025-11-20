@@ -159,8 +159,8 @@ const WatchAssetRequest = ({
   const { address, symbol, decimals, standard } = asset;
 
   return (
-    <View style={styles.root} testID={AssetWatcherSelectorsIDs.CONTAINER}>
-      <View style={styles.approveTransactionHeaderWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.root} testID={AssetWatcherSelectorsIDs.CONTAINER}>
+      <View accessibilityRole="none" accessible={false} style={styles.approveTransactionHeaderWrapper}>
         <ApproveTransactionHeader
           chainId={chainId}
           origin={currentPageInformation?.url}
@@ -175,7 +175,7 @@ const WatchAssetRequest = ({
           dontWatchAsset
         />
       </View>
-      <View style={styles.titleWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.titleWrapper}>
         <Text style={styles.title} onPress={this.cancelSignature}>
           {strings('watch_asset_request.title')}
         </Text>
@@ -188,24 +188,24 @@ const WatchAssetRequest = ({
         onCancelPress={onCancel}
         onConfirmPress={onConfirmPress}
       >
-        <View style={styles.children}>
-          <View style={styles.addMessage}>
+        <View accessibilityRole="none" accessible={false} style={styles.children}>
+          <View accessibilityRole="none" accessible={false} style={styles.addMessage}>
             <Text style={styles.signText}>
               {strings('watch_asset_request.message')}
             </Text>
           </View>
 
-          <View style={styles.tokenInformation}>
-            <View style={styles.tokenInfo}>
-              <View style={styles.infoTitleWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.tokenInformation}>
+            <View accessibilityRole="none" accessible={false} style={styles.tokenInfo}>
+              <View accessibilityRole="none" accessible={false} style={styles.infoTitleWrapper}>
                 <Text style={styles.infoTitle}>
                   {strings('watch_asset_request.token')}
                 </Text>
               </View>
 
-              <View style={styles.infoToken}>
-                <View style={styles.token}>
-                  <View style={styles.identicon}>
+              <View accessibilityRole="none" accessible={false} style={styles.infoToken}>
+                <View accessibilityRole="none" accessible={false} style={styles.token}>
+                  <View accessibilityRole="none" accessible={false} style={styles.identicon}>
                     <TokenImage asset={asset} />
                   </View>
                   <Text style={styles.text}>{asset.symbol}</Text>
@@ -213,14 +213,14 @@ const WatchAssetRequest = ({
               </View>
             </View>
 
-            <View style={styles.tokenInfo}>
-              <View style={styles.infoTitleWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.tokenInfo}>
+              <View accessibilityRole="none" accessible={false} style={styles.infoTitleWrapper}>
                 <Text style={styles.infoTitle}>
                   {strings('watch_asset_request.balance')}
                 </Text>
               </View>
 
-              <View style={styles.infoBalance}>
+              <View accessibilityRole="none" accessible={false} style={styles.infoBalance}>
                 <Text style={styles.text}>{balanceWithSymbol}</Text>
               </View>
             </View>

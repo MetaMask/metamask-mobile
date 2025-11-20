@@ -39,7 +39,7 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
   };
 
   return (
-    <View style={styles.labelContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.labelContainer}>
       {isPreDefinedKeyValueRowLabel(label) ? (
         <Label
           variant={label?.variant ?? TextVariant.BodyMDMedium}

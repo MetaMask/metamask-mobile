@@ -40,14 +40,14 @@ const DataCollectionModal = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <View style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
         <Icon
           size={IconSize.Lg}
           name={IconName.Warning}
           color={IconColor.Warning}
           testID={DataCollectionBottomSheetSelectorsIDs.ICON_WARNING}
         />
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           <Text variant={TextVariant.BodyMD}>
             {strings('data_collection_modal.content')}
           </Text>

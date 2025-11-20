@@ -31,7 +31,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
       Turn on backup and sync
     </Text>
     <RCTScrollView>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -209,6 +209,6 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
       </TouchableOpacity>
     </View>
   </View>,
-  <View />,
+  <View accessibilityRole="none" accessible={false} />,
 ]
 `;

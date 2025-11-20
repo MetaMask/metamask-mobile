@@ -881,7 +881,7 @@ class TransactionEditor extends PureComponent {
                 }
               />
               {/** View fixes layout issue after removing <CustomGas/> */}
-              <View />
+              <View accessibilityRole="none" accessible={false} />
             </AnimatedTransactionModal>
           </KeyboardAwareScrollView>
         )}

@@ -49,8 +49,8 @@ const DeFiProtocolPositionDetails: React.FC = () => {
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}
       style={styles.protocolPositionDetailsWrapper}
     >
-      <View style={styles.detailsWrapper}>
-        <View>
+      <View accessibilityRole="none" accessible={false} style={styles.detailsWrapper}>
+        <View accessibilityRole="none" accessible={false}>
           <Text variant={TextVariant.DisplayMD}>
             {protocolAggregate.protocolDetails.name}
           </Text>
@@ -70,7 +70,7 @@ const DeFiProtocolPositionDetails: React.FC = () => {
           </SensitiveText>
         </View>
 
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <DeFiAvatarWithBadge
             networkIconAvatar={networkIconAvatar}
             avatarName={protocolAggregate.protocolDetails.name}
@@ -78,7 +78,7 @@ const DeFiProtocolPositionDetails: React.FC = () => {
           />
         </View>
       </View>
-      <View style={styles.separatorWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.separatorWrapper}>
         <Summary.Separator />
       </View>
       <DeFiProtocolPositionGroups

@@ -31,7 +31,7 @@ jest.mock('../PerpsTokenLogo', () => {
     symbol: string;
     testID?: string;
   }) {
-    return <View testID={testID || 'perps-token-logo'} data-symbol={symbol} />;
+    return <View accessibilityRole="none" accessible={false} testID={testID || 'perps-token-logo'} data-symbol={symbol} />;
   };
 });
 

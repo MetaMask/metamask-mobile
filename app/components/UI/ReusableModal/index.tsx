@@ -209,7 +209,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
     );
 
     return (
-      <View style={styles.absoluteFill} {...props}>
+      <View accessibilityRole="none" accessible={false} style={styles.absoluteFill} {...props}>
         <TouchableOpacity
           style={styles.absoluteFill}
           activeOpacity={1}

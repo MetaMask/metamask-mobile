@@ -23,7 +23,7 @@ export const Tag = {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: ({ label }: any) => (
-    <View style={{ alignItems: 'flex-start' }}>
+    <View accessibilityRole="none" accessible={false} style={{ alignItems: 'flex-start' }}>
       <TagComponent label={label} />
     </View>
   ),

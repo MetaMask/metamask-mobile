@@ -73,7 +73,7 @@ const Skeleton = ({ width, noStyle }) => {
   const styles = createStyles(colors);
 
   return (
-    <View style={[!noStyle && styles.valuesContainer]}>
+    <View accessibilityRole="none" accessible={false} style={[!noStyle && styles.valuesContainer]}>
       <SkeletonPlaceholder>
         <SkeletonPlaceholder.Item width={width} height={10} borderRadius={4} />
       </SkeletonPlaceholder>
@@ -148,8 +148,8 @@ const TransactionReviewEIP1559 = ({
   return (
     <Summary style={styles.overview(noMargin)}>
       <Summary.Row>
-        <View style={styles.gasRowContainer}>
-          <View style={styles.gasRowContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.gasRowContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.gasRowContainer}>
             <Text
               primary={!originWarning}
               bold
@@ -232,13 +232,13 @@ const TransactionReviewEIP1559 = ({
       </Summary.Row>
       {!legacy && (
         <Summary.Row>
-          <View style={styles.gasRowContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.gasRowContainer}>
             {gasEstimationReady ? (
               <FadeAnimationView
                 valueToWatch={valueToWatchAnimation}
                 animateOnChange={animateOnChange}
               >
-                <View style={styles.timeEstimateContainer}>
+                <View accessibilityRole="none" accessible={false} style={styles.timeEstimateContainer}>
                   <Text
                     small
                     green={timeEstimateColor === 'green'}
@@ -335,7 +335,7 @@ const TransactionReviewEIP1559 = ({
         title={strings('transaction_review_eip1559.estimated_gas_fee_tooltip')}
         toggleModal={toggleLearnMoreModal}
         body={
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text infoModal>
               {strings(
                 'transaction_review_eip1559.estimated_gas_fee_tooltip_text_1',

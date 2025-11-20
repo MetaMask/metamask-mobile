@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BottomModal should match snapshot 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <Modal
     animationType="none"
     deviceHeight={null}
@@ -133,7 +133,7 @@ exports[`BottomModal should match snapshot 1`] = `
             }
           }
         />
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text>
             DUMMY
           </Text>

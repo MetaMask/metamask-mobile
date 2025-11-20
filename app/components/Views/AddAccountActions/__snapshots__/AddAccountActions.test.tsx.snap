@@ -389,7 +389,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                           }
                         />
                       </View>
-                      <View>
+                      <View accessibilityRole="none" accessible={false}>
                         <Text
                           accessibilityRole="text"
                           style={

@@ -193,9 +193,9 @@ const Scan = ({
     devices.length > 0 && bluetoothOn && hasBluetoothPermissions;
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       {displayDevices ? (
-        <View style={styles.picker}>
+        <View accessibilityRole="none" accessible={false} style={styles.picker}>
           <SelectOptionSheet
             options={options}
             label={strings('ledger.available_devices')}

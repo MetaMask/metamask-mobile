@@ -359,7 +359,7 @@ const BankDetails = () => {
       >
         <ScreenLayout.Body>
           <ScreenLayout.Content style={styles.content}>
-            <View style={styles.mainSection}>
+            <View accessibilityRole="none" accessible={false} style={styles.mainSection}>
               <Text variant={TextVariant.HeadingMD}>
                 {strings('deposit.bank_details.main_title')}
               </Text>
@@ -372,7 +372,7 @@ const BankDetails = () => {
             </View>
 
             {order ? (
-              <View style={styles.detailsContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.detailsContainer}>
                 {amount ? (
                   <BankDetailRow
                     label={strings('deposit.bank_details.transfer_amount')}
@@ -474,7 +474,7 @@ const BankDetails = () => {
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <View style={styles.bottomContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.bottomContainer}>
             {confirmPaymentError ? (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                 {confirmPaymentError ||
@@ -495,7 +495,7 @@ const BankDetails = () => {
               </Text>
             </PrivacySection>
 
-            <View style={styles.buttonContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
               <Button
                 style={styles.button}
                 variant={ButtonVariants.Secondary}

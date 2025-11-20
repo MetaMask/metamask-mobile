@@ -115,7 +115,7 @@ const MultichainTransactionsView = ({
   }, [enableRefresh]);
 
   const renderEmptyList = () => (
-    <View style={style.emptyContainer}>
+    <View accessibilityRole="none" accessible={false} style={style.emptyContainer}>
       <Text style={[style.emptyText, { color: colors.text.default }]}>
         {emptyMessage ?? strings('wallet.no_transactions')}
       </Text>
@@ -168,7 +168,7 @@ const MultichainTransactionsView = ({
 
   return (
     <PriceChartProvider>
-      <View style={style.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={style.wrapper}>
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList

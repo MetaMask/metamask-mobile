@@ -84,7 +84,7 @@ const AccountPermissionsConnected = ({
 
   const renderSheetAction = useCallback(
     () => (
-      <View style={styles.sheetActionContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.sheetActionContainer}>
         <SheetActions
           actions={[
             {
@@ -102,7 +102,7 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      <View style={styles.header}>
+      <View accessibilityRole="none" accessible={false} style={styles.header}>
         <Avatar
           variant={AvatarVariant.Favicon}
           imageSource={favicon}
@@ -111,7 +111,7 @@ const AccountPermissionsConnected = ({
         />
         <Text variant={TextVariant.HeadingMD}>{hostname}</Text>
       </View>
-      <View style={styles.body}>
+      <View accessibilityRole="none" accessible={false} style={styles.body}>
         <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
           {strings('accounts.connected_accounts_title')}
         </Text>

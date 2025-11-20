@@ -9,7 +9,7 @@ jest.mock('./useMetrics');
 
 class MockComponent extends Component<IWithMetricsAwarenessProps> {
   render() {
-    return <View />;
+    return <View accessibilityRole="none" accessible={false} />;
   }
 }
 

@@ -69,7 +69,7 @@ const ShowWarningBanner = () => {
         <Text variant={TextVariant.BodySMBold} style={styles.headerText}>
           {strings('accounts.potential_threat')}
         </Text>
-        <View style={styles.details}>
+        <View accessibilityRole="none" accessible={false} style={styles.details}>
           {descriptionArray?.map((value, i) => (
             <Text
               key={`value-${i}`}
@@ -81,8 +81,8 @@ const ShowWarningBanner = () => {
           ))}
         </View>
       </Accordion>
-      <View style={styles.advisoryContainer}>
-        <View style={styles.attributionItem}>
+      <View accessibilityRole="none" accessible={false} style={styles.advisoryContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.attributionItem}>
           <Icon
             name={IconName.SecurityTick}
             size={IconSize.Sm}
@@ -90,7 +90,7 @@ const ShowWarningBanner = () => {
             style={styles.securityTickIcon}
           />
         </View>
-        <View style={styles.attributionItem}>
+        <View accessibilityRole="none" accessible={false} style={styles.attributionItem}>
           <Text variant={TextVariant.BodySM} style={styles.advisoryText}>
             {strings('accounts.advisory_by')}
           </Text>

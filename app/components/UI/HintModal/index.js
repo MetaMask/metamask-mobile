@@ -74,9 +74,9 @@ const HintModal = ({
       onRequestClose={onRequestClose}
     >
       <TouchableWithoutFeedback onPress={onRequestClose} accessible={false}>
-        <View style={styles.hintWrapper}>
-          <View style={styles.hintHeader}>
-            <View style={styles.balancingSpace} />
+        <View accessibilityRole="none" accessible={false} style={styles.hintWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.hintHeader}>
+            <View accessibilityRole="none" accessible={false} style={styles.balancingSpace} />
             <Text variant={TextVariant.HeadingMD} style={styles.recovery}>
               {strings('manual_backup_step_3.recovery_hint')}
             </Text>

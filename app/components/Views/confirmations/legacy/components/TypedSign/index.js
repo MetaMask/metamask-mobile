@@ -195,13 +195,13 @@ class TypedSign extends PureComponent {
   renderTypedMessageV3 = (obj) => {
     const styles = this.getStyles();
     return Object.keys(obj).map((key) => (
-      <View style={styles.message} key={key}>
+      <View accessibilityRole="none" accessible={false} style={styles.message} key={key}>
         {obj[key] && typeof obj[key] === 'object' ? (
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text style={[styles.messageText, styles.msgKey]}>
               {escapeSpecialUnicode(key)}:
             </Text>
-            <View>{this.renderTypedMessageV3(obj[key])}</View>
+            <View accessibilityRole="none" accessible={false}>{this.renderTypedMessageV3(obj[key])}</View>
           </View>
         ) : (
           <Text style={styles.messageText}>
@@ -219,9 +219,9 @@ class TypedSign extends PureComponent {
 
     if (messageParams.version === 'V1') {
       return (
-        <View style={styles.message}>
+        <View accessibilityRole="none" accessible={false} style={styles.message}>
           {messageParams.data.map((obj, i) => (
-            <View key={`${obj.name}_${i}`}>
+            <View accessibilityRole="none" accessible={false} key={`${obj.name}_${i}`}>
               <Text style={[styles.messageText, styles.msgKey]}>
                 {escapeSpecialUnicode(obj.name)}:
               </Text>

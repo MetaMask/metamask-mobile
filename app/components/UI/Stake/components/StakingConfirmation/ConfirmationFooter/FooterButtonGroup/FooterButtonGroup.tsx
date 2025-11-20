@@ -224,7 +224,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   };
 
   return (
-    <View style={styles.footerContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.footerContainer}>
       <Button
         label={
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>

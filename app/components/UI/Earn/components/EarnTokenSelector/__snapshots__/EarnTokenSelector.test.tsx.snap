@@ -68,7 +68,7 @@ exports[`EarnTokenSelector renders correctly 1`] = `
             }
             testID="badge-wrapper-badge"
           >
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <View
                 style={
                   {
@@ -276,7 +276,7 @@ exports[`EarnTokenSelector renders correctly 1`] = `
       </View>
     </View>
   </View>
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <SvgMock
       color="#121314"
       fill="currentColor"

@@ -93,7 +93,7 @@ const AvatarGroup = ({
   );
 
   return (
-    <View testID={AVATARGROUP_CONTAINER_TESTID} style={styles.base}>
+    <View accessibilityRole="none" accessible={false} testID={AVATARGROUP_CONTAINER_TESTID} style={styles.base}>
       {renderAvatarList()}
       {shouldRenderOverflowCounter && (
         <Text

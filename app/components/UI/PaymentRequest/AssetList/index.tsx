@@ -139,9 +139,9 @@ const AssetList = ({
                 containerStyle={styles.item}
                 onPress={() => handleSelectAsset(item)}
               >
-                <View style={styles.assetListElement}>
-                  <View style={styles.assetIcon}>{renderLogo(item)}</View>
-                  <View style={styles.assetInfo}>
+                <View accessibilityRole="none" accessible={false} style={styles.assetListElement}>
+                  <View accessibilityRole="none" accessible={false} style={styles.assetIcon}>{renderLogo(item)}</View>
+                  <View accessibilityRole="none" accessible={false} style={styles.assetInfo}>
                     <Text style={styles.textSymbol}>{symbol}</Text>
                     {!!name && <Text style={styles.text}>{name}</Text>}
                   </View>

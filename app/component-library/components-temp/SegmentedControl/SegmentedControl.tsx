@@ -161,7 +161,7 @@ const SegmentedControl = ({
       const { value, label, ...optionProps } = option;
 
       return (
-        <View key={value} style={styles.buttonContainer}>
+        <View accessibilityRole="none" accessible={false} key={value} style={styles.buttonContainer}>
           <ButtonToggle
             label={label}
             isActive={isOptionActive(value)}
@@ -188,13 +188,13 @@ const SegmentedControl = ({
         contentContainerStyle={styles.scrollContentContainer}
         {...props}
       >
-        <View style={styles.base}>{renderButtons()}</View>
+        <View accessibilityRole="none" accessible={false} style={styles.base}>{renderButtons()}</View>
       </ScrollView>
     );
   }
 
   return (
-    <View style={styles.base} {...props}>
+    <View accessibilityRole="none" accessible={false} style={styles.base} {...props}>
       {renderButtons()}
     </View>
   );

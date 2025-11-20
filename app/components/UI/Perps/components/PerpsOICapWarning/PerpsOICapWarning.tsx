@@ -59,7 +59,7 @@ const PerpsOICapWarning: React.FC<PerpsOICapWarningProps> = memo(
           color={IconColor.Default}
           style={styles.icon}
         />
-        <View style={styles.textContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
           <Text
             variant={isBanner ? TextVariant.BodyMD : TextVariant.BodySM}
             color={TextColor.Default}

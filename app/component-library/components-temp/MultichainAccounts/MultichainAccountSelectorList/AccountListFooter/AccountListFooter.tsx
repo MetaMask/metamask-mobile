@@ -129,7 +129,7 @@ const AccountListFooter = memo(
     }
 
     return (
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <TouchableOpacity
           style={[
             styles.button,
@@ -139,7 +139,7 @@ const AccountListFooter = memo(
           disabled={isLoadingState || !walletInfo?.keyringId}
           activeOpacity={0.7}
         >
-          <View style={styles.iconContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
             {isLoadingState ? (
               <AnimatedSpinner size={SpinnerSize.SM} />
             ) : (

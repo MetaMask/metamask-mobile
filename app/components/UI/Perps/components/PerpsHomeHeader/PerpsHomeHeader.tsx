@@ -80,9 +80,9 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   const handleBack = onBack || defaultHandleBack;
 
   return (
-    <View style={styles.header} testID={testID}>
+    <View accessibilityRole="none" accessible={false} style={styles.header} testID={testID}>
       {isSearchVisible ? (
-        <View style={styles.headerContainerWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.headerContainerWrapper}>
           {/* Search Bar - Replaces back button and title */}
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -130,7 +130,7 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={styles.headerContainerWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.headerContainerWrapper}>
           {/* Back Button */}
           <ButtonIcon
             iconName={IconName.ArrowLeft}

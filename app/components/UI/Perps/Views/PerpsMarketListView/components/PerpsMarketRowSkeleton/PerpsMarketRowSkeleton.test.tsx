@@ -13,7 +13,7 @@ jest.mock('../../../../../../../component-library/components/Skeleton', () => {
       width?: number;
       height?: number;
       style?: object;
-    }) => <View testID={testID} {...props} />,
+    }) => <View accessibilityRole="none" accessible={false} testID={testID} {...props} />,
   };
 });
 

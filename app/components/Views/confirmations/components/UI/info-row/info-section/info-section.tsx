@@ -13,7 +13,7 @@ const InfoSection = ({ children, testID }: InfoSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container} testID={testID ?? 'info-section'}>
+    <View accessibilityRole="none" accessible={false} style={styles.container} testID={testID ?? 'info-section'}>
       {children}
     </View>
   );

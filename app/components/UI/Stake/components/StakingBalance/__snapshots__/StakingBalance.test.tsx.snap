@@ -27,7 +27,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
       }
       testID="badge-wrapper-badge"
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           useNativeDriver={true}
         >
@@ -206,7 +206,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           }
         }
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text
             accessibilityRole="text"
             style={
@@ -525,7 +525,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
       >
         Your earnings
       </Text>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -745,7 +745,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             </Text>
           </View>
         </View>
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
@@ -819,7 +819,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
       }
       testID="badge-wrapper-badge"
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           useNativeDriver={true}
         >
@@ -998,7 +998,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
           }
         }
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text
             accessibilityRole="text"
             style={
@@ -1317,7 +1317,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
       >
         Your earnings
       </Text>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -1537,7 +1537,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
             </Text>
           </View>
         </View>
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}

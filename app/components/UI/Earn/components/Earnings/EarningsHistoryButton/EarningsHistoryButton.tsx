@@ -32,7 +32,7 @@ const EarningsHistoryButton = ({ asset }: EarningsHistoryButtonProps) => {
   };
 
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <Button
         testID={WalletViewSelectorsIDs.EARN_EARNINGS_HISTORY_BUTTON}
         width={ButtonWidthTypes.Full}

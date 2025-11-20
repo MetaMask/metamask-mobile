@@ -200,7 +200,7 @@ export const PrivateKeyList = () => {
   const renderPassword = useCallback(
     () => (
       <>
-        <View style={styles.password}>
+        <View accessibilityRole="none" accessible={false} style={styles.password}>
           <Text
             variant={TextVariant.BodyLGMedium}
             testID={PrivateKeyListIds.PASSWORD_TITLE}
@@ -229,7 +229,7 @@ export const PrivateKeyList = () => {
             </Text>
           )}
         </View>
-        <View style={styles.buttons}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttons}>
           <Button
             label={strings('multichain_accounts.private_key_list.cancel')}
             size={ButtonSize.Lg}
@@ -263,7 +263,7 @@ export const PrivateKeyList = () => {
 
   const renderPrivateKeyList = useCallback(
     () => (
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <FlashList
           data={filteredAccounts()}
           keyExtractor={(item) => item.scope}

@@ -87,7 +87,7 @@ const NotificationOptionToggle = ({
   }, [isEnabled, toggleAccount]);
 
   return (
-    <View testID={NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(testID)}>
+    <View accessibilityRole="none" accessible={false} testID={NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(testID)}>
       <AccountCell
         accountGroup={item}
         avatarAccountType={icon}

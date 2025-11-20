@@ -20,7 +20,7 @@ jest.mock('../../../selectors/preferencesController', () => ({
 jest.mock('../CollectibleDetectionModal', () => {
   const { View, Text } = jest.requireActual('react-native');
   return () => (
-    <View testID="collectible-detection-modal">
+    <View accessibilityRole="none" accessible={false} testID="collectible-detection-modal">
       <Text>NFT Detection Banner</Text>
     </View>
   );

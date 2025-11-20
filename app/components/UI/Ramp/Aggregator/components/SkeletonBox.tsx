@@ -19,7 +19,7 @@ interface Props {
 const SkeletonBox: React.FC<Props> = ({ style }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View style={[styles.wrapper, style]} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.wrapper, style]} />;
 };
 
 export default SkeletonBox;

@@ -109,7 +109,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     Box: ({ children, testID, ...props }: MockComponentProps) => (
-      <View testID={testID} {...props}>
+      <View accessibilityRole="none" accessible={false} testID={testID} {...props}>
         {children}
       </View>
     ),
@@ -178,7 +178,7 @@ jest.mock('../PerpsBottomSheetTooltip', () => {
   const { View, Text } = jest.requireActual('react-native');
   return jest.fn(({ isVisible, testID }) =>
     isVisible ? (
-      <View testID={testID}>
+      <View accessibilityRole="none" accessible={false} testID={testID}>
         <Text>Mock Tooltip</Text>
       </View>
     ) : null,
@@ -190,7 +190,7 @@ jest.mock(
   '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
   () => {
     const { View } = jest.requireActual('react-native');
-    return jest.fn(({ testID }) => <View testID={testID} />);
+    return jest.fn(({ testID }) => <View accessibilityRole="none" accessible={false} testID={testID} />);
   },
 );
 
@@ -212,7 +212,7 @@ jest.mock(
   () => {
     const { View } = jest.requireActual('react-native');
     const BadgeWrapper = jest.fn(({ children, testID }) => (
-      <View testID={testID}>{children}</View>
+      <View accessibilityRole="none" accessible={false} testID={testID}>{children}</View>
     ));
     return {
       __esModule: true,
@@ -235,7 +235,7 @@ jest.mock(
 
 jest.mock('../../../../../component-library/components/Badges/Badge', () => {
   const { View } = jest.requireActual('react-native');
-  const Badge = jest.fn(({ testID }) => <View testID={testID} />);
+  const Badge = jest.fn(({ testID }) => <View accessibilityRole="none" accessible={false} testID={testID} />);
   return {
     __esModule: true,
     default: Badge,
@@ -251,7 +251,7 @@ jest.mock('../../../../../component-library/components/Skeleton', () => {
   const { View } = jest.requireActual('react-native');
   return {
     Skeleton: jest.fn(({ testID, width, height }) => (
-      <View testID={testID} style={{ width, height }} />
+      <View accessibilityRole="none" accessible={false} testID={testID} style={{ width, height }} />
     )),
   };
 });

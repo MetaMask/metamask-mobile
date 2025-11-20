@@ -245,7 +245,7 @@ const Main = (props) => {
   };
 
   const renderLoader = () => (
-    <View style={styles.loader}>
+    <View accessibilityRole="none" accessible={false} style={styles.loader}>
       <ActivityIndicator size="small" />
     </View>
   );
@@ -445,7 +445,7 @@ const Main = (props) => {
 
   return (
     <React.Fragment>
-      <View style={styles.flex}>
+      <View accessibilityRole="none" accessible={false} style={styles.flex}>
         {!forceReload ? (
           <MainNavigator navigation={props.navigation} />
         ) : (

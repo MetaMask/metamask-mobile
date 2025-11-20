@@ -51,8 +51,8 @@ const InstallSnapError = ({
   );
 
   return (
-    <View testID={SNAP_INSTALL_ERROR} style={styles.root}>
-      <View style={styles.accountCardWrapper}>
+    <View accessibilityRole="none" accessible={false} testID={SNAP_INSTALL_ERROR} style={styles.root}>
+      <View accessibilityRole="none" accessible={false} style={styles.accountCardWrapper}>
         <Cell
           style={styles.snapCell}
           variant={CellVariant.Display}
@@ -62,8 +62,8 @@ const InstallSnapError = ({
             name: IconName.Snaps,
           }}
         />
-        <View style={styles.iconContainer}>
-          <View style={styles.iconWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.iconWrapper}>
             <Icon
               name={IconName.Warning}
               color={IconColor.Error}
@@ -77,7 +77,7 @@ const InstallSnapError = ({
             snap: snapName,
           })}
         </Text>
-        <View style={styles.actionContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
             buttonPropsArray={[okButtonProps]}

@@ -15,7 +15,7 @@ const DepositProgressBar: React.FC<ProgressBarProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container} testID="deposit-progress-container">
+    <View accessibilityRole="none" accessible={false} style={styles.container} testID="deposit-progress-container">
       {Array.from({ length: steps }, (_, index) => {
         const isCompleted = index < currentStep;
         const isCurrent = index === currentStep;

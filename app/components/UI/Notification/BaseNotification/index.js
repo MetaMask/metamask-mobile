@@ -173,17 +173,17 @@ const BaseNotification = ({
   const styles = createStyles(colors);
 
   return (
-    <View style={baseStyles.flexGrow}>
-      <View style={styles.floatingBackground}>
+    <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
+      <View accessibilityRole="none" accessible={false} style={styles.floatingBackground}>
         <TouchableOpacity
           style={styles.defaultFlashFloating}
           onPress={onPress}
           activeOpacity={0.8}
         >
-          <View style={styles.flashIcon}>
+          <View accessibilityRole="none" accessible={false} style={styles.flashIcon}>
             {getIcon(status, colors, styles)}
           </View>
-          <View style={styles.flashLabel}>
+          <View accessibilityRole="none" accessible={false} style={styles.flashLabel}>
             <Text
               style={styles.flashTitle}
               testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
@@ -194,7 +194,7 @@ const BaseNotification = ({
               {!description ? getDescription(status, data) : description}
             </Text>
           </View>
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             {autoDismiss && (
               <TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
                 <IonicIcon name="close" size={36} style={styles.closeIcon} />

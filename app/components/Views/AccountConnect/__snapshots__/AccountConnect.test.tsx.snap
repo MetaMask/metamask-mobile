@@ -332,7 +332,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                     stickyHeaderIndices={[]}
                     viewabilityConfigCallbackPairs={[]}
                   >
-                    <View>
+                    <View accessibilityRole="none" accessible={false}>
                       <View
                         onFocusCapture={[Function]}
                         onLayout={[Function]}
@@ -1060,7 +1060,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
           </View>
         </View>
       </RCTSafeAreaView>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
     </View>
   </View>
 </View>
@@ -1398,7 +1398,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                     stickyHeaderIndices={[]}
                     viewabilityConfigCallbackPairs={[]}
                   >
-                    <View>
+                    <View accessibilityRole="none" accessible={false}>
                       <View
                         onFocusCapture={[Function]}
                         onLayout={[Function]}
@@ -2126,7 +2126,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
           </View>
         </View>
       </RCTSafeAreaView>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
     </View>
   </View>
 </View>
@@ -2464,7 +2464,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     stickyHeaderIndices={[]}
                     viewabilityConfigCallbackPairs={[]}
                   >
-                    <View>
+                    <View accessibilityRole="none" accessible={false}>
                       <View
                         onFocusCapture={[Function]}
                         onLayout={[Function]}
@@ -3192,7 +3192,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
           </View>
         </View>
       </RCTSafeAreaView>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
     </View>
   </View>
 </View>
@@ -3530,7 +3530,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     stickyHeaderIndices={[]}
                     viewabilityConfigCallbackPairs={[]}
                   >
-                    <View>
+                    <View accessibilityRole="none" accessible={false}>
                       <View
                         onFocusCapture={[Function]}
                         onLayout={[Function]}
@@ -4258,7 +4258,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
           </View>
         </View>
       </RCTSafeAreaView>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
     </View>
   </View>
 </View>

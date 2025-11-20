@@ -91,8 +91,8 @@ const OrderProcessing = () => {
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <View style={styles.bottomContainer}>
-            <View style={styles.buttonsContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.bottomContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
               {(order.state === FIAT_ORDER_STATES.CANCELLED ||
                 order.state === FIAT_ORDER_STATES.FAILED) && (
                 <Button

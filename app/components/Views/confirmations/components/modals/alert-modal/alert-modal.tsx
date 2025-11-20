@@ -38,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => (
   <>
     {headerAccessory ?? (
-      <View style={styles.iconWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.iconWrapper}>
         <Icon
           name={
             selectedAlert.severity === Severity.Info
@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({
         />
       </View>
     )}
-    <View style={styles.headerContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
       {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native */}
       <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
         {selectedAlert.title ?? strings('alert_system.alert_modal.title')}
@@ -71,7 +71,7 @@ const Content: React.FC<ContentProps> = ({
   selectedAlert,
   styles,
 }) => (
-  <View style={[styles.content, { backgroundColor }]}>
+  <View accessibilityRole="none" accessible={false} style={[styles.content, { backgroundColor }]}>
     {selectedAlert.content ?? (
       <>
         {typeof selectedAlert.message === 'string' ? (
@@ -160,7 +160,7 @@ const Buttons: React.FC<ButtonsProps> = ({
   onHandleActionClick,
   isConfirmed,
 }) => (
-  <View style={styles.buttonsContainer}>
+  <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
     <Button
       onPress={hideAlertModal}
       label={strings('alert_system.alert_modal.got_it_btn')}
@@ -173,7 +173,7 @@ const Buttons: React.FC<ButtonsProps> = ({
     />
     {action ? (
       <>
-        <View style={styles.buttonDivider} />
+        <View accessibilityRole="none" accessible={false} style={styles.buttonDivider} />
         <Button
           onPress={() => onHandleActionClick(action.callback)}
           label={action.label}
@@ -250,14 +250,14 @@ const AlertModal: React.FC<AlertModalProps> = ({
 
   return (
     <BottomModal onClose={hideAlertModal}>
-      <View style={styles.modalContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>
         <Header
           selectedAlert={selectedAlert}
           iconColor={severityStyle.icon}
           styles={styles}
           headerAccessory={headerAccessory}
         />
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Content
             backgroundColor={severityStyle.background}
             selectedAlert={selectedAlert}

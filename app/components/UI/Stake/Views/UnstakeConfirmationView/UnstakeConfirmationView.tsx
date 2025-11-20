@@ -48,14 +48,14 @@ const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
   }, [navigation, theme.colors]);
 
   return (
-    <View style={styles.mainContainer}>
-      <View>
+    <View accessibilityRole="none" accessible={false} style={styles.mainContainer}>
+      <View accessibilityRole="none" accessible={false}>
         <TokenValueStack
           amountWei={route.params.amountWei}
           amountFiat={`$${route.params.amountFiat}`}
           tokenSymbol="ETH"
         />
-        <View style={styles.cardsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.cardsContainer}>
           <UnstakingTimeCard />
           <AccountCard
             contractName={MOCK_STAKING_CONTRACT_NAME}

@@ -68,7 +68,7 @@ const MultichainAccountsIntroModal = () => {
   const renderButtonLabel = () => {
     if (isAligning) {
       return (
-        <View style={styles.loadingButtonLabel}>
+        <View accessibilityRole="none" accessible={false} style={styles.loadingButtonLabel}>
           <ActivityIndicator
             size="small"
             color={theme.colors.info.inverse}
@@ -123,14 +123,14 @@ const MultichainAccountsIntroModal = () => {
   }, [navigation]);
 
   return (
-    <View style={styles.screen}>
+    <View accessibilityRole="none" accessible={false} style={styles.screen}>
       <StatusBar
         barStyle="dark-content"
         backgroundColor="transparent"
         translucent
       />
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
+        <View accessibilityRole="none" accessible={false} style={styles.header}>
           <Text
             variant={TextVariant.BodyMd}
             style={styles.title}
@@ -160,7 +160,7 @@ const MultichainAccountsIntroModal = () => {
             testID={MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.IMAGE_PLACEHOLDER}
           />
 
-          <View style={styles.section}>
+          <View accessibilityRole="none" accessible={false} style={styles.section}>
             <Text
               variant={TextVariant.HeadingMd}
               style={styles.sectionTitle}
@@ -199,7 +199,7 @@ const MultichainAccountsIntroModal = () => {
           </View>
         </ScrollView>
 
-        <View style={styles.buttonsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
           <Button
             variant={ButtonVariants.Primary}
             label={renderButtonLabel()}

@@ -9,7 +9,7 @@ exports[`PaymentRequest renders correctly 1`] = `
     }
   }
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <TouchableOpacity
       disabled={false}
       onPress={[Function]}
@@ -123,7 +123,7 @@ exports[`PaymentRequest renders correctly 1`] = `
     update={[Function]}
     viewIsInsideTabBar={false}
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           {
@@ -132,7 +132,7 @@ exports[`PaymentRequest renders correctly 1`] = `
         }
         testID="request-screen"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text
             style={
               {
@@ -543,7 +543,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
     }
   }
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <TouchableOpacity
       disabled={false}
       onPress={[Function]}
@@ -657,7 +657,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
     update={[Function]}
     viewIsInsideTabBar={false}
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           {
@@ -666,7 +666,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
         }
         testID="request-screen"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text
             style={
               {

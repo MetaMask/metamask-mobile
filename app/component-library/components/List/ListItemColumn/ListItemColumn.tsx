@@ -26,7 +26,7 @@ const ListItemColumn: React.FC<ListItemColumnProps> = ({
   });
 
   return (
-    <View style={styles.base} testID={TESTID_LISTITEMCOLUMN}>
+    <View accessibilityRole="none" accessible={false} style={styles.base} testID={TESTID_LISTITEMCOLUMN}>
       {children}
     </View>
   );

@@ -165,7 +165,7 @@ const NetworkVerificationInfo = ({
   );
 
   const renderNetworkRpcUrlLabel = () => (
-    <View style={styles.networkUrlLabelRow}>
+    <View accessibilityRole="none" accessible={false} style={styles.networkUrlLabelRow}>
       <Text
         color={hasRpcMismatch ? TextColor.Primary : TextColor.Default}
         variant={TextVariant.BodyMDMedium}
@@ -179,7 +179,7 @@ const NetworkVerificationInfo = ({
           }}
         >
           <TagColored style={styles.tag} color={TagColor.Info}>
-            <View style={styles.tagContent} testID={MISSMATCH_RPC_URL_TEST_ID}>
+            <View accessibilityRole="none" accessible={false} style={styles.tagContent} testID={MISSMATCH_RPC_URL_TEST_ID}>
               <Icon
                 size={IconSize.Sm}
                 name={IconName.Info}
@@ -243,7 +243,7 @@ const NetworkVerificationInfo = ({
   const renderBanner = () => {
     if (!safeChainsListValidationEnabled) {
       return (
-        <View style={styles.alertBar}>
+        <View accessibilityRole="none" accessible={false} style={styles.alertBar}>
           <Banner
             variant={BannerVariant.Alert}
             description={
@@ -270,7 +270,7 @@ const NetworkVerificationInfo = ({
     const punycodeUrl = toPunycodeURL(customRpcUrl);
 
     return (
-      <View style={styles.alertBar}>
+      <View accessibilityRole="none" accessible={false} style={styles.alertBar}>
         <Banner
           severity={BannerAlertSeverity.Warning}
           variant={BannerVariant.Alert}
@@ -285,7 +285,7 @@ const NetworkVerificationInfo = ({
   };
 
   const renderCustomNetworkBanner = () => (
-    <View style={styles.alertBar}>
+    <View accessibilityRole="none" accessible={false} style={styles.alertBar}>
       <Banner
         severity={BannerAlertSeverity.Warning}
         variant={BannerVariant.Alert}
@@ -300,7 +300,7 @@ const NetworkVerificationInfo = ({
   );
 
   const renderReviewDefaultNetworkRpcUrlChange = () => (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <BottomSheetHeader
         style={styles.headerStyle}
         onBack={() => {
@@ -314,13 +314,13 @@ const NetworkVerificationInfo = ({
         />
       </BottomSheetHeader>
 
-      <View style={styles.defautlUrlChangedContainer}>
-        <View style={styles.titleDefaultUrl}>
+      <View accessibilityRole="none" accessible={false} style={styles.defautlUrlChangedContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.titleDefaultUrl}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('networks.new_default_network_url')}
           </Text>
         </View>
-        <View style={styles.networkUrlMissmatchDetails}>
+        <View accessibilityRole="none" accessible={false} style={styles.networkUrlMissmatchDetails}>
           <Text style={styles.textSection}>
             {strings('switch_custom_network.request_update_network_url', {
               dapp_origin: dappOrigin,
@@ -374,8 +374,8 @@ const NetworkVerificationInfo = ({
   return showReviewDefaultRpcUrlChanges ? (
     renderReviewDefaultNetworkRpcUrlChange()
   ) : showCheckNetwork ? (
-    <View>
-      <View style={styles.textContainer}>
+    <View accessibilityRole="none" accessible={false}>
+      <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
         <Text style={styles.title}>
           {strings('wallet.network_details_check')}
         </Text>
@@ -417,7 +417,7 @@ const NetworkVerificationInfo = ({
       />
     </View>
   ) : (
-    <View testID={NetworkApprovalBottomSheetSelectorsIDs.CONTAINER}>
+    <View accessibilityRole="none" accessible={false} testID={NetworkApprovalBottomSheetSelectorsIDs.CONTAINER}>
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMD}>
           {isCustomNetwork

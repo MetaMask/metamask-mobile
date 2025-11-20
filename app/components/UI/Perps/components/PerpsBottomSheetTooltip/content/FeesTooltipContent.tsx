@@ -33,10 +33,10 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const hasDiscount = discountPercentage && discountPercentage > 0;
 
   return (
-    <View testID={testID}>
+    <View accessibilityRole="none" accessible={false} testID={testID}>
       {/* Discount Banner */}
       {hasDiscount && (
-        <View style={styles.discountBanner}>
+        <View accessibilityRole="none" accessible={false} style={styles.discountBanner}>
           <FoxIcon width={16} height={16} />
           <Text variant={TextVariant.BodySM} color={TextColor.Default}>
             {strings('perps.tooltips.fees.discount_message', {
@@ -47,11 +47,11 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
       )}
 
       {/* MetaMask Fee Row */}
-      <View style={styles.feeRow}>
+      <View accessibilityRole="none" accessible={false} style={styles.feeRow}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('perps.tooltips.fees.metamask_fee')}
         </Text>
-        <View style={styles.feeValueContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.feeValueContainer}>
           {hasDiscount && (
             <Text
               variant={TextVariant.BodyMD}
@@ -68,7 +68,7 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
       </View>
 
       {/* Provider Fee Row */}
-      <View style={styles.feeRow}>
+      <View accessibilityRole="none" accessible={false} style={styles.feeRow}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('perps.tooltips.fees.provider_fee')}
         </Text>

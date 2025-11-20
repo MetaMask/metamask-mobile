@@ -19,8 +19,8 @@ export const GasModalHeader = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container}>
-      <View style={styles.backButton}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.backButton}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           onPress={onBackButtonClick}

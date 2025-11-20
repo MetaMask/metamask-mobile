@@ -871,7 +871,7 @@ const BuildQuote = () => {
           <ScreenLayout.Content>
             <Row style={styles.selectors}>
               <AccountSelector isEvmOnly={isSell} />
-              <View style={styles.spacer} />
+              <View accessibilityRole="none" accessible={false} style={styles.spacer} />
               {isFetchingRegions ? (
                 <SkeletonText thick />
               ) : (
@@ -886,7 +886,7 @@ const BuildQuote = () => {
               )}
               {isSell ? (
                 <>
-                  <View style={styles.spacer} />
+                  <View accessibilityRole="none" accessible={false} style={styles.spacer} />
                   {isFetchingRegions ||
                   isFetchingFiatCurrency ||
                   !selectedFiatCurrencyId ? (

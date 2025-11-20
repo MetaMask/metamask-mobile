@@ -37,7 +37,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
       onScroll={[Function]}
       testID="account-selector-list"
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -637,7 +637,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
       onScroll={[Function]}
       testID="account-selector-list"
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -1161,7 +1161,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
       onScroll={[Function]}
       testID="account-selector-list"
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -1761,7 +1761,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
       onScroll={[Function]}
       testID="account-selector-list"
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {

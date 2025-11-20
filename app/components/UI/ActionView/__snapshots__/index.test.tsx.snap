@@ -52,7 +52,7 @@ exports[`ActionView should render correctly 1`] = `
     update={[Function]}
     viewIsInsideTabBar={false}
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         accessibilityState={
           {

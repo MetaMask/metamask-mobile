@@ -50,7 +50,7 @@ const NftImageAndNetworkBadge = ({
         style={styles.touchableOpacity}
         testID="hero-nft-placeholder"
       >
-        <View style={styles.noImagePlaceholder}>
+        <View accessibilityRole="none" accessible={false} style={styles.noImagePlaceholder}>
           <Text>{`#${tokenId}`}</Text>
           <Text color={TextColor.Primary}>Show</Text>
         </View>

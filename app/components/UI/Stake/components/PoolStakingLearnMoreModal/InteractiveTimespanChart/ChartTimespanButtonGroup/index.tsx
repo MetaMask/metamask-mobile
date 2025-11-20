@@ -52,7 +52,7 @@ const ChartTimespanButtonGroup = ({
 
   if (isLoading) {
     return (
-      <View style={styles.chartTimespanButtonGroup}>
+      <View accessibilityRole="none" accessible={false} style={styles.chartTimespanButtonGroup}>
         <SkeletonPlaceholder>
           <SkeletonPlaceholder.Item
             {...styles.chartTimespanButtonGroupSkeleton}
@@ -68,7 +68,7 @@ const ChartTimespanButtonGroup = ({
   }
 
   return (
-    <View style={styles.chartTimespanButtonGroup}>
+    <View accessibilityRole="none" accessible={false} style={styles.chartTimespanButtonGroup}>
       {buttons?.map(({ label }, index) => (
         <ChartTimespanButton
           key={`${label}-${index}`}

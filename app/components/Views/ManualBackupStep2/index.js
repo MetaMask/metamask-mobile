@@ -374,7 +374,7 @@ const ManualBackupStep2 = ({
 
   const renderGrid = useCallback(
     () => (
-      <View style={[styles.seedPhraseContainer]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.seedPhraseContainer]}>
         <FlatList
           data={gridWords}
           numColumns={3}
@@ -388,7 +388,7 @@ const ManualBackupStep2 = ({
 
   const renderMissingWords = useCallback(
     () => (
-      <View style={styles.missingWords}>
+      <View accessibilityRole="none" accessible={false} style={styles.missingWords}>
         {missingWords.map((word, i) => {
           const isUsed = usedWordIndices.has(i);
           return (
@@ -468,7 +468,7 @@ const ManualBackupStep2 = ({
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
-      <View style={[styles.container]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.container]}>
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
           confirmText={strings('manual_backup_step_2.continue')}
@@ -483,7 +483,7 @@ const ManualBackupStep2 = ({
             style={styles.wrapper}
             testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
           >
-            <View style={styles.content}>
+            <View accessibilityRole="none" accessible={false} style={styles.content}>
               <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
                 {strings('manual_backup_step_2.action')}
               </Text>
@@ -492,7 +492,7 @@ const ManualBackupStep2 = ({
                 {strings('manual_backup_step_2.info')}
               </Text>
 
-              <View style={styles.gridContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.gridContainer}>
                 {renderGrid()}
                 {renderMissingWords()}
               </View>

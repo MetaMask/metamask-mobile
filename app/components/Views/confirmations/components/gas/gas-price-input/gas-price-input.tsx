@@ -49,7 +49,7 @@ export const GasPriceInput = ({
   }, [error, onErrorChange]);
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <TextFieldWithLabel
         endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
         error={error}

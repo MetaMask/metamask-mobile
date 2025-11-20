@@ -204,7 +204,7 @@ const Balance = ({
     : undefined;
 
   return (
-    <View style={styles.wrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
       {!hideTitleHeading && (
         <Text variant={TextVariant.HeadingMD}>
           {strings('asset_overview.your_balance')}
@@ -236,8 +236,8 @@ const Balance = ({
           {renderNetworkAvatar()}
         </BadgeWrapper>
 
-        <View style={styles.percentageChange}>
-          <View style={styles.assetName}>
+        <View accessibilityRole="none" accessible={false} style={styles.percentageChange}>
+          <View accessibilityRole="none" accessible={false} style={styles.assetName}>
             <Text variant={TextVariant.BodyMD}>
               {asset.name || asset.symbol}
             </Text>

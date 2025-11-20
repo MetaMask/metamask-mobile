@@ -67,9 +67,9 @@ const MultichainTransactionsFooter = ({
   const styles = createStyles(colors);
 
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       {hasTransactions && showExplorerLink && (
-        <View style={styles.viewMoreWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.viewMoreWrapper}>
           <Button
             variant={ButtonVariants.Link}
             size={ButtonSize.Lg}
@@ -82,7 +82,7 @@ const MultichainTransactionsFooter = ({
         </View>
       )}
       {showDisclaimer && (
-        <View style={styles.disclaimerWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.disclaimerWrapper}>
           <Text style={styles.disclaimerText}>
             {strings('asset_overview.disclaimer')}
           </Text>

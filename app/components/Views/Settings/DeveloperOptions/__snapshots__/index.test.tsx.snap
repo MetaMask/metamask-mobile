@@ -433,7 +433,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                         }
                       }
                     >
-                      <View>
+                      <View accessibilityRole="none" accessible={false}>
                         <Text
                           accessibilityRole="text"
                           style={

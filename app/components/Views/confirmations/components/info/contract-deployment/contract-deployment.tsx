@@ -18,7 +18,7 @@ const ContractDeployment = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <View testID={ConfirmationInfoComponentIDs.CONTRACT_DEPLOYMENT}>
+    <View accessibilityRole="none" accessible={false} testID={ConfirmationInfoComponentIDs.CONTRACT_DEPLOYMENT}>
       <AccountNetworkInfoRow />
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}

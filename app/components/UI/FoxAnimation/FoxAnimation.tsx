@@ -92,7 +92,7 @@ const FoxAnimation = ({
   }, [showFoxAnimation]);
 
   return (
-    <View style={[styles.foxAnimationWrapper]}>
+    <View accessibilityRole="none" accessible={false} style={[styles.foxAnimationWrapper]}>
       <Rive
         ref={foxRef}
         style={styles.foxAnimation}

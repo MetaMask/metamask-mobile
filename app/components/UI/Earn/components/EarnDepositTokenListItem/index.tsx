@@ -35,7 +35,7 @@ const EarnDepositTokenListItem = ({
       onPress={() => onPress(token)}
       testID="earn-token-list-item"
     >
-      <View style={styles.left}>
+      <View accessibilityRole="none" accessible={false} style={styles.left}>
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
@@ -52,7 +52,7 @@ const EarnDepositTokenListItem = ({
         >
           <EarnNetworkAvatar token={token} />
         </BadgeWrapper>
-        <View style={styles.assetName}>
+        <View accessibilityRole="none" accessible={false} style={styles.assetName}>
           <Text
             numberOfLines={1}
             variant={TextVariant.BodyMDMedium}
@@ -62,7 +62,7 @@ const EarnDepositTokenListItem = ({
           </Text>
         </View>
       </View>
-      <View style={styles.right}>
+      <View accessibilityRole="none" accessible={false} style={styles.right}>
         <Text
           variant={primaryText?.variant ?? TextVariant.BodyMDMedium}
           color={primaryText?.color}

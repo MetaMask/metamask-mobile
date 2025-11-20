@@ -508,7 +508,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                 onScroll={[Function]}
                                 testID="account-list"
                               >
-                                <View>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       {

@@ -352,7 +352,7 @@ const AssetOptions = (props: Props) => {
         {options.map((option) => {
           const { label, onPress, icon } = option;
           return (
-            <View key={label}>
+            <View accessibilityRole="none" accessible={false} key={label}>
               <TouchableOpacity style={styles.optionButton} onPress={onPress}>
                 <Icon name={icon} style={styles.icon} />
                 <Text style={styles.optionLabel}>{label}</Text>
@@ -366,8 +366,8 @@ const AssetOptions = (props: Props) => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
-        <View style={styles.notch} />
+      <View accessibilityRole="none" accessible={false} style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
+        <View accessibilityRole="none" accessible={false} style={styles.notch} />
         {renderOptions()}
       </View>
     </ReusableModal>

@@ -475,7 +475,7 @@ exports[`SendTo Component render matches snapshot 1`] = `
       update={[Function]}
       viewIsInsideTabBar={false}
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -521,7 +521,7 @@ exports[`SendTo Component render matches snapshot 1`] = `
               scrollEventThrottle={0.0001}
               style={{}}
             >
-              <View>
+              <View accessibilityRole="none" accessible={false}>
                 <View
                   style={
                     {

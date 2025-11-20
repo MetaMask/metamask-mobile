@@ -93,11 +93,11 @@ function UnsupportedRegionModal() {
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <View accessibilityRole="none" accessible={false} style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {strings('deposit.unsupported_region_modal.location_prefix')}
         </Text>
-        <View style={styles.countryContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.countryContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {selectedRegion?.flag}
           </Text>
@@ -114,7 +114,7 @@ function UnsupportedRegionModal() {
         </Text>
       </View>
 
-      <View style={styles.footer}>
+      <View accessibilityRole="none" accessible={false} style={styles.footer}>
         <Button
           size={ButtonSize.Lg}
           onPress={handleSelectDifferentRegion}

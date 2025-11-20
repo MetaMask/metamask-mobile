@@ -197,10 +197,10 @@ class ManualBackupStep3 extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.mainWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.mainWrapper}>
         <Confetti />
         {this.steps ? (
-          <View style={styles.onBoardingWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.onBoardingWrapper}>
             <OnboardingProgress
               currentStep={this.state.currentStep}
               steps={this.steps}

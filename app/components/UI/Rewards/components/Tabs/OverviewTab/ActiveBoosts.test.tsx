@@ -84,7 +84,7 @@ jest.mock('../../../utils/formatUtils', () => ({
 jest.mock('../../../../../../component-library/components/Skeleton', () => ({
   Skeleton: ({ testID, ...props }: SkeletonProps) => {
     const { View } = jest.requireActual('react-native');
-    return <View testID={testID || 'skeleton'} {...props} />;
+    return <View accessibilityRole="none" accessible={false} testID={testID || 'skeleton'} {...props} />;
   },
 }));
 

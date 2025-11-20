@@ -30,7 +30,7 @@ export function TotalRow() {
   }
 
   return (
-    <View testID="total-row">
+    <View accessibilityRole="none" accessible={false} testID="total-row">
       <InfoRow
         label={strings('confirm.label.total')}
         rowVariant={InfoRowVariant.Small}

@@ -29,7 +29,7 @@ function NFTCollectionField(props: NFTCollectionFieldProps) {
   }, [props.networkBadgeUrl]);
 
   return (
-    <View style={styles.row}>
+    <View accessibilityRole="none" accessible={false} style={styles.row}>
       {/* Collection Icon + Network Badge */}
       <BadgeWrapper
         testID={'badge-wrapper'}
@@ -51,7 +51,7 @@ function NFTCollectionField(props: NFTCollectionFieldProps) {
       </BadgeWrapper>
 
       {/* Collection Description */}
-      <View style={styles.boxLeft}>
+      <View accessibilityRole="none" accessible={false} style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('collectible.collection')}
         </Text>

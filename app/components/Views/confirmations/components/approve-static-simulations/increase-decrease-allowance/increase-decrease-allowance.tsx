@@ -40,7 +40,7 @@ export const IncreaseDecreaseAllowance = () => {
   return (
     <>
       <InfoRow label={strings('confirm.spending_cap')}>
-        <View style={styles.amountAndAddressContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.amountAndAddressContainer}>
           <EditSpendingCapButton
             spendingCapProps={{
               approveMethod: approveMethod as ApproveMethod,

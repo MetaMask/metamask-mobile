@@ -72,7 +72,7 @@ const TronStakingButtons = ({
   };
 
   return (
-    <View style={styles.balanceButtonsContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.balanceButtonsContainer}>
       {showUnstake ? (
         <Button
           testID={'unstake-button'}

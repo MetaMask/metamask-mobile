@@ -60,7 +60,7 @@ jest.mock(
         }));
 
         return (
-          <View testID="bottom-sheet" onTouchStart={onClose}>
+          <View accessibilityRole="none" accessible={false} testID="bottom-sheet" onTouchStart={onClose}>
             {children}
           </View>
         );
@@ -81,7 +81,7 @@ jest.mock(
       children: React.ReactNode;
       onClose: () => void;
     }) => (
-      <View testID="bottom-sheet-header">
+      <View accessibilityRole="none" accessible={false} testID="bottom-sheet-header">
         <TouchableOpacity testID="header-close-button" onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>
@@ -107,7 +107,7 @@ jest.mock(
       }[];
       buttonsAlignment?: string;
     }) => (
-      <View testID="bottom-sheet-footer">
+      <View accessibilityRole="none" accessible={false} testID="bottom-sheet-footer">
         {buttonPropsArray.map((button, index) => (
           <TouchableOpacity
             key={index}

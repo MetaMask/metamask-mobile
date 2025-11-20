@@ -58,7 +58,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
   testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       onFocusCapture={[Function]}
       onLayout={[Function]}
@@ -617,7 +617,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
   testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       onFocusCapture={[Function]}
       onLayout={[Function]}
@@ -1102,7 +1102,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
   testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       onFocusCapture={[Function]}
       onLayout={[Function]}
@@ -1661,7 +1661,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
   testID="account-selector-list"
   viewabilityConfigCallbackPairs={[]}
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       onFocusCapture={[Function]}
       onLayout={[Function]}

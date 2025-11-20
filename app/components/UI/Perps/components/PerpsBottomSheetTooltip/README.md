@@ -90,7 +90,7 @@ import createStyles from './MyCustomTooltipContent.styles';
 const MyCustomTooltipContent = ({ testID }: TooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});
 
-  return <View testID={testID}>{/* Your custom content here */}</View>;
+  return <View accessibilityRole="none" accessible={false} testID={testID}>{/* Your custom content here */}</View>;
 };
 
 export default MyCustomTooltipContent;
@@ -183,7 +183,7 @@ const FeesTooltipContent = ({ testID }: TooltipContentProps) => {
   const providerFee = '0.0432%';
 
   return (
-    <View testID={testID}>
+    <View accessibilityRole="none" accessible={false} testID={testID}>
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}

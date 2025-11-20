@@ -9,7 +9,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
     }
   }
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       style={
         {
@@ -104,7 +104,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
         </Text>
       </Text>
     </View>
-    <View />
+    <View accessibilityRole="none" accessible={false} />
   </View>
 </RCTScrollView>
 `;

@@ -121,26 +121,26 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
           : styles.modalViewNotInBrowserView,
       ]}
     >
-      <View style={styles.backupAlertWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.backupAlertWrapper}>
         <View
           style={styles.touchableView}
           testID={ProtectWalletModalSelectorsIDs.COLLAPSED_WALLET_MODAL}
         >
-          <View style={styles.backupAlertIconWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.backupAlertIconWrapper}>
             <Icon
               size={IconSize.Md}
               name={IconName.Notification}
               color={IconColor.Default}
             />
           </View>
-          <View style={baseStyles.flexGrow}>
+          <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
             <Text
               variant={TextVariant.BodyMDBold}
               style={styles.backupAlertTitle}
             >
               {strings('backup_alert.title')}
             </Text>
-            <View style={styles.buttonsWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.buttonsWrapper}>
               <TouchableOpacity
                 onPress={goToBackupFlow}
                 testID={PROTECT_WALLET_BUTTON}

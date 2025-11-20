@@ -152,10 +152,10 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
             onRequestClose={handleClosePicker}
           >
             <TouchableWithoutFeedback onPress={handleClosePicker}>
-              <View style={styles.modalContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>
                 <TouchableWithoutFeedback onPress={preventModalDismissal}>
-                  <View style={styles.pickerContainer}>
-                    <View style={styles.buttonContainer}>
+                  <View accessibilityRole="none" accessible={false} style={styles.pickerContainer}>
+                    <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
                       <Button
                         title="Cancel"
                         onPress={handleClosePicker}

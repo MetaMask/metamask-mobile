@@ -333,7 +333,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -454,7 +454,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                           </View>
                         </View>
                       </RCTScrollView>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </View>
                   </View>
                 </View>

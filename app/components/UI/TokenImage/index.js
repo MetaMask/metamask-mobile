@@ -34,7 +34,7 @@ const TokenImage = ({ asset, containerStyle, iconStyle, tokenList }) => {
     !isIpfsGatewayEnabled && isIPFSUri(iconUrl);
 
   return (
-    <View style={[styles.itemLogoWrapper, containerStyle, styles.roundImage]}>
+    <View accessibilityRole="none" accessible={false} style={[styles.itemLogoWrapper, containerStyle, styles.roundImage]}>
       {iconUrl || !isIpfsDisabledAndUriIsIpfs ? (
         <AssetIcon
           address={asset?.address}

@@ -28,7 +28,7 @@ const TextWithPrefixIcon: React.FC<TextWithPrefixIconProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, color });
   return (
-    <View style={styles.base} testID={TEXT_WITH_PREFIX_ICON_TEST_ID}>
+    <View accessibilityRole="none" accessible={false} style={styles.base} testID={TEXT_WITH_PREFIX_ICON_TEST_ID}>
       <Icon
         color={styles.icon.color as string}
         testID={TEXT_WITH_PREFIX_ICON_ICON_TEST_ID}

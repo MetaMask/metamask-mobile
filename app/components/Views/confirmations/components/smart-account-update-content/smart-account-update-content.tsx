@@ -29,13 +29,13 @@ const ListItem = ({
 }) => {
   const { colors } = useTheme();
   return (
-    <View style={styles.listWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.listWrapper}>
       <AvatarIcon
         name={iconName}
         iconColor={colors.primary.default}
         backgroundColor={colors.primary.muted}
       />
-      <View style={styles.textSection}>
+      <View accessibilityRole="none" accessible={false} style={styles.textSection}>
         <Text variant={TextVariant.BodyMDBold}>{title}</Text>
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {description}

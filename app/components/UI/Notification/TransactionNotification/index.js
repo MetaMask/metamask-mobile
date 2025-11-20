@@ -311,10 +311,10 @@ function TransactionNotification(props) {
         </ElevatedView>
       </Animated.View>
       {transactionDetailsIsVisible && (
-        <View style={styles.modalsContainer}>
-          <View style={[styles.modalOverlay]}>
-            <View style={styles.modalContainer}>
-              <View style={styles.titleWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.modalsContainer}>
+          <View accessibilityRole="none" accessible={false} style={[styles.modalOverlay]}>
+            <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.titleWrapper}>
                 <Text style={styles.title} onPress={onCloseDetails}>
                   {transactionElement?.actionKey}
                 </Text>
@@ -334,8 +334,8 @@ function TransactionNotification(props) {
               />
             </View>
           </View>
-          <View style={[styles.modalOverlay]}>
-            <View style={styles.modalContainer}>
+          <View accessibilityRole="none" accessible={false} style={[styles.modalOverlay]}>
+            <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>
               <ActionContent
                 onCancelPress={onActionFinish}
                 onConfirmPress={

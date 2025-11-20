@@ -8,7 +8,7 @@ describe('BottomModal', () => {
   it('should match snapshot', async () => {
     const container = renderWithProvider(
       <BottomModal>
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text>DUMMY</Text>
         </View>
       </BottomModal>,

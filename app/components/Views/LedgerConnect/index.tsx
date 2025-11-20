@@ -204,8 +204,8 @@ const LedgerConnect = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.connectLedgerWrapper}>
-        <View style={styles.header}>
+      <View accessibilityRole="none" accessible={false} style={styles.connectLedgerWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.header}>
           <Image
             source={useAssetFromTheme(
               ledgerDeviceLightImage,
@@ -224,7 +224,7 @@ const LedgerConnect = ({
         <Text bold style={styles.connectLedgerText}>
           {strings('ledger.connect_ledger')}
         </Text>
-        <View style={styles.imageContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.imageContainer}>
           <Image
             source={useAssetFromTheme(
               ledgerConnectLightImage,
@@ -233,8 +233,8 @@ const LedgerConnect = ({
             style={styles.coverImage}
           />
         </View>
-        <View style={styles.textContainer}>
-          <View style={styles.lookingForDeviceContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.lookingForDeviceContainer}>
             <Text style={styles.lookingForDeviceText} bold>
               {!isAppLaunchConfirmationNeeded
                 ? strings('ledger.looking_for_device')
@@ -288,7 +288,7 @@ const LedgerConnect = ({
             </Text>
           )}
         </View>
-        <View style={getStylesWithMultipleDevicesErrorMessage()}>
+        <View accessibilityRole="none" accessible={false} style={getStylesWithMultipleDevicesErrorMessage()}>
           {!isAppLaunchConfirmationNeeded ? (
             <Scan
               onDeviceSelected={onDeviceSelected}
@@ -297,7 +297,7 @@ const LedgerConnect = ({
             />
           ) : null}
           {selectedDevice && !isAppLaunchConfirmationNeeded ? (
-            <View style={styles.buttonContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
               <StyledButton
                 type="confirm"
                 onPress={connectLedger}

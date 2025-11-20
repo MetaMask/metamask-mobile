@@ -17,8 +17,8 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
   onGestureHandlerEvent={[Function]}
   onGestureHandlerStateChange={[Function]}
 >
-  <View>
-    <View>
+  <View accessibilityRole="none" accessible={false}>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           [
@@ -79,7 +79,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           }
         }
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <TouchableOpacity
             disabled={true}
             style={

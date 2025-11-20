@@ -117,7 +117,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   if (result_type === ResultType.Failed) {
     return (
-      <View style={styles.bannerWrapperMargined}>
+      <View accessibilityRole="none" accessible={false} style={styles.bannerWrapperMargined}>
         <BannerAlert
           severity={BannerAlertSeverity.Warning}
           title={title}
@@ -145,15 +145,15 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         isExpanded={false}
         horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
       >
-        <View style={styles.details}>
+        <View accessibilityRole="none" accessible={false} style={styles.details}>
           {features?.map((feature, i) => (
             <Text key={`feature-${i}`} style={styles.detailsItem}>
               • {JSON.stringify(feature)}
             </Text>
           ))}
         </View>
-        <View style={styles.attributionBase}>
-          <View style={styles.attributionItem}>
+        <View accessibilityRole="none" accessible={false} style={styles.attributionBase}>
+          <View accessibilityRole="none" accessible={false} style={styles.attributionItem}>
             <Text
               variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
               data-testid={FALSE_POSITIVE_REPOST_LINE_TEST_ID}
@@ -161,7 +161,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
               {strings('blockaid_banner.does_not_look_right')}
             </Text>
           </View>
-          <View style={styles.attributionItem}>
+          <View accessibilityRole="none" accessible={false} style={styles.attributionItem}>
             <BlockaidBannerLink
               text={strings('blockaid_banner.report_an_issue')}
               link={reportUrl}

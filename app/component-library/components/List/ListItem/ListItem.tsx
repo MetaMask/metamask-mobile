@@ -35,9 +35,9 @@ const ListItem: React.FC<ListItemProps> = ({
   });
 
   return (
-    <View style={styles.base} accessible accessibilityRole="none" {...props}>
-      {topAccessory && <View style={styles.topAccessory}>{topAccessory}</View>}
-      <View style={styles.item}>
+    <View accessibilityRole="none" accessible={false} style={styles.base} accessible accessibilityRole="none" {...props}>
+      {topAccessory && <View accessibilityRole="none" accessible={false} style={styles.topAccessory}>{topAccessory}</View>}
+      <View accessibilityRole="none" accessible={false} style={styles.item}>
         {React.Children.toArray(children)
           .filter((child) => !!child)
           .map((child, index) => (
@@ -54,7 +54,7 @@ const ListItem: React.FC<ListItemProps> = ({
           ))}
       </View>
       {bottomAccessory && (
-        <View style={styles.bottomAccessory}>{bottomAccessory}</View>
+        <View accessibilityRole="none" accessible={false} style={styles.bottomAccessory}>{bottomAccessory}</View>
       )}
     </View>
   );

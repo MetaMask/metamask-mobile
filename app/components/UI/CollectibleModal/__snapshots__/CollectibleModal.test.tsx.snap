@@ -105,7 +105,7 @@ exports[`CollectibleModal should render correctly 1`] = `
           }
         }
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <View
             source={
               {
@@ -508,7 +508,7 @@ exports[`CollectibleModal should render correctly 1`] = `
               </TouchableOpacity>
             </View>
           </View>
-          <View />
+          <View accessibilityRole="none" accessible={false} />
           <View
             style={
               {

@@ -111,7 +111,7 @@ jest.mock(
     return {
       __esModule: true,
       default: ({ width, height }: { width: number; height: number }) => (
-        <View testID="skeleton-loader" style={{ width, height }}>
+        <View accessibilityRole="none" accessible={false} testID="skeleton-loader" style={{ width, height }}>
           <Text>Loading...</Text>
         </View>
       ),

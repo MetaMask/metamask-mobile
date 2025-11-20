@@ -60,7 +60,7 @@ exports[`Collectibles should render correctly collectibles 1`] = `
     stickyHeaderIndices={[]}
     viewabilityConfigCallbackPairs={[]}
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         onFocusCapture={[Function]}
         onLayout={[Function]}
@@ -96,7 +96,7 @@ exports[`Collectibles should render correctly collectibles 1`] = `
                 }
               }
             >
-              <View>
+              <View accessibilityRole="none" accessible={false}>
                 <View
                   source={
                     {
@@ -256,7 +256,7 @@ exports[`Collectibles should render empty collectibles correctly 1`] = `
     }
   >
     <RCTRefreshControl />
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           {

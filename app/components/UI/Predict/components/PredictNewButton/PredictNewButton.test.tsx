@@ -29,7 +29,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID?: string;
       [key: string]: unknown;
     }) => (
-      <View testID={testID} {...props}>
+      <View accessibilityRole="none" accessible={false} testID={testID} {...props}>
         {children}
       </View>
     ),
@@ -81,7 +81,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
       testID?: string;
       [key: string]: unknown;
     }) => (
-      <View testID={testID || 'icon'} {...props}>
+      <View accessibilityRole="none" accessible={false} testID={testID || 'icon'} {...props}>
         {name}
       </View>
     ),

@@ -388,10 +388,10 @@ const NetworkModals = (props: NetworkProps) => {
       onSwipeComplete={onClose}
       propagateSwipe
     >
-      <View style={styles.modalContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>
         {showCheckNetwork ? (
-          <View>
-            <View>
+          <View accessibilityRole="none" accessible={false}>
+            <View accessibilityRole="none" accessible={false}>
               <Text reset style={styles.title}>
                 {strings('wallet.network_details_check')}
               </Text>
@@ -406,7 +406,7 @@ const NetworkModals = (props: NetworkProps) => {
                 </Text>{' '}
               </Text>
 
-              <View style={styles.actionContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
                 <BottomSheetFooter
                   buttonsAlignment={ButtonsAlignment.Horizontal}
                   buttonPropsArray={[cancelButtonProps, confirmButtonProps]}
@@ -430,12 +430,12 @@ const NetworkModals = (props: NetworkProps) => {
             switchNetwork={switchNetwork}
           />
         ) : (
-          <View>
-            <View style={styles.notchWrapper}>
-              <View style={styles.notch} />
+          <View accessibilityRole="none" accessible={false}>
+            <View accessibilityRole="none" accessible={false} style={styles.notchWrapper}>
+              <View accessibilityRole="none" accessible={false} style={styles.notch} />
             </View>
 
-            <View style={styles.root}>
+            <View accessibilityRole="none" accessible={false} style={styles.root}>
               <NetworkVerificationInfo
                 customNetworkInformation={customNetworkInformation}
                 onReject={() => {

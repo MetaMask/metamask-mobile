@@ -17,7 +17,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
@@ -270,7 +270,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is null 1`] = `
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
@@ -459,7 +459,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is the same as u
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}

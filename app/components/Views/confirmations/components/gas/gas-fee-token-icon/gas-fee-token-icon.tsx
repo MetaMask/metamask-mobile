@@ -44,7 +44,7 @@ export function GasFeeTokenIcon({
 
   if (tokenAddress !== NATIVE_TOKEN_ADDRESS) {
     return (
-      <View testID="token-icon">
+      <View accessibilityRole="none" accessible={false} testID="token-icon">
         <TokenIconWithNetworkBadge
           size={size}
           token={token}
@@ -57,7 +57,7 @@ export function GasFeeTokenIcon({
   }
 
   return (
-    <View testID="native-icon">
+    <View accessibilityRole="none" accessible={false} testID="native-icon">
       <NetworkAssetLogo
         chainId={token?.chainId ?? (chainId as Hex)}
         style={styles.logoNative}
@@ -86,7 +86,7 @@ function TokenIconWithNetworkBadge({
 }) {
   const { styles } = useStyles(styleSheet, {});
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={

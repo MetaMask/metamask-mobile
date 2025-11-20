@@ -162,7 +162,7 @@ class CollectibleContractInformation extends PureComponent {
 
     return (
       <SafeAreaView style={styles.wrapper}>
-        <View style={styles.titleWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.titleWrapper}>
           <Text
             testID="collectible-contract-information-title"
             style={styles.title}
@@ -173,7 +173,7 @@ class CollectibleContractInformation extends PureComponent {
         </View>
         <ScrollView style={styles.informationWrapper}>
           {description && (
-            <View style={styles.row}>
+            <View accessibilityRole="none" accessible={false} style={styles.row}>
               <Text style={styles.label}>
                 {strings('asset_overview.description')}
               </Text>
@@ -181,26 +181,26 @@ class CollectibleContractInformation extends PureComponent {
             </View>
           )}
           {totalSupply && (
-            <View style={styles.row}>
+            <View accessibilityRole="none" accessible={false} style={styles.row}>
               <Text style={styles.label}>
                 {strings('asset_overview.totalSupply')}
               </Text>
               <Text style={styles.content}>{totalSupply}</Text>
             </View>
           )}
-          <View style={styles.row}>
+          <View accessibilityRole="none" accessible={false} style={styles.row}>
             <Text style={styles.label}>
               {strings('asset_overview.address')}
             </Text>
             <Text style={[styles.content, styles.address]}>{address}</Text>
           </View>
           {is_main_net && (
-            <View style={styles.creditsView}>
+            <View accessibilityRole="none" accessible={false} style={styles.creditsView}>
               <TouchableOpacity
                 style={styles.credits}
                 onPress={this.goToOpenSea}
               >
-                <View style={styles.creditsElements}>
+                <View accessibilityRole="none" accessible={false} style={styles.creditsElements}>
                   <Text
                     style={styles.opensea}
                     testID="collectible-contract-information-opensea"
@@ -214,7 +214,7 @@ class CollectibleContractInformation extends PureComponent {
           )}
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View accessibilityRole="none" accessible={false} style={styles.footer}>
           <TouchableOpacity
             style={styles.footerButton}
             onPress={this.closeModal}

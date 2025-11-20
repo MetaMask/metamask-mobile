@@ -148,7 +148,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   const pnlPillContainerStyle = styles.pillContainerBottom;
 
   return (
-    <View style={styles.wrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
       {/* Available Balance Pill */}
       {shouldShowBalance && (
         <TouchableOpacity
@@ -156,7 +156,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           onPress={handlePress}
           testID={PerpsTabViewSelectorsIDs.BALANCE_BUTTON}
         >
-          <View style={styles.leftSection}>
+          <View accessibilityRole="none" accessible={false} style={styles.leftSection}>
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Alternative}
@@ -165,7 +165,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               {strings('perps.available_balance')}
             </Text>
           </View>
-          <View style={styles.rightSection}>
+          <View accessibilityRole="none" accessible={false} style={styles.rightSection}>
             <Animated.View
               style={[
                 getBalanceAnimatedStyle,
@@ -192,8 +192,8 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
       )}
       {/* Unrealized P&L Pill */}
       {shouldShowPnl && (
-        <View style={pnlPillContainerStyle}>
-          <View style={styles.leftSection}>
+        <View accessibilityRole="none" accessible={false} style={pnlPillContainerStyle}>
+          <View accessibilityRole="none" accessible={false} style={styles.leftSection}>
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Alternative}
@@ -202,7 +202,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               {strings('perps.position.account.unrealized_pnl')}
             </Text>
           </View>
-          <View style={styles.rightSection}>
+          <View accessibilityRole="none" accessible={false} style={styles.rightSection}>
             <Animated.View style={[getPnlAnimatedStyle]}>
               <Text variant={TextVariant.BodyMD} color={pnlColor}>
                 {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})

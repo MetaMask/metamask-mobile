@@ -296,7 +296,7 @@ describe('PerpsMarketList', () => {
 
     it('renders ListHeaderComponent when provided', () => {
       const HeaderComponent = () => (
-        <View testID="custom-header">
+        <View accessibilityRole="none" accessible={false} testID="custom-header">
           <RNText>Custom Header</RNText>
         </View>
       );

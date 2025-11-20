@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CustomGasModal should render correctly 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <Modal
     animationType="none"
     deviceHeight={null}
@@ -125,7 +125,7 @@ exports[`CustomGasModal should render correctly 1`] = `
           }
         }
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <View
             style={
               {
@@ -147,7 +147,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                 }
               }
             >
-              <View>
+              <View accessibilityRole="none" accessible={false}>
                 <View
                   accessibilityState={
                     {
@@ -168,7 +168,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                   onResponderTerminationRequest={[Function]}
                   onStartShouldSetResponder={[Function]}
                 >
-                  <View>
+                  <View accessibilityRole="none" accessible={false}>
                     <View
                       style={
                         {
@@ -308,7 +308,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -670,7 +670,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -958,7 +958,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                         </View>
                       </View>
                     </View>
-                    <View>
+                    <View accessibilityRole="none" accessible={false}>
                       <TouchableOpacity
                         accessibilityRole="button"
                         accessible={true}
@@ -1013,7 +1013,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                       </TouchableOpacity>
                     </View>
                   </View>
-                  <View />
+                  <View accessibilityRole="none" accessible={false} />
                 </View>
               </View>
             </RCTScrollView>

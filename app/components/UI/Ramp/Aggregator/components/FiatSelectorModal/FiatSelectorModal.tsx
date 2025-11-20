@@ -140,7 +140,7 @@ function FiatSelectorModal() {
           {strings('fiat_on_ramp_aggregator.select_region_currency')}
         </Text>
       </BottomSheetHeader>
-      <View style={styles.searchContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.searchContainer}>
         <TextFieldSearch
           value={searchString}
           showClearButton={searchString.length > 0}

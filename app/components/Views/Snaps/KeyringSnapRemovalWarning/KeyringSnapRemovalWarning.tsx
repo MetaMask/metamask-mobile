@@ -156,7 +156,7 @@ export default function KeyringSnapRemovalWarning({
       testID={KEYRING_SNAP_REMOVAL_WARNING}
       style={styles.bottomSheet}
     >
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <BottomSheetHeader>
           <Text variant={TextVariant.HeadingMD}>
             {strings(

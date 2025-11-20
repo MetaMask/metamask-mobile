@@ -105,9 +105,9 @@ function PaymentMethodSelectorModal() {
       </BottomSheetHeader>
 
       <ScrollView style={styles.scrollView}>
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           {paymentMethods?.map((payment) => (
-            <View key={payment.id} style={styles.paymentMethodRow}>
+            <View accessibilityRole="none" accessible={false} key={payment.id} style={styles.paymentMethodRow}>
               <PaymentMethod
                 payment={payment}
                 highlighted={payment.id === selectedPaymentMethodId}
@@ -119,7 +119,7 @@ function PaymentMethodSelectorModal() {
           ))}
 
           {selectedPaymentMethod?.disclaimer ? (
-            <View style={styles.disclaimerContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.disclaimerContainer}>
               <Text variant={TextVariant.BodySM} style={styles.disclaimer}>
                 {selectedPaymentMethod?.disclaimer}
               </Text>

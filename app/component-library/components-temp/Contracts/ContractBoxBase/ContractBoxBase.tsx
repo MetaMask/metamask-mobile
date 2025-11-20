@@ -46,9 +46,9 @@ const ContractBoxBase = ({
   );
 
   return (
-    <View style={styles.container} testID={CONTRACT_BOX_TEST_ID}>
-      <View style={styles.rowContainer}>
-        <View style={styles.imageContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.container} testID={CONTRACT_BOX_TEST_ID}>
+      <View accessibilityRole="none" accessible={false} style={styles.rowContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.imageContainer}>
           {contractLocalImage ? (
             <Avatar
               variant={AvatarVariant.Token}
@@ -67,7 +67,7 @@ const ContractBoxBase = ({
             <Text variant={TextVariant.BodyMD}>{formattedAddress}</Text>
           </Pressable>
         ) : (
-          <View testID={CONTRACT_BOX_NO_PET_NAME_TEST_ID}>
+          <View accessibilityRole="none" accessible={false} testID={CONTRACT_BOX_NO_PET_NAME_TEST_ID}>
             <Button
               variant={ButtonVariants.Link}
               labelTextVariant={TextVariant.HeadingMD}
@@ -77,7 +77,7 @@ const ContractBoxBase = ({
           </View>
         )}
       </View>
-      <View style={styles.iconContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
         {renderIconView({
           onPress: onCopyAddress,
           name: IconName.Copy,

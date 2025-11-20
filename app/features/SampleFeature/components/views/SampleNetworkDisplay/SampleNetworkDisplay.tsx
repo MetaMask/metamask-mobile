@@ -53,7 +53,7 @@ export function SampleNetworkDisplay({
 }: Readonly<SampleNetworkDisplayProps>) {
   const { styles } = useStyles(styleSheet, {});
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <AvatarNetwork name={name} imageSource={imageSource} />
       <Text style={styles.text}>{name}</Text>
     </View>

@@ -28,7 +28,7 @@ export const SmartAccountUpdateSuccess = () => {
   }, [navigation]);
 
   return (
-    <View style={styles.successWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.successWrapper}>
       <ButtonIcon
         iconColor={IconColor.Default}
         iconName={IconName.Close}
@@ -37,7 +37,7 @@ export const SmartAccountUpdateSuccess = () => {
         style={styles.actionIcon}
         testID="smart_account_update_success_close"
       />
-      <View style={styles.successInner}>
+      <View accessibilityRole="none" accessible={false} style={styles.successInner}>
         <Icon
           name={IconName.CheckBold}
           color={IconColor.Success}

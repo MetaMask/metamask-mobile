@@ -85,7 +85,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     Box: ({ children, testID, ...props }: MockBoxProps) => (
-      <View testID={testID} {...props}>
+      <View accessibilityRole="none" accessible={false} testID={testID} {...props}>
         {children}
       </View>
     ),

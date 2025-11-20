@@ -126,7 +126,7 @@ class Collectible extends PureComponent {
     const ownerOf = filteredCollectibles.length;
 
     return (
-      <View style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
         <ScrollView
           testID="refresh-control"
           refreshControl={
@@ -139,15 +139,15 @@ class Collectible extends PureComponent {
           }
           style={styles.wrapper}
         >
-          <View>
-            <View style={styles.assetOverviewWrapper}>
+          <View accessibilityRole="none" accessible={false}>
+            <View accessibilityRole="none" accessible={false} style={styles.assetOverviewWrapper}>
               <CollectibleContractOverview
                 navigation={navigation}
                 collectibleContract={collectibleContract}
                 ownerOf={ownerOf}
               />
             </View>
-            <View style={styles.wrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
               <Collectibles
                 navigation={navigation}
                 collectibles={filteredCollectibles}

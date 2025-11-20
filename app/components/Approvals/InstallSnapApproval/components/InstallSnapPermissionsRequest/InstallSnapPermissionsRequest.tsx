@@ -58,8 +58,8 @@ const InstallSnapPermissionsRequest = ({
   };
 
   return (
-    <View testID={SNAP_INSTALL_PERMISSIONS_REQUEST} style={styles.root}>
-      <View style={styles.accountCardWrapper}>
+    <View accessibilityRole="none" accessible={false} testID={SNAP_INSTALL_PERMISSIONS_REQUEST} style={styles.root}>
+      <View accessibilityRole="none" accessible={false} style={styles.accountCardWrapper}>
         <Cell
           style={styles.snapCell}
           variant={CellVariant.Display}
@@ -84,7 +84,7 @@ const InstallSnapPermissionsRequest = ({
             showLabel={false}
           />
         </ScrollView>
-        <View style={styles.actionContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
             buttonPropsArray={[cancelButtonProps, connectButtonProps]}

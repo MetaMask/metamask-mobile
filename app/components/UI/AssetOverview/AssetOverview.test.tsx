@@ -73,7 +73,7 @@ jest.mock('./Balance', () => {
       secondaryBalance?: string;
       hidePercentageChange?: boolean;
     }) => (
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <Text testID="tokenDetailsName">{asset.name}</Text>
         <Text testID="tokenDetailsBalance">{asset.balance}</Text>
 

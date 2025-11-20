@@ -115,7 +115,7 @@ const TrendingTokenRowItem = ({
       onPress={handlePress}
       testID={`trending-token-row-item-${token.assetId}`}
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <BadgeWrapper
           style={styles.badge}
           badgePosition={BadgePosition.BottomRight}
@@ -136,8 +136,8 @@ const TrendingTokenRowItem = ({
           />
         </BadgeWrapper>
       </View>
-      <View style={styles.leftContainer}>
-        <View style={styles.tokenHeaderRow}>
+      <View accessibilityRole="none" accessible={false} style={styles.leftContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.tokenHeaderRow}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {token.name}
           </Text>
@@ -152,7 +152,7 @@ const TrendingTokenRowItem = ({
           {formatMarketStats(token.marketCap, token.aggregatedUsdVolume)}
         </Text>
       </View>
-      <View style={styles.rightContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {formatPrice(token.price, {
             minimumDecimals: 2,

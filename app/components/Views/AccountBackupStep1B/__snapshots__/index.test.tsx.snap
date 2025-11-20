@@ -22,7 +22,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
       }
     }
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           {
@@ -783,6 +783,6 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </RCTSafeAreaView>
 `;

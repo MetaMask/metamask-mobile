@@ -120,9 +120,9 @@ export const Amount = () => {
       edges={isIos ? ['left', 'right'] : ['left', 'right', 'bottom']}
       style={styles.container}
     >
-      <View style={styles.topSection}>
+      <View accessibilityRole="none" accessible={false} style={styles.topSection}>
         {isNFT && (
-          <View style={styles.nftImageWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.nftImageWrapper}>
             <CollectibleMedia
               style={styles.nftImage}
               collectible={asset as Nft}
@@ -137,8 +137,8 @@ export const Amount = () => {
             </Text>
           </View>
         )}
-        <View style={styles.inputSection}>
-          <View style={styles.inputWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.inputSection}>
+          <View accessibilityRole="none" accessible={false} style={styles.inputWrapper}>
             <Text
               color={textColor}
               style={styles.inputText}
@@ -172,8 +172,8 @@ export const Amount = () => {
           </TouchableOpacity>
         )}
       </View>
-      <View>
-        <View style={styles.balanceSection}>
+      <View accessibilityRole="none" accessible={false}>
+        <View accessibilityRole="none" accessible={false} style={styles.balanceSection}>
           <Text color={TextColor.Alternative}>{balanceDisplayValue}</Text>
         </View>
         <AmountKeyboard

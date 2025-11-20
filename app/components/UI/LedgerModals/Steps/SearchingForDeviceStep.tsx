@@ -101,15 +101,15 @@ const SearchingForDeviceStep = () => {
         style={styles.ledgerImageStyle}
         resizeMode="contain"
       />
-      <View style={styles.lookingForDeviceTitle}>
+      <View accessibilityRole="none" accessible={false} style={styles.lookingForDeviceTitle}>
         <Text variant={TextVariant.BodyMDBold} style={styles.titleText}>
           {strings('ledger.looking_for_device')}
         </Text>
-        <View style={styles.activityIndicator}>
+        <View accessibilityRole="none" accessible={false} style={styles.activityIndicator}>
           <ActivityIndicator />
         </View>
       </View>
-      <View style={styles.instructionsWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.instructionsWrapper}>
         <Text>{strings('ledger.ledger_reminder_message')}</Text>
         <Text style={styles.ledgerInstructionText}>
           {strings('ledger.ledger_reminder_message_step_one')}

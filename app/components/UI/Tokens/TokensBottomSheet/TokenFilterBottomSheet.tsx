@@ -81,7 +81,7 @@ const TokenFilterBottomSheet = () => {
 
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
           {strings('wallet.filter_by')}
         </Text>
@@ -97,7 +97,7 @@ const TokenFilterBottomSheet = () => {
           <Text style={styles.bottomSheetText}>
             {strings('wallet.popular_networks')}
           </Text>
-          <View style={styles.networkImageContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.networkImageContainer}>
             <NetworkImageComponent
               isAllNetworksEnabled
               allNetworksEnabled={allNetworksEnabled}
@@ -117,7 +117,7 @@ const TokenFilterBottomSheet = () => {
           <Text style={styles.bottomSheetText}>
             {strings('wallet.current_network')}
           </Text>
-          <View style={styles.networkImageContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.networkImageContainer}>
             <NetworkImageComponent
               isAllNetworksEnabled={false}
               allNetworksEnabled={{ [chainId]: true }}

@@ -168,8 +168,8 @@ class ProtectYourWalletModal extends PureComponent {
           style={styles.wrapper}
           testID={ProtectWalletModalSelectorsIDs.CONTAINER}
         >
-          <View style={styles.titleWrapper}>
-            <View style={styles.auxCenter} />
+          <View accessibilityRole="none" accessible={false} style={styles.titleWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.auxCenter} />
             <Text style={styles.title}>
               {strings('protect_wallet_modal.title')}
             </Text>
@@ -181,7 +181,7 @@ class ProtectYourWalletModal extends PureComponent {
               <Icon name="times" style={styles.modalXIcon} />
             </TouchableOpacity>
           </View>
-          <View style={styles.imageWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.imageWrapper}>
             <Image source={protectWalletImage} style={styles.image} />
           </View>
 

@@ -37,8 +37,8 @@ const FromToRow = () => {
 
   return (
     <InfoSection testID={ConfirmationRowComponentIDs.FROM_TO}>
-      <View style={styles.container}>
-        <View style={[styles.nameContainer, styles.leftNameContainer]}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
+        <View accessibilityRole="none" accessible={false} style={[styles.nameContainer, styles.leftNameContainer]}>
           <Name
             type={NameType.EthereumAddress}
             value={fromAddress}
@@ -47,7 +47,7 @@ const FromToRow = () => {
           />
         </View>
 
-        <View style={styles.iconContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
           <Icon
             size={IconSize.Xs}
             name={IconName.ArrowRight}
@@ -55,7 +55,7 @@ const FromToRow = () => {
           />
         </View>
 
-        <View style={[styles.nameContainer, styles.rightNameContainer]}>
+        <View accessibilityRole="none" accessible={false} style={[styles.nameContainer, styles.rightNameContainer]}>
           {/* Intentional empty label to trigger the alert row without a label */}
           <AlertRow alertField={RowAlertKey.BurnAddress}>
             <Name

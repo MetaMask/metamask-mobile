@@ -45,7 +45,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
     }
     viewabilityConfigCallbackPairs={[]}
   >
-    <View />
+    <View accessibilityRole="none" accessible={false} />
   </RCTScrollView>,
   <View
     style={
@@ -238,7 +238,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
     }
     viewabilityConfigCallbackPairs={[]}
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         onFocusCapture={[Function]}
         onLayout={[Function]}
@@ -262,7 +262,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             }
             testID="badge-wrapper-badge"
           >
-            <View />
+            <View accessibilityRole="none" accessible={false} />
             <View
               style={
                 {
@@ -517,7 +517,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             }
             testID="badge-wrapper-badge"
           >
-            <View />
+            <View accessibilityRole="none" accessible={false} />
             <View
               style={
                 {

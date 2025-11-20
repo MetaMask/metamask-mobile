@@ -136,7 +136,7 @@ const Alert = ({
       onPress={onPress}
       {...props}
     >
-      {renderIcon && <View style={styles.iconWrapper}>{renderIcon()}</View>}
+      {renderIcon && <View accessibilityRole="none" accessible={false} style={styles.iconWrapper}>{renderIcon()}</View>}
       {typeof children === 'function' ? (
         children(textStyle)
       ) : (
@@ -148,7 +148,7 @@ const Alert = ({
         </Text>
       )}
       {onDismiss && (
-        <View style={styles.iconWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.iconWrapper}>
           <TouchableOpacity
             onPress={onDismiss}
             hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}

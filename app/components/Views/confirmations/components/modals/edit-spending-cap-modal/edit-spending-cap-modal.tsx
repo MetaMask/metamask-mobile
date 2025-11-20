@@ -57,7 +57,7 @@ export const EditSpendingCapModal = ({
       onBackButtonPress={handleCloseModal}
       onSwipeComplete={handleCloseModal}
     >
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('confirm.edit_spending_cap_modal.title')}
         </Text>
@@ -89,7 +89,7 @@ export const EditSpendingCapModal = ({
           {balance} {tokenSymbol ?? ''}
         </Text>
 
-        <View style={styles.buttonsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}

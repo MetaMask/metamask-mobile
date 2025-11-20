@@ -54,9 +54,9 @@ export const SmartAccountUpdateSplash = () => {
   }
 
   return (
-    <View style={styles.wrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
       <SmartAccountUpdateContent />
-      <View style={styles.buttonSection}>
+      <View accessibilityRole="none" accessible={false} style={styles.buttonSection}>
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Lg}

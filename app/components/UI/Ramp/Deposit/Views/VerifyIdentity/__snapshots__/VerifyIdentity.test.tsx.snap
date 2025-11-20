@@ -355,7 +355,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                               }
                             }
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   [
@@ -480,7 +480,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                             </View>
                           </RCTScrollView>
                         </View>
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               [

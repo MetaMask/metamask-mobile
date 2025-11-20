@@ -53,7 +53,7 @@ const PerpsOrderTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
       </ScreenView>
@@ -127,14 +127,14 @@ const PerpsOrderTransactionView: React.FC = () => {
         testID={PerpsTransactionSelectorsIDs.ORDER_TRANSACTION_VIEW}
         style={styles.container}
       >
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           <PerpsTransactionDetailAssetHero
             transaction={transaction}
             styles={styles}
           />
 
           {/* Transaction details */}
-          <View style={styles.detailsContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.detailsContainer}>
             {mainDetailRows.map((detail, index) => (
               <View
                 key={index}
@@ -156,7 +156,7 @@ const PerpsOrderTransactionView: React.FC = () => {
             ))}
 
             {/* Separator between sections */}
-            <View style={styles.sectionSeparator} />
+            <View accessibilityRole="none" accessible={false} style={styles.sectionSeparator} />
 
             {/* Fee breakdown */}
             {feeRows.map((detail, index) => (

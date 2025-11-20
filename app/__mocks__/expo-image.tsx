@@ -123,7 +123,7 @@ Image.displayName = 'MockedExpoImage';
 // Define the Image type with static methods
 interface ImageWithStatics
   extends React.ForwardRefExoticComponent<
-    ImageProps & React.RefAttributes<View>
+    ImageProps & React.RefAttributes<View accessibilityRole="none" accessible={false}>
   > {
   prefetch: jest.Mock<
     Promise<boolean>,

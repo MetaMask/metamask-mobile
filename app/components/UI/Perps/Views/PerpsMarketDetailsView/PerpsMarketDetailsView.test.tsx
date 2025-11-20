@@ -308,24 +308,24 @@ jest.mock('../../components/PerpsMarketStatisticsCard', () => {
       };
 
       return (
-        <View>
-          <View testID={SelectorsIDs.STATISTICS_HIGH_24H} />
-          <View testID={SelectorsIDs.STATISTICS_LOW_24H} />
-          <View testID={SelectorsIDs.STATISTICS_VOLUME_24H} />
-          <View testID={SelectorsIDs.STATISTICS_OPEN_INTEREST}>
+        <View accessibilityRole="none" accessible={false}>
+          <View accessibilityRole="none" accessible={false} testID={SelectorsIDs.STATISTICS_HIGH_24H} />
+          <View accessibilityRole="none" accessible={false} testID={SelectorsIDs.STATISTICS_LOW_24H} />
+          <View accessibilityRole="none" accessible={false} testID={SelectorsIDs.STATISTICS_VOLUME_24H} />
+          <View accessibilityRole="none" accessible={false} testID={SelectorsIDs.STATISTICS_OPEN_INTEREST}>
             <TouchableOpacity
               testID={SelectorsIDs.OPEN_INTEREST_INFO_ICON}
               onPress={() => handlePress('open_interest')}
             />
           </View>
-          <View testID={SelectorsIDs.STATISTICS_FUNDING_RATE}>
+          <View accessibilityRole="none" accessible={false} testID={SelectorsIDs.STATISTICS_FUNDING_RATE}>
             <TouchableOpacity
               testID={SelectorsIDs.FUNDING_RATE_INFO_ICON}
               onPress={() => handlePress('funding_rate')}
             />
           </View>
-          <View testID={SelectorsIDs.STATISTICS_FUNDING_COUNTDOWN} />
-          {showTooltip && <View testID="perps-bottom-sheet-tooltip" />}
+          <View accessibilityRole="none" accessible={false} testID={SelectorsIDs.STATISTICS_FUNDING_COUNTDOWN} />
+          {showTooltip && <View accessibilityRole="none" accessible={false} testID="perps-bottom-sheet-tooltip" />}
         </View>
       );
     },
@@ -355,7 +355,7 @@ jest.mock('../../components/PerpsNotificationTooltip', () => ({
     testID: string;
   }) => {
     const { View } = jest.requireActual('react-native');
-    return orderSuccess ? <View testID={testID} /> : null;
+    return orderSuccess ? <View accessibilityRole="none" accessible={false} testID={testID} /> : null;
   },
 }));
 

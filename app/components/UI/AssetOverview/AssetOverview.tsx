@@ -369,7 +369,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const renderWarning = () => (
-    <View style={styles.warningWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.warningWrapper}>
       <TouchableOpacity
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
@@ -571,11 +571,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   return (
-    <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
         renderWarning()
       ) : (
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Price
             asset={asset}
             prices={prices}
@@ -586,7 +586,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             isLoading={isLoading}
             timePeriod={timePeriod}
           />
-          <View style={styles.chartNavigationWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
@@ -627,7 +627,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          <View style={styles.tokenDetailsWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>
           {networkModal}

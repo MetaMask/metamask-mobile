@@ -141,7 +141,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
           title={strings('account_actions.add_account')}
           onBack={onBack}
         />
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text
             style={styles.subHeaders}
             variant={TextVariant.BodySMMedium}

@@ -40,7 +40,7 @@ const AccountCard = ({
   const { vaultMetadata } = useVaultMetadata(chainId);
 
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <Card testID="account-card" style={styles.cardGroupTop} disabled>
         {selectedAccount && (
           <KeyValueRow
@@ -76,7 +76,7 @@ const AccountCard = ({
           field={{ label: { text: strings('asset_details.network') } }}
           value={{
             label: (
-              <View style={styles.networkKeyValueRow}>
+              <View accessibilityRole="none" accessible={false} style={styles.networkKeyValueRow}>
                 <Avatar
                   variant={AvatarVariant.Network}
                   imageSource={images.ETHEREUM}

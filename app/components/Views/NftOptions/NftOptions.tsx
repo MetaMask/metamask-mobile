@@ -112,9 +112,9 @@ const NftOptions = (props: Props) => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
-        <View style={styles.notch} />
-        <View>
+      <View accessibilityRole="none" accessible={false} style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
+        <View accessibilityRole="none" accessible={false} style={styles.notch} />
+        <View accessibilityRole="none" accessible={false}>
           {getOpenSeaLink() !== null ? (
             <TouchableOpacity
               style={styles.optionButton}
@@ -127,7 +127,7 @@ const NftOptions = (props: Props) => {
             </TouchableOpacity>
           ) : null}
         </View>
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <TouchableOpacity style={styles.optionButton} onPress={removeNft}>
             <Icon name={IconName.Trash} style={styles.iconTrash} />
             <Text variant={TextVariant.BodyMD} color={TextColor.Error}>

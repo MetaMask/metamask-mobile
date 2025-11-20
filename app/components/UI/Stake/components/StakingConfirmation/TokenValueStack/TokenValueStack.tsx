@@ -30,7 +30,7 @@ const TokenValueStack = ({
   const networkName = useSelector(selectEvmNetworkName);
 
   return (
-    <View style={[styles.tokenValueStackContainer, style]}>
+    <View accessibilityRole="none" accessible={false} style={[styles.tokenValueStackContainer, style]}>
       <BadgeWrapper
         style={styles.badgeWrapper}
         badgePosition={BadgePosition.BottomRight}
@@ -44,7 +44,7 @@ const TokenValueStack = ({
       >
         <NetworkMainAssetLogo style={styles.ethLogo} />
       </BadgeWrapper>
-      <View style={styles.balancesContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.balancesContainer}>
         <Text variant={TextVariant.HeadingLG}>
           {renderFromWei(amountWei)} {tokenSymbol}
         </Text>

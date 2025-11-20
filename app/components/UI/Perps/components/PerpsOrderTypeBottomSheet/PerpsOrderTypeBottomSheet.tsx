@@ -96,7 +96,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         {orderTypes.map(({ type, title, description }) => (
           <TouchableOpacity
             key={type}
@@ -106,8 +106,8 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
             ]}
             onPress={() => handleSelect(type)}
           >
-            <View style={styles.optionHeader}>
-              <View style={styles.optionContent}>
+            <View accessibilityRole="none" accessible={false} style={styles.optionHeader}>
+              <View accessibilityRole="none" accessible={false} style={styles.optionContent}>
                 <Text
                   variant={TextVariant.BodyLGMedium}
                   color={TextColor.Default}

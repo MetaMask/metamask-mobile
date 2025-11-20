@@ -13,7 +13,7 @@ interface MockComponentProps {
 
 class MockComponent extends Component<MockComponentProps> {
   render() {
-    return <View testID="mock-component" />;
+    return <View accessibilityRole="none" accessible={false} testID="mock-component" />;
   }
 }
 

@@ -21,8 +21,8 @@ const AccountDetails = (props: IAccountDetailsProps) => {
   const defaultTicker = 'ETH';
 
   return (
-    <View style={styles.rowContainer}>
-      <View style={styles.accountDetails}>
+    <View accessibilityRole="none" accessible={false} style={styles.rowContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.accountDetails}>
         <Text style={styles.index}>{index}</Text>
         <EthereumAddress
           style={styles.information}

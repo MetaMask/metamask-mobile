@@ -115,7 +115,7 @@ jest.mock('../../token-list', () => ({
     const { View, Text } = jest.requireActual('react-native');
 
     return (
-      <View testID="token-list">
+      <View accessibilityRole="none" accessible={false} testID="token-list">
         <Text>TokenList with {tokens.length} tokens</Text>
       </View>
     );
@@ -127,7 +127,7 @@ jest.mock('../../nft-list', () => ({
     const { View, Text } = jest.requireActual('react-native');
 
     return (
-      <View testID="nft-list">
+      <View accessibilityRole="none" accessible={false} testID="nft-list">
         <Text>NftList with {nfts.length} nfts</Text>
       </View>
     );
@@ -152,7 +152,7 @@ jest.mock('../../network-filter', () => ({
     const [isFiltered, setIsFiltered] = useState(false);
 
     return (
-      <View testID="network-filter">
+      <View accessibilityRole="none" accessible={false} testID="network-filter">
         <Pressable
           testID="apply-network-filter"
           onPress={() => {

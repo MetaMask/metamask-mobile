@@ -1112,7 +1112,7 @@ describe('PerpsClosePositionView', () => {
           const effectivePnL = priceDiff * absSize;
 
           return (
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <Text testID="effective-price">{effectivePrice}</Text>
               <Text testID="effective-pnl">{effectivePnL}</Text>
               <Text testID="order-type">{orderType}</Text>
@@ -1186,7 +1186,7 @@ describe('PerpsClosePositionView', () => {
             (closePercentage / 100) * effectiveMargin - mockFees.totalFee;
 
           return (
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <Text testID="effective-margin">{effectiveMargin}</Text>
               <Text testID="receive-amount">{receiveAmount}</Text>
               <Text testID="effective-pnl">{effectivePnL}</Text>
@@ -1238,7 +1238,7 @@ describe('PerpsClosePositionView', () => {
           const closingValue = positionValue * (closePercentage / 100);
 
           return (
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <Text testID="position-value">{positionValue}</Text>
               <Text testID="closing-value">{closingValue}</Text>
             </View>
@@ -1274,7 +1274,7 @@ describe('PerpsClosePositionView', () => {
               : parseFloat(currentPriceValue);
 
           return (
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <Text testID="effective-price">{effectivePrice}</Text>
             </View>
           );
@@ -1322,7 +1322,7 @@ describe('PerpsClosePositionView', () => {
           const effectivePnL = priceDiff * absSize;
 
           return (
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <Text testID="effective-pnl">{effectivePnL}</Text>
               <Text testID="is-profitable">
                 {effectivePnL > 0 ? 'true' : 'false'}
@@ -1373,7 +1373,7 @@ describe('PerpsClosePositionView', () => {
           const effectivePnL = priceDiff * absSize;
 
           return (
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <TouchableOpacity
                 testID="change-price"
                 onPress={() => setLimitPrice('120')}
@@ -1413,7 +1413,7 @@ describe('PerpsClosePositionView', () => {
         };
 
         return (
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <TouchableOpacity testID="confirm-button" onPress={handleConfirm}>
               <Text>Confirm</Text>
             </TouchableOpacity>
@@ -1447,7 +1447,7 @@ describe('PerpsClosePositionView', () => {
         };
 
         return (
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <TouchableOpacity
               testID="set-invalid"
               onPress={() => setLimitPrice('invalid')}
@@ -1945,7 +1945,7 @@ describe('PerpsClosePositionView', () => {
         const [errors] = React.useState(['Test error']);
 
         return (
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <TouchableOpacity onPress={() => setIsInputFocused(true)}>
               <Text>Focus Input</Text>
             </TouchableOpacity>
@@ -1994,7 +1994,7 @@ describe('PerpsClosePositionView', () => {
         };
 
         return (
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <TouchableOpacity
               onPress={() => handlePercentagePress(0.5)}
               testID="50-percent"
@@ -2153,7 +2153,7 @@ describe('PerpsClosePositionView', () => {
         const [limitPrice] = React.useState('50000');
 
         return (
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <TouchableOpacity
               testID="test-confirm"
               onPress={async () => {

@@ -148,7 +148,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
       style={styles.bottomSheetDialogSheet}
       testID={ConfirmationUIType.MODAL}
     >
-      <View testID={approvalRequest?.type} style={styles.confirmContainer}>
+      <View accessibilityRole="none" accessible={false} testID={approvalRequest?.type} style={styles.confirmContainer}>
         <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>
@@ -177,7 +177,7 @@ function Loader() {
   }
 
   return (
-    <View style={styles.spinnerContainer} testID="confirm-loader-default">
+    <View accessibilityRole="none" accessible={false} style={styles.spinnerContainer} testID="confirm-loader-default">
       <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
   );

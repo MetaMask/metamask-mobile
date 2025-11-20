@@ -129,7 +129,7 @@ const AddAsset = () => {
   return (
     <SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
       {assetType !== 'token' && (
-        <View style={styles.infoWrapper} testID="add-asset-nft-banner">
+        <View accessibilityRole="none" accessible={false} style={styles.infoWrapper} testID="add-asset-nft-banner">
           <Banner
             variant={BannerVariant.Alert}
             description={
@@ -185,7 +185,7 @@ const AddAsset = () => {
                   ? networkConfigurations?.[selectedNetwork as Hex]?.name
                   : strings('networks.select_network')}
               </Text>
-              <View style={styles.overlappingAvatarsContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.overlappingAvatarsContainer}>
                 {selectedNetwork ? (
                   <Avatar
                     variant={AvatarVariant.Network}
@@ -220,7 +220,7 @@ const AddAsset = () => {
               <ActivityIndicator size="large" color={colors.primary.default} />
             </View>
           ) : (
-            <View style={styles.tabContainer} testID="add-asset-tabs-container">
+            <View accessibilityRole="none" accessible={false} style={styles.tabContainer} testID="add-asset-tabs-container">
               <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
                 {allTokens && allTokens.length > 0 && (
                   <SearchTokenAutocomplete

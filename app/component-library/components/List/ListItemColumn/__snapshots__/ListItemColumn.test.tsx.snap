@@ -9,6 +9,6 @@ exports[`ListItemColumn should render snapshot correctly 1`] = `
   }
   testID="listitemcolumn"
 >
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;

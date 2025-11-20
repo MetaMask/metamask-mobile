@@ -69,10 +69,10 @@ export default function TransactionActionContent({
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.modalView}>
+    <View accessibilityRole="none" accessible={false} style={styles.modalView}>
       <Text style={styles.modalTitle}>{titleText}</Text>
       <Text style={styles.gasTitle}>{gasTitleText}</Text>
-      <View style={styles.feeWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.feeWrapper}>
         <Text style={styles.fee}>{feeText}</Text>
       </View>
       <Text style={styles.modalText}>{descriptionText}</Text>

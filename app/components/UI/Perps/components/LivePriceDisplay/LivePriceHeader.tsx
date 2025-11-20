@@ -106,7 +106,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   }, [displayPrice, displayChange]);
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Default}

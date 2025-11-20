@@ -167,7 +167,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   return (
     // Receipt Token Balance
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       {receiptToken?.balanceFiat &&
         Boolean(receiptToken?.balanceFormatted) &&
         receiptToken?.chainId &&
@@ -199,7 +199,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
                 }
               />
             </BadgeWrapper>
-            <View style={styles.balances}>
+            <View accessibilityRole="none" accessible={false} style={styles.balances}>
               <Text
                 variant={TextVariant.BodyMD}
                 testID={EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL}
@@ -212,12 +212,12 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         )}
       {/* Empty State CTA */}
       {!isAssetReceiptToken && !userHasLendingPositions && (
-        <View style={styles.EarnEmptyStateCta}>
+        <View accessibilityRole="none" accessible={false} style={styles.EarnEmptyStateCta}>
           <EarnEmptyStateCta token={asset} />
         </View>
       )}
       {/* Buttons */}
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         {userHasLendingPositions && receiptToken && (
           <Button
             variant={ButtonVariants.Secondary}
@@ -242,7 +242,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
           )}
       </View>
       {isAssetReceiptToken && (
-        <View style={styles.earnings}>
+        <View accessibilityRole="none" accessible={false} style={styles.earnings}>
           <Earnings asset={asset} />
         </View>
       )}

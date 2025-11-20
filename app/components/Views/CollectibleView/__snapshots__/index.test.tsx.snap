@@ -16,8 +16,8 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
       }
     }
   >
-    <View>
-      <View>
+    <View accessibilityRole="none" accessible={false}>
+      <View accessibilityRole="none" accessible={false}>
         <View
           collapsable={false}
           handlerTag={-1}
@@ -275,7 +275,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                 </TouchableOpacity>
               </View>
             </View>
-            <View />
+            <View accessibilityRole="none" accessible={false} />
             <View
               style={
                 {

@@ -319,8 +319,8 @@ const LedgerSelectAccount = () => {
     />
   ) : (
     <>
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
+        <View accessibilityRole="none" accessible={false} style={styles.header}>
           <Image
             source={ledgerThemedImage}
             resizeMode="contain"
@@ -334,7 +334,7 @@ const LedgerSelectAccount = () => {
             <MaterialIcon name="close" size={15} style={styles.closeIcon} />
           </TouchableOpacity>
         </View>
-        <View style-={styles.selectorContainer}>
+        <View accessibilityRole="none" accessible={false} style-={styles.selectorContainer}>
           {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
           <Text style={styles.mainTitle}>
             {strings('ledger.select_accounts')}
@@ -345,7 +345,7 @@ const LedgerSelectAccount = () => {
           <Text style={styles.selectorDescription}>
             {strings('ledger.select_hd_path_description')}
           </Text>
-          <View style={styles.pathSelector}>
+          <View accessibilityRole="none" accessible={false} style={styles.pathSelector}>
             <SelectOptionSheet
               options={ledgerPathOptions}
               label={strings('ledger.select_hd_path')}

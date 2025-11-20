@@ -25,7 +25,7 @@ const AutoLock = () => {
   };
 
   return (
-    <View style={styles.setting} testID={AUTO_LOCK_SECTION}>
+    <View accessibilityRole="none" accessible={false} style={styles.setting} testID={AUTO_LOCK_SECTION}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.auto_lock')}
       </Text>
@@ -36,7 +36,7 @@ const AutoLock = () => {
       >
         {strings('app_settings.auto_lock_desc')}
       </Text>
-      <View style={styles.picker}>
+      <View accessibilityRole="none" accessible={false} style={styles.picker}>
         <SelectComponent
           selectedValue={lockTime.toString()}
           onValueChange={selectLockTime}

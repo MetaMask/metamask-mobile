@@ -12,7 +12,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
     }
   }
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       style={
         [
@@ -223,7 +223,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           </View>
         </View>
       </TouchableOpacity>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <TouchableOpacity
           disabled={true}
           style={

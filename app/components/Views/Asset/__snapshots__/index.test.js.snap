@@ -36,7 +36,7 @@ exports[`Asset Fund Button Visibility should hide fund button when neither depos
       />
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;
 
@@ -76,7 +76,7 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
       />
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;
 
@@ -116,7 +116,7 @@ exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens
       />
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;
 
@@ -156,7 +156,7 @@ exports[`Asset Fund Button Visibility should show fund button when both deposit 
       />
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;
 
@@ -196,7 +196,7 @@ exports[`Asset Fund Button Visibility should show fund button when only deposit 
       />
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;
 
@@ -236,7 +236,7 @@ exports[`Asset Fund Button Visibility should show fund button when only ramp is 
       />
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;
 
@@ -777,7 +777,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                             style={{}}
                           >
                             <RCTRefreshControl />
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -788,7 +788,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                   }
                                 }
                               />
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     {
@@ -797,7 +797,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                   }
                                   testID="token-asset-overview"
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         {
@@ -1656,7 +1656,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -1874,7 +1874,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           }
                                         }
                                       >
-                                        <View>
+                                        <View accessibilityRole="none" accessible={false}>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -1971,8 +1971,8 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                   You have no transactions!
                                 </Text>
                               </View>
-                              <View>
-                                <View>
+                              <View accessibilityRole="none" accessible={false}>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       {
@@ -2551,7 +2551,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                             style={{}}
                           >
                             <RCTRefreshControl />
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -2562,7 +2562,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                   }
                                 }
                               />
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     {
@@ -2571,7 +2571,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                   }
                                   testID="token-asset-overview"
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         {
@@ -3430,7 +3430,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -3648,7 +3648,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           }
                                         }
                                       >
-                                        <View>
+                                        <View accessibilityRole="none" accessible={false}>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -3745,8 +3745,8 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                   You have no transactions!
                                 </Text>
                               </View>
-                              <View>
-                                <View>
+                              <View accessibilityRole="none" accessible={false}>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       {
@@ -4325,7 +4325,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                             style={{}}
                           >
                             <RCTRefreshControl />
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -4336,7 +4336,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                   }
                                 }
                               />
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     {
@@ -4345,7 +4345,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                   }
                                   testID="token-asset-overview"
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         {
@@ -5204,7 +5204,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               style={
                                                 {
@@ -5391,7 +5391,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           }
                                         }
                                       >
-                                        <View>
+                                        <View accessibilityRole="none" accessible={false}>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -5560,8 +5560,8 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                   You have no transactions!
                                 </Text>
                               </View>
-                              <View>
-                                <View>
+                              <View accessibilityRole="none" accessible={false}>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       {
@@ -6140,7 +6140,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                             style={{}}
                           >
                             <RCTRefreshControl />
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -6151,7 +6151,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                   }
                                 }
                               />
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     {
@@ -6160,7 +6160,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                   }
                                   testID="token-asset-overview"
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         {
@@ -7019,7 +7019,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -7237,7 +7237,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           }
                                         }
                                       >
-                                        <View>
+                                        <View accessibilityRole="none" accessible={false}>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -7334,8 +7334,8 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                   You have no transactions!
                                 </Text>
                               </View>
-                              <View>
-                                <View>
+                              <View accessibilityRole="none" accessible={false}>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       {
@@ -7914,7 +7914,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                             style={{}}
                           >
                             <RCTRefreshControl />
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -7925,7 +7925,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                   }
                                 }
                               />
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     {
@@ -7934,7 +7934,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                   }
                                   testID="token-asset-overview"
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         {
@@ -8793,7 +8793,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -9011,7 +9011,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           }
                                         }
                                       >
-                                        <View>
+                                        <View accessibilityRole="none" accessible={false}>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -9108,8 +9108,8 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                   You have no transactions!
                                 </Text>
                               </View>
-                              <View>
-                                <View>
+                              <View accessibilityRole="none" accessible={false}>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       {
@@ -9688,7 +9688,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                             style={{}}
                           >
                             <RCTRefreshControl />
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -9699,7 +9699,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                   }
                                 }
                               />
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     {
@@ -9708,7 +9708,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                   }
                                   testID="token-asset-overview"
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         {
@@ -10567,7 +10567,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               style={
                                                 {
@@ -10754,7 +10754,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           }
                                         }
                                       >
-                                        <View>
+                                        <View accessibilityRole="none" accessible={false}>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -10923,8 +10923,8 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                   You have no transactions!
                                 </Text>
                               </View>
-                              <View>
-                                <View>
+                              <View accessibilityRole="none" accessible={false}>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       {
@@ -11482,7 +11482,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                           />
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </View>
                   </View>
                 </View>
@@ -12033,7 +12033,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                             style={{}}
                           >
                             <RCTRefreshControl />
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -12044,7 +12044,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                   }
                                 }
                               />
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     {
@@ -12053,7 +12053,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                   }
                                   testID="token-asset-overview"
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         {
@@ -12912,7 +12912,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -13130,7 +13130,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           }
                                         }
                                       >
-                                        <View>
+                                        <View accessibilityRole="none" accessible={false}>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -13227,8 +13227,8 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                   You have no transactions!
                                 </Text>
                               </View>
-                              <View>
-                                <View>
+                              <View accessibilityRole="none" accessible={false}>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       {
@@ -13807,7 +13807,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                             style={{}}
                           >
                             <RCTRefreshControl />
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -13818,7 +13818,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                   }
                                 }
                               />
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     {
@@ -13827,7 +13827,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                   }
                                   testID="token-asset-overview"
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         {
@@ -14686,7 +14686,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -14904,7 +14904,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           }
                                         }
                                       >
-                                        <View>
+                                        <View accessibilityRole="none" accessible={false}>
                                           <Text
                                             accessibilityRole="text"
                                             style={
@@ -15001,8 +15001,8 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                   You have no transactions!
                                 </Text>
                               </View>
-                              <View>
-                                <View>
+                              <View accessibilityRole="none" accessible={false}>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       {
@@ -15560,7 +15560,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                           />
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </View>
                   </View>
                 </View>
@@ -15610,7 +15610,7 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
       />
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;
 
@@ -15650,7 +15650,7 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
       />
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;
 
@@ -15690,6 +15690,6 @@ exports[`Asset should render correctly 1`] = `
       />
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </View>
 `;

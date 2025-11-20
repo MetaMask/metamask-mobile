@@ -74,7 +74,7 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
     >
       <SafeAreaView style={styles.modalView}>
         <ModalDragger borderless />
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           <Alert
             type={AlertType.Error}
             renderIcon={() => (
@@ -100,7 +100,7 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
           <Text primary centered small>
             {strings('swaps.contract')}
           </Text>
-          <View style={styles.tokenAddress}>
+          <View accessibilityRole="none" accessible={false} style={styles.tokenAddress}>
             <Text small centered numberOfLines={1} adjustsFontSizeToFit>
               {token.address}
             </Text>

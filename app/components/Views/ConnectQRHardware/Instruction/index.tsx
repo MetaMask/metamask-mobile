@@ -72,14 +72,14 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
     });
   };
   return (
-    <View style={styles.wrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
       <ScrollView
         contentContainerStyle={styles.container}
         style={styles.scrollWrapper}
       >
         <Text style={styles.title}>{strings('connect_qr_hardware.title')}</Text>
         {renderAlert()}
-        <View style={styles.textContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
           <Text style={styles.text}>
             {strings('connect_qr_hardware.description1')}
           </Text>
@@ -92,7 +92,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
           <Text style={styles.keystone}>
             {strings('connect_qr_hardware.keystone')}
           </Text>
-          <View style={styles.buttonGroup}>
+          <View accessibilityRole="none" accessible={false} style={styles.buttonGroup}>
             <Text
               style={[styles.text, styles.link, styles.linkMarginRight]}
               onPress={navigateToLearnMoreKeystone}
@@ -109,7 +109,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
           <Text style={styles.keystone}>
             {strings('connect_qr_hardware.ngravezero')}
           </Text>
-          <View style={styles.buttonGroup}>
+          <View accessibilityRole="none" accessible={false} style={styles.buttonGroup}>
             <Text
               style={[styles.text, styles.link, styles.linkMarginRight]}
               onPress={() =>
@@ -129,7 +129,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
           </View>
         </View>
       </ScrollView>
-      <View style={styles.bottom}>
+      <View accessibilityRole="none" accessible={false} style={styles.bottom}>
         <StyledButton
           type={'confirm'}
           onPress={onConnect}

@@ -190,7 +190,7 @@ const Options = ({
     () =>
       activeUrl ? (
         <Button onPress={share} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.optionIconWrapper}>
             <Icon name="share" size={15} style={styles.optionIcon} />
           </View>
           <Text
@@ -212,7 +212,7 @@ const Options = ({
     () =>
       activeUrl ? (
         <Button onPress={onReloadPress} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.optionIconWrapper}>
             <Icon name="refresh" size={15} style={styles.optionIcon} />
           </View>
           <Text
@@ -229,7 +229,7 @@ const Options = ({
 
   return (
     <TouchableWithoutFeedback onPress={toggleOptions}>
-      <View style={styles.optionsOverlay}>
+      <View accessibilityRole="none" accessible={false} style={styles.optionsOverlay}>
         <View
           style={[
             styles.optionsWrapper,
@@ -240,7 +240,7 @@ const Options = ({
           {...generateTestId(Platform, MENU_ID)}
         >
           <Button onPress={onNewTabPress} style={styles.option}>
-            <View style={styles.optionIconWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.optionIconWrapper}>
               <MaterialCommunityIcons
                 name="plus"
                 size={18}
@@ -258,7 +258,7 @@ const Options = ({
           {renderReloadOption()}
           {!isBookmark() && (
             <Button onPress={navigateToAddBookmark} style={styles.option}>
-              <View style={styles.optionIconWrapper}>
+              <View accessibilityRole="none" accessible={false} style={styles.optionIconWrapper}>
                 <Icon name="plus-square" size={16} style={styles.optionIcon} />
               </View>
               <Text
@@ -272,7 +272,7 @@ const Options = ({
           )}
           {renderShareOption()}
           <Button onPress={openInBrowser} style={styles.option}>
-            <View style={styles.optionIconWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.optionIconWrapper}>
               <Icon name="expand" size={16} style={styles.optionIcon} />
             </View>
             <Text

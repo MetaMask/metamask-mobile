@@ -40,13 +40,13 @@ const RadioButton = ({
       {...props}
       disabled={isDisabled || isReadOnly}
     >
-      <View style={styles.radioButton} accessibilityRole="radio">
+      <View accessibilityRole="none" accessible={false} style={styles.radioButton} accessibilityRole="radio">
         {isChecked && (
-          <View style={styles.icon} testID={RADIOBUTTON_ICON_TESTID} />
+          <View accessibilityRole="none" accessible={false} style={styles.icon} testID={RADIOBUTTON_ICON_TESTID} />
         )}
       </View>
       {label && (
-        <View style={styles.label}>
+        <View accessibilityRole="none" accessible={false} style={styles.label}>
           {typeof label === 'string' ? (
             <Text
               variant={DEFAULT_RADIOBUTTON_LABEL_TEXTVARIANT}

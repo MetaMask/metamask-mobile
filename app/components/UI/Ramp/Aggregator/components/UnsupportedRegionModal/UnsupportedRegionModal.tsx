@@ -69,7 +69,7 @@ function UnsupportedRegionModal() {
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <View accessibilityRole="none" accessible={false} style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {strings('fiat_on_ramp_aggregator.region.unsupported_description', {
             rampType: strings(
@@ -79,7 +79,7 @@ function UnsupportedRegionModal() {
             ),
           })}
         </Text>
-        <View style={styles.regionContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.regionContainer}>
           <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
             {region?.emoji}
           </Text>
@@ -98,7 +98,7 @@ function UnsupportedRegionModal() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.footer}>
+      <View accessibilityRole="none" accessible={false} style={styles.footer}>
         <Button
           size={ButtonSize.Lg}
           onPress={handleSelectDifferentRegion}

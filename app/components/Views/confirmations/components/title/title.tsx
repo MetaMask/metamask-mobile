@@ -220,7 +220,7 @@ const Title = () => {
   );
 
   return (
-    <View style={styles.titleContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
       <Text style={styles.title} variant={TextVariant.HeadingMD}>
         {title}
       </Text>

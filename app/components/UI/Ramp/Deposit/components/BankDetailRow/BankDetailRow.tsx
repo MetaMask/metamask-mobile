@@ -28,9 +28,9 @@ const BankDetailRow: React.FC<BankDetailRowProps> = ({ label, value }) => {
   );
 
   return (
-    <View style={styles.detailRow}>
+    <View accessibilityRole="none" accessible={false} style={styles.detailRow}>
       <Text variant={TextVariant.BodyMD}>{label}</Text>
-      <View style={styles.valueContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.valueContainer}>
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}

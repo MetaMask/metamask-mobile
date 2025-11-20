@@ -85,7 +85,7 @@ type ListItemComponent = React.FC<ListItemProps> & {
 const ListItem: ListItemComponent = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View style={[styles.wrapper, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.wrapper, style]} {...props} />;
 };
 
 const ListItemDate: React.FC<ListItemTextProps> = ({ style, ...props }) => {
@@ -97,25 +97,25 @@ const ListItemDate: React.FC<ListItemTextProps> = ({ style, ...props }) => {
 const ListItemContent: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View style={[styles.content, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.content, style]} {...props} />;
 };
 
 const ListItemActions: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View style={[styles.actions, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.actions, style]} {...props} />;
 };
 
 const ListItemIcon: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View style={[styles.icon, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.icon, style]} {...props} />;
 };
 
 const ListItemBody: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View style={[styles.body, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.body, style]} {...props} />;
 };
 
 const ListItemTitle: React.FC<ListItemTextProps> = ({ style, ...props }) => {
@@ -127,7 +127,7 @@ const ListItemTitle: React.FC<ListItemTextProps> = ({ style, ...props }) => {
 const ListItemAmounts: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View style={[styles.amounts, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.amounts, style]} {...props} />;
 };
 
 const ListItemAmount: React.FC<ListItemTextProps> = ({ style, ...props }) => {

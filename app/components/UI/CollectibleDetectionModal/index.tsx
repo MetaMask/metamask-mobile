@@ -73,7 +73,7 @@ const CollectibleDetectionModal = () => {
   ]);
 
   return (
-    <View style={styles.alertBar}>
+    <View accessibilityRole="none" accessible={false} style={styles.alertBar}>
       <Banner
         variant={BannerVariant.Alert}
         title={strings('wallet.nfts_autodetect_title')}

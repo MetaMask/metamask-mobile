@@ -73,8 +73,8 @@ const TabThumbnail = ({
         style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
         testID={`browser-tab-${tab.id}`}
       >
-        <View style={styles.tabHeader}>
-          <View style={styles.titleButton}>
+        <View accessibilityRole="none" accessible={false} style={styles.tabHeader}>
+          <View accessibilityRole="none" accessible={false} style={styles.titleButton}>
             <Avatar
               variant={AvatarVariant.Favicon}
               imageSource={faviconSource}
@@ -99,12 +99,12 @@ const TabThumbnail = ({
             />
           </TouchableOpacity>
         </View>
-        <View style={styles.tab}>
+        <View accessibilityRole="none" accessible={false} style={styles.tab}>
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
         {!!selectedAccount && (
-          <View testID="footer-container" style={styles.footerContainer}>
-            <View style={styles.badgeWrapperContainer}>
+          <View accessibilityRole="none" accessible={false} testID="footer-container" style={styles.footerContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.badgeWrapperContainer}>
               <BadgeWrapper
                 badgePosition={BadgePosition.BottomRight}
                 badgeElement={

@@ -68,7 +68,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
       update={[Function]}
       viewIsInsideTabBar={false}
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           accessibilityState={
             {
@@ -148,7 +148,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                 }
               }
             >
-              <View>
+              <View accessibilityRole="none" accessible={false}>
                 <View
                   style={
                     [
@@ -394,7 +394,7 @@ exports[`TypedSign onReject rejects message 1`] = `
       update={[Function]}
       viewIsInsideTabBar={false}
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           accessibilityState={
             {
@@ -474,7 +474,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                 }
               }
             >
-              <View>
+              <View accessibilityRole="none" accessible={false}>
                 <View
                   style={
                     [

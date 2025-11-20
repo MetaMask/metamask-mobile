@@ -11,7 +11,7 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
   }
   testID="badge-wrapper-badge"
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       style={
         {

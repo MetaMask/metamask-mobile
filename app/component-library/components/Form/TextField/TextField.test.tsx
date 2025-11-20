@@ -33,14 +33,14 @@ describe('TextField', () => {
     expect(textFieldComponent.props().style.height).toBe(Number(testSize));
   });
   it('should render the startAccessory if given', () => {
-    const wrapper = shallow(<TextField startAccessory={<View />} />);
+    const wrapper = shallow(<TextField startAccessory={<View accessibilityRole="none" accessible={false} />} />);
     const textFieldComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TEXTFIELD_STARTACCESSORY_TEST_ID,
     );
     expect(textFieldComponent.exists()).toBe(true);
   });
   it('should render the endAccessory if given', () => {
-    const wrapper = shallow(<TextField endAccessory={<View />} />);
+    const wrapper = shallow(<TextField endAccessory={<View accessibilityRole="none" accessible={false} />} />);
     const textFieldComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TEXTFIELD_ENDACCESSORY_TEST_ID,
     );

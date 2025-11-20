@@ -291,7 +291,7 @@ const AddCustomCollectible = ({
   };
 
   return (
-    <View style={styles.wrapper} testID={NFTImportScreenSelectorsIDs.CONTAINER}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper} testID={NFTImportScreenSelectorsIDs.CONTAINER}>
       <ActionView
         cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
         confirmText={strings('add_asset.collectibles.add_collectible')}
@@ -301,8 +301,8 @@ const AddCustomCollectible = ({
         loading={loading}
         confirmTestID={'add-collectible-button'}
       >
-        <View>
-          <View style={styles.rowWrapper}>
+        <View accessibilityRole="none" accessible={false}>
+          <View accessibilityRole="none" accessible={false} style={styles.rowWrapper}>
             <TouchableOpacity
               style={styles.networkSelectorContainer}
               onPress={() => setOpenNetworkSelector(true)}
@@ -312,7 +312,7 @@ const AddCustomCollectible = ({
                 {selectedNetwork || strings('networks.select_network')}
               </Text>
 
-              <View style={styles.overlappingAvatarsContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.overlappingAvatarsContainer}>
                 {selectedNetwork ? (
                   <Avatar
                     variant={AvatarVariant.Network}
@@ -361,7 +361,7 @@ const AddCustomCollectible = ({
               {warningAddress}
             </Text>
           </View>
-          <View style={styles.rowWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.rowWrapper}>
             <Text style={styles.rowTitleText}>
               {strings('collectible.collectible_token_id')}
             </Text>

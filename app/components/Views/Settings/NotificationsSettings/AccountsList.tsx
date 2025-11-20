@@ -29,7 +29,7 @@ export const AccountsList = () => {
   }
 
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <AccountListHeader
         title={firstHDWalletGroups.title}
         containerStyle={styles.accountHeader}

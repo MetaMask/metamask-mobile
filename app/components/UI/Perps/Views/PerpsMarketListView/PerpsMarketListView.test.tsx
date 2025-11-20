@@ -310,7 +310,7 @@ jest.mock(
       onPressClearButton?: () => void;
     }) {
       return (
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <TextInput
             value={value}
             onChangeText={onChangeText}
@@ -448,7 +448,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID: string;
       [key: string]: unknown;
     }) => (
-      <View testID={testID} {...props}>
+      <View accessibilityRole="none" accessible={false} testID={testID} {...props}>
         {children}
       </View>
     ),
@@ -599,7 +599,7 @@ jest.mock('../../components/PerpsMarketRowItem', () => {
         testID={`market-row-${market.symbol}`}
         onPress={() => onPress?.(market)}
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text testID={`market-symbol-${market.symbol}`}>{market.symbol}</Text>
           <Text testID={`market-name-${market.symbol}`}>{market.name}</Text>
           <Text testID={`market-price-${market.symbol}`}>{market.price}</Text>
@@ -677,9 +677,9 @@ jest.mock('@shopify/flash-list', () => ({
         refreshing={refreshing}
         onRefresh={onRefresh}
       >
-        <View testID="flash-list-content">
+        <View accessibilityRole="none" accessible={false} testID="flash-list-content">
           {data.map((item: PerpsMarketData, index: number) => (
-            <View key={keyExtractor ? keyExtractor(item, index) : index}>
+            <View accessibilityRole="none" accessible={false} key={keyExtractor ? keyExtractor(item, index) : index}>
               {renderItem({ item, index })}
             </View>
           ))}
@@ -702,7 +702,7 @@ jest.mock('react-native-skeleton-placeholder', () => {
   }: {
     children: React.ReactNode;
   }) {
-    return <View testID="skeleton-placeholder">{children}</View>;
+    return <View accessibilityRole="none" accessible={false} testID="skeleton-placeholder">{children}</View>;
   };
 });
 

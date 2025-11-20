@@ -44,7 +44,7 @@ function ErrorDetailsModal() {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <View style={styles.headerContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
           <Icon
             name={IconName.Danger}
             size={IconSize.Md}
@@ -57,7 +57,7 @@ function ErrorDetailsModal() {
       </BottomSheetHeader>
 
       <ScrollView style={styles.scrollView}>
-        <View style={styles.contentContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Default}

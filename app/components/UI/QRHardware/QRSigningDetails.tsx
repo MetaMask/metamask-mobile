@@ -298,7 +298,7 @@ const QRSigningDetails = ({
                 tighten ? styles.containerTighten : undefined,
               ]}
             >
-              <View style={styles.accountInfoCardWrapper}>
+              <View accessibilityRole="none" accessible={false} style={styles.accountInfoCardWrapper}>
                 <AccountInfoCard
                   showFiatBalance={false}
                   fromAddress={fromAddress}
@@ -353,7 +353,7 @@ const QRSigningDetails = ({
                   </Text>
                 </View>
               ) : !tighten ? (
-                <View style={styles.padding} />
+                <View accessibilityRole="none" accessible={false} style={styles.padding} />
               ) : null}
             </View>
           </ActionView>

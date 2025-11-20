@@ -452,7 +452,7 @@ exports[`QuotesView should render quote screen 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -1861,15 +1861,15 @@ exports[`QuotesView should render quote screen 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <View />
-                          <View />
-                          <View />
-                          <View />
-                          <View />
-                          <View />
-                          <View />
-                          <View />
-                          <View />
+                          <View accessibilityRole="none" accessible={false} />
+                          <View accessibilityRole="none" accessible={false} />
+                          <View accessibilityRole="none" accessible={false} />
+                          <View accessibilityRole="none" accessible={false} />
+                          <View accessibilityRole="none" accessible={false} />
+                          <View accessibilityRole="none" accessible={false} />
+                          <View accessibilityRole="none" accessible={false} />
+                          <View accessibilityRole="none" accessible={false} />
+                          <View accessibilityRole="none" accessible={false} />
                         </View>
                       </RCTScrollView>
                     </RNCSafeAreaView>

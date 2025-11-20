@@ -86,7 +86,7 @@ export const MaxBaseFeeInput = ({
   const feeRangesExists = estimatedBaseFee && historicalBaseFeeRange;
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <TextFieldWithLabel
         endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
         error={error}
@@ -98,7 +98,7 @@ export const MaxBaseFeeInput = ({
         value={value}
       />
       {feeRangesExists && (
-        <View style={styles.infoContainer} testID="info-container">
+        <View accessibilityRole="none" accessible={false} style={styles.infoContainer} testID="info-container">
           <InfoLabel>
             {strings('transactions.gas_modal.estimated_base_fee', {
               value: limitToMaximumDecimalPlaces(

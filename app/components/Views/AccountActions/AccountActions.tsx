@@ -369,7 +369,7 @@ const AccountActions = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.actionsContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.actionsContainer}>
         <AccountAction
           actionTitle={strings('account_actions.edit_name')}
           iconName={IconName.Edit}

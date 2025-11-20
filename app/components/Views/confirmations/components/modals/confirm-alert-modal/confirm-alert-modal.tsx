@@ -71,15 +71,15 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
 
   return (
     <BottomModal onClose={handleReject}>
-      <View style={styles.modalContainer} testID="confirm-alert-modal">
-        <View>
+      <View accessibilityRole="none" accessible={false} style={styles.modalContainer} testID="confirm-alert-modal">
+        <View accessibilityRole="none" accessible={false}>
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
             color={colors.error.default}
           />
         </View>
-        <View style={styles.headerContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
           <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
             {onlyBlockaidAlert
               ? strings('alert_system.confirm_modal.title_blockaid')
@@ -116,7 +116,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             {strings('alert_system.confirm_modal.checkbox_label')}
           </Text>
         </TouchableOpacity>
-        <View style={styles.buttonsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
           <Button
             onPress={handleReject}
             label={strings('confirm.cancel')}
@@ -126,7 +126,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             width={ButtonWidthTypes.Full}
             testID="confirm-alert-cancel-button"
           />
-          <View style={styles.buttonDivider} />
+          <View accessibilityRole="none" accessible={false} style={styles.buttonDivider} />
           <Button
             onPress={handleConfirm}
             label={strings('confirm.confirm')}

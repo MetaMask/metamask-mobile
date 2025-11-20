@@ -265,7 +265,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       }}
       onModalWillShow={() => pauseQRCode?.(true)}
     >
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         {cameraDevice && hasPermission ? (
           <>
             <Camera
@@ -296,7 +296,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             </Text>
           </SafeAreaView>
         )}
-        <View style={styles.hint}>{hintText}</View>
+        <View accessibilityRole="none" accessible={false} style={styles.hint}>{hintText}</View>
       </View>
     </Modal>
   );

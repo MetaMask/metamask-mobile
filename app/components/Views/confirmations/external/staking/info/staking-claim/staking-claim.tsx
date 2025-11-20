@@ -52,7 +52,7 @@ const StakingClaim = ({
   useStakingTransactionTracing();
 
   return (
-    <View testID={ConfirmationInfoComponentIDs.STAKING_CLAIM}>
+    <View accessibilityRole="none" accessible={false} testID={ConfirmationInfoComponentIDs.STAKING_CLAIM}>
       <HeroRow amountWei={route?.params?.amountWei} />
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}

@@ -11,7 +11,7 @@ export const Pill = ({ text, testID }: { text: string; testID?: string }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Text variant={TextVariant.BodyMD} testID={testID}>
         {text}
       </Text>

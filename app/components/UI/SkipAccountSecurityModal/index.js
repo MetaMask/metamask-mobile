@@ -97,7 +97,7 @@ const SkipAccountSecurityModal = ({ route }) => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.skipModalContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.skipModalContainer}>
         <Icon
           name={IconName.Danger}
           size={IconSize.Lg}
@@ -133,7 +133,7 @@ const SkipAccountSecurityModal = ({ route }) => {
           </Text>
         </View>
 
-        <View style={styles.ctaContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.ctaContainer}>
           <Button
             onPress={onCancelAction}
             label={strings('account_backup_step_1.skip_button_cancel')}

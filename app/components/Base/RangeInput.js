@@ -166,14 +166,14 @@ const RangeInput = ({
   const hasError = Boolean(error) || Boolean(errorState);
 
   return (
-    <View>
-      <View style={styles.labelContainer}>
+    <View accessibilityRole="none" accessible={false}>
+      <View accessibilityRole="none" accessible={false} style={styles.labelContainer}>
         {renderLabelComponent(leftLabelComponent)}
         {renderLabelComponent(rightLabelComponent)}
       </View>
 
-      <View style={styles.rangeInputContainer(Boolean(error))}>
-        <View style={styles.buttonContainerLeft}>
+      <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer(Boolean(error))}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonContainerLeft}>
           <TouchableOpacity
             style={styles.button}
             hitSlop={styles.hitSlop}
@@ -182,7 +182,7 @@ const RangeInput = ({
             <FontAwesomeIcon name="minus" size={10} style={styles.buttonText} />
           </TouchableOpacity>
         </View>
-        <View style={styles.inputContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.inputContainer}>
           <TextInput
             style={styles.input(Boolean(error))}
             onChangeText={changeValue}
@@ -198,7 +198,7 @@ const RangeInput = ({
             </Text>
           )}
         </View>
-        <View style={styles.buttonContainerRight}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonContainerRight}>
           <Text
             style={styles.conversionEstimation}
             adjustsFontSizeToFit
@@ -216,7 +216,7 @@ const RangeInput = ({
         </View>
       </View>
       {hasError && (
-        <View style={styles.errorContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.errorContainer}>
           <FontAwesomeIcon
             name="exclamation-circle"
             size={14}

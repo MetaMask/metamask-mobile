@@ -517,7 +517,7 @@ const QRScanner = ({
 
   if (!cameraDevice) {
     return (
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
           {strings('qr_scanner.camera_not_available')}
         </Text>
@@ -526,7 +526,7 @@ const QRScanner = ({
   }
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Camera
         style={styles.preview}
         device={cameraDevice}
@@ -535,18 +535,18 @@ const QRScanner = ({
         torch="off"
         onError={onError}
       />
-      <View style={styles.overlayContainerColumn}>
-        <View style={styles.overlay} />
+      <View accessibilityRole="none" accessible={false} style={styles.overlayContainerColumn}>
+        <View accessibilityRole="none" accessible={false} style={styles.overlay} />
 
-        <View style={styles.overlayContainerRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.overlayContainerRow}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
             {strings('qr_scanner.label')}
           </Text>
-          <View style={styles.overlay} />
+          <View accessibilityRole="none" accessible={false} style={styles.overlay} />
           <Image source={frameImage} style={styles.frame} />
-          <View style={styles.overlay} />
+          <View accessibilityRole="none" accessible={false} style={styles.overlay} />
         </View>
-        <View style={styles.overlay} />
+        <View accessibilityRole="none" accessible={false} style={styles.overlay} />
       </View>
     </View>
   );

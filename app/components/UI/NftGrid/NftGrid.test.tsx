@@ -73,12 +73,12 @@ jest.mock('@shopify/flash-list', () => ({
   }) => {
     const { View } = jest.requireActual('react-native');
     return (
-      <View testID={testID}>
+      <View accessibilityRole="none" accessible={false} testID={testID}>
         {ListHeaderComponent}
         {data && data.length > 0 ? (
           <>
             {data.map((item: unknown, index: number) => (
-              <View key={index}>{renderItem({ item, index })}</View>
+              <View accessibilityRole="none" accessible={false} key={index}>{renderItem({ item, index })}</View>
             ))}
             {ListFooterComponent}
           </>
@@ -102,14 +102,14 @@ jest.mock('./NftGridItemActionSheet', () => () => null);
 jest.mock('./NftGridHeader', () => {
   const { View, Text } = jest.requireActual('react-native');
   return () => (
-    <View testID="nft-grid-header">
+    <View accessibilityRole="none" accessible={false} testID="nft-grid-header">
       <Text>Header</Text>
     </View>
   );
 });
 jest.mock('./NftGridSkeleton', () => {
   const { View } = jest.requireActual('react-native');
-  return () => <View testID="nft-grid-skeleton" />;
+  return () => <View accessibilityRole="none" accessible={false} testID="nft-grid-skeleton" />;
 });
 
 // Mock CollectiblesEmptyState - has complex dependencies
@@ -125,7 +125,7 @@ jest.mock('../CollectiblesEmptyState', () => ({
   }) => {
     const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
     return (
-      <View testID={testID}>
+      <View accessibilityRole="none" accessible={false} testID={testID}>
         <TouchableOpacity
           testID={actionButtonProps.testID}
           onPress={onAction}
@@ -142,7 +142,7 @@ jest.mock('../CollectiblesEmptyState', () => ({
 jest.mock('../shared/BaseControlBar', () => {
   const { View } = jest.requireActual('react-native');
   return ({ additionalButtons }: { additionalButtons?: React.ReactNode }) => (
-    <View testID="base-control-bar">{additionalButtons}</View>
+    <View accessibilityRole="none" accessible={false} testID="base-control-bar">{additionalButtons}</View>
   );
 });
 
@@ -180,7 +180,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
     testID?: string;
   }) => {
     const { View } = jest.requireActual('react-native');
-    return <View testID={testID}>{children}</View>;
+    return <View accessibilityRole="none" accessible={false} testID={testID}>{children}</View>;
   },
   Button: ({
     children,

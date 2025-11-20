@@ -22,8 +22,8 @@ const TPSLCountWarningTooltipContent = ({
   const { styles } = useStyles(createStyles, {});
 
   return (
-    <View testID={testID}>
-      <View style={styles.feeRow}>
+    <View accessibilityRole="none" accessible={false} testID={testID}>
+      <View accessibilityRole="none" accessible={false} style={styles.feeRow}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('perps.tooltips.tpsl_count_warning.content')}
         </Text>

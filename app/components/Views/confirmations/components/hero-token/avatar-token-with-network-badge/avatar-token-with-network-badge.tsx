@@ -61,7 +61,7 @@ export const AvatarTokenWithNetworkBadge = () => {
   const { networkName, networkImage } = useNetworkInfo(chainId);
 
   return (
-    <View style={styles.base}>
+    <View accessibilityRole="none" accessible={false} style={styles.base}>
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={

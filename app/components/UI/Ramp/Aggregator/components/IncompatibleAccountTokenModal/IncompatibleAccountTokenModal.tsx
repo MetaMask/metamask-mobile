@@ -42,7 +42,7 @@ function IncompatibleAccountTokenModal() {
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <View accessibilityRole="none" accessible={false} style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {strings(
             'fiat_on_ramp_aggregator.incompatible_token_account_modal.description',

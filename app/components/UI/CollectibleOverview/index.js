@@ -186,7 +186,7 @@ const CollectibleOverview = ({
     ({ key, value, onPress }) => {
       if (!value) return null;
       return (
-        <View style={styles.collectibleInfoContainer} key={key}>
+        <View accessibilityRole="none" accessible={false} style={styles.collectibleInfoContainer} key={key}>
           <Text
             noMargin
             black
@@ -373,15 +373,15 @@ const CollectibleOverview = ({
         { transform: [{ translateY: positionAnimated }] },
       ]}
     >
-      <View style={styles.titleWrapper}>
-        <View style={styles.dragger} />
+      <View accessibilityRole="none" accessible={false} style={styles.titleWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.dragger} />
       </View>
 
       <SafeAreaView>
-        <View onLayout={onHeaderLayout}>
-          <View style={styles.generalContainer}>
+        <View accessibilityRole="none" accessible={false} onLayout={onHeaderLayout}>
+          <View accessibilityRole="none" accessible={false} style={styles.generalContainer}>
             {collectible?.creator && (
-              <View style={styles.userContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.userContainer}>
                 {isCollectionIconRenderable && (
                   <RemoteImage
                     fadeIn
@@ -392,7 +392,7 @@ const CollectibleOverview = ({
                     style={styles.userImage}
                   />
                 )}
-                <View numberOfLines={1} style={styles.userInfoContainer}>
+                <View accessibilityRole="none" accessible={false} numberOfLines={1} style={styles.userInfoContainer}>
                   {collectible.creator.user?.username && (
                     <Text black bold noMargin big={!IS_SMALL_DEVICE}>
                       {collectible.creator.user.username}
@@ -413,7 +413,7 @@ const CollectibleOverview = ({
             </Text>
           </View>
 
-          <View style={[styles.generalContainer, styles.buttonContainer]}>
+          <View accessibilityRole="none" accessible={false} style={[styles.generalContainer, styles.buttonContainer]}>
             {tradable && (
               <StyledButton
                 onPressOut={onSend}
@@ -459,9 +459,9 @@ const CollectibleOverview = ({
           </View>
         </View>
         {collectible?.description ? (
-          <View style={styles.information}>
-            <View style={[styles.generalContainer, styles.row]}>
-              <View>
+          <View accessibilityRole="none" accessible={false} style={styles.information}>
+            <View accessibilityRole="none" accessible={false} style={[styles.generalContainer, styles.row]}>
+              <View accessibilityRole="none" accessible={false}>
                 <Text noMargin black bold big={!IS_SMALL_DEVICE}>
                   {strings('collectible.collectible_description')}
                 </Text>
@@ -480,7 +480,7 @@ const CollectibleOverview = ({
                   </TouchableWithoutFeedback>
                 </ScrollView>
               ) : (
-                <View style={styles.description}>
+                <View accessibilityRole="none" accessible={false} style={styles.description}>
                   <Text noMargin black style={styles.collectibleDescription}>
                     {collectible.description}
                   </Text>
@@ -489,9 +489,9 @@ const CollectibleOverview = ({
             </View>
           </View>
         ) : (
-          <View />
+          <View accessibilityRole="none" accessible={false} />
         )}
-        {<View style={styles.information}>{renderCollectibleInfo()}</View>}
+        {<View accessibilityRole="none" accessible={false} style={styles.information}>{renderCollectibleInfo()}</View>}
       </SafeAreaView>
     </Animated.View>,
   );

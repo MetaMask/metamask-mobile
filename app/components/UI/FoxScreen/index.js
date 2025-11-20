@@ -34,7 +34,7 @@ export default class FoxScreen extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper} testID={CommonSelectorsIDs.FOX_SCREEN}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper} testID={CommonSelectorsIDs.FOX_SCREEN}>
         <Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
       </View>
     );

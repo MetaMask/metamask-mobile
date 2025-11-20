@@ -35,7 +35,7 @@ jest.mock('../../../../../component-library/base-components/TagBase', () => ({
     severity: string;
   }) => {
     const { View } = jest.requireActual('react-native');
-    return <View testID={`tag-base-${severity}`}>{children}</View>;
+    return <View accessibilityRole="none" accessible={false} testID={`tag-base-${severity}`}>{children}</View>;
   },
   TagSeverity: {
     Default: 'default',

@@ -5,7 +5,7 @@ import ConditionalScrollView from './ConditionalScrollView';
 
 describe('ConditionalScrollView', () => {
   const testContent = (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <Text>Test Content</Text>
     </View>
   );

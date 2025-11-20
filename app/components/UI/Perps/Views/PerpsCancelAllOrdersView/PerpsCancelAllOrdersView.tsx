@@ -224,7 +224,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
             {strings('perps.cancel_all_modal.title')}
           </Text>
         </BottomSheetHeader>
-        <View style={styles.emptyContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.emptyContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.order.no_orders')}
           </Text>
@@ -245,9 +245,9 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.contentContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
         {isCanceling ? (
-          <View style={styles.loadingContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.loadingContainer}>
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}

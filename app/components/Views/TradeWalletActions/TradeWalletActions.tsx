@@ -217,7 +217,7 @@ function TradeWalletActions() {
   );
 
   return (
-    <View style={tw.style('flex-1 justify-end')}>
+    <View accessibilityRole="none" accessible={false} style={tw.style('flex-1 justify-end')}>
       <MaskedView
         style={{ ...StyleSheet.absoluteFillObject }}
         maskElement={
@@ -240,10 +240,10 @@ function TradeWalletActions() {
         <Animated.View exiting={exitingWithNavigateBack}>
           <MaskedView
             maskElement={
-              <View style={tw.style('flex-1 bg-transparent px-4')}>
-                <View style={tw.style('flex-1 bg-black')} />
-                <View style={tw.style('flex-row mt-[-1px]')}>
-                  <View style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
+              <View accessibilityRole="none" accessible={false} style={tw.style('flex-1 bg-transparent px-4')}>
+                <View accessibilityRole="none" accessible={false} style={tw.style('flex-1 bg-black')} />
+                <View accessibilityRole="none" accessible={false} style={tw.style('flex-row mt-[-1px]')}>
+                  <View accessibilityRole="none" accessible={false} style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
                   <BottomShape
                     width={buttonLayout.width * 4}
                     height={bottomMaskHeight}
@@ -252,7 +252,7 @@ function TradeWalletActions() {
                     baseBezierLength={55}
                     fill="black"
                   />
-                  <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
+                  <View accessibilityRole="none" accessible={false} style={tw.style('bg-black flex-1 rounded-br-2xl')} />
                 </View>
               </View>
             }

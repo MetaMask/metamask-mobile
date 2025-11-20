@@ -15,7 +15,7 @@ const Approve = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <View testID={ConfirmationInfoComponentIDs.APPROVE}>
+    <View accessibilityRole="none" accessible={false} testID={ConfirmationInfoComponentIDs.APPROVE}>
       <AccountNetworkInfoRow />
       <ApproveRow />
       <NetworkAndOriginRow />

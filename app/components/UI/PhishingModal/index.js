@@ -140,8 +140,8 @@ export default class PhishingModal extends PureComponent {
     const host = urlObj.hostname;
 
     return (
-      <View style={styles.phishingModalWrapper}>
-        <View style={styles.warningContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.phishingModalWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.warningContainer}>
           <Icon name="warning" style={styles.warningIcon} />
         </View>
         <Text

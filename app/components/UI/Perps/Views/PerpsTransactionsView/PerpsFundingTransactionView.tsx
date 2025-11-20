@@ -53,7 +53,7 @@ const PerpsFundingTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
       </ScreenView>
@@ -113,16 +113,16 @@ const PerpsFundingTransactionView: React.FC = () => {
         testID={PerpsTransactionSelectorsIDs.FUNDING_TRANSACTION_VIEW}
         style={styles.container}
       >
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           <PerpsTransactionDetailAssetHero
             transaction={transaction}
             styles={styles}
           />
 
           {/* Transaction details - clean list design */}
-          <View style={styles.detailsContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.detailsContainer}>
             {detailRows.map((detail, index) => (
-              <View key={index} style={styles.detailRow}>
+              <View accessibilityRole="none" accessible={false} key={index} style={styles.detailRow}>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}

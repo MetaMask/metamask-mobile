@@ -83,7 +83,7 @@ const ApproveTransactionHeader = ({
     origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
 
   return (
-    <View style={styles.transactionHeader}>
+    <View accessibilityRole="none" accessible={false} style={styles.transactionHeader}>
       {showOrigin ? (
         <ApprovalTagUrl
           origin={origin}

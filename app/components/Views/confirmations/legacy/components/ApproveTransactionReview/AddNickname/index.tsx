@@ -188,7 +188,7 @@ const AddNickname = (props: AddNicknameProps) => {
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
           />
-          <View style={styles.bodyWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.bodyWrapper}>
             {showFullAddress && (
               <InfoModal
                 isVisible
@@ -197,11 +197,11 @@ const AddNickname = (props: AddNicknameProps) => {
                 toggleModal={showFullAddressModal}
               />
             )}
-            <View style={styles.addressIdenticon}>
+            <View accessibilityRole="none" accessible={false} style={styles.addressIdenticon}>
               <Identicon address={address} diameter={25} />
             </View>
             <Text style={styles.label}>{strings('nickname.address')}</Text>
-            <View style={styles.addressWrapperPrimary}>
+            <View accessibilityRole="none" accessible={false} style={styles.addressWrapperPrimary}>
               <TouchableOpacity
                 style={styles.addressWrapper}
                 onPress={copyAddress}
@@ -238,7 +238,7 @@ const AddNickname = (props: AddNicknameProps) => {
               keyboardAppearance={themeAppearance}
             />
             {addressHasError && (
-              <View style={styles.errorContinue}>
+              <View accessibilityRole="none" accessible={false} style={styles.errorContinue}>
                 <ErrorMessage
                   errorMessage={renderErrorMessage(addressErr)}
                   errorContinue={!!errContinue}
@@ -247,7 +247,7 @@ const AddNickname = (props: AddNicknameProps) => {
               </View>
             )}
           </View>
-          <View style={styles.updateButton}>
+          <View accessibilityRole="none" accessible={false} style={styles.updateButton}>
             <StyledButton
               type={'confirm'}
               disabled={shouldDisableButton}

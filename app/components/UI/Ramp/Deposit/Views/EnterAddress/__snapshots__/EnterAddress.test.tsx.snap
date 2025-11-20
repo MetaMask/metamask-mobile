@@ -583,7 +583,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                             update={[Function]}
                             viewIsInsideTabBar={false}
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   [
@@ -1508,7 +1508,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                               </View>
                             </View>
                           </RCTScrollView>
-                          <View>
+                          <View accessibilityRole="none" accessible={false}>
                             <View
                               style={
                                 [
@@ -2262,7 +2262,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                             update={[Function]}
                             viewIsInsideTabBar={false}
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   [
@@ -3119,7 +3119,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                               </View>
                             </View>
                           </RCTScrollView>
-                          <View>
+                          <View accessibilityRole="none" accessible={false}>
                             <View
                               style={
                                 [
@@ -3873,7 +3873,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                             update={[Function]}
                             viewIsInsideTabBar={false}
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   [
@@ -4738,7 +4738,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                               </View>
                             </View>
                           </RCTScrollView>
-                          <View>
+                          <View accessibilityRole="none" accessible={false}>
                             <View
                               style={
                                 [
@@ -5492,7 +5492,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                             update={[Function]}
                             viewIsInsideTabBar={false}
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   [
@@ -6378,7 +6378,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                               </View>
                             </View>
                           </RCTScrollView>
-                          <View>
+                          <View accessibilityRole="none" accessible={false}>
                             <View
                               style={
                                 [

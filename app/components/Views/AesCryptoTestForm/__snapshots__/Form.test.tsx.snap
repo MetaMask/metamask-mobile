@@ -16,7 +16,7 @@ exports[`TestForm renders correctly 1`] = `
   >
     random title
   </Text>
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <TextInput
       autoComplete="off"
       autoCorrect={false}

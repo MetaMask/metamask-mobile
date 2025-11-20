@@ -1381,7 +1381,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               onGestureHandlerStateChange={[Function]}
                               testID="quotes"
                             >
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     {
@@ -1630,7 +1630,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <View />
+                          <View accessibilityRole="none" accessible={false} />
                         </View>
                       </View>
                     </View>
@@ -3749,7 +3749,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   </Text>
                                 </View>
                               </View>
-                              <View />
+                              <View accessibilityRole="none" accessible={false} />
                               <View
                                 style={
                                   [
@@ -3779,7 +3779,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   onScroll={[Function]}
                                   scrollEventThrottle={16}
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         [
@@ -5601,7 +5601,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               onGestureHandlerStateChange={[Function]}
                               testID="quotes"
                             >
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     [
@@ -6000,7 +6000,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <View />
+                          <View accessibilityRole="none" accessible={false} />
                         </View>
                       </View>
                     </View>

@@ -41,12 +41,12 @@ const DisplayNFTMediaSettings = () => {
   };
 
   return (
-    <View style={styles.halfSetting}>
-      <View style={styles.titleContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.halfSetting}>
+      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.display_nft_media')}
         </Text>
-        <View style={styles.switchElement}>
+        <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
           <Switch
             testID={NFT_DISPLAY_MEDIA_MODE_SECTION}
             value={displayNftMedia}

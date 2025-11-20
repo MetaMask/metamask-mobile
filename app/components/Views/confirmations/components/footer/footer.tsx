@@ -210,8 +210,8 @@ export const Footer = () => {
         style={styles.base}
       />
       {isStakingConfirmationBool && (
-        <View style={styles.bottomTextContainer}>
-          <View style={styles.bottomTextContainerLine}>
+        <View accessibilityRole="none" accessible={false} style={styles.bottomTextContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.bottomTextContainerLine}>
             <Text variant={TextVariant.BodySM}>
               {strings('confirm.staking_footer.part1')}
             </Text>
@@ -223,7 +223,7 @@ export const Footer = () => {
               {strings('confirm.staking_footer.terms_of_use')}
             </Text>
           </View>
-          <View style={styles.bottomTextContainerLine}>
+          <View accessibilityRole="none" accessible={false} style={styles.bottomTextContainerLine}>
             <Text variant={TextVariant.BodySM}>
               {strings('confirm.staking_footer.part2')}
               {'\n'}

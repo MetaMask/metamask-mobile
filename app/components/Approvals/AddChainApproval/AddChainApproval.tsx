@@ -20,7 +20,7 @@ const AddChainApproval = () => {
 
   return (
     <BottomSheet onClose={() => onReject()} shouldNavigateBack={false}>
-      <View style={styles.actionsContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.actionsContainer}>
         <NetworkVerificationInfo
           customNetworkInformation={customNetworkInformation}
           onReject={onReject}

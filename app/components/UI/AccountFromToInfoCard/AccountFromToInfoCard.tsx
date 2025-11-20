@@ -166,7 +166,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       {fromAddress && (
         <AddressFrom
           chainId={transactionState?.chainId}

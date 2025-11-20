@@ -327,7 +327,7 @@ const EvmAccountSelectorList = ({
 
   const renderSectionHeader = useCallback(
     ({ title, wallet }: { title: string; wallet?: AccountWalletObject }) => (
-      <View style={styles.sectionHeader}>
+      <View accessibilityRole="none" accessible={false} style={styles.sectionHeader}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {title}
         </Text>
@@ -348,7 +348,7 @@ const EvmAccountSelectorList = ({
   );
 
   const renderSectionFooter = useCallback(
-    () => <View style={styles.sectionSeparator} />,
+    () => <View accessibilityRole="none" accessible={false} style={styles.sectionSeparator} />,
     [styles.sectionSeparator],
   );
 
@@ -569,7 +569,7 @@ const EvmAccountSelectorList = ({
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
   return (
-    <View style={styles.listContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.listContainer}>
       <FlashList
         ref={accountListRef}
         onContentSizeChange={onContentSizeChanged}

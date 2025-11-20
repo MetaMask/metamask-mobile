@@ -296,8 +296,8 @@ const ActivityView = () => {
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       {showBackButton ? (
-        <View style={[styles.headerWithBackButton, { marginTop: insets.top }]}>
-          <View style={styles.headerBackButton}>
+        <View accessibilityRole="none" accessible={false} style={[styles.headerWithBackButton, { marginTop: insets.top }]}>
+          <View accessibilityRole="none" accessible={false} style={styles.headerBackButton}>
             <ButtonIcon
               iconName={IconName.ArrowLeft}
               iconColor={IconColor.Default}
@@ -306,28 +306,28 @@ const ActivityView = () => {
               testID="activity-view-back-button"
             />
           </View>
-          <View style={styles.headerTitleContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.headerTitleContainer}>
             <TextComponent variant={TextVariant.HeadingMD}>
               {strings('transactions_view.title')}
             </TextComponent>
           </View>
         </View>
       ) : (
-        <View style={[styles.header, { marginTop: insets.top }]}>
+        <View accessibilityRole="none" accessible={false} style={[styles.header, { marginTop: insets.top }]}>
           <Text style={styles.title} variant={TextVariant.HeadingSM}>
             {strings('transactions_view.title')}
           </Text>
         </View>
       )}
-      <View style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
         {!(isPerpsTabActive || isOrdersTabActive || isPredictTabActive) && (
-          <View style={styles.controlButtonOuterWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.controlButtonOuterWrapper}>
             <ButtonBase
               testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
               label={
                 <>
                   {isRemoveGlobalNetworkSelectorEnabled() ? (
-                    <View style={styles.networkManagerWrapper}>
+                    <View accessibilityRole="none" accessible={false} style={styles.networkManagerWrapper}>
                       {!areAllNetworksSelected && (
                         <Avatar
                           variant={AvatarVariant.Network}

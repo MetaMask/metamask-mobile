@@ -58,7 +58,7 @@ exports[`OrderListItem should render correctly 1`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -307,7 +307,7 @@ exports[`OrderListItem should render correctly 2`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -556,7 +556,7 @@ exports[`OrderListItem should render correctly 3`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -805,7 +805,7 @@ exports[`OrderListItem should render correctly 4`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -1054,7 +1054,7 @@ exports[`OrderListItem should render correctly 5`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -1303,7 +1303,7 @@ exports[`OrderListItem should render correctly 6`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -1552,7 +1552,7 @@ exports[`OrderListItem should render correctly 7`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -1801,7 +1801,7 @@ exports[`OrderListItem should render correctly 8`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -2050,7 +2050,7 @@ exports[`OrderListItem should render correctly 9`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -2242,7 +2242,7 @@ exports[`OrderListItem should render correctly 10`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}
@@ -2434,7 +2434,7 @@ exports[`OrderListItem should render correctly 11`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Image
             resizeMode="stretch"
             source={1}

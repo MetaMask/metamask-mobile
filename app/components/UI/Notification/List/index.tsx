@@ -48,7 +48,7 @@ function Loading() {
   } = useStyles();
 
   return (
-    <View style={styles.loaderContainer} testID={TEST_IDS.loadingContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.loaderContainer} testID={TEST_IDS.loadingContainer}>
       <ActivityIndicator color={colors.primary.default} size="large" />
     </View>
   );
@@ -210,14 +210,14 @@ const Notifications = (props: NotificationsListProps) => {
   const { styles } = useStyles();
   if (props.loading) {
     return (
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <Loading />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <SingleNotificationList {...props} />
     </View>
   );

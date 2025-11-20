@@ -56,7 +56,7 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
     : MODAL_CONFIRMATION_NORMAL_BUTTON_ID;
 
   const renderButtons = () => (
-    <View style={styles.buttonsContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
       <Button
         variant={ButtonVariants.Secondary}
         onPress={triggerCancel}
@@ -64,7 +64,7 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
         size={ButtonSize.Lg}
         style={styles.button}
       />
-      <View style={styles.buttonDivider} />
+      <View accessibilityRole="none" accessible={false} style={styles.buttonDivider} />
       <Button
         variant={ButtonVariants.Primary}
         testID={buttonTestID}
@@ -83,12 +83,12 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
       style={styles.screen}
       onDismiss={handleModalDismiss}
     >
-      <View style={styles.modal}>
-        <View style={styles.bodyContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.modal}>
+        <View accessibilityRole="none" accessible={false} style={styles.bodyContainer}>
           {renderHeader()}
           {renderDescription()}
         </View>
-        <View style={styles.divider} />
+        <View accessibilityRole="none" accessible={false} style={styles.divider} />
         {renderButtons()}
       </View>
     </ReusableModal>

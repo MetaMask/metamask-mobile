@@ -112,7 +112,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
         <RCTScrollView
           bounces={false}
         >
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <View
               style={
                 [

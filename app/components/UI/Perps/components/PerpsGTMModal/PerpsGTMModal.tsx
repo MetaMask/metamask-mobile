@@ -112,7 +112,7 @@ const PerpsGTMModal = () => {
       testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL}
     >
       {/* Header Section */}
-      <View style={styles.headerContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
         <Text
           style={styles.title}
           variant={TextVariant.HeadingLG}
@@ -130,12 +130,12 @@ const PerpsGTMModal = () => {
       </View>
 
       {/* Content Section */}
-      <View style={styles.contentImageContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.contentImageContainer}>
         <Image source={Character} style={styles.image} />
       </View>
 
       {/* Footer Section */}
-      <View style={styles.footerContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.footerContainer}>
         <ButtonBase
           onPress={() => tryPerpsNow()}
           testID={PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON}

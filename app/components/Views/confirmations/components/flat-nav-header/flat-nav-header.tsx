@@ -32,7 +32,7 @@ const FlatNavHeader = ({ title, onLeftPress }: FlatNavHeaderProps) => {
   }, [onLeftPress, onReject]);
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <ButtonIcon
         iconName={IconName.ArrowLeft}
         onPress={handleLeftPress}

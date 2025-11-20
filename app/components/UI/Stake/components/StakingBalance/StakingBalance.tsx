@@ -218,7 +218,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   };
 
   return (
-    <View testID="staking-balance-container">
+    <View accessibilityRole="none" accessible={false} testID="staking-balance-container">
       {hasEthToUnstake && !isLoadingPooledStakesData && (
         <AssetElement
           asset={asset}
@@ -245,7 +245,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
               testID={'staking-balance-asset-logo'}
             />
           </BadgeWrapper>
-          <View style={styles.balances}>
+          <View accessibilityRole="none" accessible={false} style={styles.balances}>
             <Text variant={TextVariant.BodyMD} testID="staked-ethereum-label">
               {strings('stake.staked_ethereum')}
             </Text>
@@ -256,8 +256,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         </AssetElement>
       )}
 
-      <View style={styles.container}>{renderStakingContent()}</View>
-      <View style={styles.stakingEarnings}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>{renderStakingContent()}</View>
+      <View accessibilityRole="none" accessible={false} style={styles.stakingEarnings}>
         <StakingEarnings asset={asset} />
       </View>
     </View>

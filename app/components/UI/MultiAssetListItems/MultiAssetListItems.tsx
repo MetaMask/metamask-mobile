@@ -87,7 +87,7 @@ const MultiAssetListItems = ({
             onPress={() => !isDisabled && handleSelectAsset(item)}
             testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
           >
-            <View style={styles.Icon}>
+            <View accessibilityRole="none" accessible={false} style={styles.Icon}>
               <BadgeWrapper
                 badgePosition={BadgePosition.BottomRight}
                 badgeElement={
@@ -109,7 +109,7 @@ const MultiAssetListItems = ({
                 )}
               </BadgeWrapper>
             </View>
-            <View style={styles.tokens}>
+            <View accessibilityRole="none" accessible={false} style={styles.tokens}>
               <Text variant={TextVariant.BodyLGMedium}>{name}</Text>
               <Text variant={TextVariant.BodyMD}>{symbol}</Text>
             </View>

@@ -132,8 +132,8 @@ const EditAccountName = () => {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.inputsContainer}>
-        <View style={styles.inputContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.inputsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.inputContainer}>
           <Text variant={TextVariant.BodyLGMedium}>
             {strings('address_book.name')}
           </Text>
@@ -144,7 +144,7 @@ const EditAccountName = () => {
             autoFocus
           />
         </View>
-        <View style={styles.inputContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.inputContainer}>
           <Text variant={TextVariant.BodyLGMedium}>
             {strings('address_book.address')}
           </Text>
@@ -158,7 +158,7 @@ const EditAccountName = () => {
           ) : null}
         </View>
       </View>
-      <View style={styles.buttonsContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Lg}

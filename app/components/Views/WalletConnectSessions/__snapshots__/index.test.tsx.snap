@@ -879,7 +879,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -1361,7 +1361,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <TouchableOpacity
                             onLongPress={[Function]}
                             style={
@@ -1374,7 +1374,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               }
                             }
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 placeholderStyle={
                                   {
@@ -1488,7 +1488,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               }
                             }
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 placeholderStyle={
                                   {

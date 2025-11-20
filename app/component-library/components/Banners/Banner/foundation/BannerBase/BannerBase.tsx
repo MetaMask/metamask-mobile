@@ -52,9 +52,9 @@ const BannerBase: React.FC<BannerBaseProps> = ({
     );
 
   return (
-    <View style={styles.base} {...props}>
-      <View style={styles.startAccessory}>{startAccessory}</View>
-      <View style={styles.info}>
+    <View accessibilityRole="none" accessible={false} style={styles.base} {...props}>
+      <View accessibilityRole="none" accessible={false} style={styles.startAccessory}>{startAccessory}</View>
+      <View accessibilityRole="none" accessible={false} style={styles.info}>
         {renderTitle()}
         {renderDescription()}
         {actionButtonProps && (
@@ -66,7 +66,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
         {children}
       </View>
       {(onClose || closeButtonProps) && (
-        <View style={styles.endAccessory}>
+        <View accessibilityRole="none" accessible={false} style={styles.endAccessory}>
           <ButtonIcon
             testID={TESTID_BANNER_CLOSE_BUTTON_ICON}
             iconColor={DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_ICONCOLOR}

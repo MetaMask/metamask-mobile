@@ -74,7 +74,7 @@ const QuoteExpiredModal = () => {
       <BottomSheetHeader onClose={handleClose}>
         {strings('quote_expired_modal.title')}
       </BottomSheetHeader>
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <Text variant={TextVariant.BodyMD}>
           {strings('quote_expired_modal.description', {
             refreshRate,

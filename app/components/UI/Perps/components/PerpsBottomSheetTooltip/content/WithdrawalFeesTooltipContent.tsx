@@ -54,7 +54,7 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
   }, [withdrawalRoute]);
 
   return (
-    <View testID={testID}>
+    <View accessibilityRole="none" accessible={false} testID={testID}>
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
@@ -62,7 +62,7 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
       >
         {strings('perps.tooltips.withdrawal_fees.content')}
       </Text>
-      <View style={styles.feeRow}>
+      <View accessibilityRole="none" accessible={false} style={styles.feeRow}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('perps.tooltips.fees.provider_fee')}
         </Text>
@@ -70,7 +70,7 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
           {networkFee}
         </Text>
       </View>
-      <View style={styles.feeRow}>
+      <View accessibilityRole="none" accessible={false} style={styles.feeRow}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('perps.tooltips.fees.metamask_fee')}
         </Text>
@@ -78,7 +78,7 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
           {METAMASK_WITHDRAWAL_FEE_PLACEHOLDER}
         </Text>
       </View>
-      <View style={styles.totalRow}>
+      <View accessibilityRole="none" accessible={false} style={styles.totalRow}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {strings('perps.tooltips.fees.total')}
         </Text>

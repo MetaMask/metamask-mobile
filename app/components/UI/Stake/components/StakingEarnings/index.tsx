@@ -74,17 +74,17 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   if (!isStakingSupportedChain || !hasEarnPooledStakes) return <></>;
 
   return (
-    <View style={styles.stakingEarningsContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.stakingEarningsContainer}>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('stake.your_earnings')}
       </Text>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         {isPooledStakingServiceInterruptionBannerEnabled && (
           <EarnMaintenanceBanner />
         )}
         {/* Annual Rate */}
-        <View style={styles.keyValueRow}>
-          <View style={styles.keyValuePrimaryTextWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.keyValueRow}>
+          <View accessibilityRole="none" accessible={false} style={styles.keyValuePrimaryTextWrapper}>
             <Text
               variant={TextVariant.BodyMDMedium}
               style={styles.keyValuePrimaryText}
@@ -122,8 +122,8 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
             </Text>
           )}
         </View>
-        <View style={styles.keyValueRow}>
-          <View style={styles.keyValuePrimaryTextWrapperCentered}>
+        <View accessibilityRole="none" accessible={false} style={styles.keyValueRow}>
+          <View accessibilityRole="none" accessible={false} style={styles.keyValuePrimaryTextWrapperCentered}>
             <Text
               variant={TextVariant.BodyMDMedium}
               style={styles.keyValuePrimaryText}
@@ -131,7 +131,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
               {strings('stake.lifetime_rewards')}
             </Text>
           </View>
-          <View style={styles.keyValueSecondaryText}>
+          <View accessibilityRole="none" accessible={false} style={styles.keyValueSecondaryText}>
             {isLoadingEarningsData ? (
               <SkeletonPlaceholder>
                 <SkeletonPlaceholder.Item
@@ -159,8 +159,8 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
             )}
           </View>
         </View>
-        <View style={styles.keyValueRow}>
-          <View style={styles.keyValuePrimaryTextWrapperCentered}>
+        <View accessibilityRole="none" accessible={false} style={styles.keyValueRow}>
+          <View accessibilityRole="none" accessible={false} style={styles.keyValuePrimaryTextWrapperCentered}>
             <Text
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Alternative}
@@ -168,7 +168,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
               {strings('stake.estimated_annual_earnings')}
             </Text>
           </View>
-          <View style={styles.keyValueSecondaryText}>
+          <View accessibilityRole="none" accessible={false} style={styles.keyValueSecondaryText}>
             {isLoadingEarningsData ? (
               <SkeletonPlaceholder>
                 <SkeletonPlaceholder.Item

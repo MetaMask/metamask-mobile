@@ -52,8 +52,8 @@ export default function ManageNetworksComponent() {
   }, []);
 
   return (
-    <View style={styles.setting}>
-      <View style={styles.heading}>
+    <View accessibilityRole="none" accessible={false} style={styles.setting}>
+      <View accessibilityRole="none" accessible={false} style={styles.heading}>
         <Text variant={TextVariant.HeadingSM}>
           {strings('default_settings.manage_networks')}
         </Text>

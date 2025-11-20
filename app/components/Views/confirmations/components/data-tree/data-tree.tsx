@@ -26,7 +26,7 @@ const DataTree = ({
   primaryType?: PrimaryType;
   tokenDecimals?: number;
 }) => (
-  <View style={styles.container}>
+  <View accessibilityRole="none" accessible={false} style={styles.container}>
     {Object.keys(data).map((dataKey: string, index: number) => {
       const datum = data[dataKey];
       return (

@@ -210,7 +210,7 @@ const DecodedSimulation: React.FC<object> = () => {
         stateChangeFragment.length ? (
           stateChangeFragment
         ) : (
-          <View style={styles.unavailableContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.unavailableContainer}>
             <Text>{strings('confirm.simulation.unavailable')}</Text>
           </View>
         )

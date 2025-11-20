@@ -46,7 +46,7 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
   });
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <TouchableOpacity
         style={styles.base}
         disabled={isDisabled}
@@ -58,13 +58,13 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
           {children}
         </ListItem>
         {isSelected && (
-          <View style={styles.underlay} accessibilityRole="checkbox" accessible>
-            <View style={styles.underlayBar} />
+          <View accessibilityRole="none" accessible={false} style={styles.underlay} accessibilityRole="checkbox" accessible>
+            <View accessibilityRole="none" accessible={false} style={styles.underlayBar} />
           </View>
         )}
       </TouchableOpacity>
       {showButtonIcon ? (
-        <View style={styles.buttonIcon}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonIcon}>
           <ButtonIcon
             iconName={buttonIcon}
             iconColor={IconColor.Default}
@@ -75,7 +75,7 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
         </View>
       ) : null}
       {buttonProps?.textButton ? (
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Button
             variant={ButtonVariants.Link}
             onPress={buttonProps?.onButtonClick as () => void}

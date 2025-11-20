@@ -7,7 +7,7 @@ describe('Screen', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
       <Screen>
-        <View>Foobar</View>
+        <View accessibilityRole="none" accessible={false}>Foobar</View>
       </Screen>,
     );
     expect(toJSON()).toMatchSnapshot();

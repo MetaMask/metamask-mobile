@@ -10,7 +10,7 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
     }
   }
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       style={
         {

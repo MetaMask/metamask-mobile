@@ -119,8 +119,8 @@ exports[`NotificationsDetails renders correctly 1`] = `
       }
     }
   >
-    <View>
-      <View>
+    <View accessibilityRole="none" accessible={false}>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -556,7 +556,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             }
             testID="badge-wrapper-badge"
           >
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <View
                 placeholderStyle={
                   {

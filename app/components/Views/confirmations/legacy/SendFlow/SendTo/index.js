@@ -598,7 +598,7 @@ class SendFlow extends PureComponent {
             onPress={this.onNetworkSelectorPress}
           />
         ) : null}
-        <View style={styles.imputWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.imputWrapper}>
           <SendFlowAddressFrom
             chainId={globalChainId}
             fromAccountBalanceState={this.fromAccountBalanceState}
@@ -622,7 +622,7 @@ class SendFlow extends PureComponent {
         </View>
 
         {!toSelectedAddressReady && !!toAccount && (
-          <View style={styles.warningContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.warningContainer}>
             <WarningMessage
               warningMessage={
                 toAccount.substring(0, 2) === '0x'
@@ -642,7 +642,7 @@ class SendFlow extends PureComponent {
             onAccountLongPress={dummy}
           />
         ) : (
-          <View style={styles.nextActionWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.nextActionWrapper}>
             <ScrollView>
               {addressError && addressError !== CONTACT_ALREADY_SAVED && (
                 <View
@@ -664,7 +664,7 @@ class SendFlow extends PureComponent {
                     displayAsWarning && styles.confusabeWarning,
                   ]}
                 >
-                  <View style={styles.warningIcon}>
+                  <View accessibilityRole="none" accessible={false} style={styles.warningIcon}>
                     <Icon
                       size={16}
                       color={
@@ -675,7 +675,7 @@ class SendFlow extends PureComponent {
                       name="exclamation-triangle"
                     />
                   </View>
-                  <View>
+                  <View accessibilityRole="none" accessible={false}>
                     <Text style={styles.confusableTitle}>
                       {strings('transaction.confusable_title')}
                     </Text>
@@ -701,7 +701,7 @@ class SendFlow extends PureComponent {
                 </Text>
               </AddToAddressBookWrapper>
               {balanceIsZero && (
-                <View style={styles.warningContainer}>
+                <View accessibilityRole="none" accessible={false} style={styles.warningContainer}>
                   <WarningMessage
                     warningMessage={
                       <>
@@ -716,7 +716,7 @@ class SendFlow extends PureComponent {
                 </View>
               )}
               {this.state.showAmbiguousAcountWarning && (
-                <View style={styles.warningContainer}>
+                <View accessibilityRole="none" accessible={false} style={styles.warningContainer}>
                   <WarningMessage
                     onDismiss={this.onAmbiguousAcountWarningDismiss}
                     warningMessage={<>{strings('duplicate_address.body')}</>}
@@ -733,7 +733,7 @@ class SendFlow extends PureComponent {
             testID={SendViewSelectorsIDs.NO_ETH_MESSAGE}
           >
             {!errorContinue && (
-              <View style={styles.buttonNextWrapper}>
+              <View accessibilityRole="none" accessible={false} style={styles.buttonNextWrapper}>
                 <StyledButton
                   type={'confirm'}
                   containerStyle={styles.buttonNext}

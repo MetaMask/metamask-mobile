@@ -149,7 +149,7 @@ const TransactionHeader = (props) => {
     let url = props.currentPageInformation.url;
     if (originIsDeeplink && !icon) {
       return (
-        <View style={styles.deeplinkIconContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.deeplinkIconContainer}>
           <FontAwesome
             style={styles.deeplinkIcon}
             name={origin === ORIGIN_DEEPLINK ? 'link' : 'qrcode'}
@@ -205,7 +205,7 @@ const TransactionHeader = (props) => {
   );
 
   const renderNetworkContainer = () => (
-    <View style={styles.networkContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.networkContainer}>
       {renderNetworkStatusIndicator()}
       <Text style={styles.network}>
         {props.nickname || networkList[props.networkType]?.shortName}
@@ -217,7 +217,7 @@ const TransactionHeader = (props) => {
   );
 
   return (
-    <View style={styles.transactionHeader}>
+    <View accessibilityRole="none" accessible={false} style={styles.transactionHeader}>
       {renderTopIcon()}
       {!showOrigin ? null : renderDomainUrlContainer()}
       {renderNetworkContainer()}

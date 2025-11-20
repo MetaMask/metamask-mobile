@@ -160,7 +160,7 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
       }
       viewabilityConfigCallbackPairs={[]}
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           onFocusCapture={[Function]}
           onLayout={[Function]}

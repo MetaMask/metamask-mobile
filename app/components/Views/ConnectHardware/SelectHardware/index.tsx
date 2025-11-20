@@ -141,12 +141,12 @@ const SelectHardwareWallet = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.textContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
         <Text variant={TextVariant.BodyMD}>
           {strings('connect_hardware.select_hardware')}
         </Text>
       </View>
-      <View style={styles.buttonsContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
         <LedgerButton />
         <QRButton />
       </View>

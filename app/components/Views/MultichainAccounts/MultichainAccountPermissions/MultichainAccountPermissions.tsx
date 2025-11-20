@@ -444,7 +444,7 @@ export const MultichainAccountPermissions = (
     };
 
     return (
-      <View style={networkSelectorWrapperStyle}>
+      <View accessibilityRole="none" accessible={false} style={networkSelectorWrapperStyle}>
         <NetworkConnectMultiSelector
           onSubmit={handleNetworksSelected}
           isLoading={false}

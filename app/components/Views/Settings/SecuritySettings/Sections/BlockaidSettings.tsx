@@ -47,7 +47,7 @@ const BlockaidSettings = () => {
 
   return (
     <>
-      <View style={styles.marginedSwitchElement}>
+      <View accessibilityRole="none" accessible={false} style={styles.marginedSwitchElement}>
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.security_alerts')}
         </Text>

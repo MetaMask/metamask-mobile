@@ -13,7 +13,7 @@ const SwitchAccountType = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <View testID={ConfirmationInfoComponentIDs.SWITCH_ACCOUNT_TYPE}>
+    <View accessibilityRole="none" accessible={false} testID={ConfirmationInfoComponentIDs.SWITCH_ACCOUNT_TYPE}>
       <AccountNetworkInfoRow />
       <SwitchAccountTypeInfoRow />
       <GasFeesDetailsRow />

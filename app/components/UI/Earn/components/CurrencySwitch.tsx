@@ -66,12 +66,12 @@ const CurrencyToggle = ({ onPress, value }: CurrencyToggleProps) => {
           onPress={onPress}
           style={styles.currencyToggleText}
         >
-          <View style={styles.currencyToggleText}>
+          <View accessibilityRole="none" accessible={false} style={styles.currencyToggleText}>
             <Text color={TextColor.Default} variant={TextVariant.BodyMDMedium}>
               {value}
             </Text>
           </View>
-          <View style={styles.currencyToggleIcon}>
+          <View accessibilityRole="none" accessible={false} style={styles.currencyToggleIcon}>
             <Icon
               name={IconName.SwapVertical}
               size={IconSize.Sm}

@@ -57,9 +57,9 @@ const EstimatedAnnualRewardsCard = ({
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.rewardCard}>
-      <View style={styles.rewardRow}>
-        <View style={styles.labelWithIcon}>
+    <View accessibilityRole="none" accessible={false} style={styles.rewardCard}>
+      <View accessibilityRole="none" accessible={false} style={styles.rewardRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.labelWithIcon}>
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('stake.metamask_pool')}
           </Text>
@@ -74,7 +74,7 @@ const EstimatedAnnualRewardsCard = ({
             />
           </TouchableOpacity>
         </View>
-        <View style={styles.rewardRateContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.rewardRateContainer}>
           {isLoading ? (
             <SkeletonPlaceholder>
               <SkeletonPlaceholder.Item

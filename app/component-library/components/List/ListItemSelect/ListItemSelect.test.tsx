@@ -15,7 +15,7 @@ describe('ListItemSelect', () => {
   it('renders with basic props', () => {
     const { getByTestId } = render(
       <ListItemSelect onPress={() => null} testID="list-item-select">
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -26,7 +26,7 @@ describe('ListItemSelect', () => {
   it('renders when disabled', () => {
     const { getByTestId } = render(
       <ListItemSelect onPress={() => null} isDisabled testID="list-item-select">
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -39,7 +39,7 @@ describe('ListItemSelect', () => {
     const mockOnPress = jest.fn();
     const { getByTestId } = render(
       <ListItemSelect onPress={mockOnPress} testID="list-item-select">
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -57,7 +57,7 @@ describe('ListItemSelect', () => {
         isDisabled
         testID="list-item-select"
       >
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -74,7 +74,7 @@ describe('ListItemSelect', () => {
         onLongPress={mockOnLongPress}
         testID="list-item-select"
       >
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -87,7 +87,7 @@ describe('ListItemSelect', () => {
   it('renders with selected state', () => {
     const { getByTestId, getByRole } = render(
       <ListItemSelect onPress={() => null} isSelected testID="list-item-select">
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -106,7 +106,7 @@ describe('ListItemSelect', () => {
         isSelected={false}
         testID="list-item-select"
       >
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -125,7 +125,7 @@ describe('ListItemSelect', () => {
         testID="test-list-item"
         accessibilityLabel="Test List Item"
       >
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -136,7 +136,7 @@ describe('ListItemSelect', () => {
   it('handles custom gap prop', () => {
     const { getByTestId } = render(
       <ListItemSelect onPress={() => null} gap={20} testID="list-item-select">
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -151,7 +151,7 @@ describe('ListItemSelect', () => {
         verticalAlignment={VerticalAlignment.Center}
         testID="list-item-select"
       >
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -167,7 +167,7 @@ describe('ListItemSelect', () => {
         style={customStyle}
         testID="list-item-select"
       >
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 
@@ -184,7 +184,7 @@ describe('ListItemSelect', () => {
           testID: 'nested-list-item',
         }}
       >
-        <View testID="test-content">Test Content</View>
+        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
       </ListItemSelect>,
     );
 

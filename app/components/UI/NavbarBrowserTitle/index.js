@@ -125,7 +125,7 @@ class NavbarBrowserTitle extends PureComponent {
 
     return (
       <TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
-        <View style={styles.currentUrlWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.currentUrlWrapper}>
           {Boolean(icon) && (
             <Image style={styles.siteIcon} source={{ uri: icon }} />
           )}
@@ -143,7 +143,7 @@ class NavbarBrowserTitle extends PureComponent {
             <Icon name="lock" size={14} style={styles.lockIcon} />
           ) : null}
         </View>
-        <View style={styles.network}>
+        <View accessibilityRole="none" accessible={false} style={styles.network}>
           <View
             style={[
               styles.networkIcon,

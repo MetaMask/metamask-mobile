@@ -27,7 +27,7 @@ jest.mock('../components/PerpsLoadingSkeleton', () => ({
   __esModule: true,
   default: () => {
     const { View } = jest.requireActual('react-native');
-    return <View testID="perps-loading-skeleton" />;
+    return <View accessibilityRole="none" accessible={false} testID="perps-loading-skeleton" />;
   },
 }));
 jest.mock('../components/PerpsConnectionErrorView', () => ({
@@ -45,7 +45,7 @@ jest.mock('../components/PerpsConnectionErrorView', () => ({
   }) => {
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
-      <View testID="perps-connection-error">
+      <View accessibilityRole="none" accessible={false} testID="perps-connection-error">
         <Text>{error instanceof Error ? error.message : error}</Text>
         <TouchableOpacity onPress={onRetry} testID="retry-button">
           <Text>Retry</Text>

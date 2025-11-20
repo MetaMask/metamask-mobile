@@ -25,7 +25,7 @@ export const PerpsDeveloperOptionsSection = () => {
   const { styles } = useStyles(PerpsDeveloperOptionsSectionStyles, {});
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Text
         color={TextColor.Default}
         variant={TextVariant.HeadingLG}

@@ -105,7 +105,7 @@ const WalletAction = ({
         backgroundColor={colors.primary.default}
         iconColor={colors.background.default}
       />
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <Text variant={TextVariant.BodyLGMedium}>{actionTitle}</Text>
         <Text variant={TextVariant.BodyMD} style={styles.descriptionLabel}>
           {actionDescription}

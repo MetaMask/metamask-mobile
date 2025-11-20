@@ -62,7 +62,7 @@ export const SDKFeedback = ({ onConfirm }: SDKFeedbackProps) => {
   const styles = createStyles(colors, typography, safeAreaInsets);
 
   return (
-    <View style={styles.root}>
+    <View accessibilityRole="none" accessible={false} style={styles.root}>
       <Icon
         name={IconName.Warning}
         size={IconSize.Xl}
@@ -71,7 +71,7 @@ export const SDKFeedback = ({ onConfirm }: SDKFeedbackProps) => {
       />
       <Text style={styles.title}>{strings('sdk_feedback_modal.title')}</Text>
       <Text style={styles.info}>{strings('sdk_feedback_modal.info')}</Text>
-      <View style={styles.action}>
+      <View accessibilityRole="none" accessible={false} style={styles.action}>
         <StyledButton type={'confirm'} onPress={onConfirm}>
           {strings('sdk_feedback_modal.ok')}
         </StyledButton>

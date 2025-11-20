@@ -85,12 +85,12 @@ const IPFSGatewaySettings = () => {
   }, [handleAvailableIpfsGateways]);
 
   return (
-    <View style={styles.setting}>
-      <View style={styles.titleContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.setting}>
+      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.ipfs_gateway')}
         </Text>
-        <View style={styles.switchElement}>
+        <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
           <Switch
             value={isIpfsGatewayEnabled}
             onValueChange={setIsIpfsGatewayEnabled}
@@ -113,7 +113,7 @@ const IPFSGatewaySettings = () => {
         {strings('app_settings.ipfs_gateway_content')}
       </Text>
       {isIpfsGatewayEnabled && (
-        <View style={styles.accessory}>
+        <View accessibilityRole="none" accessible={false} style={styles.accessory}>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Alternative}
@@ -121,7 +121,7 @@ const IPFSGatewaySettings = () => {
           >
             {strings('app_settings.ipfs_gateway_desc')}
           </Text>
-          <View style={styles.picker}>
+          <View accessibilityRole="none" accessible={false} style={styles.picker}>
             {gotAvailableGateways ? (
               <SelectComponent
                 testID={IPFS_GATEWAY_SELECTED}
@@ -132,7 +132,7 @@ const IPFSGatewaySettings = () => {
                 options={onlineIpfsGateways}
               />
             ) : (
-              <View>
+              <View accessibilityRole="none" accessible={false}>
                 <ActivityIndicator size="small" />
               </View>
             )}

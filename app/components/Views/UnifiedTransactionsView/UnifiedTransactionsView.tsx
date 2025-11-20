@@ -576,7 +576,7 @@ const UnifiedTransactionsView = ({
   const listRef = useRef<FlashListRef<UnifiedItem>>(null);
 
   const renderEmptyList = () => (
-    <View style={styles.emptyList}>
+    <View accessibilityRole="none" accessible={false} style={styles.emptyList}>
       <Text style={styles.emptyListText}>
         {strings('wallet.no_transactions')}
       </Text>
@@ -641,7 +641,7 @@ const UnifiedTransactionsView = ({
 
   return (
     <PriceChartProvider>
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList

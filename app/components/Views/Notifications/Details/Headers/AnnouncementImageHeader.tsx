@@ -11,7 +11,7 @@ export default function AnnouncementImageHeader(
 ) {
   const { styles } = useStyles();
   return (
-    <View style={styles.headerImageContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.headerImageContainer}>
       <RemoteImage
         source={{ uri: props.imageUrl }}
         style={styles.headerImageFull}

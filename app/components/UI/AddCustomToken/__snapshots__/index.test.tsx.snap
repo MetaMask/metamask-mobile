@@ -10,7 +10,7 @@ exports[`AddCustomToken renders correctly with required props 1`] = `
   }
 >
   <RCTScrollView>
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           [

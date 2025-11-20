@@ -31,7 +31,7 @@ const KeyValueRowRoot = ({
 
   const styles = [defaultStyles.rootContainer, customStyles];
 
-  return <View style={styles}>{children}</View>;
+  return <View accessibilityRole="none" accessible={false} style={styles}>{children}</View>;
 };
 
 export default KeyValueRowRoot;

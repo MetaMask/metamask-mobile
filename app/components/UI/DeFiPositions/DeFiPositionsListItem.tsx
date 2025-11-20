@@ -133,7 +133,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
         avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
       />
 
-      <View style={styles.contentWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.contentWrapper}>
         <Text variant={TextVariant.BodyLGMedium}>
           {protocolAggregate.protocolDetails.name}
         </Text>
@@ -142,7 +142,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
         </Text>
       </View>
 
-      <View style={styles.balance}>
+      <View accessibilityRole="none" accessible={false} style={styles.balance}>
         <SensitiveText
           variant={TextVariant.BodyLGMedium}
           isHidden={privacyMode}

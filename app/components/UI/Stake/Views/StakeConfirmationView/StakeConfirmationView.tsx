@@ -49,13 +49,13 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
 
   return (
     <ScrollView contentContainerStyle={styles.mainContainer}>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <TokenValueStack
           amountWei={route.params.amountWei}
           amountFiat={`$${route.params.amountFiat}`}
           tokenSymbol="ETH"
         />
-        <View style={styles.cardsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.cardsContainer}>
           <AccountCard
             contractName={MOCK_STAKING_CONTRACT_NAME}
             primaryLabel={strings('stake.staking_from')}

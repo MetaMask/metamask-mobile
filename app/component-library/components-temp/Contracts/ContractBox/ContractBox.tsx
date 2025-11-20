@@ -15,7 +15,7 @@ const ContractBox = ({
   onContractPress,
   hasBlockExplorer,
 }: ContractBoxProps) => (
-  <View testID={CONTRACT_BOX_TEST_ID}>
+  <View accessibilityRole="none" accessible={false} testID={CONTRACT_BOX_TEST_ID}>
     <Card style={styles.container}>
       <ContractBoxBase
         contractAddress={contractAddress}

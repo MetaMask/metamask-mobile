@@ -88,7 +88,7 @@ const PerpsTooltipView: React.FC = () => {
           <Text variant={TextVariant.HeadingMD}>{title}</Text>
         </BottomSheetHeader>
       )}
-      <View style={styles.contentContainer}>{renderContent()}</View>
+      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>{renderContent()}</View>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={footerButtons}

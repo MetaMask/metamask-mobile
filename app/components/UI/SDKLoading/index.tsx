@@ -49,8 +49,8 @@ export const SDKLoading = () => {
   const animatedLogo = useAssetFromTheme(loadingLight, loadingDark);
 
   return (
-    <View style={styles.root}>
-      <View style={styles.actionContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.root}>
+      <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
         <LottieView
           style={styles.animation}
           autoPlay

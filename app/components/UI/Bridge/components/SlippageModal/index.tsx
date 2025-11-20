@@ -65,12 +65,12 @@ export const SlippageModal = () => {
       <BottomSheetHeader onClose={handleClose}>
         {strings('bridge.slippage')}
       </BottomSheetHeader>
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <Text style={styles.description}>
           {strings('bridge.slippage_info')}
         </Text>
 
-        <View style={styles.optionsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.optionsContainer}>
           <SegmentedControl
             options={slippageOptions.map((option) => ({
               label: option.label,

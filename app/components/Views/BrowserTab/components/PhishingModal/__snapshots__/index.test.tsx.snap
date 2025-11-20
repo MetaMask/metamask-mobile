@@ -3,7 +3,7 @@
 exports[`PhishingModal should match snapshot when showPhishingModal is false 1`] = `null`;
 
 exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <Modal
     animationType="none"
     deviceHeight={null}

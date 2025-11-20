@@ -71,7 +71,7 @@ describe('CellMultiSelectWithMenu', () => {
 
   it('should render with custom title as ReactNode', () => {
     const CustomTitle = () => (
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <Text>Custom Title Component</Text>
       </View>
     );
@@ -109,7 +109,7 @@ describe('CellMultiSelectWithMenu', () => {
   it('should render with children', () => {
     const { getByTestId } = render(
       <CellMultiSelectWithMenu {...SAMPLE_CELL_PROPS}>
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text>Custom Child Component</Text>
         </View>
       </CellMultiSelectWithMenu>,

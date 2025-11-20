@@ -97,7 +97,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
       {...generateTestId(Platform, getAssetTestId(asset.symbol))}
     >
       {children}
-      <View style={styles.arrow}>
+      <View accessibilityRole="none" accessible={false} style={styles.arrow}>
         {balance && (
           <SensitiveText
             variant={

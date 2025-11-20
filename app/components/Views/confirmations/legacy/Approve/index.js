@@ -912,7 +912,7 @@ class Approve extends PureComponent {
                   isGasEstimateStatusIn={isGasEstimateStatusIn}
                 />
                 {/** View fixes layout issue after removing <CustomGas/> */}
-                <View />
+                <View accessibilityRole="none" accessible={false} />
               </AnimatedTransactionModal>
             )}
 

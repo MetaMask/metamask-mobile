@@ -226,7 +226,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
       }
     >
       <RCTRefreshControl />
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             [
@@ -303,7 +303,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   }
                   testID="badge-wrapper-badge"
                 >
-                  <View>
+                  <View accessibilityRole="none" accessible={false}>
                     <View
                       style={
                         {
@@ -851,7 +851,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
       }
     >
       <RCTRefreshControl />
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             [
@@ -932,7 +932,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   }
                   testID="badge-wrapper-badge"
                 >
-                  <View>
+                  <View accessibilityRole="none" accessible={false}>
                     <View
                       style={
                         {
@@ -1395,7 +1395,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
       }
     >
       <RCTRefreshControl />
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             [
@@ -1472,7 +1472,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   }
                   testID="badge-wrapper-badge"
                 >
-                  <View>
+                  <View accessibilityRole="none" accessible={false}>
                     <View
                       style={
                         {

@@ -213,7 +213,7 @@ const PriceChart = ({
   };
 
   const NoDataOverlay = () => (
-    <View style={styles.noDataOverlay}>
+    <View accessibilityRole="none" accessible={false} style={styles.noDataOverlay}>
       <Text>
         <Icon
           name={IconName.Warning}
@@ -262,7 +262,7 @@ const PriceChart = ({
    * @see https://github.com/MetaMask/metamask-mobile/issues/20854
    */
   const LoadingOverlay = () => (
-    <View style={styles.noDataOverlay}>
+    <View accessibilityRole="none" accessible={false} style={styles.noDataOverlay}>
       <SkeletonPlaceholder
         backgroundColor={theme.colors.background.section}
         highlightColor={theme.colors.background.subsection}
@@ -279,8 +279,8 @@ const PriceChart = ({
   const chartHasData = priceList.length > 0;
 
   return (
-    <View style={styles.chart}>
-      <View style={styles.chartArea} {...panResponder.current.panHandlers}>
+    <View accessibilityRole="none" accessible={false} style={styles.chart}>
+      <View accessibilityRole="none" accessible={false} style={styles.chartArea} {...panResponder.current.panHandlers}>
         {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
         {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
         <AreaChart

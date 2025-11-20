@@ -116,9 +116,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       onPress={handlePress}
       testID={testID}
     >
-      <View style={styles.cardContent}>
+      <View accessibilityRole="none" accessible={false} style={styles.cardContent}>
         {/* Left side: Icon and info */}
-        <View style={styles.cardLeft}>
+        <View accessibilityRole="none" accessible={false} style={styles.cardLeft}>
           {symbol && (
             <PerpsTokenLogo
               symbol={symbol}
@@ -126,7 +126,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
               style={styles.assetIcon}
             />
           )}
-          <View style={styles.cardInfo}>
+          <View accessibilityRole="none" accessible={false} style={styles.cardInfo}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {primaryText}
             </Text>
@@ -137,7 +137,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
         </View>
 
         {/* Right side: Value and label */}
-        <View style={styles.cardRight}>
+        <View accessibilityRole="none" accessible={false} style={styles.cardRight}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {valueText}
           </Text>

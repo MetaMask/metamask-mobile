@@ -206,7 +206,7 @@ const AddressName = ({ toAddressName, confusableCollection = [] }) => {
     );
   }
   return (
-    <View style={styles.accountNameLabel}>
+    <View accessibilityRole="none" accessible={false} style={styles.accountNameLabel}>
       <Text style={styles.textAddress} numberOfLines={1}>
         {toAddressName}
       </Text>
@@ -250,8 +250,8 @@ export const AddressTo = (props) => {
       wrapperStyles.push(styles.marginedWrapper);
     }
     return (
-      <View style={wrapperStyles}>
-        <View style={styles.label}>
+      <View accessibilityRole="none" accessible={false} style={wrapperStyles}>
+        <View accessibilityRole="none" accessible={false} style={styles.label}>
           <Text style={styles.labelText}>To:</Text>
         </View>
         <View
@@ -261,10 +261,10 @@ export const AddressTo = (props) => {
           ]}
         >
           <AddToAddressBookWrapper address={toSelectedAddress}>
-            <View style={styles.addressToInformation}>
+            <View accessibilityRole="none" accessible={false} style={styles.addressToInformation}>
               <Identicon address={toSelectedAddress} diameter={30} />
               {displayExclamation && (
-                <View style={styles.exclamation}>
+                <View accessibilityRole="none" accessible={false} style={styles.exclamation}>
                   <FontAwesome
                     color={colors.error.default}
                     name="exclamation-circle"
@@ -272,15 +272,15 @@ export const AddressTo = (props) => {
                   />
                 </View>
               )}
-              <View style={styles.toInputWrapper}>
-                <View style={[styles.address, styles.checkAddress]}>
+              <View accessibilityRole="none" accessible={false} style={styles.toInputWrapper}>
+                <View accessibilityRole="none" accessible={false} style={[styles.address, styles.checkAddress]}>
                   {toAddressName && (
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
                     />
                   )}
-                  <View style={styles.addressWrapper}>
+                  <View accessibilityRole="none" accessible={false} style={styles.addressWrapper}>
                     <Text
                       style={
                         toAddressName ? styles.textBalance : styles.textAddress
@@ -312,8 +312,8 @@ export const AddressTo = (props) => {
   }
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.label}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.label}>
         <Text style={styles.labelText}>To:</Text>
       </View>
       {!addressToReady ? (
@@ -323,7 +323,7 @@ export const AddressTo = (props) => {
             highlighted ? styles.borderHighlighted : styles.borderOpaque,
           ]}
         >
-          <View style={styles.input}>
+          <View accessibilityRole="none" accessible={false} style={styles.input}>
             <TextInput
               ref={inputRef}
               autoCapitalize="none"
@@ -375,7 +375,7 @@ export const AddressTo = (props) => {
             highlighted ? styles.borderHighlighted : styles.borderOpaque,
           ]}
         >
-          <View style={styles.addressToInformation}>
+          <View accessibilityRole="none" accessible={false} style={styles.addressToInformation}>
             <AddToAddressBookWrapper address={toSelectedAddress}>
               <Identicon
                 address={toSelectedAddress}
@@ -383,7 +383,7 @@ export const AddressTo = (props) => {
                 customStyle={styles.identIcon}
               />
               {displayExclamation && (
-                <View style={styles.exclamation}>
+                <View accessibilityRole="none" accessible={false} style={styles.exclamation}>
                   <FontAwesome
                     color={colors.error.default}
                     name="exclamation-circle"
@@ -392,16 +392,16 @@ export const AddressTo = (props) => {
                 </View>
               )}
             </AddToAddressBookWrapper>
-            <View style={styles.addressReadyWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.addressReadyWrapper}>
               {isFromAddressBook ? (
-                <View style={styles.toInputWrapper}>
-                  <View style={[styles.address, styles.checkAddress]}>
+                <View accessibilityRole="none" accessible={false} style={styles.toInputWrapper}>
+                  <View accessibilityRole="none" accessible={false} style={[styles.address, styles.checkAddress]}>
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
                     />
 
-                    <View style={styles.addressWrapper}>
+                    <View accessibilityRole="none" accessible={false} style={styles.addressWrapper}>
                       <Text
                         style={
                           isENS(toAddressName)
@@ -448,7 +448,7 @@ export const AddressTo = (props) => {
                 />
               ) : (
                 <AddToAddressBookWrapper address={toSelectedAddress}>
-                  <View style={styles.toAddressTextWrapper}>
+                  <View accessibilityRole="none" accessible={false} style={styles.toAddressTextWrapper}>
                     <Text style={styles.textInput} numberOfLines={1}>
                       {toSelectedAddress
                         ? renderSlightlyLongAddress(toSelectedAddress, 4, 9)
@@ -468,7 +468,7 @@ export const AddressTo = (props) => {
             </View>
           </View>
           {!!onClear && (
-            <View style={styles.checkCleanWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.checkCleanWrapper}>
               <TouchableOpacity
                 onPress={onClear}
                 style={styles.iconWrapper}
@@ -570,8 +570,8 @@ export const AddressFrom = (props) => {
   const styles = createStyles(colors, layout);
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.label}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.label}>
         <Text style={styles.labelText}>From:</Text>
       </View>
       <View
@@ -580,11 +580,11 @@ export const AddressFrom = (props) => {
           highlighted ? styles.borderHighlighted : styles.borderOpaque,
         ]}
       >
-        <View style={styles.identiconWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.identiconWrapper}>
           <Identicon address={fromAccountAddress} diameter={30} />
         </View>
-        <View style={[baseStyles.flexGrow, styles.address]}>
-          <View style={styles.accountNameLabel}>
+        <View accessibilityRole="none" accessible={false} style={[baseStyles.flexGrow, styles.address]}>
+          <View accessibilityRole="none" accessible={false} style={styles.accountNameLabel}>
             <Text style={styles.textAddress}>{fromAccountName}</Text>
           </View>
           <Text style={styles.textBalance}>{`${strings(
@@ -594,7 +594,7 @@ export const AddressFrom = (props) => {
 
         {!!onPressIcon && (
           <TouchableOpacity onPress={onPressIcon} style={styles.iconWrapper}>
-            <View style={styles.dropdownIconWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.dropdownIconWrapper}>
               <FontAwesome
                 name={'caret-down'}
                 size={20}

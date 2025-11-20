@@ -52,7 +52,7 @@ const AnimatedQRCode = ({ cbor, type, shouldPause }: IAnimatedQRCodeProps) => {
   }, [urEncoder, shouldPause]);
 
   return (
-    <View style={styles.wrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
       <QRCode value={currentQRCode.toUpperCase()} size={QR_CODE_SIZE} />
     </View>
   );

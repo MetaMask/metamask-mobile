@@ -538,7 +538,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                             onGestureHandlerStateChange={[Function]}
                             showsHorizontalScrollIndicator={false}
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
@@ -899,7 +899,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -954,7 +954,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               style={
                                                 [
@@ -1175,7 +1175,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               style={
                                                 [
@@ -1396,7 +1396,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               style={
                                                 [
@@ -1617,7 +1617,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               style={
                                                 [

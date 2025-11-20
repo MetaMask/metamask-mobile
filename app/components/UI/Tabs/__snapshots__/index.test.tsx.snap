@@ -30,7 +30,7 @@ exports[`Tabs should render correctly 1`] = `
     }
     testID="tabs-component"
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           [

@@ -233,7 +233,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         }
                         testID="meta-metrics-container"
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -297,7 +297,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             >
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <TouchableOpacity
                                 activeOpacity={0.7}
                                 onPress={[Function]}
@@ -925,7 +925,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         }
                         testID="meta-metrics-container"
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -989,7 +989,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             >
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <TouchableOpacity
                                 activeOpacity={0.7}
                                 onPress={[Function]}
@@ -1729,7 +1729,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         }
                         testID="meta-metrics-container"
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -1793,7 +1793,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             >
                               We’d like to request these permissions. You can opt out or delete your usage data at any time.
                             </Text>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <TouchableOpacity
                                 activeOpacity={0.7}
                                 onPress={[Function]}

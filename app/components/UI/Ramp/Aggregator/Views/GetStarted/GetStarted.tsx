@@ -123,7 +123,7 @@ const GetStarted: React.FC = () => {
       <ScreenLayout.Body>
         <ScrollView contentContainerStyle={styles.container}>
           <ScreenLayout.Content>
-            <View style={styles.getStartedImageWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.getStartedImageWrapper}>
               <Image source={getStartedIcon} />
             </View>
           </ScreenLayout.Content>

@@ -64,8 +64,8 @@ const DetailsModal = ({ children }) => {
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.modalView}>
-      <View style={styles.modalContainer}>{children}</View>
+    <View accessibilityRole="none" accessible={false} style={styles.modalView}>
+      <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>{children}</View>
     </View>
   );
 };
@@ -74,7 +74,7 @@ const DetailsModalHeader = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  return <View style={[styles.header, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.header, style]} {...props} />;
 };
 const DetailsModalTitle = ({ style, ...props }) => {
   const { colors } = useTheme();
@@ -136,7 +136,7 @@ const DetailsModalColumn = ({ style, end, ...props }) => {
   const styles = createStyles(colors);
 
   return (
-    <View style={[styles.column, end && styles.columnEnd, style]} {...props} />
+    <View accessibilityRole="none" accessible={false} style={[styles.column, end && styles.columnEnd, style]} {...props} />
   );
 };
 

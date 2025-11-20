@@ -179,7 +179,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
   );
 
   const renderEmptyResult = () => (
-    <View style={styles.emptyPermissionsContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.emptyPermissionsContainer}>
       <Icon name={IconName.Global} size={IconSize.Xl} />
       <Text variant={TextVariant.HeadingSM}>
         {strings('app_settings.no_permissions')}

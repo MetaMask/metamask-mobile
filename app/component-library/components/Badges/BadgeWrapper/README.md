@@ -46,6 +46,6 @@ Any element that will be placed in the position of the badge.
   badgePosition={BadgePosition.TopRight}
   badge={SAMPLE_BADGE_ELEMENT}
 >
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </BadgeWrapper>
 ```

@@ -94,7 +94,7 @@ export const SnapUIInfoRow: React.FC<SnapUIInfoRowProps> = ({
           </Text>
           {labelChildren}
           {!labelChildren && tooltip && (
-            <View testID="snap-ui-info-row-tooltip-container">
+            <View accessibilityRole="none" accessible={false} testID="snap-ui-info-row-tooltip-container">
               <Tooltip {...tooltipProps} />
             </View>
           )}
@@ -109,7 +109,7 @@ export const SnapUIInfoRow: React.FC<SnapUIInfoRowProps> = ({
           {children}
         </Text>
       ) : (
-        <View testID="snap-ui-info-row-children-container">{children}</View>
+        <View accessibilityRole="none" accessible={false} testID="snap-ui-info-row-children-container">{children}</View>
       )}
     </View>
   );

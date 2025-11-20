@@ -228,7 +228,7 @@ class Tabs extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <View style={styles.noTabs}>
+      <View accessibilityRole="none" accessible={false} style={styles.noTabs}>
         <Text
           style={styles.noTabsTitle}
           testID={BrowserViewSelectorsIDs.NO_TABS_MESSAGE}
@@ -287,7 +287,7 @@ class Tabs extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <View style={styles.tabActions}>
+      <View accessibilityRole="none" accessible={false} style={styles.tabActions}>
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionleft]}
           onPress={closeAllTabs}
@@ -302,7 +302,7 @@ class Tabs extends PureComponent {
             {strings('browser.tabs_close_all')}
           </Text>
         </TouchableOpacity>
-        <View style={styles.tabAction}>
+        <View accessibilityRole="none" accessible={false} style={styles.tabAction}>
           <TouchableOpacity
             style={styles.newTabIconButton}
             onPress={this.onNewTabPress}
@@ -342,7 +342,7 @@ class Tabs extends PureComponent {
     return (
       <SafeAreaInsetsContext.Consumer>
         {(insets) => (
-          <View style={{ ...styles.tabsView, paddingTop: insets.top }}>
+          <View accessibilityRole="none" accessible={false} style={{ ...styles.tabsView, paddingTop: insets.top }}>
             {tabs.length === 0
               ? this.renderNoTabs()
               : this.renderTabs(tabs, activeTab)}

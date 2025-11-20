@@ -62,8 +62,8 @@ const Loader = ({
     errorText?.replace(/"/g, '') || loadingText.replace(/"/g, '');
 
   return (
-    <View style={styles.root}>
-      <View style={styles.spinnerWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.root}>
+      <View accessibilityRole="none" accessible={false} style={styles.spinnerWrapper}>
         {!errorText ? (
           <Spinner />
         ) : (

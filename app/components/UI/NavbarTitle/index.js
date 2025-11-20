@@ -157,7 +157,7 @@ class NavbarTitle extends PureComponent {
           children
         )}
         {showSelectedNetwork ? (
-          <View style={styles.network}>
+          <View accessibilityRole="none" accessible={false} style={styles.network}>
             <Text
               numberOfLines={1}
               variant={TextVariant.BodySM}

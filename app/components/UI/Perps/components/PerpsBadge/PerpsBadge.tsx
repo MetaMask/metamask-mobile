@@ -29,7 +29,7 @@ const PerpsBadge: React.FC<PerpsBadgeProps> = ({
   const label = customLabel || strings(`perps.market.badge.${type}` as const);
 
   return (
-    <View style={styles.badge} testID={testID}>
+    <View accessibilityRole="none" accessible={false} style={styles.badge} testID={testID}>
       <Text variant={TextVariant.BodyXS} style={styles.badgeText}>
         {label}
       </Text>

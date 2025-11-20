@@ -335,7 +335,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               [
@@ -475,7 +475,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -894,7 +894,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                               }
                               testID="bridge-view-scroll"
                             >
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     [
@@ -1997,7 +1997,7 @@ exports[`BridgeView renders 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               [
@@ -2137,7 +2137,7 @@ exports[`BridgeView renders 1`] = `
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View>
+                                          <View accessibilityRole="none" accessible={false}>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -2556,7 +2556,7 @@ exports[`BridgeView renders 1`] = `
                               }
                               testID="bridge-view-scroll"
                             >
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <View
                                   style={
                                     [

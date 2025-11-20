@@ -12,7 +12,7 @@ describe('ListItemMultiSelectButton', () => {
   it('should render correctly with default props', () => {
     const wrapper = render(
       <ListItemMultiSelectButton>
-        <View />
+        <View accessibilityRole="none" accessible={false} />
       </ListItemMultiSelectButton>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -21,7 +21,7 @@ describe('ListItemMultiSelectButton', () => {
   it('should not render the underlay view if isSelected is false', () => {
     const { queryByRole } = render(
       <ListItemMultiSelectButton>
-        <View />
+        <View accessibilityRole="none" accessible={false} />
       </ListItemMultiSelectButton>,
     );
     expect(queryByRole('checkbox')).toBeNull();
@@ -30,7 +30,7 @@ describe('ListItemMultiSelectButton', () => {
   it('should render the underlay view if isSelected is true', () => {
     const { queryByRole } = render(
       <ListItemMultiSelectButton isSelected>
-        <View />
+        <View accessibilityRole="none" accessible={false} />
       </ListItemMultiSelectButton>,
     );
     expect(queryByRole('checkbox')).not.toBeNull();
@@ -45,7 +45,7 @@ describe('ListItemMultiSelectButton', () => {
           onButtonClick: mockOnPress,
         }}
       >
-        <View />
+        <View accessibilityRole="none" accessible={false} />
       </ListItemMultiSelectButton>,
     );
     fireEvent.press(getByRole('button'));
@@ -55,7 +55,7 @@ describe('ListItemMultiSelectButton', () => {
   it('should render the button icon with the correct name', () => {
     const { getByTestId } = render(
       <ListItemMultiSelectButton buttonIcon={IconName.Check}>
-        <View />
+        <View accessibilityRole="none" accessible={false} />
       </ListItemMultiSelectButton>,
     );
     expect(getByTestId(BUTTON_TEST_ID)).not.toBeNull();
@@ -70,7 +70,7 @@ describe('ListItemMultiSelectButton', () => {
           onButtonClick: mockOnButtonClick,
         }}
       >
-        <View />
+        <View accessibilityRole="none" accessible={false} />
       </ListItemMultiSelectButton>,
     );
     fireEvent.press(getByTestId(BUTTON_TEST_ID));

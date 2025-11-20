@@ -157,13 +157,13 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
         style={styles.bottomSheetContainer}
         testID={OnboardingSheetSelectorIDs.CONTAINER_ID}
       >
-        <View style={styles.buttonWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
           <Button
             variant={ButtonVariants.Secondary}
             onPress={onPressContinueWithGoogleAction}
             testID={OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON}
             label={
-              <View style={styles.buttonLabel}>
+              <View accessibilityRole="none" accessible={false} style={styles.buttonLabel}>
                 <GoogleIcon
                   fill="currentColor"
                   width={24}
@@ -189,7 +189,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             onPress={onPressContinueWithAppleAction}
             testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
             label={
-              <View style={styles.buttonLabel}>
+              <View accessibilityRole="none" accessible={false} style={styles.buttonLabel}>
                 {isDark ? (
                   <AppleIcon
                     fill="currentColor"
@@ -220,14 +220,14 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             style={styles.socialBtn}
           />
         </View>
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
+        <View accessibilityRole="none" accessible={false} style={styles.divider}>
+          <View accessibilityRole="none" accessible={false} style={styles.dividerLine} />
           <Text variant={TextVariant.BodyLGMedium} color={TextColor.Muted}>
             {strings('onboarding.or')}
           </Text>
-          <View style={styles.dividerLine} />
+          <View accessibilityRole="none" accessible={false} style={styles.dividerLine} />
         </View>
-        <View style={styles.buttonWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
           <Button
             variant={ButtonVariants.Secondary}
             onPress={createWallet ? onPressCreateAction : onPressImportAction}
@@ -241,7 +241,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             size={ButtonSize.Lg}
           />
         </View>
-        <View style={styles.termsText}>
+        <View accessibilityRole="none" accessible={false} style={styles.termsText}>
           <Text
             variant={TextVariant.BodyXSMedium}
             color={TextColor.Default}

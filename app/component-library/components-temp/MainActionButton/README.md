@@ -63,7 +63,7 @@ import MainActionButton from 'app/component-library/components-temp/MainActionBu
 import { IconName } from 'app/component-library/components/Icons/Icon';
 
 const ActionButtonExample = () => (
-  <View style={{ flexDirection: 'row', gap: 16 }}>
+  <View accessibilityRole="none" accessible={false} style={{ flexDirection: 'row', gap: 16 }}>
     <MainActionButton
       iconName={IconName.BuySell}
       label="Buy/Sell"

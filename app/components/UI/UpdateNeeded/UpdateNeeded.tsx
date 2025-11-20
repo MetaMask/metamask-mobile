@@ -116,7 +116,7 @@ const UpdateNeeded = () => {
         />
       </HeaderBase>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.images}>
+        <View accessibilityRole="none" accessible={false} style={styles.images}>
           <Image
             source={foxLogo}
             style={styles.foxImage}
@@ -131,7 +131,7 @@ const UpdateNeeded = () => {
           {strings('update_needed.description')}
         </Text>
       </ScrollView>
-      <View style={styles.actionButtonWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.actionButtonWrapper}>
         <Button
           variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}

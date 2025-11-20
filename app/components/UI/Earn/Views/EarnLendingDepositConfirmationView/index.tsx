@@ -786,7 +786,7 @@ const EarnLendingDepositConfirmationView = () => {
   }
 
   return (
-    <View style={styles.pageContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.pageContainer}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}

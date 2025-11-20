@@ -75,15 +75,15 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
           onPress={() => handleTransactionPress(item)}
           activeOpacity={0.7}
         >
-          <View style={styles.leftSection}>
-            <View style={styles.iconContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.leftSection}>
+            <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
               <PerpsTokenLogo
                 symbol={item.asset}
                 size={iconSize}
                 recyclingKey={`${item.asset}-${item.id}`}
               />
             </View>
-            <View style={styles.activityInfo}>
+            <View accessibilityRole="none" accessible={false} style={styles.activityInfo}>
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
@@ -101,7 +101,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
               )}
             </View>
           </View>
-          <View style={styles.rightSection}>{renderRightContent(item)}</View>
+          <View accessibilityRole="none" accessible={false} style={styles.rightSection}>{renderRightContent(item)}</View>
         </TouchableOpacity>
       );
     },
@@ -110,8 +110,8 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
+        <View accessibilityRole="none" accessible={false} style={styles.header}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
           </Text>
@@ -123,8 +123,8 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   if (transactions.length === 0) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
+        <View accessibilityRole="none" accessible={false} style={styles.header}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
           </Text>
@@ -141,8 +141,8 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.header}>
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.home.recent_activity')}
         </Text>

@@ -29,7 +29,7 @@ function NetworkField(props: ModalFieldNetwork) {
   }
 
   return (
-    <View style={styles.row}>
+    <View accessibilityRole="none" accessible={false} style={styles.row}>
       <Avatar
         variant={AvatarVariant.Network}
         size={AvatarSize.Md}
@@ -37,7 +37,7 @@ function NetworkField(props: ModalFieldNetwork) {
         imageSource={iconSource}
       />
 
-      <View style={styles.boxLeft}>
+      <View accessibilityRole="none" accessible={false} style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('asset_details.network')}
         </Text>

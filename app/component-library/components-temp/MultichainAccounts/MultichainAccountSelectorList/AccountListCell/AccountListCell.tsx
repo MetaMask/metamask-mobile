@@ -27,13 +27,13 @@ const AccountListCell = memo(
     }, [accountGroup, onSelectAccount]);
 
     return (
-      <View style={styles.accountItem}>
-        {showSelectedIndicator && <View style={styles.selectedIndicator} />}
-        <View style={styles.accountCellWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.accountItem}>
+        {showSelectedIndicator && <View accessibilityRole="none" accessible={false} style={styles.selectedIndicator} />}
+        <View accessibilityRole="none" accessible={false} style={styles.accountCellWrapper}>
           <AccountCell
             startAccessory={
               showCheckbox ? (
-                <View testID={`account-list-cell-checkbox-${accountGroup.id}`}>
+                <View accessibilityRole="none" accessible={false} testID={`account-list-cell-checkbox-${accountGroup.id}`}>
                   <Checkbox isChecked={isSelected} onPress={handlePress} />
                 </View>
               ) : undefined

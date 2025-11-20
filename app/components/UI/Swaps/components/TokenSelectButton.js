@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 function TokenSelectButton({ icon, symbol, onPress, disabled, label, testID }) {
   return (
     <SelectorButton onPress={onPress} disabled={disabled} testID={testID}>
-      <View style={styles.icon}>
+      <View accessibilityRole="none" accessible={false} style={styles.icon}>
         <TokenIcon icon={icon} symbol={symbol} />
       </View>
       <Text primary>{symbol || label}</Text>

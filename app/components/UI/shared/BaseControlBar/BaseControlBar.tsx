@@ -190,7 +190,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const renderNetworkLabel = () => (
     <>
       {isRemoveGlobalNetworkSelectorEnabled() ? (
-        <View style={styles.networkManagerWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.networkManagerWrapper}>
           {!areAllNetworksSelected && (
             <Avatar
               variant={AvatarVariant.Network}
@@ -261,7 +261,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   if (customWrapper === 'none') {
     return (
-      <View style={[styles.actionBarWrapper, style]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.actionBarWrapper, style]}>
         {networkButton}
         {sortButton}
         {additionalButtons}
@@ -270,10 +270,10 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   }
 
   return (
-    <View style={[styles.actionBarWrapper, style]}>
-      <View style={styles.controlButtonOuterWrapper}>
+    <View accessibilityRole="none" accessible={false} style={[styles.actionBarWrapper, style]}>
+      <View accessibilityRole="none" accessible={false} style={styles.controlButtonOuterWrapper}>
         {networkButton}
-        <View style={styles.controlButtonInnerWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.controlButtonInnerWrapper}>
           {sortButton}
           {additionalButtons}
         </View>

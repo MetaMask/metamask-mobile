@@ -357,7 +357,7 @@ class Transactions extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.emptyContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.emptyContainer}>
         <ActivityIndicator style={styles.loader} size="small" />
       </View>
     );
@@ -384,7 +384,7 @@ class Transactions extends PureComponent {
 
     if (shouldShowSwitchNetwork()) {
       return (
-        <View style={styles.emptyContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.emptyContainer}>
           <Text style={styles.textTransactions}>
             {strings('wallet.switch_network_to_view_transactions')}
           </Text>
@@ -392,7 +392,7 @@ class Transactions extends PureComponent {
       );
     }
     return (
-      <View style={styles.emptyContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.emptyContainer}>
         <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
       </View>
     );
@@ -779,7 +779,7 @@ class Transactions extends PureComponent {
     const renderCancelGas = () => renderRetryGas(CANCEL_RATE);
 
     return (
-      <View style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlatList
@@ -856,7 +856,7 @@ class Transactions extends PureComponent {
 
     return (
       <PriceChartProvider>
-        <View style={styles.wrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
           {!this.state.ready || this.props.loading
             ? this.renderLoader()
             : this.renderList()}

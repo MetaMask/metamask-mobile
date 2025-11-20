@@ -23,7 +23,7 @@ const AccountNetworkInfoExpanded = () => {
   const balanceToDisplay = selectedAccountMultichainBalance?.displayBalance;
 
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <InfoSection>
         <InfoRow label={strings('confirm.label.account')}>
           {renderShortAddress(accountAddress, 5)}

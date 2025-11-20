@@ -610,7 +610,7 @@ const NetworkSelector = () => {
         >
           {Boolean(
             chainId === selectedChainId && selectedRpcUrl === rpcUrl,
-          ) && <View testID={`${name}-selected`} />}
+          ) && <View accessibilityRole="none" accessible={false} testID={`${name}-selected`} />}
         </Cell>
       );
     });
@@ -734,7 +734,7 @@ const NetworkSelector = () => {
 
   ///: END:ONLY_INCLUDE_IF
   const renderTestNetworksSwitch = () => (
-    <View style={styles.switchContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.switchContainer}>
       <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
         {strings('networks.show_test_networks')}
       </Text>
@@ -765,7 +765,7 @@ const NetworkSelector = () => {
       );
 
     return (
-      <View style={styles.addtionalNetworksContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.addtionalNetworksContainer}>
         <CustomNetwork
           isNetworkModalVisible={showPopularNetworkModal}
           closeNetworkModal={onCancel}
@@ -786,7 +786,7 @@ const NetworkSelector = () => {
   };
 
   const renderPopularNetworksTitle = () => (
-    <View style={styles.popularNetworkTitleContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.popularNetworkTitleContainer}>
       <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
         {strings('networks.additional_networks')}
       </Text>
@@ -806,7 +806,7 @@ const NetworkSelector = () => {
   );
 
   const renderEnabledNetworksTitle = () => (
-    <View style={styles.switchContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.switchContainer}>
       <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
         {strings('networks.enabled_networks')}
       </Text>
@@ -912,12 +912,12 @@ const NetworkSelector = () => {
 
   return (
     <ReusableModal ref={sheetRef} style={styles.screen}>
-      <View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
-        <View style={styles.notch} />
+      <View accessibilityRole="none" accessible={false} style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
+        <View accessibilityRole="none" accessible={false} style={styles.notch} />
         <Text variant={TextVariant.HeadingMD} style={styles.title}>
           {strings('networks.select_network')}
         </Text>
-        <View style={styles.searchContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.searchContainer}>
           <NetworkSearchTextInput
             searchString={searchString}
             handleSearchTextChange={handleSearchTextChange}
@@ -975,7 +975,7 @@ const NetworkSelector = () => {
             onClose={closeModal}
             shouldNavigateBack={false}
           >
-            <View style={styles.networkMenu}>
+            <View accessibilityRole="none" accessible={false} style={styles.networkMenu}>
               <AccountAction
                 actionTitle={strings('transaction.edit')}
                 iconName={IconName.Edit}
@@ -1021,7 +1021,7 @@ const NetworkSelector = () => {
               {showConfirmDeleteModal.networkName}{' '}
               {strings('asset_details.network')}
             </BottomSheetHeader>
-            <View style={styles.containerDeleteText}>
+            <View accessibilityRole="none" accessible={false} style={styles.containerDeleteText}>
               <Text style={styles.textCentred}>
                 {strings('app_settings.network_delete')}
               </Text>

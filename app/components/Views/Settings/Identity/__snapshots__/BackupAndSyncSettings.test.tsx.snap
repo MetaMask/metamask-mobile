@@ -11,7 +11,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
     }
   }
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       style={
         {
@@ -96,7 +96,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
           Learn how we protect your privacy
         </Text>
       </Text>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
     </View>
     <View
       style={

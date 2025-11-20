@@ -111,12 +111,12 @@ export const AdvancedEIP1559Modal = ({
       onBackButtonPress={navigateToEstimatesModal}
       onSwipeComplete={navigateToEstimatesModal}
     >
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <GasModalHeader
           onBackButtonClick={navigateToEstimatesModal}
           title={strings('transactions.gas_modal.advanced_gas_fee')}
         />
-        <View style={styles.inputsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.inputsContainer}>
           <MaxBaseFeeInput
             onChange={handleMaxFeePerGasChange}
             maxPriorityFeePerGas={gasParams.maxPriorityFeePerGas}

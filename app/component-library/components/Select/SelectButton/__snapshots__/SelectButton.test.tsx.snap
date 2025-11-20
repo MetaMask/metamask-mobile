@@ -117,7 +117,7 @@ exports[`SelectButton should render snapshot correctly 1`] = `
       </View>
     </View>
   </View>
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <SvgMock
       color="#121314"
       fill="currentColor"

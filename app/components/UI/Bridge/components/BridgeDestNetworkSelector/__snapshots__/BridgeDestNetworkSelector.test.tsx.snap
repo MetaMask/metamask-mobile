@@ -527,7 +527,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                             </View>
                           </View>
                           <RCTScrollView>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <RCTScrollView
                                 showsVerticalScrollIndicator={false}
                                 style={
@@ -536,7 +536,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                   }
                                 }
                               >
-                                <View>
+                                <View accessibilityRole="none" accessible={false}>
                                   <View
                                     style={
                                       [

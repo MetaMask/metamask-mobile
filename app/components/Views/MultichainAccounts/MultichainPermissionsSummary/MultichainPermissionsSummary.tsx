@@ -177,7 +177,7 @@ const MultichainPermissionsSummary = ({
     const iconTitle = getHost(currentEnsName || url);
 
     return isAlreadyConnected && !showPermissionsOnly ? (
-      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}
           testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
@@ -221,8 +221,8 @@ const MultichainPermissionsSummary = ({
 
   function renderHeader() {
     return (
-      <View style={styles.header}>
-        <View style={styles.startAccessory}>
+      <View accessibilityRole="none" accessible={false} style={styles.header}>
+        <View accessibilityRole="none" accessible={false} style={styles.startAccessory}>
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
@@ -241,7 +241,7 @@ const MultichainPermissionsSummary = ({
         >
           {renderTopIcon()}
         </View>
-        <View style={styles.endAccessory}>
+        <View accessibilityRole="none" accessible={false} style={styles.endAccessory}>
           <ButtonIcon
             size={ButtonIconSizes.Sm}
             iconName={IconName.Info}
@@ -267,11 +267,11 @@ const MultichainPermissionsSummary = ({
   }
 
   const renderEndAccessory = () => (
-    <View testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}>
+    <View accessibilityRole="none" accessible={false} testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}>
       {isAlreadyConnected ? (
         <Icon size={IconSize.Md} name={IconName.ArrowRight} />
       ) : (
-        <View style={styles.editTextContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.editTextContainer}>
           <TextComponent
             color={TextColor.Primary}
             variant={TextVariant.BodyMDMedium}
@@ -368,12 +368,12 @@ const MultichainPermissionsSummary = ({
             backgroundColor={colors.shadow.default}
             iconColor={colors.icon.alternative}
           />
-          <View style={styles.accountPermissionRequestDetails}>
+          <View accessibilityRole="none" accessible={false} style={styles.accountPermissionRequestDetails}>
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('permissions.see_your_accounts')}
             </TextComponent>
-            <View style={styles.permissionRequestAccountInfo}>
-              <View style={styles.permissionRequestAccountName}>
+            <View accessibilityRole="none" accessible={false} style={styles.permissionRequestAccountInfo}>
+              <View accessibilityRole="none" accessible={false} style={styles.permissionRequestAccountName}>
                 <TextComponent
                   testID={
                     PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
@@ -386,7 +386,7 @@ const MultichainPermissionsSummary = ({
                   </TextComponent>
                 </TextComponent>
               </View>
-              <View style={styles.avatarGroup}>
+              <View accessibilityRole="none" accessible={false} style={styles.avatarGroup}>
                 <AvatarGroup
                   avatarPropsList={selectedAccountGroups.map((accountGroup) =>
                     renderAccountAvatar(accountGroup),
@@ -409,7 +409,7 @@ const MultichainPermissionsSummary = ({
           ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON
         }
       >
-        <View style={styles.networkPermissionRequestInfoCard}>
+        <View accessibilityRole="none" accessible={false} style={styles.networkPermissionRequestInfoCard}>
           <Avatar
             style={styles.dataIcon}
             variant={AvatarVariant.Icon}
@@ -418,14 +418,14 @@ const MultichainPermissionsSummary = ({
             backgroundColor={colors.shadow.default}
             iconColor={colors.icon.alternative}
           />
-          <View style={styles.networkPermissionRequestDetails}>
+          <View accessibilityRole="none" accessible={false} style={styles.networkPermissionRequestDetails}>
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('permissions.use_enabled_networks')}
             </TextComponent>
-            <View style={styles.permissionRequestNetworkInfo}>
+            <View accessibilityRole="none" accessible={false} style={styles.permissionRequestNetworkInfo}>
               {(isNetworkSwitch || isNonDappNetworkSwitch) && (
                 <>
-                  <View style={styles.permissionRequestNetworkName}>
+                  <View accessibilityRole="none" accessible={false} style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
                       <TextComponent variant={TextVariant.BodySM}>
                         {strings('permissions.requesting_for')}
@@ -457,14 +457,14 @@ const MultichainPermissionsSummary = ({
               )}
               {!isNetworkSwitch && !isNonDappNetworkSwitch && (
                 <>
-                  <View style={styles.permissionRequestNetworkName}>
+                  <View accessibilityRole="none" accessible={false} style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
                       <TextComponent variant={TextVariant.BodySM}>
                         {getNetworkLabel()}
                       </TextComponent>
                     </TextComponent>
                   </View>
-                  <View style={styles.avatarGroup}>
+                  <View accessibilityRole="none" accessible={false} style={styles.avatarGroup}>
                     <AvatarGroup
                       avatarPropsList={networkAvatars.map((avatar) => ({
                         ...avatar,
@@ -565,8 +565,8 @@ const MultichainPermissionsSummary = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.mainContainer}>
-        <View style={styles.contentContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.mainContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
           {renderHeader()}
           <View
             style={styles.title}
@@ -599,17 +599,17 @@ const MultichainPermissionsSummary = ({
             </TextComponent>
           )}
           {!nonTabView ? (
-            <View style={styles.tabsContainer}>{renderTabsContent()}</View>
+            <View accessibilityRole="none" accessible={false} style={styles.tabsContainer}>{renderTabsContent()}</View>
           ) : (
-            <View style={styles.container}>
+            <View accessibilityRole="none" accessible={false} style={styles.container}>
               {showAccountsOnly && renderAccountPermissionsRequestInfoCard()}
               {showPermissionsOnly && renderNetworkPermissionsRequestInfoCard()}
             </View>
           )}
         </View>
-        <View style={styles.bottomButtonsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.bottomButtonsContainer}>
           {isAlreadyConnected && isDisconnectAllShown && (
-            <View style={styles.disconnectAllContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.disconnectAllContainer}>
               <Button
                 variant={ButtonVariants.Secondary}
                 testID={
@@ -627,7 +627,7 @@ const MultichainPermissionsSummary = ({
             </View>
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
-            <View style={styles.actionButtonsContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.actionButtonsContainer}>
               <StyledButton
                 type={'cancel'}
                 onPress={cancel}
@@ -657,8 +657,8 @@ const MultichainPermissionsSummary = ({
             </View>
           )}
           {isNonDappNetworkSwitch && (
-            <View style={styles.nonDappNetworkSwitchButtons}>
-              <View style={styles.actionButtonsContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.nonDappNetworkSwitchButtons}>
+              <View accessibilityRole="none" accessible={false} style={styles.actionButtonsContainer}>
                 <Button
                   variant={ButtonVariants.Primary}
                   label={strings('permissions.add_this_network')}
@@ -672,7 +672,7 @@ const MultichainPermissionsSummary = ({
                   }}
                 />
               </View>
-              <View style={styles.actionButtonsContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.actionButtonsContainer}>
                 <Button
                   variant={ButtonVariants.Secondary}
                   label={strings('permissions.choose_from_permitted_networks')}

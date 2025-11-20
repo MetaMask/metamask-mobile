@@ -423,7 +423,7 @@ const SpendingLimit = ({
   const renderSelectedToken = () => {
     if (!selectedToken) {
       return (
-        <View style={styles.selectedTokenContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.selectedTokenContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.placeholderText}>
             Select token
           </Text>
@@ -438,14 +438,14 @@ const SpendingLimit = ({
     );
 
     return (
-      <View style={styles.selectedTokenContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.selectedTokenContainer}>
         <AvatarToken
           name={selectedToken.symbol || ''}
           imageSource={iconUrl ? { uri: iconUrl } : undefined}
           size={AvatarSize.Md}
           style={styles.selectedTokenIcon}
         />
-        <View style={styles.selectedTokenInfo}>
+        <View accessibilityRole="none" accessible={false} style={styles.selectedTokenInfo}>
           <Text variant={TextVariant.BodyMD} style={styles.selectedTokenSymbol}>
             {selectedToken.symbol}
           </Text>
@@ -484,7 +484,7 @@ const SpendingLimit = ({
         enableAutomaticScroll
         contentContainerStyle={styles.contentContainer}
       >
-        <View style={styles.assetContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.assetContainer}>
           <TouchableOpacity
             style={styles.dropdownButton}
             onPress={handleOpenAssetSelection}
@@ -493,10 +493,10 @@ const SpendingLimit = ({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.optionsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.optionsContainer}>
           {!showOptions ? (
             // Initial view - only show full access option without radio button
-            <View style={styles.optionCard}>
+            <View accessibilityRole="none" accessible={false} style={styles.optionCard}>
               <Text
                 variant={TextVariant.BodyMDMedium}
                 style={styles.optionTitle}
@@ -520,7 +520,7 @@ const SpendingLimit = ({
             </View>
           ) : (
             // Options view - show both options with radio buttons in a single container
-            <View style={styles.optionCard}>
+            <View accessibilityRole="none" accessible={false} style={styles.optionCard}>
               <TouchableOpacity
                 style={styles.optionItem}
                 onPress={() => {
@@ -534,10 +534,10 @@ const SpendingLimit = ({
                   );
                 }}
               >
-                <View style={styles.optionHeader}>
-                  <View style={styles.radioButton}>
+                <View accessibilityRole="none" accessible={false} style={styles.optionHeader}>
+                  <View accessibilityRole="none" accessible={false} style={styles.radioButton}>
                     {tempSelectedOption === 'full' && (
-                      <View style={styles.radioButtonSelected} />
+                      <View accessibilityRole="none" accessible={false} style={styles.radioButtonSelected} />
                     )}
                   </View>
                   <Text
@@ -559,10 +559,10 @@ const SpendingLimit = ({
                 style={styles.optionItem}
                 onPress={() => handleOptionSelect('restricted')}
               >
-                <View style={styles.optionHeader}>
-                  <View style={styles.radioButton}>
+                <View accessibilityRole="none" accessible={false} style={styles.optionHeader}>
+                  <View accessibilityRole="none" accessible={false} style={styles.radioButton}>
                     {tempSelectedOption === 'restricted' && (
-                      <View style={styles.radioButtonSelected} />
+                      <View accessibilityRole="none" accessible={false} style={styles.radioButtonSelected} />
                     )}
                   </View>
                   <Text
@@ -581,7 +581,7 @@ const SpendingLimit = ({
                   )}
                 </Text>
                 {tempSelectedOption === 'restricted' && (
-                  <View style={styles.limitInputContainer}>
+                  <View accessibilityRole="none" accessible={false} style={styles.limitInputContainer}>
                     <TextInput
                       style={styles.limitInput}
                       value={customLimit}
@@ -608,9 +608,9 @@ const SpendingLimit = ({
           )}
         </View>
 
-        <View style={styles.buttonsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
           {isSolanaSelected && (
-            <View style={styles.warningContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.warningContainer}>
               <Icon
                 name={IconName.Info}
                 size={IconSize.Sm}

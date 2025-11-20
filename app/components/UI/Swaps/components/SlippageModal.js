@@ -56,13 +56,13 @@ function SlippageModal({ isVisible, dismiss, onChange, slippage }) {
     >
       <SafeAreaView style={styles.modalView}>
         <ModalDragger />
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           <Text bold centered primary>
             {strings('swaps.max_slippage')}
           </Text>
 
-          <View style={styles.slippageWrapper}>
-            <View style={styles.warningTextWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.slippageWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.warningTextWrapper}>
               {slippage >= 5 && (
                 <Text style={styles.warningText}>
                   {strings('swaps.slippage_warning')}

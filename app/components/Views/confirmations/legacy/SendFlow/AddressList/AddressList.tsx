@@ -26,7 +26,7 @@ import {
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
 const LabelElement = (styles: ReturnType<typeof styleSheet>, label: string) => (
-  <View key={label} style={styles.labelElementWrapper}>
+  <View accessibilityRole="none" accessible={false} key={label} style={styles.labelElementWrapper}>
     <Text variant={TextVariant.BodyMD} style={styles.contactLabel}>
       {label.toUpperCase()}
     </Text>
@@ -195,7 +195,7 @@ const AddressList = ({
     if (inputSearch) return null;
 
     return (
-      <View style={styles.yourContactcWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.yourContactcWrapper}>
         <Text
           variant={TextVariant.BodyLGMedium}
           style={styles.labelElementText}
@@ -278,7 +278,7 @@ const AddressList = ({
     });
 
     return (
-      <View style={styles.root}>
+      <View accessibilityRole="none" accessible={false} style={styles.root}>
         <KeyboardAwareScrollView
           style={styles.myAccountsWrapper}
           keyboardShouldPersistTaps="handled"

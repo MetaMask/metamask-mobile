@@ -92,10 +92,10 @@ function ListItem({
       style={styles.gasFeeTokenListItem}
     >
       {isSelected && <SelectedIndicator />}
-      <View style={styles.gasFeeTokenListItemContent}>
+      <View accessibilityRole="none" accessible={false} style={styles.gasFeeTokenListItemContent}>
         {image}
-        <View style={styles.gasFeeTokenListItemTextContainer}>
-          <View style={styles.gasFeeTokenListItemSymbol}>
+        <View accessibilityRole="none" accessible={false} style={styles.gasFeeTokenListItemTextContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.gasFeeTokenListItemSymbol}>
             <Text
               testID="gas-fee-token-list-item-symbol"
               variant={TextVariant.BodyMDMedium}
@@ -114,7 +114,7 @@ function ListItem({
           </Text>
         </View>
       </View>
-      <View style={styles.gasFeeTokenListItemAmountContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.gasFeeTokenListItemAmountContainer}>
         <Text
           testID="gas-fee-token-list-item-amount-fiat"
           variant={TextVariant.BodySMMedium}
@@ -136,7 +136,7 @@ function ListItem({
 function WarningIndicator({ text }: { text: string }) {
   const { styles } = useStyles(styleSheet, {});
   return (
-    <View style={styles.warningIndicator}>
+    <View accessibilityRole="none" accessible={false} style={styles.warningIndicator}>
       <Icon
         name={IconName.Warning}
         size={IconSize.Xs}

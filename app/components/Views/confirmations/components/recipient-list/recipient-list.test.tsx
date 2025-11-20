@@ -33,7 +33,7 @@ jest.mock('../UI/recipient', () => ({
   Recipient: ({ recipient, isSelected, onPress }: any) => {
     const { Pressable, Text, View } = jest.requireActual('react-native');
     return (
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <Pressable
           testID={
             isSelected

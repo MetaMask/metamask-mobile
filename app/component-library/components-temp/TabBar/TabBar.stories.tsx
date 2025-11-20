@@ -35,7 +35,7 @@ interface TabViewProps {
 }
 
 export const Default = () => (
-  <View style={containerStyle}>
+  <View accessibilityRole="none" accessible={false} style={containerStyle}>
     <ScrollableTabView
       renderTabBar={(props: typeof TabBarProps) => (
         <TabBarComponent {...props} />

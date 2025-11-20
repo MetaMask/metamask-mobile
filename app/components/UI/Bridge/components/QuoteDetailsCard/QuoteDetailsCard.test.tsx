@@ -18,7 +18,7 @@ jest.mock(
 // Mock rive-react-native
 jest.mock('rive-react-native', () => {
   const { View } = jest.requireActual('react-native');
-  const MockRive = () => <View testID={'mock-rive-animation'} />;
+  const MockRive = () => <View accessibilityRole="none" accessible={false} testID={'mock-rive-animation'} />;
 
   return {
     __esModule: true,

@@ -115,7 +115,7 @@ exports[`IPFSGatewaySettings render matches snapshot 1`] = `
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <ActivityIndicator
           size="small"
         />

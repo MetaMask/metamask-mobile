@@ -32,7 +32,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -219,7 +219,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -406,7 +406,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -593,7 +593,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -780,7 +780,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -967,7 +967,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {

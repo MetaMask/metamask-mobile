@@ -56,8 +56,8 @@ jest.mock('../../../component-library/components-temp/TabEmptyState', () => ({
   }) => {
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
-      <View testID={testID || 'tab-empty-state'}>
-        {icon && <View testID="empty-state-icon">{icon}</View>}
+      <View accessibilityRole="none" accessible={false} testID={testID || 'tab-empty-state'}>
+        {icon && <View accessibilityRole="none" accessible={false} testID="empty-state-icon">{icon}</View>}
         {description && (
           <Text testID="empty-state-description">{description}</Text>
         )}

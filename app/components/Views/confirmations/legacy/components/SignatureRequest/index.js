@@ -252,8 +252,8 @@ class SignatureRequest extends PureComponent {
     const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
 
     return (
-      <View style={styles.actionViewChild}>
-        <View style={styles.accountInfoCardWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.actionViewChild}>
+        <View accessibilityRole="none" accessible={false} style={styles.accountInfoCardWrapper}>
           <AccountInfoCard
             operation="signing"
             fromAddress={fromAddress}
@@ -270,7 +270,7 @@ class SignatureRequest extends PureComponent {
             url={url}
             icon={icon}
           />
-          <View style={styles.messageColumn}>
+          <View accessibilityRole="none" accessible={false} style={styles.messageColumn}>
             <Text style={styles.messageLabelText}>
               {strings('signature_request.message')}:
             </Text>
@@ -281,7 +281,7 @@ class SignatureRequest extends PureComponent {
               </Text>
             ) : null}
           </View>
-          <View style={styles.arrowIconWrapper}>{arrowIcon}</View>
+          <View accessibilityRole="none" accessible={false} style={styles.arrowIconWrapper}>{arrowIcon}</View>
         </TouchableOpacity>
       </View>
     );
@@ -291,7 +291,7 @@ class SignatureRequest extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <View style={styles.arrowIconWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.arrowIconWrapper}>
         <Ionicons name={'arrow-forward'} size={20} style={styles.arrowIcon} />
       </View>
     );
@@ -336,7 +336,7 @@ class SignatureRequest extends PureComponent {
     }
 
     return (
-      <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
+      <View accessibilityRole="none" accessible={false} testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
           cancelTestID={SigningBottomSheetSelectorsIDs.CANCEL_BUTTON}
           confirmTestID={SigningBottomSheetSelectorsIDs.SIGN_BUTTON}
@@ -351,13 +351,13 @@ class SignatureRequest extends PureComponent {
           confirmButtonMode="sign"
           confirmButtonState={confirmButtonState}
         >
-          <View>
-            <View style={styles.signingInformation}>
+          <View accessibilityRole="none" accessible={false}>
+            <View accessibilityRole="none" accessible={false} style={styles.signingInformation}>
               <Text style={styles.signText}>
                 {strings('signature_request.signing')}
               </Text>
             </View>
-            <View style={styles.blockaidBannerContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.blockaidBannerContainer}>
               <BlockaidBanner
                 securityAlertResponse={securityAlertResponse}
                 onContactUsClicked={this.onContactUsClicked}
@@ -375,7 +375,7 @@ class SignatureRequest extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <View style={[styles.root]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.root]}>
         <QRSigningDetails
           pendingScanRequest={pendingScanRequest}
           showCancelButton

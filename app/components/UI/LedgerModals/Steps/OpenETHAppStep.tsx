@@ -51,12 +51,12 @@ const OpenETHAppStep = ({ onReject }: OpenETHAppStepProps) => {
         style={styles.ledgerImageStyle}
         resizeMode="contain"
       />
-      <View style={styles.modalTitle} testID={OPEN_ETH_APP_STEP}>
+      <View accessibilityRole="none" accessible={false} style={styles.modalTitle} testID={OPEN_ETH_APP_STEP}>
         <Text bold big>
           {strings('ledger.open_eth_app')}
         </Text>
       </View>
-      <View style={styles.openLedgerTextWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.openLedgerTextWrapper}>
         <Text>
           <Text>{strings('ledger.open_eth_app_message_one')}</Text>
           <Text bold>{strings('ledger.open_eth_app_message_two')}</Text>

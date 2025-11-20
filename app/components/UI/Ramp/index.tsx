@@ -222,7 +222,7 @@ function FiatOrders() {
   );
 
   return authenticationUrls.length > 0 ? (
-    <View style={styles.hiddenView}>
+    <View accessibilityRole="none" accessible={false} style={styles.hiddenView}>
       {authenticationUrls.map((url) => (
         /*
          * WebView is used to redirect to the authenticationUrl

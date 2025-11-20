@@ -64,10 +64,10 @@ const AccountGroupBalance = () => {
     !isCurrentNetworkTestnet;
 
   return (
-    <View style={styles.accountGroupBalance}>
-      <View>
+    <View accessibilityRole="none" accessible={false} style={styles.accountGroupBalance}>
+      <View accessibilityRole="none" accessible={false}>
         {!groupBalance ? (
-          <View style={styles.skeletonContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.skeletonContainer}>
             <Skeleton width={100} height={40} />
             <Skeleton width={100} height={20} />
           </View>
@@ -78,7 +78,7 @@ const AccountGroupBalance = () => {
             onPress={() => togglePrivacy(!privacyMode)}
             testID="balance-container"
           >
-            <View style={styles.balanceContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.balanceContainer}>
               <SensitiveText
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Long}

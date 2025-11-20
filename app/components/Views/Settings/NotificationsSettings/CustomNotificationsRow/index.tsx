@@ -48,7 +48,7 @@ const CustomNotificationsRow = ({
         color={IconColor.Default}
         size={IconSize.Lg}
       />
-      <View style={styles.titleContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {title}
         </Text>

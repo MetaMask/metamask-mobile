@@ -26,7 +26,7 @@ const ScreenshotDeterrentWithoutNavigation = ({
     };
   }, [enabled]);
 
-  return <View />;
+  return <View accessibilityRole="none" accessible={false} />;
 };
 
 const ScreenshotDeterrentWithNavigation = ({
@@ -96,7 +96,7 @@ const ScreenshotDeterrentWithNavigation = ({
     };
   }, [alertPresent, enableScreenshotWarning, enabled]);
 
-  return <View />;
+  return <View accessibilityRole="none" accessible={false} />;
 };
 
 const ScreenshotDeterrent = ({

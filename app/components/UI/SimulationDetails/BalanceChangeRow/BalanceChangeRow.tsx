@@ -39,7 +39,7 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
   const isERC20 = balanceChange.asset.type === AssetType.ERC20;
   const shouldShowEditSpendingCapButton = isERC20 && onApprovalAmountUpdate;
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       {label && (
         <Text
           testID="balance-change-row-label"
@@ -49,8 +49,8 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
           {label}
         </Text>
       )}
-      <View style={styles.pillContainer}>
-        <View style={styles.pills}>
+      <View accessibilityRole="none" accessible={false} style={styles.pillContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.pills}>
           {shouldShowEditSpendingCapButton ? (
             <EditSpendingCapButton
               spendingCapProps={{

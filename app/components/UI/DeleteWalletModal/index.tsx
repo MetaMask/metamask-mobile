@@ -156,8 +156,8 @@ const DeleteWalletModal: React.FC = () => {
             {strings('login.forgot_password_desc_2')}
           </Text>
 
-          <View style={styles.forgotPasswordPointsContainer}>
-            <View style={styles.forgotPasswordPoint}>
+          <View accessibilityRole="none" accessible={false} style={styles.forgotPasswordPointsContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.forgotPasswordPoint}>
               <Icon
                 name={IconName.FaceId}
                 size={IconSize.Md}
@@ -179,7 +179,7 @@ const DeleteWalletModal: React.FC = () => {
                 {strings('login.forgot_password_point_1_1')}
               </Text>
             </View>
-            <View style={styles.forgotPasswordPoint}>
+            <View accessibilityRole="none" accessible={false} style={styles.forgotPasswordPoint}>
               <Icon
                 name={IconName.SecurityKey}
                 size={IconSize.Md}
@@ -219,12 +219,12 @@ const DeleteWalletModal: React.FC = () => {
           />
         </View>
       ) : (
-        <View style={styles.container}>
+        <View accessibilityRole="none" accessible={false} style={styles.container}>
           <View
             style={styles.areYouSure}
             testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
           >
-            <View style={styles.iconContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
               {!isResetWalletFromParams ? (
                 <ButtonIcon
                   iconName={IconName.ArrowLeft}
@@ -235,7 +235,7 @@ const DeleteWalletModal: React.FC = () => {
                   isDisabled={isDeletingWallet}
                 />
               ) : (
-                <View style={styles.iconEmptyContainer} />
+                <View accessibilityRole="none" accessible={false} style={styles.iconEmptyContainer} />
               )}
               <Icon
                 style={styles.warningIcon}
@@ -243,7 +243,7 @@ const DeleteWalletModal: React.FC = () => {
                 color={IconColor.Error}
                 name={IconName.Danger}
               />
-              <View style={styles.iconEmptyContainer} />
+              <View accessibilityRole="none" accessible={false} style={styles.iconEmptyContainer} />
             </View>
 
             <Text
@@ -254,7 +254,7 @@ const DeleteWalletModal: React.FC = () => {
             >
               {strings('login.are_you_sure')}
             </Text>
-            <View style={styles.warningTextContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.warningTextContainer}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('login.reset_wallet_desc')}{' '}
                 <Text
@@ -270,7 +270,7 @@ const DeleteWalletModal: React.FC = () => {
                 {strings('login.reset_wallet_desc_srp')}
               </Text>
             </View>
-            <View style={styles.buttonContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}

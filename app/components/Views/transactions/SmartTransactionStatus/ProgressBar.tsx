@@ -26,8 +26,8 @@ const ProgressBar = ({ percentComplete }: Props) => {
   });
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.progressBar} />
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.progressBar} />
     </View>
   );
 };

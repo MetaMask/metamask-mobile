@@ -28,13 +28,13 @@ const styles = StyleSheet.create({
 
 export const KeyValueRow = {
   render: () => (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Title>KeyValueRow Component</Title>
       <Text variant={TextVariant.BodySM}>
         Prebuilt component displayed below but KeyValueRow stubs are available
         to create new KeyValueRow variants.
       </Text>
-      <View style={styles.listItem}>
+      <View accessibilityRole="none" accessible={false} style={styles.listItem}>
         <KeyValueRowComponent
           field={{
             label: {

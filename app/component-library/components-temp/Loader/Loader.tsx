@@ -16,7 +16,7 @@ const Loader = ({ size = 'large', color }: LoaderProps) => {
   const indicatorColor = color ?? colors.primary.default;
 
   return (
-    <View style={styles.base}>
+    <View accessibilityRole="none" accessible={false} style={styles.base}>
       <ActivityIndicator size={size} color={indicatorColor} />
     </View>
   );

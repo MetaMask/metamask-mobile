@@ -99,7 +99,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     }
   >
     <TouchableWithoutFeedback>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
     </TouchableWithoutFeedback>
   </ScrollView>
 </View>

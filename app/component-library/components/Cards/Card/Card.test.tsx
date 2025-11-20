@@ -10,7 +10,7 @@ describe('Card - Snapshot', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
       <Card>
-        <View />
+        <View accessibilityRole="none" accessible={false} />
       </Card>,
     );
     expect(toJSON()).toMatchSnapshot();

@@ -234,7 +234,7 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
               onPress={[MockFunction]}
               testID="select-currency"
             >
-              <View>
+              <View accessibilityRole="none" accessible={false}>
                 <Text
                   style={
                     [

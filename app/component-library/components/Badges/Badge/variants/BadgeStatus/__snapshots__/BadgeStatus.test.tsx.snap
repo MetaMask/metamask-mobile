@@ -14,6 +14,6 @@ exports[`BadgeStatus should render badge status correctly 1`] = `
   }
   testID="badge-status"
 >
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </BadgeBase>
 `;

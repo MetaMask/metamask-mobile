@@ -57,7 +57,7 @@ const PerpsCrossMarginWarningBottomSheet: React.FC<
           {strings('perps.crossMargin.title')}
         </Text>
       </BottomSheetHeader>
-      <View style={styles.contentContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('perps.crossMargin.message')}
         </Text>

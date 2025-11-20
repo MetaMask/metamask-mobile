@@ -44,13 +44,13 @@ import { TabsList } from '../Tabs';
 
 const MyComponent = () => (
   <TabsList>
-    <View key="tokens" tabLabel="Tokens">
+    <View accessibilityRole="none" accessible={false} key="tokens" tabLabel="Tokens">
       <Text>Tokens content here</Text>
     </View>
-    <View key="nfts" tabLabel="NFTs">
+    <View accessibilityRole="none" accessible={false} key="nfts" tabLabel="NFTs">
       <Text>NFTs content here</Text>
     </View>
-    <View key="defi" tabLabel="DeFi" isDisabled>
+    <View accessibilityRole="none" accessible={false} key="defi" tabLabel="DeFi" isDisabled>
       <Text>DeFi content here (disabled)</Text>
     </View>
   </TabsList>
@@ -78,13 +78,13 @@ const MyComponent = () => {
       padding={4}
       flexDirection={BoxFlexDirection.Column}
     >
-      <View key="overview" tabLabel="Overview">
+      <View accessibilityRole="none" accessible={false} key="overview" tabLabel="Overview">
         <Text>Overview content</Text>
       </View>
-      <View key="details" tabLabel="Details">
+      <View accessibilityRole="none" accessible={false} key="details" tabLabel="Details">
         <Text>Details content</Text>
       </View>
-      <View key="settings" tabLabel="Settings" isDisabled>
+      <View accessibilityRole="none" accessible={false} key="settings" tabLabel="Settings" isDisabled>
         <Text>Settings content (disabled)</Text>
       </View>
     </TabsList>
@@ -124,7 +124,7 @@ import TabBar from '../TabBar';
   initialPage={0}
   locked={false} // Enable swipe gestures
 >
-  <View key="tab1" tabLabel="Tab 1">
+  <View accessibilityRole="none" accessible={false} key="tab1" tabLabel="Tab 1">
     {/* content */}
   </View>
 </ScrollableTabView>;
@@ -136,10 +136,10 @@ import TabBar from '../TabBar';
 import { TabsList } from '../Tabs';
 
 <TabsList onChangeTab={onChangeTab} initialActiveIndex={0}>
-  <View key="tab1" tabLabel="Tab 1">
+  <View accessibilityRole="none" accessible={false} key="tab1" tabLabel="Tab 1">
     {/* content */}
   </View>
-  <View key="tab2" tabLabel="Tab 2" isDisabled>
+  <View accessibilityRole="none" accessible={false} key="tab2" tabLabel="Tab 2" isDisabled>
     {/* disabled content */}
   </View>
 </TabsList>;

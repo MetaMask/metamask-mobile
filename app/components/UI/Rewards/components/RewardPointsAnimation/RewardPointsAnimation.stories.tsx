@@ -126,9 +126,9 @@ const InteractiveStory = (args: {
   }, [handleIdle]);
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       {/* Animation display */}
-      <View style={styles.animationContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.animationContainer}>
         <RewardPointsAnimationComponent
           {...args}
           value={currentValue}
@@ -137,8 +137,8 @@ const InteractiveStory = (args: {
       </View>
 
       {/* Control buttons for state demonstration */}
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonRow}>
+      <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonRow}>
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={handleLoading}
@@ -158,7 +158,7 @@ const InteractiveStory = (args: {
             <Text style={styles.buttonText}>Error</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.buttonRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonRow}>
           <TouchableOpacity style={styles.primaryButton} onPress={handleIdle}>
             <Text style={styles.buttonText}>Set random value</Text>
           </TouchableOpacity>

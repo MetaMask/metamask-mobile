@@ -80,15 +80,15 @@ const CardWarningBox = ({
   }
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Icon
         name={IconName.Danger}
         size={IconSize.Xl}
         color={theme.colors.warning.default}
         testID="icon"
       />
-      <View style={styles.contentContainer}>
-        <View style={styles.textsContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.textsContainer}>
           <Text variant={TextVariant.BodyMDBold}>
             {warningTexts[warning].title}
           </Text>

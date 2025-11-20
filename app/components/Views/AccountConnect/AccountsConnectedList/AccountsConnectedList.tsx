@@ -172,8 +172,8 @@ const AccountsConnectedList = ({
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.accountsConnectedContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.accountsConnectedContainer}>
         <FlatList
           keyExtractor={(item) => item}
           data={selectedAddresses}

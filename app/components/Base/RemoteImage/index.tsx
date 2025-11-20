@@ -160,7 +160,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
                 onError={onError}
               />
             ) : (
-              <View style={style}>
+              <View accessibilityRole="none" accessible={false} style={style}>
                 <Image
                   style={styles.imageStyle}
                   {...restProps}

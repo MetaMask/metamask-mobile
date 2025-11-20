@@ -21,7 +21,7 @@ const Timer = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.timerWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.timerWrapper}>
       {isFetchingQuotes ? (
         <>
           <ActivityIndicator size="small" />

@@ -61,9 +61,9 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
 
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.wrapper}>
-      <View style={styles.root}>
-        <View style={styles.animationContainer}>
-          <View style={styles.largeFoxWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.root}>
+        <View accessibilityRole="none" accessible={false} style={styles.animationContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.largeFoxWrapper}>
             <LottieView
               style={styles.foxAnimation}
               autoPlay
@@ -90,7 +90,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
           </Text>
         </View>
 
-        <View style={styles.ctaContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.ctaContainer}>
           <Button
             variant={ButtonVariants.Primary}
             testID={

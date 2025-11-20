@@ -465,7 +465,7 @@ class AddCustomToken extends PureComponent {
     };
 
     return (
-      <View style={styles.tokenDetectionBanner}>
+      <View accessibilityRole="none" accessible={false} style={styles.tokenDetectionBanner}>
         <Banner
           variant={BannerVariant.Alert}
           severity={BannerAlertSeverity.Warning}
@@ -554,10 +554,10 @@ class AddCustomToken extends PureComponent {
     );
 
     return (
-      <View style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
         <ScrollView>
           {this.renderBanner()}
-          <View style={styles.addressWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.addressWrapper}>
             <Text style={styles.inputLabel}>
               {strings('asset_details.address')}
             </Text>
@@ -585,7 +585,7 @@ class AddCustomToken extends PureComponent {
           </View>
 
           {this.state.address && !onFocusAddress && !warningAddress ? (
-            <View style={styles.rowWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.rowWrapper}>
               <Text style={styles.inputLabel}>
                 {strings('token.token_symbol')}
               </Text>
@@ -608,7 +608,7 @@ class AddCustomToken extends PureComponent {
           ) : null}
 
           {this.state.address && !onFocusAddress && !warningAddress ? (
-            <View style={styles.rowWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.rowWrapper}>
               <Text style={styles.inputLabel}>
                 {strings('token.token_decimal')}
               </Text>

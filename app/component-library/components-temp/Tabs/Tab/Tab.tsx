@@ -23,7 +23,7 @@ const Tab: React.FC<TabProps> = ({
   ...pressableProps
 }) => {
   const tw = useTailwind();
-  const viewRef = useRef<View>(null);
+  const viewRef = useRef<View accessibilityRole="none" accessible={false}>(null);
 
   const handleOnLayout = useCallback(
     (layoutEvent: Parameters<NonNullable<typeof onLayout>>[0]) => {

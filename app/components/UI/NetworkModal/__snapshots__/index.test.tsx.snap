@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NetworkDetails renders correctly 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <Modal
     animationType="none"
     deviceHeight={null}
@@ -112,7 +112,7 @@ exports[`NetworkDetails renders correctly 1`] = `
           }
         }
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <View
             style={
               {
@@ -197,7 +197,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   }
                 }
               >
-                <View>
+                <View accessibilityRole="none" accessible={false}>
                   <TouchableOpacity
                     disabled={true}
                     style={
@@ -316,7 +316,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       ]
                     }
                   >
-                    <View>
+                    <View accessibilityRole="none" accessible={false}>
                       <Text
                         accessibilityRole="text"
                         style={

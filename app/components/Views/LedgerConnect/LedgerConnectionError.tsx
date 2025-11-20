@@ -81,8 +81,8 @@ const LedgerConnectionError = ({
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.contentWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.contentWrapper}>
         <Image
           source={useAssetFromTheme(
             ledgerConnectErrorLightImage,
@@ -90,16 +90,16 @@ const LedgerConnectionError = ({
           )}
           resizeMode="contain"
         />
-        <View style={styles.errorHasOccuredTextContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.errorHasOccuredTextContainer}>
           <Text bold big style={styles.errorHasOccuredText}>
             {strings('ledger.error_occured')}
           </Text>
           <Text style={styles.errorTitle}>{errorTitle}</Text>
-          <View style={styles.errorSubtitleContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.errorSubtitleContainer}>
             <Text>{errorSubtitle}</Text>
           </View>
         </View>
-        <View style={styles.buttonsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
           <StyledButton
             onPress={primaryButtonConfig?.onPress}
             type="confirm"

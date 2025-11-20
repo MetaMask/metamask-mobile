@@ -771,8 +771,8 @@ const EarnWithdrawInputView = () => {
           }
         />
         {isStablecoinLendingEnabled && (
-          <View style={styles.earnTokenSelectorContainer}>
-            <View style={styles.spacer} />
+          <View accessibilityRole="none" accessible={false} style={styles.earnTokenSelectorContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.spacer} />
             <EarnTokenSelector
               token={withdrawalToken as TokenI}
               action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
@@ -793,7 +793,7 @@ const EarnWithdrawInputView = () => {
         currency={token.isETH ? 'ETH' : (token.ticker ?? token.symbol)}
         decimals={isFiat ? 2 : 5}
       />
-      <View style={styles.reviewButtonContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.reviewButtonContainer}>
         <Button
           testID="review-button"
           label={buttonLabel}

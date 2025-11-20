@@ -85,10 +85,10 @@ const TemplateConfirmation = ({
   }
 
   return (
-    <View style={styles.root}>
+    <View accessibilityRole="none" accessible={false} style={styles.root}>
       <TemplateRenderer sections={templatedValues.content} />
       {buttons.length > 0 && (
-        <View style={styles.actionContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
             buttonPropsArray={buttons}

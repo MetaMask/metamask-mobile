@@ -52,7 +52,7 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
 
   if (!imageUri || hasError) {
     return (
-      <View style={[containerStyle, style]} testID={testID}>
+      <View accessibilityRole="none" accessible={false} style={[containerStyle, style]} testID={testID}>
         <Text variant={TextVariant.BodyMD} style={fallbackTextStyle}>
           {fallbackText}
         </Text>
@@ -61,9 +61,9 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
   }
 
   return (
-    <View style={[containerStyle, style]} testID={testID}>
+    <View accessibilityRole="none" accessible={false} style={[containerStyle, style]} testID={testID}>
       {isLoading && (
-        <View style={loadingContainerStyle}>
+        <View accessibilityRole="none" accessible={false} style={loadingContainerStyle}>
           <ActivityIndicator size="small" />
         </View>
       )}

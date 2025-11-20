@@ -83,7 +83,7 @@ const TurnOffRememberMeModal = () => {
           onConfirmPress={triggerClose}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.areYouSure}>
+            <View accessibilityRole="none" accessible={false} style={styles.areYouSure}>
               <Text variant={TextVariant.HeadingLG} style={styles.textStyle}>
                 {strings('turn_off_remember_me.title')}
               </Text>

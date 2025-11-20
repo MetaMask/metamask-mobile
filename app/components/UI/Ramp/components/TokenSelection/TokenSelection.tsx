@@ -155,14 +155,14 @@ function TokenSelection() {
 
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
-      <View style={styles.filterBarContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.filterBarContainer}>
         <TokenNetworkFilterBar
           networks={uniqueNetworks}
           networkFilter={networkFilter}
           setNetworkFilter={setNetworkFilter}
         />
       </View>
-      <View style={styles.searchContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.searchContainer}>
         <TextFieldSearch
           value={searchString}
           showClearButton={searchString.length > 0}

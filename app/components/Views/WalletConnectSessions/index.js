@@ -195,7 +195,7 @@ export default class WalletConnectSessions extends PureComponent {
         style={styles.row}
       >
         <WebsiteIcon url={session.peerMeta.url} style={styles.websiteIcon} />
-        <View style={styles.info}>
+        <View accessibilityRole="none" accessible={false} style={styles.info}>
           <Text style={styles.name}>{session.peerMeta.name}</Text>
           <Text style={styles.url}>{session.peerId}</Text>
           <Text style={styles.url}>{session.peerMeta.url}</Text>
@@ -219,7 +219,7 @@ export default class WalletConnectSessions extends PureComponent {
           url={session.peer.metadata.url}
           style={styles.websiteIcon}
         />
-        <View style={styles.info}>
+        <View accessibilityRole="none" accessible={false} style={styles.info}>
           <Text style={styles.name}>{session.peer.metadata.name}</Text>
           <Text style={styles.url}>{session.topic}</Text>
           <Text style={styles.url}>{session.peer.metadata.url}</Text>
@@ -234,7 +234,7 @@ export default class WalletConnectSessions extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.emptyWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.emptyWrapper}>
         <Text style={styles.emptyText}>
           {strings('walletconnect_sessions.no_active_sessions')}
         </Text>

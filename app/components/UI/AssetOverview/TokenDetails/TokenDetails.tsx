@@ -239,7 +239,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   }, [marketData, currentCurrency, isNonEvmAsset, conversionRate]);
 
   return (
-    <View style={styles.tokenDetailsContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.tokenDetailsContainer}>
       {(asset.isETH || tokenMetadata || isNonEvmAsset) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}

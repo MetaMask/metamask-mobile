@@ -114,7 +114,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
             }
             testID="listitem-gap"
           />
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text
               style={
                 [
@@ -394,7 +394,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
             }
             testID="listitem-gap"
           />
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text
               style={
                 [

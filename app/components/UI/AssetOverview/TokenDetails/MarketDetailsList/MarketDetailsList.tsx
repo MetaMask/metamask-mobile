@@ -19,11 +19,11 @@ const MarketDetailsList: React.FC<MarketDetailsListProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('token.market_details')}
       </Text>
-      <View style={styles.listWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.listWrapper}>
         {marketDetails.marketCap && (
           <TokenDetailsListItem
             style={[styles.listItem, styles.firstChild]}

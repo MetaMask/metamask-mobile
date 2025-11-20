@@ -98,7 +98,7 @@ const StakingButtons = ({
   };
 
   return (
-    <View style={[styles.balanceButtonsContainer, style]}>
+    <View accessibilityRole="none" accessible={false} style={[styles.balanceButtonsContainer, style]}>
       {hasEthToUnstake && (
         <Button
           testID={'unstake-button'}

@@ -39,7 +39,7 @@ const AccountConnectSingleSelector = ({
 
   const renderSheetActions = useCallback(
     () => (
-      <View style={styles.sheetActionContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.sheetActionContainer}>
         <SheetActions
           actions={[
             {

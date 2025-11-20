@@ -51,7 +51,7 @@ export const ResetAccountModal = ({
       onRequestClose={cancelResetAccount}
       onConfirmPress={resetAccount}
     >
-      <View style={styles.modalView}>
+      <View accessibilityRole="none" accessible={false} style={styles.modalView}>
         <Text style={styles.modalTitle} variant={TextVariant.HeadingMD}>
           {strings('app_settings.reset_account_modal_title')}
         </Text>

@@ -43,7 +43,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Text testID="custom-amount-symbol" style={styles.input}>
         {fiatSymbol}
       </Text>
@@ -66,7 +66,7 @@ export function CustomAmountSkeleton() {
   });
 
   return (
-    <View style={styles.container} testID="custom-amount-skeleton">
+    <View accessibilityRole="none" accessible={false} style={styles.container} testID="custom-amount-skeleton">
       <Skeleton height={70} width={80} />
     </View>
   );

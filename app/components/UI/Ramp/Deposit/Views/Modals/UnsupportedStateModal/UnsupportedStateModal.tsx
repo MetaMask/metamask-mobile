@@ -104,11 +104,11 @@ function UnsupportedStateModal() {
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <View accessibilityRole="none" accessible={false} style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {strings('deposit.unsupported_state_modal.location_prefix')}
         </Text>
-        <View style={styles.stateContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.stateContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {selectedRegion?.flag}
           </Text>
@@ -121,7 +121,7 @@ function UnsupportedStateModal() {
         </Text>
       </View>
 
-      <View style={styles.footer}>
+      <View accessibilityRole="none" accessible={false} style={styles.footer}>
         <Button
           size={ButtonSize.Lg}
           onPress={handleSelectDifferentState}

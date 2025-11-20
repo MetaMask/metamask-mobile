@@ -21,29 +21,29 @@ const PerpsTransactionsSkeleton: React.FC<PerpsTransactionsSkeletonProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   const renderSkeletonTransactionItem = () => (
-    <View style={styles.transactionItem} key="skeleton-transaction">
+    <View accessibilityRole="none" accessible={false} style={styles.transactionItem} key="skeleton-transaction">
       {/* Token logo skeleton */}
-      <View style={styles.tokenIconContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.tokenIconContainer}>
         <Skeleton width={36} height={36} style={styles.tokenIcon} />
       </View>
 
       {/* Transaction content skeleton */}
-      <View style={styles.transactionContent}>
+      <View accessibilityRole="none" accessible={false} style={styles.transactionContent}>
         <Skeleton width={120} height={16} style={styles.transactionTitle} />
         <Skeleton width={80} height={12} style={styles.transactionSubtitle} />
       </View>
 
       {/* Right content skeleton */}
-      <View style={styles.rightContent}>
+      <View accessibilityRole="none" accessible={false} style={styles.rightContent}>
         <Skeleton width={60} height={14} style={styles.rightContentSkeleton} />
       </View>
     </View>
   );
 
   const renderSkeletonSection = (sectionIndex: number) => (
-    <View key={`skeleton-section-${sectionIndex}`}>
+    <View accessibilityRole="none" accessible={false} key={`skeleton-section-${sectionIndex}`}>
       {/* Section header skeleton */}
-      <View style={styles.sectionHeader}>
+      <View accessibilityRole="none" accessible={false} style={styles.sectionHeader}>
         <Skeleton
           width={100}
           height={16}
@@ -57,7 +57,7 @@ const PerpsTransactionsSkeleton: React.FC<PerpsTransactionsSkeletonProps> = ({
   );
 
   return (
-    <View style={styles.container} testID={testID}>
+    <View accessibilityRole="none" accessible={false} style={styles.container} testID={testID}>
       {/* Render 2 skeleton sections to mimic typical transaction list */}
       {Array.from({ length: 2 }, (_, sectionIndex) =>
         renderSkeletonSection(sectionIndex),

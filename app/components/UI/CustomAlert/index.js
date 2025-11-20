@@ -104,15 +104,15 @@ export default class CustomAlert extends PureComponent {
         backdropColor={colors.overlay.default}
         backdropOpacity={1}
       >
-        <View style={styles.content}>
-          <View style={[styles.header, this.props.headerStyle]}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
+          <View accessibilityRole="none" accessible={false} style={[styles.header, this.props.headerStyle]}>
             {this.props.headerContent}
           </View>
-          <View style={styles.body}>
+          <View accessibilityRole="none" accessible={false} style={styles.body}>
             <Text style={styles.title}>{this.props.titleText}</Text>
             {this.props.children}
           </View>
-          <View style={styles.footer}>
+          <View accessibilityRole="none" accessible={false} style={styles.footer}>
             <StyledButton type={'confirm'} onPress={this.props.onPress}>
               {this.props.buttonText}
             </StyledButton>

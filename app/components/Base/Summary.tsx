@@ -63,7 +63,7 @@ interface SummaryComponent extends React.FC<SummaryProps> {
 
 const Summary: SummaryComponent = ({ style, ...props }) => {
   const styles = useGetStyles();
-  return <View style={[styles.wrapper, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.wrapper, style]} {...props} />;
 };
 
 const SummaryRow: React.FC<SummaryRowProps> = ({
@@ -83,7 +83,7 @@ const SummaryRow: React.FC<SummaryRowProps> = ({
 
 const SummaryCol: React.FC<SummaryColProps> = ({ style, end, ...props }) => {
   const styles = useGetStyles();
-  return <View style={[styles.col, end && styles.rowEnd, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.col, end && styles.rowEnd, style]} {...props} />;
 };
 
 const SummarySeparator: React.FC<SummarySeparatorProps> = ({
@@ -91,7 +91,7 @@ const SummarySeparator: React.FC<SummarySeparatorProps> = ({
   ...props
 }) => {
   const styles = useGetStyles();
-  return <View style={[styles.separator, style]} {...props} />;
+  return <View accessibilityRole="none" accessible={false} style={[styles.separator, style]} {...props} />;
 };
 
 Summary.Row = SummaryRow;

@@ -298,7 +298,7 @@ describe('getTransparentOnboardingNavbarOptions', () => {
   it('handles getOnboardingNavbarOptions', () => {
     const options = getOnboardingNavbarOptions(
       mockNavigation,
-      { headerLeft: () => <View />, headerRight: () => <View /> },
+      { headerLeft: () => <View accessibilityRole="none" accessible={false} />, headerRight: () => <View accessibilityRole="none" accessible={false} /> },
       mockTheme.colors,
       true,
     );
@@ -319,7 +319,7 @@ describe('getOnboardingNavbarOptions', () => {
   it('render onboarding navbar options with default props', () => {
     const options = getOnboardingNavbarOptions(
       mockNavigation,
-      { headerLeft: () => <View />, headerRight: () => <View /> },
+      { headerLeft: () => <View accessibilityRole="none" accessible={false} />, headerRight: () => <View accessibilityRole="none" accessible={false} /> },
       mockTheme.colors,
       true,
     );

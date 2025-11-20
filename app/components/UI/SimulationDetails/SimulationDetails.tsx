@@ -54,7 +54,7 @@ const ErrorContent: React.FC<{
   }
 
   return (
-    <View style={styles.errorContentContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.errorContentContainer}>
       <Icon
         name={IconName.Warning}
         color={TextColor.Warning}
@@ -91,8 +91,8 @@ const HeaderLayout: React.FC<{
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   return (
-    <View style={styles.headerContainer}>
-      <View style={styles.innerHeaderContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.innerHeaderContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
           {strings('simulation_details.title')}
         </Text>
@@ -143,7 +143,7 @@ const SimulationDetailsLayout: React.FC<{
       style={isTransactionsRedesign ? styles.redesignedRowContainer : {}}
       testID={ConfirmationRowComponentIDs.SIMULATION_DETAILS}
     >
-      <View style={[styles.container]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.container]}>
         <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
           {inHeader}
         </HeaderLayout>
@@ -246,7 +246,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
 
   return (
     <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
-      <View style={styles.changeListContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.changeListContainer}>
         {isBatched && <BatchApprovalRow />}
         <BalanceChangeList
           testID="simulation-details-balance-change-list-outgoing"

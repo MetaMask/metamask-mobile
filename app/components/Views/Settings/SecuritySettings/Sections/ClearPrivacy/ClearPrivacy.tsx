@@ -58,7 +58,7 @@ const ClearPrivacy = () => {
   );
 
   return (
-    <View style={[styles.setting]} testID={CLEAR_PRIVACY_SECTION}>
+    <View accessibilityRole="none" accessible={false} style={[styles.setting]} testID={CLEAR_PRIVACY_SECTION}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.clear_privacy_title')}
       </Text>
@@ -69,7 +69,7 @@ const ClearPrivacy = () => {
       >
         {strings('app_settings.clear_privacy_desc')}
       </Text>
-      <View style={styles.accessory}>
+      <View accessibilityRole="none" accessible={false} style={styles.accessory}>
         <Button
           variant={ButtonVariants.Secondary}
           testID={SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON}

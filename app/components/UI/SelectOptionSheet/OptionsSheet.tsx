@@ -40,7 +40,7 @@ const OptionsSheet = () => {
     <BottomSheet ref={bottomSheetRef}>
       <SheetHeader title={params.label} />
       <ScrollView style={styles.list}>
-        <View style={styles.listWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.listWrapper}>
           {options.map((option) => (
             <TouchableOpacity
               onPress={() =>

@@ -279,7 +279,7 @@ class ChoosePassword extends PureComponent {
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: this.state.loading ? () => <View /> : this.headerLeft,
+          headerLeft: this.state.loading ? () => <View accessibilityRole="none" accessible={false} /> : this.headerLeft,
         },
         colors,
         false,
@@ -333,7 +333,7 @@ class ChoosePassword extends PureComponent {
     if (!prevLoading && loading) {
       // update navigationOptions
       navigation.setParams({
-        headerLeft: () => <View />,
+        headerLeft: () => <View accessibilityRole="none" accessible={false} />,
       });
     }
   }
@@ -722,7 +722,7 @@ class ChoosePassword extends PureComponent {
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
-          <View style={styles.loadingWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.loadingWrapper}>
             <FoxRiveLoaderAnimation />
           </View>
         ) : (
@@ -730,12 +730,12 @@ class ChoosePassword extends PureComponent {
             contentContainerStyle={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View style={styles.container}>
+            <View accessibilityRole="none" accessible={false} style={styles.container}>
               <View
                 style={styles.passwordContainer}
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
               >
-                <View style={styles.passwordContainerTitle}>
+                <View accessibilityRole="none" accessible={false} style={styles.passwordContainerTitle}>
                   <Text
                     variant={TextVariant.DisplayMD}
                     color={TextColor.Default}
@@ -776,7 +776,7 @@ class ChoosePassword extends PureComponent {
                   </Text>
                 </View>
 
-                <View style={styles.field}>
+                <View accessibilityRole="none" accessible={false} style={styles.field}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
                     color={TextColor.Default}
@@ -823,7 +823,7 @@ class ChoosePassword extends PureComponent {
                   )}
                 </View>
 
-                <View style={styles.field}>
+                <View accessibilityRole="none" accessible={false} style={styles.field}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
                     color={TextColor.Default}
@@ -871,7 +871,7 @@ class ChoosePassword extends PureComponent {
                   )}
                 </View>
 
-                <View style={styles.learnMoreContainer}>
+                <View accessibilityRole="none" accessible={false} style={styles.learnMoreContainer}>
                   <Checkbox
                     onPress={this.setSelection}
                     isChecked={isSelected}
@@ -921,7 +921,7 @@ class ChoosePassword extends PureComponent {
                   />
                 </View>
 
-                <View style={styles.ctaWrapper}>
+                <View accessibilityRole="none" accessible={false} style={styles.ctaWrapper}>
                   <Button
                     variant={ButtonVariants.Primary}
                     onPress={this.onPressCreate}

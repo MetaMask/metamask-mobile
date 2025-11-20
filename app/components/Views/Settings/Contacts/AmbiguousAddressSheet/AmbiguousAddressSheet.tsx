@@ -33,12 +33,12 @@ const AmbiguousAddressSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <Text style={styles.heading}>{strings('duplicate_address.title')}</Text>
         <Text style={styles.body}>
           <Text>{strings('duplicate_address.body')}</Text>
         </Text>
-        <View style={styles.buttonContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
           <Button
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}

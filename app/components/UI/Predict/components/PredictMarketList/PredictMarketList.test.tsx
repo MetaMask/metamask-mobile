@@ -47,7 +47,7 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
 jest.mock('../../../../Base/TabBar', () => {
   const { View } = jest.requireActual('react-native');
   return function MockTabBar({ textStyle }: { textStyle: object }) {
-    return <View testID="tab-bar" style={textStyle} />;
+    return <View accessibilityRole="none" accessible={false} testID="tab-bar" style={textStyle} />;
   };
 });
 
@@ -55,7 +55,7 @@ jest.mock('../../components/MarketListContent', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockMarketListContent({ category }: { category: string }) {
     return (
-      <View testID={`market-list-content-${category}`}>
+      <View accessibilityRole="none" accessible={false} testID={`market-list-content-${category}`}>
         <Text testID={`category-${category}`}>{category} markets</Text>
       </View>
     );
@@ -66,7 +66,7 @@ jest.mock('../../components/PredictBalance/PredictBalance', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockPredictBalance() {
     return (
-      <View testID="predict-balance">
+      <View accessibilityRole="none" accessible={false} testID="predict-balance">
         <Text>Balance: $100.00</Text>
       </View>
     );
@@ -85,7 +85,7 @@ jest.mock('../../components/SearchBox', () => {
     onSearch: (query: string) => void;
   }) {
     return (
-      <View testID="search-box">
+      <View accessibilityRole="none" accessible={false} testID="search-box">
         <Text>Search Box Visible: {String(isVisible)}</Text>
         <TouchableOpacity testID="search-cancel-button" onPress={onCancel}>
           <Text>Cancel</Text>
@@ -113,7 +113,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
   }) => {
     const { View } = jest.requireActual('react-native');
     return (
-      <View testID={testID} {...props}>
+      <View accessibilityRole="none" accessible={false} testID={testID} {...props}>
         {children}
       </View>
     );
@@ -146,7 +146,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
       name: string;
       testID?: string;
     }) {
-      return <View testID={testID || `icon-${name}`} />;
+      return <View accessibilityRole="none" accessible={false} testID={testID || `icon-${name}`} />;
     },
     IconName: {
       Search: 'Search',
@@ -176,7 +176,7 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
       variant: string;
       testID?: string;
     }) {
-      return <View testID={testID || `avatar-${variant}`} />;
+      return <View accessibilityRole="none" accessible={false} testID={testID || `avatar-${variant}`} />;
     },
     AvatarVariant: {
       Icon: 'Icon',
@@ -256,7 +256,7 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
       style?: object;
     }) {
       return (
-        <View testID="scrollable-tab-view" style={style}>
+        <View accessibilityRole="none" accessible={false} testID="scrollable-tab-view" style={style}>
           {renderTabBar && typeof renderTabBar === 'function' && renderTabBar()}
           {children}
         </View>

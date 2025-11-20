@@ -29,10 +29,10 @@ import Text from '../../components/Texts/Text';
 
 const MyTabView = () => (
   <ScrollableTabView renderTabBar={() => <TabBar />} initialPage={0}>
-    <View key="tab1" tabLabel="Tab 1">
+    <View accessibilityRole="none" accessible={false} key="tab1" tabLabel="Tab 1">
       <Text>Tab 1 Content</Text>
     </View>
-    <View key="tab2" tabLabel="Tab 2">
+    <View accessibilityRole="none" accessible={false} key="tab2" tabLabel="Tab 2">
       <Text>Tab 2 Content</Text>
     </View>
   </ScrollableTabView>
@@ -53,10 +53,10 @@ const MyTabView = () => (
     renderTabBar={() => <TabBar style={{ backgroundColor: 'lightblue' }} />}
     initialPage={0}
   >
-    <View key="tab1" tabLabel="Tab 1">
+    <View accessibilityRole="none" accessible={false} key="tab1" tabLabel="Tab 1">
       <Text>Tab 1 Content</Text>
     </View>
-    <View key="tab2" tabLabel="Tab 2">
+    <View accessibilityRole="none" accessible={false} key="tab2" tabLabel="Tab 2">
       <Text>Tab 2 Content</Text>
     </View>
   </ScrollableTabView>
@@ -83,10 +83,10 @@ const MyTabView = () => {
       onChangeTab={onChangeTab}
       initialPage={0}
     >
-      <View key="tab1" tabLabel="Tab 1">
+      <View accessibilityRole="none" accessible={false} key="tab1" tabLabel="Tab 1">
         <Text>Tab 1 Content</Text>
       </View>
-      <View key="tab2" tabLabel="Tab 2">
+      <View accessibilityRole="none" accessible={false} key="tab2" tabLabel="Tab 2">
         <Text>Tab 2 Content</Text>
       </View>
     </ScrollableTabView>
@@ -100,13 +100,13 @@ const MyTabView = () => {
 
 ```tsx
 <ScrollableTabView renderTabBar={() => <TabBar />} initialPage={0}>
-  <View key="tokens" tabLabel="Tokens">
+  <View accessibilityRole="none" accessible={false} key="tokens" tabLabel="Tokens">
     <TokensList />
   </View>
-  <View key="nfts" tabLabel="NFTs">
+  <View accessibilityRole="none" accessible={false} key="nfts" tabLabel="NFTs">
     <NFTsList />
   </View>
-  <View key="defi" tabLabel="DeFi">
+  <View accessibilityRole="none" accessible={false} key="defi" tabLabel="DeFi">
     <DeFiPositions />
   </View>
 </ScrollableTabView>
@@ -116,13 +116,13 @@ const MyTabView = () => {
 
 ```tsx
 <ScrollableTabView renderTabBar={() => <TabBar />} initialPage={0}>
-  <View key="general" tabLabel="General">
+  <View accessibilityRole="none" accessible={false} key="general" tabLabel="General">
     <GeneralSettings />
   </View>
-  <View key="security" tabLabel="Security">
+  <View accessibilityRole="none" accessible={false} key="security" tabLabel="Security">
     <SecuritySettings />
   </View>
-  <View key="advanced" tabLabel="Advanced">
+  <View accessibilityRole="none" accessible={false} key="advanced" tabLabel="Advanced">
     <AdvancedSettings />
   </View>
 </ScrollableTabView>

@@ -40,7 +40,7 @@ const Transfer = () => {
   }, [assetType, usdValue, setConfirmationMetric]);
 
   return (
-    <View testID={ConfirmationInfoComponentIDs.TRANSFER}>
+    <View accessibilityRole="none" accessible={false} testID={ConfirmationInfoComponentIDs.TRANSFER}>
       <HeroRow />
       <FromToRow />
       <NetworkAndOriginRow />

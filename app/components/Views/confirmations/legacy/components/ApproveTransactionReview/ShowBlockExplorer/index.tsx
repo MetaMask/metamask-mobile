@@ -91,14 +91,14 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
   };
 
   const renderProgressBar = () => (
-    <View style={styles.progressBarWrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.progressBarWrapper}>
       <WebviewProgressBar progress={loading} />
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={headerWrapperStyle}>
+      <View accessibilityRole="none" accessible={false} style={headerWrapperStyle}>
         {!learnMoreURL && (
           <Text variant={TextVariant.BodyMDBold} style={headerTextStyle}>
             {title}

@@ -35,7 +35,7 @@ function SsnInfoModal() {
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <View accessibilityRole="none" accessible={false} style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {strings('deposit.ssn_info_modal.description')}
         </Text>

@@ -97,9 +97,9 @@ function Onboarding({ setHasOnboarded }) {
   }, [navigation]);
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.content}>
-        <View style={styles.images}>
+    <View accessibilityRole="none" accessible={false} style={styles.screen}>
+      <View accessibilityRole="none" accessible={false} style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.images}>
           <Image source={onboardingDeviceImage} />
           <Text centered primary style={styles.title}>
             {`${strings('swaps.onboarding.get_the')} `}
@@ -121,7 +121,7 @@ function Onboarding({ setHasOnboarded }) {
           </Text>
           <Image source={swapsAggregators} style={styles.aggregatorsImage} />
         </View>
-        <View style={styles.learnMore}>
+        <View accessibilityRole="none" accessible={false} style={styles.learnMore}>
           <TouchableOpacity
             style={styles.learnMoreLink}
             onPress={handleReviewAuditsPress}
@@ -132,7 +132,7 @@ function Onboarding({ setHasOnboarded }) {
           </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.actionButtonWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.actionButtonWrapper}>
         <StyledButton
           type="confirm"
           containerStyle={styles.actionButton}

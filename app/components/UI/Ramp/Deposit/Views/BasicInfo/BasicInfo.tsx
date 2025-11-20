@@ -336,7 +336,7 @@ const BasicInfo = (): JSX.Element => {
               {strings('deposit.basic_info.subtitle')}
             </Text>
             {error && (
-              <View style={styles.errorContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.errorContainer}>
                 <BannerAlert
                   description={error}
                   severity={BannerAlertSeverity.Error}
@@ -354,7 +354,7 @@ const BasicInfo = (): JSX.Element => {
                 />
               </View>
             )}
-            <View style={styles.nameInputRow}>
+            <View accessibilityRole="none" accessible={false} style={styles.nameInputRow}>
               <DepositTextField
                 label={strings('deposit.basic_info.first_name')}
                 placeholder={strings('deposit.basic_info.first_name')}
@@ -440,7 +440,7 @@ const BasicInfo = (): JSX.Element => {
             {selectedRegion?.isoCode === 'US' && (
               <DepositTextField
                 label={
-                  <View style={styles.ssnLabel}>
+                  <View accessibilityRole="none" accessible={false} style={styles.ssnLabel}>
                     <Text variant={TextVariant.BodyMD}>
                       {strings('deposit.basic_info.social_security_number')}
                     </Text>

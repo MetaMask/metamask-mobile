@@ -30,7 +30,7 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <TouchableHighlight>
           <View
             color="Default"
@@ -108,7 +108,7 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                 />
               </TouchableOpacity>
             </View>
-            <View />
+            <View accessibilityRole="none" accessible={false} />
           </View>
         </TouchableHighlight>
       </View>
@@ -151,7 +151,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <TouchableHighlight>
           <View
             color="Default"
@@ -244,7 +244,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                 />
               </TouchableOpacity>
             </View>
-            <View />
+            <View accessibilityRole="none" accessible={false} />
           </View>
         </TouchableHighlight>
       </View>

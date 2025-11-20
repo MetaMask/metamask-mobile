@@ -181,9 +181,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   }
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.flexRowTokenValueAndAddress}>
-        <View style={styles.valueAndAddress}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.flexRowTokenValueAndAddress}>
+        <View accessibilityRole="none" accessible={false} style={styles.valueAndAddress}>
           {showValueButtonPill && (
             <AnimatedPulse
               isPulsing={isPendingTokenDetails}
@@ -201,7 +201,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                 ]}
               >
                 {isPendingTokenDetails ? (
-                  <View style={styles.loaderButtonPillEmptyContent} />
+                  <View accessibilityRole="none" accessible={false} style={styles.loaderButtonPillEmptyContent} />
                 ) : (
                   <Text>
                     {credit && '+ '}
@@ -221,15 +221,15 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
               </ButtonPill>
             </AnimatedPulse>
           )}
-          <View style={styles.marginStart4}>
+          <View accessibilityRole="none" accessible={false} style={styles.marginStart4}>
             <Address address={tokenContract} chainId={chainId} />
           </View>
         </View>
       </View>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         {fiatValue &&
           (isPendingTokenDetails ? (
-            <View style={styles.loadingFiatValue} />
+            <View accessibilityRole="none" accessible={false} style={styles.loadingFiatValue} />
           ) : (
             <IndividualFiatDisplay fiatAmount={fiatValue} />
           ))}
@@ -244,8 +244,8 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
             activeOpacity={1}
             onPress={() => setHasValueModalOpen(false)}
           >
-            <View style={styles.valueModal}>
-              <View style={styles.valueModalHeader}>
+            <View accessibilityRole="none" accessible={false} style={styles.valueModal}>
+              <View accessibilityRole="none" accessible={false} style={styles.valueModalHeader}>
                 <ButtonIcon
                   iconColor={IconColor.Default}
                   style={styles.valueModalHeaderIcon}

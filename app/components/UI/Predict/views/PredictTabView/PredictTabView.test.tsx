@@ -41,7 +41,7 @@ jest.mock('../../components/PredictPositionsHeader', () => {
           refresh: jest.fn(),
         }));
         return (
-          <View testID="predict-account-state">
+          <View accessibilityRole="none" accessible={false} testID="predict-account-state">
             <Text>Account State</Text>
           </View>
         );
@@ -62,7 +62,7 @@ jest.mock('../../components/PredictPositions/PredictPositions', () => {
           refresh: jest.fn(),
         }));
         return (
-          <View testID="predict-positions">
+          <View accessibilityRole="none" accessible={false} testID="predict-positions">
             <Text>Positions</Text>
           </View>
         );
@@ -77,7 +77,7 @@ jest.mock('../../components/PredictAddFundsSheet/PredictAddFundsSheet', () => {
     __esModule: true,
     default: function MockPredictAddFundsSheet() {
       return (
-        <View testID="predict-add-funds-sheet">
+        <View accessibilityRole="none" accessible={false} testID="predict-add-funds-sheet">
           <Text>Add Funds</Text>
         </View>
       );
@@ -95,7 +95,7 @@ jest.mock('../../components/PredictOffline', () => {
       onRetry?: () => void;
     }) {
       return (
-        <View testID="predict-error-state">
+        <View accessibilityRole="none" accessible={false} testID="predict-error-state">
           <Text>Error State</Text>
           {onRetry && (
             <Text testID="retry-button" onPress={onRetry}>
@@ -115,7 +115,7 @@ jest.mock(
     return {
       __esModule: true,
       default: function MockSkeleton({ testID }: { testID?: string }) {
-        return <View testID={testID} />;
+        return <View accessibilityRole="none" accessible={false} testID={testID} />;
       },
     };
   },
@@ -289,14 +289,14 @@ jest.mock('@shopify/flash-list', () => {
             ref={ref}
           >
             {ListHeaderComponent && (
-              <View testID="list-header">
+              <View accessibilityRole="none" accessible={false} testID="list-header">
                 {typeof ListHeaderComponent === 'function'
                   ? ListHeaderComponent()
                   : ListHeaderComponent}
               </View>
             )}
             {isEmpty && ListEmptyComponent && (
-              <View testID="empty-state">
+              <View accessibilityRole="none" accessible={false} testID="empty-state">
                 {typeof ListEmptyComponent === 'function'
                   ? ListEmptyComponent()
                   : ListEmptyComponent}
@@ -304,12 +304,12 @@ jest.mock('@shopify/flash-list', () => {
             )}
             {!isEmpty &&
               data.map((item: unknown, index: number) => (
-                <View key={index} testID={`list-item-${index}`}>
+                <View accessibilityRole="none" accessible={false} key={index} testID={`list-item-${index}`}>
                   {renderItem?.({ item })}
                 </View>
               ))}
             {ListFooterComponent && (
-              <View testID="list-footer">
+              <View accessibilityRole="none" accessible={false} testID="list-footer">
                 {typeof ListFooterComponent === 'function'
                   ? ListFooterComponent()
                   : ListFooterComponent}
@@ -422,7 +422,7 @@ describe('PredictTabView', () => {
           refresh: mockRefreshFunctions.accountState,
         }));
         return (
-          <View testID="predict-account-state">
+          <View accessibilityRole="none" accessible={false} testID="predict-account-state">
             <Text>Account State</Text>
           </View>
         );
@@ -437,7 +437,7 @@ describe('PredictTabView', () => {
           refresh: mockRefreshFunctions.positions,
         }));
         return (
-          <View testID="predict-positions">
+          <View accessibilityRole="none" accessible={false} testID="predict-positions">
             <Text>Positions</Text>
           </View>
         );
@@ -491,7 +491,7 @@ describe('PredictTabView', () => {
           refresh: mockRefresh,
         }));
         return (
-          <View testID="predict-account-state">
+          <View accessibilityRole="none" accessible={false} testID="predict-account-state">
             <Text>Account State</Text>
           </View>
         );
@@ -540,7 +540,7 @@ describe('PredictTabView', () => {
           }, [onError]);
 
           return (
-            <View testID="predict-positions">
+            <View accessibilityRole="none" accessible={false} testID="predict-positions">
               <Text>Positions</Text>
             </View>
           );
@@ -581,7 +581,7 @@ describe('PredictTabView', () => {
           }, [onError]);
 
           return (
-            <View testID="predict-account-state">
+            <View accessibilityRole="none" accessible={false} testID="predict-account-state">
               <Text>Account State</Text>
             </View>
           );
@@ -630,7 +630,7 @@ describe('PredictTabView', () => {
             refresh: jest.fn(),
           }));
           return (
-            <View testID="predict-positions">
+            <View accessibilityRole="none" accessible={false} testID="predict-positions">
               <Text>Positions</Text>
             </View>
           );
@@ -645,7 +645,7 @@ describe('PredictTabView', () => {
             refresh: jest.fn(),
           }));
           return (
-            <View testID="predict-account-state">
+            <View accessibilityRole="none" accessible={false} testID="predict-account-state">
               <Text>Account State</Text>
             </View>
           );
@@ -693,7 +693,7 @@ describe('PredictTabView', () => {
           }, [onError]);
 
           return (
-            <View testID="predict-positions">
+            <View accessibilityRole="none" accessible={false} testID="predict-positions">
               <Text>Positions</Text>
             </View>
           );
@@ -736,7 +736,7 @@ describe('PredictTabView', () => {
           }, [onError]);
 
           return (
-            <View testID="predict-account-state">
+            <View accessibilityRole="none" accessible={false} testID="predict-account-state">
               <Text>Account State</Text>
             </View>
           );

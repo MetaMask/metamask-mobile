@@ -10,7 +10,7 @@ const InfoRowDivider = ({
 }) => {
   const { styles } = useStyles(styleSheet, { variant });
 
-  return <View style={styles.infoRowDivider} />;
+  return <View accessibilityRole="none" accessible={false} style={styles.infoRowDivider} />;
 };
 
 export default InfoRowDivider;

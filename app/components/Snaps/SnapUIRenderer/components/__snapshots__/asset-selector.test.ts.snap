@@ -30,7 +30,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
         }
       }
     >
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <TouchableHighlight>
           <View
             color="Default"
@@ -131,7 +131,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       }
                       testID="badge-wrapper-badge"
                     >
-                      <View>
+                      <View accessibilityRole="none" accessible={false}>
                         <View
                           style={
                             {
@@ -353,7 +353,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                 />
               </TouchableOpacity>
             </View>
-            <View />
+            <View accessibilityRole="none" accessible={false} />
           </View>
         </TouchableHighlight>
       </View>

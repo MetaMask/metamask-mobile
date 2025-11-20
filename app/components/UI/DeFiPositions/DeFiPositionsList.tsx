@@ -112,7 +112,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     if (formattedDeFiPositions === undefined) {
       // Position data is still loading
       return (
-        <View style={styles.emptyView}>
+        <View accessibilityRole="none" accessible={false} style={styles.emptyView}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('defi_positions.loading_positions')}
           </Text>
@@ -121,7 +121,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     } else if (formattedDeFiPositions === null) {
       // Error fetching position data
       return (
-        <View style={styles.emptyView}>
+        <View accessibilityRole="none" accessible={false} style={styles.emptyView}>
           <Icon
             name={IconName.Danger}
             color={IconColor.Alternative}
@@ -139,7 +139,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   }
 
   const content = (
-    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}>
+    <View accessibilityRole="none" accessible={false} testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}>
       {formattedDeFiPositions.map(
         ({ chainId, protocolId, protocolAggregate }) => (
           <DeFiPositionsListItem

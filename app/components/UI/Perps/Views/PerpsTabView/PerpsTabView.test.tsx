@@ -190,7 +190,7 @@ jest.mock('../PerpsEmptyState', () => ({
   }) => {
     const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
     return (
-      <View testID={testID}>
+      <View accessibilityRole="none" accessible={false} testID={testID}>
         <Text>Bet on price movements with up to 40x leverage.</Text>
         <TouchableOpacity onPress={onAction}>
           <Text>Start trading</Text>

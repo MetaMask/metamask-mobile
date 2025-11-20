@@ -465,8 +465,8 @@ export default function VideoPlayer({
         collapsable={false}
         {...seekPanResponder.panHandlers}
       >
-        <View style={styles.seekbarTrack}>
-          <View style={[styles.seekbarFill, styles.seekbarPermanentFill]} />
+        <View accessibilityRole="none" accessible={false} style={styles.seekbarTrack}>
+          <View accessibilityRole="none" accessible={false} style={[styles.seekbarFill, styles.seekbarPermanentFill]} />
         </View>
         <View
           style={styles.seekbarTrack}
@@ -488,7 +488,7 @@ export default function VideoPlayer({
           style={[styles.seekbarHandle, { left: seekerPosition }]}
           pointerEvents={'none'}
         >
-          <View style={styles.seekbarCircle} pointerEvents={'none'} />
+          <View accessibilityRole="none" accessible={false} style={styles.seekbarCircle} pointerEvents={'none'} />
         </View>
       </View>
     ),
@@ -518,7 +518,7 @@ export default function VideoPlayer({
   const renderLoader = useCallback(() => {
     if (!loading) return;
     return (
-      <View style={styles.loaderContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.loaderContainer}>
         <Animated.Image
           style={{
             transform: [
@@ -539,7 +539,7 @@ export default function VideoPlayer({
     if (!error) return;
     if (error) {
       return (
-        <View style={styles.errorContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.errorContainer}>
           <Image style={styles.errorIcon} />
           <Text style={styles.errorText}>Video unavailable</Text>
         </View>
@@ -566,11 +566,11 @@ export default function VideoPlayer({
         },
       ]}
     >
-      <View style={[styles.controlsColumn]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.controlsColumn]}>
         <SafeAreaView
           style={[styles.controlsRow, styles.controlsTopControlGroup]}
         >
-          <View style={styles.actionButton}>{renderClose()}</View>
+          <View accessibilityRole="none" accessible={false} style={styles.actionButton}>{renderClose()}</View>
         </SafeAreaView>
       </View>
     </Animated.View>
@@ -585,15 +585,15 @@ export default function VideoPlayer({
         },
       ]}
     >
-      <View style={[styles.controlsColumn]}>
+      <View accessibilityRole="none" accessible={false} style={[styles.controlsColumn]}>
         <SafeAreaView
           style={[styles.controlsRow, styles.controlsBottomControlGroup]}
         >
-          <View style={styles.actionButton}>{renderPlayPause()}</View>
-          <View style={[styles.actionButton, styles.actionSeeker]}>
+          <View accessibilityRole="none" accessible={false} style={styles.actionButton}>{renderPlayPause()}</View>
+          <View accessibilityRole="none" accessible={false} style={[styles.actionButton, styles.actionSeeker]}>
             {renderSeekbar()}
           </View>
-          <View style={styles.actionButton}>{renderMuteUnmuteControl()}</View>
+          <View accessibilityRole="none" accessible={false} style={styles.actionButton}>{renderMuteUnmuteControl()}</View>
         </SafeAreaView>
       </View>
     </Animated.View>
@@ -603,7 +603,7 @@ export default function VideoPlayer({
       onPress={onScreenTouch}
       style={[styles.playerContainer, style]}
     >
-      <View style={baseStyles.flexGrow}>
+      <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
         <Video
           ref={videoRef}
           paused={paused}

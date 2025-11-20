@@ -24,7 +24,7 @@ const DefaultSettings = () => {
 
   return (
     <ScrollView style={styles.root}>
-      <View style={styles.textContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
         <Text variant={TextVariant.BodyMD}>
           {strings('default_settings.description')}
           <Text color={TextColor.Info} onPress={handleLink}>

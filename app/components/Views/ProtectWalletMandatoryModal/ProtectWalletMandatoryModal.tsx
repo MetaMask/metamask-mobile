@@ -134,8 +134,8 @@ const ProtectWalletMandatoryModal = () => {
       animationInTiming={600}
       animationOutTiming={600}
     >
-      <View style={styles.protectWalletContainer}>
-        <View style={styles.protectWalletIconContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.protectWalletContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.protectWalletIconContainer}>
           <FeatherIcon
             style={styles.protectWalletIcon}
             name="alert-triangle"
@@ -150,7 +150,7 @@ const ProtectWalletMandatoryModal = () => {
             ? strings('protect_your_wallet_modal.body_for_password')
             : strings('protect_your_wallet_modal.body_for_seedphrase')}
         </Text>
-        <View style={styles.protectWalletButtonWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.protectWalletButtonWrapper}>
           <StyledButton type="confirm" onPress={onSecureWallet}>
             {strings('protect_your_wallet_modal.button')}
           </StyledButton>

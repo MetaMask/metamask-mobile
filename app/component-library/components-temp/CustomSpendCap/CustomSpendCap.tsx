@@ -150,7 +150,7 @@ const CustomSpendCap = ({
     toggleLearnMoreWebPage(TOKEN_APPROVAL_SPENDING_CAP);
 
   return (
-    <View style={styles.container} testID={CUSTOM_SPEND_CAP_TEST_ID}>
+    <View accessibilityRole="none" accessible={false} style={styles.container} testID={CUSTOM_SPEND_CAP_TEST_ID}>
       {isModalVisible ? (
         <InfoModal
           isVisible={isModalVisible}
@@ -169,8 +169,8 @@ const CustomSpendCap = ({
           toggleModal={toggleModal}
         />
       ) : null}
-      <View style={styles.header}>
-        <View style={styles.titleContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.header}>
+        <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
           <Text variant={TextVariant.BodyMDBold} style={styles.title}>
             {strings('contract_allowance.custom_spend_cap.title')}
           </Text>
@@ -203,7 +203,7 @@ const CustomSpendCap = ({
           }
         />
       </View>
-      <View style={styles.inputContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.inputContainer}>
         <CustomInput
           ticker={ticker}
           setValue={setValue}
@@ -220,7 +220,7 @@ const CustomSpendCap = ({
         </Text>
       )}
       {!isEditDisabled && (
-        <View style={styles.descriptionContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.description}>
             {message}{' '}
             <Button

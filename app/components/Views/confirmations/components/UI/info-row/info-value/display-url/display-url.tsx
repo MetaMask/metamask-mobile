@@ -38,9 +38,9 @@ const DisplayURL = ({ url }: DisplayURLProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       {isHTTP && (
-        <View style={styles.warningContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.warningContainer}>
           <Icon
             color={IconColor.Warning}
             size={IconSize.Md}

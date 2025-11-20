@@ -114,7 +114,7 @@ const TurnOnBackupAndSync = () => {
 
   return (
     <Fragment>
-      <View style={styles.wrapper} testID={turnOnBackupAndSyncTestIds.view}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper} testID={turnOnBackupAndSyncTestIds.view}>
         <Text
           variant={TextVariant.HeadingMD}
           color={TextColor.Default}
@@ -123,7 +123,7 @@ const TurnOnBackupAndSync = () => {
           {strings('backupAndSync.enable.title')}
         </Text>
         <ScrollView>
-          <View style={styles.card}>
+          <View accessibilityRole="none" accessible={false} style={styles.card}>
             <Image source={EnableBackupAndSyncCardImage} style={styles.image} />
           </View>
           <Text
@@ -152,7 +152,7 @@ const TurnOnBackupAndSync = () => {
           </Text>
         </ScrollView>
 
-        <View style={styles.btnContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.btnContainer}>
           <Button
             variant={ButtonVariants.Secondary}
             label={strings('notifications.activation_card.cancel')}

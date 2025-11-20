@@ -53,7 +53,7 @@ export interface BoxProps extends ViewProps {
   gap?: number;
   color?: TextColor;
   backgroundColor?: string;
-  ref?: React.Ref<View>;
+  ref?: React.Ref<View accessibilityRole="none" accessible={false}>;
   testID?: string;
 }
 

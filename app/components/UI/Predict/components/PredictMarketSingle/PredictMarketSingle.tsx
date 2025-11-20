@@ -199,8 +199,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
         });
       }}
     >
-      <View style={styles.marketContainer}>
-        <View style={styles.marketHeader}>
+      <View accessibilityRole="none" accessible={false} style={styles.marketContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.marketHeader}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -225,12 +225,12 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             >
               {getTitle()}
             </Text>
-            <View style={styles.yesPercentageContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.yesPercentageContainer}>
               <SemiCircleYesPercentage percentage={yesPercentage} size={78} />
             </View>
           </Box>
         </View>
-        <View style={styles.buttonContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Md}
@@ -256,7 +256,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             style={styles.buttonNo}
           />
         </View>
-        <View style={styles.marketFooter}>
+        <View accessibilityRole="none" accessible={false} style={styles.marketFooter}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
           </Text>

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ProgressStepper renders correctly 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <RNSVGSvgView
     bbHeight={10}
     bbWidth="100%"
@@ -232,7 +232,7 @@ exports[`ProgressStepper renders correctly 1`] = `
 `;
 
 exports[`ProgressStepper renders first and second step complete state when active step is 2 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <RNSVGSvgView
     bbHeight={10}
     bbWidth="100%"
@@ -461,7 +461,7 @@ exports[`ProgressStepper renders first and second step complete state when activ
 `;
 
 exports[`ProgressStepper renders first step complete and second step pending state when active step is 1 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <RNSVGSvgView
     bbHeight={10}
     bbWidth="100%"
@@ -691,7 +691,7 @@ exports[`ProgressStepper renders first step complete and second step pending sta
 `;
 
 exports[`ProgressStepper renders first step loading when isLoading prop set to true for firt step 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <RNSVGSvgView
     bbHeight={10}
     bbWidth="100%"
@@ -805,7 +805,7 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
         }
         testID="progress-stepper-step-icon-loading"
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <View
             style={
               {
@@ -929,7 +929,7 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
 `;
 
 exports[`ProgressStepper renders first step pending state when active step is 0 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <RNSVGSvgView
     bbHeight={10}
     bbWidth="100%"

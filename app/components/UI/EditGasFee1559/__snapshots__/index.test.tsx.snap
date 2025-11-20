@@ -22,8 +22,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
     }
   >
     <TouchableWithoutFeedback>
-      <View>
-        <View>
+      <View accessibilityRole="none" accessible={false}>
+        <View accessibilityRole="none" accessible={false}>
           <View
             style={
               {
@@ -128,11 +128,11 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             />
           </View>
         </FadeAnimationView>
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <FadeAnimationView
             valueToWatch="undefinedundefined"
           >
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <HorizontalSelector
                 onPress={[Function]}
                 options={
@@ -432,7 +432,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               </View>
             </View>
           </FadeAnimationView>
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <TouchableOpacity
               onPress={[Function]}
               style={
@@ -468,7 +468,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
         </View>
         <InfoModal
           body={
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <Text
                 grey={true}
                 infoModal={true}
@@ -492,7 +492,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             >
               <ScrollView>
                 <TouchableWithoutFeedback>
-                  <View>
+                  <View accessibilityRole="none" accessible={false}>
                     <Text
                       grey={true}
                       infoModal={true}

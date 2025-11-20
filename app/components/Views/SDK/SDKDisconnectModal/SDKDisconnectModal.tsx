@@ -137,7 +137,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <BottomSheetHeader>
           <Text variant={TextVariant.HeadingMD}>{strings(title)}</Text>
         </BottomSheetHeader>

@@ -76,7 +76,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {/* Push Notifications Toggle */}
           <PushNotificationToggle />
 
-          <View style={styles.line} />
+          <View accessibilityRole="none" accessible={false} style={styles.line} />
 
           {/* Feature Announcement Toggle */}
           <SessionHeader
@@ -88,7 +88,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
-          <View style={styles.productAnnouncementContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.productAnnouncementContainer}>
             <FeatureAnnouncementToggle />
           </View>
 

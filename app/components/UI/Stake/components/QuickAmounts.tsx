@@ -95,7 +95,7 @@ const QuickAmounts = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <View style={styles.content}>
+    <View accessibilityRole="none" accessible={false} style={styles.content}>
       {amounts.map((amount, index: number) => (
         <Amount
           amount={amount}

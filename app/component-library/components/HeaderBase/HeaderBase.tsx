@@ -63,11 +63,11 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
       testID={HEADERBASE_TEST_ID}
     >
       {shouldRenderStartAccessoryWrapper ? (
-        <View style={styles.accessoryWrapper} {...startAccessoryWrapperProps}>
-          <View onLayout={startAccessoryOnLayout}>{startAccessory}</View>
+        <View accessibilityRole="none" accessible={false} style={styles.accessoryWrapper} {...startAccessoryWrapperProps}>
+          <View accessibilityRole="none" accessible={false} onLayout={startAccessoryOnLayout}>{startAccessory}</View>
         </View>
       ) : null}
-      <View style={styles.titleWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.titleWrapper}>
         {typeof children === 'string' ? (
           <Text
             variant={textVariant}
@@ -81,8 +81,8 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
         )}
       </View>
       {shouldRenderEndAccessoryWrapper ? (
-        <View style={styles.accessoryWrapper} {...endAccessoryWrapperProps}>
-          <View onLayout={endAccessoryOnLayout}>{endAccessory}</View>
+        <View accessibilityRole="none" accessible={false} style={styles.accessoryWrapper} {...endAccessoryWrapperProps}>
+          <View accessibilityRole="none" accessible={false} onLayout={endAccessoryOnLayout}>{endAccessory}</View>
         </View>
       ) : null}
     </View>

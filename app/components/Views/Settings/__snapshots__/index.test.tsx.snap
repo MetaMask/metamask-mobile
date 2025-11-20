@@ -28,7 +28,7 @@ exports[`Settings renders settings component with all sections 1`] = `
     }
     testID="settings-scroll"
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <TouchableOpacity
         onPress={[Function]}
         testID="general-settings"

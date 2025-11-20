@@ -113,7 +113,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       );
     } else if (isSnapAction && !hideSnapBranding) {
       return (
-        <View style={localStyles.snapActionContainer}>
+        <View accessibilityRole="none" accessible={false} style={localStyles.snapActionContainer}>
           <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
           <Text
             variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}

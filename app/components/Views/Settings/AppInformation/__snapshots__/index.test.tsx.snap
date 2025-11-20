@@ -440,7 +440,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -508,7 +508,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                           >
                             Links
                           </Text>
-                          <View>
+                          <View accessibilityRole="none" accessible={false}>
                             <TouchableOpacity
                               onPress={[Function]}
                             >
@@ -571,7 +571,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                               }
                             }
                           />
-                          <View>
+                          <View accessibilityRole="none" accessible={false}>
                             <TouchableOpacity
                               onPress={[Function]}
                             >

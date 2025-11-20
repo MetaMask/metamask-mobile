@@ -1207,14 +1207,14 @@ class Confirm extends PureComponent {
         backdropColor={colors.overlay.default}
         backdropOpacity={1}
       >
-        <View style={styles.hexDataWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.hexDataWrapper}>
           <TouchableOpacity
             style={styles.hexDataClose}
             onPress={this.toggleHexDataModal}
           >
             <IonicIcon name={'close'} size={28} color={colors.text.default} />
           </TouchableOpacity>
-          <View style={styles.qrCode}>
+          <View accessibilityRole="none" accessible={false} style={styles.qrCode}>
             <Text style={styles.addressTitle}>
               {strings('transaction.hex_data')}
             </Text>
@@ -1438,7 +1438,7 @@ class Confirm extends PureComponent {
             </>
           )}
           {!selectedAsset.tokenId ? (
-            <View style={styles.amountWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.amountWrapper}>
               <Text style={styles.textAmountLabel}>
                 {strings('transaction.amount')}
               </Text>
@@ -1455,11 +1455,11 @@ class Confirm extends PureComponent {
               )}
             </View>
           ) : (
-            <View style={styles.amountWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.amountWrapper}>
               <Text style={styles.textAmountLabel}>
                 {strings('transaction.asset')}
               </Text>
-              <View style={styles.CollectibleMediaWrapper}>
+              <View accessibilityRole="none" accessible={false} style={styles.CollectibleMediaWrapper}>
                 <CollectibleMedia
                   small
                   iconStyle={styles.CollectibleMedia}
@@ -1467,7 +1467,7 @@ class Confirm extends PureComponent {
                   collectible={selectedAsset}
                 />
               </View>
-              <View>
+              <View accessibilityRole="none" accessible={false}>
                 <Text style={styles.collectibleName}>{selectedAsset.name}</Text>
                 <Text style={styles.collectibleTokenId}>{`#${renderShortText(
                   selectedAsset.tokenId,
@@ -1517,7 +1517,7 @@ class Confirm extends PureComponent {
           )}
 
           {errorMessage && (
-            <View style={styles.errorWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.errorWrapper}>
               {isTestNetworkWithFaucet(chainId) || isNativeTokenBuySupported ? (
                 <TouchableOpacity onPress={errorPress}>
                   <Text style={styles.error}>{errorMessage}</Text>
@@ -1531,7 +1531,7 @@ class Confirm extends PureComponent {
             </View>
           )}
           {!!warningGasPriceHigh && (
-            <View style={styles.errorWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.errorWrapper}>
               <Text style={styles.error}>{warningGasPriceHigh}</Text>
             </View>
           )}
@@ -1543,7 +1543,7 @@ class Confirm extends PureComponent {
             />
           )}
 
-          <View style={styles.actionsWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.actionsWrapper}>
             {showHexData && (
               <TouchableOpacity
                 style={styles.actionTouchable}
@@ -1556,7 +1556,7 @@ class Confirm extends PureComponent {
             )}
           </View>
         </ScrollView>
-        <View style={styles.buttonNextWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonNextWrapper}>
           <StyledButton
             type={'confirm'}
             disabled={

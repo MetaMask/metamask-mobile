@@ -49,7 +49,7 @@ export default function NetworkFilterBottomSheet({
       isInteractable
       testID={NETWORK_FILTER_BOTTOM_SHEET}
     >
-      <View style={styles.bottomSheetWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.bottomSheetWrapper}>
         <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
           {strings('wallet.filter_by')}
         </Text>
@@ -68,7 +68,7 @@ export default function NetworkFilterBottomSheet({
           <Text style={styles.bottomSheetText}>
             {strings('wallet.popular_networks')}
           </Text>
-          <View style={styles.networkImageContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.networkImageContainer}>
             <NetworkImageComponent
               isAllNetworksEnabled
               allNetworksEnabled={allNetworksEnabled}
@@ -92,7 +92,7 @@ export default function NetworkFilterBottomSheet({
           <Text style={styles.bottomSheetText}>
             {strings('wallet.current_network')}
           </Text>
-          <View style={styles.networkImageContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.networkImageContainer}>
             <NetworkImageComponent
               isAllNetworksEnabled={false}
               allNetworksEnabled={{ [chainId]: true }}

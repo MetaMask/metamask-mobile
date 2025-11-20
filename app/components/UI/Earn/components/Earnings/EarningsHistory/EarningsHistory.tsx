@@ -300,7 +300,7 @@ const EarningsHistory = ({ asset }: EarningsHistoryProps) => {
   };
 
   return isLoadingEarningsHistory ? null : (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <TimePeriodButtonGroup
         initialTimePeriod={selectedTimePeriod}
         onTimePeriodChange={onTimePeriodChange}

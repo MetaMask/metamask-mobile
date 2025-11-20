@@ -72,9 +72,9 @@ export const ConfirmationFooter = ({
   ];
 
   return (
-    <View style={styles.footerContainer} testID={CONFIRMATION_FOOTER_TEST_ID}>
+    <View accessibilityRole="none" accessible={false} style={styles.footerContainer} testID={CONFIRMATION_FOOTER_TEST_ID}>
       {progressBar && (
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <ProgressStepper
             stroke={theme.colors.primary.default}
             strokeWidth={1}
@@ -88,8 +88,8 @@ export const ConfirmationFooter = ({
         buttonPropsArray={buttons}
         style={styles.footerButtonsContainer}
       />
-      <View style={styles.bottomTextContainer}>
-        <View style={styles.bottomTextContainerLine}>
+      <View accessibilityRole="none" accessible={false} style={styles.bottomTextContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.bottomTextContainerLine}>
           <Text variant={TextVariant.BodySM}>
             {strings('confirm.staking_footer.part1')}
           </Text>
@@ -102,7 +102,7 @@ export const ConfirmationFooter = ({
             {strings('confirm.staking_footer.terms_of_use')}
           </Text>
         </View>
-        <View style={styles.bottomTextContainerLine}>
+        <View accessibilityRole="none" accessible={false} style={styles.bottomTextContainerLine}>
           <Text variant={TextVariant.BodySM}>
             {strings('confirm.staking_footer.part2')}
             {'\n'}

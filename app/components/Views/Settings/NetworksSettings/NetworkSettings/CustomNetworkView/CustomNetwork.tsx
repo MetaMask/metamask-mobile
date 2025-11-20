@@ -130,8 +130,8 @@ const CustomNetwork = ({
           style={networkSettingsStyles.popularNetwork}
           onPress={() => showNetworkModal(networkConfiguration)}
         >
-          <View style={networkSettingsStyles.popularWrapper}>
-            <View style={networkSettingsStyles.popularNetworkImage}>
+          <View accessibilityRole="none" accessible={false} style={networkSettingsStyles.popularWrapper}>
+            <View accessibilityRole="none" accessible={false} style={networkSettingsStyles.popularNetworkImage}>
               <AvatarNetwork
                 name={networkConfiguration.nickname}
                 size={AvatarSize.Sm}
@@ -150,7 +150,7 @@ const CustomNetwork = ({
             </CustomText>
           </View>
 
-          <View style={networkSettingsStyles.popularWrapper}>
+          <View accessibilityRole="none" accessible={false} style={networkSettingsStyles.popularWrapper}>
             {!hideWarningIcons &&
             toggleWarningModal &&
             networkConfiguration.warning ? (
@@ -177,7 +177,7 @@ const CustomNetwork = ({
             )}
           </View>
           {compactMode && (
-            <View style={customNetworkStyles.iconContainer}>
+            <View accessibilityRole="none" accessible={false} style={customNetworkStyles.iconContainer}>
               <Icon
                 name={IconName.Add}
                 size={IconSize.Lg}

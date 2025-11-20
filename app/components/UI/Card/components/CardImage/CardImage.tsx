@@ -28,7 +28,7 @@ type CardImageProps = {
 const VirtualCardImage = (
   props: SvgProps & { address?: string; hasLowerOpacity: boolean },
 ) => (
-  <View style={{ aspectRatio: cardImageAspectRatio }}>
+  <View accessibilityRole="none" accessible={false} style={{ aspectRatio: cardImageAspectRatio }}>
     <Svg
       fill="none"
       width="100%"
@@ -129,7 +129,7 @@ const VirtualCardImage = (
 const MetalCardImage = (
   props: SvgProps & { address?: string; hasLowerOpacity: boolean },
 ) => (
-  <View style={{ aspectRatio: cardImageAspectRatio }}>
+  <View accessibilityRole="none" accessible={false} style={{ aspectRatio: cardImageAspectRatio }}>
     <Svg
       fill="none"
       width="100%"

@@ -16,5 +16,5 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
 export const InfoRowDivider: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  return <View style={styles.base} />;
+  return <View accessibilityRole="none" accessible={false} style={styles.base} />;
 };

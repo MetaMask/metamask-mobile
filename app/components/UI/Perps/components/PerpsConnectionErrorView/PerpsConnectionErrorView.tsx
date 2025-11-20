@@ -82,8 +82,8 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.errorContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.errorContainer}>
         <Icon
           name={IconName.Warning}
           color={IconColor.Muted}
@@ -111,7 +111,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
         )}
       </View>
 
-      <View style={styles.buttonContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}

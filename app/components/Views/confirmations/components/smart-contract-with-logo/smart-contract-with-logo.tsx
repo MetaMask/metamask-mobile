@@ -13,7 +13,7 @@ const SmartContractWithLogo = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.wrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
       <Image source={foxImage} style={styles.image} />
       <Text style={styles.label}>{strings('confirm.smart_contract')}</Text>
     </View>

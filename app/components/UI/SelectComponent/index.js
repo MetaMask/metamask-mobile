@@ -172,9 +172,9 @@ export default class SelectComponent extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={baseStyles.flexGrow}>
+      <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
         <TouchableOpacity onPress={this.showPicker} testID={this.props.testID}>
-          <View style={styles.dropdown}>
+          <View accessibilityRole="none" accessible={false} style={styles.dropdown}>
             <Text style={styles.selectedOption} numberOfLines={1}>
               {this.getSelectedValue()}
             </Text>
@@ -195,12 +195,12 @@ export default class SelectComponent extends PureComponent {
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          <View style={styles.modalView}>
-            <View style={styles.accesoryBar}>
+          <View accessibilityRole="none" accessible={false} style={styles.modalView}>
+            <View accessibilityRole="none" accessible={false} style={styles.accesoryBar}>
               <Text style={styles.label}>{this.props.label}</Text>
             </View>
             <ScrollView style={styles.list} ref={this.scrollView}>
-              <View style={styles.listWrapper}>
+              <View accessibilityRole="none" accessible={false} style={styles.listWrapper}>
                 {this.props.options.map((option) => (
                   <TouchableOpacity
                     // eslint-disable-next-line react/jsx-no-bind
@@ -230,7 +230,7 @@ export default class SelectComponent extends PureComponent {
   };
 
   render = () => (
-    <View style={baseStyles.flexGrow}>{this.renderDropdownSelector()}</View>
+    <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>{this.renderDropdownSelector()}</View>
   );
 }
 

@@ -38,7 +38,7 @@ exports[`TransactionReview should match snapshot 1`] = `
             ]
           }
         >
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <View
               accessibilityState={
                 {
@@ -67,7 +67,7 @@ exports[`TransactionReview should match snapshot 1`] = `
               <RCTScrollView
                 nestedScrollEnabled={true}
               >
-                <View>
+                <View accessibilityRole="none" accessible={false}>
                   <View
                     onStartShouldSetResponder={[Function]}
                     style={
@@ -84,7 +84,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                         }
                       }
                     />
-                    <View>
+                    <View accessibilityRole="none" accessible={false}>
                       <View
                         style={
                           {
@@ -162,7 +162,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   }
                                   testID="badge-wrapper-badge"
                                 >
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <View
                                       style={
                                         {
@@ -264,7 +264,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                     </View>
                                   </View>
                                 </View>
-                                <View>
+                                <View accessibilityRole="none" accessible={false}>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -303,7 +303,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   </View>
                                 </View>
                               </View>
-                              <View>
+                              <View accessibilityRole="none" accessible={false}>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -564,10 +564,10 @@ exports[`TransactionReview should match snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                        <View />
+                        <View accessibilityRole="none" accessible={false} />
                       </View>
                     </View>
-                    <View>
+                    <View accessibilityRole="none" accessible={false}>
                       <View
                         style={
                           {
@@ -897,9 +897,9 @@ exports[`TransactionReview should match snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                        <View />
-                        <View />
-                        <View />
+                        <View accessibilityRole="none" accessible={false} />
+                        <View accessibilityRole="none" accessible={false} />
+                        <View accessibilityRole="none" accessible={false} />
                       </View>
                       <View
                         style={
@@ -1186,7 +1186,7 @@ exports[`TransactionReview should match snapshot 1`] = `
               }
             }
           >
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={[Function]}
@@ -1212,7 +1212,7 @@ exports[`TransactionReview should match snapshot 1`] = `
           </RCTScrollView>
         </View>
       </View>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
     </View>
   </View>,
 ]

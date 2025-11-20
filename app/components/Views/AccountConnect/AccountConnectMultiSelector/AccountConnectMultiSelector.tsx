@@ -117,7 +117,7 @@ const AccountConnectMultiSelector = ({
     };
 
     return (
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <Checkbox
           style={styles.selectAll}
           label={strings('accounts.select_all')}
@@ -138,8 +138,8 @@ const AccountConnectMultiSelector = ({
 
   const renderCtaButtons = useCallback(
     () => (
-      <View style={styles.ctaButtonsContainer}>
-        <View style={styles.connectOrUpdateButtonContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.ctaButtonsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.connectOrUpdateButtonContainer}>
           {areAnyAccountsSelected && (
             <Button
               variant={ButtonVariants.Primary}
@@ -156,15 +156,15 @@ const AccountConnectMultiSelector = ({
           )}
         </View>
         {areNoAccountsSelected && showDisconnectAllButton && (
-          <View style={styles.disconnectAllContainer}>
-            <View style={styles.helpTextContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.disconnectAllContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.helpTextContainer}>
               <HelpText severity={HelpTextSeverity.Error}>
                 {strings('common.disconnect_you_from', {
                   dappUrl: hostname,
                 })}
               </HelpText>
             </View>
-            <View style={styles.disconnectAllButtonContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.disconnectAllButtonContainer}>
               <Button
                 variant={ButtonVariants.Primary}
                 label={strings('accounts.disconnect')}
@@ -196,12 +196,12 @@ const AccountConnectMultiSelector = ({
   const renderAccountConnectMultiSelector = useCallback(
     () => (
       <SafeAreaView>
-        <View style={styles.container}>
+        <View accessibilityRole="none" accessible={false} style={styles.container}>
           <SheetHeader
             title={screenTitle || strings('accounts.connect_accounts_title')}
             onBack={onBack}
           />
-          <View style={styles.body}>
+          <View accessibilityRole="none" accessible={false} style={styles.body}>
             <Text style={styles.description}>
               {accounts?.length > 0 &&
                 strings('accounts.select_accounts_description')}
@@ -239,15 +239,15 @@ const AccountConnectMultiSelector = ({
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
           {connection?.originatorInfo?.apiVersion && (
-            <View style={styles.sdkInfoContainer}>
-              <View style={styles.sdkInfoDivier} />
+            <View accessibilityRole="none" accessible={false} style={styles.sdkInfoContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.sdkInfoDivier} />
               <Text color={TextColor.Muted}>
                 SDK {connection?.originatorInfo?.platform} v
                 {connection?.originatorInfo?.apiVersion}
               </Text>
             </View>
           )}
-          <View style={styles.body}>{renderCtaButtons()}</View>
+          <View accessibilityRole="none" accessible={false} style={styles.body}>{renderCtaButtons()}</View>
         </View>
       </SafeAreaView>
     ),

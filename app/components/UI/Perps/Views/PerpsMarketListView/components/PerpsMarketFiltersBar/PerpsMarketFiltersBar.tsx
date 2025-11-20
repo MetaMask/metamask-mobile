@@ -36,7 +36,7 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container} testID={testID}>
+    <View accessibilityRole="none" accessible={false} style={styles.container} testID={testID}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

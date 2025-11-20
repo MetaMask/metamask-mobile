@@ -768,7 +768,7 @@ class Send extends PureComponent {
   renderLoader() {
     const styles = this.getStyles();
     return (
-      <View style={styles.loader}>
+      <View accessibilityRole="none" accessible={false} style={styles.loader}>
         <ActivityIndicator size="small" />
       </View>
     );
@@ -796,7 +796,7 @@ class Send extends PureComponent {
   render = () => {
     const styles = this.getStyles();
     return (
-      <View style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
         {this.state.ready ? this.renderModeComponent() : this.renderLoader()}
       </View>
     );

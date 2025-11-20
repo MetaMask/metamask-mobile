@@ -34,7 +34,7 @@ const AccountNetworkIndicator = ({
   );
 
   return (
-    <View style={styles.networkTokensContainer} testID="network-container">
+    <View accessibilityRole="none" accessible={false} style={styles.networkTokensContainer} testID="network-container">
       <AvatarGroup
         avatarPropsList={networksWithTransactionActivityAndImageSource}
         maxStackedAvatars={4}

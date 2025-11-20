@@ -82,7 +82,7 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
           }
           testID="listitem-gap"
         />
-        <View />
+        <View accessibilityRole="none" accessible={false} />
       </View>
     </View>
   </TouchableOpacity>

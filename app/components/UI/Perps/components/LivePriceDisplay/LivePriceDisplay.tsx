@@ -53,7 +53,7 @@ const LivePriceDisplay: React.FC<LivePriceDisplayProps> = ({
   if (showChange) {
     const changeColor = change >= 0 ? TextColor.Success : TextColor.Error;
     return (
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <Text variant={variant} color={color} testID={testID}>
           {formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL })}
         </Text>

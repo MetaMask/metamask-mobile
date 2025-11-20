@@ -81,8 +81,8 @@ const PaymentMethodSelector: React.FC<IProps> = ({
         </ListItemColumn>
         {!loading && <DownChevronText text="Change" />}
       </ListItem>
-      <View style={styles.divider} />
-      <View style={styles.iconContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.divider} />
+      <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
         {loading ? (
           <SkeletonText small />
         ) : (

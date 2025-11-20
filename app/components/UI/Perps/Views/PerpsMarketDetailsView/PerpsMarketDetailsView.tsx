@@ -651,7 +651,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
       {/* Fixed Header Section */}
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBackPress}
@@ -662,7 +662,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       </View>
 
       {/* Scrollable Content Container */}
-      <View style={styles.scrollableContentContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.scrollableContentContainer}>
         <ScrollView
           style={styles.mainContentScrollView}
           contentContainerStyle={styles.scrollViewContent}
@@ -673,7 +673,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           }
         >
           {/* TradingView Chart Section */}
-          <View style={[styles.section, styles.chartSection]}>
+          <View accessibilityRole="none" accessible={false} style={[styles.section, styles.chartSection]}>
             {hasHistoricalData ? (
               <TradingViewChart
                 ref={chartRef}
@@ -715,7 +715,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
 
           {/* Market Tabs Section */}
-          <View style={styles.tabsSection}>
+          <View accessibilityRole="none" accessible={false} style={styles.tabsSection}>
             <PerpsMarketTabs
               symbol={market?.symbol || ''}
               initialTab={initialTab}
@@ -730,12 +730,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           </View>
 
           {/* Navigation Card Section */}
-          <View style={styles.section}>
+          <View accessibilityRole="none" accessible={false} style={styles.section}>
             <PerpsNavigationCard items={navigationItems} />
           </View>
 
           {/* Risk Disclaimer Section */}
-          <View style={styles.section}>
+          <View accessibilityRole="none" accessible={false} style={styles.section}>
             <Text
               style={styles.riskDisclaimer}
               variant={TextVariant.BodyXS}
@@ -756,9 +756,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       {/* Fixed Actions Footer */}
       {(hasAddFundsButton || (hasLongShortButtons && !isAtOICap)) && (
-        <View style={styles.actionsFooter}>
+        <View accessibilityRole="none" accessible={false} style={styles.actionsFooter}>
           {hasAddFundsButton && (
-            <View style={styles.singleActionContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.singleActionContainer}>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.market.add_funds_to_start_trading_perps')}
               </Text>
@@ -774,8 +774,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
 
           {hasLongShortButtons && !isAtOICap && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.actionsContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.actionButtonWrapper}>
                 <ButtonSemantic
                   severity={ButtonSemanticSeverity.Success}
                   onPress={handleLongPress}
@@ -788,7 +788,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 </ButtonSemantic>
               </View>
 
-              <View style={styles.actionButtonWrapper}>
+              <View accessibilityRole="none" accessible={false} style={styles.actionButtonWrapper}>
                 <ButtonSemantic
                   severity={ButtonSemanticSeverity.Danger}
                   onPress={handleShortPress}

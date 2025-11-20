@@ -35,7 +35,7 @@ jest.mock(
         }));
 
         return (
-          <View testID="bottom-sheet" {...props}>
+          <View accessibilityRole="none" accessible={false} testID="bottom-sheet" {...props}>
             {props.children}
           </View>
         );

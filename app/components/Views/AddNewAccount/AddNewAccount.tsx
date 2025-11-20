@@ -192,9 +192,9 @@ const AddNewAccount = ({
         {showSRPList ? (
           <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
         ) : (
-          <View style={styles.base}>
+          <View accessibilityRole="none" accessible={false} style={styles.base}>
             <Fragment>
-              <View style={styles.accountInputContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.accountInputContainer}>
                 <Input
                   testID={AddNewAccountIds.NAME_INPUT}
                   textVariant={TextVariant.BodyMDMedium}
@@ -209,11 +209,11 @@ const AddNewAccount = ({
                 />
               </View>
               {hasMultipleSRPs && (
-                <View style={styles.srpSelectorContainer}>
+                <View accessibilityRole="none" accessible={false} style={styles.srpSelectorContainer}>
                   <Text variant={TextVariant.BodyMDMedium}>
                     {strings('accounts.select_secret_recovery_phrase')}
                   </Text>
-                  <View style={styles.srpSelector}>
+                  <View accessibilityRole="none" accessible={false} style={styles.srpSelector}>
                     <SRPListItem
                       keyring={keyringToDisplay}
                       name={`${strings(
@@ -239,7 +239,7 @@ const AddNewAccount = ({
                   </Text>
                 </View>
               )}
-              <View style={styles.footerContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.footerContainer}>
                 <Button
                   testID={AddNewAccountIds.CANCEL}
                   loading={isLoading}

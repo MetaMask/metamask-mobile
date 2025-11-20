@@ -124,7 +124,7 @@ const MultichainAccountActions = () => {
       <BottomSheetHeader onClose={handleOnClose}>
         {accountGroup?.metadata?.name || 'Account Group'}
       </BottomSheetHeader>
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <AccountAction
           actionTitle={strings('account_details.title')}
           iconName={IconName.Details}

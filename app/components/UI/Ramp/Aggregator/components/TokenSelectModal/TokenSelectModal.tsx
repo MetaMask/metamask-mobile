@@ -264,7 +264,7 @@ function TokenSelectModal() {
             setNetworkFilter={setNetworkFilter}
             setIsEditingNetworkFilter={setIsEditingNetworkFilter}
           />
-          <View style={styles.searchContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.searchContainer}>
             <TextFieldSearch
               value={searchString}
               showClearButton={searchString.length > 0}

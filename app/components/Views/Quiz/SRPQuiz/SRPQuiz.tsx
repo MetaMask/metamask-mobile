@@ -429,7 +429,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={styles.modal}>{quizPage()}</View>
+      <View accessibilityRole="none" accessible={false} style={styles.modal}>{quizPage()}</View>
     </ReusableModal>
   );
 };

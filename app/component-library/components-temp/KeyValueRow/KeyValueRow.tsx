@@ -39,7 +39,7 @@ const KeyValueRow = React.memo(({ field, value, style }: KeyValueRowProps) => {
   return (
     <KeyValueRowRoot style={[style]}>
       <KeyValueSection>
-        <View style={styles.flexRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.flexRow}>
           {shouldShowFieldIcon &&
             (fieldIcon.side === KeyValueRowFieldIconSides.LEFT ||
               fieldIcon.side === KeyValueRowFieldIconSides.BOTH ||
@@ -53,7 +53,7 @@ const KeyValueRow = React.memo(({ field, value, style }: KeyValueRowProps) => {
         </View>
       </KeyValueSection>
       <KeyValueSection align={KeyValueRowSectionAlignments.RIGHT}>
-        <View style={styles.flexRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.flexRow}>
           {shouldShowValueIcon &&
             (valueIcon?.side === KeyValueRowFieldIconSides.LEFT ||
               valueIcon?.side === KeyValueRowFieldIconSides.BOTH ||

@@ -735,7 +735,7 @@ class ApproveTransactionReview extends PureComponent {
         )}
         toggleModal={this.toggleGasTooltip}
         body={
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text grey infoModal>
               {strings('transaction.gas_education_1')}
               {strings(
@@ -913,7 +913,7 @@ class ApproveTransactionReview extends PureComponent {
 
     return (
       <>
-        <View style={styles.section}>
+        <View accessibilityRole="none" accessible={false} style={styles.section}>
           {from && (
             <ApproveTransactionHeader
               dontWatchAsset
@@ -930,7 +930,7 @@ class ApproveTransactionReview extends PureComponent {
               }}
             />
           )}
-          <View style={styles.actionViewWrapper}>
+          <View accessibilityRole="none" accessible={false} style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
               cancelText={strings('transaction.reject')}
@@ -941,7 +941,7 @@ class ApproveTransactionReview extends PureComponent {
               confirmButtonState={this.getConfirmButtonState()}
               confirmTestID="Confirm"
             >
-              <View style={styles.actionViewChildren}>
+              <View accessibilityRole="none" accessible={false} style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
                   <View
                     style={styles.accountApprovalWrapper}
@@ -962,7 +962,7 @@ class ApproveTransactionReview extends PureComponent {
                         isMethodSetApprovalForAll,
                       )}
                     </Text>
-                    <View style={styles.tokenContainer}>
+                    <View accessibilityRole="none" accessible={false} style={styles.tokenContainer}>
                       {!fetchingUpdateDone && (
                         <Text
                           variant={TextVariant.HeadingMD}
@@ -1026,8 +1026,8 @@ class ApproveTransactionReview extends PureComponent {
                         'contract_allowance.token_allowance.verify_third_party_details',
                       )}
                     />
-                    <View style={styles.paddingHorizontal}>
-                      <View style={styles.section}>
+                    <View accessibilityRole="none" accessible={false} style={styles.paddingHorizontal}>
+                      <View accessibilityRole="none" accessible={false} style={styles.section}>
                         {tokenStandard && isERC2OToken && (
                           <CustomSpendCap
                             ticker={tokenSymbol}
@@ -1045,7 +1045,7 @@ class ApproveTransactionReview extends PureComponent {
                         )}
                         {((isERC2OToken && isReadyToApprove) ||
                           isNonFungibleToken) && (
-                          <View style={styles.transactionWrapper}>
+                          <View accessibilityRole="none" accessible={false} style={styles.transactionWrapper}>
                             <TransactionReview
                               gasSelected={gasSelected}
                               primaryCurrency={primaryCurrency}
@@ -1072,7 +1072,7 @@ class ApproveTransactionReview extends PureComponent {
                           </View>
                         )}
                         {gasError && (
-                          <View style={styles.errorWrapper}>
+                          <View accessibilityRole="none" accessible={false} style={styles.errorWrapper}>
                             {isTestNetworkWithFaucet(chainId) ||
                             isNativeTokenBuySupported ? (
                               <TouchableOpacity onPress={errorPress}>
@@ -1102,7 +1102,7 @@ class ApproveTransactionReview extends PureComponent {
                             onPress={this.toggleViewDetails}
                             testID="view-transaction-details"
                           >
-                            <View style={styles.iconContainer}>
+                            <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
                               <Text reset style={styles.viewDetailsText}>
                                 {strings(
                                   'spend_limit_edition.view_transaction_details',
@@ -1317,7 +1317,7 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     return (
-      <View style={styles.actionViewQRObject}>
+      <View accessibilityRole="none" accessible={false} style={styles.actionViewQRObject}>
         <TransactionHeader
           currentPageInformation={{
             origin,
@@ -1345,7 +1345,7 @@ class ApproveTransactionReview extends PureComponent {
     const { isSigningQRObject, shouldVerifyContractDetails } = this.props;
 
     return (
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         {viewDetails
           ? this.renderTransactionReview()
           : shouldVerifyContractDetails

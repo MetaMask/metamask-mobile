@@ -297,7 +297,7 @@ const EvmAccountSelectorListRightAccessoryUseAccounts = () => {
   return (
     <EvmAccountSelectorList
       renderRightAccessory={(address, name) => (
-        <View testID={RIGHT_ACCESSORY_TEST_ID}>{`${address} - ${name}`}</View>
+        <View accessibilityRole="none" accessible={false} testID={RIGHT_ACCESSORY_TEST_ID}>{`${address} - ${name}`}</View>
       )}
       isSelectionDisabled
       selectedAddresses={[]}

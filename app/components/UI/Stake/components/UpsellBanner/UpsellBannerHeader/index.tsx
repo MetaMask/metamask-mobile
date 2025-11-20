@@ -17,7 +17,7 @@ const UpsellBannerHeader = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Text variant={TextVariant.HeadingMD}>{primaryText}</Text>
       <Text variant={TextVariant.DisplayMD} color={TextColor.Success}>
         {secondaryText}

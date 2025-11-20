@@ -53,7 +53,7 @@ const OnboardingSuccessEndAnimation: React.FC<
       testID="onboarding-success-end-animation"
       style={styles.animationContainer}
     >
-      <View style={styles.animationWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.animationWrapper}>
         <Rive
           ref={riveRef}
           source={onboardingLoaderEndAnimation}

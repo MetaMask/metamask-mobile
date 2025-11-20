@@ -100,7 +100,7 @@ export const AddressList = () => {
   }, [navigation, title]);
 
   return (
-    <View style={styles.safeArea}>
+    <View accessibilityRole="none" accessible={false} style={styles.safeArea}>
       <FlashList
         data={internalAccountsSpreadByScopes}
         keyExtractor={(item) => item.scope}

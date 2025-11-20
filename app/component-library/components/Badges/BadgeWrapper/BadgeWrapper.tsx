@@ -43,8 +43,8 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
       onLayout={onLayoutContainerSize}
       testID={BADGE_WRAPPER_BADGE_TEST_ID}
     >
-      <View>{children}</View>
-      <View style={styles.badge}>{badgeElement}</View>
+      <View accessibilityRole="none" accessible={false}>{children}</View>
+      <View accessibilityRole="none" accessible={false} style={styles.badge}>{badgeElement}</View>
     </View>
   );
 };

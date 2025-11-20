@@ -34,7 +34,7 @@ export const Default = {
     children: string;
     iconSize: IconSize;
   }) => (
-    <View style={{ alignItems: 'flex-start' }}>
+    <View accessibilityRole="none" accessible={false} style={{ alignItems: 'flex-start' }}>
       <PickerBase onPress={() => null} iconSize={iconSize}>
         <Text>{children}</Text>
       </PickerBase>
@@ -44,7 +44,7 @@ export const Default = {
 
 export const WithCustomStyles = {
   render: () => (
-    <View style={{ alignItems: 'flex-start' }}>
+    <View accessibilityRole="none" accessible={false} style={{ alignItems: 'flex-start' }}>
       <PickerBase
         onPress={() => null}
         style={{ width: 200 }}

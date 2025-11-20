@@ -8,7 +8,7 @@ describe('Hero', () => {
   it('renders correctly', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <Hero
-        componentAsset={<View testID="component-asset"></View>}
+        componentAsset={<View accessibilityRole="none" accessible={false} testID="component-asset"></View>}
         title="Test Title"
         subtitle="Test Subtitle"
       />,

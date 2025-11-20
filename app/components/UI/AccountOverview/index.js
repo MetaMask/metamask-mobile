@@ -343,14 +343,14 @@ class AccountOverview extends PureComponent {
     const accountLabelTag = getLabelTextByAddress(address);
 
     return (
-      <View ref={this.scrollViewContainer} collapsable={false}>
+      <View accessibilityRole="none" accessible={false} ref={this.scrollViewContainer} collapsable={false}>
         <ScrollView
           bounces={false}
           keyboardShouldPersistTaps={'never'}
           style={styles.scrollView}
           contentContainerStyle={styles.wrapper}
         >
-          <View style={styles.info} ref={this.mainView}>
+          <View accessibilityRole="none" accessible={false} style={styles.info} ref={this.mainView}>
             <TouchableOpacity
               style={styles.identiconBorder}
               onPress={this.openAccountSelector}
@@ -387,7 +387,7 @@ class AccountOverview extends PureComponent {
                   keyboardAppearance={themeAppearance}
                 />
               ) : (
-                <View style={styles.labelWrapper}>
+                <View accessibilityRole="none" accessible={false} style={styles.labelWrapper}>
                   <TouchableOpacity onLongPress={this.setAccountLabelEditable}>
                     <Text
                       style={[
@@ -404,7 +404,7 @@ class AccountOverview extends PureComponent {
                     </Text>
                   </TouchableOpacity>
                   {accountLabelTag && (
-                    <View style={styles.tag}>
+                    <View accessibilityRole="none" accessible={false} style={styles.tag}>
                       <Text
                         variant={TextVariant.BodySMBold}
                         style={styles.tagText}

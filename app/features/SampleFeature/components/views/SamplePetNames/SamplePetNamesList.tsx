@@ -52,7 +52,7 @@ export function SamplePetNamesList({
   const { petNames } = useSamplePetNames(chainId);
 
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       {petNames.map(({ address, name }) => (
         <TouchableOpacity
           key={address}
@@ -69,7 +69,7 @@ export function SamplePetNamesList({
               accountAddress={address}
               size={AvatarSize.Md}
             />
-            <View style={styles.listItemTextContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.listItemTextContainer}>
               <Text variant={TextVariant.HeadingMD}>{name}</Text>
               <Text variant={TextVariant.BodySM}>
                 {renderShortAddress(address)}

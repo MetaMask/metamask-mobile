@@ -10,7 +10,7 @@ describe('Tooltip', () => {
       <Tooltip
         title="Tooltip title"
         content={
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text>Tooltip content to be displayed here!</Text>
           </View>
         }
@@ -25,7 +25,7 @@ describe('Tooltip', () => {
       <Tooltip
         title="Tooltip title"
         content={
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text>Tooltip content to be displayed here!</Text>
           </View>
         }

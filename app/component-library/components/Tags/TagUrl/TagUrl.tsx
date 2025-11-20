@@ -17,7 +17,7 @@ import { TagUrlProps } from './TagUrl.types';
 const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
-    <View style={styles.base} {...props}>
+    <View accessibilityRole="none" accessible={false} style={styles.base} {...props}>
       <Avatar
         variant={AvatarVariant.Favicon}
         imageSource={imageSource}

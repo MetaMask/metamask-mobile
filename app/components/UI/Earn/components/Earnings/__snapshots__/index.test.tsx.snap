@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Earnings displays lending maintenance banner when feature flag is enabled 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <View
     style={
       {
@@ -24,7 +24,7 @@ exports[`Earnings displays lending maintenance banner when feature flag is enabl
     >
       Your earnings
     </Text>
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           {
@@ -313,7 +313,7 @@ exports[`Earnings displays lending maintenance banner when feature flag is enabl
         </View>
       </View>
     </View>
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <TouchableOpacity
         accessibilityRole="button"
         accessible={true}
@@ -359,7 +359,7 @@ exports[`Earnings displays lending maintenance banner when feature flag is enabl
 `;
 
 exports[`Earnings displays pooled-staking maintenance banner when feature flag is enabled 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <View
     style={
       {
@@ -382,7 +382,7 @@ exports[`Earnings displays pooled-staking maintenance banner when feature flag i
     >
       Your earnings
     </Text>
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           {
@@ -671,7 +671,7 @@ exports[`Earnings displays pooled-staking maintenance banner when feature flag i
         </View>
       </View>
     </View>
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <TouchableOpacity
         accessibilityRole="button"
         accessible={true}
@@ -717,7 +717,7 @@ exports[`Earnings displays pooled-staking maintenance banner when feature flag i
 `;
 
 exports[`Earnings should render correctly 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <View
     style={
       {
@@ -740,7 +740,7 @@ exports[`Earnings should render correctly 1`] = `
     >
       Your earnings
     </Text>
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           {
@@ -970,7 +970,7 @@ exports[`Earnings should render correctly 1`] = `
         </View>
       </View>
     </View>
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <TouchableOpacity
         accessibilityRole="button"
         accessible={true}

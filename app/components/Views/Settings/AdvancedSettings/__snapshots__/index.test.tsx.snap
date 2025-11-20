@@ -60,7 +60,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
     update={[Function]}
     viewIsInsideTabBar={false}
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           {
@@ -69,7 +69,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
         }
         testID="advanced-settings"
       >
-        <View />
+        <View accessibilityRole="none" accessible={false} />
         <View
           style={
             [

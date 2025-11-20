@@ -82,8 +82,8 @@ const AddressFrom = ({
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.fromTextContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.fromTextContainer}>
         <Text style={styles.fromText}>
           {strings('transaction.fromWithColon')}
         </Text>

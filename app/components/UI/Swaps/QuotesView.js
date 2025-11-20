@@ -1899,7 +1899,7 @@ function SwapsQuotesView({
 
     return (
       <ScreenView contentContainerStyle={styles.screen}>
-        <View style={[styles.content, styles.errorViewContent]}>
+        <View accessibilityRole="none" accessible={false} style={[styles.content, styles.errorViewContent]}>
           {errorIcon}
           <Text primary centered style={styles.errorTitle}>
             {errorTitle}
@@ -1908,7 +1908,7 @@ function SwapsQuotesView({
             {errorMessage}
           </Text>
         </View>
-        <View style={styles.bottomSection}>
+        <View accessibilityRole="none" accessible={false} style={styles.bottomSection}>
           <StyledButton
             type="blue"
             containerStyle={styles.ctaButton}
@@ -1933,14 +1933,14 @@ function SwapsQuotesView({
       style={styles.container}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.topBar}>
+      <View accessibilityRole="none" accessible={false} style={styles.topBar}>
         {shouldUseSmartTransaction && (
-          <View style={styles.smartTransactionsMigrationBanner}>
+          <View accessibilityRole="none" accessible={false} style={styles.smartTransactionsMigrationBanner}>
             <SmartTransactionsMigrationBanner />
           </View>
         )}
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
-          <View style={styles.alertBar}>
+          <View accessibilityRole="none" accessible={false} style={styles.alertBar}>
             <Alert small type={AlertType.Info}>
               <Text reset bold>
                 {!hasEnoughTokenBalance && !isSwapsNativeAsset(sourceToken)
@@ -1966,7 +1966,7 @@ function SwapsQuotesView({
           hasEnoughTokenBalance &&
           hasEnoughEthBalance &&
           shouldDisplaySlippage && (
-            <View style={styles.alertBar}>
+            <View accessibilityRole="none" accessible={false} style={styles.alertBar}>
               <ActionAlert
                 type={
                   selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH
@@ -2077,7 +2077,7 @@ function SwapsQuotesView({
           </TouchableOpacity>
         )}
         {!isInPolling && (
-          <View style={[styles.timerWrapper, disabledView && styles.disabled]}>
+          <View accessibilityRole="none" accessible={false} style={[styles.timerWrapper, disabledView && styles.disabled]}>
             <Text>...</Text>
           </View>
         )}
@@ -2089,7 +2089,7 @@ function SwapsQuotesView({
       >
         {selectedQuote && (
           <>
-            <View style={styles.sourceTokenContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.sourceTokenContainer}>
               <Text style={styles.tokenText}>
                 {renderFromTokenMinimalUnit(
                   selectedQuote.sourceAmount,
@@ -2104,7 +2104,7 @@ function SwapsQuotesView({
               <Text style={styles.tokenText}>{sourceToken.symbol}</Text>
             </View>
             <IonicIcon style={styles.arrowDown} name="arrow-down" />
-            <View style={styles.sourceTokenContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.sourceTokenContainer}>
               <TokenIcon
                 style={styles.tokenIcon}
                 icon={destinationToken.iconUrl}
@@ -2126,7 +2126,7 @@ function SwapsQuotesView({
                 destinationToken.decimals,
               )}
             </Text>
-            <View style={styles.exchangeRate}>
+            <View accessibilityRole="none" accessible={false} style={styles.exchangeRate}>
               <Ratio
                 sourceAmount={selectedQuote.sourceAmount}
                 sourceToken={sourceToken}
@@ -2171,8 +2171,8 @@ function SwapsQuotesView({
                   style={styles.quotesRow}
                   testID={SwapsViewSelectorsIDs.QUOTE_SUMMARY}
                 >
-                  <View style={styles.quotesDescription}>
-                    <View style={styles.quotesLegend}>
+                  <View accessibilityRole="none" accessible={false} style={styles.quotesDescription}>
+                    <View accessibilityRole="none" accessible={false} style={styles.quotesLegend}>
                       <Text primary bold>
                         {strings('swaps.gas_fee')}
                       </Text>
@@ -2191,7 +2191,7 @@ function SwapsQuotesView({
                     </View>
                   </View>
                   {usedGasEstimate.gasPrice ? (
-                    <View style={styles.quotesFiatColumn}>
+                    <View accessibilityRole="none" accessible={false} style={styles.quotesFiatColumn}>
                       <Text primary bold>
                         {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
                         {getTicker(ticker)}
@@ -2230,8 +2230,8 @@ function SwapsQuotesView({
                     style={styles.quotesRow}
                     testID={SwapsViewSelectorsIDs.QUOTE_SUMMARY}
                   >
-                    <View style={styles.quotesDescription}>
-                      <View style={styles.quotesLegend}>
+                    <View accessibilityRole="none" accessible={false} style={styles.quotesDescription}>
+                      <View accessibilityRole="none" accessible={false} style={styles.quotesLegend}>
                         <Text primary bold>
                           {strings('swaps.estimated_gas_fee')}
                         </Text>
@@ -2251,7 +2251,7 @@ function SwapsQuotesView({
                     </View>
 
                     {usedGasEstimate.gasPrice ? (
-                      <View style={styles.quotesFiatColumn}>
+                      <View accessibilityRole="none" accessible={false} style={styles.quotesFiatColumn}>
                         <Text primary bold>
                           {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
                           {getTicker(ticker)}
@@ -2342,15 +2342,15 @@ function SwapsQuotesView({
                     )}
                   </View>
 
-                  <View style={styles.quotesRow}>
+                  <View accessibilityRole="none" accessible={false} style={styles.quotesRow}>
                     {usedGasEstimate.gasPrice ? (
                       <>
-                        <View style={styles.quotesDescription}>
-                          <View style={styles.quotesLegend}>
+                        <View accessibilityRole="none" accessible={false} style={styles.quotesDescription}>
+                          <View accessibilityRole="none" accessible={false} style={styles.quotesLegend}>
                             <Text>{strings('swaps.max_gas_fee')} </Text>
                           </View>
                         </View>
-                        <View style={styles.quotesFiatColumn}>
+                        <View accessibilityRole="none" accessible={false} style={styles.quotesFiatColumn}>
                           <Text>
                             {renderFromWei(
                               toWei(selectedQuoteValue?.maxEthFee || '0x0'),
@@ -2370,7 +2370,7 @@ function SwapsQuotesView({
                       </>
                     ) : (
                       <>
-                        <View style={styles.quotesDescription} />
+                        <View accessibilityRole="none" accessible={false} style={styles.quotesDescription} />
                         <FadeAnimationView
                           valueToWatch={`${selectedQuoteValue?.ethFee}${selectedQuoteValue?.maxEthFee}`}
                           animateOnChange={animateOnGasChange}
@@ -2400,7 +2400,7 @@ function SwapsQuotesView({
               )}
 
               {!!approvalTransaction && !unableToSwap && (
-                <View style={styles.quotesRow}>
+                <View accessibilityRole="none" accessible={false} style={styles.quotesRow}>
                   <Text>
                     <Text>{`${strings('swaps.enable.this_will')} `}</Text>
                     <Text bold>
@@ -2418,7 +2418,7 @@ function SwapsQuotesView({
                 </View>
               )}
               <QuotesSummary.Separator />
-              <View style={styles.quotesRow}>
+              <View accessibilityRole="none" accessible={false} style={styles.quotesRow}>
                 <TouchableOpacity
                   style={styles.quotesRow}
                   onPress={toggleFeeModal}
@@ -2506,7 +2506,7 @@ function SwapsQuotesView({
         title={strings(`swaps.gas_education_title`)}
         toggleModal={hideGasTooltip}
         body={
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text grey infoModal>
               {strings('swaps.gas_education_1')}
               {strings(
@@ -2536,7 +2536,7 @@ function SwapsQuotesView({
         title={strings(`swaps.gas_fee`)}
         toggleModal={hideGasIncludedTooltip}
         body={
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text grey infoModal>
               {strings('swaps.gas_included_tooltip_explanation')}
             </Text>

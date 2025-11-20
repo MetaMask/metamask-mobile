@@ -94,9 +94,9 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
   const onPressVolumeControls = () => setIsMuted(!isMuted);
 
   return (
-    <View style={style}>
+    <View accessibilityRole="none" accessible={false} style={style}>
       {loading && (
-        <View style={[styles.loaderContainer, style]}>
+        <View accessibilityRole="none" accessible={false} style={[styles.loaderContainer, style]}>
           <Loader error={error} onClose={onClose} />
         </View>
       )}
@@ -130,7 +130,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
            */}
           <TapGestureHandler onEnded={onPressVideoControls}>
             <Animated.View style={videoControlsStyle}>
-              <View style={styles.playButtonCircle}>
+              <View accessibilityRole="none" accessible={false} style={styles.playButtonCircle}>
                 <Ionicons
                   name={isPlaying ? 'play' : 'pause'}
                   size={24}

@@ -115,7 +115,7 @@ const PermitSimulation = () => {
                 const tokenContract = safeToChecksumAddress(token);
 
                 return (
-                  <View style={styles.permitValues} key={`${token}-${i}`}>
+                  <View accessibilityRole="none" accessible={false} style={styles.permitValues} key={`${token}-${i}`}>
                     <PermitSimulationValueDisplay
                       modalHeaderText={labelChangeType}
                       networkClientId={networkClientId}

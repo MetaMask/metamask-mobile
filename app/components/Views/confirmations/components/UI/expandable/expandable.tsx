@@ -51,8 +51,8 @@ const Expandable = ({
       </TouchableOpacity>
       {expanded && (
         <BottomModal onClose={() => setExpanded(false)}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
+          <View accessibilityRole="none" accessible={false} style={styles.modalContent}>
+            <View accessibilityRole="none" accessible={false} style={styles.modalHeader}>
               <ButtonIcon
                 iconColor={IconColor.Default}
                 size={ButtonIconSizes.Sm}

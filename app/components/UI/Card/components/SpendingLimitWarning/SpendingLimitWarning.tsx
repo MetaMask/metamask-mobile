@@ -26,9 +26,9 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentRow}>
-        <View style={styles.warningIcon}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.contentRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.warningIcon}>
           <Icon
             name={IconName.Warning}
             size={IconSize.Lg}
@@ -36,7 +36,7 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
           />
         </View>
 
-        <View style={styles.textContent}>
+        <View accessibilityRole="none" accessible={false} style={styles.textContent}>
           <Text style={styles.mainText}>
             {strings('card.card_home.warnings.close_spending_limit.title')}
           </Text>
@@ -48,7 +48,7 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
         </View>
       </View>
 
-      <View style={styles.buttonsRow}>
+      <View accessibilityRole="none" accessible={false} style={styles.buttonsRow}>
         <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
           <Text style={styles.buttonText}>
             {strings(

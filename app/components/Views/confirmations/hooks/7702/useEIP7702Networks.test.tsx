@@ -51,7 +51,7 @@ function runHook() {
 const MockComponent = () => {
   const { network7702List } = useEIP7702Networks('0x0');
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <Text>{`Total networks - ${network7702List?.length}`}</Text>
       {network7702List?.map(({ name }) => (
         <Text key={name}>{name}</Text>

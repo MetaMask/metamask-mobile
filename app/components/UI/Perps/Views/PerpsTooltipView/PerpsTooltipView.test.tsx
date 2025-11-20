@@ -39,7 +39,7 @@ jest.mock(
           }),
         }));
 
-        return <View testID="bottom-sheet">{props.children}</View>;
+        return <View accessibilityRole="none" accessible={false} testID="bottom-sheet">{props.children}</View>;
       },
     );
 
@@ -57,7 +57,7 @@ jest.mock(
     return {
       __esModule: true,
       default: ({ children }: { children: React.ReactNode }) => (
-        <View testID="bottom-sheet-header">
+        <View accessibilityRole="none" accessible={false} testID="bottom-sheet-header">
           <Text>{children}</Text>
         </View>
       ),
@@ -81,7 +81,7 @@ jest.mock(
           size?: string;
         }[];
       }) => (
-        <View testID="bottom-sheet-footer">
+        <View accessibilityRole="none" accessible={false} testID="bottom-sheet-footer">
           {buttonPropsArray?.map((buttonProps) => (
             <TouchableOpacity
               key={buttonProps.label}
@@ -183,18 +183,18 @@ jest.mock(
           testID?: string;
           data?: Record<string, unknown>;
         }) => (
-          <View testID={testID}>
+          <View accessibilityRole="none" accessible={false} testID={testID}>
             <Text>Custom Fees Content</Text>
             {data && <Text testID="custom-data">{JSON.stringify(data)}</Text>}
           </View>
         ),
         market_hours: ({ testID }: { testID?: string }) => (
-          <View testID={testID}>
+          <View accessibilityRole="none" accessible={false} testID={testID}>
             <Text>Market Hours Content</Text>
           </View>
         ),
         after_hours_trading: ({ testID }: { testID?: string }) => (
-          <View testID={testID}>
+          <View accessibilityRole="none" accessible={false} testID={testID}>
             <Text>After Hours Trading Content</Text>
           </View>
         ),

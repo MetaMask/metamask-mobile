@@ -242,8 +242,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   return (
     <Fragment>
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
+        <View accessibilityRole="none" accessible={false} style={styles.header}>
           <Icon
             name="qrcode"
             size={42}

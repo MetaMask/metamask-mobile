@@ -81,9 +81,9 @@ const LoginOptionsSettings = ({
   );
 
   return (
-    <View testID={LOGIN_OPTIONS}>
+    <View accessibilityRole="none" accessible={false} testID={LOGIN_OPTIONS}>
       {biometryType ? (
-        <View style={styles.setting}>
+        <View accessibilityRole="none" accessible={false} style={styles.setting}>
           <SecurityOptionToggle
             title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
             value={biometryChoice}
@@ -93,7 +93,7 @@ const LoginOptionsSettings = ({
         </View>
       ) : null}
       {biometryType && !biometryChoice ? (
-        <View style={styles.setting}>
+        <View accessibilityRole="none" accessible={false} style={styles.setting}>
           <SecurityOptionToggle
             title={
               Device.isIos()

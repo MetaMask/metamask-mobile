@@ -6,14 +6,14 @@ import styleSheet from './FoxLoader.styles';
 const FoxLoader = () => {
   const { styles } = useStyles(styleSheet, {});
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Image
         style={styles.image}
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         source={require('../../../images/branding/fox.png')}
         resizeMode="contain"
       />
-      <View style={styles.spacer} />
+      <View accessibilityRole="none" accessible={false} style={styles.spacer} />
       <ActivityIndicator size="large" color="orange" />
     </View>
   );

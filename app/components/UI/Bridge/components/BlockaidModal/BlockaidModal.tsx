@@ -61,7 +61,7 @@ const BlockaidModal = () => {
       <BottomSheetHeader onClose={handleClose}>
         {strings(`blockaid_modal.${errorType}_title`)}
       </BottomSheetHeader>
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <Text variant={TextVariant.BodyMD} style={styles.errorMessage}>
           {errorMessage}
         </Text>

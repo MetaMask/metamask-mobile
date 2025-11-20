@@ -9,13 +9,13 @@ const TokenListSkeleton = () => {
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.wrapperSkeleton}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapperSkeleton}>
       <SkeletonPlaceholder
         backgroundColor={colors.background.section}
         highlightColor={colors.background.subsection}
       >
         {Array.from({ length: 10 }, (_, index) => (
-          <View key={index} style={styles.skeletonItem}>
+          <View accessibilityRole="none" accessible={false} key={index} style={styles.skeletonItem}>
             {/* Token icon skeleton */}
             <SkeletonPlaceholder.Item
               width={40}
@@ -25,7 +25,7 @@ const TokenListSkeleton = () => {
             />
 
             {/* Token name and symbol skeleton */}
-            <View style={styles.skeletonTextContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.skeletonTextContainer}>
               <SkeletonPlaceholder.Item
                 width={120}
                 height={16}
@@ -40,7 +40,7 @@ const TokenListSkeleton = () => {
             </View>
 
             {/* Token value and percentage skeleton */}
-            <View style={styles.skeletonValueContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.skeletonValueContainer}>
               <SkeletonPlaceholder.Item
                 width={60}
                 height={16}

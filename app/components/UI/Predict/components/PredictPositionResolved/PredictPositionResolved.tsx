@@ -50,10 +50,10 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
-      <View style={styles.positionImage}>
+      <View accessibilityRole="none" accessible={false} style={styles.positionImage}>
         <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
-      <View style={styles.positionDetails}>
+      <View accessibilityRole="none" accessible={false} style={styles.positionDetails}>
         <Text
           variant={TextVariant.BodyMDMedium}
           color={TextColor.Default}
@@ -72,7 +72,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
           {formatRelativeTime(endDate)}
         </Text>
       </View>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         {percentPnl > 0 ? (
           <Text
             variant={TextVariant.BodyMDMedium}

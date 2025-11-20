@@ -23,9 +23,9 @@ const TooltipModal = ({ route }: TooltipModalProps) => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <BottomSheetHeader onClose={onCloseModal}>{title}</BottomSheetHeader>
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           {isValidElement(tooltip) ? (
             tooltip
           ) : (

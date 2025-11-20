@@ -87,13 +87,13 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       {title && <Text style={styles.title}>{title}</Text>}
       <FlatList
         data={formattedAccounts}
         keyExtractor={(item) => `address-${item.index}`}
         renderItem={({ item }) => (
-          <View style={[styles.account]}>
+          <View accessibilityRole="none" accessible={false} style={[styles.account]}>
             <CheckBox
               style={[styles.checkBox]}
               disabled={item.exist}
@@ -118,7 +118,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           </View>
         )}
       />
-      <View style={styles.pagination}>
+      <View accessibilityRole="none" accessible={false} style={styles.pagination}>
         <TouchableOpacity
           style={styles.paginationItem}
           onPress={prevPage}
@@ -140,7 +140,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           {<Icon name={'chevron-right'} color={colors.primary.default} />}
         </TouchableOpacity>
       </View>
-      <View style={styles.bottom}>
+      <View accessibilityRole="none" accessible={false} style={styles.bottom}>
         <StyledButton
           type={'confirm'}
           onPress={() => onUnlock([...checkedAccounts])}

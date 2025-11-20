@@ -779,8 +779,8 @@ class Onboarding extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.loaderWrapper}>
-        <View style={styles.loader}>
+      <View accessibilityRole="none" accessible={false} style={styles.loaderWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.loader}>
           <ActivityIndicator size="small" />
           <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
         </View>
@@ -793,7 +793,7 @@ class Onboarding extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.ctas}>
+      <View accessibilityRole="none" accessible={false} style={styles.ctas}>
         <OnboardingAnimation
           startOnboardingAnimation={this.state.startOnboardingAnimation}
           setStartFoxAnimation={this.setStartFoxAnimation}
@@ -903,7 +903,7 @@ class Onboarding extends PureComponent {
             style={baseStyles.flexGrow}
             contentContainerStyle={styles.scroll}
           >
-            <View style={styles.wrapper}>
+            <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
               {this.renderContent()}
 
               {loading && (
@@ -924,7 +924,7 @@ class Onboarding extends PureComponent {
             </View>
 
             {existingUser && !loading && (
-              <View style={styles.footer}>
+              <View accessibilityRole="none" accessible={false} style={styles.footer}>
                 <Button
                   variant={ButtonVariants.Link}
                   onPress={this.onLogin}
@@ -940,7 +940,7 @@ class Onboarding extends PureComponent {
 
           <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
 
-          <View>{this.handleSimpleNotification()}</View>
+          <View accessibilityRole="none" accessible={false}>{this.handleSimpleNotification()}</View>
 
           <FastOnboarding
             onPressContinueWithGoogle={this.onPressContinueWithGoogle}

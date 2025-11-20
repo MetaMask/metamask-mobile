@@ -45,13 +45,13 @@ const DeFiProtocolPositionGroupTokens: React.FC<
   }
 
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
         {strings(`defi_positions.${positionType}`)}
       </Text>
       {tokens.map((token) => (
-        <View key={token.key} style={styles.underlyingBalancesWrapper}>
-          <View>
+        <View accessibilityRole="none" accessible={false} key={token.key} style={styles.underlyingBalancesWrapper}>
+          <View accessibilityRole="none" accessible={false}>
             <DeFiAvatarWithBadge
               networkIconAvatar={networkIconAvatar}
               avatarName={token.name}
@@ -66,7 +66,7 @@ const DeFiProtocolPositionGroupTokens: React.FC<
             {token.symbol}
           </Text>
 
-          <View style={styles.balance}>
+          <View accessibilityRole="none" accessible={false} style={styles.balance}>
             <SensitiveText
               variant={TextVariant.BodyMDMedium}
               isHidden={privacyMode}

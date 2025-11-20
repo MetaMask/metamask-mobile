@@ -99,19 +99,19 @@ const NetworkPermissionsConnected = ({
 
   return (
     <>
-      <View style={styles.header}>
+      <View accessibilityRole="none" accessible={false} style={styles.header}>
         <Avatar
           variant={AvatarVariant.Favicon}
           imageSource={favicon}
           size={AvatarSize.Md}
         />
       </View>
-      <View style={styles.body}>
-        <View style={styles.sectionTitleContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.body}>
+        <View accessibilityRole="none" accessible={false} style={styles.sectionTitleContainer}>
           <Text style={styles.sectionTitle} variant={TextVariant.HeadingSM}>
             {strings('permissions.permitted_networks')}
           </Text>
-          <View style={styles.infoButtonContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.infoButtonContainer}>
             <ButtonIcon
               size={ButtonIconSizes.Md}
               iconName={IconName.Info}
@@ -125,7 +125,7 @@ const NetworkPermissionsConnected = ({
           </View>
         </View>
       </View>
-      <View style={styles.networkSelectorListContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.networkSelectorListContainer}>
         <NetworkSelectorList
           networks={networks}
           onSelectNetwork={(onSelectChainId) => {

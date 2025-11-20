@@ -336,7 +336,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -394,7 +394,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                   >
                                     LINK
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -457,7 +457,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -683,7 +683,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -1033,7 +1033,7 @@ exports[`Amount converts ETH to USD 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -1091,7 +1091,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                   >
                                     ETH
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -1154,7 +1154,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -1380,7 +1380,7 @@ exports[`Amount converts ETH to USD 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -1730,7 +1730,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -1788,7 +1788,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                   >
                                     LINK
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -1851,7 +1851,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -2093,7 +2093,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -2443,7 +2443,7 @@ exports[`Amount converts USD to ETH 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -2501,7 +2501,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                   >
                                     ETH
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -2564,7 +2564,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -2806,7 +2806,7 @@ exports[`Amount converts USD to ETH 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -3156,7 +3156,7 @@ exports[`Amount displays correct balance 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -3214,7 +3214,7 @@ exports[`Amount displays correct balance 1`] = `
                                   >
                                     ETH
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -3277,7 +3277,7 @@ exports[`Amount displays correct balance 1`] = `
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -3502,7 +3502,7 @@ exports[`Amount displays correct balance 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -3852,7 +3852,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -3910,7 +3910,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                   >
                                     LINK
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -3973,7 +3973,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -4198,7 +4198,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -4548,7 +4548,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -4606,7 +4606,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                                   >
                                     Collectible
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -4682,7 +4682,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View>
+                                    <View accessibilityRole="none" accessible={false}>
                                       <View
                                         style={
                                           [
@@ -4926,7 +4926,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -5276,7 +5276,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -5334,7 +5334,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                   >
                                     ETH
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -5397,7 +5397,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -5618,7 +5618,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -5968,7 +5968,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -6026,7 +6026,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                   >
                                     AVAX
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -6089,7 +6089,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -6310,7 +6310,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -6660,7 +6660,7 @@ exports[`Amount renders correctly 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               [
@@ -6794,7 +6794,7 @@ exports[`Amount renders correctly 1`] = `
                                   >
                                     Collectible
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -6857,7 +6857,7 @@ exports[`Amount renders correctly 1`] = `
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -7002,7 +7002,7 @@ exports[`Amount renders correctly 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -7352,7 +7352,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               [
@@ -7486,7 +7486,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                   >
                                     LINK
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -7549,7 +7549,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -7694,7 +7694,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -8044,7 +8044,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                           }
                         }
                       >
-                        <View>
+                        <View accessibilityRole="none" accessible={false}>
                           <View
                             style={
                               {
@@ -8102,7 +8102,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                   >
                                     ETH
                                   </Text>
-                                  <View>
+                                  <View accessibilityRole="none" accessible={false}>
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -8165,7 +8165,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                 </TouchableOpacity>
                               </View>
                             </View>
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {
@@ -8426,7 +8426,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <View />
+                      <View accessibilityRole="none" accessible={false} />
                     </RNCSafeAreaView>
                   </View>
                 </View>

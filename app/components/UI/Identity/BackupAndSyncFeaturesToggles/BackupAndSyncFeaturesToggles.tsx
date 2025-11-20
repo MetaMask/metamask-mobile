@@ -89,8 +89,8 @@ const FeatureToggle = ({
   );
 
   return (
-    <View style={styles.featureView}>
-      <View style={styles.featureNameAndIcon}>
+    <View accessibilityRole="none" accessible={false} style={styles.featureView}>
+      <View accessibilityRole="none" accessible={false} style={styles.featureNameAndIcon}>
         <Icon name={section.iconName} />
         <Text>{section.titleI18NKey}</Text>
       </View>
@@ -122,8 +122,8 @@ const BackupAndSyncFeaturesToggles = () => {
   );
 
   return (
-    <View style={styles.setting}>
-      <View style={styles.heading}>
+    <View accessibilityRole="none" accessible={false} style={styles.setting}>
+      <View accessibilityRole="none" accessible={false} style={styles.heading}>
         <Text variant={TextVariant.HeadingSM}>
           {strings('backupAndSync.manageWhatYouSync.title')}
         </Text>

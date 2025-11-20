@@ -30,7 +30,7 @@ const AvatarBase: React.FC<AvatarBaseProps> = ({
   });
 
   return (
-    <View style={styles.container} {...props}>
+    <View accessibilityRole="none" accessible={false} style={styles.container} {...props}>
       {children}
     </View>
   );

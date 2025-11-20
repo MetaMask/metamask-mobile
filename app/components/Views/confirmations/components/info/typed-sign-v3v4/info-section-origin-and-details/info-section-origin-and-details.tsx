@@ -57,7 +57,7 @@ export const InfoSectionOriginAndDetails = () => {
           <InfoRow label={strings('confirm.label.spender')}>
             <InfoRowAddress address={spender} chainId={chainId} />
           </InfoRow>
-          <View style={styles.dividerContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.dividerContainer}>
             <InfoRowDivider />
           </View>
         </>
@@ -69,7 +69,7 @@ export const InfoSectionOriginAndDetails = () => {
         <DisplayURL url={origin} />
       </InfoRow>
       <InfoRow label={strings('transactions.network')}>
-        <View style={styles.networkRowContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.networkRowContainer}>
           {networkImage && (
             <AvatarNetwork
               size={AvatarSize.Xs}

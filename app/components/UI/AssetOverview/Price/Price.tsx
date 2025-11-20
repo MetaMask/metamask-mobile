@@ -87,7 +87,7 @@ const Price = ({
   const ticker = asset.ticker || asset.symbol;
   return (
     <>
-      <View style={styles.wrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
         {asset.name ? (
           <Text
             variant={TextVariant.BodyMDMedium}
@@ -104,7 +104,7 @@ const Price = ({
             variant={TextVariant.HeadingLG}
           >
             {isLoading ? (
-              <View style={styles.loadingPrice}>
+              <View accessibilityRole="none" accessible={false} style={styles.loadingPrice}>
                 <SkeletonPlaceholder
                   backgroundColor={theme.colors.background.section}
                   highlightColor={theme.colors.background.subsection}
@@ -123,7 +123,7 @@ const Price = ({
         )}
         <Text>
           {isLoading ? (
-            <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
+            <View accessibilityRole="none" accessible={false} testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
                 backgroundColor={theme.colors.background.section}
                 highlightColor={theme.colors.background.subsection}

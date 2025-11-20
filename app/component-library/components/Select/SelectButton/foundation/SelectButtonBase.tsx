@@ -49,7 +49,7 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
       >
         {children}
       </SelectValue>
-      <View>{caretIconEl}</View>
+      <View accessibilityRole="none" accessible={false}>{caretIconEl}</View>
     </TouchableOpacity>
   );
 };

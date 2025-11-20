@@ -26,12 +26,12 @@ const NetworkDetailsCheckSettings = () => {
   );
 
   return (
-    <View style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
-      <View style={styles.titleContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
+      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('wallet.network_details_check')}
         </Text>
-        <View style={styles.switchElement}>
+        <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
           <Switch
             value={useSafeChainsListValidation}
             onValueChange={toggleUseSafeChainsListValidation}

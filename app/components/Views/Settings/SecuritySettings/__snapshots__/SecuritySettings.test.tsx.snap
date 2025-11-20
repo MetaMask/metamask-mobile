@@ -12,7 +12,7 @@ exports[`SecuritySettings should render correctly 1`] = `
   }
   testID="security-settings-scrollview"
 >
-  <View>
+  <View accessibilityRole="none" accessible={false}>
     <View
       style={
         {
@@ -394,7 +394,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   </Text>
                 </View>
               </TouchableOpacity>
-              <View />
+              <View accessibilityRole="none" accessible={false} />
             </View>
           </View>
         </View>
@@ -680,7 +680,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Privacy
         </Text>
       </View>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <Text
           accessibilityRole="text"
           style={
@@ -967,7 +967,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
         </View>
-        <View />
+        <View accessibilityRole="none" accessible={false} />
       </View>
       <View
         style={
@@ -1140,7 +1140,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
       <Text
         accessibilityRole="text"
         style={
@@ -1356,7 +1356,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.
         </Text>
       </View>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
       <View
         style={
           {
@@ -1570,7 +1570,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.
         </Text>
       </View>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <View
           style={
             {
@@ -1769,7 +1769,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
           >
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <ActivityIndicator
                 size="small"
               />
@@ -2192,7 +2192,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
       <View
         style={
           {
@@ -2280,9 +2280,9 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <View />
+      <View accessibilityRole="none" accessible={false} />
     </View>
-    <View />
+    <View accessibilityRole="none" accessible={false} />
   </View>
 </RCTScrollView>
 `;

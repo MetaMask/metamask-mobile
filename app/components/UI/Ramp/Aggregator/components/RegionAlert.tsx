@@ -76,12 +76,12 @@ const RegionAlert: React.FC<Props> = ({
         <TouchableOpacity onPress={dismiss} style={styles.cancel}>
           <EvilIcons name="close" size={17} color={colors.icon.default} />
         </TouchableOpacity>
-        <View style={styles.row}>
+        <View accessibilityRole="none" accessible={false} style={styles.row}>
           <Text bold primary bigger>
             {title}
           </Text>
           <Text black>{subtitle}</Text>
-          <View style={styles.row}>
+          <View accessibilityRole="none" accessible={false} style={styles.row}>
             <Text small>{body}</Text>
           </View>
           <TouchableOpacity onPress={handleSupportLinkPress}>

@@ -129,7 +129,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
       : IconNameDS.Add;
 
   return (
-    <View style={tw.style('w-full flex-row items-center px-4 bg-default')}>
+    <View accessibilityRole="none" accessible={false} style={tw.style('w-full flex-row items-center px-4 bg-default')}>
       <Box
         twClassName="flex-1 flex-row items-center py-4 rounded-lg gap-3"
         flexDirection={BoxFlexDirection.Row}

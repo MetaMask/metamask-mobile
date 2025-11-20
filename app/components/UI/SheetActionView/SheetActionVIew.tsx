@@ -12,7 +12,7 @@ import { SheetActionViewI } from './SheetActionView.types';
 const SheetActionView = ({ onConfirm, onCancel }: SheetActionViewI) => {
   const styles = createStyles();
   return (
-    <View style={styles.actionsContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.actionsContainer}>
       <Button
         label={strings('action_view.cancel')}
         onPress={onCancel}

@@ -60,7 +60,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     // Handle missing transaction data
     return (
       <ScreenView>
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
       </ScreenView>
@@ -149,14 +149,14 @@ const PerpsPositionTransactionView: React.FC = () => {
   return (
     <ScreenView>
       <ScrollView style={styles.container}>
-        <View style={styles.content}>
+        <View accessibilityRole="none" accessible={false} style={styles.content}>
           <PerpsTransactionDetailAssetHero
             transaction={transaction}
             styles={styles}
           />
 
           {/* Transaction details */}
-          <View style={styles.detailsContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.detailsContainer}>
             {mainDetailRows.map(
               (detail, index) =>
                 detail && (
@@ -186,7 +186,7 @@ const PerpsPositionTransactionView: React.FC = () => {
 
             {/* Separator between sections */}
             {secondaryDetailRows.length > 0 && (
-              <View style={styles.sectionSeparator} />
+              <View accessibilityRole="none" accessible={false} style={styles.sectionSeparator} />
             )}
 
             {/* Secondary details (fees, P&L, etc.) */}
@@ -214,7 +214,7 @@ const PerpsPositionTransactionView: React.FC = () => {
             )}
           </View>
 
-          <View style={styles.buttonsContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
             {/* Block explorer button */}
             <Button
               variant={ButtonVariants.Secondary}

@@ -11,7 +11,7 @@ describe('Expandable', () => {
     const { getByText } = render(
       <Expandable
         collapsedContent={
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text>Open</Text>
           </View>
         }
@@ -30,7 +30,7 @@ describe('Expandable', () => {
     const { getByText } = render(
       <Expandable
         collapsedContent={
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text>Open</Text>
           </View>
         }
@@ -49,7 +49,7 @@ describe('Expandable', () => {
     const { getByTestId, getByText } = render(
       <Expandable
         collapsedContent={
-          <View>
+          <View accessibilityRole="none" accessible={false}>
             <Text>Open</Text>
           </View>
         }

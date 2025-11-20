@@ -44,7 +44,7 @@ const NativeAssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
     networkConfigurationsByChainId[asset.chainId] || {};
 
   return (
-    <View style={styles.nativeAssetPill}>
+    <View accessibilityRole="none" accessible={false} style={styles.nativeAssetPill}>
       <AvatarNetwork
         testID="simulation-details-asset-pill-avatar-network"
         size={AvatarSize.Xs}
@@ -60,7 +60,7 @@ const AssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.assetPill}>
+    <View accessibilityRole="none" accessible={false} style={styles.assetPill}>
       {asset.type === AssetType.Native ? (
         <NativeAssetPill asset={asset} />
       ) : (

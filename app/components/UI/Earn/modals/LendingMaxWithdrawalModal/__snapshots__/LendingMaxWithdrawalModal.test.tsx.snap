@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`LendingMaxWithdrawalModal should render correctly 1`] = `
-<View>
+<View accessibilityRole="none" accessible={false}>
   <View
     style={
       [

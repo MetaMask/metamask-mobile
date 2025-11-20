@@ -414,7 +414,7 @@ class TransactionDetails extends PureComponent {
             <StatusText status={status} />
             {!!renderTxActions &&
               updatedTransactionDetails?.txChainId === chainId && (
-                <View style={styles.transactionActionsContainer}>
+                <View accessibilityRole="none" accessible={false} style={styles.transactionActionsContainer}>
                   {this.renderSpeedUpButton()}
                   {this.renderCancelButton()}
                 </View>
@@ -434,9 +434,9 @@ class TransactionDetails extends PureComponent {
             <DetailsModal.SectionTitle>
               {strings('transactions.from')}
             </DetailsModal.SectionTitle>
-            <View style={styles.cellAccount}>
-              <View style={styles.accountNameLabel}>
-                <View style={styles.accountNameAvatar}>
+            <View accessibilityRole="none" accessible={false} style={styles.cellAccount}>
+              <View accessibilityRole="none" accessible={false} style={styles.accountNameLabel}>
+                <View accessibilityRole="none" accessible={false} style={styles.accountNameAvatar}>
                   <Avatar
                     variant={AvatarVariant.Account}
                     type={
@@ -464,9 +464,9 @@ class TransactionDetails extends PureComponent {
             <DetailsModal.SectionTitle>
               {strings('transactions.to')}
             </DetailsModal.SectionTitle>
-            <View style={styles.cellAccount}>
-              <View style={styles.accountNameLabel}>
-                <View style={styles.accountNameAvatar}>
+            <View accessibilityRole="none" accessible={false} style={styles.cellAccount}>
+              <View accessibilityRole="none" accessible={false} style={styles.accountNameLabel}>
+                <View accessibilityRole="none" accessible={false} style={styles.accountNameAvatar}>
                   <Avatar
                     variant={AvatarVariant.Account}
                     type={

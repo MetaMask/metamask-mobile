@@ -78,7 +78,7 @@ const LedgerTransactionModal = () => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.modal}>
-      <View style={styles.contentWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.contentWrapper}>
         <LedgerConfirmationModal
           onConfirmation={executeOnLedger}
           onRejection={onRejection}

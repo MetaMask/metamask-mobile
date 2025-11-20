@@ -107,7 +107,7 @@ export default class StyledButton extends PureComponent {
       case 1:
         return children[0];
       default:
-        return <View style={childGroupStyle}>{children}</View>;
+        return <View accessibilityRole="none" accessible={false} style={childGroupStyle}>{children}</View>;
     }
   };
 
@@ -136,7 +136,7 @@ export default class StyledButton extends PureComponent {
         accessibilityRole="button"
         testID={this.props.testID}
       >
-        <View style={containerStyles}>
+        <View accessibilityRole="none" accessible={false} style={containerStyles}>
           {this.renderGroupedChildren(fontStyle, containerStyles)}
         </View>
       </TouchableNativeFeedback>

@@ -374,7 +374,7 @@ jest.mock('../../components/PerpsSlider', () => ({
   }) => {
     const { View, Text } = jest.requireActual('react-native');
     return (
-      <View testID="perps-slider">
+      <View accessibilityRole="none" accessible={false} testID="perps-slider">
         <Text>Slider Value: {value}</Text>
       </View>
     );

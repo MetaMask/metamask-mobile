@@ -91,7 +91,7 @@ const SnapAccountCustomNameApproval = () => {
       avoidKeyboard
       onCancel={onReject}
     >
-      <View testID={SNAP_ACCOUNT_CUSTOM_NAME_APPROVAL} style={styles.root}>
+      <View accessibilityRole="none" accessible={false} testID={SNAP_ACCOUNT_CUSTOM_NAME_APPROVAL} style={styles.root}>
         <SheetHeader
           title={strings('snap_account_custom_name_approval.title')}
         />
@@ -109,7 +109,7 @@ const SnapAccountCustomNameApproval = () => {
             {strings('snap_account_custom_name_approval.name_taken_message')}
           </Text>
         )}
-        <View style={styles.actionContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
             buttonPropsArray={[cancelButtonProps, addAccountButtonProps]}

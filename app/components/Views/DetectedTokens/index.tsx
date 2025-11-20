@@ -357,7 +357,7 @@ const DetectedTokens = () => {
     const importTokenCount =
       currentDetectedTokens.length - Object.keys(ignoredTokens).length;
     return (
-      <View style={styles.buttonsContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
         <StyledButton
           onPress={triggerIgnoreAllTokens}
           containerStyle={styles.fill}
@@ -365,7 +365,7 @@ const DetectedTokens = () => {
         >
           {strings('detected_tokens.hide_cta')}
         </StyledButton>
-        <View style={styles.buttonDivider} />
+        <View accessibilityRole="none" accessible={false} style={styles.buttonDivider} />
         <StyledButton
           onPress={triggerImportTokens}
           containerStyle={styles.fill}

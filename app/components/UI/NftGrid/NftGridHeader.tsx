@@ -22,7 +22,7 @@ const NftGridHeader = () => {
 
   return (
     isCollectionDetectionBannerVisible && (
-      <View style={style.emptyView}>
+      <View accessibilityRole="none" accessible={false} style={style.emptyView}>
         <CollectibleDetectionModal />
       </View>
     )

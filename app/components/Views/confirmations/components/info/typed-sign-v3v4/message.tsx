@@ -78,7 +78,7 @@ const Message = () => {
         )
       }
       messageExpanded={
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text style={styles.title}>{strings('confirm.message')}</Text>
           <InfoRow
             label={strings('confirm.label.primary_type')}

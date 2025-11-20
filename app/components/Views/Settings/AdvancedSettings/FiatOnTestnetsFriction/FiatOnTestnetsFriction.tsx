@@ -32,7 +32,7 @@ const FiatOnTestnetsFriction = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.frictionContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.frictionContainer}>
         <Icon
           name={IconName.Danger}
           color={colors.warning.default}
@@ -63,7 +63,7 @@ const FiatOnTestnetsFriction = () => {
             {strings('app_settings.show_fiat_on_testnets_modal_learn_more')}
           </Text>
         </Text>
-        <View style={styles.buttonsContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
           <Button
             testID={FiatOnTestnetsBottomSheetSelectorsIDs.CANCEL_BUTTON}
             variant={ButtonVariants.Secondary}

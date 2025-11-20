@@ -45,10 +45,10 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
-      <View style={styles.positionImageContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.positionImageContainer}>
         <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
-      <View style={styles.positionDetails}>
+      <View accessibilityRole="none" accessible={false} style={styles.positionDetails}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {title}
         </Text>
@@ -72,7 +72,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           )}
         </Text>
       </View>
-      <View style={styles.positionPnl}>
+      <View accessibilityRole="none" accessible={false} style={styles.positionPnl}>
         {optimistic ? (
           <>
             <Skeleton width={60} height={20} style={styles.skeletonSpacing} />

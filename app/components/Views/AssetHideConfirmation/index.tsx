@@ -82,7 +82,7 @@ const AssetHideConfirmation = ({ route }: Props) => {
   );
 
   const renderButtons = () => (
-    <View style={styles.buttonsContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
       <StyledButton
         onPress={triggerCancel}
         containerStyle={styles.fill}
@@ -90,7 +90,7 @@ const AssetHideConfirmation = ({ route }: Props) => {
       >
         {strings('wallet.hide_token.cancel_cta')}
       </StyledButton>
-      <View style={styles.buttonDivider} />
+      <View accessibilityRole="none" accessible={false} style={styles.buttonDivider} />
       <StyledButton
         onPress={triggerConfirm}
         containerStyle={styles.fill}
@@ -103,12 +103,12 @@ const AssetHideConfirmation = ({ route }: Props) => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={styles.modal}>
-        <View style={styles.bodyContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.modal}>
+        <View accessibilityRole="none" accessible={false} style={styles.bodyContainer}>
           {renderHeader()}
           {renderDescription()}
         </View>
-        <View style={styles.divider} />
+        <View accessibilityRole="none" accessible={false} style={styles.divider} />
         {renderButtons()}
       </View>
     </ReusableModal>

@@ -55,7 +55,7 @@ const BodyText = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.bodyTextContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.bodyTextContainer}>
       <Text variant={TextVariant.BodyMDMedium}>
         {strings('stake.stake_any_amount_of_eth')}{' '}
         <Text color={TextColor.Alternative}>

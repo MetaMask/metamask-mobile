@@ -34,8 +34,8 @@ function ModalDragger({ borderless }: ModalDraggerProps) {
   const styles = createStyles(colors);
 
   return (
-    <View style={[styles.draggerWrapper, borderless && styles.borderless]}>
-      <View style={styles.dragger} />
+    <View accessibilityRole="none" accessible={false} style={[styles.draggerWrapper, borderless && styles.borderless]}>
+      <View accessibilityRole="none" accessible={false} style={styles.dragger} />
     </View>
   );
 }

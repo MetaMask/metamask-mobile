@@ -44,8 +44,8 @@ const InstallSnapSuccess = ({
   };
 
   return (
-    <View testID={SNAP_INSTALL_SUCCESS} style={styles.root}>
-      <View style={styles.accountCardWrapper}>
+    <View accessibilityRole="none" accessible={false} testID={SNAP_INSTALL_SUCCESS} style={styles.root}>
+      <View accessibilityRole="none" accessible={false} style={styles.accountCardWrapper}>
         <Cell
           style={styles.snapCell}
           variant={CellVariant.Display}
@@ -55,8 +55,8 @@ const InstallSnapSuccess = ({
             name: IconName.Snaps,
           }}
         />
-        <View style={styles.iconContainer}>
-          <View style={styles.iconWrapper}>
+        <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.iconWrapper}>
             <Icon
               name={IconName.Confirmation}
               color={IconColor.Success}
@@ -70,7 +70,7 @@ const InstallSnapSuccess = ({
             snap: snapName,
           })}
         </Text>
-        <View style={styles.actionContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
             buttonPropsArray={[okButtonProps]}

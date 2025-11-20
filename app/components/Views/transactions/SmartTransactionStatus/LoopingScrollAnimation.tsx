@@ -33,7 +33,7 @@ const LoopingScrollAnimation = ({ children, width }: Props) => (
   >
     {/* Duplicate the children so we can position the animation to start at the beginning of the 2nd child */}
     {/* Then we end on the start of the 1st child to get a perfect loop */}
-    <View style={styles.wrapper}>
+    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
       {children}
       {children}
     </View>

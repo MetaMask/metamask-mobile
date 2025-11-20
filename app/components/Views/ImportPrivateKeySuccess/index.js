@@ -113,7 +113,7 @@ class ImportPrivateKeySuccess extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.mainWrapper}>
+      <View accessibilityRole="none" accessible={false} style={styles.mainWrapper}>
         <ScrollView
           contentContainerStyle={styles.wrapper}
           style={styles.mainWrapper}
@@ -129,7 +129,7 @@ class ImportPrivateKeySuccess extends PureComponent {
             >
               <MaterialIcon name="close" size={15} style={styles.closeIcon} />
             </TouchableOpacity>
-            <View style={styles.top}>
+            <View accessibilityRole="none" accessible={false} style={styles.top}>
               <Icon
                 name="checkmark-circle-outline"
                 style={styles.icon}
@@ -138,7 +138,7 @@ class ImportPrivateKeySuccess extends PureComponent {
               <Text style={styles.title}>
                 {strings('import_private_key_success.title')}
               </Text>
-              <View style={styles.dataRow}>
+              <View accessibilityRole="none" accessible={false} style={styles.dataRow}>
                 <Text style={styles.label}>
                   {strings('import_private_key_success.description_one')}
                 </Text>

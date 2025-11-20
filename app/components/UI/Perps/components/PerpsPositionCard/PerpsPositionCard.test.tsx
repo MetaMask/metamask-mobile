@@ -132,7 +132,7 @@ jest.mock('../../Views/PerpsTPSLView/PerpsTPSLView', () => ({
     if (!isVisible) return null;
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
     return (
-      <View testID="perps-tpsl-bottomsheet">
+      <View accessibilityRole="none" accessible={false} testID="perps-tpsl-bottomsheet">
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>

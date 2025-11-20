@@ -23,7 +23,7 @@ const Network = ({ chainId }: NetworkProps) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <Avatar
         variant={AvatarVariant.Network}
         name={networkName}

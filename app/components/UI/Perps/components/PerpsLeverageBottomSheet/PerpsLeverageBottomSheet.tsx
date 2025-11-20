@@ -586,9 +586,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         {/* Large leverage display */}
-        <View style={styles.leverageDisplay}>
+        <View accessibilityRole="none" accessible={false} style={styles.leverageDisplay}>
           <Text
             variant={TextVariant.DisplayMD}
             style={[styles.leverageText, getLeverageTextStyle()]}
@@ -598,14 +598,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         </View>
 
         {/* Liquidation warning */}
-        <View style={[styles.warningContainer, warningStyles.containerStyle]}>
+        <View accessibilityRole="none" accessible={false} style={[styles.warningContainer, warningStyles.containerStyle]}>
           <Icon
             name={IconName.Danger}
             size={IconSize.Sm}
             color={warningStyles.iconColor}
             style={styles.warningIcon}
           />
-          <View style={styles.warningTextContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.warningTextContainer}>
             <Text
               variant={TextVariant.BodySM}
               style={[warningStyles.textStyle, styles.warningText]}
@@ -627,15 +627,15 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
         {/* Price information */}
         {currentPrice ? (
-          <View style={styles.priceInfoContainer}>
-            <View style={styles.priceRow}>
+          <View accessibilityRole="none" accessible={false} style={styles.priceInfoContainer}>
+            <View accessibilityRole="none" accessible={false} style={styles.priceRow}>
               <Text
                 variant={TextVariant.BodyMD}
                 style={{ color: warningStyles.priceColor }}
               >
                 {strings('perps.order.leverage_modal.liquidation_price')}
               </Text>
-              <View style={styles.priceValueContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.priceValueContainer}>
                 <Icon
                   name={IconName.Danger}
                   size={IconSize.Xs}
@@ -656,7 +656,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 )}
               </View>
             </View>
-            <View style={styles.priceRow}>
+            <View accessibilityRole="none" accessible={false} style={styles.priceRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.order.leverage_modal.current_price')}
               </Text>
@@ -668,7 +668,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             </View>
           </View>
         ) : (
-          <View style={styles.priceInfoContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.priceInfoContainer}>
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Alternative}
@@ -680,7 +680,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         )}
 
         {/* Custom Leverage Slider */}
-        <View style={styles.sliderContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.sliderContainer}>
           <LeverageSlider
             value={isDragging ? draggingLeverage : tempLeverage}
             onValueChange={(newValue) => {
@@ -710,7 +710,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             colors={colors}
             onInteraction={() => setInputMethod('slider')}
           />
-          <View style={styles.sliderLabels}>
+          <View accessibilityRole="none" accessible={false} style={styles.sliderLabels}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {minLeverage}x
             </Text>
@@ -724,7 +724,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         </View>
 
         {/* Quick select buttons */}
-        <View style={styles.quickSelectButtons}>
+        <View accessibilityRole="none" accessible={false} style={styles.quickSelectButtons}>
           {quickSelectValues.map((value) => (
             <TouchableOpacity
               key={value}

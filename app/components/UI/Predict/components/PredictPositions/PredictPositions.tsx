@@ -123,7 +123,7 @@ const PredictPositions = forwardRef<
   // TODO: Sort positions in the controller (business logic)
   return (
     <>
-      <View testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
+      <View accessibilityRole="none" accessible={false} testID={PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST}>
         {isLoading || (isRefreshing && positions.length === 0) ? (
           // Show skeleton loaders during initial load
           <>
@@ -157,7 +157,7 @@ const PredictPositions = forwardRef<
               {strings('predict.tab.resolved_markets')}
             </Text>
           </Box>
-          <View testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}>
+          <View accessibilityRole="none" accessible={false} testID={PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST}>
             {claimablePositions
               .sort(
                 (a, b) =>

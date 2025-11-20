@@ -82,7 +82,7 @@ const BalanceEndContainer = ({
   return (
     <>
       <TouchableOpacity onPress={onSelectAccount}>
-        <View style={styles.balanceContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.balanceContainer}>
           <Text
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Default}
@@ -166,8 +166,8 @@ const AccountCell = ({
           size={AvatarSize.Md}
           testID={AccountCellIds.AVATAR}
         />
-        <View style={styles.accountName}>
-          <View style={styles.accountNameRow}>
+        <View accessibilityRole="none" accessible={false} style={styles.accountName}>
+          <View accessibilityRole="none" accessible={false} style={styles.accountNameRow}>
             <Text
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Default}
@@ -179,7 +179,7 @@ const AccountCell = ({
             </Text>
           </View>
           {networkAccountAddress && (
-            <View style={styles.accountSubRow}>
+            <View accessibilityRole="none" accessible={false} style={styles.accountSubRow}>
               <Text
                 variant={TextVariant.BodySM}
                 color={TextColor.Alternative}
@@ -192,7 +192,7 @@ const AccountCell = ({
           )}
         </View>
       </TouchableOpacity>
-      <View style={styles.endContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.endContainer}>
         {endContainer || (
           <BalanceEndContainer
             accountGroup={accountGroup}

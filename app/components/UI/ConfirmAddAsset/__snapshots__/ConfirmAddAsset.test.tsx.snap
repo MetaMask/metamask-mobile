@@ -41,7 +41,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
       }
     }
   >
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <View
         style={
           {
@@ -53,7 +53,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
           }
         }
       >
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <View
             onLayout={[Function]}
             style={
@@ -64,7 +64,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             }
             testID="badge-wrapper-badge"
           >
-            <View>
+            <View accessibilityRole="none" accessible={false}>
               <View
                 placeholderStyle={
                   {
@@ -215,7 +215,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             </View>
           </View>
         </View>
-        <View>
+        <View accessibilityRole="none" accessible={false}>
           <Text
             accessibilityRole="text"
             style={
@@ -376,6 +376,6 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
       </TouchableOpacity>
     </View>
   </View>
-  <View />
+  <View accessibilityRole="none" accessible={false} />
 </RCTSafeAreaView>
 `;

@@ -52,7 +52,7 @@ const NetworkAndTokenImage = ({ token }: { token: TokenI }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.networkAndTokenContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.networkAndTokenContainer}>
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
@@ -89,9 +89,9 @@ const Erc20TokenHero = ({
   );
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="none" accessible={false} style={styles.container}>
       <NetworkAndTokenImage token={token} />
-      <View style={styles.assetAmountContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.assetAmountContainer}>
         <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
           {displayTokenAmount} {token.symbol}
         </Text>

@@ -19,7 +19,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
     }
     testID="badge-wrapper-badge"
   >
-    <View />
+    <View accessibilityRole="none" accessible={false} />
     <View
       style={
         {
@@ -286,7 +286,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
     }
     testID="badge-wrapper-badge"
   >
-    <View />
+    <View accessibilityRole="none" accessible={false} />
     <View
       style={
         {
@@ -553,7 +553,7 @@ exports[`Token Component renders correctly 1`] = `
     }
     testID="badge-wrapper-badge"
   >
-    <View />
+    <View accessibilityRole="none" accessible={false} />
     <View
       style={
         {
@@ -820,7 +820,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
     }
     testID="badge-wrapper-badge"
   >
-    <View />
+    <View accessibilityRole="none" accessible={false} />
     <View
       style={
         {

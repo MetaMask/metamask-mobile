@@ -124,7 +124,7 @@ describe('Box', () => {
   });
 
   it('forwards ref correctly', () => {
-    const ref = React.createRef<View>();
+    const ref = React.createRef<View accessibilityRole="none" accessible={false}>();
     render(
       <Box ref={ref}>
         <Text>Test Content</Text>

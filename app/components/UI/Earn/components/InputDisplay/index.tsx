@@ -195,10 +195,10 @@ const InputDisplay = ({
   };
 
   return (
-    <View style={styles.inputContainer}>
-      <View style={styles.warningAndErrorMessagesContainer}>
+    <View accessibilityRole="none" accessible={false} style={styles.inputContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.warningAndErrorMessagesContainer}>
         <FadeInView key={maxWithdrawalAmount}>
-          <View style={styles.maxWithdrawalContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.maxWithdrawalContainer}>
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
@@ -232,7 +232,7 @@ const InputDisplay = ({
           {balanceInfo}
         </Text>
       </View>
-      <View style={styles.amountRow}>
+      <View accessibilityRole="none" accessible={false} style={styles.amountRow}>
         <Text
           style={styles.amountText}
           color={TextColor.Default}
@@ -253,7 +253,7 @@ const InputDisplay = ({
           {isFiat ? currentCurrency.toUpperCase() : ticker}
         </Text>
       </View>
-      <View>
+      <View accessibilityRole="none" accessible={false}>
         <CurrencyToggle
           onPress={handleCurrencySwitch}
           value={currencyToggleValue}

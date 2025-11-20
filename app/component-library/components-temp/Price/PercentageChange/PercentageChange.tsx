@@ -23,7 +23,7 @@ const PercentageChange = ({
     : '';
 
   return (
-    <View>
+    <View accessibilityRole="none" accessible={false}>
       <Text color={percentageColorText} variant={variant}>
         {formattedValue}
       </Text>

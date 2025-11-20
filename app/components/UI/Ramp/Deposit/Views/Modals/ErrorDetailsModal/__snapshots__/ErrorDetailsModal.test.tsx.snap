@@ -552,7 +552,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                               }
                             }
                           >
-                            <View>
+                            <View accessibilityRole="none" accessible={false}>
                               <View
                                 style={
                                   {

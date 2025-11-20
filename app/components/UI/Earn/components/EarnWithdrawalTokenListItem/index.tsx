@@ -38,7 +38,7 @@ const EarnWithdrawalTokenListItem = ({
         style={styles.container}
         onPress={() => onPress(earnToken)}
       >
-        <View style={styles.left}>
+        <View accessibilityRole="none" accessible={false} style={styles.left}>
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
             badgeElement={
@@ -53,7 +53,7 @@ const EarnWithdrawalTokenListItem = ({
           >
             <EarnNetworkAvatar token={earnToken} />
           </BadgeWrapper>
-          <View style={styles.textContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
             <Text
               numberOfLines={1}
               variant={TextVariant.BodyMDMedium}
@@ -69,7 +69,7 @@ const EarnWithdrawalTokenListItem = ({
             ).toFixed(1)}%`}</Text>
           </View>
         </View>
-        <View style={styles.right}>
+        <View accessibilityRole="none" accessible={false} style={styles.right}>
           {/* Only show token balance if exchange rates aren't available */}
           {earnToken?.balanceFiat !== 'tokenRateUndefined' ? (
             <>

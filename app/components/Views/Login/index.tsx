@@ -533,12 +533,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
           enableResetScrollToCoords={false}
         >
-          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
+          <View accessibilityRole="none" accessible={false} testID={LoginViewSelectors.CONTAINER} style={styles.container}>
             <OnboardingAnimation
               startOnboardingAnimation={startOnboardingAnimation}
               setStartFoxAnimation={setStartFoxAnimationCallback}
             >
-              <View style={styles.field}>
+              <View accessibilityRole="none" accessible={false} style={styles.field}>
                 <TextField
                   size={TextFieldSize.Lg}
                   placeholder={strings('login.password_placeholder')}
@@ -564,7 +564,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 />
               </View>
 
-              <View style={styles.helperTextContainer}>
+              <View accessibilityRole="none" accessible={false} style={styles.helperTextContainer}>
                 {!!error && (
                   <HelpText
                     severity={HelpTextSeverity.Error}
@@ -576,7 +576,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 )}
               </View>
 
-              <View style={styles.ctaWrapper} pointerEvents="box-none">
+              <View accessibilityRole="none" accessible={false} style={styles.ctaWrapper} pointerEvents="box-none">
                 <LoginOptionsSwitch
                   shouldRenderBiometricOption={shouldRenderBiometricLogin}
                   biometryChoiceState={biometryChoice}

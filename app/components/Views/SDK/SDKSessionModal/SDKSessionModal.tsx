@@ -124,7 +124,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.container}>
+      <View accessibilityRole="none" accessible={false} style={styles.container}>
         <BottomSheetHeader>
           <Text variant={TextVariant.HeadingMD}>
             {strings('sdk.manage_connections')}
@@ -132,7 +132,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
         </BottomSheetHeader>
         <TagUrl imageSource={{ uri: icon }} label={urlOrTitle} />
         {version && platform && (
-          <View style={styles.sdkInfoContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.sdkInfoContainer}>
             <Text color={TextColor.Muted}>
               SDK {platform} v{version}
             </Text>
@@ -167,7 +167,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
             );
           }}
         >
-          <View style={styles.btnAction}>
+          <View accessibilityRole="none" accessible={false} style={styles.btnAction}>
             <Button
               variant={ButtonVariants.Link}
               onPress={() => {
@@ -191,7 +191,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
           </View>
         </Cell>
       ))}
-      <View style={styles.actionsContainer}>
+      <View accessibilityRole="none" accessible={false} style={styles.actionsContainer}>
         <Button
           label={strings('sdk.disconnect_all_accounts')}
           variant={ButtonVariants.Primary}

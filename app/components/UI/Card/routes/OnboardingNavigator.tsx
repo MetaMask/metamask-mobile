@@ -58,7 +58,7 @@ export const KYCModalNavigationOptions = ({
   };
 
   return {
-    headerLeft: () => <View />,
+    headerLeft: () => <View accessibilityRole="none" accessible={false} />,
     headerTitle: () => (
       <Text
         variant={TextVariant.HeadingSM}
@@ -105,7 +105,7 @@ const ValidatingKYCNavigationOptions = ({
       {strings('card.card')}
     </Text>
   ),
-  headerRight: () => <View />,
+  headerRight: () => <View accessibilityRole="none" accessible={false} />,
 });
 
 const OnboardingNavigator: React.FC = () => {

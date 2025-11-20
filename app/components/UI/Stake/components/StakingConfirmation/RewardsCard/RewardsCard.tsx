@@ -50,7 +50,7 @@ const RewardsCard = ({
         field={{ label: { text: strings('stake.estimated_annual_rewards') } }}
         value={{
           label: (
-            <View style={styles.estAnnualRewardValue}>
+            <View accessibilityRole="none" accessible={false} style={styles.estAnnualRewardValue}>
               <Text color={TextColor.Alternative}>{rewardsFiat}</Text>
               <Text>{rewardsEth}</Text>
             </View>

@@ -43,7 +43,7 @@ jest.mock('./SDKSessionItem', () => {
   return {
     __esModule: true,
     default: jest.fn(({ connection }) => (
-      <View testID={`sdk-session-${connection.id}`}>
+      <View accessibilityRole="none" accessible={false} testID={`sdk-session-${connection.id}`}>
         <Text>{connection.id}</Text>
       </View>
     )),

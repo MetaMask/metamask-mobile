@@ -50,7 +50,7 @@ export const ApproveAndPermit2 = () => {
             isERC20 ? strings('confirm.spending_cap') : strings('confirm.nfts')
           }
         >
-          <View style={styles.amountAndAddressContainer}>
+          <View accessibilityRole="none" accessible={false} style={styles.amountAndAddressContainer}>
             <Address
               address={transactionMetadata?.txParams?.to as string}
               chainId={transactionMetadata.chainId}
@@ -78,7 +78,7 @@ export const ApproveAndPermit2 = () => {
             : strings('confirm.withdraw')
         }
       >
-        <View style={styles.amountAndAddressContainer}>
+        <View accessibilityRole="none" accessible={false} style={styles.amountAndAddressContainer}>
           {isERC20 && (
             <EditSpendingCapButton
               spendingCapProps={{

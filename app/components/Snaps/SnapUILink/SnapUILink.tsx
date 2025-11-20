@@ -59,7 +59,7 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({
       accessibilityHint={strings('snaps.snap_ui.link.accessibilityHint')}
     >
       {children}
-      <View style={styles.spacer} />
+      <View accessibilityRole="none" accessible={false} style={styles.spacer} />
       <Icon
         name={IconName.Export}
         color={IconColor.Primary}
