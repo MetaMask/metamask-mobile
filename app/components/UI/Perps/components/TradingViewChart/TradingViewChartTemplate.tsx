@@ -1135,6 +1135,14 @@ export const createTradingViewChartTemplate = (
                             }
                         }
                         break;
+                    case 'CLEAR_DATA':
+                        // Clear chart data (e.g., during market switch)
+                        if (window.candlestickSeries) {
+                            window.candlestickSeries.setData([]);
+                            window.allCandleData = [];
+                            console.log('📊 TradingView: Cleared chart data');
+                        }
+                        break;
                     case 'ADD_AUXILIARY_LINES':
                         if (window.chart && message.lines) {
                             window.updatePriceLines(message.lines);

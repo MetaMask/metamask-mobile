@@ -344,11 +344,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       );
 
       // Limit to max 1000 candles to prevent memory issues
-      // Keep oldest candles when loading history (user scrolled left)
+      // Keep newest candles to preserve live updates
       const MAX_CANDLES = 1000;
       const finalCandles =
         mergedCandles.length > MAX_CANDLES
-          ? mergedCandles.slice(0, MAX_CANDLES)
+          ? mergedCandles.slice(-MAX_CANDLES)
           : mergedCandles;
 
       // Update cache with merged data

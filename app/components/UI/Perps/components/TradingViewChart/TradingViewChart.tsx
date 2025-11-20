@@ -348,6 +348,16 @@ const TradingViewChart = React.forwardRef<
         dataToUse = candleData;
       }
 
+      // If no data available, clear the chart to prevent stale data display
+      if (!dataToUse?.candles?.length) {
+        webViewRef.current.postMessage(
+          JSON.stringify({
+            type: 'CLEAR_DATA',
+          }),
+        );
+        return;
+      }
+
       if (dataToUse?.candles && dataToUse.candles.length > 0) {
         // DEFENSIVE: Validate candle data matches expected symbol
         if (symbol && dataToUse.coin !== symbol) {
