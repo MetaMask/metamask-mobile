@@ -69,6 +69,9 @@ const MultichainBridgeTransactionListItem = ({
     const chainId = parseCaipAssetType(
       bridgeHistoryItem.quote.srcAsset.assetId,
     ).chainId;
+    if (!chainId)
+      return <Image source={icon} style={style.icon} resizeMode="stretch" />;
+
     const networkImageSource = getNetworkImageSource({ chainId });
     return (
       <BadgeWrapper
