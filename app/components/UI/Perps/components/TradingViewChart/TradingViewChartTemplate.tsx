@@ -23,11 +23,11 @@ export const createTradingViewChartTemplate = (
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            overflow: hidden;
         }
         #container {
             width: 100%;
-            height: calc(100vh - 30px); /* Reduce height to leave space for x-axis */
-            max-width: 100vw;
+            height: 100%;
             position: relative;
             background: ${theme.colors.background.default};
             /* Touch optimization for chart container */
@@ -494,7 +494,7 @@ export const createTradingViewChartTemplate = (
                             background: {
                                 color: '${theme.colors.background.default}',
                             },
-                            textColor: '${theme.colors.text.default}',
+                            textColor: '${theme.colors.text.muted}',
                             // Pane separator configuration (appears between panes)
                             panes: {
                                 separatorColor: 'transparent', // Hide separator line between panes
