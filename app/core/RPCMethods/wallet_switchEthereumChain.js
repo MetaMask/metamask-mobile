@@ -54,7 +54,7 @@ export const wallet_switchEthereumChain = async ({
     );
   }
   const _chainId = validateChainId(chainId);
-  // TODO: [SOLANA] - This does not support non evm networks
+  // TODO: [SOLANA] - This does not support non-EVM networks
   const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
     store.getState(),
   );
