@@ -626,5 +626,51 @@ describe('TrendingTokenRowItem', () => {
       // Navigation should NOT be called since modal is shown instead
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+
+    it('closes network modal when cancel button is pressed', () => {
+      const token = createMockToken({
+        assetId: 'eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+      });
+
+      const networkNotAddedState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              networkConfigurations: {},
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  caipChainId: 'eip155:1',
+                  name: 'Ethereum Mainnet',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: networkNotAddedState },
+        false,
+      );
+
+      const tokenRow = getByTestId(
+        'trending-token-row-item-eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      );
+      fireEvent.press(tokenRow);
+
+      const closeButton = getByTestId('network-modal-close-button');
+      fireEvent.press(closeButton);
+
+      expect(queryByTestId('network-modal')).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 });
