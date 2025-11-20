@@ -32,6 +32,7 @@ export interface PerpsChartFullscreenModalProps {
   candleData?: CandleData | null;
   tpslLines?: TPSLLines;
   selectedInterval: CandlePeriod;
+  visibleCandleCount?: number;
   onClose: () => void;
   onIntervalChange: (interval: CandlePeriod) => void;
 }
@@ -41,6 +42,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   candleData,
   tpslLines,
   selectedInterval,
+  visibleCandleCount,
   onClose,
   onIntervalChange,
 }) => {
@@ -196,7 +198,9 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
               candleData={candleData}
               height={chartHeight}
               tpslLines={tpslLines}
-              visibleCandleCount={PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN}
+              visibleCandleCount={
+                visibleCandleCount ?? PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN
+              }
               showVolume // Always show volume in fullscreen
               showOverlay={false}
               coloredVolume

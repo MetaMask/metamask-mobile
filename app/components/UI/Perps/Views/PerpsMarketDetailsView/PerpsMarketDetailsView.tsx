@@ -942,6 +942,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         candleData={candleData}
         tpslLines={tpslLines}
         selectedInterval={selectedCandlePeriod}
+        visibleCandleCount={visibleCandleCount}
         onClose={handleFullscreenChartClose}
         onIntervalChange={handleCandlePeriodChange}
       />
