@@ -23,11 +23,18 @@ async function start() {
   // 1. Extract iOS Build Number
   let iosBuildNumber = 'Unknown';
   try {
-    const pbxprojPath = path.join(__dirname, '../ios/MetaMask.xcodeproj/project.pbxproj');
-    const pbxprojContent = fs.readFileSync(pbxprojPath, 'utf8');
-    const match = pbxprojContent.match(/CURRENT_PROJECT_VERSION = (\d+);/);
-    if (match && match[1]) {
-      iosBuildNumber = match[1];
+    // Assuming the script is run from project root or scripts folder, adjust path accordingly.
+    // In CI, it runs from root: node scripts/post-build-comment.js
+    const pbxprojPath = path.resolve(__dirname, '../ios/MetaMask.xcodeproj/project.pbxproj');
+    
+    if (fs.existsSync(pbxprojPath)) {
+      const pbxprojContent = fs.readFileSync(pbxprojPath, 'utf8');
+      const match = pbxprojContent.match(/CURRENT_PROJECT_VERSION = (\d+);/);
+      if (match && match[1]) {
+        iosBuildNumber = match[1];
+      }
+    } else {
+      console.warn(`iOS project file not found at ${pbxprojPath}`);
     }
   } catch (error) {
     console.error('Error reading iOS build number:', error);
@@ -92,4 +99,3 @@ start().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-
