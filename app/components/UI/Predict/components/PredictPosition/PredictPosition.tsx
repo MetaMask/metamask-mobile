@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import Text, {
   TextColor,
@@ -11,6 +11,7 @@ import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -21,6 +22,56 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   position,
   onPress,
 }: PredictPositionProps) => {
+  const { styles } = useStyles(styleSheet, {});
+
+  const [currentPosition, setCurrentPosition] =
+    useState<PredictPositionType>(position);
+
+  const { positions, loadPositions } = usePredictPositions({
+    marketId: position.marketId,
+    loadOnMount: false,
+    refreshOnFocus: false,
+  });
+
+  // Update current position when positions change
+  useEffect(() => {
+    const updatedPosition = positions.find(
+      (p) =>
+        p.marketId === position.marketId && p.outcomeId === position.outcomeId,
+    );
+
+    if (updatedPosition) {
+      setCurrentPosition(updatedPosition);
+    }
+  }, [positions, position.marketId, position.outcomeId]);
+
+  // Auto-refresh for optimistic positions
+  const autoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Clear any existing interval
+    if (autoRefreshIntervalRef.current) {
+      clearInterval(autoRefreshIntervalRef.current);
+      autoRefreshIntervalRef.current = null;
+    }
+
+    // If current position is optimistic, start auto-refresh
+    if (currentPosition.optimistic) {
+      // Set up 2-second auto-refresh interval
+      autoRefreshIntervalRef.current = setInterval(() => {
+        loadPositions({ isRefresh: true });
+      }, 2000);
+    }
+
+    // Cleanup on unmount or when optimistic changes
+    return () => {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+        autoRefreshIntervalRef.current = null;
+      }
+    };
+  }, [currentPosition.optimistic, loadPositions]);
+
   const {
     icon,
     title,
@@ -30,14 +81,13 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     currentValue,
     size,
     optimistic,
-  } = position;
-  const { styles } = useStyles(styleSheet, {});
+  } = currentPosition;
 
   return (
     <TouchableOpacity
       testID={PredictPositionSelectorsIDs.CURRENT_POSITION_CARD}
       style={styles.positionContainer}
-      onPress={() => onPress?.(position)}
+      onPress={() => onPress?.(currentPosition)}
     >
       <View style={styles.positionImageContainer}>
         <Image source={{ uri: icon }} style={styles.positionImage} />

@@ -1,7 +1,7 @@
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Image } from 'react-native';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,6 +25,7 @@ import {
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -39,6 +40,54 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 }: PredictPositionProps) => {
   const tw = useTailwind();
 
+  const [currentPosition, setCurrentPosition] =
+    useState<PredictPositionType>(position);
+
+  const { positions, loadPositions } = usePredictPositions({
+    marketId: market.id,
+    loadOnMount: false,
+    refreshOnFocus: false,
+  });
+
+  // Update current position when positions change
+  useEffect(() => {
+    const updatedPosition = positions.find(
+      (p) =>
+        p.marketId === position.marketId && p.outcomeId === position.outcomeId,
+    );
+
+    if (updatedPosition) {
+      setCurrentPosition(updatedPosition);
+    }
+  }, [positions, position.marketId, position.outcomeId]);
+
+  // Auto-refresh for optimistic positions
+  const autoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Clear any existing interval
+    if (autoRefreshIntervalRef.current) {
+      clearInterval(autoRefreshIntervalRef.current);
+      autoRefreshIntervalRef.current = null;
+    }
+
+    // If current position is optimistic, start auto-refresh
+    if (currentPosition.optimistic) {
+      // Set up 2-second auto-refresh interval
+      autoRefreshIntervalRef.current = setInterval(() => {
+        loadPositions({ isRefresh: true });
+      }, 2000);
+    }
+
+    // Cleanup on unmount or when optimistic changes
+    return () => {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+        autoRefreshIntervalRef.current = null;
+      }
+    };
+  }, [currentPosition.optimistic, loadPositions]);
+
   const {
     icon,
     initialValue,
@@ -48,28 +97,28 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     title,
     optimistic,
     size,
-  } = position;
+  } = currentPosition;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: position.providerId,
+    providerId: currentPosition.providerId,
     navigation,
   });
 
   const groupItemTitle = market?.outcomes.find(
-    (o) => o.id === position.outcomeId && o.groupItemTitle,
+    (o) => o.id === currentPosition.outcomeId && o.groupItemTitle,
   )?.groupItemTitle;
 
   const onCashOut = () => {
     executeGuardedAction(
       () => {
         const _outcome = market?.outcomes.find(
-          (o) => o.id === position.outcomeId,
+          (o) => o.id === currentPosition.outcomeId,
         );
         navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
-          position,
+          position: currentPosition,
           outcome: _outcome,
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
