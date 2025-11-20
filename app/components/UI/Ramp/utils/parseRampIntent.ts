@@ -1,8 +1,8 @@
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { RampIntent } from '../types';
 import { toHex } from '@metamask/controller-utils';
-import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { toChecksumAddress } from '../../../../../util/address';
+import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
+import { toChecksumAddress } from '../../../../util/address';
 
 export default function parseRampIntent(
   pathParams: Record<string, string | undefined>,
