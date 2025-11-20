@@ -35,7 +35,7 @@ const ListItem: React.FC<ListItemProps> = ({
   });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.base} accessible accessibilityRole="none" {...props}>
+    <View style={styles.base} accessible accessibilityRole="none" {...props}>
       {topAccessory && <View accessibilityRole="none" accessible={false} style={styles.topAccessory}>{topAccessory}</View>}
       <View accessibilityRole="none" accessible={false} style={styles.item}>
         {React.Children.toArray(children)

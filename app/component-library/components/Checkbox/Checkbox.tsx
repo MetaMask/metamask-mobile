@@ -60,7 +60,7 @@ const Checkbox = ({
       {...props}
       disabled={isDisabled || isReadOnly}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.checkbox} accessibilityRole="checkbox">
+      <View style={styles.checkbox} accessibilityRole="checkbox">
         {iconName && (
           <Icon
             testID={CHECKBOX_ICON_TESTID}

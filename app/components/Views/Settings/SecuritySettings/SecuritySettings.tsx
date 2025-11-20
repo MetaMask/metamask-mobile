@@ -116,7 +116,7 @@ const Settings: React.FC = () => {
   );
 
   const scrollViewRef = useRef<ScrollView>(null);
-  const detectNftComponentRef = useRef<View accessibilityRole="none" accessible={false}>(null);
+  const detectNftComponentRef = useRef<View>(null);
   const {
     disableNotifications,
     loading: disableNotificationsLoading,

@@ -43,7 +43,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
         {children}
       </ListItem>
       {isSelected && (
-        <View accessibilityRole="none" accessible={false} style={styles.underlay} accessibilityRole="checkbox" accessible />
+        <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
     </TouchableOpacity>
   );
