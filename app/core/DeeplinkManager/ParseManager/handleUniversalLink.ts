@@ -246,11 +246,9 @@ async function handleUniversalLink({
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     const homePath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleOpenHome(homePath);
-    return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
     const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleSwap(swapPath);
-    return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
     const deeplinkUrl = urlObj.href.replace(
       `${BASE_URL_ACTION}/`,
@@ -263,7 +261,6 @@ async function handleUniversalLink({
       .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
-    return;
   } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
     const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleCreateAccount(deeplinkUrl);
@@ -286,13 +283,13 @@ async function handleUniversalLink({
     if (wcURL) {
       instance.parse(wcURL, { origin: source });
     }
-    return;
   } else if (action === SUPPORTED_ACTIONS.ONBOARDING) {
     const onboardingPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleFastOnboarding(onboardingPath);
   } else if (action === SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON) {
     instance._handleEnableCardButton();
   }
+  handled();
 }
 
 export default handleUniversalLink;
