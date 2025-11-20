@@ -61,6 +61,8 @@ const ImportNewSecretRecoveryPhrase = () => {
   const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
+  const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
+  const hasScrolledForSuggestionsRef = useRef(false);
 
   // State
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
@@ -261,16 +263,26 @@ const ImportNewSecretRecoveryPhrase = () => {
     }
   };
 
+  const handleInitialScroll = useCallback(() => {
+    if (!hasScrolledForSuggestionsRef.current && scrollViewRef.current) {
+      hasScrolledForSuggestionsRef.current = true;
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToPosition(0, 30, true);
+      }, 100);
+    }
+  }, []);
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
       <KeyboardAwareScrollView
+        ref={scrollViewRef}
         contentContainerStyle={styles.wrapper}
         testID={ImportSRPIDs.CONTAINER}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
         enableOnAndroid
         enableAutomaticScroll
-        extraScrollHeight={250}
+        extraScrollHeight={20}
         keyboardOpeningTime={0}
         showsVerticalScrollIndicator={false}
       >
@@ -307,6 +319,7 @@ const ImportNewSecretRecoveryPhrase = () => {
               'import_new_secret_recovery_phrase.textarea_placeholder',
             )}
             uniqueId={uniqueId}
+            onFirstFocus={handleInitialScroll}
           />
 
           <View style={styles.buttonWrapper}>

@@ -416,7 +416,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         enableOnAndroid={true}
                         enableResetScrollToCoords={true}
                         extraHeight={75}
-                        extraScrollHeight={250}
+                        extraScrollHeight={20}
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
                         keyboardDismissMode="none"
