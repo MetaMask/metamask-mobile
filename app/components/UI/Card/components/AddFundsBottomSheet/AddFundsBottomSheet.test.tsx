@@ -242,6 +242,18 @@ describe('AddFundsBottomSheet', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
     );
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Deposit',
+        location: 'CardHome',
+        chain_id_destination: '59144',
+        ramp_type: 'DEPOSIT',
+        ramp_routing: null,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
+      }),
+    );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith({
       name: TraceName.LoadDepositExperience,
