@@ -14,6 +14,99 @@ permissions:
   id-token: write
 
 jobs:
+<<<<<<< HEAD
+=======
+  needs_e2e_build:
+    name: 'Detect Mobile Build Changes'
+    # Execution rules:
+    # - schedule: always run
+    # - merge_group: never run
+    # - pull_request: run only if PR has 'run-android-flask-e2e-smoke' label
+    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') && github.event.pull_request.merged == false)) }}
+    uses: ./.github/workflows/needs-e2e-build.yml
+
+  # NEW: Explicitly build Main app first within this workflow
+  build-android-main-apps:
+    name: 'Build Android Main Apps'
+    # Run condition: Same as before (if needs_e2e_build says so)
+    # if: ${{ github.event_name != 'merge_group' && ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && needs.needs_e2e_build.outputs.android_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') ) ) }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa' # Use QA/Main keystore for the base build
+    secrets: inherit
+
+  # Replaced full build with Repack job
+  repack-android-flask-apps:
+    name: 'Repack Android Flask Apps'
+    # Run condition: Same as before
+    # if: ${{ github.event_name != 'merge_group' && ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && needs.needs_e2e_build.outputs.android_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') ) ) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-android-main-apps] # Depend on Main build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn' # Enable caching for speed
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # Download artifacts from the previous job in THIS workflow
+      - name: Download Main App APK
+        uses: actions/download-artifact@v4
+        with:
+          name: main-e2e-release.apk
+          path: android/app/build/outputs/apk/prod/release/
+
+      - name: Download Main Test APK
+        uses: actions/download-artifact@v4
+        with:
+          name: main-e2e-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/prod/release/
+
+      - name: Repack Main to Flask
+        run: node scripts/repack.js
+        env:
+          PLATFORM: android
+          METAMASK_BUILD_TYPE: flask
+          SOURCE_APK: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          KEYSTORE_TYPE: flask
+
+      - name: Prepare Flask Artifacts
+        run: |
+          # Create destination directory for Test APK
+          mkdir -p android/app/build/outputs/apk/androidTest/flask/release/
+          # Copy Main Test APK to Flask location (assuming tests are compatible)
+          cp android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk
+
+      - name: Upload Flask APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flask-e2e-release.apk
+          path: android/app/build/outputs/apk/flask/release/app-flask-release.apk
+          retention-days: 1
+
+      - name: Upload Flask Test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flask-e2e-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk
+          retention-days: 1
+
+>>>>>>> d9594a956d (other if)
   flask-android-smoke:
     strategy:
       matrix:
