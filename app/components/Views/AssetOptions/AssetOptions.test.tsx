@@ -258,8 +258,7 @@ describe('AssetOptions Component', () => {
       if (
         selectorStr.includes('selectSelectedInternalAccountByScope') ||
         selectorName === 'selectSelectedInternalAccountByScope' ||
-        selectorStr.includes('selectedInternalAccountByScope') ||
-        selector === selectSelectedInternalAccountByScope
+        selectorStr.includes('selectedInternalAccountByScope')
       ) {
         return mockSelectInternalAccountByScope;
       }
@@ -658,8 +657,7 @@ describe('AssetOptions Component', () => {
         if (
           selectorStr.includes('selectSelectedInternalAccountByScope') ||
           selectorName === 'selectSelectedInternalAccountByScope' ||
-          selectorStr.includes('selectedInternalAccountByScope') ||
-          selector === selectSelectedInternalAccountByScope
+          selectorStr.includes('selectedInternalAccountByScope')
         ) {
           return mockSelectInternalAccountByScope;
         }
@@ -806,8 +804,7 @@ describe('AssetOptions Component', () => {
         if (
           selectorStr.includes('selectSelectedInternalAccountByScope') ||
           selectorName === 'selectSelectedInternalAccountByScope' ||
-          selectorStr.includes('selectedInternalAccountByScope') ||
-          selector === selectSelectedInternalAccountByScope
+          selectorStr.includes('selectedInternalAccountByScope')
         ) {
           return mockSelectInternalAccountByScope;
         }
