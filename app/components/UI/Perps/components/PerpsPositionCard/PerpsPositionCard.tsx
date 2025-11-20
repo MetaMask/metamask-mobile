@@ -27,6 +27,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { PerpsEventValues } from '../../constants/eventNames';
 import { PERPS_CONSTANTS, TP_SL_CONFIG } from '../../constants/perpsConfig';
 import type {
   PerpsNavigationParamList,
