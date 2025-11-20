@@ -100,13 +100,9 @@ import {
   PerpsScreenStack,
   PerpsModalStack,
   PerpsTutorialCarousel,
-  selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import {
-  PredictScreenStack,
-  PredictModalStack,
-  selectPredictEnabledFlag,
-} from '../../UI/Predict';
+import { PredictScreenStack, PredictModalStack } from '../../UI/Predict';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -921,11 +917,15 @@ const SampleFeatureFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
-  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const perpsEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  );
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
+  const predictEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],

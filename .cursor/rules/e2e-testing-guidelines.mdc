@@ -23,16 +23,17 @@ alwaysApply: true
 - Include multiple behaviors with 'and' in a single test name
 - Use vague or generic names
 
-## Test Organization
+## Test Organization - MANDATORY
 
 - Organize tests into folders based on features and scenarios
 - Each feature team should own one or more folders of tests
 - Follow the same organization pattern as the extension team for consistency
 - Place tests in logical feature directories:
   ```
-  e2e/tests/tokens/import/import-erc1155.spec.js
-  e2e/tests/settings/clear-activity.spec.js
-  e2e/tests/ppom/ppom-blockaid-alert-erc20-approval.spec.js
+  e2e/specs/<feature-name>/<e2e-test-name.spec.ts>
+  e2e/specs/tokens/import/import-erc1155.spec.ts
+  e2e/specs/settings/clear-activity.spec.ts
+  e2e/specs/ppom/ppom-blockaid-alert-erc20-approval.spec.ts
   ```
 
 ## Framework Architecture
@@ -161,7 +162,7 @@ export default new LoginPage();
   });
   ```
 
-### Framework Imports
+### Framework Imports - MANDATORY
 - ALWAYS import framework utilities from `e2e/framework/index.ts`, not from individual utility files
 - Use the centralized framework exports for consistency and maintainability
 
@@ -189,7 +190,7 @@ await Gestures.tap(processingButton, {
 });
 ```
 
-### Prohibited Patterns in Test Specs
+### Prohibited Patterns in Test Specs - MANDATORY
 The following patterns are prohibited in test specs:
 
 1. **Direct Element Selection**
@@ -273,7 +274,7 @@ async tapOpenAllTabsButton(): Promise<void> {
 }
 ```
 
-## Code Review Checklist
+## Code Review Checklist - MANDATORY
 
 Before submitting E2E tests, ensure:
 

@@ -76,7 +76,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
           ellipsizeMode="tail"
         >
           {strings('predict.market_details.amount_on_outcome', {
-            amount: initialValue.toFixed(2),
+            amount: formatPrice(initialValue, { maximumDecimals: 2 }),
             outcome,
           })}{' '}
           • {formatMarketEndDate(endDate)}
