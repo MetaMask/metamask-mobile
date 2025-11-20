@@ -2,6 +2,10 @@ name: Build iOS E2E Apps
 
 on:
   workflow_call:
+    outputs:
+      artifacts-url:
+        description: "URL to the build artifacts"
+        value: ${{ jobs.build-ios-apps.outputs.artifacts-url }}
 
 permissions:
   contents: read
