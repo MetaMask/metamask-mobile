@@ -47,8 +47,24 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
   const fiatRates = useTokenFiatRates(fiatRequests);
 
-  const payTokenFiatRate = fiatRates[0];
-  const assetFiatRate = fiatRates[1];
+  const formattedAmount = useMemo(() => {
+    const payTokenFiatRate = fiatRates[0];
+    const assetFiatRate = fiatRates[1];
+
+    if (disabled || !payToken || !payTokenFiatRate || !assetFiatRate) {
+      return undefined;
+    }
+
+    const assetToPayTokenRate = new BigNumber(assetFiatRate).dividedBy(
+      payTokenFiatRate,
+    );
+
+    const payTokenAmount = new BigNumber(amountHuman || '0').multipliedBy(
+      assetToPayTokenRate,
+    );
+
+    return formatAmount(I18n.locale, payTokenAmount);
+  }, [amountHuman, disabled, payToken, fiatRates]);
 
   if (disabled) {
     return (
@@ -58,18 +74,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
     );
   }
 
-  if (!payToken || !payTokenFiatRate || !assetFiatRate)
-    return <PayTokenAmountSkeleton />;
-
-  const assetToPayTokenRate = new BigNumber(assetFiatRate).dividedBy(
-    payTokenFiatRate,
-  );
-
-  const payTokenAmount = new BigNumber(amountHuman || '0').multipliedBy(
-    assetToPayTokenRate,
-  );
-
-  const formattedAmount = formatAmount(I18n.locale, payTokenAmount);
+  if (!formattedAmount) return <PayTokenAmountSkeleton />;
 
   return (
     <View testID="pay-token-amount" style={styles.container}>
