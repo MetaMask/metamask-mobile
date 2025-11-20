@@ -51,10 +51,6 @@ interface RewardPointsAnimationProps {
   formatOptions?: Intl.NumberFormatOptions;
 }
 
-const noop = () => {
-  // do nothing
-};
-
 const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
   value,
   shouldShow = true,
@@ -63,7 +59,7 @@ const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
   height = 16,
   width = 16,
   state = RewardAnimationState.Idle,
-  infoOnPress = noop,
+  infoOnPress,
   locale = 'en-US',
   formatOptions,
 }) => {
