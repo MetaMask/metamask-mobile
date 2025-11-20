@@ -32,8 +32,7 @@ export const ALLOWED_BRIDGE_CHAIN_IDS = [
   CHAIN_IDS.LINEA_MAINNET,
   CHAIN_IDS.BASE,
   CHAIN_IDS.SEI,
-  // TODO: Update to use CHAIN_IDS.MONAD when it is added to the transaction controller
-  NETWORK_CHAIN_ID.MONAD_MAINNET,
+  CHAIN_IDS.MONAD,
   SolScope.Mainnet as const,
   TrxScope.Mainnet as const,
 ];
