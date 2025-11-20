@@ -35,16 +35,17 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatMarketStats } from './utils';
-import { formatPriceWithDecimals } from '../../../Predict/utils/format';
+import { formatPrice } from '../../../Predict/utils/format';
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import NetworkModals from '../../../NetworkModal';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import type { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 
 /**
  * Maps TimeOption to the corresponding priceChangePct field key
  */
-const getPriceChangeFieldKey = (
+export const getPriceChangeFieldKey = (
   timeOption: TimeOption,
 ): 'h24' | 'h6' | 'h1' | 'm5' => {
   switch (timeOption) {
@@ -139,6 +140,8 @@ const TrendingTokenRowItem = ({
     // Parse assetId to extract chainId and address
     // Format: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
     const [caipChainId, assetIdentifier] = token.assetId.split('/');
+    // check if caipChainId is evm or non-evm
+    const isEvmChain = caipChainId.startsWith('eip155:');
     const address = assetIdentifier?.split(':')[1] as Hex | undefined;
 
     if (!address || !isCaipChainId(caipChainId)) {
@@ -170,13 +173,23 @@ const TrendingTokenRowItem = ({
       }
     }
 
+    // Construct image URL from assetId
+    const imageUrl = getTrendingTokenImageUrl(token.assetId);
+
+    // Get 24-hour price change percentage (h24 corresponds to 1 day)
+    const priceChange24h = token.priceChangePct?.h24
+      ? parseFloat(token.priceChangePct.h24)
+      : undefined;
+
     // Navigate to Asset page with token data
     navigation.navigate('Asset', {
       chainId: hexChainId,
-      address,
+      address: isEvmChain ? address : token.assetId,
       symbol: token.symbol,
       name: token.name,
       decimals: token.decimals,
+      image: imageUrl,
+      pricePercentChange1d: priceChange24h,
     });
   }, [token, navigation, networkConfigurations]);
 
@@ -189,6 +202,7 @@ const TrendingTokenRowItem = ({
     // Network has been added by NetworkModals' closeModal function
     // Now navigate to Asset page
     const [caipChainId, assetIdentifier] = token.assetId.split('/');
+    const isEvmChain = caipChainId.startsWith('eip155:');
     const address = assetIdentifier?.split(':')[1] as Hex | undefined;
 
     if (address && isCaipChainId(caipChainId)) {
@@ -200,10 +214,14 @@ const TrendingTokenRowItem = ({
 
       navigation.navigate('Asset', {
         chainId: hexChainId,
-        address,
+        address: isEvmChain ? address : token.assetId,
         symbol: token.symbol,
         name: token.name,
+        image: getTrendingTokenImageUrl(token.assetId),
         decimals: token.decimals,
+        pricePercentChange1d: token.priceChangePct?.h24
+          ? parseFloat(token.priceChangePct.h24)
+          : undefined,
       });
     }
 
@@ -280,7 +298,7 @@ const TrendingTokenRowItem = ({
         </View>
         <View style={styles.rightContainer}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {formatPriceWithDecimals(token.price, {
+            {formatPrice(token.price, {
               minimumDecimals: 2,
               maximumDecimals: 4,
             })}

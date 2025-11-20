@@ -11,11 +11,11 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 
 export function TotalRow() {
-  const { formatFiat } = useTransactionPayFiat();
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
 
@@ -35,7 +35,7 @@ export function TotalRow() {
         label={strings('confirm.label.total')}
         rowVariant={InfoRowVariant.Small}
       >
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {totalUsd}
         </Text>
       </InfoRow>

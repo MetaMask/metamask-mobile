@@ -21,7 +21,6 @@ import {
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './AssetOptions.styles';
 import { selectTokenList } from '../../../selectors/tokenListController';
-import { selectAllTokens } from '../../../selectors/tokensController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -32,15 +31,14 @@ import {
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { appendURLParams } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { removeNonEvmToken } from '../../UI/Tokens/util';
-import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
-import { areAddressesEqual } from '../../../util/address';
-import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
+import { toChecksumAddress, areAddressesEqual } from '../../../util/address';
+import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -118,40 +116,27 @@ const AssetOptions = (props: Props) => {
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
-  const allTokens = useSelector(selectAllTokens);
-  const selectedAccountAddressEvm = useSelector(selectLastSelectedEvmAccount);
-  const selectedAccountAddress = selectedAccountAddressEvm?.address;
-  const multichainAssets = useSelector(selectMultichainAssets);
+  const assets = useSelector(selectAssetsBySelectedAccountGroup);
 
-  // Check if the token exists in the user's token list
-  const isTokenInList = useMemo(() => {
-    if (isNonEvmChainId(networkId)) {
-      // For non-EVM chains, check MultichainAssetsController
-      const selectedNonEvmAccount = selectInternalAccountByScope(
-        networkId as CaipChainId,
-      );
-      if (!selectedNonEvmAccount?.id) {
-        return false;
-      }
-      const accountAssets = multichainAssets?.[selectedNonEvmAccount.id] || [];
-      // Check if the address (which may be in CAIP format) exists in the account's assets
-      return accountAssets.some(
-        (assetAddress: string) => assetAddress === address,
-      );
+  // Check if token exists in state
+  const tokenExistsInState = useMemo(() => {
+    // selectAssetsBySelectedAccountGroup returns { [chainId: string]: Asset[] }
+    const chainAssets = assets[networkId] || [];
+    if (!chainAssets.length) {
+      return false;
     }
-    const tokensByChain =
-      allTokens?.[networkId as Hex]?.[selectedAccountAddress as Hex] ?? [];
-    return tokensByChain.some((token) =>
-      areAddressesEqual(token.address, address),
+
+    if (isNonEvmChainId(networkId)) {
+      // For non-EVM chains, the address is already in CAIP asset format (e.g., "solana:mainnet/token:...")
+      // Check if any asset has a matching assetId
+      return chainAssets.some((assetItem) => assetItem.assetId === address);
+    }
+
+    // For EVM tokens, asset.assetId equals the address (already in hex)
+    return chainAssets.some((assetItem) =>
+      assetItem.assetId ? areAddressesEqual(assetItem.assetId, address) : false,
     );
-  }, [
-    allTokens,
-    networkId,
-    selectedAccountAddress,
-    address,
-    multichainAssets,
-    selectInternalAccountByScope,
-  ]);
+  }, [assets, networkId, address]);
 
   // Memoize the provider config for the token explorer
   const { providerConfigTokenExplorer } = useMemo(() => {
@@ -246,7 +231,7 @@ const AssetOptions = (props: Props) => {
         ? extractTokenAddressFromCaip(address)
         : address;
       navigation.navigate('AssetDetails', {
-        address: tokenAddress,
+        address: toChecksumAddress(tokenAddress),
         chainId: networkId,
         asset,
       });
@@ -380,7 +365,7 @@ const AssetOptions = (props: Props) => {
         icon: IconName.DocumentCode,
       });
     !isNativeToken &&
-      isTokenInList &&
+      tokenExistsInState &&
       options.push({
         label: strings('asset_details.options.remove_token'),
         onPress: removeToken,

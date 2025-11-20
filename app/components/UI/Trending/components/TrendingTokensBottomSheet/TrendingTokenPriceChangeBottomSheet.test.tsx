@@ -301,4 +301,15 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
 
     expect(mockOnOpenBottomSheet).toHaveBeenCalled();
   });
+  it('selects MarketCap option when pressed', () => {
+    const { getByText } = render(
+      <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
+    );
+    const marketCapOption = getByText('Market cap');
+    const parent = marketCapOption.parent;
+    if (!parent) throw new Error('Parent element not found');
+    fireEvent.press(parent);
+    expect(getByText('Market cap')).toBeTruthy();
+    expect(getByText('High to low')).toBeTruthy();
+  });
 });

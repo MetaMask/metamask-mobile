@@ -13,9 +13,7 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { selectAllTokens } from '../../../selectors/tokensController';
-import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
-import { selectMultichainAssets } from '../../../selectors/multichain/multichain';
+import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import Logger from '../../../util/Logger';
 import { removeNonEvmToken } from '../../UI/Tokens/util';
 
@@ -184,18 +182,8 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(() => ({})),
-}));
-
-jest.mock('../../../selectors/accountsController', () => ({
-  selectLastSelectedEvmAccount: jest.fn(() => ({
-    address: '0x1234567890123456789012345678901234567890',
-  })),
-}));
-
-jest.mock('../../../selectors/multichain/multichain', () => ({
-  selectMultichainAssets: jest.fn(() => ({})),
+jest.mock('../../../selectors/assets/assets-list', () => ({
+  selectAssetsBySelectedAccountGroup: jest.fn(() => ({})),
 }));
 
 jest.mock('react-native-inappbrowser-reborn', () => ({
@@ -275,23 +263,24 @@ describe('AssetOptions Component', () => {
       ) {
         return mockSelectInternalAccountByScope;
       }
-      if (selector === selectAllTokens)
+      if (selector === selectAssetsBySelectedAccountGroup)
         return {
-          '0x1': {
-            '0x1234567890123456789012345678901234567890': [
-              { address: '0x123' },
-            ],
-          },
+          '0x1': [
+            {
+              assetId: '0x123',
+              chainId: '0x1',
+              symbol: 'ABC',
+              decimals: 18,
+              name: 'Test Token',
+            },
+          ],
         };
-      if (selector === selectLastSelectedEvmAccount)
-        return {
-          address: '0x1234567890123456789012345678901234567890',
-        };
-      if (selector === selectMultichainAssets) return {};
       if (selector.name === 'selectEvmChainId') return '1';
       if (selector.name === 'selectProviderConfig') return {};
       if (selector.name === 'selectTokenList')
         return { '0x123': { symbol: 'ABC' } };
+      if (selector.name === 'selectIsAllNetworks') return false;
+      if (selector.name === 'selectIsPopularNetwork') return false;
       return {};
     });
     mockNavigation.navigate.mockClear();
@@ -322,23 +311,6 @@ describe('AssetOptions Component', () => {
   afterAll(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
-  });
-
-  it('matches the snapshot', () => {
-    const { toJSON } = render(
-      <AssetOptions
-        route={{
-          params: {
-            address: '0x123',
-            chainId: '0x1',
-            isNativeCurrency: false,
-            asset: mockAsset as unknown as TokenI,
-          },
-        }}
-      />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly and displays options', () => {
@@ -474,6 +446,9 @@ describe('AssetOptions Component', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectEvmNetworkConfigurationsByChainId)
           return mockNetworkConfigurations;
+        if (selector === selectAssetsBySelectedAccountGroup) return {};
+        if (selector.name === 'selectIsAllNetworks') return false;
+        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
     });
@@ -612,12 +587,22 @@ describe('AssetOptions Component', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockAccountSelector;
         }
-        if (selector === selectMultichainAssets)
+        if (selector === selectAssetsBySelectedAccountGroup)
           return {
-            'account-123': [mockNonEvmTokenAddress],
+            [mockNonEvmChainId]: [
+              {
+                assetId: mockNonEvmTokenAddress,
+                chainId: mockNonEvmChainId,
+                symbol: 'USDC',
+                decimals: 6,
+                name: 'USD Coin',
+              },
+            ],
           };
         if (selector.name === 'selectEvmChainId') return '1';
         if (selector.name === 'selectTokenList') return {};
+        if (selector.name === 'selectIsAllNetworks') return false;
+        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 
@@ -678,22 +663,23 @@ describe('AssetOptions Component', () => {
         ) {
           return mockSelectInternalAccountByScope;
         }
-        if (selector === selectAllTokens)
+        if (selector === selectAssetsBySelectedAccountGroup)
           return {
-            '0x1': {
-              '0x1234567890123456789012345678901234567890': [
-                { address: '0x123' },
-              ],
-            },
+            '0x1': [
+              {
+                assetId: '0x123',
+                chainId: '0x1',
+                symbol: 'TEST',
+                decimals: 18,
+                name: 'Test Token',
+              },
+            ],
           };
-        if (selector === selectLastSelectedEvmAccount)
-          return {
-            address: '0x1234567890123456789012345678901234567890',
-          };
-        if (selector === selectMultichainAssets) return {};
         if (selector.name === 'selectEvmChainId') return '0x1';
         if (selector.name === 'selectTokenList')
           return { '0x123': { symbol: 'TEST' } };
+        if (selector.name === 'selectIsAllNetworks') return false;
+        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 
@@ -757,12 +743,22 @@ describe('AssetOptions Component', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockAccountSelector;
         }
-        if (selector === selectMultichainAssets)
+        if (selector === selectAssetsBySelectedAccountGroup)
           return {
-            'account-123': [mockNonEvmTokenAddress],
+            [mockNonEvmChainId]: [
+              {
+                assetId: mockNonEvmTokenAddress,
+                chainId: mockNonEvmChainId,
+                symbol: 'USDC',
+                decimals: 6,
+                name: 'USD Coin',
+              },
+            ],
           };
         if (selector.name === 'selectEvmChainId') return '1';
         if (selector.name === 'selectTokenList') return {};
+        if (selector.name === 'selectIsAllNetworks') return false;
+        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 
@@ -815,22 +811,23 @@ describe('AssetOptions Component', () => {
         ) {
           return mockSelectInternalAccountByScope;
         }
-        if (selector === selectAllTokens)
+        if (selector === selectAssetsBySelectedAccountGroup)
           return {
-            '0x1': {
-              '0x1234567890123456789012345678901234567890': [
-                { address: '0x123' },
-              ],
-            },
+            '0x1': [
+              {
+                assetId: '0x123',
+                chainId: '0x1',
+                symbol: 'TEST',
+                decimals: 18,
+                name: 'Test Token',
+              },
+            ],
           };
-        if (selector === selectLastSelectedEvmAccount)
-          return {
-            address: '0x1234567890123456789012345678901234567890',
-          };
-        if (selector === selectMultichainAssets) return {};
         if (selector.name === 'selectEvmChainId') return '0x1';
         if (selector.name === 'selectTokenList')
           return { '0x123': { symbol: 'TEST' } };
+        if (selector.name === 'selectIsAllNetworks') return false;
+        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 

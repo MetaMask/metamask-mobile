@@ -157,8 +157,10 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PREDICT.MARKET_LIST,
       });
     },
-    RowItem: ({ item }) => <PredictMarket market={item as PredictMarketType} />,
-    Skeleton: () => <PredictMarketSkeleton />,
+    RowItem: ({ item }) => (
+      <PredictMarket market={item as PredictMarketType} isCarousel />
+    ),
+    Skeleton: () => <PredictMarketSkeleton isCarousel />,
     getSearchableText: (item) =>
       (item as PredictMarketType).title.toLowerCase(),
     keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,

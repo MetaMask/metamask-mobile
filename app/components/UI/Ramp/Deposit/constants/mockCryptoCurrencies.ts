@@ -47,13 +47,13 @@ export const MOCK_ETH_TOKEN: MockDepositCryptoCurrency = {
 };
 
 export const MOCK_USDC_SOLANA_TOKEN: MockDepositCryptoCurrency = {
-  assetId: 'solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
   chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   name: 'USD Coin',
   symbol: 'USDC',
   decimals: 6,
   iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
 };
 
 export const MOCK_CRYPTOCURRENCIES: MockDepositCryptoCurrency[] = [

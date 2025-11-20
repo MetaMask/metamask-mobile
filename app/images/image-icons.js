@@ -41,7 +41,7 @@ import APECHAIN_TOKEN from './apechain-token.png';
 import BERACHAIN_TOKEN from './berachain-token.png';
 import EDU from './edu.png';
 import ABSTRACT from './abstract.png';
-import OMNI_TOKEN from './omni-token.png';
+import NOMINA from './nomina.png';
 import FRAX from './frax.png';
 import XDC from './xdc.png';
 import MEGAETH_MAINNET from './megaeth-mainnet-logo.png';
@@ -53,7 +53,7 @@ import PLASMA from './plasma-native.png';
 import CRONOS from './cronos.png';
 import HYPE from './hyperevm.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
-import TRON from './tron.png';
+import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
 
 export default {
@@ -81,6 +81,8 @@ export default {
   BTC,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TRON,
+  TRX: TRON,
+  sTRX: TRON,
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   'BTC-TESTNET': BTC_TESTNET,
@@ -105,7 +107,7 @@ export default {
   BERA: BERACHAIN_TOKEN,
   EDU,
   ABSTRACT,
-  OMNI: OMNI_TOKEN,
+  NOM: NOMINA,
   HL,
   FRAX,
   XDC,

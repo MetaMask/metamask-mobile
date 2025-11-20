@@ -138,6 +138,18 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
         imageSource: undefined,
       },
     },
+    {
+      chainId: '0x2105' as const, // Base Mainnet chainId
+      nickname: 'Base',
+      ticker: 'ETH',
+      rpcUrl: 'https://mainnet.base.org',
+      failoverRpcUrls: [],
+      rpcPrefs: {
+        blockExplorerUrl: 'https://basescan.org',
+        imageUrl: 'https://base.png',
+        imageSource: undefined,
+      },
+    },
   ];
 
   return {
@@ -548,22 +560,22 @@ describe('TrendingTokenRowItem', () => {
         symbol: 'USDC',
         name: 'USD Coin',
         decimals: 6,
+        image:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+        pricePercentChange1d: 3.44,
       });
     });
-  });
 
-  describe('closeNetworkModal', () => {
-    beforeEach(() => {
-      mockIsCaipChainId.mockReturnValue(true);
-    });
-
-    it('closes the network modal when onClose is called', () => {
+    it('shows network modal when network is not added', () => {
       const token = createMockToken({
-        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        assetId: 'eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
       });
 
-      // Mock networkConfigurations to be empty so the network is not added
-      const emptyNetworkState = {
+      // Mock networkConfigurations to include Linea and Ethereum, but NOT Base
+      const networkNotAddedState = {
         ...mockState,
         engine: {
           ...mockState.engine,
@@ -571,7 +583,19 @@ describe('TrendingTokenRowItem', () => {
             ...mockState.engine.backgroundState,
             NetworkController: {
               networkConfigurations: {},
-              networkConfigurationsByChainId: {},
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  caipChainId: 'eip155:1',
+                  name: 'Ethereum Mainnet',
+                },
+                '0xE708': {
+                  chainId: '0xE708',
+                  caipChainId: 'eip155:59144',
+                  name: 'Linea Mainnet',
+                },
+                // Base (0x2105) is NOT in this object, so it's not added
+              },
             },
           },
         },
@@ -579,35 +603,39 @@ describe('TrendingTokenRowItem', () => {
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <TrendingTokenRowItem token={token} />,
-        { state: emptyNetworkState },
+        { state: networkNotAddedState },
         false,
       );
 
-      // Click on the token to open the modal
+      // Modal should not be visible initially
+      expect(queryByTestId('network-modal')).toBeNull();
+
       const tokenRow = getByTestId(
-        'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        'trending-token-row-item-eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       );
       fireEvent.press(tokenRow);
 
-      // Verify modal is visible
-      expect(getByTestId('network-modal')).toBeTruthy();
-      expect(getByTestId('network-modal-network-name')).toBeTruthy();
+      // Modal should be visible after pressing
+      const networkModal = getByTestId('network-modal');
+      expect(networkModal).toBeDefined();
 
-      // Close the modal
-      const closeButton = getByTestId('network-modal-close-button');
-      fireEvent.press(closeButton);
+      // Verify modal shows the network name
+      const networkName = getByTestId('network-modal-network-name');
+      expect(networkName.props.children).toBe('Base');
 
-      // Verify modal is closed
-      expect(queryByTestId('network-modal')).toBeNull();
+      // Navigation should NOT be called since modal is shown instead
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('resets selectedNetwork when modal is closed', () => {
+    it('closes network modal when cancel button is pressed', () => {
       const token = createMockToken({
-        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        assetId: 'eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
       });
 
-      // Mock networkConfigurations to be empty so the network is not added
-      const emptyNetworkState = {
+      const networkNotAddedState = {
         ...mockState,
         engine: {
           ...mockState.engine,
@@ -615,7 +643,13 @@ describe('TrendingTokenRowItem', () => {
             ...mockState.engine.backgroundState,
             NetworkController: {
               networkConfigurations: {},
-              networkConfigurationsByChainId: {},
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  caipChainId: 'eip155:1',
+                  name: 'Ethereum Mainnet',
+                },
+              },
             },
           },
         },
@@ -623,29 +657,20 @@ describe('TrendingTokenRowItem', () => {
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <TrendingTokenRowItem token={token} />,
-        { state: emptyNetworkState },
+        { state: networkNotAddedState },
         false,
       );
 
-      // Click on the token to open the modal
       const tokenRow = getByTestId(
-        'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        'trending-token-row-item-eip155:8453/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       );
       fireEvent.press(tokenRow);
 
-      // Verify modal is visible with network name
-      expect(getByTestId('network-modal-network-name')).toBeTruthy();
-      expect(getByTestId('network-modal-network-name').props.children).toBe(
-        'Ethereum Mainnet',
-      );
-
-      // Close the modal
       const closeButton = getByTestId('network-modal-close-button');
       fireEvent.press(closeButton);
 
-      // Verify modal is closed and network name is no longer visible
       expect(queryByTestId('network-modal')).toBeNull();
-      expect(queryByTestId('network-modal-network-name')).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

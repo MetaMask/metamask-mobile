@@ -5,6 +5,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTokenLogo } from '../../../../hooks/useTokenLogo';
+import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 
 interface TrendingTokenLogoProps {
   assetId: string;
@@ -23,12 +24,7 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
   testID,
   recyclingKey,
 }) => {
-  const imageUri = useMemo(() => {
-    const imageUrl = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${assetId
-      .split(':')
-      .join('/')}.png`;
-    return imageUrl;
-  }, [assetId]);
+  const imageUri = useMemo(() => getTrendingTokenImageUrl(assetId), [assetId]);
 
   const fallbackText = useMemo(() => {
     const displaySymbol = symbol || '';

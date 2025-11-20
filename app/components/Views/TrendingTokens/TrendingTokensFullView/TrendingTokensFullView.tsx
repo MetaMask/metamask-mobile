@@ -210,6 +210,7 @@ const TrendingTokensFullView = () => {
       trendingTokensResults,
       selectedPriceChangeOption,
       priceChangeSortDirection,
+      selectedTimeOption,
     );
 
     return sorted.slice(0, MAX_TOKENS);
@@ -217,6 +218,7 @@ const TrendingTokensFullView = () => {
     trendingTokensResults,
     selectedPriceChangeOption,
     priceChangeSortDirection,
+    selectedTimeOption,
   ]);
 
   const handlePriceChangeSelect = useCallback(
