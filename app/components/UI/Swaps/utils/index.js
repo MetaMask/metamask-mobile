@@ -6,8 +6,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-
-const { SWAPS_TESTNET_CHAIN_ID } = swapsUtils;
+import { SWAPS_TESTNET_CHAIN_ID } from '../../../../constants/bridge';
 
 const allowedChainIds = [
   CHAIN_IDS.MAINNET,

@@ -7,6 +7,12 @@ import {
 } from '@metamask/bridge-controller';
 import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
 
+/**
+ * Swaps testnet chain ID (1337 in decimal)
+ * Used for testing swaps functionality on local/test networks
+ */
+export const SWAPS_TESTNET_CHAIN_ID: Hex = '0x539';
+
 // TODO read from feature flags
 export const ALLOWED_BRIDGE_CHAIN_IDS = [
   CHAIN_IDS.MAINNET,
