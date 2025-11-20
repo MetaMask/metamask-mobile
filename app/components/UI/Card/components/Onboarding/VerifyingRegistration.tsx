@@ -88,14 +88,13 @@ const VerifyingRegistration = () => {
     );
 
     try {
-      dispatch(resetOnboardingState());
       navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
     } catch (error) {
       Logger.log('VerifyingRegistration::handleContinue error', error);
     } finally {
       setIsHandlingContinue(false);
     }
-  }, [navigation, dispatch, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const fetchUserDetails = useCallback(async () => {
     if (!sdk) {
@@ -188,6 +187,7 @@ const VerifyingRegistration = () => {
 
   useEffect(() => {
     mountedRef.current = true;
+    dispatch(resetOnboardingState());
     startPolling();
 
     return () => {
@@ -199,7 +199,7 @@ const VerifyingRegistration = () => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [startPolling]);
+  }, [startPolling, dispatch]);
 
   const headerRight = useMemo(
     () =>

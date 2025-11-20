@@ -438,22 +438,16 @@ describe('VerifyingRegistration Component', () => {
       });
     });
 
-    it('resets onboarding state when continue button is pressed', async () => {
+    it('resets onboarding state on mount', async () => {
       mockGetUserDetails.mockResolvedValueOnce(
         createMockUserResponse({ verificationState: 'VERIFIED' }),
       );
 
       render(<VerifyingRegistration />);
 
-      const button = await screen.findByTestId(
-        'verifying-registration-continue-button',
-      );
-
-      await act(async () => {
-        await button.props.onPress();
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalled();
       });
-
-      expect(mockDispatch).toHaveBeenCalled();
     });
 
     it('navigates to Card Home when continue button is pressed', async () => {
@@ -721,6 +715,20 @@ describe('VerifyingRegistration Component', () => {
         expect(mockTrackEvent).toHaveBeenCalled();
         expect(mockCreateEventBuilder).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('State Reset', () => {
+    it('resets onboarding state immediately on mount', () => {
+      render(<VerifyingRegistration />);
+
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('dispatches resetOnboardingState action on mount', () => {
+      render(<VerifyingRegistration />);
+
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
   });
 
