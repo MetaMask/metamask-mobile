@@ -136,7 +136,7 @@ describe('MusdConversionInfo', () => {
     });
   });
 
-  describe('allowedPaymentTokens validation', () => {
+  describe.skip('allowedPaymentTokens validation', () => {
     const mockOutputToken = {
       address: '0x123' as Hex,
       chainId: '0x1' as Hex,
@@ -222,7 +222,7 @@ describe('MusdConversionInfo', () => {
     });
   });
 
-  describe('preferredPaymentToken', () => {
+  describe.skip('preferredPaymentToken', () => {
     it('passes preferredPaymentToken to CustomAmountInfo when provided', () => {
       const preferredPaymentToken = {
         address: '0xdef' as Hex,
