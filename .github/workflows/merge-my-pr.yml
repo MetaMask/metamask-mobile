@@ -1,0 +1,70 @@
+name: Merge Approved PR
+
+on:
+  # Trigger the workflow when a comment is created on an issue or pull request
+  issue_comment:
+    types: [created]
+
+jobs:
+  merge-pr:
+    runs-on: ubuntu-latest
+    # Only run if the comment is on a PR and the comment body contains "Merge my PR"
+    if: github.event.issue.pull_request && contains(github.event.comment.body, 'Merge my PR')
+    permissions:
+      pull-requests: write # Required to merge PRs
+      contents: write      # Required to update the repository content
+    steps:
+      - name: Check PR details
+        id: check-pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Fetch full details of the pull request associated with the comment
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            // Verify branch requirements: Source must be 'stable' and Target must be 'main'
+            if (pr.base.ref !== 'main' || pr.head.ref !== 'stable') {
+              core.setFailed(`Skipping: PR must be from 'stable' to 'main'. Found ${pr.head.ref} -> ${pr.base.ref}`);
+              return;
+            }
+
+            // Fetch all reviews for the PR to check approval status
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            // Check if there is at least one review with the state 'APPROVED'
+            const approved = reviews.some(review => review.state === 'APPROVED');
+            if (!approved) {
+              core.setFailed('Skipping: PR is not approved.');
+              return;
+            }
+
+            console.log('PR is valid for merge.');
+
+      - name: Merge PR
+        # Run this step only if the previous checks passed successfully
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              // Perform the merge using the 'merge' method (creates a merge commit, does not squash)
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                merge_method: 'merge'
+              });
+              console.log('PR merged successfully.');
+            } catch (error) {
+              core.setFailed(`Merge failed: ${error.message}`);
+            }
