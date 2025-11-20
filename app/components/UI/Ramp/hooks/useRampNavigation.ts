@@ -43,20 +43,22 @@ export const useRampNavigation = () => {
         overrideUnifiedRouting?: boolean;
       },
     ) => {
-      if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
-        navigation.navigate(...createEligibilityFailedModalNavigationDetails());
-        return;
-      }
-
-      if (rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
-        navigation.navigate(...createRampUnsupportedModalNavigationDetails());
-        return;
-      }
-
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
         options || {};
 
       if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
+        if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
+          navigation.navigate(
+            ...createEligibilityFailedModalNavigationDetails(),
+          );
+          return;
+        }
+
+        if (rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
+          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+          return;
+        }
+
         // If no assetId is provided, route to TokenSelection
         if (!intent?.assetId) {
           navigation.navigate(...createTokenSelectionNavDetails());

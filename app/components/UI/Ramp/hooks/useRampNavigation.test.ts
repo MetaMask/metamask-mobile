@@ -36,8 +36,6 @@ jest.mock('../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../reducers/fiatOrders'),
   getRampRoutingDecision: jest.fn(),
 }));
-jest.mock('../components/EligibilityFailedModal/EligibilityFailedModal');
-jest.mock('../components/RampUnsupportedModal/RampUnsupportedModal');
 
 const mockNavigate = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -61,14 +59,6 @@ const mockCreateTokenSelectionNavigationDetails =
   >;
 const mockGetRampRoutingDecision =
   getRampRoutingDecision as jest.MockedFunction<typeof getRampRoutingDecision>;
-const mockCreateEligibilityFailedModalNavigationDetails =
-  createEligibilityFailedModalNavigationDetails as jest.MockedFunction<
-    typeof createEligibilityFailedModalNavigationDetails
-  >;
-const mockCreateRampUnsupportedModalNavigationDetails =
-  createRampUnsupportedModalNavigationDetails as jest.MockedFunction<
-    typeof createRampUnsupportedModalNavigationDetails
-  >;
 
 describe('useRampNavigation', () => {
   beforeEach(() => {
@@ -93,143 +83,9 @@ describe('useRampNavigation', () => {
     mockCreateTokenSelectionNavigationDetails.mockReturnValue([
       Routes.RAMP.TOKEN_SELECTION,
     ] as unknown as ReturnType<typeof createTokenSelectionNavDetails>);
-
-    mockCreateEligibilityFailedModalNavigationDetails.mockReturnValue([
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
-    ] as unknown as ReturnType<
-      typeof createEligibilityFailedModalNavigationDetails
-    >);
-
-    mockCreateRampUnsupportedModalNavigationDetails.mockReturnValue([
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      Routes.SHEET.UNSUPPORTED_REGION_MODAL,
-    ] as unknown as ReturnType<
-      typeof createRampUnsupportedModalNavigationDetails
-    >);
   });
 
   describe('goToBuy', () => {
-    describe('error and unsupported routing', () => {
-      it('navigates to eligibility failed modal when routing decision is ERROR', () => {
-        mockGetRampRoutingDecision.mockReturnValue(
-          UnifiedRampRoutingType.ERROR,
-        );
-        const mockNavDetails = [
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
-        ] as unknown as ReturnType<
-          typeof createEligibilityFailedModalNavigationDetails
-        >;
-        mockCreateEligibilityFailedModalNavigationDetails.mockReturnValue(
-          mockNavDetails,
-        );
-
-        const { result } = renderHookWithProvider(() => useRampNavigation());
-
-        result.current.goToBuy();
-
-        expect(
-          mockCreateEligibilityFailedModalNavigationDetails,
-        ).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-        expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-        expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-        expect(
-          mockCreateTokenSelectionNavigationDetails,
-        ).not.toHaveBeenCalled();
-      });
-
-      it('navigates to eligibility failed modal when routing decision is ERROR with intent', () => {
-        mockGetRampRoutingDecision.mockReturnValue(
-          UnifiedRampRoutingType.ERROR,
-        );
-        const intent = { assetId: 'eip155:1/erc20:0x123' };
-        const mockNavDetails = [
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          Routes.SHEET.ELIGIBILITY_FAILED_MODAL,
-        ] as unknown as ReturnType<
-          typeof createEligibilityFailedModalNavigationDetails
-        >;
-        mockCreateEligibilityFailedModalNavigationDetails.mockReturnValue(
-          mockNavDetails,
-        );
-
-        const { result } = renderHookWithProvider(() => useRampNavigation());
-
-        result.current.goToBuy(intent);
-
-        expect(
-          mockCreateEligibilityFailedModalNavigationDetails,
-        ).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-        expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-        expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-        expect(
-          mockCreateTokenSelectionNavigationDetails,
-        ).not.toHaveBeenCalled();
-      });
-
-      it('navigates to unsupported modal when routing decision is UNSUPPORTED', () => {
-        mockGetRampRoutingDecision.mockReturnValue(
-          UnifiedRampRoutingType.UNSUPPORTED,
-        );
-        const mockNavDetails = [
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          Routes.SHEET.UNSUPPORTED_REGION_MODAL,
-        ] as unknown as ReturnType<
-          typeof createRampUnsupportedModalNavigationDetails
-        >;
-        mockCreateRampUnsupportedModalNavigationDetails.mockReturnValue(
-          mockNavDetails,
-        );
-
-        const { result } = renderHookWithProvider(() => useRampNavigation());
-
-        result.current.goToBuy();
-
-        expect(
-          mockCreateRampUnsupportedModalNavigationDetails,
-        ).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-        expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-        expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-        expect(
-          mockCreateTokenSelectionNavigationDetails,
-        ).not.toHaveBeenCalled();
-      });
-
-      it('navigates to unsupported modal when routing decision is UNSUPPORTED with intent', () => {
-        mockGetRampRoutingDecision.mockReturnValue(
-          UnifiedRampRoutingType.UNSUPPORTED,
-        );
-        const intent = { assetId: 'eip155:1/erc20:0x123' };
-        const mockNavDetails = [
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          Routes.SHEET.UNSUPPORTED_REGION_MODAL,
-        ] as unknown as ReturnType<
-          typeof createRampUnsupportedModalNavigationDetails
-        >;
-        mockCreateRampUnsupportedModalNavigationDetails.mockReturnValue(
-          mockNavDetails,
-        );
-
-        const { result } = renderHookWithProvider(() => useRampNavigation());
-
-        result.current.goToBuy(intent);
-
-        expect(
-          mockCreateRampUnsupportedModalNavigationDetails,
-        ).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-        expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-        expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-        expect(
-          mockCreateTokenSelectionNavigationDetails,
-        ).not.toHaveBeenCalled();
-      });
-    });
-
     describe('when unified V1 is disabled', () => {
       it('navigates to aggregator BUY without intent', () => {
         const mockNavDetails = [Routes.RAMP.BUY] as const;
@@ -266,6 +122,82 @@ describe('useRampNavigation', () => {
     describe('when unified V1 is enabled', () => {
       beforeEach(() => {
         mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+      });
+
+      describe('error and unsupported routing', () => {
+        it('navigates to eligibility failed modal when routing decision is ERROR', () => {
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.ERROR,
+          );
+          const navDetails = createEligibilityFailedModalNavigationDetails();
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy();
+
+          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
+          expect(
+            mockCreateTokenSelectionNavigationDetails,
+          ).not.toHaveBeenCalled();
+        });
+
+        it('navigates to eligibility failed modal when routing decision is ERROR with intent', () => {
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.ERROR,
+          );
+          const intent = { assetId: 'eip155:1/erc20:0x123' };
+          const navDetails = createEligibilityFailedModalNavigationDetails();
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(intent);
+
+          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
+          expect(
+            mockCreateTokenSelectionNavigationDetails,
+          ).not.toHaveBeenCalled();
+        });
+
+        it('navigates to unsupported modal when routing decision is UNSUPPORTED', () => {
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.UNSUPPORTED,
+          );
+          const navDetails = createRampUnsupportedModalNavigationDetails();
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy();
+
+          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
+          expect(
+            mockCreateTokenSelectionNavigationDetails,
+          ).not.toHaveBeenCalled();
+        });
+
+        it('navigates to unsupported modal when routing decision is UNSUPPORTED with intent', () => {
+          mockGetRampRoutingDecision.mockReturnValue(
+            UnifiedRampRoutingType.UNSUPPORTED,
+          );
+          const intent = { assetId: 'eip155:1/erc20:0x123' };
+          const navDetails = createRampUnsupportedModalNavigationDetails();
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(intent);
+
+          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
+          expect(
+            mockCreateTokenSelectionNavigationDetails,
+          ).not.toHaveBeenCalled();
+        });
       });
 
       describe('token selection routing', () => {
