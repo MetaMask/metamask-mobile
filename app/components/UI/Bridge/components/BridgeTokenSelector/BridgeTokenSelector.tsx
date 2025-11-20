@@ -376,7 +376,7 @@ export const BridgeTokenSelector: React.FC = () => {
           isSelected={
             selectedToken &&
             selectedToken.address === item.address &&
-            formatChainIdToCaip(selectedToken.chainId) === item.chainId
+            selectedToken.chainId === item.chainId
           }
           onPress={handleTokenPress}
           networkImageSource={getNetworkImageSource({
