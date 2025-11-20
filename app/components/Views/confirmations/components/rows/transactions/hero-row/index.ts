@@ -1,1 +1,1 @@
-export { HeroRow } from './hero-row';
+export { HeroRow, HeroRowSkeleton } from './hero-row';
