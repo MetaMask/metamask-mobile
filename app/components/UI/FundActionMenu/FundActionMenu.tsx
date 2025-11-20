@@ -50,7 +50,7 @@ const FundActionMenu = () => {
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const { goToBuy, goToAggregator, goToSell, goToDeposit } =
     useRampNavigation();
-  const depositButtonClickData = useRampsButtonClickData('DEPOSIT');
+  const depositButtonClickData = useRampsButtonClickData();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {

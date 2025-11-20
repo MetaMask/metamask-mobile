@@ -39,7 +39,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy } = useRampNavigation();
-  const buttonClickData = useRampsButtonClickData('BUY');
+  const buttonClickData = useRampsButtonClickData();
 
   const handleAction = () => {
     goToBuy();

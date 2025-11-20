@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Order } from '@consensys/on-ramp-sdk';
 import {
@@ -10,33 +10,46 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
-
-export enum RampsButtonClickDataRampRouting {
-  DEPOSIT = 'DEPOSIT',
-  AGGREGATOR_BUY = 'AGGREGATOR BUY',
-  AGGREGATOR_SELL = 'AGGREGATOR SELL',
-  UNSUPPORTED = 'UNSUPPORTED',
-  ERROR = 'ERROR',
-}
+import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
 
 export interface RampsButtonClickData {
-  ramp_routing?: RampsButtonClickDataRampRouting;
+  ramp_routing?: UnifiedRampRoutingType | null;
   is_authenticated?: boolean;
   preferred_provider?: string;
   order_count: number;
 }
 
-export interface UseRampsButtonClickDataOptions {
-  isAuthenticated?: boolean;
-}
-
-export function useRampsButtonClickData(
-  rampType: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY',
-  options?: UseRampsButtonClickDataOptions,
-): RampsButtonClickData {
+export function useRampsButtonClickData(): RampsButtonClickData {
   const orders = useSelector(getOrders);
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const isAuthenticated = options?.isAuthenticated;
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkAuthentication = async () => {
+      try {
+        const tokenResponse = await getProviderToken();
+        if (isMounted) {
+          setIsAuthenticated(
+            tokenResponse.success && !!tokenResponse.token?.accessToken,
+          );
+        }
+      } catch (error) {
+        if (isMounted) {
+          setIsAuthenticated(false);
+        }
+      }
+    };
+
+    checkAuthentication();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const data = useMemo(() => {
     const orderCount = orders.length;
@@ -65,26 +78,13 @@ export function useRampsButtonClickData(
       }
     }
 
-    let rampRouting: RampsButtonClickDataRampRouting | undefined;
-    if (rampRoutingDecision) {
-      if (rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR) {
-        rampRouting =
-          rampType === 'SELL'
-            ? RampsButtonClickDataRampRouting.AGGREGATOR_SELL
-            : RampsButtonClickDataRampRouting.AGGREGATOR_BUY;
-      } else {
-        rampRouting =
-          rampRoutingDecision as unknown as RampsButtonClickDataRampRouting;
-      }
-    }
-
     return {
-      ramp_routing: rampRouting,
+      ramp_routing: rampRoutingDecision,
       is_authenticated: isAuthenticated,
       preferred_provider: preferredProvider,
       order_count: orderCount,
     };
-  }, [orders, rampRoutingDecision, rampType, isAuthenticated]);
+  }, [orders, rampRoutingDecision, isAuthenticated]);
 
   return data;
 }

@@ -35,7 +35,7 @@ interface RampsPaymentMethodSelected {
 
 interface RampsTokenSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT';
+  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY';
   user_id?: string;
   region: string;
   chain_id: string;
@@ -44,6 +44,14 @@ interface RampsTokenSelected {
   currency_destination_network?: string;
   currency_source: string;
   is_authenticated: boolean;
+  token_caip19?: string;
+  token_symbol?: string;
+  ramp_routing?:
+    | 'DEPOSIT'
+    | 'AGGREGATOR BUY'
+    | 'AGGREGATOR SELL'
+    | 'UNSUPPORTED'
+    | 'ERROR';
 }
 
 interface RampsRegionSelected {

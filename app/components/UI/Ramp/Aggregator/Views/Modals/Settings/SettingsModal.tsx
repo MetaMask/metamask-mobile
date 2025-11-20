@@ -26,7 +26,7 @@ function SettingsModal() {
   const { selectedRegion } = useRampSDK();
 
   const trackEvent = useAnalytics();
-  const buttonClickData = useRampsButtonClickData('DEPOSIT');
+  const buttonClickData = useRampsButtonClickData();
 
   const handleNavigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

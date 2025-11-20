@@ -40,7 +40,7 @@ function ConfigurationModal() {
   const { goToAggregator } = useRampNavigation();
   const { logoutFromProvider, isAuthenticated, selectedRegion } =
     useDepositSDK();
-  const buttonClickData = useRampsButtonClickData('BUY', { isAuthenticated });
+  const buttonClickData = useRampsButtonClickData();
 
   const navigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

@@ -83,7 +83,9 @@ export default function useRampsSmartRouting() {
         }
 
         if (!eligibility.deposit) {
-          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
+          dispatch(
+            setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR_BUY),
+          );
           return;
         }
 
@@ -106,7 +108,9 @@ export default function useRampsSmartRouting() {
         ) {
           dispatch(setRampRoutingDecision(UnifiedRampRoutingType.DEPOSIT));
         } else {
-          dispatch(setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR));
+          dispatch(
+            setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR_BUY),
+          );
         }
       } catch (error) {
         Logger.error(error as Error);

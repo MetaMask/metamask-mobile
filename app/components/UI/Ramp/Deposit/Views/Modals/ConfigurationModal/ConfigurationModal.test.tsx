@@ -3,10 +3,15 @@ import { Linking } from 'react-native';
 import ConfigurationModal from './ConfigurationModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
 import { ToastContext } from '../../../../../../../component-library/components/Toast';
+import { getProviderToken } from '../../../utils/ProviderTokenVault';
+
+jest.mock('../../../utils/ProviderTokenVault', () => ({
+  getProviderToken: jest.fn(),
+}));
 
 const mockShowToast = jest.fn();
 const mockToastRef = {
@@ -97,14 +102,26 @@ jest.mock('../../../../../../../component-library/components/Toast', () => {
   };
 });
 
+const mockGetProviderToken = getProviderToken as jest.MockedFunction<
+  typeof getProviderToken
+>;
+
 describe('ConfigurationModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetProviderToken.mockResolvedValue({
+      success: false,
+      error: 'No token found',
+    });
     mockUseDepositSDK.mockReturnValue({
       logoutFromProvider: mockClearAuthToken,
       isAuthenticated: false,
       selectedRegion: { isoCode: 'us' },
     });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('render matches snapshot', () => {
@@ -138,15 +155,34 @@ describe('ConfigurationModal', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(TRANSAK_SUPPORT_URL);
   });
 
-  it('tracks event when more ways to buy is pressed', () => {
+  it('tracks event when more ways to buy is pressed', async () => {
     const { getByText } = renderWithProvider(ConfigurationModal);
+
+    await waitFor(() => {
+      expect(mockGetProviderToken).toHaveBeenCalled();
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
     const moreWaysToBuyButton = getByText('More ways to buy');
     fireEvent.press(moreWaysToBuyButton);
-    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
-      location: 'Deposit Settings Modal',
-      ramp_type: 'BUY',
-      region: 'us',
-    });
+
+    await waitFor(
+      () => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
+          location: 'Deposit Settings Modal',
+          ramp_type: 'BUY',
+          region: 'us',
+          ramp_routing: null,
+          is_authenticated: false,
+          preferred_provider: undefined,
+          order_count: 0,
+        });
+      },
+      { timeout: 3000 },
+    );
   });
 
   describe('when user is authenticated', () => {

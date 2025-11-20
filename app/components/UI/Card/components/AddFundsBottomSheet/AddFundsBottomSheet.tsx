@@ -63,7 +63,7 @@ const AddFundsBottomSheet: React.FC = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToDeposit } = useRampNavigation();
-  const buttonClickData = useRampsButtonClickData('DEPOSIT');
+  const buttonClickData = useRampsButtonClickData();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {

@@ -175,7 +175,8 @@ export enum RampType {
 
 export enum UnifiedRampRoutingType {
   DEPOSIT = 'DEPOSIT',
-  AGGREGATOR = 'AGGREGATOR',
+  AGGREGATOR_BUY = 'AGGREGATOR BUY',
+  AGGREGATOR_SELL = 'AGGREGATOR SELL',
   UNSUPPORTED = 'UNSUPPORTED',
   ERROR = 'ERROR',
 }

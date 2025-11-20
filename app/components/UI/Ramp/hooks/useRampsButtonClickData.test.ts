@@ -1,8 +1,6 @@
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import {
-  useRampsButtonClickData,
-  RampsButtonClickDataRampRouting,
-} from './useRampsButtonClickData';
+import { waitFor } from '@testing-library/react-native';
+import { useRampsButtonClickData } from './useRampsButtonClickData';
 import {
   FiatOrder,
   UnifiedRampRoutingType,
@@ -12,7 +10,13 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import { Order } from '@consensys/on-ramp-sdk';
+import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
 import initialRootState from '../../../../util/test/initial-root-state';
+import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
+
+jest.mock('../Deposit/utils/ProviderTokenVault', () => ({
+  getProviderToken: jest.fn(),
+}));
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -69,13 +73,21 @@ const createMockState = (
   },
 });
 
+const mockGetProviderToken = getProviderToken as jest.MockedFunction<
+  typeof getProviderToken
+>;
+
 describe('useRampsButtonClickData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetProviderToken.mockResolvedValue({
+      success: false,
+      error: 'No token found',
+    });
   });
 
   describe('order_count', () => {
-    it('returns correct order count', () => {
+    it('returns correct order count', async () => {
       const orders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -90,25 +102,29 @@ describe('useRampsButtonClickData', () => {
       ];
 
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState(orders) },
       );
 
-      expect(result.current.order_count).toBe(2);
+      await waitFor(() => {
+        expect(result.current.order_count).toBe(2);
+      });
     });
 
-    it('returns 0 when no orders exist', () => {
+    it('returns 0 when no orders exist', async () => {
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState([]) },
       );
 
-      expect(result.current.order_count).toBe(0);
+      await waitFor(() => {
+        expect(result.current.order_count).toBe(0);
+      });
     });
   });
 
   describe('preferred_provider', () => {
-    it('returns provider id for AGGREGATOR orders', () => {
+    it('returns provider id for AGGREGATOR orders', async () => {
       const orders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -119,14 +135,16 @@ describe('useRampsButtonClickData', () => {
       ];
 
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState(orders) },
       );
 
-      expect(result.current.preferred_provider).toBe('test-provider-id');
+      await waitFor(() => {
+        expect(result.current.preferred_provider).toBe('test-provider-id');
+      });
     });
 
-    it('returns TRANSAK for DEPOSIT orders', () => {
+    it('returns TRANSAK for DEPOSIT orders', async () => {
       const orders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.DEPOSIT,
@@ -136,14 +154,16 @@ describe('useRampsButtonClickData', () => {
       ];
 
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('DEPOSIT'),
+        () => useRampsButtonClickData(),
         { state: createMockState(orders) },
       );
 
-      expect(result.current.preferred_provider).toBe('TRANSAK');
+      await waitFor(() => {
+        expect(result.current.preferred_provider).toBe('TRANSAK');
+      });
     });
 
-    it('returns TRANSAK for TRANSAK orders', () => {
+    it('returns TRANSAK for TRANSAK orders', async () => {
       const orders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.TRANSAK,
@@ -153,14 +173,16 @@ describe('useRampsButtonClickData', () => {
       ];
 
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState(orders) },
       );
 
-      expect(result.current.preferred_provider).toBe('TRANSAK');
+      await waitFor(() => {
+        expect(result.current.preferred_provider).toBe('TRANSAK');
+      });
     });
 
-    it('returns provider name for other providers', () => {
+    it('returns provider name for other providers', async () => {
       const orders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.MOONPAY,
@@ -170,16 +192,18 @@ describe('useRampsButtonClickData', () => {
       ];
 
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState(orders) },
       );
 
-      expect(result.current.preferred_provider).toBe(
-        FIAT_ORDER_PROVIDERS.MOONPAY,
-      );
+      await waitFor(() => {
+        expect(result.current.preferred_provider).toBe(
+          FIAT_ORDER_PROVIDERS.MOONPAY,
+        );
+      });
     });
 
-    it('returns undefined when no completed orders exist', () => {
+    it('returns undefined when no completed orders exist', async () => {
       const orders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -189,14 +213,16 @@ describe('useRampsButtonClickData', () => {
       ];
 
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState(orders) },
       );
 
-      expect(result.current.preferred_provider).toBeUndefined();
+      await waitFor(() => {
+        expect(result.current.preferred_provider).toBeUndefined();
+      });
     });
 
-    it('returns provider from most recent completed order', () => {
+    it('returns provider from most recent completed order', async () => {
       const orders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -213,119 +239,168 @@ describe('useRampsButtonClickData', () => {
       ];
 
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState(orders) },
       );
 
-      expect(result.current.preferred_provider).toBe('new-provider');
+      await waitFor(() => {
+        expect(result.current.preferred_provider).toBe('new-provider');
+      });
     });
   });
 
   describe('ramp_routing', () => {
-    it('returns DEPOSIT when routing decision is DEPOSIT', () => {
+    it('returns DEPOSIT when routing decision is DEPOSIT', async () => {
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('DEPOSIT'),
+        () => useRampsButtonClickData(),
         { state: createMockState([], UnifiedRampRoutingType.DEPOSIT) },
       );
 
-      expect(result.current.ramp_routing).toBe(
-        RampsButtonClickDataRampRouting.DEPOSIT,
-      );
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBe(
+          UnifiedRampRoutingType.DEPOSIT,
+        );
+      });
     });
 
-    it('returns AGGREGATOR BUY when routing decision is AGGREGATOR and rampType is BUY', () => {
+    it('returns AGGREGATOR BUY when routing decision is AGGREGATOR_BUY', async () => {
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
-        { state: createMockState([], UnifiedRampRoutingType.AGGREGATOR) },
+        () => useRampsButtonClickData(),
+        { state: createMockState([], UnifiedRampRoutingType.AGGREGATOR_BUY) },
       );
 
-      expect(result.current.ramp_routing).toBe(
-        RampsButtonClickDataRampRouting.AGGREGATOR_BUY,
-      );
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBe(
+          UnifiedRampRoutingType.AGGREGATOR_BUY,
+        );
+      });
     });
 
-    it('returns AGGREGATOR BUY when routing decision is AGGREGATOR and rampType is UNIFIED BUY', () => {
+    it('returns AGGREGATOR SELL when routing decision is AGGREGATOR_SELL', async () => {
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('UNIFIED BUY'),
-        { state: createMockState([], UnifiedRampRoutingType.AGGREGATOR) },
+        () => useRampsButtonClickData(),
+        { state: createMockState([], UnifiedRampRoutingType.AGGREGATOR_SELL) },
       );
 
-      expect(result.current.ramp_routing).toBe(
-        RampsButtonClickDataRampRouting.AGGREGATOR_BUY,
-      );
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBe(
+          UnifiedRampRoutingType.AGGREGATOR_SELL,
+        );
+      });
     });
 
-    it('returns AGGREGATOR SELL when routing decision is AGGREGATOR and rampType is SELL', () => {
+    it('returns UNSUPPORTED when routing decision is UNSUPPORTED', async () => {
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('SELL'),
-        { state: createMockState([], UnifiedRampRoutingType.AGGREGATOR) },
-      );
-
-      expect(result.current.ramp_routing).toBe(
-        RampsButtonClickDataRampRouting.AGGREGATOR_SELL,
-      );
-    });
-
-    it('returns UNSUPPORTED when routing decision is UNSUPPORTED', () => {
-      const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState([], UnifiedRampRoutingType.UNSUPPORTED) },
       );
 
-      expect(result.current.ramp_routing).toBe(
-        RampsButtonClickDataRampRouting.UNSUPPORTED,
-      );
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBe(
+          UnifiedRampRoutingType.UNSUPPORTED,
+        );
+      });
     });
 
-    it('returns ERROR when routing decision is ERROR', () => {
+    it('returns ERROR when routing decision is ERROR', async () => {
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState([], UnifiedRampRoutingType.ERROR) },
       );
 
-      expect(result.current.ramp_routing).toBe(
-        RampsButtonClickDataRampRouting.ERROR,
-      );
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBe(UnifiedRampRoutingType.ERROR);
+      });
     });
 
-    it('returns undefined when routing decision is null', () => {
+    it('returns null when routing decision is null', async () => {
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY'),
+        () => useRampsButtonClickData(),
         { state: createMockState([], null) },
       );
 
-      expect(result.current.ramp_routing).toBeUndefined();
+      await waitFor(() => {
+        expect(result.current.ramp_routing).toBeNull();
+      });
     });
   });
 
   describe('is_authenticated', () => {
-    it('returns isAuthenticated from options when provided', () => {
+    it('returns true when provider token exists and is valid', async () => {
+      mockGetProviderToken.mockResolvedValue({
+        success: true,
+        token: {
+          accessToken: 'test-token',
+          ttl: 3600,
+          created: new Date('2024-01-01'),
+        },
+      });
+
       const { result } = renderHookWithProvider(() =>
-        useRampsButtonClickData('DEPOSIT', { isAuthenticated: true }),
+        useRampsButtonClickData(),
       );
 
-      expect(result.current.is_authenticated).toBe(true);
+      await waitFor(() => {
+        expect(result.current.is_authenticated).toBe(true);
+      });
     });
 
-    it('returns false when isAuthenticated is false in options', () => {
+    it('returns false when provider token does not exist', async () => {
+      mockGetProviderToken.mockResolvedValue({
+        success: false,
+        error: 'No token found',
+      });
+
       const { result } = renderHookWithProvider(() =>
-        useRampsButtonClickData('DEPOSIT', { isAuthenticated: false }),
+        useRampsButtonClickData(),
       );
 
-      expect(result.current.is_authenticated).toBe(false);
+      await waitFor(() => {
+        expect(result.current.is_authenticated).toBe(false);
+      });
     });
 
-    it('returns undefined when isAuthenticated is not provided in options', () => {
+    it('returns false when provider token exists but has no accessToken', async () => {
+      mockGetProviderToken.mockResolvedValue({
+        success: true,
+        token: {
+          ttl: 3600,
+        } as NativeTransakAccessToken,
+      });
+
       const { result } = renderHookWithProvider(() =>
-        useRampsButtonClickData('DEPOSIT'),
+        useRampsButtonClickData(),
       );
 
-      expect(result.current.is_authenticated).toBeUndefined();
+      await waitFor(() => {
+        expect(result.current.is_authenticated).toBe(false);
+      });
+    });
+
+    it('returns false when getProviderToken throws an error', async () => {
+      mockGetProviderToken.mockRejectedValue(new Error('Token error'));
+
+      const { result } = renderHookWithProvider(() =>
+        useRampsButtonClickData(),
+      );
+
+      await waitFor(() => {
+        expect(result.current.is_authenticated).toBe(false);
+      });
     });
   });
 
   describe('combined scenarios', () => {
-    it('returns all properties correctly', () => {
+    it('returns all properties correctly', async () => {
+      mockGetProviderToken.mockResolvedValue({
+        success: true,
+        token: {
+          accessToken: 'test-token',
+          ttl: 3600,
+          created: new Date('2024-01-01'),
+        },
+      });
+
       const orders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -341,15 +416,19 @@ describe('useRampsButtonClickData', () => {
       ];
 
       const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData('BUY', { isAuthenticated: true }),
-        { state: createMockState(orders, UnifiedRampRoutingType.AGGREGATOR) },
+        () => useRampsButtonClickData(),
+        {
+          state: createMockState(orders, UnifiedRampRoutingType.AGGREGATOR_BUY),
+        },
       );
 
-      expect(result.current).toEqual({
-        ramp_routing: RampsButtonClickDataRampRouting.AGGREGATOR_BUY,
-        is_authenticated: true,
-        preferred_provider: 'test-provider',
-        order_count: 2,
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          ramp_routing: UnifiedRampRoutingType.AGGREGATOR_BUY,
+          is_authenticated: true,
+          preferred_provider: 'test-provider',
+          order_count: 2,
+        });
       });
     });
   });
