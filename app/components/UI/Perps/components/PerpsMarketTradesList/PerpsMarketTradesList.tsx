@@ -16,13 +16,12 @@ import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
   iconSize?: number;
 }
-
-const MAX_TRADES = 3;
 
 const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   symbol,
@@ -51,7 +50,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     const transactions = transformFillsToTransactions(marketFills);
 
     // Limit to 3
-    return transactions.slice(0, MAX_TRADES);
+    return transactions.slice(0, PERPS_CONSTANTS.RECENT_ACTIVITY_LIMIT);
   }, [orderFills, symbol]);
 
   const handleSeeAll = useCallback(() => {
