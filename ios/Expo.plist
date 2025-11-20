@@ -3,19 +3,5 @@
 <plist version="1.0">
   <dict>
     <!-- EAS Update configuration is injected by scripts/update-expo-channel.js during build -->
-	<key>EXUpdatesRuntimeVersion</key>
-	<string>7.61.0</string>
-	<key>EXUpdatesURL</key>
-	<string>https://u.expo.dev/</string>
-	<key>EXUpdatesRequestHeaders</key>
-	<dict>
-		<key>expo-channel-name</key>
-		<string>preview</string>
-	</dict>
-	<key>EXUpdatesCheckOnLaunch</key>
-	<string>NEVER</string>
-	<key>EXUpdatesEnabled</key>
-	<true/>
-
   </dict>
 </plist>
