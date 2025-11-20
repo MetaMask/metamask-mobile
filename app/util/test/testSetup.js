@@ -216,6 +216,9 @@ jest.mock('../../store', () => ({
     getState: jest.fn().mockImplementation(() => mockState),
     dispatch: jest.fn(),
   },
+  runSaga: jest
+    .fn()
+    .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
   _updateMockState: (state) => {
     mockState = state;
   },
