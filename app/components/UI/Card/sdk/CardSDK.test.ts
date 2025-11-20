@@ -14,7 +14,7 @@ import {
   CardExchangeTokenResponse,
   CardLocation,
   CreateOnboardingConsentRequest,
-  CardUserDetailsResponse,
+  UserResponse,
 } from '../types';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
@@ -3501,7 +3501,7 @@ describe('CardSDK', () => {
   });
 
   describe('getUserDetails', () => {
-    const mockUserDetails: CardUserDetailsResponse = {
+    const mockUserDetails: UserResponse = {
       id: 'user-123',
       firstName: 'John',
       lastName: 'Doe',

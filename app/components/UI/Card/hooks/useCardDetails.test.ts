@@ -33,7 +33,6 @@ const mockUseWrapWithCache = useWrapWithCache as jest.MockedFunction<
 
 describe('useCardDetails', () => {
   const mockGetCardDetails = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
   const mockFetchData = jest.fn();
 
   const mockSDK = {
@@ -64,11 +63,8 @@ describe('useCardDetails', () => {
     mockUseSelector.mockReturnValue(true); // isAuthenticated
 
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
 
     mockUseWrapWithCache.mockReturnValue(mockCacheReturn);
@@ -247,11 +243,8 @@ describe('useCardDetails', () => {
     it('returns null when SDK is not available', async () => {
       // Given: No SDK available
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       renderHook(() => useCardDetails());
@@ -552,11 +545,8 @@ describe('useCardDetails', () => {
     it('returns false when SDK is not available', async () => {
       // Given: No SDK available
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => useCardDetails());
