@@ -2,9 +2,19 @@
  * mUSD Conversion Constants for Earn namespace
  */
 
-import { TransactionType } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+
+export const MUSD_TOKEN_MAINNET = {
+  address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  symbol: 'MUSD',
+  name: 'MUSD',
+  decimals: 6,
+  chainId: CHAIN_IDS.MAINNET,
+} as const;
+
+export const MUSD_CURRENCY = 'MUSD';
 
 // mUSD token address on Ethereum mainnet (6 decimals)
 export const MUSD_ADDRESS_ETHEREUM =

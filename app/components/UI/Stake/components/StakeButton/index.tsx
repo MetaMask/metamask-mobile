@@ -45,12 +45,11 @@ import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagCon
 ///: END:ONLY_INCLUDE_IF
 import {
   ETHEREUM_MAINNET_CHAIN_ID,
-  MUSD_ADDRESS_ETHEREUM,
+  MUSD_TOKEN_MAINNET,
 } from '../../../Earn/constants/musd';
 import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
-import { MUSD_TOKEN_MAINNET } from '../../../../Views/confirmations/constants/musd';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -245,7 +244,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
       await initiateConversion({
         outputToken: {
-          address: MUSD_ADDRESS_ETHEREUM,
+          address: MUSD_TOKEN_MAINNET.address,
           // We want to convert to mUSD on Ethereum Mainnet only for now.
           chainId: ETHEREUM_MAINNET_CHAIN_ID,
           symbol: MUSD_TOKEN_MAINNET.symbol,

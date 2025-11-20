@@ -1,23 +1,22 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
-import { MUSD_TOKEN_MAINNET } from '../../../constants/musd';
+import { MUSD_TOKEN_MAINNET } from '../../../../../UI/Earn/constants/musd';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { Hex } from '@metamask/utils';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import {
-  MusdConversionConfig,
-  areValidAllowedPaymentTokens,
-} from '../../../../../UI/Earn/hooks/useMusdConversion';
+import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
 
 export const MusdConversionInfo = () => {
   const route =
     useRoute<RouteProp<Record<string, MusdConversionConfig>, string>>();
   const navigation = useNavigation();
-  const preferredPaymentToken = route.params?.preferredPaymentToken;
+  // TEMP: Will be brought back in subsequent PR.
+  // const preferredPaymentToken = route.params?.preferredPaymentToken;
   const outputTokenInfo = route.params?.outputToken;
-  const rawAllowedPaymentTokens = route.params?.allowedPaymentTokens;
+  // TEMP: Will be brought back in subsequent PR.
+  // const rawAllowedPaymentTokens = route.params?.allowedPaymentTokens;
 
   useEffect(() => {
     if (!outputTokenInfo) {
@@ -28,23 +27,24 @@ export const MusdConversionInfo = () => {
     }
   }, [outputTokenInfo, navigation]);
 
-  const allowedPaymentTokens = useMemo(() => {
-    if (!rawAllowedPaymentTokens) {
-      // No allowlist provided - allow all tokens
-      return undefined;
-    }
+  // TEMP: Will be brought back in subsequent PR.
+  // const allowedPaymentTokens = useMemo(() => {
+  //   if (!rawAllowedPaymentTokens) {
+  //     // No allowlist provided - allow all tokens
+  //     return undefined;
+  //   }
 
-    if (!areValidAllowedPaymentTokens(rawAllowedPaymentTokens)) {
-      console.warn(
-        'Invalid allowedPaymentTokens structure in route params. ' +
-          'Expected Record<Hex, Hex[]>. Allowing all tokens.',
-        rawAllowedPaymentTokens,
-      );
-      return undefined;
-    }
+  //   if (!areValidAllowedPaymentTokens(rawAllowedPaymentTokens)) {
+  //     console.warn(
+  //       'Invalid allowedPaymentTokens structure in route params. ' +
+  //         'Expected Record<Hex, Hex[]>. Allowing all tokens.',
+  //       rawAllowedPaymentTokens,
+  //     );
+  //     return undefined;
+  //   }
 
-    return rawAllowedPaymentTokens;
-  }, [rawAllowedPaymentTokens]);
+  //   return rawAllowedPaymentTokens;
+  // }, [rawAllowedPaymentTokens]);
 
   const tokenToAdd = outputTokenInfo || MUSD_TOKEN_MAINNET;
 
@@ -68,8 +68,9 @@ export const MusdConversionInfo = () => {
 
   return (
     <CustomAmountInfo
-      allowedPaymentTokens={allowedPaymentTokens}
-      preferredPaymentToken={preferredPaymentToken}
+    // TEMP: Will be brought back in subsequent PR.
+    // allowedPaymentTokens={allowedPaymentTokens}
+    // preferredPaymentToken={preferredPaymentToken}
     />
   );
 };

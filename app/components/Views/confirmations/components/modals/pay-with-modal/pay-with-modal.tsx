@@ -10,30 +10,11 @@ import BottomSheetHeader from '../../../../../../component-library/components/Bo
 import { AssetType } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
-import { useRoute, RouteProp } from '@react-navigation/native';
-
-/**
- * Route params for PayWithModal
- */
-interface PayWithModalRouteParams {
-  /**
-   * Optional map of allowed payment token addresses by chain ID.
-   * When provided, only tokens matching these addresses will be shown.
-   * Format: { [chainId: string]: string[] }
-   */
-  allowedPaymentTokens?: {
-    [chainId: string]: string[];
-  };
-}
 
 export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  const route =
-    useRoute<RouteProp<Record<string, PayWithModalRouteParams>, string>>();
-  const allowedPaymentTokens = route.params?.allowedPaymentTokens;
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -57,9 +38,8 @@ export function PayWithModal() {
         payToken,
         requiredTokens,
         tokens,
-        allowedPaymentTokens,
       }),
-    [payToken, requiredTokens, allowedPaymentTokens],
+    [payToken, requiredTokens],
   );
 
   return (

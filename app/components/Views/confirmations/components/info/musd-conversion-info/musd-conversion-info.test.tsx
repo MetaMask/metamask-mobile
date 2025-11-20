@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MusdConversionInfo } from './musd-conversion-info';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
-import { MUSD_TOKEN_MAINNET } from '../../../constants/musd';
+import { MUSD_TOKEN_MAINNET } from '../../../../../UI/Earn/constants/musd';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CustomAmountInfo } from '../custom-amount-info';

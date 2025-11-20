@@ -21,12 +21,6 @@ jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 
-const mockUseRoute = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useRoute: () => mockUseRoute(),
-}));
-
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
 const CHAIN_ID_2_MOCK = '0x2' as Hex;
 
@@ -140,15 +134,9 @@ describe('PayWithModal', () => {
       payToken: { address: '0x0', chainId: '0x0' },
       setPayToken: setPayTokenMock,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
-
-    mockUseRoute.mockReturnValue({
-      key: 'test',
-      name: Routes.CONFIRMATION_PAY_WITH_MODAL,
-      params: {},
-    });
   });
 
-  it('renders all tokens when no allowedPaymentTokens provided', async () => {
+  it('renders tokens', async () => {
     const { getByText } = render();
 
     expect(getByText('Native Token 1')).toBeDefined();
@@ -158,25 +146,6 @@ describe('PayWithModal', () => {
     expect(getByText('Test Token 1')).toBeDefined();
     expect(getByText('2.34 TST1')).toBeDefined();
     expect(getByText('$2.34')).toBeDefined();
-  });
-
-  it('filters tokens based on allowedPaymentTokens from route params', () => {
-    const allowedPaymentTokens = {
-      [CHAIN_ID_1_MOCK]: [TOKENS_MOCK[1].address],
-    };
-
-    mockUseRoute.mockReturnValue({
-      key: 'test',
-      name: Routes.CONFIRMATION_PAY_WITH_MODAL,
-      params: { allowedPaymentTokens },
-    });
-
-    const { getByText, queryByText } = render();
-
-    expect(getByText('Test Token 1')).toBeDefined();
-    expect(getByText('2.34 TST1')).toBeDefined();
-
-    expect(queryByText('Test Token 2')).toBeNull();
   });
 
   describe('on token select', () => {

@@ -85,14 +85,10 @@ export function getAvailableTokens({
   payToken,
   requiredTokens,
   tokens,
-  allowedPaymentTokens,
 }: {
-  tokens: AssetType[];
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
-  allowedPaymentTokens?: {
-    [chainId: string]: string[];
-  };
+  tokens: AssetType[];
 }): AssetType[] {
   return tokens
     .filter((token) => {
@@ -102,20 +98,6 @@ export function getAvailableTokens({
         (token.chainId && isTestNet(token.chainId))
       ) {
         return false;
-      }
-
-      // Apply custom token address filter if provided
-      if (allowedPaymentTokens) {
-        const allowedAddresses =
-          allowedPaymentTokens[token.chainId as string] || [];
-        const isAllowedToken = allowedAddresses.some(
-          (address) => address.toLowerCase() === token.address.toLowerCase(),
-        );
-
-        // If custom filter is provided and token is not in allowed list, exclude it
-        if (!isAllowedToken) {
-          return false;
-        }
       }
 
       const isSelected =

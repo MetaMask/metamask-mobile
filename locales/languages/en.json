@@ -5758,8 +5758,8 @@
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
-      "token_conversion": {
-        "transaction_fee": "Token conversion fees include network costs and may include provider fees."
+      "musd_conversion": {
+        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "Fees"

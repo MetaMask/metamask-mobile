@@ -112,7 +112,7 @@ function Tooltip({
   }
 
   if (hasTransactionType(transactionMeta, [MUSD_CONVERSION_TRANSACTION_TYPE])) {
-    message = strings('confirm.tooltip.token_conversion.transaction_fee');
+    message = strings('confirm.tooltip.musd_conversion.transaction_fee');
   }
 
   switch (transactionMeta.type) {

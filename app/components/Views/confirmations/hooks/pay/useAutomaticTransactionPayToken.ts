@@ -25,16 +25,13 @@ export interface BalanceOverride {
 export function useAutomaticTransactionPayToken({
   countOnly = false,
   disable = false,
-  preferredPaymentToken,
 }: {
   countOnly?: boolean;
   disable?: boolean;
-  preferredPaymentToken?: { address: Hex; chainId: Hex };
 } = {}) {
   const isUpdated = useRef(false);
-  const previousTransactionId = useRef<string | undefined>();
   const supportedChains = useSelector(selectEnabledSourceChains);
-  const { payToken, setPayToken } = useTransactionPayToken();
+  const { setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
 
   const transactionMeta =
@@ -45,28 +42,6 @@ export function useAutomaticTransactionPayToken({
     txParams: { from },
   } = transactionMeta;
 
-  const transactionId = transactionMeta.id;
-
-  // Reset automatic token selection state when switching to a new transaction.
-  //
-  // This fixes a bug where isUpdated.current stays true after visiting one transaction type
-  // (e.g., Perps deposit), preventing proper token pre-selection when visiting a different
-  // transaction type (e.g., mUSD conversion). Without this reset, the automatic selection
-  // useEffect would early-return and skip token selection entirely for the new transaction.
-  //
-  // Example scenario:
-  // 1. User visits Perps deposit -> isUpdated.current = true, USDC on Arbitrum selected
-  // 2. User navigates away and clicks "Convert" for mUSD
-  // 3. Without reset: isUpdated.current still true -> no token pre-selection runs
-  // 4. With reset: isUpdated.current = false -> proper token pre-selection for mUSD conversion
-  useEffect(() => {
-    if (transactionId && transactionId !== previousTransactionId.current) {
-      isUpdated.current = false;
-      previousTransactionId.current = transactionId;
-      log('Reset automatic token selection for new transaction', transactionId);
-    }
-  }, [transactionId]);
-
   const chainIds = useMemo(
     () => (!isUpdated.current ? supportedChains.map((c) => c.chainId) : []),
     [supportedChains],
@@ -76,99 +51,63 @@ export function useAutomaticTransactionPayToken({
   const isHardwareWallet = isHardwareAccount(from ?? '');
   const requiredBalance = getRequiredBalance(transactionMeta);
 
+  let automaticToken: { address: string; chainId?: string } | undefined;
+  let count = 0;
+
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
 
-  const { automaticToken, count } = useMemo(() => {
-    let token: { address: string; chainId?: string } | undefined;
-    let tokenCount = 0;
+  if (!disable && (!isUpdated.current || countOnly)) {
+    const targetToken =
+      requiredTokens.find((token) => token.address !== nativeTokenAddress) ??
+      requiredTokens[0];
 
-    if (!disable && (!isUpdated.current || countOnly)) {
-      const targetToken =
-        requiredTokens.find(
-          (requiredToken) => requiredToken.address !== nativeTokenAddress,
-        ) ?? requiredTokens[0];
+    const sufficientBalanceTokens = orderBy(
+      tokens.filter((token) =>
+        isTokenSupported(token, tokens, requiredBalance),
+      ),
+      (token) => token?.tokenFiatAmount ?? 0,
+      'desc',
+    );
 
-      const sufficientBalanceTokens = orderBy(
-        tokens.filter((t) => isTokenSupported(t, tokens, requiredBalance)),
-        (t) => t?.tokenFiatAmount ?? 0,
-        'desc',
-      );
+    count = sufficientBalanceTokens.length;
 
-      tokenCount = sufficientBalanceTokens.length;
+    const requiredToken = sufficientBalanceTokens.find(
+      (token) =>
+        token.address === targetToken?.address && token.chainId === chainId,
+    );
 
-      // Use preferred payment token if set.
-      if (preferredPaymentToken) {
-        const preferredToken = sufficientBalanceTokens.find(
-          (sufficientBalanceToken) =>
-            sufficientBalanceToken.address.toLowerCase() ===
-              preferredPaymentToken.address.toLowerCase() &&
-            sufficientBalanceToken.chainId === preferredPaymentToken.chainId,
-        );
+    const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
+      (token) => token.chainId === chainId,
+    );
 
-        if (preferredToken) {
-          token = {
-            address: preferredToken.address,
-            chainId: preferredToken.chainId,
-          };
+    const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
+      (token) => token.chainId !== chainId,
+    );
+
+    const targetTokenFallback = targetToken
+      ? {
+          address: targetToken.address,
+          chainId,
         }
-      }
+      : undefined;
 
-      if (!token) {
-        const requiredToken = sufficientBalanceTokens.find(
-          (sufficientBalanceToken) =>
-            sufficientBalanceToken.address === targetToken?.address &&
-            sufficientBalanceToken.chainId === chainId,
-        );
+    automaticToken =
+      requiredToken ??
+      sameChainHighestBalanceToken ??
+      alternateChainHighestBalanceToken ??
+      targetTokenFallback;
 
-        const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
-          (sufficientBalanceToken) =>
-            sufficientBalanceToken.chainId === chainId,
-        );
-
-        const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
-          (sufficientBalanceToken) =>
-            sufficientBalanceToken.chainId !== chainId,
-        );
-
-        const targetTokenFallback = targetToken
-          ? {
-              address: targetToken.address,
-              chainId,
-            }
-          : undefined;
-
-        token =
-          requiredToken ??
-          sameChainHighestBalanceToken ??
-          alternateChainHighestBalanceToken ??
-          targetTokenFallback;
-
-        if (isHardwareWallet) {
-          token = targetTokenFallback;
-        }
-      }
+    if (isHardwareWallet) {
+      automaticToken = targetTokenFallback;
     }
-
-    return { automaticToken: token, count: tokenCount };
-  }, [
-    disable,
-    countOnly,
-    requiredTokens,
-    nativeTokenAddress,
-    tokens,
-    requiredBalance,
-    preferredPaymentToken,
-    chainId,
-    isHardwareWallet,
-  ]);
+  }
 
   useEffect(() => {
     if (
       isUpdated.current ||
       !automaticToken ||
       !requiredTokens?.length ||
-      countOnly ||
-      payToken // Skip if payment token already set (e.g. pre-selected in useMusdConversion)
+      countOnly
     ) {
       return;
     }
@@ -181,15 +120,7 @@ export function useAutomaticTransactionPayToken({
     isUpdated.current = true;
 
     log('Automatically selected pay token', automaticToken);
-  }, [
-    automaticToken,
-    countOnly,
-    isUpdated,
-    requiredTokens,
-    setPayToken,
-    payToken,
-    preferredPaymentToken,
-  ]);
+  }, [automaticToken, countOnly, isUpdated, requiredTokens, setPayToken]);
 
   return { count };
 }

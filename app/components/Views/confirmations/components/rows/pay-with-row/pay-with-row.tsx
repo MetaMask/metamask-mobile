@@ -28,19 +28,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 
-export interface PayWithRowProps {
-  /**
-   * Optional map of allowed payment token addresses by chain ID.
-   * When provided, only tokens matching these addresses will be shown in PayWithModal.
-   */
-  allowedPaymentTokens?: {
-    [chainId: string]: string[];
-  };
-}
-
-export const PayWithRow: React.FC<PayWithRowProps> = ({
-  allowedPaymentTokens,
-}) => {
+export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -55,10 +43,8 @@ export const PayWithRow: React.FC<PayWithRowProps> = ({
   const handleClick = useCallback(() => {
     if (!canEdit) return;
 
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      allowedPaymentTokens,
-    });
-  }, [canEdit, navigation, allowedPaymentTokens]);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+  }, [canEdit, navigation]);
 
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
@@ -95,7 +81,7 @@ export const PayWithRow: React.FC<PayWithRowProps> = ({
       </Box>
     </TouchableOpacity>
   );
-};
+}
 
 export function PayWithRowSkeleton() {
   const { styles } = useStyles(styleSheet, {});

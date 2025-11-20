@@ -35,7 +35,7 @@ import Text, {
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { getNativeTokenAddress } from '../../../utils/asset';
-import { toCaipAssetType, Hex } from '@metamask/utils';
+import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
@@ -48,43 +48,17 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
-import { MUSD_TOKEN_MAINNET } from '../../../constants/musd';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
-  /**
-   * Optional map of allowed payment token addresses by chain ID.
-   * When provided, restricts token selection in PayWithModal to only these tokens.
-   */
-  allowedPaymentTokens?: {
-    [chainId: string]: string[];
-  };
-  /**
-   * Optional preferred payment token to pre-select.
-   * When provided, this token will be prioritized in automatic selection if available.
-   */
-  preferredPaymentToken?: {
-    address: Hex;
-    chainId: Hex;
-  };
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({
-    children,
-    currency,
-    disablePay,
-    allowedPaymentTokens,
-    preferredPaymentToken,
-  }) => {
+  ({ children, currency, disablePay }) => {
     useClearConfirmationOnBackSwipe();
-    useAutomaticTransactionPayToken({
-      disable: disablePay,
-      preferredPaymentToken,
-    });
+    useAutomaticTransactionPayToken({ disable: disablePay });
     useTransactionPayMetrics();
 
     const { styles } = useStyles(styleSheet, {});
@@ -136,9 +110,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
           )}
           {children}
-          {disablePay !== true && hasTokens && (
-            <PayWithRow allowedPaymentTokens={allowedPaymentTokens} />
-          )}
+          {disablePay !== true && hasTokens && <PayWithRow />}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
@@ -291,12 +263,6 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  if (hasTransactionType(transaction, [MUSD_CONVERSION_TRANSACTION_TYPE])) {
-    return strings('earn.musd_conversion.confirmation_button', {
-      tokenSymbol: MUSD_TOKEN_MAINNET.symbol,
-    });
   }
 
   return strings('confirm.deposit_edit_amount_done');
