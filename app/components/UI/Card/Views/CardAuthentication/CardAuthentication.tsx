@@ -257,17 +257,6 @@ const CardAuthentication = () => {
           return;
         }
 
-        if (
-          loginResponse?.verificationState === 'PENDING' ||
-          loginResponse?.verificationState === 'UNVERIFIED'
-        ) {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
-          });
-          return;
-        }
-
         // Successful login - navigate to home
         navigation.reset({
           index: 0,

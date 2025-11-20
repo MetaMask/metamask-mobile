@@ -177,7 +177,7 @@ const OnboardingNavigator: React.FC = () => {
   if (isLoading) {
     return (
       <Box twClassName="flex-1 items-center justify-center">
-        <ActivityIndicator testID="activity-indicator" />
+        <ActivityIndicator testID="activity-indicator" size="large" />
       </Box>
     );
   }
