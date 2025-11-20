@@ -6,6 +6,16 @@ import {
   isVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
 import type { RootState } from '../../../../../reducers';
+import type { ButtonColorVariantName } from '../../utils/abTesting/types';
+
+/**
+ * Valid variants for button color A/B test (TAT-1937)
+ * Used for runtime validation of LaunchDarkly responses
+ */
+const VALID_BUTTON_COLOR_VARIANTS: readonly ButtonColorVariantName[] = [
+  'control',
+  'monochrome',
+];
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -52,7 +62,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
  */
 export const selectPerpsButtonColorTestVariant = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): string | null => {
+  (remoteFeatureFlags): ButtonColorVariantName | null => {
     const remoteFlag = remoteFeatureFlags?.perpsAbtestButtonColor;
 
     // LaunchDarkly can return:
@@ -66,7 +76,15 @@ export const selectPerpsButtonColorTestVariant = createSelector(
 
     // Direct string variant (simpler LaunchDarkly config)
     if (typeof remoteFlag === 'string') {
-      return remoteFlag;
+      // Validate variant is a known value
+      if (
+        VALID_BUTTON_COLOR_VARIANTS.includes(
+          remoteFlag as ButtonColorVariantName,
+        )
+      ) {
+        return remoteFlag as ButtonColorVariantName;
+      }
+      return null;
     }
 
     // Check if it's a version-gated flag with variant
@@ -80,7 +98,14 @@ export const selectPerpsButtonColorTestVariant = createSelector(
 
       // Safely access variant property if it exists
       if ('variant' in remoteFlag && typeof remoteFlag.variant === 'string') {
-        return remoteFlag.variant;
+        // Validate variant is a known value
+        if (
+          VALID_BUTTON_COLOR_VARIANTS.includes(
+            remoteFlag.variant as ButtonColorVariantName,
+          )
+        ) {
+          return remoteFlag.variant as ButtonColorVariantName;
+        }
       }
 
       return null;
