@@ -76,7 +76,7 @@ import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
@@ -185,7 +185,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     sourcePage: 'MainView',
     sourceToken: {
       ...asset,
-      address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: asset.chainId as Hex,
       decimals: asset.decimals,
       symbol: asset.symbol,

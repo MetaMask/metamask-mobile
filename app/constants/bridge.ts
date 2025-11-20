@@ -13,6 +13,13 @@ import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
  */
 export const SWAPS_TESTNET_CHAIN_ID: Hex = '0x539';
 
+/**
+ * Native token address (zero address)
+ * Used to represent native tokens (ETH, BNB, MATIC, etc.) across all EVM chains
+ */
+export const NATIVE_SWAPS_TOKEN_ADDRESS: Hex =
+  '0x0000000000000000000000000000000000000000';
+
 // TODO read from feature flags
 export const ALLOWED_BRIDGE_CHAIN_IDS = [
   CHAIN_IDS.MAINNET,
