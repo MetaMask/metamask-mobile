@@ -228,7 +228,7 @@ export const makeSelectChainId = () =>
     },
   );
 
-// TODO: [SOLANA] - This does not support non evm networks, need to revisit
+// TODO: [SOLANA] - This does not support non-EVM networks and needs to be revisited
 export const makeSelectRpcUrl = () =>
   createSelector(
     [
