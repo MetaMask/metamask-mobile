@@ -294,8 +294,6 @@ jobs:
     needs: [needs_e2e_build]
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
-    outputs:
-      artifacts-url: ${{ steps.build-ios-apps.outputs.artifacts-url }}
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
