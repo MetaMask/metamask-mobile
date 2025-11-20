@@ -12,6 +12,7 @@ import {
   type PerpsControllerState,
   type PerpsControllerMessenger,
 } from './PerpsController';
+import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import type { IPerpsProvider } from './types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { createMockHyperLiquidProvider } from '../__mocks__/providerMocks';
@@ -2534,6 +2535,85 @@ describe('PerpsController', () => {
       expect(controller.state.depositRequests).toHaveLength(2);
       expect(controller.state.depositRequests[0].amount).toBe('200');
       expect(controller.state.depositRequests[1].amount).toBe('100');
+    });
+  });
+
+  describe('toggleTestnet', () => {
+    it('returns error when already reinitializing', async () => {
+      await controller.init();
+      (controller as any).isReinitializing = true;
+
+      const result = await controller.toggleTestnet();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PERPS_ERROR_CODES.CLIENT_REINITIALIZING);
+      expect(result.isTestnet).toBe(false);
+    });
+
+    it('toggles to testnet network', async () => {
+      await controller.init();
+      const initialTestnetState = controller.state.isTestnet;
+
+      const result = await controller.toggleTestnet();
+
+      expect(result.success).toBe(true);
+      expect(result.isTestnet).toBe(!initialTestnetState);
+      expect(controller.state.isTestnet).toBe(!initialTestnetState);
+    });
+  });
+
+  describe('market filter preferences', () => {
+    it('saves and retrieves filter preference', () => {
+      controller.saveMarketFilterPreferences('openInterest');
+
+      const result = controller.getMarketFilterPreferences();
+
+      expect(result).toBe('openInterest');
+    });
+  });
+
+  describe('watchlist management', () => {
+    it('adds and removes market from watchlist', async () => {
+      await controller.init();
+
+      controller.toggleWatchlistMarket('BTC');
+
+      expect(controller.isWatchlistMarket('BTC')).toBe(true);
+      expect(controller.getWatchlistMarkets()).toContain('BTC');
+
+      controller.toggleWatchlistMarket('BTC');
+
+      expect(controller.isWatchlistMarket('BTC')).toBe(false);
+    });
+  });
+
+  describe('resetFirstTimeUserState', () => {
+    it('resets tutorial and order state for both networks', () => {
+      controller.markTutorialCompleted();
+      controller.markFirstOrderCompleted();
+
+      controller.resetFirstTimeUserState();
+
+      expect(controller.state.isFirstTimeUser.testnet).toBe(true);
+      expect(controller.state.isFirstTimeUser.mainnet).toBe(true);
+      expect(controller.state.hasPlacedFirstOrder.testnet).toBe(false);
+      expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+    });
+  });
+
+  describe('trade configuration', () => {
+    it('returns undefined for unsaved configuration', () => {
+      const result = controller.getTradeConfiguration('ETH');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('retrieves saved configuration', () => {
+      controller.saveTradeConfiguration('BTC', 10);
+
+      const result = controller.getTradeConfiguration('BTC');
+
+      expect(result?.leverage).toBe(10);
     });
   });
 });
