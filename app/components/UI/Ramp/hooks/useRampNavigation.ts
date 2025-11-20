@@ -13,6 +13,8 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../reducers/fiatOrders';
+import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
+import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -41,6 +43,16 @@ export const useRampNavigation = () => {
         overrideUnifiedRouting?: boolean;
       },
     ) => {
+      if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
+        navigation.navigate(...createEligibilityFailedModalNavigationDetails());
+        return;
+      }
+
+      if (rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
+        navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+        return;
+      }
+
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
         options || {};
 
