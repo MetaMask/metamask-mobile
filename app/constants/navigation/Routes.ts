@@ -184,8 +184,6 @@ const Routes = {
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
-    TRENDING_TOKEN_NETWORK: 'TrendingTokenNetwork',
-    TRENDING_TOKEN_PRICE_CHANGE: 'TrendingTokenPriceChange',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
