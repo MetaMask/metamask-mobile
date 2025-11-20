@@ -5468,13 +5468,12 @@
     },
     "allowance_reset": "Allowance Reset",
     "musd_conversion": {
-      "title": "Convert to {{tokenSymbol}}",
-      "confirmation_button": "Convert to {{tokenSymbol}}",
-      "earn_rewards_with": "Earn rewards with {{tokenSymbol}}",
+      "confirmation_button": "Convert to mUSD",
+      "earn_rewards_with": "Earn rewards with mUSD",
       "toasts": {
-        "in_progress": "{{tokenSymbol}} conversion in progress",
-        "success": "{{tokenSymbol}} conversion succeeded",
-        "failed": "{{tokenSymbol}} conversion failed"
+        "in_progress": "mUSD conversion in progress",
+        "success": "mUSD conversion succeeded",
+        "failed": "mUSD conversion failed"
       }
     }
   },
@@ -5872,7 +5871,8 @@
     "available_balance": "Available: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
-    "deposit_edit_amount_predict_withdraw": "Withdraw"
+    "deposit_edit_amount_predict_withdraw": "Withdraw",
+    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",

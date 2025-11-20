@@ -20,6 +20,14 @@ jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/transactions');
 jest.mock('@react-navigation/native');
 jest.mock('react-redux');
+jest.mock(
+  '../../../Views/confirmations/components/confirm/confirm-component',
+  () => ({
+    ConfirmationLoader: {
+      CustomAmount: 'customAmount',
+    },
+  }),
+);
 
 const mockNavigation = {
   navigate: jest.fn(),

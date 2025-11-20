@@ -137,25 +137,19 @@ const useEarnToasts = (): {
         inProgress: {
           ...earnBaseToastOptions.inProgress,
           labelOptions: getEarnToastLabels(
-            strings('earn.musd_conversion.toasts.in_progress', {
-              tokenSymbol: 'mUSD',
-            }),
+            strings('earn.musd_conversion.toasts.in_progress'),
           ),
         },
         success: {
           ...earnBaseToastOptions.success,
           labelOptions: getEarnToastLabels(
-            strings('earn.musd_conversion.toasts.success', {
-              tokenSymbol: 'mUSD',
-            }),
+            strings('earn.musd_conversion.toasts.success'),
           ),
         },
         failed: {
           ...earnBaseToastOptions.error,
           labelOptions: getEarnToastLabels(
-            strings('earn.musd_conversion.toasts.failed', {
-              tokenSymbol: 'mUSD',
-            }),
+            strings('earn.musd_conversion.toasts.failed'),
           ),
         },
       },

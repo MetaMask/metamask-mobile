@@ -81,7 +81,7 @@ describe('MusdConversionInfo', () => {
   });
 
   describe('navbar title', () => {
-    it('calls useNavbar with earn_rewards_with title for MUSD token', () => {
+    it('calls useNavbar with earn_rewards_with title for mUSD token', () => {
       mockRoute.params = {
         outputToken: {
           symbol: 'MUSD',
@@ -100,9 +100,7 @@ describe('MusdConversionInfo', () => {
 
       expect(mockUseNavbar).toHaveBeenCalledWith(
         expect.stringContaining(
-          strings('earn.musd_conversion.earn_rewards_with', {
-            tokenSymbol: 'MUSD',
-          }),
+          strings('earn.musd_conversion.earn_rewards_with'),
         ),
       );
     });

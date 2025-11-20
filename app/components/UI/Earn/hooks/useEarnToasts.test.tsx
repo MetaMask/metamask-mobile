@@ -8,15 +8,15 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 jest.mock('expo-haptics');
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: { tokenSymbol: string }) => {
+  strings: jest.fn((key: string) => {
     if (key === 'earn.musd_conversion.toasts.in_progress') {
-      return `Converting to ${params?.tokenSymbol}`;
+      return `Converting to mUSD`;
     }
     if (key === 'earn.musd_conversion.toasts.success') {
-      return `Converted to ${params?.tokenSymbol}`;
+      return `Converted to mUSD`;
     }
     if (key === 'earn.musd_conversion.toasts.failed') {
-      return `Failed to convert to ${params?.tokenSymbol}`;
+      return `Failed to convert to mUSD`;
     }
     return key;
   }),

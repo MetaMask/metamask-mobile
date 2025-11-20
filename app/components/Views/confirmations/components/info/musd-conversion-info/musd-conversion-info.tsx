@@ -48,11 +48,7 @@ export const MusdConversionInfo = () => {
 
   const tokenToAdd = outputTokenInfo || MUSD_TOKEN_MAINNET;
 
-  useNavbar(
-    strings('earn.musd_conversion.earn_rewards_with', {
-      tokenSymbol: MUSD_TOKEN_MAINNET.symbol,
-    }),
-  );
+  useNavbar(strings('earn.musd_conversion.earn_rewards_with'));
 
   useAddToken({
     chainId: tokenToAdd.chainId as Hex,
