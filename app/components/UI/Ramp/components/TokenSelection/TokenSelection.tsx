@@ -30,6 +30,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
+import { useRampNavigation } from '../../hooks/useRampNavigation';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -59,10 +60,15 @@ function TokenSelection() {
     searchString,
   });
 
-  const handleSelectAssetIdCallback = useCallback((_assetId: string) => {
-    // TODO: Handle token by routing to the appropriate agg or deposit screen with asset id as param and pre-select it
-    // https://consensyssoftware.atlassian.net/browse/TRAM-2795
-  }, []);
+  const { goToBuy } = useRampNavigation();
+
+  const handleSelectAssetIdCallback = useCallback(
+    (assetId: string) => {
+      navigation.dangerouslyGetParent()?.goBack();
+      goToBuy({ assetId });
+    },
+    [goToBuy, navigation],
+  );
 
   const scrollToTop = useCallback(() => {
     if (listRef?.current) {

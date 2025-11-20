@@ -41,7 +41,7 @@ import APECHAIN_TOKEN from './apechain-token.png';
 import BERACHAIN_TOKEN from './berachain-token.png';
 import EDU from './edu.png';
 import ABSTRACT from './abstract.png';
-import OMNI_TOKEN from './omni-token.png';
+import NOMINA from './nomina.png';
 import FRAX from './frax.png';
 import XDC from './xdc.png';
 import MEGAETH_MAINNET from './megaeth-mainnet-logo.png';
@@ -107,7 +107,7 @@ export default {
   BERA: BERACHAIN_TOKEN,
   EDU,
   ABSTRACT,
-  OMNI: OMNI_TOKEN,
+  NOM: NOMINA,
   HL,
   FRAX,
   XDC,

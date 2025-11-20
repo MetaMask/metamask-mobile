@@ -35,7 +35,7 @@ export function TotalRow() {
         label={strings('confirm.label.total')}
         rowVariant={InfoRowVariant.Small}
       >
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {totalUsd}
         </Text>
       </InfoRow>

@@ -1274,7 +1274,7 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?user=0x[a-fA-F0-9]{40}$/.test(
+          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
             url,
           ),
       );
