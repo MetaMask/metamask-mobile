@@ -53,6 +53,123 @@ export const createTradingViewChartTemplate = (
         window.visibleCandleCount = 45; // Default visible candle count
         window.allCandleData = []; // Store all loaded data for zoom functionality
         window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
+
+        // Cache for Intl.NumberFormat instances to avoid expensive recreation
+        // Key: decimal count (e.g., "0", "2", "4"), Value: NumberFormat instance
+        window.formatterCache = new Map();
+
+        // Price formatting constants (matches formatUtils.ts PRICE_RANGES_UNIVERSAL)
+        window.PRICE_THRESHOLD = {
+            VERY_HIGH: 100000,  // > $100k
+            HIGH: 10000,        // > $10k
+            LARGE: 1000,        // > $1k
+            MEDIUM: 100,        // > $100
+            MEDIUM_LOW: 10,     // > $10
+            LOW: 0.01,          // >= $0.01
+        };
+
+        // Universal price ranges configuration (matches PRICE_RANGES_UNIVERSAL from formatUtils.ts)
+        window.PRICE_RANGES = [
+            { threshold: window.PRICE_THRESHOLD.VERY_HIGH, minDec: 0, maxDec: 0, sigDig: 6 },
+            { threshold: window.PRICE_THRESHOLD.HIGH, minDec: 0, maxDec: 0, sigDig: 5 },
+            { threshold: window.PRICE_THRESHOLD.LARGE, minDec: 0, maxDec: 1, sigDig: 5 },
+            { threshold: window.PRICE_THRESHOLD.MEDIUM, minDec: 0, maxDec: 2, sigDig: 5 },
+            { threshold: window.PRICE_THRESHOLD.MEDIUM_LOW, minDec: 0, maxDec: 4, sigDig: 5 },
+            { threshold: window.PRICE_THRESHOLD.LOW, minDec: 2, maxDec: 6, sigDig: 5 },
+            { threshold: 0, minDec: 2, maxDec: 6, sigDig: 4 }, // < $0.01
+        ];
+
+        // Get or create cached Intl.NumberFormat for given decimal precision
+        // Caching prevents expensive formatter recreation on every Y-axis label render
+        window.getCachedFormatter = function(decimals) {
+            const key = String(decimals);
+
+            if (!window.formatterCache.has(key)) {
+                window.formatterCache.set(key, new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                }));
+            }
+
+            return window.formatterCache.get(key);
+        };
+
+        // Format price with significant digits (matches formatUtils.ts logic)
+        window.formatPriceWithSignificantDigits = function(value, sigDigits, minDec, maxDec) {
+            if (value === 0) return { value: 0, decimals: minDec || 0 };
+
+            const absValue = Math.abs(value);
+
+            if (absValue >= 1) {
+                const integerDigits = Math.floor(Math.log10(absValue)) + 1;
+                const decimalsNeeded = sigDigits - integerDigits;
+                let targetDecimals = Math.max(decimalsNeeded, 0);
+
+                if (minDec !== undefined && targetDecimals < minDec) {
+                    targetDecimals = minDec;
+                }
+
+                const finalDecimals = maxDec !== undefined ? Math.min(targetDecimals, maxDec) : targetDecimals;
+                const roundedValue = Number(value.toFixed(finalDecimals));
+
+                return { value: roundedValue, decimals: finalDecimals };
+            }
+
+            // For values < 1, use toPrecision
+            const precisionStr = absValue.toPrecision(sigDigits);
+            const precisionNum = parseFloat(precisionStr);
+            const valueStr = precisionNum.toString();
+            const [, decPart = ''] = valueStr.split('.');
+            let actualDecimals = decPart.length;
+
+            if (minDec !== undefined && actualDecimals < minDec) {
+                actualDecimals = minDec;
+            }
+            if (maxDec !== undefined && actualDecimals > maxDec) {
+                actualDecimals = maxDec;
+            }
+
+            const finalValue = value < 0 ? -precisionNum : precisionNum;
+            const roundedValue = Number(finalValue.toFixed(actualDecimals));
+
+            return { value: roundedValue, decimals: actualDecimals };
+        };
+
+        // Format price using universal ranges (matches formatPerpsFiat from formatUtils.ts)
+        window.formatPriceUniversal = function(price) {
+            if (price === 0) return '0';
+            if (isNaN(price)) return '0';
+
+            const absPrice = Math.abs(price);
+
+            // Find matching range
+            let rangeConfig = null;
+            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
+                if (absPrice > window.PRICE_RANGES[i].threshold) {
+                    rangeConfig = window.PRICE_RANGES[i];
+                    break;
+                }
+            }
+
+            // Fallback to last range if nothing matched
+            if (!rangeConfig) {
+                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
+            }
+
+            // Calculate formatting with significant digits
+            const { value: formattedValue, decimals } = window.formatPriceWithSignificantDigits(
+                price,
+                rangeConfig.sigDig,
+                rangeConfig.minDec,
+                rangeConfig.maxDec
+            );
+
+            // Format the number with consistent decimal places using cached formatter
+            // Keep trailing zeros to maintain visual consistency on Y-axis
+            // e.g., for $1.24-$1.26 range, all values show 4 decimals: 1.2391, 1.2560, 1.2500
+            const formatter = window.getCachedFormatter(decimals);
+            return formatter.format(formattedValue);
+        };
         
         // Smart timestamp formatter using TradingView's native tickMarkType with fallback
         window.formatTimestamp = function(time, tickMarkType, isCrosshair = false) {
@@ -241,85 +358,56 @@ export const createTradingViewChartTemplate = (
                     },
                     localization: {
                         priceFormatter: (price) => {
-                            // Dynamic Y-axis formatter that adjusts precision based on visible price range
-                            // This prevents duplicate labels (e.g., "160 160 161 161") by using more decimals when zoomed in
+                            // Hybrid formatter: starts with universal formatting but adjusts for tight ranges
+                            // This prevents duplicate Y-axis labels when zoomed in while maintaining
+                            // consistency with header and pills at normal zoom levels
 
-                            if (price === 0) return '0.00';
+                            if (price === 0) return '0';
+                            if (isNaN(price)) return '0';
 
                             const absPrice = Math.abs(price);
 
-                            // VOLUME DETECTION HEURISTIC:
-                            // Detect and format volume values using 100k threshold
-                            //
-                            // Why 100k?
-                            // - USD notional volume (volume × price) typically ranges from millions to billions
-                            // - Most crypto asset prices are < $100k (BTC, ETH, altcoins)
-                            // - Even high-value assets rarely sustain prices > $100k for Y-axis display
-                            //
-                            // Edge cases:
-                            // - If BTC or other assets exceed $100k consistently, this may misformat prices
-                            // - Future improvement: Pass explicit flag from volume series instead of heuristic
-                            //
-                            // Volume calculation: volume × close price = USD notional volume
-                            if (absPrice >= 100000) {
-                                return window.formatVolumeNumber(price);
-                            }
-
-                            // For values >= 1, use dynamic precision based on visible range
-                            if (absPrice >= 1) {
-                                let targetDecimals;
-
-                                // Use visible price range to determine precision (prevents duplicates when zoomed in)
-                                if (window.visiblePriceRange && window.visiblePriceRange.span > 0) {
-                                    const span = window.visiblePriceRange.span;
-                                    
-                                    if (span < 1) {
-                                        // Very tight range (e.g., 160.00-160.50): use 4 decimals
-                                        targetDecimals = 4;
-                                    } else if (span < 10) {
-                                        // Tight range (e.g., 160-165): use 3 decimals
-                                        targetDecimals = 3;
-                                    } else if (span < 100) {
-                                        // Medium range (e.g., 100-200): use 2 decimals
-                                        targetDecimals = 2;
-                                    } else {
-                                        // Wide range (e.g., 0-1000): use 1 decimal
-                                        targetDecimals = 1;
-                                    }
-                                } else {
-                                    // Fallback to price-based rules when range not available
-                                    if (absPrice >= 100) {
-                                        targetDecimals = 2; // Increased from 0 to prevent duplicates
-                                    } else if (absPrice >= 10) {
-                                        targetDecimals = 2;
-                                    } else {
-                                        targetDecimals = 3;
-                                    }
+                            // Get base formatting configuration from universal ranges
+                            let rangeConfig = null;
+                            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
+                                if (absPrice > window.PRICE_RANGES[i].threshold) {
+                                    rangeConfig = window.PRICE_RANGES[i];
+                                    break;
                                 }
-
-                                // Round to prevent floating-point artifacts (e.g., 2.820000000000003 → 2.82)
-                                const roundedPrice = Number(price.toFixed(targetDecimals));
-
-                                return new Intl.NumberFormat('en-US', {
-                                    minimumFractionDigits: 0, // Allow trailing zeros to be removed
-                                    maximumFractionDigits: targetDecimals
-                                }).format(roundedPrice);
+                            }
+                            if (!rangeConfig) {
+                                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
                             }
 
-                            // For values < 1, use 4 significant figures
-                            // Examples: 0.1234, 0.01234
-                            const precisionStr = absPrice.toPrecision(4);
-                            const precisionNum = parseFloat(precisionStr);
-                            const valueStr = precisionNum.toString();
-                            const [, decPart = ''] = valueStr.split('.');
-                            const actualDecimals = Math.min(decPart.length, 10);
+                            // Calculate base formatting with significant digits
+                            const { value: formattedValue, decimals: baseDecimals } = window.formatPriceWithSignificantDigits(
+                                price,
+                                rangeConfig.sigDig,
+                                rangeConfig.minDec,
+                                rangeConfig.maxDec
+                            );
 
-                            const finalValue = price < 0 ? -precisionNum : precisionNum;
+                            // Determine if we need extra decimals based on visible range
+                            let finalDecimals = baseDecimals;
 
-                            return new Intl.NumberFormat('en-US', {
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: actualDecimals
-                            }).format(finalValue);
+                            if (window.visiblePriceRange && window.visiblePriceRange.span > 0) {
+                                const span = window.visiblePriceRange.span;
+
+                                // Dynamic decimal adjustment based on zoom level
+                                // Tighter visible range = more decimals needed to distinguish Y-axis labels
+                                if (span < 1) {
+                                    finalDecimals = Math.max(4, baseDecimals);
+                                } else if (span < 10) {
+                                    finalDecimals = Math.max(3, baseDecimals);
+                                } else if (span < 100) {
+                                    finalDecimals = Math.max(2, baseDecimals);
+                                }
+                                // For span >= 100, use baseDecimals (no adjustment needed)
+                            }
+
+                            // Format with final decimal precision using cached formatter
+                            const formatter = window.getCachedFormatter(finalDecimals);
+                            return formatter.format(formattedValue);
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
