@@ -22,14 +22,15 @@ export const STABLECOIN_SYMBOL_TO_ADDRESS_BY_CHAIN: Record<
     USDT: '0xdac17f958d2ee523a2206206994597c13d831ec7',
     DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
   },
-  [NETWORKS_CHAIN_ID.LINEA_MAINNET]: {
-    USDC: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
-    USDT: '0xa219439258ca9da29e9cc4ce5596924745e12b93',
-  },
-  [NETWORKS_CHAIN_ID.BSC]: {
-    USDC: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
-    USDT: '0x55d398326f99059ff775485246999027b3197955',
-  },
+  // Temp: Uncomment once we support Linea -> Linea quotes
+  // [NETWORKS_CHAIN_ID.LINEA_MAINNET]: {
+  //   USDC: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+  //   USDT: '0xa219439258ca9da29e9cc4ce5596924745e12b93',
+  // },
+  // [NETWORKS_CHAIN_ID.BSC]: {
+  //   USDC: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
+  //   USDT: '0x55d398326f99059ff775485246999027b3197955',
+  // },
 };
 
 export const CONVERTIBLE_STABLECOINS_BY_CHAIN: Record<Hex, Hex[]> = (() => {
@@ -44,5 +45,5 @@ export const CONVERTIBLE_STABLECOINS_BY_CHAIN: Record<Hex, Hex[]> = (() => {
 
 // TODO: Remove this once we add to TransactionType. Requires updating transaction-controller package.
 // Similar to a swap except that output token is predetermined (e.g. mUSD) and the user cannot change it.
-export const EVM_TOKEN_CONVERSION_TRANSACTION_TYPE =
-  'evmTokenConversion' as TransactionType;
+export const MUSD_CONVERSION_TRANSACTION_TYPE =
+  'mUSDConversion' as TransactionType;

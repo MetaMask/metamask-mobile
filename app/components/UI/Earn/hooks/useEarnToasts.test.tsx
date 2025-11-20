@@ -9,13 +9,13 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 jest.mock('expo-haptics');
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: { tokenSymbol: string }) => {
-    if (key === 'earn.token_conversion.toasts.in_progress') {
+    if (key === 'earn.musd_conversion.toasts.in_progress') {
       return `Converting to ${params?.tokenSymbol}`;
     }
-    if (key === 'earn.token_conversion.toasts.success') {
+    if (key === 'earn.musd_conversion.toasts.success') {
       return `Converted to ${params?.tokenSymbol}`;
     }
-    if (key === 'earn.token_conversion.toasts.failed') {
+    if (key === 'earn.musd_conversion.toasts.failed') {
       return `Failed to convert to ${params?.tokenSymbol}`;
     }
     return key;

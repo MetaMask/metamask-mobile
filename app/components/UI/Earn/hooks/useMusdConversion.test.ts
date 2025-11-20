@@ -1,12 +1,12 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import {
-  useEvmTokenConversion,
+  useMusdConversion,
   areValidAllowedPaymentTokens,
-} from './useEvmTokenConversion';
+} from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
-import { EVM_TOKEN_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -52,7 +52,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-describe('useEvmTokenConversion', () => {
+describe('useMusdConversion', () => {
   const mockSelectedAccount = {
     address: '0x123456789abcdef' as Hex,
     id: 'account-1',
@@ -110,7 +110,7 @@ describe('useEvmTokenConversion', () => {
         transactionMeta: { id: 'tx-123' },
       });
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       await result.current.initiateConversion(mockConfig);
 
@@ -137,7 +137,7 @@ describe('useEvmTokenConversion', () => {
         transactionMeta: { id: 'tx-123' },
       });
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       await result.current.initiateConversion(mockConfig);
 
@@ -152,7 +152,7 @@ describe('useEvmTokenConversion', () => {
         {
           networkClientId: 'mainnet',
           origin: MMM_ORIGIN,
-          type: EVM_TOKEN_CONVERSION_TRANSACTION_TYPE,
+          type: MUSD_CONVERSION_TRANSACTION_TYPE,
           nestedTransactions: [
             {
               to: mockConfig.outputToken.address,
@@ -176,7 +176,7 @@ describe('useEvmTokenConversion', () => {
         transactionMeta: { id: 'tx-123' },
       });
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       await result.current.initiateConversion(mockConfig);
 
@@ -199,7 +199,7 @@ describe('useEvmTokenConversion', () => {
       mockUseSelector.mockReturnValue(mockSelectorFn);
       mockSelectorFn.mockReturnValue(null);
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       await act(async () => {
         await expect(
@@ -219,7 +219,7 @@ describe('useEvmTokenConversion', () => {
         undefined,
       );
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       await act(async () => {
         await expect(
@@ -235,7 +235,7 @@ describe('useEvmTokenConversion', () => {
       mockUseSelector.mockReturnValue(mockSelectorFn);
       mockSelectorFn.mockReturnValue(mockSelectedAccount);
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       const invalidConfig = {
         ...mockConfig,
@@ -257,7 +257,7 @@ describe('useEvmTokenConversion', () => {
       mockUseSelector.mockReturnValue(mockSelectorFn);
       mockSelectorFn.mockReturnValue(mockSelectedAccount);
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       const invalidConfig = {
         ...mockConfig,
@@ -286,7 +286,7 @@ describe('useEvmTokenConversion', () => {
         new Error('Transaction failed'),
       );
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       await act(async () => {
         await expect(
@@ -310,7 +310,7 @@ describe('useEvmTokenConversion', () => {
         transactionMeta: { id: 'tx-123' },
       });
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       const configWithCustomStack = {
         ...mockConfig,
@@ -337,7 +337,7 @@ describe('useEvmTokenConversion', () => {
         transactionMeta: { id: 'tx-123' },
       });
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       const allowedTokens: Record<Hex, Hex[]> = {
         '0x1': ['0xabc' as Hex],
@@ -370,7 +370,7 @@ describe('useEvmTokenConversion', () => {
         transactionMeta: { id: 'tx-123' },
       });
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       const transactionId = await result.current.initiateConversion(mockConfig);
 
@@ -384,7 +384,7 @@ describe('useEvmTokenConversion', () => {
       mockUseSelector.mockReturnValue(mockSelectorFn);
       mockSelectorFn.mockReturnValue(mockSelectedAccount);
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       expect(result.current.error).toBeNull();
     });
@@ -398,7 +398,7 @@ describe('useEvmTokenConversion', () => {
         'mainnet',
       );
 
-      const { result } = renderHook(() => useEvmTokenConversion());
+      const { result } = renderHook(() => useMusdConversion());
 
       const mockConfig = {
         outputToken: {

@@ -48,7 +48,7 @@ import {
   MUSD_ADDRESS_ETHEREUM,
 } from '../../../Earn/constants/musd';
 import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
-import { useEvmTokenConversion } from '../../../Earn/hooks/useEvmTokenConversion';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 import { MUSD_TOKEN_MAINNET } from '../../../../Views/confirmations/constants/musd';
 
@@ -97,7 +97,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion } = useEvmTokenConversion();
+  const { initiateConversion } = useMusdConversion();
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;

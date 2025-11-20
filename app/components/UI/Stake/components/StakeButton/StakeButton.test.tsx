@@ -24,7 +24,7 @@ import {
 import { useFeatureFlag } from '../../../../../components/hooks/useFeatureFlag';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import { useEvmTokenConversion } from '../../../Earn/hooks/useEvmTokenConversion';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { Alert } from 'react-native';
 import { Hex } from '@metamask/utils';
 
@@ -95,8 +95,8 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectMusdConversionPaymentTokensAllowlist: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../../Earn/hooks/useEvmTokenConversion', () => ({
-  useEvmTokenConversion: jest.fn(() => ({
+jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: jest.fn(() => ({
     initiateConversion: jest.fn(),
     error: null,
   })),
@@ -379,7 +379,7 @@ describe('StakeButton', () => {
   describe('mUSD Conversion', () => {
     const mockInitiateConversion = jest.fn();
 
-    const useEvmTokenConversionMock = jest.mocked(useEvmTokenConversion);
+    const useMusdConversionMock = jest.mocked(useMusdConversion);
     const selectIsMusdConversionFlowEnabledFlagMock = jest.mocked(
       selectIsMusdConversionFlowEnabledFlag,
     );
@@ -390,7 +390,7 @@ describe('StakeButton', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       mockInitiateConversion.mockResolvedValue('tx-123');
-      useEvmTokenConversionMock.mockReturnValue({
+      useMusdConversionMock.mockReturnValue({
         initiateConversion: mockInitiateConversion,
         error: null,
       });

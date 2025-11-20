@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
-import { EVM_TOKEN_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
@@ -36,11 +36,11 @@ export const areValidAllowedPaymentTokens = (
 };
 
 /**
- * Configuration for token conversion
+ * Configuration for mUSD conversion
  */
-export interface TokenConversionConfig {
+export interface MusdConversionConfig {
   /**
-   * The output token to convert to
+   * The mUSD token to convert to
    */
   outputToken: {
     address: Hex;
@@ -69,7 +69,7 @@ export interface TokenConversionConfig {
 }
 
 /**
- * Hook for initiating EVM token conversion flow using MetaMask Pay.
+ * Hook for initiating mUSD conversion flow using MetaMask Pay.
  *
  * **EVM-Only**: This hook only supports EVM-compatible chains. It uses ERC-20
  * transfer encoding and MetaMask Pay's Relay integration, which are specific to
@@ -78,7 +78,7 @@ export interface TokenConversionConfig {
  * This hook handles both transaction creation and navigation to the confirmation screen.
  *
  * @example
- * const { initiateConversion } = useEvmTokenConversion();
+ * const { initiateConversion } = useMusdConversion();
  *
  * await initiateConversion({
  *   outputToken: {
@@ -94,7 +94,7 @@ export interface TokenConversionConfig {
  *   },
  * });
  */
-export const useEvmTokenConversion = () => {
+export const useMusdConversion = () => {
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation();
 
@@ -105,11 +105,11 @@ export const useEvmTokenConversion = () => {
   const selectedAddress = selectedAccount?.address;
 
   /**
-   * Converts tokens by creating a placeholder transaction and navigating to confirmation.
+   * Creates a placeholder transaction and navigating to confirmation.
    * Navigation happens immediately, then transaction creation happens in background.
    */
   const initiateConversion = useCallback(
-    async (config: TokenConversionConfig): Promise<string> => {
+    async (config: MusdConversionConfig): Promise<string> => {
       const {
         outputToken,
         preferredPaymentToken,
@@ -185,7 +185,7 @@ export const useEvmTokenConversion = () => {
           {
             networkClientId,
             origin: MMM_ORIGIN,
-            type: EVM_TOKEN_CONVERSION_TRANSACTION_TYPE,
+            type: MUSD_CONVERSION_TRANSACTION_TYPE,
             // Important: Nested transaction is required for Relay to work. This will be fixed in a future iteration.
             nestedTransactions: [
               {
@@ -204,11 +204,11 @@ export const useEvmTokenConversion = () => {
         const errorMessage =
           err instanceof Error
             ? err.message
-            : 'Failed to create token conversion transaction';
+            : 'Failed to create mUSD conversion transaction';
 
         Logger.error(
           err as Error,
-          '[Token Conversion] Failed to create conversion transaction',
+          '[mUSD Conversion] Failed to create conversion transaction',
         );
 
         setError(errorMessage);

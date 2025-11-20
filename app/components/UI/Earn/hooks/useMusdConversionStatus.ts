@@ -5,7 +5,7 @@ import {
 import { useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import useEarnToasts from './useEarnToasts';
-import { EVM_TOKEN_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -33,7 +33,7 @@ export const useMusdConversionStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (transactionMeta.type !== EVM_TOKEN_CONVERSION_TRANSACTION_TYPE) {
+      if (transactionMeta.type !== MUSD_CONVERSION_TRANSACTION_TYPE) {
         return;
       }
 

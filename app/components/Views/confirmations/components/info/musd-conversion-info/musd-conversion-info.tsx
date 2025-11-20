@@ -7,13 +7,13 @@ import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { Hex } from '@metamask/utils';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import {
-  TokenConversionConfig,
+  MusdConversionConfig,
   areValidAllowedPaymentTokens,
-} from '../../../../../UI/Earn/hooks/useEvmTokenConversion';
+} from '../../../../../UI/Earn/hooks/useMusdConversion';
 
-export const EvmTokenConversionInfo = () => {
+export const MusdConversionInfo = () => {
   const route =
-    useRoute<RouteProp<Record<string, TokenConversionConfig>, string>>();
+    useRoute<RouteProp<Record<string, MusdConversionConfig>, string>>();
   const navigation = useNavigation();
   const preferredPaymentToken = route.params?.preferredPaymentToken;
   const outputTokenInfo = route.params?.outputToken;
@@ -48,19 +48,11 @@ export const EvmTokenConversionInfo = () => {
 
   const tokenToAdd = outputTokenInfo || MUSD_TOKEN_MAINNET;
 
-  const navbarTitle = useMemo(() => {
-    if (outputTokenInfo?.symbol === MUSD_TOKEN_MAINNET.symbol) {
-      return strings('earn.token_conversion.earn_rewards_with', {
-        tokenSymbol: outputTokenInfo?.symbol || MUSD_TOKEN_MAINNET.symbol,
-      });
-    }
-
-    return strings('earn.token_conversion.title', {
-      tokenSymbol: outputTokenInfo?.symbol || MUSD_TOKEN_MAINNET.symbol,
-    });
-  }, [outputTokenInfo]);
-
-  useNavbar(navbarTitle);
+  useNavbar(
+    strings('earn.musd_conversion.earn_rewards_with', {
+      tokenSymbol: MUSD_TOKEN_MAINNET.symbol,
+    }),
+  );
 
   useAddToken({
     chainId: tokenToAdd.chainId as Hex,

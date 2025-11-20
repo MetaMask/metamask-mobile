@@ -39,8 +39,8 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   default: () => ({ getEarnToken: jest.fn() }),
 }));
 
-jest.mock('../../../Earn/hooks/useEvmTokenConversion', () => ({
-  useEvmTokenConversion: () => ({
+jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: () => ({
     initiateConversion: jest.fn(),
     error: null,
   }),

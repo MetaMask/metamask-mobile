@@ -1,7 +1,7 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { EvmTokenConversionInfo } from './evm-token-conversion-info';
+import { MusdConversionInfo } from './musd-conversion-info';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { MUSD_TOKEN_MAINNET } from '../../../constants/musd';
@@ -18,7 +18,7 @@ jest.mock('../custom-amount-info', () => ({
 
 const mockRoute = {
   key: 'test-route',
-  name: 'EvmTokenConversionInfo',
+  name: 'MusdConversionInfo',
   params: {},
 };
 
@@ -34,7 +34,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-describe('EvmTokenConversionInfo', () => {
+describe('MusdConversionInfo', () => {
   const mockUseNavbar = jest.mocked(useNavbar);
   const mockUseAddToken = jest.mocked(useAddToken);
   const mockUseRoute = jest.mocked(useRoute);
@@ -71,7 +71,7 @@ describe('EvmTokenConversionInfo', () => {
 
       mockUseRoute.mockReturnValue(mockRoute);
 
-      renderWithProvider(<EvmTokenConversionInfo />, {
+      renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
@@ -94,40 +94,16 @@ describe('EvmTokenConversionInfo', () => {
 
       mockUseRoute.mockReturnValue(mockRoute);
 
-      renderWithProvider(<EvmTokenConversionInfo />, {
+      renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
       expect(mockUseNavbar).toHaveBeenCalledWith(
         expect.stringContaining(
-          strings('earn.token_conversion.earn_rewards_with', {
+          strings('earn.musd_conversion.earn_rewards_with', {
             tokenSymbol: 'MUSD',
           }),
         ),
-      );
-    });
-
-    it('calls useNavbar with generic title for non-MUSD token', () => {
-      mockRoute.params = {
-        outputToken: {
-          symbol: 'OTHER',
-          address: '0x123' as Hex,
-          chainId: '0x1' as Hex,
-          name: 'Other Token',
-          decimals: 6,
-        },
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<EvmTokenConversionInfo />, {
-        state: {},
-      });
-
-      expect(mockUseNavbar).toHaveBeenCalledWith(
-        strings('earn.token_conversion.title', {
-          tokenSymbol: 'OTHER',
-        }),
       );
     });
   });
@@ -148,7 +124,7 @@ describe('EvmTokenConversionInfo', () => {
 
       mockUseRoute.mockReturnValue(mockRoute);
 
-      renderWithProvider(<EvmTokenConversionInfo />, {
+      renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
@@ -183,7 +159,7 @@ describe('EvmTokenConversionInfo', () => {
 
       mockUseRoute.mockReturnValue(mockRoute);
 
-      renderWithProvider(<EvmTokenConversionInfo />, {
+      renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
@@ -209,7 +185,7 @@ describe('EvmTokenConversionInfo', () => {
 
       mockUseRoute.mockReturnValue(mockRoute);
 
-      renderWithProvider(<EvmTokenConversionInfo />, {
+      renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
@@ -235,7 +211,7 @@ describe('EvmTokenConversionInfo', () => {
 
       mockUseRoute.mockReturnValue(mockRoute);
 
-      renderWithProvider(<EvmTokenConversionInfo />, {
+      renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
@@ -268,7 +244,7 @@ describe('EvmTokenConversionInfo', () => {
 
       mockUseRoute.mockReturnValue(mockRoute);
 
-      renderWithProvider(<EvmTokenConversionInfo />, {
+      renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 
@@ -302,7 +278,7 @@ describe('EvmTokenConversionInfo', () => {
 
       mockUseRoute.mockReturnValue(mockRoute);
 
-      const { toJSON } = renderWithProvider(<EvmTokenConversionInfo />, {
+      const { toJSON } = renderWithProvider(<MusdConversionInfo />, {
         state: {},
       });
 

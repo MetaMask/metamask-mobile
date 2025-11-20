@@ -52,8 +52,8 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
-import { EVM_TOKEN_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
-import { useTokenAsset } from '../../../hooks/useTokenAsset';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
+import { MUSD_TOKEN_MAINNET } from '../../../constants/musd';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -298,24 +298,13 @@ function useIsResultReady({
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
 
-  // Get token symbol for EVM token conversion transactions
-  const { asset: outputTokenAsset } = useTokenAsset();
-
   if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
   }
 
-  if (
-    hasTransactionType(transaction, [EVM_TOKEN_CONVERSION_TRANSACTION_TYPE])
-  ) {
-    // Use dynamic symbol from transaction, fallback to "token"
-    const symbol =
-      outputTokenAsset && 'symbol' in outputTokenAsset
-        ? outputTokenAsset.symbol
-        : 'token';
-
-    return strings('earn.token_conversion.confirmation_button', {
-      tokenSymbol: symbol,
+  if (hasTransactionType(transaction, [MUSD_CONVERSION_TRANSACTION_TYPE])) {
+    return strings('earn.musd_conversion.confirmation_button', {
+      tokenSymbol: MUSD_TOKEN_MAINNET.symbol,
     });
   }
 
