@@ -104,38 +104,36 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
   );
 
   return (
-    <Box twClassName="px-4 pb-3">
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
-      >
-        {isButtonMode ? (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-2"
+    >
+      {isButtonMode ? (
+        <TouchableOpacity
+          onPress={props.onPress}
+          testID="explore-view-search-button"
+          activeOpacity={0.7}
+          style={tw.style('flex-1')}
+        >
+          {searchBarContent}
+        </TouchableOpacity>
+      ) : (
+        <>
+          <Box twClassName="flex-1">{searchBarContent}</Box>
           <TouchableOpacity
-            onPress={props.onPress}
-            testID="explore-view-search-button"
-            activeOpacity={0.7}
-            style={tw.style('flex-1')}
+            onPress={handleCancel}
+            testID="explore-search-cancel-button"
           >
-            {searchBarContent}
-          </TouchableOpacity>
-        ) : (
-          <>
-            <Box twClassName="flex-1">{searchBarContent}</Box>
-            <TouchableOpacity
-              onPress={handleCancel}
-              testID="explore-search-cancel-button"
+            <Text
+              variant={TextVariant.BodyMd}
+              style={tw.style('text-default font-medium')}
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                style={tw.style('text-default font-medium')}
-              >
-                {strings('transaction.cancel')}
-              </Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </Box>
+              {strings('transaction.cancel')}
+            </Text>
+          </TouchableOpacity>
+        </>
+      )}
     </Box>
   );
 };
