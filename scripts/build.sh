@@ -807,8 +807,8 @@ elif [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "fla
 fi
 
 # Update Expo channel configuration based on environment
-echo "Updating Expo channel configuration..."
-node "${__DIRNAME__}/update-expo-channel.js"
+# echo "Updating Expo channel configuration..."
+# node "${__DIRNAME__}/update-expo-channel.js"
 
 if [ "$PLATFORM" == "ios" ]; then
 	# we don't care about env file in CI
