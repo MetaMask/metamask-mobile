@@ -1339,7 +1339,7 @@ describe('MailingAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: 'CardOnboardingVerifyingRegistration' }],
+            routes: [{ name: 'VerifyingRegistration' }],
           });
         },
         { timeout: 3000 },
@@ -1744,7 +1744,7 @@ describe('MailingAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: 'CardOnboardingVerifyingRegistration' }],
+            routes: [{ name: 'VerifyingRegistration' }],
           });
         },
         { timeout: 3000 },

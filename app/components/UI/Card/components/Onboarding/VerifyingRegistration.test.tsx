@@ -54,42 +54,10 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   },
 }));
 
-// Mock Toast Context - create refs outside mock so they're accessible in tests
-const mockShowToast = jest.fn();
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-  },
-};
-
-// Create mock context before the jest.mock call
-const mockToastContext = { toastRef: mockToastRef };
-
-jest.mock('../../../../../component-library/components/Toast', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-
-  // Use the external mockToastContext
-  const ToastContext = React.createContext(mockToastContext);
-
-  return {
-    ToastContext,
-    ToastVariants: {
-      Icon: 'icon',
-    },
-  };
-});
-
-// Mock theme
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      success: {
-        default: '#28A745',
-        muted: '#D6F5DC',
-      },
-    },
-  })),
+// Mock Redux
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(),
 }));
 
 // Mock constants
@@ -165,6 +133,41 @@ jest.mock('@metamask/design-system-react-native', () => {
 // Mock ButtonIcon
 jest.mock('../../../../../component-library/components/Buttons/ButtonIcon');
 
+// Mock Button
+jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const React = jest.requireActual('react');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ({
+      label,
+      onPress,
+      testID,
+      ...props
+    }: {
+      label: string;
+      onPress: () => void;
+      testID: string;
+    }) =>
+      React.createElement(
+        TouchableOpacity,
+        { testID, onPress, ...props },
+        React.createElement(Text, {}, label),
+      ),
+    ButtonSize: {
+      Lg: 'Lg',
+    },
+    ButtonVariants: {
+      Primary: 'Primary',
+    },
+    ButtonWidthTypes: {
+      Full: 'Full',
+    },
+  };
+});
+
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, options?: Record<string, string>) => {
@@ -173,6 +176,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Verifying your identity',
       'card.card_onboarding.verifying_registration.description':
         'Crypto Life is attempting to verify you. This will take at most 30 seconds.',
+      'card.card_onboarding.verifying_registration.verified_title': 'Approved!',
+      'card.card_onboarding.verifying_registration.verified_description':
+        'Your KYC was approved. You can now use MetaMask Card.',
+      'card.card_onboarding.verifying_registration.continue_button': 'Continue',
       'card.card_onboarding.verifying_registration.timeout_title':
         'Verification in progress',
       'card.card_onboarding.verifying_registration.timeout_description':
@@ -187,8 +194,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.verifying_registration.server_error_title':
         "We're experiencing server issues",
       'card.card_onboarding.verifying_registration.server_error_message': `We're unable to complete your verification at the moment. Please try again later or contact support at ${options?.email || ''} for assistance.`,
-      'card.card_onboarding.verifying_registration.success_toast':
-        'Your ID was verified!',
     };
     return translations[key] || key;
   }),
@@ -226,25 +231,11 @@ const createMockUserResponse = (overrides: Record<string, unknown> = {}) => ({
 describe('VerifyingRegistration Component', () => {
   const { useMetrics } = jest.requireMock('../../../../hooks/useMetrics');
   const { useCardSDK } = jest.requireMock('../../sdk');
-  const { ToastContext } = jest.requireMock(
-    '../../../../../component-library/components/Toast',
-  );
-
-  // Create a wrapper component that provides the ToastContext
-  const Wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      ToastContext.Provider,
-      { value: mockToastContext },
-      children,
-    );
+  const { useDispatch } = jest.requireMock('react-redux');
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-
-    // Restore the toast mock reference after clearAllMocks
-    mockShowToast.mockClear();
-    mockToastRef.current.showToast = mockShowToast;
 
     (useNavigation as jest.Mock).mockReturnValue({
       dispatch: mockNavigationDispatch,
@@ -268,7 +259,10 @@ describe('VerifyingRegistration Component', () => {
       sdk: {
         getUserDetails: mockGetUserDetails,
       },
+      setUser: jest.fn(),
     });
+
+    useDispatch.mockReturnValue(mockDispatch);
 
     mockGetUserDetails.mockResolvedValue(createMockUserResponse());
   });
@@ -282,13 +276,13 @@ describe('VerifyingRegistration Component', () => {
 
   describe('Component Rendering', () => {
     it('renders the VerifyingRegistration component', () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       expect(screen.getByTestId('onboarding-step')).toBeTruthy();
     });
 
     it('renders polling state title', () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       const title = screen.getByTestId('onboarding-step-title');
 
@@ -296,7 +290,7 @@ describe('VerifyingRegistration Component', () => {
     });
 
     it('renders polling state description', () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       const description = screen.getByTestId('onboarding-step-description');
 
@@ -306,7 +300,7 @@ describe('VerifyingRegistration Component', () => {
     });
 
     it('renders form fields during polling', () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       const formFields = screen.getByTestId('onboarding-step-form-fields');
 
@@ -316,7 +310,7 @@ describe('VerifyingRegistration Component', () => {
 
   describe('Polling Behavior', () => {
     it('starts polling immediately on mount', async () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
@@ -324,7 +318,7 @@ describe('VerifyingRegistration Component', () => {
     });
 
     it('polls getUserDetails every 3 seconds', async () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
@@ -348,7 +342,7 @@ describe('VerifyingRegistration Component', () => {
     });
 
     it('stops polling after 30 seconds timeout', async () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockGetUserDetails).toHaveBeenCalled();
@@ -365,9 +359,7 @@ describe('VerifyingRegistration Component', () => {
     });
 
     it('cleans up polling on unmount', async () => {
-      const { unmount } = render(<VerifyingRegistration />, {
-        wrapper: Wrapper,
-      });
+      const { unmount } = render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
@@ -390,7 +382,7 @@ describe('VerifyingRegistration Component', () => {
         createMockUserResponse({ verificationState: 'VERIFIED' }),
       );
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
@@ -403,45 +395,80 @@ describe('VerifyingRegistration Component', () => {
       expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
     });
 
-    it('displays success toast when verification completes', async () => {
+    it('displays verified title when verification completes', async () => {
       mockGetUserDetails.mockResolvedValueOnce(
         createMockUserResponse({ verificationState: 'VERIFIED' }),
       );
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
-      // Wait for the initial fetch to complete
       await waitFor(() => {
-        expect(mockGetUserDetails).toHaveBeenCalled();
+        const title = screen.getByTestId('onboarding-step-title');
+        expect(title.props.children).toBe('Approved!');
       });
+    });
 
-      // Wait for toast to be called
+    it('displays verified description when verification completes', async () => {
+      mockGetUserDetails.mockResolvedValueOnce(
+        createMockUserResponse({ verificationState: 'VERIFIED' }),
+      );
+
+      render(<VerifyingRegistration />);
+
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Your ID was verified!',
-              }),
-            ]),
-          }),
+        const description = screen.getByTestId('onboarding-step-description');
+        expect(description.props.children).toBe(
+          'Your KYC was approved. You can now use MetaMask Card.',
         );
       });
     });
 
-    it('navigates to Card Home after 500ms when verified', async () => {
+    it('displays continue button when verified', async () => {
       mockGetUserDetails.mockResolvedValueOnce(
         createMockUserResponse({ verificationState: 'VERIFIED' }),
       );
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
-        expect(mockGetUserDetails).toHaveBeenCalled();
+        const button = screen.getByTestId(
+          'verifying-registration-continue-button',
+        );
+        expect(button).toBeTruthy();
+      });
+    });
+
+    it('resets onboarding state when continue button is pressed', async () => {
+      mockGetUserDetails.mockResolvedValueOnce(
+        createMockUserResponse({ verificationState: 'VERIFIED' }),
+      );
+
+      render(<VerifyingRegistration />);
+
+      const button = await screen.findByTestId(
+        'verifying-registration-continue-button',
+      );
+
+      await act(async () => {
+        await button.props.onPress();
       });
 
-      act(() => {
-        jest.advanceTimersByTime(500);
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('navigates to Card Home when continue button is pressed', async () => {
+      mockGetUserDetails.mockResolvedValueOnce(
+        createMockUserResponse({ verificationState: 'VERIFIED' }),
+      );
+
+      render(<VerifyingRegistration />);
+
+      const button = await screen.findByTestId(
+        'verifying-registration-continue-button',
+      );
+
+      await act(async () => {
+        await button.props.onPress();
       });
 
       await waitFor(() => {
@@ -449,19 +476,19 @@ describe('VerifyingRegistration Component', () => {
       });
     });
 
-    it('dispatches replace action when verified', async () => {
+    it('dispatches replace action when continue button is pressed', async () => {
       mockGetUserDetails.mockResolvedValueOnce(
         createMockUserResponse({ verificationState: 'VERIFIED' }),
       );
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
-      await waitFor(() => {
-        expect(mockGetUserDetails).toHaveBeenCalled();
-      });
+      const button = await screen.findByTestId(
+        'verifying-registration-continue-button',
+      );
 
-      act(() => {
-        jest.advanceTimersByTime(500);
+      await act(async () => {
+        await button.props.onPress();
       });
 
       await waitFor(() => {
@@ -478,7 +505,7 @@ describe('VerifyingRegistration Component', () => {
         createMockUserResponse({ verificationState: 'REJECTED' }),
       );
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         const title = screen.getByTestId('onboarding-step-title');
@@ -492,7 +519,7 @@ describe('VerifyingRegistration Component', () => {
         createMockUserResponse({ verificationState: 'REJECTED' }),
       );
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         const description = screen.getByTestId('onboarding-step-description');
@@ -509,7 +536,7 @@ describe('VerifyingRegistration Component', () => {
       );
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(
@@ -524,7 +551,7 @@ describe('VerifyingRegistration Component', () => {
         createMockUserResponse({ verificationState: 'REJECTED' }),
       );
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
@@ -540,7 +567,7 @@ describe('VerifyingRegistration Component', () => {
 
   describe('Timeout State', () => {
     it('displays timeout title after 30 seconds', async () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await act(async () => {
         jest.advanceTimersByTime(30000);
@@ -554,7 +581,7 @@ describe('VerifyingRegistration Component', () => {
     });
 
     it('displays timeout description after 30 seconds', async () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await act(async () => {
         jest.advanceTimersByTime(30000);
@@ -570,7 +597,7 @@ describe('VerifyingRegistration Component', () => {
     });
 
     it('stops polling after timeout', async () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockGetUserDetails).toHaveBeenCalled();
@@ -594,7 +621,7 @@ describe('VerifyingRegistration Component', () => {
     it('displays error title when API fails', async () => {
       mockGetUserDetails.mockRejectedValueOnce(new Error('Network error'));
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         const title = screen.getByTestId('onboarding-step-title');
@@ -607,7 +634,7 @@ describe('VerifyingRegistration Component', () => {
       mockGetUserDetails.mockRejectedValueOnce(new Error('Network error'));
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(
@@ -621,7 +648,7 @@ describe('VerifyingRegistration Component', () => {
       const error = new Error('Network error');
       mockGetUserDetails.mockRejectedValueOnce(error);
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(Logger.log).toHaveBeenCalledWith(
@@ -634,7 +661,7 @@ describe('VerifyingRegistration Component', () => {
     it('stops polling when API fails', async () => {
       mockGetUserDetails.mockRejectedValueOnce(new Error('Network error'));
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
@@ -650,7 +677,7 @@ describe('VerifyingRegistration Component', () => {
 
   describe('Navigation Integration', () => {
     it('calls setOptions to configure header', async () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockSetOptions).toHaveBeenCalled();
@@ -678,7 +705,7 @@ describe('VerifyingRegistration Component', () => {
         createdAt: '2024-01-01T00:00:00.000Z',
       });
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockSetOptions).toHaveBeenCalled();
@@ -688,7 +715,7 @@ describe('VerifyingRegistration Component', () => {
 
   describe('Metrics Tracking', () => {
     it('tracks screen view on mount', async () => {
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalled();
@@ -701,7 +728,7 @@ describe('VerifyingRegistration Component', () => {
     it('uses correct translation key for polling title', () => {
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       expect(strings).toHaveBeenCalledWith(
         'card.card_onboarding.verifying_registration.title',
@@ -711,17 +738,62 @@ describe('VerifyingRegistration Component', () => {
     it('uses correct translation key for polling description', () => {
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       expect(strings).toHaveBeenCalledWith(
         'card.card_onboarding.verifying_registration.description',
       );
     });
 
+    it('uses correct translation key for verified title', async () => {
+      mockGetUserDetails.mockResolvedValueOnce(
+        createMockUserResponse({ verificationState: 'VERIFIED' }),
+      );
+      const { strings } = jest.requireMock('../../../../../../locales/i18n');
+
+      render(<VerifyingRegistration />);
+
+      await waitFor(() => {
+        expect(strings).toHaveBeenCalledWith(
+          'card.card_onboarding.verifying_registration.verified_title',
+        );
+      });
+    });
+
+    it('uses correct translation key for verified description', async () => {
+      mockGetUserDetails.mockResolvedValueOnce(
+        createMockUserResponse({ verificationState: 'VERIFIED' }),
+      );
+      const { strings } = jest.requireMock('../../../../../../locales/i18n');
+
+      render(<VerifyingRegistration />);
+
+      await waitFor(() => {
+        expect(strings).toHaveBeenCalledWith(
+          'card.card_onboarding.verifying_registration.verified_description',
+        );
+      });
+    });
+
+    it('uses correct translation key for continue button', async () => {
+      mockGetUserDetails.mockResolvedValueOnce(
+        createMockUserResponse({ verificationState: 'VERIFIED' }),
+      );
+      const { strings } = jest.requireMock('../../../../../../locales/i18n');
+
+      render(<VerifyingRegistration />);
+
+      await waitFor(() => {
+        expect(strings).toHaveBeenCalledWith(
+          'card.card_onboarding.verifying_registration.continue_button',
+        );
+      });
+    });
+
     it('uses correct translation key for timeout title', async () => {
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await act(async () => {
         jest.advanceTimersByTime(30000);
@@ -734,10 +806,10 @@ describe('VerifyingRegistration Component', () => {
       });
     });
 
-    it('uses correct translation key for timeout description', async () => {
+    it('uses correct translation key for timeout description with email', async () => {
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await act(async () => {
         jest.advanceTimersByTime(30000);
@@ -746,6 +818,7 @@ describe('VerifyingRegistration Component', () => {
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(
           'card.card_onboarding.verifying_registration.timeout_description',
+          { email: CARD_SUPPORT_EMAIL },
         );
       });
     });
@@ -756,7 +829,7 @@ describe('VerifyingRegistration Component', () => {
       );
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(
@@ -771,7 +844,7 @@ describe('VerifyingRegistration Component', () => {
       );
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(
@@ -786,7 +859,7 @@ describe('VerifyingRegistration Component', () => {
       );
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(
@@ -800,7 +873,7 @@ describe('VerifyingRegistration Component', () => {
       mockGetUserDetails.mockRejectedValueOnce(new Error('Network error'));
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(
@@ -813,7 +886,7 @@ describe('VerifyingRegistration Component', () => {
       mockGetUserDetails.mockRejectedValueOnce(new Error('Network error'));
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(
@@ -826,7 +899,7 @@ describe('VerifyingRegistration Component', () => {
       mockGetUserDetails.mockRejectedValueOnce(new Error('Network error'));
       const { strings } = jest.requireMock('../../../../../../locales/i18n');
 
-      render(<VerifyingRegistration />, { wrapper: Wrapper });
+      render(<VerifyingRegistration />);
 
       await waitFor(() => {
         expect(strings).toHaveBeenCalledWith(

@@ -251,6 +251,7 @@ describe('CardSDK Context', () => {
         isLoading: false,
         user: null,
         setUser: jest.fn(),
+        fetchUserData: jest.fn(),
         logoutFromProvider: jest.fn(),
       };
 
@@ -292,6 +293,7 @@ describe('CardSDK Context', () => {
         logoutFromProvider: expect.any(Function),
         user: null,
         setUser: expect.any(Function),
+        fetchUserData: expect.any(Function),
       });
     });
 

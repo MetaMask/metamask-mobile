@@ -6309,6 +6309,9 @@
       "verifying_registration": {
         "title": "Verifying your identity",
         "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
+        "verified_title": "Approved!",
+        "verified_description": "Your KYC was approved. You can now use MetaMask Card.",
+        "continue_button": "Continue",
         "timeout_title": "Verification in progress",
         "timeout_description": "Your verification will take up to 12 hours. Please come back to the Card section in that time or contact support at\n{{email}}\nfor assistance.",
         "rejected_title": "Verification incomplete",

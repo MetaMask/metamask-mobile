@@ -85,7 +85,6 @@ jest.mock(
   '../components/Onboarding/VerifyingRegistration',
   () => 'VerifyingRegistration',
 );
-jest.mock('../components/Onboarding/Complete', () => 'Complete');
 jest.mock('../components/Onboarding/KYCWebview', () => 'KYCWebview');
 
 // Mock navigation options
@@ -151,7 +150,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       PHYSICAL_ADDRESS: 'PHYSICAL_ADDRESS',
       MAILING_ADDRESS: 'MAILING_ADDRESS',
       VERIFYING_REGISTRATION: 'VERIFYING_REGISTRATION',
-      COMPLETE: 'COMPLETE',
       WEBVIEW: 'WEBVIEW',
     },
   },
@@ -405,7 +403,7 @@ describe('OnboardingNavigator', () => {
           expect(queryByTestId('activity-indicator')).toBeNull();
         });
 
-        it('returns COMPLETE route when user is from US and has mailing address', () => {
+        it('returns SIGN_UP route as fallback when user is from US and has all required data', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
@@ -431,7 +429,7 @@ describe('OnboardingNavigator', () => {
           expect(queryByTestId('activity-indicator')).toBeNull();
         });
 
-        it('returns COMPLETE route when user is not from US', () => {
+        it('returns SIGN_UP route as fallback when non-US user has all required data', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {

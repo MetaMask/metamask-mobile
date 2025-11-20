@@ -53,7 +53,6 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useDispatch } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { useCardSDK } from '../../sdk';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -119,7 +118,6 @@ const CardAuthentication = () => {
     clearOtpError,
     otpLoading,
   } = useCardProviderAuthentication();
-  const { fetchUserData } = useCardSDK();
   const styles = createStyles(theme);
   const { styles: otpStyles } = useStyles(createOtpStyles, {});
   const tw = useTailwind();
@@ -244,7 +242,6 @@ const CardAuthentication = () => {
 
         if (loginResponse?.phase) {
           dispatch(setOnboardingId(loginResponse.userId));
-          fetchUserData();
           navigation.reset({
             index: 0,
             routes: [
@@ -278,7 +275,6 @@ const CardAuthentication = () => {
       dispatch,
       trackEvent,
       createEventBuilder,
-      fetchUserData,
     ],
   );
 

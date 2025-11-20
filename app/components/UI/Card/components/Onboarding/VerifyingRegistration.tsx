@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -22,29 +21,36 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { CARD_SUPPORT_EMAIL } from '../../constants';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { useTheme } from '../../../../../util/theme';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { headerStyle } from '../../routes';
+import { useDispatch } from 'react-redux';
+import { resetOnboardingState } from '../../../../../core/redux/slices/card';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 
 const POLLING_INTERVAL = 3000; // 3 seconds
 const TIMEOUT_DURATION = 30000; // 30 seconds
 
-type VerificationStep = 'polling' | 'timeout' | 'rejected' | 'error';
+type VerificationStep =
+  | 'polling'
+  | 'verified'
+  | 'timeout'
+  | 'rejected'
+  | 'error';
 
 const VerifyingRegistration = () => {
-  const theme = useTheme();
   const navigation = useNavigation();
-  const { toastRef } = useContext(ToastContext);
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { sdk, setUser } = useCardSDK();
   const [step, setStep] = useState<VerificationStep>('polling');
+  const [isHandlingContinue, setIsHandlingContinue] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
@@ -71,6 +77,26 @@ const VerifyingRegistration = () => {
     navigation.dispatch(StackActions.pop());
   }, [navigation, trackEvent, createEventBuilder]);
 
+  const handleContinue = useCallback(async () => {
+    setIsHandlingContinue(true);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VERIFYING_REGISTRATION_CONTINUE_BUTTON,
+        })
+        .build(),
+    );
+
+    try {
+      dispatch(resetOnboardingState());
+      navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
+    } catch (error) {
+      Logger.log('VerifyingRegistration::handleContinue error', error);
+    } finally {
+      setIsHandlingContinue(false);
+    }
+  }, [navigation, dispatch, trackEvent, createEventBuilder]);
+
   const fetchUserDetails = useCallback(async () => {
     if (!sdk) {
       Logger.log('VerifyingRegistration: SDK not available');
@@ -96,22 +122,9 @@ const VerifyingRegistration = () => {
           timeoutRef.current = null;
         }
 
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings(
-                'card.card_onboarding.verifying_registration.success_toast',
-              ),
-            },
-          ],
-          iconName: IconName.Confirmation,
-          iconColor: theme.colors.success.default,
-          backgroundColor: theme.colors.success.muted,
-          hasNoTimeout: false,
-        });
-
-        navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
+        if (mountedRef.current) {
+          setStep('verified');
+        }
         return;
       }
 
@@ -145,14 +158,7 @@ const VerifyingRegistration = () => {
         setStep('error');
       }
     }
-  }, [
-    sdk,
-    navigation,
-    theme.colors.success.default,
-    theme.colors.success.muted,
-    toastRef,
-    setUser,
-  ]);
+  }, [sdk, setUser]);
 
   const startPolling = useCallback(() => {
     if (intervalRef.current) {
@@ -197,7 +203,7 @@ const VerifyingRegistration = () => {
 
   const headerRight = useMemo(
     () =>
-      step !== 'polling'
+      step !== 'polling' && step !== 'verified'
         ? () => (
             <ButtonIcon
               style={headerStyle.icon}
@@ -221,6 +227,9 @@ const VerifyingRegistration = () => {
 
   const renderFormFields = () => {
     switch (step) {
+      case 'verified':
+        return null; // Description will show the success message
+
       case 'error':
         return (
           <Box twClassName="items-center justify-center py-8 px-2">
@@ -275,10 +284,32 @@ const VerifyingRegistration = () => {
     }
   };
 
-  const renderActions = () => null;
+  const renderActions = () => {
+    if (step === 'verified') {
+      return (
+        <Button
+          variant={ButtonVariants.Primary}
+          label={strings(
+            'card.card_onboarding.verifying_registration.continue_button',
+          )}
+          size={ButtonSize.Lg}
+          onPress={handleContinue}
+          disabled={isHandlingContinue}
+          loading={isHandlingContinue}
+          width={ButtonWidthTypes.Full}
+          testID="verifying-registration-continue-button"
+        />
+      );
+    }
+    return null;
+  };
 
   const getTitle = () => {
     switch (step) {
+      case 'verified':
+        return strings(
+          'card.card_onboarding.verifying_registration.verified_title',
+        );
       case 'error':
         return strings(
           'card.card_onboarding.verifying_registration.server_error_title_main',
@@ -299,6 +330,10 @@ const VerifyingRegistration = () => {
 
   const getDescription = () => {
     switch (step) {
+      case 'verified':
+        return strings(
+          'card.card_onboarding.verifying_registration.verified_description',
+        );
       case 'error':
         return '';
       case 'rejected':
