@@ -548,6 +548,8 @@ generateAndroidBinary() {
 	# Define Test build type arg
 	local testBuildTypeArg=""
 
+	cp android/gradle.properties.github android/gradle.properties
+
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
 		# Configuration is not recognized
