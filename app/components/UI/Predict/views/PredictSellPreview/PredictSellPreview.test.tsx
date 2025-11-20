@@ -262,7 +262,7 @@ describe('PredictSellPreview', () => {
 
       expect(getAllByText('Cash out').length).toBeGreaterThan(0);
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
-      expect(getByText('$50.00 on Yes at 50¢')).toBeOnTheScreen();
+      expect(getByText('$50 on Bitcoin Price • Yes at 50¢')).toBeOnTheScreen();
       expect(
         queryByText('Funds will be added to your available balance'),
       ).toBeOnTheScreen();
@@ -273,7 +273,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('$60.00')).toBeOnTheScreen();
+      expect(screen.getByText('$60')).toBeOnTheScreen();
     });
 
     it('shows P&L percentage calculated from position data', () => {
@@ -281,7 +281,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('+$5.00 (20%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
     });
 
     it('shows negative P&L when minAmountReceived is less than initial value', () => {
@@ -314,7 +314,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('+$5.00 (-20%)')).toBeOnTheScreen();
+      expect(screen.getByText('-$10 (-20%)')).toBeOnTheScreen();
     });
 
     it('shows zero cents when preview sharePrice is zero', () => {
@@ -337,7 +337,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(getByText('At price: 0¢ per share')).toBeOnTheScreen();
+      expect(getByText('Selling 50 shares at 0¢')).toBeOnTheScreen();
     });
   });
 

@@ -141,8 +141,6 @@ describe('PredictActivityDetail', () => {
       expect(screen.getByText(expectedShares)).toBeOnTheScreen();
     });
 
-    expect(screen.getByText('Price impact')).toBeOnTheScreen();
-    expect(screen.getByText('1.5%')).toBeOnTheScreen();
     it('displays price per share with formatted value', () => {
       const activity = createActivityItem({
         type: PredictActivityType.BUY,
@@ -173,7 +171,7 @@ describe('PredictActivityDetail', () => {
       render(<PredictActivityDetail />);
 
       expect(screen.getByText('Price impact')).toBeOnTheScreen();
-      expect(screen.getByText('2%')).toBeOnTheScreen();
+      expect(screen.getByText('1.5%')).toBeOnTheScreen();
     });
 
     it('hides USDC badge for buy activities', () => {

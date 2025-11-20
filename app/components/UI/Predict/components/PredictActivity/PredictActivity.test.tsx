@@ -61,7 +61,7 @@ describe('PredictActivity', () => {
       expect(screen.getByText('Buy')).toBeOnTheScreen();
       expect(screen.getByText('Will ETF be approved?')).toBeOnTheScreen();
       expect(screen.getByText('-$1,234.50')).toBeOnTheScreen();
-      expect(screen.getByText('2%')).toBeOnTheScreen();
+      expect(screen.getByText('1.5%')).toBeOnTheScreen();
     });
 
     it('displays custom icon when icon URL is provided', () => {

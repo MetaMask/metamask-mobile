@@ -211,7 +211,7 @@ describe('MarketsWonCard', () => {
       expect(screen.getByText('Available Balance')).toBeOnTheScreen();
       expect(screen.getByText('$100.50')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('+$8.63 (+4%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$8.63 (+3.9%)')).toBeOnTheScreen();
     });
 
     it('displays formatted balance value', () => {
@@ -269,6 +269,114 @@ describe('MarketsWonCard', () => {
 
       expect(mockLoadBalance).toHaveBeenCalledWith({ isRefresh: true });
       expect(mockLoadUnrealizedPnL).toHaveBeenCalledWith({ isRefresh: true });
+    });
+  });
+
+  describe('loading states', () => {
+    it('displays skeleton loader when balance is loading', () => {
+      mockBalanceResult.isLoading = true;
+      mockBalanceResult.balance = 100.5;
+      const state = createTestState(100.5);
+
+      renderWithProvider(<MarketsWonCard />, { state });
+
+      expect(screen.getByTestId('markets-won-card')).toBeOnTheScreen();
+      expect(screen.getByTestId('markets-won-count')).toBeOnTheScreen();
+    });
+
+    it('displays skeleton loader when unrealized P&L is loading', () => {
+      mockUseUnrealizedPnL.mockReturnValue({
+        unrealizedPnL: {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: 0,
+          percentUpnl: 0,
+        },
+        isLoading: true,
+        isRefreshing: false,
+        error: null,
+        loadUnrealizedPnL: jest.fn(),
+      });
+      const state = createTestState(100.5);
+
+      renderWithProvider(<MarketsWonCard />, { state });
+
+      expect(screen.getByTestId('markets-won-card')).toBeOnTheScreen();
+    });
+  });
+
+  describe('empty state', () => {
+    it('returns null when no data is available', () => {
+      mockBalanceResult.balance = undefined;
+      mockBalanceResult.isLoading = false;
+      mockUseUnrealizedPnL.mockReturnValue({
+        unrealizedPnL: null,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadUnrealizedPnL: jest.fn(),
+      });
+      const state = createTestState();
+
+      const { toJSON } = renderWithProvider(<MarketsWonCard />, { state });
+
+      expect(toJSON()).toBeNull();
+    });
+  });
+
+  describe('error handling', () => {
+    it('calls onError callback when balance error occurs', () => {
+      const mockOnError = jest.fn();
+      mockBalanceResult.error = 'Balance fetch failed';
+      mockBalanceResult.balance = 100.5;
+      const state = createTestState(100.5);
+
+      renderWithProvider(<MarketsWonCard onError={mockOnError} />, { state });
+
+      expect(mockOnError).toHaveBeenCalledWith('Balance fetch failed');
+    });
+
+    it('calls onError callback when P&L error occurs', () => {
+      const mockOnError = jest.fn();
+      mockBalanceResult.error = null;
+      mockBalanceResult.balance = 100.5;
+      mockUseUnrealizedPnL.mockReturnValue({
+        unrealizedPnL: {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: 8.63,
+          percentUpnl: 3.9,
+        },
+        isLoading: false,
+        isRefreshing: false,
+        error: 'P&L fetch failed',
+        loadUnrealizedPnL: jest.fn(),
+      });
+      const state = createTestState(100.5);
+
+      renderWithProvider(<MarketsWonCard onError={mockOnError} />, { state });
+
+      expect(mockOnError).toHaveBeenCalledWith('P&L fetch failed');
+    });
+
+    it('prioritizes balance error over P&L error', () => {
+      const mockOnError = jest.fn();
+      mockBalanceResult.error = 'Balance error';
+      mockBalanceResult.balance = 100.5;
+      mockUseUnrealizedPnL.mockReturnValue({
+        unrealizedPnL: {
+          user: '0x1234567890123456789012345678901234567890',
+          cashUpnl: 8.63,
+          percentUpnl: 3.9,
+        },
+        isLoading: false,
+        isRefreshing: false,
+        error: 'P&L error',
+        loadUnrealizedPnL: jest.fn(),
+      });
+      const state = createTestState(100.5);
+
+      renderWithProvider(<MarketsWonCard onError={mockOnError} />, { state });
+
+      expect(mockOnError).toHaveBeenCalledWith('Balance error');
     });
   });
 });
