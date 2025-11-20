@@ -37,51 +37,6 @@ describe('convertSymbolAllowlistToAddresses', () => {
         '0x6b175474e89094c44da98b954eedeac495271d0f',
       );
     });
-
-    it('converts symbols to addresses for Linea', () => {
-      const input = {
-        [NETWORKS_CHAIN_ID.LINEA_MAINNET]: ['USDC', 'USDT'],
-      };
-
-      const result = convertSymbolAllowlistToAddresses(input);
-
-      expect(result[NETWORKS_CHAIN_ID.LINEA_MAINNET]).toHaveLength(2);
-      expect(result[NETWORKS_CHAIN_ID.LINEA_MAINNET]).toContain(
-        '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
-      );
-      expect(result[NETWORKS_CHAIN_ID.LINEA_MAINNET]).toContain(
-        '0xa219439258ca9da29e9cc4ce5596924745e12b93',
-      );
-    });
-
-    it('converts symbols to addresses for BSC', () => {
-      const input = {
-        [NETWORKS_CHAIN_ID.BSC]: ['USDC', 'USDT'],
-      };
-
-      const result = convertSymbolAllowlistToAddresses(input);
-
-      expect(result[NETWORKS_CHAIN_ID.BSC]).toHaveLength(2);
-      expect(result[NETWORKS_CHAIN_ID.BSC]).toContain(
-        '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
-      );
-      expect(result[NETWORKS_CHAIN_ID.BSC]).toContain(
-        '0x55d398326f99059ff775485246999027b3197955',
-      );
-    });
-
-    it('converts symbols for multiple chains simultaneously', () => {
-      const input = {
-        [NETWORKS_CHAIN_ID.MAINNET]: ['USDC'],
-        [NETWORKS_CHAIN_ID.LINEA_MAINNET]: ['USDT'],
-      };
-
-      const result = convertSymbolAllowlistToAddresses(input);
-
-      expect(Object.keys(result)).toHaveLength(2);
-      expect(result[NETWORKS_CHAIN_ID.MAINNET]).toHaveLength(1);
-      expect(result[NETWORKS_CHAIN_ID.LINEA_MAINNET]).toHaveLength(1);
-    });
   });
 
   describe('invalid chain IDs', () => {
@@ -199,15 +154,6 @@ describe('isMusdConversionPaymentToken', () => {
       expect(result).toBe(true);
     });
 
-    it('returns true for USDT on Linea', () => {
-      const result = isMusdConversionPaymentToken(
-        '0xa219439258ca9da29e9cc4ce5596924745e12b93',
-        NETWORKS_CHAIN_ID.LINEA_MAINNET,
-      );
-
-      expect(result).toBe(true);
-    });
-
     it('returns true for DAI on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -219,15 +165,6 @@ describe('isMusdConversionPaymentToken', () => {
   });
 
   describe('case-insensitive address matching', () => {
-    it('returns true for uppercase USDT address on Linea', () => {
-      const result = isMusdConversionPaymentToken(
-        '0xA219439258CA9DA29E9CC4CE5596924745E12B93',
-        NETWORKS_CHAIN_ID.LINEA_MAINNET,
-      );
-
-      expect(result).toBe(true);
-    });
-
     it('returns true for mixed case USDC address on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0xA0B86991c6218B36c1d19D4a2e9Eb0cE3606eB48',

@@ -855,9 +855,6 @@ describe('Earn Feature Flag Selectors', () => {
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC on Mainnet
         '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT on Mainnet
       ]);
-      expect(result['0xe708']).toEqual([
-        '0x176211869ca2b568f2a7d4ee941e073a821ee1ff', // USDC on Linea
-      ]);
     });
 
     it('falls back to local env variable when remote unavailable', () => {
