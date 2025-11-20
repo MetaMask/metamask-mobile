@@ -26,7 +26,6 @@ import {
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import {
-  PredictScreenStack,
   PredictModalStack,
   PredictMarketDetails,
   PredictSellPreview,
@@ -184,17 +183,6 @@ const TrendingView: React.FC = () => {
       <Stack.Screen
         name={Routes.EXPLORE_SEARCH}
         component={ExploreSearchScreen}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.ROOT}
-        component={PredictScreenStack}
-        options={{
-          headerShown: false,
-          cardStyle: {
-            backgroundColor: 'transparent',
-          },
-          animationEnabled: false,
-        }}
       />
       <Stack.Screen
         name={Routes.PREDICT.MODALS.ROOT}

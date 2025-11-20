@@ -46,7 +46,6 @@ describe('ExploreSearchBar', () => {
       const { getByTestId, getByDisplayValue } = render(
         <ExploreSearchBar
           type="interactive"
-          isSearchFocused
           searchQuery="bitcoin"
           onSearchChange={mockOnSearchChange}
           onCancel={mockOnCancel}
@@ -64,7 +63,6 @@ describe('ExploreSearchBar', () => {
       const { getByTestId } = render(
         <ExploreSearchBar
           type="interactive"
-          isSearchFocused
           searchQuery=""
           onSearchChange={mockOnSearchChange}
           onCancel={mockOnCancel}
@@ -85,7 +83,6 @@ describe('ExploreSearchBar', () => {
       const { getByTestId } = render(
         <ExploreSearchBar
           type="interactive"
-          isSearchFocused
           searchQuery="bitcoin"
           onSearchChange={mockOnSearchChange}
           onCancel={mockOnCancel}
@@ -102,7 +99,6 @@ describe('ExploreSearchBar', () => {
       const { queryByTestId } = render(
         <ExploreSearchBar
           type="interactive"
-          isSearchFocused
           searchQuery=""
           onSearchChange={mockOnSearchChange}
           onCancel={mockOnCancel}
@@ -119,7 +115,6 @@ describe('ExploreSearchBar', () => {
       const { getByTestId } = render(
         <ExploreSearchBar
           type="interactive"
-          isSearchFocused
           searchQuery="bitcoin"
           onSearchChange={mockOnSearchChange}
           onCancel={mockOnCancel}
@@ -140,7 +135,6 @@ describe('ExploreSearchBar', () => {
       const { getByTestId } = render(
         <ExploreSearchBar
           type="interactive"
-          isSearchFocused
           searchQuery=""
           onSearchChange={mockOnSearchChange}
           onCancel={mockOnCancel}
@@ -150,23 +144,6 @@ describe('ExploreSearchBar', () => {
       expect(getByTestId('explore-search-cancel-button')).toBeDefined();
     });
 
-    it('hides cancel button when search is not focused', () => {
-      const mockOnSearchChange = jest.fn();
-      const mockOnCancel = jest.fn();
-
-      const { queryByTestId } = render(
-        <ExploreSearchBar
-          type="interactive"
-          isSearchFocused={false}
-          searchQuery=""
-          onSearchChange={mockOnSearchChange}
-          onCancel={mockOnCancel}
-        />,
-      );
-
-      expect(queryByTestId('explore-search-cancel-button')).toBeNull();
-    });
-
     it('clears query and calls onCancel when cancel button is pressed', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
@@ -174,7 +151,6 @@ describe('ExploreSearchBar', () => {
       const { getByTestId } = render(
         <ExploreSearchBar
           type="interactive"
-          isSearchFocused
           searchQuery="bitcoin"
           onSearchChange={mockOnSearchChange}
           onCancel={mockOnCancel}
@@ -189,14 +165,13 @@ describe('ExploreSearchBar', () => {
       expect(mockOnCancel).toHaveBeenCalledTimes(1);
     });
 
-    it('sets autoFocus on TextInput based on isSearchFocused prop', () => {
+    it('sets autoFocus on TextInput based on  prop', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 
       const { getByTestId } = render(
         <ExploreSearchBar
           type="interactive"
-          isSearchFocused
           searchQuery=""
           onSearchChange={mockOnSearchChange}
           onCancel={mockOnCancel}
