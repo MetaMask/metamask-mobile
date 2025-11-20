@@ -214,7 +214,7 @@ describe('Approve', () => {
     );
   });
 
-  it('displays the latest nonce from transaction.transaction when showCustomNonce is true', async () => {
+  it('does not display nonce editor', async () => {
     const getNetworkNonceSpy = jest.spyOn(
       TransactionController,
       'getNetworkNonce',
@@ -222,9 +222,7 @@ describe('Approve', () => {
 
     const storeWithTransaction = mockStore(
       merge({}, store.getState(), {
-        settings: {
-          showCustomNonce: true,
-        },
+        settings: {},
         engine: {
           backgroundState: {
             TransactionController: {

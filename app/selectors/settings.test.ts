@@ -2,7 +2,6 @@ import { RootState } from '../reducers';
 
 import {
   selectPrimaryCurrency,
-  selectShowCustomNonce,
   selectShowFiatInTestnets,
 } from './settings';
 
@@ -27,17 +26,5 @@ describe('selectPrimaryCurrency', () => {
     };
 
     expect(selectPrimaryCurrency(mockState as RootState)).toBe('USD');
-  });
-});
-
-describe('selectShowCustomNonce', () => {
-  it('returns showCustomNonce from state', () => {
-    const mockState = {
-      settings: {
-        showCustomNonce: false,
-      },
-    };
-
-    expect(selectShowCustomNonce(mockState as RootState)).toBe(false);
   });
 });
