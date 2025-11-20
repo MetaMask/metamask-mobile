@@ -1,11 +1,11 @@
 import { handlePredictUrl } from './handlePredictUrl';
-import NavigationService from '../../NavigationService';
-import Routes from '../../../constants/navigation/Routes';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
+import NavigationService from '../../../NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import DevLogger from '../../../SDKConnect/utils/DevLogger';
 
 // Mock dependencies
-jest.mock('../../NavigationService');
-jest.mock('../../SDKConnect/utils/DevLogger');
+jest.mock('../../../NavigationService');
+jest.mock('../../../SDKConnect/utils/DevLogger');
 
 describe('handlePredictUrl', () => {
   let mockNavigate: jest.Mock;

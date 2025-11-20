@@ -1,13 +1,13 @@
 import { handlePerpsUrl } from './handlePerpsUrl';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
-import { PERFORMANCE_CONFIG } from '../../../components/UI/Perps/constants/perpsConfig';
-import { store } from '../../../store';
-import { selectIsFirstTimePerpsUser } from '../../../components/UI/Perps/selectors/perpsController';
+import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import { PERFORMANCE_CONFIG } from '../../../../components/UI/Perps/constants/perpsConfig';
+import { store } from '../../../../store';
+import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
 
 // Mock dependencies
-jest.mock('../../NavigationService');
+jest.mock('../../../NavigationService');
 jest.mock('../../SDKConnect/utils/DevLogger');
 jest.mock('../../../store');
 jest.mock('../../../components/UI/Perps/selectors/perpsController');

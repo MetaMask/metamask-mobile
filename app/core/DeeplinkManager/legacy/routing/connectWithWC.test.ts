@@ -1,5 +1,5 @@
 import connectWithWC from './connectWithWC';
-import WC2Manager from '../../WalletConnect/WalletConnectV2';
+import WC2Manager from '../../../WalletConnect/WalletConnectV2';
 
 jest.mock('../../../WalletConnect/WalletConnectV2');
 jest.mock('../../utils/extractURLParams');

@@ -8,8 +8,8 @@ import {
   HandlerResult,
 } from './interfaces/UniversalLinkHandler';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
-import { ACTIONS } from '../../../../constants/deeplinks';
-import ReduxService from '../../../redux';
+import { ACTIONS } from '../../../constants/deeplinks';
+import ReduxService from '../../redux';
 
 // Mock dependencies
 jest.mock('./CoreLinkNormalizer');

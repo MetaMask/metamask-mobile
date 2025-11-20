@@ -10,13 +10,13 @@ import {
 import {
   BridgeToken,
   BridgeViewMode,
-} from '../../../components/UI/Bridge/types';
-import Routes from '../../../constants/navigation/Routes';
-import { BridgeRouteParams } from '../../../components/UI/Bridge/Views/BridgeView';
-import { fetchAssetMetadata } from '../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
+} from '../../../../components/UI/Bridge/types';
+import Routes from '../../../../constants/navigation/Routes';
+import { BridgeRouteParams } from '../../../../components/UI/Bridge/Views/BridgeView';
+import { fetchAssetMetadata } from '../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
-import Engine from '../../Engine';
+import Engine from '../../../Engine';
 import { isHex } from 'viem';
 
 interface HandleSwapUrlParams {

@@ -1,14 +1,14 @@
 /* eslint-disable import/no-namespace */
-import * as AddressUtilsModule from '../../../util/address';
-import * as NetworksUtilsModule from '../../../util/networks';
-import * as TransactionsUtilsModule from '../../../util/transactions';
-import Engine from '../../Engine';
-import NotificationManager from '../../NotificationManager';
+import * as AddressUtilsModule from '../../../../util/address';
+import * as NetworksUtilsModule from '../../../../util/networks';
+import * as TransactionsUtilsModule from '../../../../util/transactions';
+import Engine from '../../../Engine';
+import NotificationManager from '../../../NotificationManager';
 import approveTransaction from './approveTransaction';
-import { addTransaction } from '../../../util/transaction-controller';
-import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import { addTransaction } from '../../../../util/transaction-controller';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { toHex } from '@metamask/controller-utils';
-import { validateWithPPOM } from '../../../components/Views/confirmations/utils/deeplink';
+import { validateWithPPOM } from '../../../../components/Views/confirmations/utils/deeplink';
 
 const MOCK_SENDER_ADDRESS = '0xMockSenderAddress';
 const MOCK_TARGET_ADDRESS = '0xTargetAddress';
