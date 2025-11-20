@@ -264,18 +264,7 @@ export const BridgeTokenSelector: React.FC = () => {
       tokensToDisplay = popularTokensWithBalance;
     }
 
-    // Filter to avoid matching source and destination tokens
-    const tokenToExclude =
-      route.params?.type === 'source' ? destToken : sourceToken;
-    const filteredTokensToDisplay = tokensToDisplay.filter(
-      (token) =>
-        !(
-          token?.address === tokenToExclude?.address &&
-          token?.chainId === tokenToExclude?.chainId
-        ),
-    );
-
-    return filteredTokensToDisplay;
+    return tokensToDisplay;
   }, [
     isPopularTokensLoading,
     isSearchLoading,
@@ -283,9 +272,6 @@ export const BridgeTokenSelector: React.FC = () => {
     searchResults,
     popularTokens,
     balancesByAssetId,
-    route.params?.type,
-    sourceToken,
-    destToken,
   ]);
 
   // Re-trigger search when chain IDs change if there's an active search
@@ -319,15 +305,27 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
-      // TODO: Implement token selection - dispatch to Redux and navigate back
-      dispatch(
-        route.params?.type === 'source'
-          ? setSourceToken(token)
-          : setDestToken(token),
-      );
+      const isSourcePicker = route.params?.type === 'source';
+      const otherToken = isSourcePicker ? destToken : sourceToken;
+
+      // Check if the selected token matches the "other" token (dest when selecting source, source when selecting dest)
+      const isSelectingOtherToken =
+        otherToken &&
+        token.address === otherToken.address &&
+        token.chainId === otherToken.chainId;
+
+      if (isSelectingOtherToken && sourceToken && destToken) {
+        // Swap the tokens: old source becomes dest, old dest becomes source
+        dispatch(setSourceToken(destToken));
+        dispatch(setDestToken(sourceToken));
+      } else {
+        // Normal selection: just update the current token
+        dispatch(isSourcePicker ? setSourceToken(token) : setDestToken(token));
+      }
+
       navigation.goBack();
     },
-    [navigation, dispatch, route.params?.type],
+    [navigation, dispatch, route.params?.type, sourceToken, destToken],
   );
 
   const handleInfoButtonPress = useCallback(
