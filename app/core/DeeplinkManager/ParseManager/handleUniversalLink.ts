@@ -205,9 +205,6 @@ async function handleUniversalLink({
       });
     }));
 
-  // Universal links
-  handled();
-
   if (!shouldProceed) {
     return false;
   }
@@ -224,6 +221,7 @@ async function handleUniversalLink({
     '🔗 handleUniversalLink wasHandledByNewRouter',
     wasHandledByNewRouter,
   );
+
   if (wasHandledByNewRouter) {
     handled();
     return;
