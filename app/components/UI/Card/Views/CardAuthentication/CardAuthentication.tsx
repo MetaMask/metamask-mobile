@@ -1,11 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -15,8 +9,14 @@ import {
   View,
   TextInput,
   StyleSheet,
+  TextInputProps,
 } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import Icon, {
   IconName,
@@ -46,6 +46,7 @@ import Logger from '../../../../../util/Logger';
 import {
   CodeField,
   Cursor,
+  useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -56,6 +57,10 @@ import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const CELL_COUNT = 6;
+const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+  android: 'sms-otp',
+  default: 'one-time-code',
+});
 
 // Styles for the OTP CodeField
 const createOtpStyles = (params: { theme: Theme }) => {
@@ -102,7 +107,6 @@ const CardAuthentication = () => {
     string | null
   >(null);
   const [resendCountdown, setResendCountdown] = useState(60);
-  const otpInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
   const theme = useTheme();
   const {
@@ -174,12 +178,18 @@ const CardAuthentication = () => {
     }
   }, [step, resendCountdown]);
 
+  const otpInputRef =
+    useBlurOnFulfill({
+      value: confirmCode,
+      cellCount: CELL_COUNT,
+    }) || null;
+
   // Focus OTP input when entering OTP step
   useEffect(() => {
     if (step === 'otp') {
       otpInputRef.current?.focus();
     }
-  }, [step]);
+  }, [step, otpInputRef]);
 
   useEffect(() => {
     const screenName =
@@ -360,7 +370,7 @@ const CardAuthentication = () => {
                       )}
                     </Label>
                     <CodeField
-                      ref={otpInputRef}
+                      ref={otpInputRef as React.RefObject<TextInput>}
                       {...props}
                       value={confirmCode}
                       onChangeText={handleOtpValueChange}
@@ -368,7 +378,7 @@ const CardAuthentication = () => {
                       rootStyle={otpStyles.codeFieldRoot}
                       keyboardType="number-pad"
                       textContentType="oneTimeCode"
-                      autoComplete="one-time-code"
+                      autoComplete={autoComplete}
                       renderCell={({ index, symbol, isFocused }) => (
                         <View
                           onLayout={getCellOnLayoutHandler(index)}
@@ -388,6 +398,16 @@ const CardAuthentication = () => {
                       )}
                     />
                   </Box>
+                  {otpError && (
+                    <Box style={styles.errorBox}>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        style={{ color: theme.colors.error.default }}
+                      >
+                        {otpError}
+                      </Text>
+                    </Box>
+                  )}
                   <Box twClassName="mt-4 items-center">
                     {resendCountdown > 0 ? (
                       <Text
@@ -413,16 +433,6 @@ const CardAuthentication = () => {
                     )}
                   </Box>
                 </Box>
-                {otpError && (
-                  <Box style={styles.errorBox}>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      style={{ color: theme.colors.error.default }}
-                    >
-                      {otpError}
-                    </Text>
-                  </Box>
-                )}
               </Box>
               <Box twClassName="gap-2">
                 <Button
@@ -603,14 +613,18 @@ const CardAuthentication = () => {
                 width={ButtonWidthTypes.Full}
                 disabled={isLoginDisabled || loading}
               />
-              <Button
-                variant={ButtonVariants.Secondary}
-                label={strings('card.card_authentication.signup_button')}
-                size={ButtonSize.Lg}
-                testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
+              <TouchableOpacity
                 onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
-                width={ButtonWidthTypes.Full}
-              />
+              >
+                <Text
+                  testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-default text-center p-4"
+                >
+                  {strings('card.card_authentication.signup_button')}
+                </Text>
+              </TouchableOpacity>
             </Box>
           </Box>
         </ScrollView>

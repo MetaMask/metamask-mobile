@@ -154,11 +154,13 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 18,
+                  "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "textAlign": "center",
                 }
               }
+              testID="header-title"
             >
               Disconnect all
             </Text>

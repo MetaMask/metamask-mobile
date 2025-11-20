@@ -23,6 +23,7 @@ import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
+import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -64,6 +65,13 @@ const PerpsModalStack = () => (
           component={PerpsCancelAllOrdersView}
           options={{
             title: strings('perps.cancel_all_modal.title'),
+          }}
+        />
+        <ModalStack.Screen
+          name={Routes.PERPS.MODALS.CROSS_MARGIN_WARNING}
+          component={PerpsCrossMarginWarningBottomSheet}
+          options={{
+            title: strings('perps.crossMargin.title'),
           }}
         />
       </ModalStack.Navigator>
@@ -118,7 +126,6 @@ const PerpsScreenStack = () => (
           options={{
             title: strings('perps.markets.title'),
             headerShown: false,
-            animationEnabled: false,
           }}
         />
 
@@ -254,6 +261,8 @@ const PerpsScreenStack = () => (
           name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
           component={Confirm}
           options={{
+            headerLeft: () => null,
+            headerShown: true,
             title: '',
           }}
         />

@@ -31,7 +31,10 @@ export { usePerpsPrices } from './usePerpsPrices';
 export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
-export { usePerpsMarketData } from './usePerpsMarketData';
+export {
+  usePerpsMarketData,
+  type UsePerpsMarketDataParams,
+} from './usePerpsMarketData';
 export { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Withdrawal specific hooks
@@ -48,6 +51,7 @@ export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
 export { usePerpsRewards } from './usePerpsRewards';
+export { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
 export { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
 export { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
 export { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';

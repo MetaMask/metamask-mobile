@@ -22,8 +22,9 @@ const CONFIG_MAP = {
   rc: {
     channel: 'preview',
     runtimeVersion: RUNTIME_VERSION,
-    updatesEnabled: false,
+    updatesEnabled: true,
     updateUrl: UPDATE_URL,
+    checkAutomatically: 'NEVER',
   },
 };
 
@@ -68,8 +69,9 @@ function getConfigForEnvironment() {
  * @param {string} runtimeVersion
  * @param {boolean} updatesEnabled
  * @param {string} updateUrl
+ * @param {string} checkAutomatically
  */
-function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled, updateUrl) {
+function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically) {
   let content = fs.readFileSync(filePath, 'utf8');
 
   // Update or insert UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY (JSON header with channel)
@@ -114,6 +116,20 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
     );
   }
 
+  // Update or insert EXPO_UPDATES_CHECK_ON_LAUNCH
+  const checkAutomaticallyKey = EXPO_CONFIG_MAP.checkAutomatically.android;
+  if (content.includes(checkAutomaticallyKey)) {
+    content = content.replace(
+      /<meta-data android:name="expo\.modules\.updates\.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="[^"]*" \/>/g,
+      `<meta-data android:name="${checkAutomaticallyKey}" android:value="${checkAutomatically}" />`
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/application>/,
+      `\n\t\t<meta-data android:name="${checkAutomaticallyKey}" android:value="${checkAutomatically}" />$1</application>`
+    );
+  }
+
   // Only toggle expo.modules.updates.ENABLED; rely on defaults for the rest
   const enabledKey = EXPO_CONFIG_MAP.enabled.android;
   const enabledValue = updatesEnabled ? 'true' : 'false';
@@ -141,9 +157,10 @@ function updateAndroidManifest(filePath, channelName, runtimeVersion, updatesEna
  * @param {string} fileName
  * @param {boolean} updatesEnabled
  * @param {string} updateUrl
+ * @param {string} checkAutomatically
  */
-function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled, updateUrl) {
-  console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}, updateUrl=${updateUrl}`);
+function updatePlistFile(filePath, channelName, runtimeVersion, fileName, updatesEnabled, updateUrl, checkAutomatically) {
+  console.log(`Updating ${fileName}: channel=${channelName}, runtime=${runtimeVersion}, EXUpdatesEnabled=${updatesEnabled}, updateUrl=${updateUrl}, checkAutomatically=${checkAutomatically}`);
 
   let content = fs.readFileSync(filePath, 'utf8');
 
@@ -196,7 +213,21 @@ function updatePlistFile(filePath, channelName, runtimeVersion, fileName, update
     );
   }
 
-  // Only toggle EXUpdatesEnabled; do not modify CheckOnLaunch or LaunchWaitMs
+  // Update or insert EXUpdatesCheckOnLaunch
+  const checkAutomaticallyKey = EXPO_CONFIG_MAP.checkAutomatically.ios;
+  if (content.includes(`<key>${checkAutomaticallyKey}</key>`)) {
+    content = content.replace(
+      new RegExp(`(<key>${checkAutomaticallyKey}<\\/key>\\s*<string>)[^<]*(<\\/string>)`),
+      `$1${checkAutomatically}$2`
+    );
+  } else {
+    content = content.replace(
+      /(\s*)<\/dict>\s*<\/plist>/,
+      `\n\t<key>${checkAutomaticallyKey}</key>\n\t<string>${checkAutomatically}</string>$1</dict>\n</plist>`
+    );
+  }
+
+  // Only toggle EXUpdatesEnabled; do not modify LaunchWaitMs
   const enabledKey = EXPO_CONFIG_MAP.enabled.ios;
   if (content.includes(`<key>${enabledKey}</key>`)) {
     content = content.replace(
@@ -241,14 +272,14 @@ function main() {
   console.log(`Environment: ${environment}`);
 
   // Skip configuration for production environment
-  if (environment === 'production') {
+  if (environment === 'production' || environment === 'dev') {
     console.log('ℹ️  Production environment detected - skipping Expo Updates configuration');
     console.log('✓ No configuration changes made');
     return;
   }
 
   // Get configuration for this environment
-  const { channel, runtimeVersion, updatesEnabled, updateUrl } = getConfigForEnvironment(environment);
+  const { channel, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically } = getConfigForEnvironment(environment);
 
   // Check if files exist
   if (!fs.existsSync(ANDROID_MANIFEST_PATH)) {
@@ -263,8 +294,8 @@ function main() {
 
 
   try {
-    updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled, updateUrl);
-    updatePlistFile(IOS_EXPO_PLIST_PATH, channel, runtimeVersion, 'Expo.plist', updatesEnabled, updateUrl);
+    updateAndroidManifest(ANDROID_MANIFEST_PATH, channel, runtimeVersion, updatesEnabled, updateUrl, checkAutomatically);
+    updatePlistFile(IOS_EXPO_PLIST_PATH, channel, runtimeVersion, 'Expo.plist', updatesEnabled, updateUrl, checkAutomatically);
 
     console.log('✓ All files updated successfully!');
   } catch (error) {
@@ -283,4 +314,3 @@ module.exports = {
   updatePlistFile,
   CONFIG_MAP,
 };
-
