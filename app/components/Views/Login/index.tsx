@@ -142,8 +142,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const setAllowLoginWithRememberMe = (enabled: boolean) =>
-    setAllowLoginWithRememberMeUtil(enabled);
+
+  const setAllowLoginWithRememberMe = useCallback(
+    (enabled: boolean) => setAllowLoginWithRememberMeUtil(enabled),
+    [],
+  );
   // coming from vault recovery flow flag
   const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
@@ -151,22 +154,25 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     selectIsSeedlessPasswordOutdated,
   );
 
-  const track = (
-    event: IMetaMetricsEvent,
-    properties: Record<string, string | boolean | number>,
-  ) => {
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-      saveOnboardingEvent,
-    );
-  };
+  const track = useCallback(
+    (
+      event: IMetaMetricsEvent,
+      properties: Record<string, string | boolean | number>,
+    ) => {
+      trackOnboarding(
+        MetricsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
+          .build(),
+        saveOnboardingEvent,
+      );
+    },
+    [saveOnboardingEvent],
+  );
 
-  const handleBackPress = () => {
+  const handleBackPress = useCallback(() => {
     Authentication.lockApp();
     return false;
-  };
+  }, []);
 
   const updateBiometryChoice = useCallback(
     async (newBiometryChoice: boolean) => {
@@ -198,42 +204,45 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       clearTimeout(timeoutId);
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleBackPress, track, navigation]);
+
+  const getUserAuthPreferences = useCallback(async () => {
+    const authData = await Authentication.getType();
+
+    //Setup UI to handle Biometric
+    const previouslyDisabled = await StorageWrapper.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
+
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+      setBiometryType(passcodeType(authData.currentAuthType));
+      setHasBiometricCredentials(!route?.params?.locked);
+      setBiometryChoice(
+        !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+      );
+    } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
+      setHasBiometricCredentials(false);
+      setRememberMe(true);
+      setAllowLoginWithRememberMe(true);
+    } else if (authData.availableBiometryType) {
+      Logger.log('authData', authData);
+      setBiometryType(authData.availableBiometryType);
+      setHasBiometricCredentials(
+        authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+      setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
+    }
+
+    Logger.log(
+      `Login: Auth preferences loaded - authType: ${authData.currentAuthType}, locked: ${route?.params?.locked}`,
+    );
+  }, [route?.params?.locked, setAllowLoginWithRememberMe]);
 
   useEffect(() => {
-    const getUserAuthPreferences = async () => {
-      const authData = await Authentication.getType();
-
-      //Setup UI to handle Biometric
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const passcodePreviouslyDisabled =
-        await StorageWrapper.getItem(PASSCODE_DISABLED);
-
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
-        setBiometryType(passcodeType(authData.currentAuthType));
-        setHasBiometricCredentials(!route?.params?.locked);
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
-      } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
-        setHasBiometricCredentials(false);
-        setRememberMe(true);
-        setAllowLoginWithRememberMe(true);
-      } else if (authData.availableBiometryType) {
-        Logger.log('authData', authData);
-        setBiometryType(authData.availableBiometryType);
-        setHasBiometricCredentials(
-          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
-        );
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-      }
-    };
-
     getUserAuthPreferences();
-  }, [route?.params?.locked]);
+  }, [getUserAuthPreferences]);
 
   const handleVaultCorruption = useCallback(async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
@@ -455,7 +464,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } catch (tryBiometricError) {
       setHasBiometricCredentials(true);
       setLoading(false);
-      Logger.log(tryBiometricError);
+
+      const errorMessage = (tryBiometricError as Error)?.message || '';
+      const isUserCancelled = errorMessage.includes('code: 13');
+
+      if (isUserCancelled) {
+        Logger.log(
+          'Login: Biometric cancelled by user - disabling biometry choice for this session',
+        );
+      } else {
+        Logger.error(
+          tryBiometricError as Error,
+          'Login: Biometric authentication failed',
+        );
+      }
     }
   }, [checkMetricsUISeen]);
 

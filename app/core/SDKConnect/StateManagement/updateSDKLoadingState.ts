@@ -24,13 +24,13 @@ async function updateSDKLoadingState({
   DevLogger.log(
     `updateSDKLoadingState:: currentRouteName=${currentRouteName} loading=${loading}`,
   );
+  // Skip showing SDK loading state on these screens
   const skipRoutes = [
-    Routes.LOCK_SCREEN,
-    Routes.ONBOARDING.LOGIN,
-    Routes.SHEET.ACCOUNT_CONNECT,
+    Routes.ONBOARDING.LOGIN, // User is authenticating
+    Routes.SHEET.ACCOUNT_CONNECT, // User is approving connection
   ];
   if (currentRouteName && skipRoutes.includes(currentRouteName)) {
-    // Skip on lock screen
+    // Skip on authentication/connection screens
     return;
   }
 

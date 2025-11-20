@@ -9,6 +9,7 @@ import { createTurnOffRememberMeModalNavDetails } from '../../../..//UI/TurnOffR
 import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
+import Logger from '../../../../../util/Logger';
 
 const RememberMeOptionSection = () => {
   const { navigate } = useNavigation();
@@ -32,17 +33,47 @@ const RememberMeOptionSection = () => {
   const dispatch = useDispatch();
 
   const toggleRememberMe = useCallback(
-    (value: boolean) => {
+    async (value: boolean) => {
       dispatch(setAllowLoginWithRememberMe(value));
+
+      if (value) {
+        // When enabling Remember Me, re-store password with REMEMBER_ME type
+        // This removes biometric/passcode protection for convenience
+        try {
+          const credentials = await Authentication.getPassword();
+          if (
+            credentials &&
+            typeof credentials === 'object' &&
+            credentials.password
+          ) {
+            await Authentication.storePassword(
+              credentials.password,
+              AUTHENTICATION_TYPE.REMEMBER_ME,
+            );
+            Logger.log(
+              'RememberMe: Password re-stored with REMEMBER_ME type (no biometric)',
+            );
+          }
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'RememberMe: Failed to re-store password:',
+          );
+        }
+      }
     },
     [dispatch],
   );
 
   const onValueChanged = useCallback(
     (enabled: boolean) => {
-      isUsingRememberMe
-        ? navigate(...createTurnOffRememberMeModalNavDetails())
-        : toggleRememberMe(enabled);
+      if (isUsingRememberMe) {
+        navigate(...createTurnOffRememberMeModalNavDetails());
+      } else {
+        toggleRememberMe(enabled).catch((err) => {
+          console.error('Failed to toggle Remember Me:', err);
+        });
+      }
     },
     [isUsingRememberMe, navigate, toggleRememberMe],
   );
