@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PredictPosition } from '../types';
 import { usePredictPositions } from './usePredictPositions';
 
@@ -32,6 +32,10 @@ export const usePredictOptimisticPositionRefresh = ({
     refreshOnFocus: false,
   });
 
+  // Store loadPositions in a ref to avoid effect restarts when its identity changes
+  const loadPositionsRef = useRef(loadPositions);
+  loadPositionsRef.current = loadPositions;
+
   // Update current position when positions from the hook change
   useEffect(() => {
     const updatedPosition = positions.find(
@@ -55,7 +59,7 @@ export const usePredictOptimisticPositionRefresh = ({
       if (!shouldContinue) return;
 
       try {
-        await loadPositions({ isRefresh: true });
+        await loadPositionsRef.current({ isRefresh: true });
       } catch (error) {
         // Continue polling even if an individual request fails
         // This ensures we keep trying to get updated position data
@@ -77,7 +81,7 @@ export const usePredictOptimisticPositionRefresh = ({
         clearTimeout(timeoutId);
       }
     };
-  }, [currentPosition.optimistic, loadPositions, pollingInterval]);
+  }, [currentPosition.optimistic, pollingInterval]);
 
   return currentPosition;
 };
