@@ -51,6 +51,7 @@ describe('usePerpsLiveCandles', () => {
     expect(mockCandleSubscribe).toHaveBeenCalledWith({
       coin: 'BTC',
       interval: CandlePeriod.ONE_HOUR,
+      duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
       throttleMs: 1000,
     });
@@ -100,6 +101,7 @@ describe('usePerpsLiveCandles', () => {
     expect(mockCandleSubscribe).toHaveBeenLastCalledWith({
       coin: 'ETH',
       interval: CandlePeriod.ONE_HOUR,
+      duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
       throttleMs: 1000,
     });
@@ -132,6 +134,7 @@ describe('usePerpsLiveCandles', () => {
     expect(mockCandleSubscribe).toHaveBeenLastCalledWith({
       coin: 'BTC',
       interval: CandlePeriod.FIVE_MINUTES,
+      duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
       throttleMs: 1000,
     });
@@ -266,6 +269,7 @@ describe('usePerpsLiveCandles', () => {
     expect(mockCandleSubscribe).toHaveBeenCalledWith({
       coin: 'BTC',
       interval: CandlePeriod.ONE_HOUR,
+      duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
       throttleMs: 1000,
     });
