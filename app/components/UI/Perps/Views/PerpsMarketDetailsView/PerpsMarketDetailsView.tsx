@@ -527,28 +527,50 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   }, [market, isWatchlist, track]);
 
-  const handleLongPress = () => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
+  const handleTradeAction = useCallback(
+    (direction: 'long' | 'short') => {
+      if (!isEligible) {
+        setIsEligibilityModalVisible(true);
+        return;
+      }
 
-    navigateToOrder({
-      direction: 'long',
-      asset: market.symbol,
-    });
+      // Check for cross-margin position (MetaMask only supports isolated margin)
+      if (existingPosition?.leverage?.type === 'cross') {
+        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]:
+            'Cross margin position detected',
+        });
+
+        return;
+      }
+
+      navigateToOrder({
+        direction,
+        asset: market.symbol,
+      });
+    },
+    [
+      isEligible,
+      existingPosition,
+      navigation,
+      track,
+      navigateToOrder,
+      market?.symbol,
+    ],
+  );
+
+  const handleLongPress = () => {
+    handleTradeAction('long');
   };
 
   const handleShortPress = () => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    navigateToOrder({
-      direction: 'short',
-      asset: market.symbol,
-    });
+    handleTradeAction('short');
   };
 
   const { navigateToConfirmation } = useConfirmNavigation();

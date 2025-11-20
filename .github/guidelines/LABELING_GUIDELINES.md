@@ -19,10 +19,6 @@ The check can be bypassed when necessary, either by setting the changelog entry 
 
 Any label can be manually added on demand depending on the PR's content. For instance, the label **QA passed** will indicate that a thorough manual testing has been performed and the PR is ready to be merged. In addition, following labels have some specific use cases.
 
-### Run Flask Android E2E tests
-
-- **run-android-flask-e2e-smoke**: The Android Flask E2E smoke tests jobs will run in the given PR. They also run on schedule on main branch.
-
 ### Bypass Quality Gates
 
 Using any of these labels should be exceptional in case of CI friction and urgencies. Please use them reasonably and verify new changes and regressions manually.

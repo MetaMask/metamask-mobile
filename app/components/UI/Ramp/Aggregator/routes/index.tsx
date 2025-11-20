@@ -1,7 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Quotes from '../Views/Quotes';
-import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
 import TokenSelectModal from '../components/TokenSelectModal/TokenSelectModal';
@@ -28,10 +27,9 @@ const clearStackNavigatorOptions = {
 
 const MainRoutes = () => (
   <Stack.Navigator
-    initialRouteName={Routes.RAMP.GET_STARTED}
+    initialRouteName={Routes.RAMP.BUILD_QUOTE}
     headerMode="screen"
   >
-    <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
     <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
     <Stack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
@@ -102,11 +100,8 @@ const RampModalsRoutes = () => (
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator
-      initialRouteName={Routes.RAMP.GET_STARTED}
-      headerMode="none"
-    >
-      <Stack.Screen name={Routes.RAMP.GET_STARTED} component={MainRoutes} />
+    <Stack.Navigator initialRouteName={Routes.RAMP.ID} headerMode="none">
+      <Stack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
       <Stack.Screen
         name={Routes.RAMP.MODALS.ID}
         component={RampModalsRoutes}

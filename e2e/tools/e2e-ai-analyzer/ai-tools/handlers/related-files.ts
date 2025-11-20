@@ -17,6 +17,13 @@ function escapeShell(str: string): string {
   return str.replace(/[`$\\"\n]/g, '\\$&');
 }
 
+/**
+ * Escapes grep regex metacharacters to treat as literal
+ */
+function escapeGrepRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export function handleRelatedFiles(input: ToolInput, baseDir: string): string {
   const filePath = escapeShell(input.file_path as string);
   const searchType = input.search_type as string;
@@ -123,20 +130,31 @@ function findImporters(
   maxResults: number,
 ): string {
   try {
-    const fileName = escapeShell(
+    const rawFileName =
       filePath
         .replace(/^app\//, '')
         .replace(/\.(ts|tsx|js|jsx)$/, '')
         .split('/')
-        .pop() || '',
-    );
+        .pop() || '';
 
-    if (!fileName) {
+    if (!rawFileName) {
       return `Cannot extract filename from ${filePath}`;
     }
 
+    // Escape fileName for grep regex (. * + ? etc. become literals)
+    const fileNameEscaped = escapeGrepRegex(rawFileName);
+
+    // Then escape for shell
+    const fileNameSafe = escapeShell(fileNameEscaped);
+
+    // Find files that import this file
+    // Pattern matches: from './fileName' or from "../fileName" (with space after from)
+    // Build pattern with properly escaped quotes for shell
+    // eslint-disable-next-line no-useless-escape
+    const pattern = `from ['\\\"].*${fileNameSafe}`; // from ['\"].*fileName
+
     const importers = execSync(
-      `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" "from.*['"].*${fileName}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
+      `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" -E "${pattern}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
       { encoding: 'utf-8', cwd: baseDir },
     )
       .trim()
