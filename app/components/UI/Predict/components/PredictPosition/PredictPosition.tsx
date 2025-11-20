@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import Text, {
   TextColor,
@@ -46,28 +46,18 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   }, [positions, position.marketId, position.outcomeId]);
 
   // Auto-refresh for optimistic positions
-  const autoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
   useEffect(() => {
-    // Clear any existing interval
-    if (autoRefreshIntervalRef.current) {
-      clearInterval(autoRefreshIntervalRef.current);
-      autoRefreshIntervalRef.current = null;
-    }
+    let intervalId: NodeJS.Timeout | null = null;
 
-    // If current position is optimistic, start auto-refresh
     if (currentPosition.optimistic) {
-      // Set up 2-second auto-refresh interval
-      autoRefreshIntervalRef.current = setInterval(() => {
+      intervalId = setInterval(() => {
         loadPositions({ isRefresh: true });
       }, 2000);
     }
 
-    // Cleanup on unmount or when optimistic changes
     return () => {
-      if (autoRefreshIntervalRef.current) {
-        clearInterval(autoRefreshIntervalRef.current);
-        autoRefreshIntervalRef.current = null;
+      if (intervalId) {
+        clearInterval(intervalId);
       }
     };
   }, [currentPosition.optimistic, loadPositions]);
