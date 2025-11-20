@@ -316,12 +316,12 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
       // Fetch historical candles via controller
       const newCandleData =
-        await Engine.context.PerpsController.fetchHistoricalCandles({
+        await Engine.context.PerpsController.fetchHistoricalCandles(
           coin,
           interval,
           limit,
           endTime,
-        });
+        );
 
       if (!newCandleData || newCandleData.candles.length === 0) {
         DevLogger.log(
