@@ -22,7 +22,7 @@ jobs:
     # - schedule: always run
     # - merge_group: never run
     # - pull_request: run only if PR has 'run-android-flask-e2e-smoke' label
-    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') && github.event.pull_request.merged == false)) }}
+    # TEMPORARILY DISABLED FOR TESTING: if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') && github.event.pull_request.merged == false)) }}
     uses: ./.github/workflows/needs-e2e-build.yml
 
   # NEW: Explicitly build Main app first within this workflow
@@ -50,7 +50,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-main-apps] # Depend on Main build
+    needs: [build-android-main-apps] # Only depend on Main build (removed needs_e2e_build dependency)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -126,7 +126,7 @@ jobs:
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
+    I ${{ !cancelled() }}
     needs:
       - flask-android-smoke
     steps:
