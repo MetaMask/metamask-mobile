@@ -72,11 +72,14 @@ jest.mock('../../../../core/SDKConnectV2', () => ({
   },
 }));
 
-jest.mock('../../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  default: {
-    init: jest.fn(),
-  },
-}));
+jest.mock(
+  '../../../../core/DeeplinkManager/entry/SharedDeeplinkManager',
+  () => ({
+    default: {
+      init: jest.fn(),
+    },
+  }),
+);
 
 jest.mock('../../../../selectors/transactionController', () => ({
   selectNonReplacedTransactions: () => [],
