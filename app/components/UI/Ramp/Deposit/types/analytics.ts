@@ -68,6 +68,7 @@ interface RampsOrderProposed {
   currency_destination_network?: string;
   currency_source: string;
   is_authenticated: boolean;
+  first_time_order?: boolean;
 }
 
 interface RampsOrderSelected {
