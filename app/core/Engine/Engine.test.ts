@@ -44,9 +44,6 @@ jest.mock('../../store', () => ({
       },
     })),
   },
-  runSaga: jest
-    .fn()
-    .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
