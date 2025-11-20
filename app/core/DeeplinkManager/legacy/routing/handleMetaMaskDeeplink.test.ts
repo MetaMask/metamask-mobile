@@ -9,11 +9,15 @@ import WC2Manager from '../../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from '../../utils/extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
+import handleRampUrl from '../handlers/handleRampUrl';
+import handleDepositCashUrl from '../handlers/handleDepositCashUrl';
 
 jest.mock('../../../AppConstants');
 jest.mock('../../../SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../SDKConnect/SDKConnect');
 jest.mock('../../../WalletConnect/WalletConnectV2');
+jest.mock('../handlers/handleRampUrl');
+jest.mock('../handlers/handleDepositCashUrl');
 jest.mock('../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
@@ -22,10 +26,6 @@ jest.mock('../../../NativeModules', () => ({
 
 describe('handleMetaMaskProtocol', () => {
   const mockParse = jest.fn();
-  const mockHandleBuyCrypto = jest.fn();
-  const mockHandleSellCrypto = jest.fn();
-  const mockHandleDepositCash = jest.fn();
-  const mockHandleBrowserUrl = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -38,13 +38,16 @@ describe('handleMetaMaskProtocol', () => {
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;
+  const mockHandleRampUrl = handleRampUrl as jest.MockedFunction<
+    typeof handleRampUrl
+  >;
+  const mockHandleDepositCashUrl = handleDepositCashUrl as jest.MockedFunction<
+    typeof handleDepositCashUrl
+  >;
 
   const instance = {
     parse: mockParse,
-    _handleBuyCrypto: mockHandleBuyCrypto,
-    _handleSellCrypto: mockHandleSellCrypto,
-    _handleDepositCash: mockHandleDepositCash,
-    _handleBrowserUrl: mockHandleBrowserUrl,
+    navigation: mockNavigate,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -502,7 +505,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`;
     });
 
-    it('should call _handleBuyCrypto', () => {
+    it('calls handleRampUrl with BUY type', () => {
       handleMetaMaskDeeplink({
         instance,
         handled,
@@ -512,7 +515,12 @@ describe('handleMetaMaskProtocol', () => {
         wcURL,
       });
 
-      expect(mockHandleBuyCrypto).toHaveBeenCalled();
+      expect(mockHandleRampUrl).toHaveBeenCalledWith(
+        expect.objectContaining({
+          navigation: mockNavigate,
+          rampType: expect.any(String), // RampType.BUY
+        }),
+      );
     });
   });
 
@@ -521,7 +529,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`;
     });
 
-    it('should call _handleSellCrypto', () => {
+    it('calls handleRampUrl with SELL type', () => {
       handleMetaMaskDeeplink({
         instance,
         handled,
@@ -531,7 +539,12 @@ describe('handleMetaMaskProtocol', () => {
         wcURL,
       });
 
-      expect(mockHandleSellCrypto).toHaveBeenCalled();
+      expect(mockHandleRampUrl).toHaveBeenCalledWith(
+        expect.objectContaining({
+          navigation: mockNavigate,
+          rampType: expect.any(String), // RampType.SELL
+        }),
+      );
     });
   });
 
@@ -540,7 +553,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`;
     });
 
-    it('should call _handleDepositCash', () => {
+    it('calls handleDepositCashUrl', () => {
       handleMetaMaskDeeplink({
         instance,
         handled,
@@ -550,7 +563,11 @@ describe('handleMetaMaskProtocol', () => {
         wcURL,
       });
 
-      expect(mockHandleDepositCash).toHaveBeenCalled();
+      expect(mockHandleDepositCashUrl).toHaveBeenCalledWith(
+        expect.objectContaining({
+          navigation: mockNavigate,
+        }),
+      );
     });
   });
 });

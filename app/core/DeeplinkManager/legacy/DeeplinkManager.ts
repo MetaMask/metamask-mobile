@@ -2,19 +2,9 @@
 
 import { ParseOutput } from 'eth-url-parser';
 import { Dispatch } from 'redux';
-import handleBrowserUrl from './handlers/handleBrowserUrl';
-import handleEthereumUrl from './handlers/handleEthereumUrl';
-import handleRampUrl from './handlers/handleRampUrl';
-import handleDepositCashUrl from './handlers/handleDepositCashUrl';
 import switchNetwork from './handlers/switchNetwork';
 import parseDeeplink from './routing/parseDeeplink';
 import approveTransaction from './transactions/approveTransaction';
-import { RampType } from '../../../reducers/fiatOrders/types';
-import { handleSwapUrl } from './handlers/handleSwapUrl';
-import { navigateToHomeUrl } from './handlers/handleHomeUrl';
-import Routes from '../../../constants/navigation/Routes';
-import { handleCreateAccountUrl } from './handlers/handleCreateAccountUrl';
-import { handlePerpsUrl } from './handlers/handlePerpsUrl';
 import { store } from '../../../store';
 import NavigationService from '../../NavigationService';
 import branch from 'react-native-branch';
@@ -23,10 +13,6 @@ import Logger from '../../../util/Logger';
 import { handleDeeplink } from '../entry/handleDeeplink';
 import SharedDeeplinkManager from '../entry/SharedDeeplinkManager';
 import FCMService from '../../../util/notifications/services/FCMService';
-import { handleRewardsUrl } from './handlers/handleRewardsUrl';
-import { handlePredictUrl } from './handlers/handlePredictUrl';
-import handleFastOnboarding from './handlers/handleFastOnboarding';
-import { handleEnableCardButton } from './handlers/handleEnableCardButton';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -68,96 +54,6 @@ class DeeplinkManager {
       ethUrl,
       origin,
     });
-
-  async _handleEthereumUrl(url: string, origin: string) {
-    return handleEthereumUrl({
-      deeplinkManager: this,
-      url,
-      origin,
-    });
-  }
-
-  _handleBrowserUrl(url: string, callback?: (url: string) => void) {
-    return handleBrowserUrl({
-      deeplinkManager: this,
-      url,
-      callback,
-    });
-  }
-
-  _handleBuyCrypto(rampPath: string) {
-    handleRampUrl({
-      rampPath,
-      navigation: this.navigation,
-      rampType: RampType.BUY,
-    });
-  }
-
-  _handleSellCrypto(rampPath: string) {
-    handleRampUrl({
-      rampPath,
-      navigation: this.navigation,
-      rampType: RampType.SELL,
-    });
-  }
-
-  _handleDepositCash(depositCashPath: string) {
-    handleDepositCashUrl({
-      depositPath: depositCashPath,
-      navigation: this.navigation,
-    });
-  }
-
-  _handleRewards(rewardsPath: string) {
-    handleRewardsUrl({
-      rewardsPath,
-    });
-  }
-
-  // NOTE: open the home screen for new subdomain
-  _handleOpenHome(homePath?: string) {
-    navigateToHomeUrl({ homePath });
-  }
-
-  // NOTE: this will be used for new deeplink subdomain
-  _handleSwap(swapPath: string) {
-    handleSwapUrl({
-      swapPath,
-    });
-  }
-
-  _handleCreateAccount(createAccountPath: string) {
-    handleCreateAccountUrl({
-      path: createAccountPath,
-      navigation: this.navigation,
-    });
-  }
-
-  _handlePerps(perpsPath: string) {
-    handlePerpsUrl({
-      perpsPath,
-    });
-  }
-
-  _handlePredict(predictPath: string, origin?: string) {
-    handlePredictUrl({
-      predictPath,
-      origin,
-    });
-  }
-
-  // NOTE: keeping this for backwards compatibility
-  _handleOpenSwap() {
-    this.navigation.navigate(Routes.SWAPS);
-  }
-
-  _handleFastOnboarding(onboardingPath: string) {
-    handleFastOnboarding({ onboardingPath });
-  }
-
-  _handleEnableCardButton() {
-    handleEnableCardButton();
-  }
 
   async parse(
     url: string,

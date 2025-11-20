@@ -1,8 +1,8 @@
 /**
  * DeeplinkManager - Main export file
- * 
+ *
  * This file provides the public API for the DeeplinkManager module.
- * 
+ *
  * ## Structure:
  * - `entry/` - Main entry points and singleton management
  * - `core/` - Modern handler-based routing system (new)
@@ -57,4 +57,3 @@ export {
   INVALID,
   MISSING,
 } from './utils/verifySignature';
-

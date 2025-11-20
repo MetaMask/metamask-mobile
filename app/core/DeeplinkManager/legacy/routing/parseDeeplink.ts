@@ -10,6 +10,7 @@ import connectWithWC from './connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../AppConstants';
+import handleEthereumUrl from '../handlers/handleEthereumUrl';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -68,7 +69,11 @@ async function parseDeeplink({
         break;
       case PROTOCOLS.ETHEREUM:
         handled();
-        instance._handleEthereumUrl(url, origin).catch((err) => {
+        handleEthereumUrl({
+          deeplinkManager: instance,
+          url,
+          origin,
+        }).catch((err) => {
           Logger.error(err, 'Error handling ethereum url');
         });
         break;

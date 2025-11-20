@@ -4,6 +4,7 @@ import handleDappUrl from './handleDappUrl';
 import handleUniversalLink from './handleUniversalLink';
 import connectWithWC from './connectWithWC';
 import parseDeeplink from './parseDeeplink';
+import handleEthereumUrl from '../handlers/handleEthereumUrl';
 
 jest.mock('../../../../constants/deeplinks');
 jest.mock('../../../../util/Logger');
@@ -12,6 +13,7 @@ jest.mock('../../../SDKConnect/utils/DevLogger');
 jest.mock('./handleDappUrl');
 jest.mock('./handleUniversalLink');
 jest.mock('./connectWithWC');
+jest.mock('../handlers/handleEthereumUrl');
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -41,11 +43,14 @@ describe('parseDeeplink', () => {
     typeof handleDappUrl
   >;
 
+  const mockHandleEthereumUrl = handleEthereumUrl as jest.MockedFunction<
+    typeof handleEthereumUrl
+  >;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    instance = {
-      _handleEthereumUrl: jest.fn().mockResolvedValue(null),
-    } as unknown as DeeplinkManager;
+    instance = {} as unknown as DeeplinkManager;
+    mockHandleEthereumUrl.mockResolvedValue(undefined);
   });
 
   it('should call handleUniversalLinks for HTTP protocol', async () => {
@@ -129,7 +134,11 @@ describe('parseDeeplink', () => {
       onHandled: mockOnHandled,
     });
 
-    expect(instance._handleEthereumUrl).toHaveBeenCalledWith(url, 'testOrigin');
+    expect(mockHandleEthereumUrl).toHaveBeenCalledWith({
+      deeplinkManager: instance,
+      url,
+      origin: 'testOrigin',
+    });
   });
 
   it('should call handleDappProtocol for DAPP protocol', async () => {

@@ -1,5 +1,6 @@
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from '../../utils/extractURLParams';
+import handleBrowserUrl from '../handlers/handleBrowserUrl';
 
 export function handleDappUrl({
   instance,
@@ -15,7 +16,11 @@ export function handleDappUrl({
   // Enforce https
   handled();
   urlObj.set('protocol', 'https:');
-  instance._handleBrowserUrl(urlObj.href, browserCallBack);
+  handleBrowserUrl({
+    deeplinkManager: instance,
+    url: urlObj.href,
+    callback: browserCallBack,
+  });
 }
 
 export default handleDappUrl;

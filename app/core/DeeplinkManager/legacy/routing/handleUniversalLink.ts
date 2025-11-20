@@ -14,6 +14,18 @@ import { DeepLinkModalLinkType } from '../../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../handlers/handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../../util/general';
+import handleRampUrl from '../handlers/handleRampUrl';
+import handleDepositCashUrl from '../handlers/handleDepositCashUrl';
+import { navigateToHomeUrl } from '../handlers/handleHomeUrl';
+import { handleSwapUrl } from '../handlers/handleSwapUrl';
+import handleBrowserUrl from '../handlers/handleBrowserUrl';
+import { handleCreateAccountUrl } from '../handlers/handleCreateAccountUrl';
+import { handlePerpsUrl } from '../handlers/handlePerpsUrl';
+import { handleRewardsUrl } from '../handlers/handleRewardsUrl';
+import { handlePredictUrl } from '../handlers/handlePredictUrl';
+import handleFastOnboarding from '../handlers/handleFastOnboarding';
+import { handleEnableCardButton } from '../handlers/handleEnableCardButton';
+import { RampType } from '../../../../reducers/fiatOrders/types';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -215,30 +227,47 @@ async function handleUniversalLink({
     action === SUPPORTED_ACTIONS.BUY
   ) {
     const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleBuyCrypto(rampPath);
+    handleRampUrl({
+      rampPath,
+      navigation: instance.navigation,
+      rampType: RampType.BUY,
+    });
   } else if (
     action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
     action === SUPPORTED_ACTIONS.SELL
   ) {
     const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleSellCrypto(rampPath);
+    handleRampUrl({
+      rampPath,
+      navigation: instance.navigation,
+      rampType: RampType.SELL,
+    });
   } else if (action === SUPPORTED_ACTIONS.DEPOSIT) {
     const depositCashPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleDepositCash(depositCashPath);
+    handleDepositCashUrl({
+      depositPath: depositCashPath,
+      navigation: instance.navigation,
+    });
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     const homePath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleOpenHome(homePath);
+    navigateToHomeUrl({ homePath });
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
     const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleSwap(swapPath);
+    handleSwapUrl({
+      swapPath,
+    });
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
     const deeplinkUrl = urlObj.href.replace(
       `${BASE_URL_ACTION}/`,
       PREFIXES[ACTIONS.DAPP],
     );
-    instance._handleBrowserUrl(deeplinkUrl, browserCallBack);
+    handleBrowserUrl({
+      deeplinkManager: instance,
+      url: deeplinkUrl,
+      callback: browserCallBack,
+    });
   } else if (action === SUPPORTED_ACTIONS.SEND) {
     const deeplinkUrl = urlObj.href
       .replace(`${BASE_URL_ACTION}/`, PREFIXES[ACTIONS.SEND])
@@ -248,19 +277,29 @@ async function handleUniversalLink({
     return;
   } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
     const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleCreateAccount(deeplinkUrl);
+    handleCreateAccountUrl({
+      path: deeplinkUrl,
+      navigation: instance.navigation,
+    });
   } else if (
     action === SUPPORTED_ACTIONS.PERPS ||
     action === SUPPORTED_ACTIONS.PERPS_MARKETS
   ) {
     const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handlePerps(perpsPath);
+    handlePerpsUrl({
+      perpsPath,
+    });
   } else if (action === SUPPORTED_ACTIONS.REWARDS) {
     const rewardsPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleRewards(rewardsPath);
+    handleRewardsUrl({
+      rewardsPath,
+    });
   } else if (action === SUPPORTED_ACTIONS.PREDICT) {
     const predictPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handlePredict(predictPath, source);
+    handlePredictUrl({
+      predictPath,
+      origin: source,
+    });
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;
@@ -271,9 +310,9 @@ async function handleUniversalLink({
     return;
   } else if (action === SUPPORTED_ACTIONS.ONBOARDING) {
     const onboardingPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleFastOnboarding(onboardingPath);
+    handleFastOnboarding({ onboardingPath });
   } else if (action === SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON) {
-    instance._handleEnableCardButton();
+    handleEnableCardButton();
   }
 }
 

@@ -10,6 +10,9 @@ import WC2Manager from '../../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../../utils/parseOriginatorInfo';
 import extractURLParams from '../../utils/extractURLParams';
+import handleRampUrl from '../handlers/handleRampUrl';
+import handleDepositCashUrl from '../handlers/handleDepositCashUrl';
+import { RampType } from '../../../../reducers/fiatOrders/types';
 
 export function handleMetaMaskDeeplink({
   instance,
@@ -150,7 +153,11 @@ export function handleMetaMaskDeeplink({
     const rampPath = url
       .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY}`, '');
-    instance._handleBuyCrypto(rampPath);
+    handleRampUrl({
+      rampPath,
+      navigation: instance.navigation,
+      rampType: RampType.BUY,
+    });
   } else if (
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`) ||
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL}`)
@@ -158,13 +165,20 @@ export function handleMetaMaskDeeplink({
     const rampPath = url
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
-    instance._handleSellCrypto(rampPath);
+    handleRampUrl({
+      rampPath,
+      navigation: instance.navigation,
+      rampType: RampType.SELL,
+    });
   } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`)) {
     const depositCashPath = url.replace(
       `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`,
       '',
     );
-    instance._handleDepositCash(depositCashPath);
+    handleDepositCashUrl({
+      depositPath: depositCashPath,
+      navigation: instance.navigation,
+    });
   }
 }
 

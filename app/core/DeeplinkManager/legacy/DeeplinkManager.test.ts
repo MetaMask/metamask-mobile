@@ -1,22 +1,12 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
-import Routes from '../../../constants/navigation/Routes';
-import { RampType } from '../../../reducers/fiatOrders/types';
 import FCMService from '../../../util/notifications/services/FCMService';
 import NavigationService from '../../NavigationService';
 import DeeplinkManager from './DeeplinkManager';
-import handleBrowserUrl from './handlers/handleBrowserUrl';
-import { handleCreateAccountUrl } from './handlers/handleCreateAccountUrl';
 import { handleDeeplink } from '../entry/handleDeeplink';
-import handleEthereumUrl from './handlers/handleEthereumUrl';
-import { handlePerpsUrl } from './handlers/handlePerpsUrl';
-import { handleRewardsUrl } from './handlers/handleRewardsUrl';
-import handleRampUrl from './handlers/handleRampUrl';
-import { handleSwapUrl } from './handlers/handleSwapUrl';
 import switchNetwork from './handlers/switchNetwork';
 import parseDeeplink from './routing/parseDeeplink';
 import approveTransaction from './transactions/approveTransaction';
-import handleFastOnboarding from './handlers/handleFastOnboarding';
 
 jest.mock('./transactions/approveTransaction');
 jest.mock('./handlers/handleEthereumUrl');
@@ -85,56 +75,6 @@ describe('DeeplinkManager', () => {
     });
   });
 
-  it('should handle Ethereum URL correctly', async () => {
-    const url = 'ethereum://example.com';
-    const origin = 'testOrigin';
-
-    await deeplinkManager._handleEthereumUrl(url, origin);
-
-    expect(handleEthereumUrl).toHaveBeenCalledWith({
-      deeplinkManager,
-      url,
-      origin,
-    });
-  });
-
-  it('should handle browser URL correctly', () => {
-    const url = 'http://example.com';
-    const callback = jest.fn();
-
-    deeplinkManager._handleBrowserUrl(url, callback);
-
-    expect(handleBrowserUrl).toHaveBeenCalledWith({
-      deeplinkManager,
-      url,
-      callback,
-    });
-  });
-
-  it('should handle buy crypto action correctly', () => {
-    const rampPath = '/example/path?and=params';
-    deeplinkManager._handleBuyCrypto(rampPath);
-    expect(handleRampUrl).toHaveBeenCalledWith(
-      expect.objectContaining({
-        rampPath,
-        navigation: mockNavigation,
-        rampType: RampType.BUY,
-      }),
-    );
-  });
-
-  it('should handle sell crypto action correctly', () => {
-    const rampPath = '/example/path?and=params';
-    deeplinkManager._handleSellCrypto(rampPath);
-    expect(handleRampUrl).toHaveBeenCalledWith(
-      expect.objectContaining({
-        rampPath,
-        navigation: mockNavigation,
-        rampType: RampType.SELL,
-      }),
-    );
-  });
-
   it('should parse deeplinks correctly', () => {
     const url = 'http://example.com';
     const browserCallBack = jest.fn();
@@ -154,58 +94,6 @@ describe('DeeplinkManager', () => {
       browserCallBack,
       onHandled,
     });
-  });
-
-  it('should handle open home correctly', () => {
-    deeplinkManager._handleOpenHome();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-  });
-
-  it('should handle swap correctly', () => {
-    const swapPath = '/swap/path';
-    deeplinkManager._handleSwap(swapPath);
-    expect(handleSwapUrl).toHaveBeenCalledWith({
-      swapPath,
-    });
-  });
-
-  it('should handle create account correctly', () => {
-    const createAccountPath = '/create/account/path';
-    deeplinkManager._handleCreateAccount(createAccountPath);
-    expect(handleCreateAccountUrl).toHaveBeenCalledWith({
-      path: createAccountPath,
-      navigation: mockNavigation,
-    });
-  });
-
-  it('should handle perps correctly', () => {
-    const perpsPath = '/perps/markets';
-    deeplinkManager._handlePerps(perpsPath);
-    expect(handlePerpsUrl).toHaveBeenCalledWith({
-      perpsPath,
-    });
-  });
-
-  it('should handle perps asset correctly', () => {
-    // Asset URLs now handled through _handlePerps with screen=asset parameter
-    deeplinkManager._handlePerps('perps?screen=asset&symbol=ETH');
-    expect(handlePerpsUrl).toHaveBeenCalledWith({
-      perpsPath: 'perps?screen=asset&symbol=ETH',
-    });
-  });
-
-  it('should handle rewards correctly', () => {
-    // Rewards URLs now handled through _handleRewards with optional referral code parameter
-    deeplinkManager._handleRewards('?referral=code123');
-    expect(handleRewardsUrl).toHaveBeenCalledWith({
-      rewardsPath: '?referral=code123',
-    });
-  });
-
-  it('should handle onboarding correctly', () => {
-    const onboardingPath = '/onboarding';
-    deeplinkManager._handleFastOnboarding(onboardingPath);
-    expect(handleFastOnboarding).toHaveBeenCalledWith({ onboardingPath });
   });
 });
 
