@@ -14,7 +14,7 @@ export * from '../../types/navigation';
 // Import adapter types
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
 import type { CandleData } from '../../types/perps-types';
-import type { CandlePeriod } from '../../constants/chartConfig';
+import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -616,6 +616,7 @@ export interface SubscribeOICapsParams {
 export interface SubscribeCandlesParams {
   coin: string;
   interval: CandlePeriod;
+  duration?: TimeDuration;
   callback: (data: CandleData) => void;
 }
 

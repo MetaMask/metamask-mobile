@@ -47,7 +47,7 @@ import {
 } from '../constants/eventNames';
 import { ensureError } from '../utils/perpsErrorHandler';
 import type { CandleData } from '../types/perps-types';
-import { CandlePeriod } from '../constants/chartConfig';
+import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   DATA_LAKE_API_CONFIG,
@@ -4022,6 +4022,7 @@ export class PerpsController extends BaseController<
   subscribeToCandles(params: {
     coin: string;
     interval: CandlePeriod;
+    duration?: TimeDuration;
     callback: (data: CandleData) => void;
   }): () => void {
     try {
@@ -4033,6 +4034,7 @@ export class PerpsController extends BaseController<
         this.getErrorContext('subscribeToCandles', {
           coin: params.coin,
           interval: params.interval,
+          duration: params.duration,
         }),
       );
       // Return a no-op unsubscribe function

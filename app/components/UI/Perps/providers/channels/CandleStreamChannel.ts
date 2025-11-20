@@ -1,8 +1,14 @@
 import Engine from '../../../../../core/Engine';
 import type { CandleData } from '../../types/perps-types';
-import { CandlePeriod } from '../../constants/chartConfig';
+import {
+  CandlePeriod,
+  TimeDuration,
+  calculateCandleCount,
+} from '../../constants/chartConfig';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../utils/perpsErrorHandler';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -111,10 +117,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   public subscribe(params: {
     coin: string;
     interval: CandlePeriod;
+    duration: TimeDuration;
     callback: (data: CandleData) => void;
     throttleMs?: number;
   }): () => void {
-    const { coin, interval, callback, throttleMs } = params;
+    const { coin, interval, duration, callback, throttleMs } = params;
     const cacheKey = this.getCacheKey(coin, interval);
     const id = Math.random().toString(36);
 
@@ -135,7 +142,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     }
 
     // Ensure WebSocket connected for this coin+interval
-    this.connect(coin, interval, cacheKey);
+    this.connect(coin, interval, duration, cacheKey);
 
     // Return unsubscribe function
     return () => {
@@ -170,6 +177,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   private connect(
     coin: string,
     interval: CandlePeriod,
+    duration: TimeDuration,
     cacheKey: string,
   ): void {
     // Skip if already connected for this coin+interval
@@ -180,7 +188,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     // Check if controller is reinitializing
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
       setTimeout(
-        () => this.connect(coin, interval, cacheKey),
+        () => this.connect(coin, interval, duration, cacheKey),
         PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
       );
       return;
@@ -190,6 +198,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       coin,
       interval,
+      duration,
       callback: (candleData: CandleData) => {
         // Update cache
         this.cache.set(cacheKey, candleData);
@@ -246,15 +255,16 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   /**
    * Fetch additional historical candles before the current oldest candle
    * Used for loading more history when user scrolls to the left edge of the chart
+   * Dynamically calculates fetch size based on duration and interval
    * @param coin - The coin symbol
    * @param interval - The candle interval
-   * @param limit - Number of additional candles to fetch (default: 250)
+   * @param duration - The time duration (used to calculate dynamic fetch size)
    * @returns Promise that resolves when fetch completes
    */
   public async fetchHistoricalCandles(
     coin: string,
     interval: CandlePeriod,
-    limit: number = 250,
+    duration: TimeDuration,
   ): Promise<void> {
     const cacheKey = this.getCacheKey(coin, interval);
     const cachedData = this.cache.get(cacheKey);
@@ -277,10 +287,24 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const oldestTime = oldestCandle.time;
     const endTime = oldestTime - 1; // Fetch candles ending just before the oldest
 
+    // Calculate dynamic limit based on duration and interval
+    const dynamicLimit = calculateCandleCount(duration, interval);
+
+    // Apply min/max safeguards
+    const FETCH_SIZE = {
+      MIN: 50, // Minimum for long intervals (1w, 1M)
+      MAX: 500, // Maximum to prevent huge fetches
+    };
+
+    const limit = Math.min(
+      Math.max(dynamicLimit, FETCH_SIZE.MIN),
+      FETCH_SIZE.MAX,
+    );
+
     try {
       DevLogger.log(
         'CandleStreamChannel: Fetching additional historical candles',
-        { coin, interval, oldestTime, endTime, limit },
+        { coin, interval, duration, oldestTime, endTime, dynamicLimit, limit },
       );
 
       // Fetch historical candles via controller
@@ -343,11 +367,26 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         },
       );
     } catch (error) {
-      DevLogger.log('CandleStreamChannel: Error fetching historical candles', {
-        coin,
-        interval,
-        error,
+      const errorInstance = ensureError(error);
+
+      // Log to Sentry: fetch failures affect multiple subscribers
+      Logger.error(errorInstance, {
+        tags: {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          component: 'CandleStreamChannel',
+        },
+        context: {
+          name: 'historical_candles',
+          data: {
+            operation: 'fetchHistoricalCandles',
+            coin,
+            interval,
+            duration,
+            cacheKey,
+          },
+        },
       });
+
       throw error;
     }
   }

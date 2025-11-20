@@ -2,7 +2,10 @@ import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import type { CandleData } from '../../types/perps-types';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../utils/perpsErrorHandler';
 
 // Stable empty candle data reference to prevent re-renders
 const EMPTY_CANDLE_DATA: CandleData = {
@@ -62,7 +65,7 @@ export interface UsePerpsLiveCandlesReturn {
 export function usePerpsLiveCandles(
   options: UsePerpsLiveCandlesOptions,
 ): UsePerpsLiveCandlesReturn {
-  const { coin, interval, throttleMs = 1000 } = options;
+  const { coin, interval, duration, throttleMs = 1000 } = options;
   const stream = usePerpsStream();
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +90,7 @@ export function usePerpsLiveCandles(
       const unsubscribe = stream.candles.subscribe({
         coin,
         interval,
+        duration,
         callback: (newCandleData) => {
           // null/undefined means no cached data yet, keep loading state
           if (newCandleData === null || newCandleData === undefined) {
@@ -126,11 +130,28 @@ export function usePerpsLiveCandles(
       };
     } catch (err) {
       const errorInstance = err instanceof Error ? err : new Error(String(err));
+
+      // Log to Sentry: subscription setup failure prevents live updates
+      Logger.error(ensureError(errorInstance), {
+        tags: {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          component: 'usePerpsLiveCandles',
+        },
+        context: {
+          name: 'candle_subscription',
+          data: {
+            operation: 'subscribe',
+            coin,
+            interval,
+          },
+        },
+      });
+
       setError(errorInstance);
       setIsLoading(false);
       return;
     }
-  }, [stream, coin, interval, throttleMs]);
+  }, [stream, coin, interval, duration, throttleMs]);
 
   const hasHistoricalData =
     candleData !== null && candleData.candles.length > 0;
@@ -149,13 +170,14 @@ export function usePerpsLiveCandles(
       DevLogger.log('usePerpsLiveCandles: Fetching more historical candles', {
         coin,
         interval,
+        duration,
       });
 
-      await stream.candles.fetchHistoricalCandles(coin, interval);
+      await stream.candles.fetchHistoricalCandles(coin, interval, duration);
 
       DevLogger.log(
         'usePerpsLiveCandles: Successfully fetched more historical candles',
-        { coin, interval },
+        { coin, interval, duration },
       );
     } catch (err) {
       const errorInstance = err instanceof Error ? err : new Error(String(err));

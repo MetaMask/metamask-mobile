@@ -11,8 +11,10 @@ import type { HyperLiquidNetwork } from '../types/config';
 import { strings } from '../../../../../locales/i18n';
 import type { CandleData } from '../types/perps-types';
 
-import { CandlePeriod } from '../constants/chartConfig';
+import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../utils/perpsErrorHandler';
+import type { SubscribeCandlesParams } from '../controllers/types';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
 
@@ -103,8 +105,25 @@ export class HyperLiquidClientService {
         note: 'Using HTTP for InfoClient/ExchangeClient, WebSocket for SubscriptionClient',
       });
     } catch (error) {
+      const errorInstance = ensureError(error);
       this.connectionState = WebSocketConnectionState.DISCONNECTED;
-      DevLogger.log('Failed to initialize HyperLiquid SDK clients:', error);
+
+      // Log to Sentry: initialization failure blocks all Perps functionality
+      Logger.error(errorInstance, {
+        tags: {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          service: 'HyperLiquidClientService',
+          network: this.isTestnet ? 'testnet' : 'mainnet',
+        },
+        context: {
+          name: 'sdk_initialization',
+          data: {
+            operation: 'initialize',
+            isTestnet: this.isTestnet,
+          },
+        },
+      });
+
       throw error;
     }
   }
@@ -324,7 +343,27 @@ export class HyperLiquidClientService {
         candles: [],
       };
     } catch (error) {
-      DevLogger.log('Error fetching historical candles:', error);
+      const errorInstance = ensureError(error);
+
+      // Log to Sentry: prevents initial chart data load
+      Logger.error(errorInstance, {
+        tags: {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          service: 'HyperLiquidClientService',
+          network: this.isTestnet ? 'testnet' : 'mainnet',
+        },
+        context: {
+          name: 'historical_candles_api',
+          data: {
+            operation: 'fetchHistoricalCandles',
+            coin,
+            interval,
+            limit,
+            hasEndTime: endTime !== undefined,
+          },
+        },
+      });
+
       throw error;
     }
   }
@@ -333,18 +372,16 @@ export class HyperLiquidClientService {
    * Subscribe to candle updates via WebSocket
    * @param coin - The coin symbol (e.g., "BTC", "ETH")
    * @param interval - The interval (e.g., "1m", "5m", "15m", etc.)
+   * @param duration - Optional time duration for calculating initial fetch size
    * @param callback - Function called with updated candle data
    * @returns Cleanup function to unsubscribe
    */
   public subscribeToCandles({
     coin,
     interval,
+    duration,
     callback,
-  }: {
-    coin: string;
-    interval: ValidCandleInterval;
-    callback: (data: CandleData) => void;
-  }): () => void {
+  }: SubscribeCandlesParams): () => void {
     this.ensureInitialized();
 
     const subscriptionClient = this.getSubscriptionClient();
@@ -356,8 +393,14 @@ export class HyperLiquidClientService {
     let wsUnsubscribe: (() => void) | null = null;
     let isUnsubscribed = false;
 
+    // Calculate initial fetch size dynamically based on duration and interval
+    // Match main branch behavior: up to 500 candles initially
+    const initialLimit = duration
+      ? Math.min(calculateCandleCount(duration, interval), 500)
+      : 100; // Default to 100 if no duration provided
+
     // 1. Fetch initial historical data
-    this.fetchHistoricalCandles(coin, interval)
+    this.fetchHistoricalCandles(coin, interval, initialLimit)
       .then((initialData) => {
         // Don't proceed if already unsubscribed
         if (isUnsubscribed) {
@@ -431,12 +474,51 @@ export class HyperLiquidClientService {
             }
           })
           .catch((error) => {
-            DevLogger.log('Error subscribing to candles:', error);
+            const errorInstance = ensureError(error);
+
+            // Log to Sentry: WebSocket subscription failure prevents live updates
+            Logger.error(errorInstance, {
+              tags: {
+                feature: PERPS_CONSTANTS.FEATURE_NAME,
+                service: 'HyperLiquidClientService',
+                network: this.isTestnet ? 'testnet' : 'mainnet',
+              },
+              context: {
+                name: 'websocket_subscription',
+                data: {
+                  operation: 'subscribeToCandles',
+                  coin,
+                  interval,
+                  phase: 'ws_subscription',
+                },
+              },
+            });
+
             // Don't throw - would create unhandled rejection since function already returned
           });
       })
       .catch((error) => {
-        DevLogger.log('Error fetching initial candle data:', error);
+        const errorInstance = ensureError(error);
+
+        // Log to Sentry: initial fetch failure blocks chart completely
+        Logger.error(errorInstance, {
+          tags: {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            service: 'HyperLiquidClientService',
+            network: this.isTestnet ? 'testnet' : 'mainnet',
+          },
+          context: {
+            name: 'initial_candles_fetch',
+            data: {
+              operation: 'subscribeToCandles',
+              coin,
+              interval,
+              phase: 'initial_fetch',
+              initialLimit,
+            },
+          },
+        });
+
         // Don't throw - would create unhandled rejection since function already returned
       });
 
