@@ -145,7 +145,7 @@ const useTokenHistoricalPrices = ({
             return;
           }
           endTrace({ name: TraceName.FetchHistoricalPrices });
-          if (response.status !== 200) {
+          if (response.status === 204) {
             setPrices([]);
             return;
           }
