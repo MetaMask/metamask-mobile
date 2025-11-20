@@ -7,6 +7,8 @@ import {
   BRIDGE_PROD_API_BASE_URL,
 } from '@metamask/bridge-controller';
 
+const MIN_SEARCH_LENGTH = 3;
+
 interface SearchTokensResponse {
   data: PopularToken[];
   count: number;
@@ -156,12 +158,21 @@ export const useSearchTokens = ({
   );
 
   // Create debounced search function
+  // Only triggers search when query meets minimum length requirement
   const debouncedSearch = useMemo(
     () =>
       debounce((query: string) => {
-        searchTokens(query);
+        const queryLength = query.trim().length;
+        // Only search if query meets minimum length
+        if (queryLength >= MIN_SEARCH_LENGTH) {
+          searchTokens(query);
+        } else if (queryLength === 0) {
+          // Reset search if query is empty
+          resetSearch();
+        }
+        // If query is below minimum length but not empty, do nothing (don't search or reset)
       }, 300),
-    [searchTokens],
+    [searchTokens, resetSearch],
   );
 
   // Cleanup debounce on unmount

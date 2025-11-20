@@ -60,6 +60,8 @@ export interface BridgeTokenSelectorRouteParams {
   type: 'source' | 'dest';
 }
 
+const MIN_SEARCH_LENGTH = 3;
+
 const convertAPITokensToBridgeTokens = (
   apiTokens: PopularToken[],
 ): (BridgeToken & { assetId?: string })[] =>
@@ -102,6 +104,12 @@ export const BridgeTokenSelector: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const [searchString, setSearchString] = useState<string>('');
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  // Check if search string meets minimum length requirement
+  const isValidSearch = useMemo(
+    () => searchString.trim().length >= MIN_SEARCH_LENGTH,
+    [searchString],
+  );
 
   const bridgeFeatureFlags = useSelector((state: RootState) =>
     selectBridgeFeatureFlags(state),
@@ -215,7 +223,8 @@ export const BridgeTokenSelector: React.FC = () => {
     }
 
     let tokensToDisplay: BridgeToken[] = [];
-    if (searchString.trim()) {
+    // Only show search results when query meets minimum length requirement
+    if (isValidSearch) {
       // If we have a search query, show search results merged with balances
       const convertedSearchResults =
         convertAPITokensToBridgeTokens(searchResults);
@@ -270,7 +279,7 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [
     isPopularTokensLoading,
     isSearchLoading,
-    searchString,
+    isValidSearch,
     searchResults,
     popularTokens,
     balancesByAssetId,
@@ -281,19 +290,19 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Re-trigger search when chain IDs change if there's an active search
   useEffect(() => {
-    if (shouldResearchAfterChainChange.current && searchString.trim()) {
+    if (shouldResearchAfterChainChange.current && isValidSearch) {
       // Reset the flag
       shouldResearchAfterChainChange.current = false;
       // Trigger search with current query on new network
       searchTokens(searchString);
     }
-  }, [chainIdsToFetch, searchString, searchTokens]);
+  }, [chainIdsToFetch, searchString, searchTokens, isValidSearch]);
 
   const handleChainSelect = (chainId?: CaipChainId) => {
     setSelectedChainId(chainId);
 
     // If there's an active search, prepare to re-trigger it on the new network
-    if (searchString.trim()) {
+    if (isValidSearch) {
       // Cancel any pending debounced searches
       debouncedSearch.cancel();
       // Reset search results to clear old network's data
@@ -401,24 +410,20 @@ export const BridgeTokenSelector: React.FC = () => {
   // Load more results when user scrolls to the bottom
   const handleLoadMore = useCallback(() => {
     // Only load more if:
-    // 1. We have a search query
+    // 1. We have a valid search query (meets minimum length)
     // 2. We're not currently loading
     // 3. We have a cursor for pagination
     // 4. We have already searched once
-    if (
-      searchString.trim() &&
-      !isSearchLoading &&
-      !isLoadingMore &&
-      searchCursor
-    ) {
+    if (isValidSearch && !isSearchLoading && !isLoadingMore && searchCursor) {
       searchTokens(searchString, searchCursor);
     }
   }, [
-    searchString,
+    isValidSearch,
     isSearchLoading,
     isLoadingMore,
     searchCursor,
     searchTokens,
+    searchString,
   ]);
 
   // Custom scroll handler for pagination (replaces buggy onEndReached)
