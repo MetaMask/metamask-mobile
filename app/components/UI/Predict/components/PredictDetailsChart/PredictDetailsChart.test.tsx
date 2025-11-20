@@ -713,7 +713,10 @@ describe('PredictDetailsChart', () => {
           jest.requireActual<typeof import('./utils')>('./utils');
         const formatSpy = jest
           .spyOn(chartUtils, 'formatPriceHistoryLabel')
-          .mockImplementation((timestamp: number) => labelByTimestamp.get(Number(timestamp)) ?? 'AXIS_FALLBACK');
+          .mockImplementation(
+            (timestamp: number) =>
+              labelByTimestamp.get(Number(timestamp)) ?? 'AXIS_FALLBACK',
+          );
 
         const { getAllByText } = setupTest({
           data: [
