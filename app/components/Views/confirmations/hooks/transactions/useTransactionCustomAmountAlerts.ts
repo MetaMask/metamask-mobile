@@ -64,7 +64,7 @@ export function useTransactionCustomAmountAlerts({
     [filteredAlerts, pendingTokenAlerts],
   );
 
-  const firstAlert = filteredAlerts?.[0];
+  const firstAlert = alerts?.[0];
 
   if (!firstAlert) {
     return {};
