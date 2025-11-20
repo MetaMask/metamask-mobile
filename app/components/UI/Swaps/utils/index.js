@@ -6,8 +6,10 @@ import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SWAPS_TESTNET_CHAIN_ID } from '../../../../constants/bridge';
-import { isNativeAddress } from '@metamask/bridge-controller';
+import {
+  NATIVE_SWAPS_TOKEN_ADDRESS,
+  SWAPS_TESTNET_CHAIN_ID,
+} from '../../../../constants/bridge';
 
 const allowedChainIds = [
   CHAIN_IDS.MAINNET,
@@ -53,7 +55,7 @@ export function isSwapsAllowed(chainId) {
 }
 
 export function isSwapsNativeAsset(token) {
-  return Boolean(token) && isNativeAddress(token?.address);
+  return Boolean(token) && token?.address === NATIVE_SWAPS_TOKEN_ADDRESS;
 }
 
 export function isDynamicToken(token) {
