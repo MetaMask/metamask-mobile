@@ -88,6 +88,7 @@ export const useSitesData = ({
           url: dapp.website,
           displayUrl: extractDisplayUrl(dapp.website),
           logoUrl: dapp.logoSrc,
+          featured: dapp.featured,
         }));
 
         Logger.log('[useSitesData] Transformed sites:', transformedSites);

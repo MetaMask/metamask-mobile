@@ -1,29 +1,34 @@
 import React from 'react';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import SiteRowItem, { type SiteData } from './SiteRowItem/SiteRowItem';
-import Routes from '../../../../constants/navigation/Routes';
+import { updateLastTrendingScreen } from '../../../Nav/Main/MainNavigator';
 
 interface SiteRowItemWrapperProps {
   site: SiteData;
   navigation: NavigationProp<ParamListBase>;
+  isViewAll?: boolean;
 }
 
 const SiteRowItemWrapper: React.FC<SiteRowItemWrapperProps> = ({
   site,
   navigation,
+  isViewAll = false,
 }) => {
   const handlePress = () => {
-    // Navigate to the browser with a new tab
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: site.url,
-        timestamp: Date.now(),
-      },
+    // Update last trending screen state
+    updateLastTrendingScreen('TrendingBrowser');
+
+    // Navigate to TrendingBrowser (within TrendingView stack)
+    navigation.navigate('TrendingBrowser', {
+      newTabUrl: site.url,
+      timestamp: Date.now(),
+      fromTrending: true,
     });
   };
 
-  return <SiteRowItem site={site} onPress={handlePress} />;
+  return (
+    <SiteRowItem site={site} onPress={handlePress} isViewAll={isViewAll} />
+  );
 };
 
 export default SiteRowItemWrapper;

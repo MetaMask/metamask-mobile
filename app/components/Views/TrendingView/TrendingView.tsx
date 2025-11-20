@@ -12,6 +12,7 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { appendURLParams } from '../../../util/browser';
@@ -76,6 +77,7 @@ const TrendingFeed: React.FC = () => {
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
   const { colors } = useTheme();
+  const tw = useTailwind();
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -129,10 +131,13 @@ const TrendingFeed: React.FC = () => {
           </Box>
 
           <Box
-            twClassName="rounded-md items-center justify-center h-8 w-8 border-4"
-            style={{
-              borderColor: colors.text.default,
-            }}
+            style={tw.style(
+              'rounded-md items-center justify-center h-8 w-8',
+              browserTabsCount > 0 && 'border-4',
+              browserTabsCount > 0 && {
+                borderColor: colors.text.default,
+              },
+            )}
           >
             {browserTabsCount > 0 ? (
               <ButtonLink
@@ -142,8 +147,8 @@ const TrendingFeed: React.FC = () => {
               />
             ) : (
               <ButtonIcon
-                iconName={IconName.Add}
-                size={ButtonIconSize.Md}
+                iconName={IconName.Explore}
+                size={ButtonIconSize.Lg}
                 onPress={handleBrowserPress}
                 testID="trending-view-browser-button"
               />

@@ -162,8 +162,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   sites: {
     id: 'sites',
     title: 'Sites', // TODO: Add translation string
-    viewAllAction: (_navigation) => {
-      // TODO: Implement sites list view when ready
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.SITES_LIST_VIEW);
     },
     renderRowItem: (item, navigation) => (
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />

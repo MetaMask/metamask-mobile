@@ -9,6 +9,7 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Tag from '../../../../../component-library/components/Tags/Tag';
 
 export interface SiteData {
   id: string;
@@ -16,14 +17,20 @@ export interface SiteData {
   url: string;
   displayUrl: string;
   logoUrl?: string;
+  featured?: boolean;
 }
 
 interface SiteRowItemProps {
   site: SiteData;
   onPress: () => void;
+  isViewAll?: boolean;
 }
 
-const SiteRowItem = ({ site, onPress }: SiteRowItemProps) => {
+const SiteRowItem = ({
+  site,
+  onPress,
+  isViewAll = false,
+}: SiteRowItemProps) => {
   const tw = useTailwind();
 
   return (
@@ -31,7 +38,8 @@ const SiteRowItem = ({ site, onPress }: SiteRowItemProps) => {
       onPress={onPress}
       style={({ pressed }) =>
         tw.style(
-          'flex-row items-center justify-between pr-4 py-4',
+          'flex-row items-center justify-between py-4',
+          isViewAll ? 'px-4' : 'pr-4',
           pressed && 'bg-pressed',
         )
       }
@@ -51,7 +59,10 @@ const SiteRowItem = ({ site, onPress }: SiteRowItemProps) => {
         )}
         {/* Site Info */}
         <Box twClassName="flex-1">
-          <Text variant={TextVariant.HeadingMd}>{site.name}</Text>
+          <Box twClassName="flex-row items-center gap-2">
+            <Text variant={TextVariant.HeadingMd}>{site.name}</Text>
+            {site.featured && <Tag label="Featured" />}
+          </Box>
           <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
             {site.displayUrl}
           </Text>
