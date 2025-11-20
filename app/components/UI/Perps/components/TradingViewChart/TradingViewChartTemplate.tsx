@@ -422,6 +422,9 @@ export const createTradingViewChartTemplate = (
                         timeVisible: true,
                         secondsVisible: false,
                         borderColor: 'transparent',
+                        rightOffset: 0, // Prevent right margin/padding
+                        barSpacing: 8, // Spacing between candles
+                        minBarSpacing: 1, // Minimum spacing when zoomed in
                         // Mobile-optimized scroll and zoom handling
                         handleScale: {
                             axisPressedMouseMove: {
