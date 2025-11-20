@@ -26,7 +26,8 @@ export const createTradingViewChartTemplate = (
         }
         #container {
             width: 100%;
-            height: 100vh;
+            height: calc(100vh - 30px); /* Reduce height to leave space for x-axis */
+            max-width: 100vw;
             position: relative;
             background: ${theme.colors.background.default};
             /* Touch optimization for chart container */
@@ -34,6 +35,7 @@ export const createTradingViewChartTemplate = (
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -309,9 +311,10 @@ export const createTradingViewChartTemplate = (
             }
             try {
                 // Create chart with theme applied via template literals
-                window.chart = LightweightCharts.createChart(document.getElementById('container'), {
-                    width: window.innerWidth,
-                    height: window.innerHeight,
+                const container = document.getElementById('container');
+                window.chart = LightweightCharts.createChart(container, {
+                    width: container.clientWidth,
+                    height: container.clientHeight,
                     layout: {
                         background: {
                             color: 'transparent'
@@ -322,7 +325,7 @@ export const createTradingViewChartTemplate = (
                         fontFamily: 'system-ui, -apple-system, sans-serif',
                     },
                     // Optimized for smooth panning on mobile devices
-                    autoSize: false, // Disable auto-resize for better performance
+                    autoSize: true, // Enable auto-resize to match container dimensions
                     handleScroll: true,
                     handleScale: true,
                     // Enhanced kinetic scrolling with momentum tuning for mobile
@@ -537,6 +540,7 @@ export const createTradingViewChartTemplate = (
                 wickDownColor: '${theme.colors.error.default}',
                 priceLineColor: '${theme.colors.icon.alternative}',
                 priceLineWidth: 1,
+                priceScaleId: 'right', // Explicitly use right price scale
                 lastValueVisible: false,
                 // Use native PriceLineSource for better price line handling
                 priceLineSource: window.LightweightCharts.PriceLineSource.LastBar,
@@ -660,22 +664,17 @@ export const createTradingViewChartTemplate = (
                         formatter: window.formatVolumeEmpty, // Use empty formatter to hide Y-axis labels
                         minMove: 0.01,
                     },
-                    priceScaleId: 'right', // Use right price scale (labels will be empty)
+                    priceScaleId: '', // Use empty string for separate/independent price scale
                     lastValueVisible: false,
                     priceLineVisible: false,
                     base: 0, // Start histogram from zero
                 }, 1); // Pane index 1 - creates NEW bottom pane for volume
 
-                // Configure volume price scale options (visible but labels are transparent)
+                // Configure volume price scale options (completely hidden)
                 window.volumeSeries.priceScale().applyOptions({
                     autoScale: true,
                     mode: 0, // Normal mode for proper scaling
-                    alignLabels: true,
-                    visible: true, // Must be true for bars to render
-                    ticksVisible: false, // Hide tick marks on scale
-                    entireTextOnly: false, // Allow partial text
-                    borderVisible: false, // Hide border for cleaner look
-                    textColor: 'transparent', // Make volume labels invisible
+                    visible: false, // Hide the price scale completely for volume
                     scaleMargins: {
                         top: 0.1,
                         bottom: 0.2, // Add 20% margin at bottom to prevent 0 from showing
@@ -797,7 +796,7 @@ export const createTradingViewChartTemplate = (
             if (!window.candlestickSeries) {
                 return;
             }
-            
+
             // Remove existing current price line if it exists
             if (window.priceLines.currentPrice) {
                 try {
@@ -807,14 +806,14 @@ export const createTradingViewChartTemplate = (
                 }
                 window.priceLines.currentPrice = null;
             }
-            
+
             // Create new current price line if price is valid
             if (currentPrice && !isNaN(parseFloat(currentPrice))) {
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(currentPrice),
-                        color: '${theme.colors.text.default}',
-                        lineWidth: 1,
+                        color: '${theme.colors.background.muted}',
+                        lineWidth: 2,
                         lineStyle: 2, // Dashed line
                         axisLabelVisible: true,
                         title: ''
@@ -823,7 +822,6 @@ export const createTradingViewChartTemplate = (
                     window.priceLines.currentPrice = priceLine;
                 } catch (error) {
                     // Silent error handling
-                    console.error('TradingView: Error creating current price line:', error);
                 }
             }
         };
@@ -834,10 +832,8 @@ export const createTradingViewChartTemplate = (
             if (resizeTimeout) clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
                 if (window.chart) {
-                    window.chart.applyOptions({
-                        width: window.innerWidth,
-                        height: window.innerHeight
-                    });
+                    // With autoSize: true, chart automatically resizes to container
+                    // No need to manually set width/height
 
                     // Conditionally recalculate pane heights based on pane count
                     const panes = window.chart.panes();
@@ -1005,8 +1001,8 @@ export const createTradingViewChartTemplate = (
                 try {
                     window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.currentPrice.price,
-                        color: '${theme.colors.text.default}',
-                        lineWidth: 1,
+                        color: '${theme.colors.background.muted}',
+                        lineWidth: 2,
                         lineStyle: 2,
                         axisLabelVisible: true,
                         title: ''
