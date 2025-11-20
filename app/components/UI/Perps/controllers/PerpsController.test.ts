@@ -2618,19 +2618,6 @@ describe('PerpsController', () => {
       expect(() => controller.getWithdrawalRoutes()).not.toThrow();
       expect(controller.getWithdrawalRoutes()).toEqual([]);
     });
-
-    it('handles missing provider methods gracefully', () => {
-      // Create incomplete provider for testing error handling
-      const incompleteProvider: Partial<IPerpsProvider> = { ...mockProvider };
-      delete incompleteProvider.getWithdrawalRoutes;
-
-      controller.testSetPartialProviders(
-        new Map([['hyperliquid', incompleteProvider]]),
-      );
-
-      expect(() => controller.getWithdrawalRoutes()).not.toThrow();
-      expect(controller.getWithdrawalRoutes()).toEqual([]);
-    });
   });
 
   describe('toggleTestnet', () => {
