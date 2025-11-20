@@ -322,6 +322,12 @@ jest.mock('@shopify/flash-list', () => {
   };
 });
 
+jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+  useConfirmNavigation: () => ({
+    navigateToConfirmation: jest.fn(),
+  }),
+}));
+
 import PredictTabView from './PredictTabView';
 import { useSelector } from 'react-redux';
 
