@@ -1,106 +1,136 @@
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { getNativeTokenAddress } from '../../utils/asset';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
+import { AssetType } from '../../types/token';
 
 const log = createProjectLogger('transaction-pay');
 
-export interface BalanceOverride {
-  address: Hex;
-  balance: number;
-  chainId: Hex;
-}
-
 export function useAutomaticTransactionPayToken({
-  countOnly = false,
   disable = false,
 }: {
-  countOnly?: boolean;
   disable?: boolean;
 } = {}) {
   const isUpdated = useRef(false);
   const { setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const tokens = useTransactionPayAvailableTokens();
+
+  const tokensWithBalance = useMemo(
+    () => tokens.filter((t) => !t.disabled),
+    [tokens],
+  );
 
   const transactionMeta =
     useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
 
   const {
-    chainId,
     txParams: { from },
   } = transactionMeta;
 
-  const tokens = useTransactionPayAvailableTokens().filter((t) => !t.disabled);
-  const isHardwareWallet = isHardwareAccount(from ?? '');
+  const isHardwareWallet = useMemo(
+    () => isHardwareAccount(from ?? '') ?? false,
+    [from],
+  );
 
-  let automaticToken: { address: string; chainId?: string } | undefined;
-  let count = 0;
-
-  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
-
-  if (!disable && (!isUpdated.current || countOnly)) {
-    const targetToken =
-      requiredTokens.find((token) => token.address !== nativeTokenAddress) ??
-      requiredTokens[0];
-
-    count = tokens.length;
-
-    const requiredToken = tokens.find(
-      (token) =>
-        token.address === targetToken?.address && token.chainId === chainId,
-    );
-
-    const sameChainHighestBalanceToken = tokens?.find(
-      (token) => token.chainId === chainId,
-    );
-
-    const alternateChainHighestBalanceToken = tokens?.find(
-      (token) => token.chainId !== chainId,
-    );
-
-    const targetTokenFallback = targetToken
-      ? {
-          address: targetToken.address,
-          chainId,
-        }
-      : undefined;
-
-    automaticToken =
-      requiredToken ??
-      sameChainHighestBalanceToken ??
-      alternateChainHighestBalanceToken ??
-      targetTokenFallback;
-
-    if (isHardwareWallet) {
-      automaticToken = targetTokenFallback;
-    }
-  }
+  const targetToken = useMemo(
+    () => requiredTokens.find((token) => !token.allowUnderMinimum),
+    [requiredTokens],
+  );
 
   useEffect(() => {
-    if (
-      isUpdated.current ||
-      !automaticToken ||
-      !requiredTokens?.length ||
-      countOnly
-    ) {
+    if (disable || isUpdated.current) {
+      return;
+    }
+
+    const automaticToken = getBestToken({
+      isHardwareWallet,
+      targetToken,
+      tokens: tokensWithBalance,
+    });
+
+    if (!automaticToken) {
+      log('No automatic pay token found');
       return;
     }
 
     setPayToken({
-      address: automaticToken.address as Hex,
-      chainId: automaticToken.chainId as Hex,
+      address: automaticToken.address,
+      chainId: automaticToken.chainId,
     });
 
     isUpdated.current = true;
 
     log('Automatically selected pay token', automaticToken);
-  }, [automaticToken, countOnly, isUpdated, requiredTokens, setPayToken]);
+  }, [
+    disable,
+    isHardwareWallet,
+    requiredTokens,
+    setPayToken,
+    targetToken,
+    tokensWithBalance,
+  ]);
+}
 
-  return { count };
+function getBestToken({
+  isHardwareWallet,
+  targetToken,
+  tokens,
+}: {
+  isHardwareWallet: boolean;
+  targetToken?: { address: Hex; chainId: Hex };
+  tokens: AssetType[];
+}): { address: Hex; chainId: Hex } | undefined {
+  const targetTokenFallback = targetToken
+    ? {
+        address: targetToken.address,
+        chainId: targetToken.chainId,
+      }
+    : undefined;
+
+  if (isHardwareWallet) {
+    return targetTokenFallback;
+  }
+
+  const requiredToken = tokens.find(
+    (t) =>
+      t.address.toLowerCase() === targetToken?.address.toLowerCase() &&
+      t.chainId === targetToken?.chainId,
+  );
+
+  if (requiredToken) {
+    return {
+      address: requiredToken.address as Hex,
+      chainId: requiredToken.chainId as Hex,
+    };
+  }
+
+  const sameChainHighestBalanceToken = tokens.find(
+    (t) => t.chainId === targetToken?.chainId,
+  );
+
+  if (sameChainHighestBalanceToken) {
+    return {
+      address: sameChainHighestBalanceToken.address as Hex,
+      chainId: sameChainHighestBalanceToken.chainId as Hex,
+    };
+  }
+
+  const alternateChainHighestBalanceToken = tokens.find(
+    (t) => t.chainId !== targetToken?.chainId,
+  );
+
+  if (alternateChainHighestBalanceToken) {
+    return {
+      address: alternateChainHighestBalanceToken.address as Hex,
+      chainId: alternateChainHighestBalanceToken.chainId as Hex,
+    };
+  }
+
+  return targetTokenFallback;
 }
