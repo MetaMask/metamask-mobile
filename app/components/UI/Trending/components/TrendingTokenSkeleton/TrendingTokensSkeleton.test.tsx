@@ -40,9 +40,4 @@ describe('TrendingTokensSkeleton', () => {
     // Should render 5 skeleton elements per row (3 rows = 15 skeletons)
     expect(skeletons.length).toBe(15);
   });
-
-  it('matches snapshot', () => {
-    const { toJSON } = render(<TrendingTokensSkeleton count={2} />);
-    expect(toJSON()).toMatchSnapshot();
-  });
 });

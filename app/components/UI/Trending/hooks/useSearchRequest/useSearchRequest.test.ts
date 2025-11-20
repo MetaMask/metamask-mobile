@@ -1,4 +1,4 @@
-import { DEBOUNCE_WAIT, useSearchRequest } from './';
+import { DEBOUNCE_WAIT, useSearchRequest } from '.';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-native';
 import { CaipChainId } from '@metamask/utils';
