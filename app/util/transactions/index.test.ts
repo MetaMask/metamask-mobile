@@ -22,6 +22,12 @@ import {
   TOKEN_METHOD_TRANSFER,
   CONTRACT_METHOD_DEPLOY,
   TOKEN_METHOD_TRANSFER_FROM,
+  TOKEN_METHOD_MINT,
+  TRANSFER_FROM_ACTION_KEY,
+  SAFE_MINT_SIGNATURE,
+  MINT_SIGNATURE,
+  MINT_TO_SIGNATURE,
+  SAFE_MINT_WITH_DATA,
   calculateEIP1559Times,
   parseTransactionLegacy,
   getIsNativeTokenTransferred,
@@ -846,6 +852,86 @@ describe('Transactions utils :: getActionKey', () => {
 
     expect(result).toBe(strings('transactions.sent_ether'));
   });
+
+  it('returns "Sent Collectible" for tokenMethodTransferFrom type when user is sender', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_collectible'));
+  });
+
+  it('returns "Received Collectible" for tokenMethodTransferFrom type when user is receiver', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS2,
+        to: MOCK_ADDRESS1,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.received_collectible'));
+  });
+
+  it('returns "Sent Collectible" for tokenMethodSafeTransferFrom type when user is sender', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodSafeTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: MOCK_ADDRESS2,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.sent_collectible'));
+  });
+
+  it('returns "Received Collectible" for tokenMethodSafeTransferFrom type when user is receiver', async () => {
+    spyOnQueryMethod(undefined);
+    const tx = {
+      type: TransactionType.tokenMethodSafeTransferFrom,
+      txParams: {
+        from: MOCK_ADDRESS2,
+        to: MOCK_ADDRESS1,
+      },
+    };
+
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+
+    expect(result).toBe(strings('transactions.received_collectible'));
+  });
 });
 
 describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
@@ -1444,6 +1530,71 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     const actionKey = await getTransactionActionKey(transaction, chainId);
 
     expect(actionKey).toBe(type);
+  });
+
+  it('returns TRANSFER_FROM_ACTION_KEY for tokenMethodTransferFrom type', async () => {
+    const transaction = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        to: '0x123',
+        from: '0x456',
+      },
+    };
+
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+    expect(actionKey).toBe(TRANSFER_FROM_ACTION_KEY);
+  });
+
+  it('returns TRANSFER_FROM_ACTION_KEY for tokenMethodSafeTransferFrom type', async () => {
+    const transaction = {
+      type: TransactionType.tokenMethodSafeTransferFrom,
+      txParams: {
+        to: '0x123',
+        from: '0x456',
+      },
+    };
+
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+    expect(actionKey).toBe(TRANSFER_FROM_ACTION_KEY);
+  });
+
+  it('returns TRANSFER_FROM_ACTION_KEY for legacy transferfrom type', async () => {
+    const transaction = {
+      type: 'transferfrom',
+      txParams: {
+        to: '0x123',
+        from: '0x456',
+      },
+    };
+
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+    expect(actionKey).toBe(TRANSFER_FROM_ACTION_KEY);
+  });
+
+  it('returns mint for NFT mint method signatures', async () => {
+    const mintSignatures = [
+      SAFE_MINT_SIGNATURE,
+      MINT_SIGNATURE,
+      MINT_TO_SIGNATURE,
+      SAFE_MINT_WITH_DATA,
+    ];
+
+    for (const signature of mintSignatures) {
+      const transaction = {
+        txParams: {
+          to: '0x123',
+          from: '0x456',
+          data: `${signature}0000000000000000000000000000000000000000000000000000000000000001`,
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(TOKEN_METHOD_MINT);
+    }
   });
 });
 
