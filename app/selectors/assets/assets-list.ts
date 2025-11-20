@@ -27,7 +27,6 @@ import {
   TronResourceSymbol,
 } from '../../core/Multichain/constants';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
-import { TrxScope } from '@metamask/keyring-api';
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (state: RootState) => {
@@ -85,36 +84,9 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
       }),
     };
   },
+  (_state, params: { filterTronStakedTokens: boolean } | undefined) =>
+    params?.filterTronStakedTokens,
   (filteredState) => _selectAssetsBySelectedAccountGroup(filteredState),
-);
-
-export const selectFilteredAssetsBySelectedAccountGroup = createSelector(
-  selectAssetsBySelectedAccountGroup,
-  (assetsByAccountGroup) => {
-    const newAssetsByAccountGroup = { ...assetsByAccountGroup };
-
-    Object.values(TrxScope).forEach((tronChainId) => {
-      if (!newAssetsByAccountGroup[tronChainId]) {
-        return;
-      }
-
-      newAssetsByAccountGroup[tronChainId] = newAssetsByAccountGroup[
-        tronChainId
-      ].filter((asset: Asset) => {
-        if (
-          asset.chainId.startsWith('tron:') &&
-          TRON_RESOURCE_SYMBOLS_SET.has(
-            asset.symbol?.toLowerCase() as TronResourceSymbol,
-          )
-        ) {
-          return false;
-        }
-        return true;
-      });
-    });
-
-    return newAssetsByAccountGroup;
-  },
 );
 
 // BIP44 MAINTENANCE: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
@@ -222,7 +194,7 @@ const selectEnabledNetworks = createDeepEqualSelector(
 
 export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   [
-    selectFilteredAssetsBySelectedAccountGroup,
+    selectAssetsBySelectedAccountGroup,
     selectEnabledNetworks,
     selectTokenSortConfig,
     selectStakedAssets,
@@ -230,19 +202,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets)
-      .filter((asset) => {
-        // We need to filter out Tron resources from this list
-        if (
-          asset.chainId?.includes('tron:') &&
-          TRON_RESOURCE_SYMBOLS_SET.has(
-            asset.symbol?.toLowerCase() as TronResourceSymbol,
-          )
-        ) {
-          return false;
-        }
-        return true;
-      });
+      .flatMap(([_, chainAssets]) => chainAssets);
 
     const stakedAssetsArray = [];
     for (const asset of assets) {
@@ -383,7 +343,13 @@ function assetToToken(
 // This is used to select Tron resources (Energy & Bandwidth)
 export const selectTronResourcesBySelectedAccountGroup =
   createDeepEqualSelector(
-    [selectAssetsBySelectedAccountGroup, selectEnabledNetworks],
+    [
+      (state) =>
+        selectAssetsBySelectedAccountGroup(state, {
+          filterTronStakedTokens: false,
+        }),
+      selectEnabledNetworks,
+    ],
     (bip44Assets, enabledNetworks) => {
       const assets = Object.entries(bip44Assets)
         .filter(([networkId, _]) => enabledNetworks.includes(networkId))
