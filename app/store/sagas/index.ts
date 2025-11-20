@@ -260,7 +260,11 @@ export function* startAppServices() {
   ]);
 
   // Start Engine service
+  console.log('🐛 [BUG DEMO - SAGA] Calling EngineService.start()...');
   yield call(EngineService.start);
+  console.log(
+    '🐛 [BUG DEMO - SAGA] EngineService.start() returned! Continuing saga...',
+  );
 
   // Start DeeplinkManager and process branch deeplinks
   DeeplinkManager.start();
@@ -270,6 +274,9 @@ export function* startAppServices() {
   yield call(applyVaultInitialization);
 
   // Unblock the ControllersGate
+  console.log(
+    '🐛 [BUG DEMO - SAGA] Dispatching setAppServicesReady() - UI will render NOW',
+  );
   yield put(setAppServicesReady());
 }
 

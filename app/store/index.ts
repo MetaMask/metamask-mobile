@@ -22,8 +22,11 @@ const pReducer = persistReducer<RootState, AnyAction>(
   rootReducer,
 );
 
+// Store and persistor are initialized asynchronously
+// They start as undefined and are assigned during createStoreAndPersistor()
 // eslint-disable-next-line import/no-mutable-exports
 let store: ReduxStore, persistor: Persistor;
+
 const createStoreAndPersistor = async () => {
   trace({
     name: TraceName.StoreInit,
@@ -76,12 +79,17 @@ const createStoreAndPersistor = async () => {
   persistor = persistStore(store, null, onPersistComplete);
 };
 
-(async () => {
+/**
+ * Promise that resolves when store and persistor are fully initialized.
+ * This ensures consumers can await store initialization if needed.
+ */
+const storeInitializationPromise: Promise<void> = (async () => {
   try {
     await createStoreAndPersistor();
   } catch (error) {
     Logger.error(error as Error, 'Error creating store and persistor');
+    throw error; // Re-throw so consumers can handle the error
   }
 })();
 
-export { store, persistor };
+export { store, persistor, storeInitializationPromise };

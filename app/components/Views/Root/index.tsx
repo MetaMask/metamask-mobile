@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
-import { store, persistor } from '../../../store';
+import { store, persistor, storeInitializationPromise } from '../../../store';
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
@@ -55,12 +55,21 @@ const Root = ({ foxCode }: RootProps) => {
     if (isTest) {
       waitForStore();
     } else {
-      setIsStoreLoading(false);
+      storeInitializationPromise
+        .then(() => {
+          setIsStoreLoading(false);
+        })
+        .catch((error) => {
+          Logger.error(error, 'Failed to initialize store');
+          // Still set loading to false to prevent infinite loading state
+          setIsStoreLoading(false);
+        });
     }
   }, [foxCode]);
 
-  // Only wait for store in test mode, fonts are handled inside theme context
-  if (isTest && isStoreLoading) {
+  // Wait for store to be initialized before rendering
+  // In production, always wait. In tests, only wait if isTest flag is set
+  if (isTest || isStoreLoading) {
     return null;
   }
 

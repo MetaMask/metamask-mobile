@@ -58,27 +58,59 @@ export class EngineService {
           'Engine context does not exists. Redux will not be updated from controller state updates!',
         ),
       );
-      return;
+      return Promise.resolve();
     }
 
-    engine.controllerMessenger.subscribeOnceIf(
-      'ComposableController:stateChange',
-      () => {
-        if (!engine.context.KeyringController.metadata?.vault) {
-          Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
-        }
-        this.updateBatcher.add(INIT_BG_STATE_KEY);
-        // immediately flush the redux action
-        // so that the initial state is available to the redux store
-        this.updateBatcher.flush();
-        this.engineInitialized = true;
-      },
-      () => !this.engineInitialized,
-    );
+    // If engine is already initialized (singleton reuse), sync Redux immediately
+    if (this.engineInitialized) {
+      Logger.log(
+        `${LOG_TAG}: Engine already initialized, syncing Redux immediately`,
+      );
+      this.updateBatcher.add(INIT_BG_STATE_KEY);
+      this.updateBatcher.flush();
+      engine.startControllerPolling();
+      return Promise.resolve();
+    }
+
+    // CRITICAL: Subscribe to ComposableController:stateChange FIRST
+    // This subscription will perform the initial full Redux sync and set engineInitialized = true
+    // After this, individual controller update subscriptions can fire
+    const initializationPromise = new Promise<void>((resolve) => {
+      engine.controllerMessenger.subscribeOnceIf(
+        'ComposableController:stateChange',
+        () => {
+          if (!engine.context.KeyringController.metadata?.vault) {
+            Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
+          }
+          this.updateBatcher.add(INIT_BG_STATE_KEY);
+          this.updateBatcher.flush();
+          this.engineInitialized = true;
+
+          // CRITICAL: Start controller polling AFTER initial state sync
+          // This prevents race conditions where controller state changes
+          // trigger before subscriptions are ready
+          engine.startControllerPolling();
+
+          Logger.log(`${LOG_TAG}: Engine initialization complete`);
+          resolve();
+        },
+        () => !this.engineInitialized,
+      );
+    });
 
     // Set up immediate Redux updates for all controller state changes
     // This ensures Redux is updated right away when controllers change
+    // These subscriptions are set up immediately but are guarded by the engineInitialized flag
     const update_bg_state_cb = (controllerName: string) => {
+      // CRITICAL: Prevent UPDATE_BG_STATE before INIT_BG_STATE
+      // Individual controller updates should only happen after initial sync
+      if (!this.engineInitialized) {
+        Logger.log(
+          `${LOG_TAG}: Ignoring ${controllerName} update before engine initialization complete`,
+        );
+        return;
+      }
+
       if (!engine.context.KeyringController.metadata?.vault) {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
@@ -104,6 +136,8 @@ export class EngineService {
     // This is called automatically after Redux subscriptions to ensure
     // both Redux and filesystem are kept in sync when controller state changes
     this.setupEnginePersistence();
+
+    return initializationPromise;
   };
 
   /**
@@ -153,7 +187,7 @@ export class EngineService {
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
-      this.initializeControllers(Engine as unknown as TypedEngine);
+      await this.initializeControllers(Engine as unknown as TypedEngine);
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
@@ -278,9 +312,7 @@ export class EngineService {
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       const instance = Engine.init(state, newKeyringState, metaMetricsId);
       if (instance) {
-        this.initializeControllers(instance);
-        // this is a hack to give the engine time to reinitialize
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await this.initializeControllers(instance);
         return {
           success: true,
         };
