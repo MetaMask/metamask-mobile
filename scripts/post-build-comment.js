@@ -6,12 +6,20 @@ const { Octokit } = require('@octokit/rest');
 
 const ARTIFACTS_COMMENT_MARKER = '<!-- metamask-bot-build-announce -->';
 
+/**
+ * Posts or updates a PR comment with build artifacts links.
+ * Requires environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, GITHUB_RUN_ID
+ * 
+ * @returns {Promise<void>}
+ */
 async function start() {
   const {
     GITHUB_TOKEN,
     GITHUB_REPOSITORY,
     PR_NUMBER,
     GITHUB_RUN_ID,
+    ANDROID_BUILD_SUCCESS,
+    IOS_BUILD_SUCCESS,
   } = process.env;
 
   if (!GITHUB_TOKEN || !GITHUB_REPOSITORY || !PR_NUMBER || !GITHUB_RUN_ID) {
@@ -41,7 +49,6 @@ async function start() {
     if (fs.existsSync(pbxprojPath)) {
       const pbxprojContent = fs.readFileSync(pbxprojPath, 'utf8');
       
-      // Use matchAll to find all occurrences and check consistency
       const matches = [...pbxprojContent.matchAll(/CURRENT_PROJECT_VERSION = (\d+);/g)];
       
       if (matches.length > 0) {
@@ -52,7 +59,6 @@ async function start() {
           console.warn('Multiple different CURRENT_PROJECT_VERSION values found in project.pbxproj:', Array.from(uniqueVersions));
         }
         
-        // Use the first one found
         iosBuildNumber = versions[0];
       }
     } else {
@@ -66,13 +72,29 @@ async function start() {
   const testFlightLink = 'https://testflight.apple.com/join/hBrjtFuA';
   const artifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${GITHUB_RUN_ID}`;
 
+  let rows = [];
+  
+  if (IOS_BUILD_SUCCESS === 'true') {
+    rows.push(`| **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
+  }
+
+  if (ANDROID_BUILD_SUCCESS === 'true') {
+    rows.push(`| **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
+  }
+
+  // Fallback if neither (e.g. if manual run or weird state), show both but maybe with warning?
+  // For now, if variables aren't set (legacy/local run), show both as before
+  if (!IOS_BUILD_SUCCESS && !ANDROID_BUILD_SUCCESS) {
+    rows.push(`| **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
+    rows.push(`| **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
+  }
+
   const commentBody = `${ARTIFACTS_COMMENT_MARKER}
 ### 🚀 Builds Ready for Testing
 
 | Platform | Link | Note |
 | :--- | :--- | :--- |
-| **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |
-| **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |
+${rows.join('\n')}
 
 <details>
 <summary>Debug Info</summary>
@@ -84,7 +106,6 @@ async function start() {
 
   // 3. Post or Update Comment
   try {
-    // Fetch comments with pagination handling
     let comments = [];
     let page = 1;
     const perPage = 100;
@@ -129,9 +150,6 @@ async function start() {
     }
   } catch (error) {
     console.error('Error posting/updating comment:', error);
-    // If we fail on a fork due to permissions, we should probably just log it and exit gracefully
-    // rather than failing the whole build, since external contributors can't post comments.
-    // However, keeping exit(1) for now to match requirements unless requested otherwise.
     process.exit(1);
   }
 }

@@ -561,7 +561,7 @@ jobs:
   post-build-comment:
     name: Post Build Comment
     runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request' && (needs.build-android-apks.result == 'success' || needs.build-ios-apps.result == 'success')
+    if: always() && github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.build-android-apks.result == 'success' || needs.build-ios-apps.result == 'success')
     needs: [build-android-apks, build-ios-apps]
     permissions:
       pull-requests: write
@@ -572,6 +572,11 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
+      # Optimization: Only install scripts dependencies if possible, or stick to full install for robustness.
+      # Given the monorepo structure and potential cross-dependencies, full install is safer but slower.
+      # To optimize, we could try `yarn workspaces focus root` if supported or similar.
+      # For now, sticking to full install as requested but noting optimization potential.
+      # Actually, let's try to install just what's needed if possible, but scripts often rely on devDeps.
       - name: Install dependencies
         run: yarn install --immutable
       - name: Post Build Comment
@@ -581,6 +586,8 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_RUN_ID: ${{ github.run_id }}
+          ANDROID_BUILD_SUCCESS: ${{ needs.build-android-apks.result == 'success' }}
+          IOS_BUILD_SUCCESS: ${{ needs.build-ios-apps.result == 'success' }}
 
   log-merge-group-failure:
     name: Log merge group failure
