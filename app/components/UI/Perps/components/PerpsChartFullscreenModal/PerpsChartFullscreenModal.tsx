@@ -56,6 +56,8 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       PERPS_CHART_CONFIG.LAYOUT.FULLSCREEN_INITIAL_HEIGHT_RATIO,
   );
   const lastHeightRef = useRef<number>(chartHeight);
+  // Track OHLCV bar height to subtract from chart height
+  const [ohlcvHeight, setOhlcvHeight] = useState<number>(0);
 
   // Auto-follow device orientation when modal is open
   useEffect(() => {
@@ -85,6 +87,13 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       }
     };
   }, [isVisible]);
+
+  // Reset OHLCV height when OHLCV bar disappears
+  useEffect(() => {
+    if (!ohlcData) {
+      setOhlcvHeight(0);
+    }
+  }, [ohlcData]);
 
   const handleClose = useCallback(async () => {
     try {
@@ -177,7 +186,13 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
         >
           {/* OHLCV Bar - Shows above chart when interacting */}
           {ohlcData && (
-            <View style={styles.ohlcvWrapper}>
+            <View
+              style={styles.ohlcvWrapper}
+              onLayout={(event) => {
+                const { height } = event.nativeEvent.layout;
+                setOhlcvHeight(height);
+              }}
+            >
               <PerpsOHLCVBar
                 open={ohlcData.open}
                 high={ohlcData.high}
@@ -196,7 +211,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             <TradingViewChart
               ref={chartRef}
               candleData={candleData}
-              height={chartHeight}
+              height={Math.max(chartHeight - ohlcvHeight, 100)}
               tpslLines={tpslLines}
               visibleCandleCount={
                 visibleCandleCount ?? PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN

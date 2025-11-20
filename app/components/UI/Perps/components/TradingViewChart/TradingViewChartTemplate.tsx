@@ -626,43 +626,6 @@ export const createTradingViewChartTemplate = (
             return window.candlestickSeries;
         };
 
-        // Custom volume formatter using K/M/B/T suffixes
-        // Inline JavaScript version of formatLargeNumber from formatUtils.ts
-        //
-        // This formatter is specifically designed for USD notional volume display
-        // USD notional = volume × price (e.g., 100 BTC × $40,000 = $4,000,000 = "4.00M")
-        //
-        // Format examples:
-        // - 1,234,567,890 → "1.23B" (billions)
-        // - 12,345,678 → "12.35M" (millions)
-        // - 123,456 → "123K" (thousands)
-        // - 999 → "999.00" (under 1000)
-        window.formatVolumeNumber = function(value) {
-            // Don't show labels for zero or negative volume (doesn't make sense)
-            if (value <= 0 || isNaN(value) || !isFinite(value)) {
-                return '';
-            }
-
-            const absNum = Math.abs(value);
-
-            // Volume ranges with appropriate decimal precision
-            // Billions (>=1B): 2 decimals, Millions (>=1M): 2 decimals
-            // Thousands (>=1K): 0 decimals, Under 1000: 2 decimals
-            if (absNum >= 1000000000) {
-                // Billions: 2 decimals (e.g., "1.23B")
-                return (absNum / 1000000000).toFixed(2) + 'B';
-            } else if (absNum >= 1000000) {
-                // Millions: 2 decimals (e.g., "12.35M")
-                return (absNum / 1000000).toFixed(2) + 'M';
-            } else if (absNum >= 1000) {
-                // Thousands: 0 decimals (e.g., "123K")
-                return (absNum / 1000).toFixed(0) + 'K';
-            } else {
-                // Under 1000: 2 decimals (e.g., "99.12")
-                return absNum.toFixed(2);
-            }
-        };
-
         // Empty formatter to hide volume Y-axis labels
         window.formatVolumeEmpty = function(value) {
             return ''; // Always return empty string to hide labels

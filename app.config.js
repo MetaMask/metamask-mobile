@@ -33,7 +33,7 @@ module.exports = {
     [
       'expo-screen-orientation',
       {
-        initialOrientation: 'DEFAULT',
+        initialOrientation: 'PORTRAIT',
       },
     ],
   ],
