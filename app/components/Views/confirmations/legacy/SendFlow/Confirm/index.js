@@ -213,10 +213,6 @@ class Confirm extends PureComponent {
      */
     showHexData: PropTypes.bool,
     /**
-     * Indicates whether custom nonce should be shown in transaction editor
-     */
-    showCustomNonce: PropTypes.bool,
-    /**
      * Network provider type as mainnet
      */
     providerType: PropTypes.string,
@@ -472,7 +468,6 @@ class Confirm extends PureComponent {
     const {
       chainId,
       globalNetworkClientId,
-      showCustomNonce,
       navigation,
       providerType,
       isPaymentRequest,
@@ -501,7 +496,7 @@ class Confirm extends PureComponent {
         .build(),
     );
 
-    showCustomNonce && (await this.setNetworkNonce());
+    await this.setNetworkNonce();
     navigation.setParams({ providerType, isPaymentRequest });
     this.parseTransactionDataHeader();
     if (isMultiLayerFeeNetwork(chainId)) {
@@ -821,7 +816,6 @@ class Confirm extends PureComponent {
   prepareTransactionToSend = () => {
     const {
       gasEstimateType,
-      showCustomNonce,
       transaction: rawTransaction,
     } = this.props;
 
@@ -840,7 +834,6 @@ class Confirm extends PureComponent {
       gasDataEIP1559,
       gasDataLegacy,
       gasEstimateType,
-      showCustomNonce,
       transaction,
     });
   };
@@ -1367,7 +1360,6 @@ class Confirm extends PureComponent {
     const { selectedAsset, paymentRequest } = this.props.transactionState;
     const {
       showHexData,
-      showCustomNonce,
       primaryCurrency,
       chainId,
       gasEstimateType,
@@ -1509,7 +1501,7 @@ class Confirm extends PureComponent {
               updateGasState={this.updateGasState}
             />
           )}
-          {showCustomNonce && !shouldUseSmartTransaction && (
+          {!shouldUseSmartTransaction && (
             <CustomNonce
               nonce={nonce}
               onNonceEdit={() => this.toggleConfirmationModal(EDIT_NONCE)}
@@ -1605,7 +1597,6 @@ const mapStateToProps = (state) => {
     currentCurrency: selectCurrentCurrency(state),
     providerType: selectProviderTypeByChainId(state, chainId),
     showHexData: state.settings.showHexData,
-    showCustomNonce: state.settings.showCustomNonce,
     chainId,
     networkClientId,
     globalNetworkClientId: selectNetworkClientId(state),

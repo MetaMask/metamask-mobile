@@ -156,42 +156,10 @@ describe('AdvancedDetailsRow', () => {
       expect(mockSetShowNonceModal).toHaveBeenCalledWith(true);
     });
 
-    it('nonce is not editable if showCustomNonce setting is false', () => {
-      const stateWithCustomNonceDisabled = merge(
-        {},
-        generateContractInteractionState,
-        {
-          settings: {
-            showCustomNonce: false,
-          },
-        },
-      );
-
+    it('nonce is always editable by default', () => {
       const { getByText } = renderWithProvider(
         <AdvancedDetailsRow />,
-        { state: stateWithCustomNonceDisabled },
-        false,
-      );
-
-      fireEvent.press(getByText('Advanced details'));
-      fireEvent.press(getByText('42'));
-      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(0);
-    });
-
-    it('nonce is editable if showCustomNonce setting is true', () => {
-      const stateWithCustomNonceEnabled = merge(
-        {},
-        generateContractInteractionState,
-        {
-          settings: {
-            showCustomNonce: true,
-          },
-        },
-      );
-
-      const { getByText } = renderWithProvider(
-        <AdvancedDetailsRow />,
-        { state: stateWithCustomNonceEnabled },
+        { state: generateContractInteractionState },
         false,
       );
 

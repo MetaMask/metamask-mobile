@@ -20,7 +20,6 @@ import { NameType } from '../../../../../../UI/Name/Name.types';
 import { selectSmartTransactionsEnabled } from '../../../../../../../selectors/smartTransactionsController';
 import { RootState } from '../../../../../../../reducers';
 import { selectSmartTransactionsOptInStatus } from '../../../../../../../selectors/preferencesController';
-import { selectShowCustomNonce } from '../../../../../../../selectors/settings';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
 import { use7702TransactionType } from '../../../../hooks/7702/use7702TransactionType';
@@ -53,8 +52,9 @@ const AdvancedDetailsRow = () => {
   const isSTXOptIn = useSelector((state: RootState) =>
     selectSmartTransactionsOptInStatus(state),
   );
-  const showCustomNonce = useSelector(selectShowCustomNonce);
-  const isNonceChangeDisabled = !showCustomNonce || (isSTXEnabledForChain && isSTXOptIn);
+
+  // Nonce is always editable unless smart transactions are enabled
+  const isNonceChangeDisabled = isSTXEnabledForChain && isSTXOptIn;
 
   const { styles } = useStyles(styleSheet, {
     isNonceChangeDisabled,
