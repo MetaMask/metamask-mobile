@@ -34326,7 +34326,7 @@ __metadata:
     "@metamask/address-book-controller": "npm:^7.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^8.0.0"
-    "@metamask/assets-controllers": "npm:@metamask-previews/assets-controllers@89.0.1-preview-f83c2058"
+    "@metamask/assets-controllers": "npm:^91.0.0"
     "@metamask/auto-changelog": "npm:^5.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/bitcoin-wallet-snap": "npm:^1.6.0"
