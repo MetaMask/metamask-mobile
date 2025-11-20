@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import Text, {
   TextColor,
@@ -11,7 +11,7 @@ import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -24,43 +24,9 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 }: PredictPositionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const [currentPosition, setCurrentPosition] =
-    useState<PredictPositionType>(position);
-
-  const { positions, loadPositions } = usePredictPositions({
-    marketId: position.marketId,
-    loadOnMount: false,
-    refreshOnFocus: false,
+  const currentPosition = usePredictOptimisticPositionRefresh({
+    position,
   });
-
-  // Update current position when positions change
-  useEffect(() => {
-    const updatedPosition = positions.find(
-      (p) =>
-        p.marketId === position.marketId && p.outcomeId === position.outcomeId,
-    );
-
-    if (updatedPosition) {
-      setCurrentPosition(updatedPosition);
-    }
-  }, [positions, position.marketId, position.outcomeId]);
-
-  // Auto-refresh for optimistic positions
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-
-    if (currentPosition.optimistic) {
-      intervalId = setInterval(() => {
-        loadPositions({ isRefresh: true });
-      }, 2000);
-    }
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [currentPosition.optimistic, loadPositions]);
 
   const {
     icon,

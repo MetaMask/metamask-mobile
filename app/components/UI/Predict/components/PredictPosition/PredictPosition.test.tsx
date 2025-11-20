@@ -278,45 +278,44 @@ describe('PredictPosition', () => {
   });
 
   describe('optimistic position auto-refresh', () => {
-    it('starts auto-refresh when position is optimistic', () => {
+    it('starts auto-refresh immediately when position is optimistic', async () => {
+      mockLoadPositions.mockResolvedValue(undefined);
       renderComponent({ optimistic: true });
 
-      expect(mockLoadPositions).not.toHaveBeenCalled();
-
-      act(() => {
-        jest.advanceTimersByTime(2000);
+      await waitFor(() => {
+        expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
       });
-
-      expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
     });
 
-    it('does not start auto-refresh when position is not optimistic', () => {
+    it('does not start auto-refresh when position is not optimistic', async () => {
       renderComponent({ optimistic: false });
 
-      act(() => {
-        jest.advanceTimersByTime(2000);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
       });
 
       expect(mockLoadPositions).not.toHaveBeenCalled();
     });
 
-    it('continues auto-refresh at 2-second intervals for optimistic position', () => {
+    it('continues auto-refresh at 2-second intervals after each load completes', async () => {
+      mockLoadPositions.mockResolvedValue(undefined);
       renderComponent({ optimistic: true });
 
-      act(() => {
-        jest.advanceTimersByTime(2000);
+      // First load happens immediately
+      await waitFor(() => {
+        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
       });
 
-      expect(mockLoadPositions).toHaveBeenCalledTimes(1);
-
-      act(() => {
-        jest.advanceTimersByTime(2000);
+      // Second load happens 2 seconds after first completes
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
       });
 
       expect(mockLoadPositions).toHaveBeenCalledTimes(2);
 
-      act(() => {
-        jest.advanceTimersByTime(2000);
+      // Third load happens 2 seconds after second completes
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
       });
 
       expect(mockLoadPositions).toHaveBeenCalledTimes(3);
@@ -326,6 +325,7 @@ describe('PredictPosition', () => {
       const optimisticPosition = { ...basePosition, optimistic: true };
       const resolvedPosition = { ...basePosition, optimistic: false };
 
+      mockLoadPositions.mockResolvedValue(undefined);
       mockUsePredictPositions.mockReturnValue({
         positions: [optimisticPosition],
         loadPositions: mockLoadPositions,
@@ -336,11 +336,11 @@ describe('PredictPosition', () => {
 
       const { rerender } = renderComponent({ optimistic: true });
 
-      act(() => {
-        jest.advanceTimersByTime(2000);
+      // First load happens immediately
+      await waitFor(() => {
+        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
       });
 
-      expect(mockLoadPositions).toHaveBeenCalledTimes(1);
       mockLoadPositions.mockClear();
 
       mockUsePredictPositions.mockReturnValue({
@@ -357,27 +357,28 @@ describe('PredictPosition', () => {
         expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
       });
 
-      act(() => {
-        jest.advanceTimersByTime(2000);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
       });
 
       expect(mockLoadPositions).not.toHaveBeenCalled();
     });
 
-    it('cleans up auto-refresh interval on unmount', () => {
+    it('cleans up auto-refresh on unmount', async () => {
+      mockLoadPositions.mockResolvedValue(undefined);
       const { unmount } = renderComponent({ optimistic: true });
 
-      act(() => {
-        jest.advanceTimersByTime(2000);
+      // First load happens immediately
+      await waitFor(() => {
+        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
       });
 
-      expect(mockLoadPositions).toHaveBeenCalledTimes(1);
       mockLoadPositions.mockClear();
 
       unmount();
 
-      act(() => {
-        jest.advanceTimersByTime(2000);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
       });
 
       expect(mockLoadPositions).not.toHaveBeenCalled();
