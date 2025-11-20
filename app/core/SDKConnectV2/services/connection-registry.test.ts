@@ -17,9 +17,6 @@ jest.mock('../../Permissions');
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
-    getState: jest.fn().mockImplementation(() => ({
-      engine: { backgroundState: { NetworkController: true } },
-    })),
   },
 }));
 
@@ -640,7 +637,22 @@ describe('ConnectionRegistry', () => {
       mockConnection1.client.reconnect.mockClear();
       mockConnection2.client.reconnect.mockClear();
 
-      // 'active' event (foreground) SHOULD trigger reconnect
+      // Test 1: First 'active' event (cold start) should NOT trigger reconnect
+      appStateHandler('active');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockConnection1.client.reconnect).not.toHaveBeenCalled();
+      expect(mockConnection2.client.reconnect).not.toHaveBeenCalled();
+
+      // Test 2: Other app states should NOT trigger reconnect
+      appStateHandler('background');
+      appStateHandler('inactive');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockConnection1.client.reconnect).not.toHaveBeenCalled();
+      expect(mockConnection2.client.reconnect).not.toHaveBeenCalled();
+
+      // Test 3: Second 'active' event (foreground) SHOULD trigger reconnect
       appStateHandler('active');
       await new Promise((resolve) => setTimeout(resolve, 0));
 
