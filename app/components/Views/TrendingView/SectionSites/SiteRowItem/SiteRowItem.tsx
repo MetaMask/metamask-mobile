@@ -35,6 +35,7 @@ const SiteRowItem = ({
 
   return (
     <Pressable
+      testID="site-row-item"
       onPress={onPress}
       style={({ pressed }) =>
         tw.style(
@@ -48,6 +49,7 @@ const SiteRowItem = ({
       <Box twClassName="flex-row items-center flex-1">
         {site.logoUrl ? (
           <Image
+            testID="site-logo-image"
             source={{ uri: site.logoUrl }}
             style={tw.style('w-10 h-10 rounded-full mr-4')}
             resizeMode="cover"
