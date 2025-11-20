@@ -78,8 +78,10 @@ describe('usePerpsMarketStats', () => {
     mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: mockCandleData,
       isLoading: false,
+      isLoadingMore: false,
       hasHistoricalData: true,
       error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     // Act: Render the hook with a symbol
@@ -102,8 +104,10 @@ describe('usePerpsMarketStats', () => {
     mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: null,
       isLoading: true,
+      isLoadingMore: false,
       hasHistoricalData: false,
       error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     // Act: Render the hook
@@ -120,8 +124,10 @@ describe('usePerpsMarketStats', () => {
     mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: null,
       isLoading: false,
+      isLoadingMore: false,
       hasHistoricalData: false,
       error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     // Act: Render the hook
@@ -156,8 +162,10 @@ describe('usePerpsMarketStats', () => {
     mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: mockCandleData,
       isLoading: false,
+      isLoadingMore: false,
       hasHistoricalData: true,
       error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -183,8 +191,10 @@ describe('usePerpsMarketStats', () => {
     mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: mockCandleData,
       isLoading: false,
+      isLoadingMore: false,
       hasHistoricalData: true,
       error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));

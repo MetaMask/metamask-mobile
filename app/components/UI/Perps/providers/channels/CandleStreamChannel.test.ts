@@ -58,6 +58,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
       });
 
@@ -84,6 +85,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: callback1,
       });
 
@@ -94,6 +96,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: callback2,
       });
 
@@ -132,6 +135,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: btcCallback,
       });
 
@@ -139,6 +143,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'ETH',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: ethCallback,
       });
 
@@ -168,6 +173,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
       });
 
@@ -201,6 +207,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -218,6 +225,7 @@ describe('CandleStreamChannel', () => {
       const unsubscribe = channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -231,12 +239,14 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -251,18 +261,21 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.FIVE_MINUTES,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
       channel.subscribe({
         coin: 'ETH',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -286,6 +299,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: btcCallback,
       });
 
@@ -293,6 +307,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'ETH',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: ethCallback,
       });
 
@@ -311,12 +326,14 @@ describe('CandleStreamChannel', () => {
       const unsubscribe1 = channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
       const unsubscribe2 = channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -340,12 +357,14 @@ describe('CandleStreamChannel', () => {
       const btcUnsubscribe = channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
       channel.subscribe({
         coin: 'ETH',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -365,6 +384,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -380,6 +400,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -401,6 +422,7 @@ describe('CandleStreamChannel', () => {
       const unsubscribe = channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -423,6 +445,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
         throttleMs: 1000,
       });
@@ -446,6 +469,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
         throttleMs: 1000,
       });
@@ -494,6 +518,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
         throttleMs: 1000,
       });
@@ -539,6 +564,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
         // No throttleMs
       });
@@ -566,6 +592,7 @@ describe('CandleStreamChannel', () => {
       const unsubscribe = channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
         throttleMs: 1000,
       });
@@ -600,6 +627,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
       });
 
@@ -625,6 +653,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
       });
 
@@ -654,12 +683,14 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
       channel.subscribe({
         coin: 'ETH',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -683,6 +714,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
         throttleMs: 1000,
       });
@@ -712,6 +744,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -732,6 +765,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback,
         throttleMs: 1000,
       });
@@ -777,6 +811,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -807,6 +842,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: subscriber,
       });
 
@@ -864,6 +900,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: subscriber,
       });
 
@@ -897,6 +934,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: jest.fn(),
       });
 
@@ -925,6 +963,7 @@ describe('CandleStreamChannel', () => {
       channel.subscribe({
         coin: 'BTC',
         interval: CandlePeriod.ONE_HOUR,
+        duration: TimeDuration.ONE_DAY,
         callback: subscriber,
       });
 
