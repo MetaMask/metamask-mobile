@@ -17,7 +17,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   getDecimalChainId,
   getNetworkImageSource,
@@ -54,9 +53,6 @@ import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -84,6 +80,7 @@ import { isNullOrUndefined } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
 import { useGasIncluded } from '../../hooks/useGasIncluded';
+import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -475,7 +472,7 @@ const BridgeView = () => {
     // @ts-expect-error The type is incorrect, this will work
     <ScreenView contentContainerStyle={styles.screen}>
       <Box style={styles.content}>
-        <Box style={styles.inputsContainer} gap={8}>
+        <Box style={styles.inputsContainer}>
           <TokenInputArea
             ref={inputRef}
             amount={sourceAmount}
@@ -499,17 +496,10 @@ const BridgeView = () => {
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
           />
-          <Box style={styles.arrowContainer}>
-            <Box style={styles.arrowCircle}>
-              <ButtonIcon
-                iconName={IconName.SwapVertical}
-                onPress={handleSwitchTokens(destTokenAmount)}
-                disabled={!destChainId || !destToken}
-                testID="arrow-button"
-                size={ButtonIconSizes.Lg}
-              />
-            </Box>
-          </Box>
+          <FLipQuoteButton
+            onPress={handleSwitchTokens(destTokenAmount)}
+            disabled={!destChainId || !destToken || !sourceToken}
+          />
           <TokenInputArea
             amount={destTokenAmount}
             token={destToken}
