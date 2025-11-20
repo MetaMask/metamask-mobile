@@ -219,11 +219,9 @@ export const selectSingleTokenByAddressAndChainId = createSelector(
   (_state: RootState, tokenAddress: Hex) => tokenAddress,
   (_state: RootState, _tokenAddress: Hex, chainId: Hex) => chainId,
   (allTokens, tokenAddress, chainId) => {
-    const tokensForAddressAndChain = Object.values(
-      allTokens[chainId] ?? {},
-    ).flat();
+    const chainTokens = Object.values(allTokens[chainId] ?? {}).flat();
 
-    return tokensForAddressAndChain.find(
+    return chainTokens.find(
       (token) => token.address.toLowerCase() === tokenAddress.toLowerCase(),
     );
   },
