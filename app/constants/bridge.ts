@@ -5,7 +5,6 @@ import {
   BRIDGE_DEV_API_BASE_URL,
   BRIDGE_PROD_API_BASE_URL,
 } from '@metamask/bridge-controller';
-import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
 
 /**
  * Swaps testnet chain ID (1337 in decimal)
@@ -54,9 +53,8 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [CHAIN_IDS.OPTIMISM]: 'Optimism',
   [CHAIN_IDS.ZKSYNC_ERA]: 'ZkSync Era',
   [CHAIN_IDS.BASE]: 'Base',
-  // TODO: Update to use CHAIN_IDS.SEI when it is added to the transaction controller
-  [NETWORK_CHAIN_ID.SEI_MAINNET]: 'Sei',
-  [NETWORK_CHAIN_ID.MONAD_MAINNET]: 'Monad',
+  [CHAIN_IDS.SEI]: 'Sei',
+  [CHAIN_IDS.MONAD]: 'Monad',
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'Bitcoin',
   [TrxScope.Mainnet]: 'Tron',
