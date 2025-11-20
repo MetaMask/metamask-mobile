@@ -689,11 +689,20 @@ export class Engine {
     );
     ///: END:ONLY_INCLUDE_IF
 
-    this.configureControllersOnNetworkChange();
-    this.startPolling();
     this.handleVaultBackup();
 
     Engine.instance = this;
+  }
+
+  /**
+   * Starts controller polling and configures controllers.
+   * This method should be called AFTER the initial Redux state sync to prevent race conditions.
+   * It was moved out of the constructor to ensure subscriptions are set up before
+   * controller state changes are triggered.
+   */
+  startControllerPolling() {
+    this.configureControllersOnNetworkChange();
+    this.startPolling();
   }
 
   handleVaultBackup() {
@@ -1462,6 +1471,11 @@ export default {
   lookupEnabledNetworks: () => {
     assertEngineExists(instance);
     instance.lookupEnabledNetworks();
+  },
+
+  startControllerPolling: () => {
+    assertEngineExists(instance);
+    instance.startControllerPolling();
   },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

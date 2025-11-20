@@ -35,8 +35,8 @@ export type InternalAccountWithCaipAccountId = InternalAccount & {
  * @returns - AccountsController state
  */
 export const selectAccountsControllerState = (state: RootState) =>
-  state.engine?.backgroundState?.AccountsController ??
-  defaultAccountsControllerState;
+  state.engine?.backgroundState?.AccountsController; // ??
+// defaultAccountsControllerState;
 
 /**
  * A memoized selector that returns internal accounts from the AccountsController.
