@@ -1,10 +1,14 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  Icon,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
@@ -18,13 +22,6 @@ interface SectionHeaderProps {
   sectionId: SectionId;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 4,
-    marginBottom: 8,
-  },
-});
-
 /**
  * Displays a section header with title and "View All" button.
  * All configuration is pulled from sections.config.tsx based on the sectionId.
@@ -33,6 +30,7 @@ const styles = StyleSheet.create({
  * consistency between QuickActions buttons and section "View All" buttons.
  */
 const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
+  const tw = useTailwind();
   const navigation = useNavigation();
   const sectionConfig = SECTIONS_CONFIG[sectionId];
 
@@ -41,15 +39,19 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
       alignItems={BoxAlignItems.Center}
-      style={styles.container}
+      twClassName="px-1 mb-2"
     >
       <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {sectionConfig.title}
       </Text>
-      <TouchableOpacity onPress={() => sectionConfig.viewAllAction(navigation)}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
+      <TouchableOpacity
+        onPress={() => sectionConfig.viewAllAction(navigation)}
+        style={tw.style('flex-row items-center justify-center gap-1')}
+      >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
           {strings('trending.view_all')}
         </Text>
+        <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
       </TouchableOpacity>
     </Box>
   );

@@ -145,6 +145,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               twClassName="flex-1 text-primary"
+              numberOfLines={1}
             >
               {searchQuery}
             </Text>
@@ -164,9 +165,21 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             )
           }
         >
-          <Text variant={TextVariant.BodyMd} twClassName="flex-1 text-primary">
-            {`Search for "${searchQuery}" on Google`}
-          </Text>
+          <Box twClassName="flex-1 flex-row items-center">
+            <Text variant={TextVariant.BodyMd} twClassName="text-primary">
+              Search for {'"'}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="flex-1 text-primary"
+              numberOfLines={1}
+            >
+              {searchQuery}
+            </Text>
+            <Text variant={TextVariant.BodyMd} twClassName="text-primary mr-2">
+              {'"'} on Google
+            </Text>
+          </Box>
           <Icon
             name={IconName.Export}
             size={IconSize.Md}
