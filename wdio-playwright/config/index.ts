@@ -1,0 +1,1 @@
+export { defineConfig } from './ConfigHandler';

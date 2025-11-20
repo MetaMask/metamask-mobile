@@ -153,7 +153,7 @@ if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : '';
 }
 
-if (enableApiCallLogs || isTest) {
+if (enableApiCallLogs || isTest || isE2E) {
   (async () => {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
