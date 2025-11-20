@@ -572,11 +572,6 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      # Optimization: Only install scripts dependencies if possible, or stick to full install for robustness.
-      # Given the monorepo structure and potential cross-dependencies, full install is safer but slower.
-      # To optimize, we could try `yarn workspaces focus root` if supported or similar.
-      # For now, sticking to full install as requested but noting optimization potential.
-      # Actually, let's try to install just what's needed if possible, but scripts often rely on devDeps.
       - name: Install dependencies
         run: yarn install --immutable
       - name: Post Build Comment

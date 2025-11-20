@@ -9,7 +9,7 @@ const ARTIFACTS_COMMENT_MARKER = '<!-- metamask-bot-build-announce -->';
 /**
  * Posts or updates a PR comment with build artifacts links.
  * Requires environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, GITHUB_RUN_ID
- * 
+ *
  * @returns {Promise<void>}
  */
 async function start() {
@@ -45,20 +45,20 @@ async function start() {
   let iosBuildNumber = 'Unknown';
   try {
     const pbxprojPath = path.resolve(__dirname, '../ios/MetaMask.xcodeproj/project.pbxproj');
-    
+
     if (fs.existsSync(pbxprojPath)) {
       const pbxprojContent = fs.readFileSync(pbxprojPath, 'utf8');
-      
+
       const matches = [...pbxprojContent.matchAll(/CURRENT_PROJECT_VERSION = (\d+);/g)];
-      
+
       if (matches.length > 0) {
-        const versions = matches.map(m => m[1]);
+        const versions = matches.map((m) => m[1]);
         const uniqueVersions = new Set(versions);
-        
+
         if (uniqueVersions.size > 1) {
           console.warn('Multiple different CURRENT_PROJECT_VERSION values found in project.pbxproj:', Array.from(uniqueVersions));
         }
-        
+
         iosBuildNumber = versions[0];
       }
     } else {
@@ -71,28 +71,22 @@ async function start() {
   // 2. Construct Comment Body
   const testFlightLink = 'https://testflight.apple.com/join/hBrjtFuA';
   const artifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${GITHUB_RUN_ID}`;
-  
+
   // Use specific emojis and format to match the requested style more closely
-  let rows = [];
-  
+  const rows = [];
+
   if (IOS_BUILD_SUCCESS === 'true') {
-    // :mac_apple: Release Candidate Build Number ... (access via TestFlight)
+    // :apple: Release Candidate Build Number ... (access via TestFlight)
     rows.push(`| :apple: **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
   }
 
   if (ANDROID_BUILD_SUCCESS === 'true') {
-    // :android: Release Candidate Download ...
-    rows.push(`| :robot: **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
-  }
-
-  // Fallback if neither (e.g. if manual run or weird state), show both
-  if (!IOS_BUILD_SUCCESS && !ANDROID_BUILD_SUCCESS) {
-    rows.push(`| :apple: **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
+    // :robot: Release Candidate Download ...
     rows.push(`| :robot: **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
   }
 
   const commentBody = `${ARTIFACTS_COMMENT_MARKER}
-### :rocket: Builds Ready for Testing
+### 🚀 Builds Ready for Testing
 
 | Platform | Link | Note |
 | :--- | :--- | :--- |
@@ -108,27 +102,12 @@ ${rows.join('\n')}
 
   // 3. Post or Update Comment
   try {
-    let comments = [];
-    let page = 1;
-    const perPage = 100;
-    
-    while (true) {
-      const { data: pageComments } = await octokit.rest.issues.listComments({
-        owner,
-        repo,
-        issue_number: prNumber,
-        per_page: perPage,
-        page: page,
-      });
-      
-      comments = comments.concat(pageComments);
-      
-      if (pageComments.length < perPage) {
-        break;
-      }
-      page++;
-    }
-    
+    const comments = await octokit.paginate(octokit.rest.issues.listComments, {
+      owner,
+      repo,
+      issue_number: prNumber,
+    });
+
     const existingComment = comments.find((comment) =>
       comment.body && comment.body.includes(ARTIFACTS_COMMENT_MARKER)
     );
