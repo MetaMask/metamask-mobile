@@ -1,0 +1,101 @@
+import { UniversalRouter } from '../UniversalRouter';
+import { HandlerContext } from '../interfaces/UniversalLinkHandler';
+import DeeplinkManager from '../../legacy/DeeplinkManager';
+import Logger from '../../../../util/Logger';
+import ReduxService from '../../../redux';
+import {
+  selectPlatformNewLinkHandlerActions,
+  selectPlatformNewLinkHandlerSystemEnabled,
+} from '../../../../selectors/featureFlagController/platformNewLinkHandler/platformNewLinkHandler';
+import { CoreLinkNormalizer } from '../CoreLinkNormalizer';
+
+/**
+ * Integration layer between UniversalRouter and existing deeplink system
+ * This will be called from handleUniversalLink.ts in place of the switch-case
+ */
+export class UniversalRouterIntegration {
+  /**
+   * Check if the new router system should be used
+   */
+  static shouldUseNewRouter(): boolean {
+    try {
+      const state = ReduxService.store.getState();
+      return selectPlatformNewLinkHandlerSystemEnabled(state); // ✅ Use typed selector
+    } catch (error) {
+      Logger.error(error as Error, 'Failed to check feature flag');
+      return false;
+    }
+  }
+
+  /**
+   * Process a deep link using the new router system
+   * @returns true if handled by new system, false to fallback to legacy
+   */
+  static async processWithNewRouter(
+    url: string,
+    source: string,
+    instance: DeeplinkManager,
+    browserCallBack?: (url: string) => void,
+  ): Promise<boolean> {
+    try {
+      Logger.log('🔗 UniversalRouterIntegration:processWithNewRouter url', url);
+
+      const state = ReduxService.store.getState();
+      const isSystemEnabled = selectPlatformNewLinkHandlerSystemEnabled(state);
+      Logger.log(
+        '🔗 UniversalRouterIntegration:processWithNewRouter isSystemEnabled',
+        isSystemEnabled,
+      );
+      // Check system flag
+      if (!isSystemEnabled) {
+        Logger.log('System not enabled');
+        return false; // Legacy handles it
+      }
+
+      // Parse URL to get action
+      const link = CoreLinkNormalizer.normalize(url, source);
+
+      // Check action-specific flag
+      const actions = selectPlatformNewLinkHandlerActions(state);
+      const isActionEnabled = actions[link.action] === true;
+      Logger.log(
+        '🔗 UniversalRouterIntegration:processWithNewRouter isActionEnabled',
+        isActionEnabled,
+      );
+      if (!isActionEnabled) {
+        Logger.log(`Action '${link.action}' not enabled by feature flag`);
+        return false; // Legacy handles it
+      }
+
+      // Both flags enabled - proceed with new router
+      const router = UniversalRouter.getInstance();
+      router.initialize();
+
+      const context: HandlerContext = {
+        navigation: {
+          navigate: (routeName: string, params?: Record<string, unknown>) => {
+            instance.navigation.navigate(routeName, params);
+          },
+        },
+        dispatch: instance.dispatch,
+        instance,
+        browserCallBack,
+      };
+      const result = await router.route(url, source, context);
+
+      return result.handled;
+    } catch (error) {
+      Logger.error(error as Error, 'UniversalRouter integration failed');
+      return false;
+    }
+  }
+
+  /**
+   * Get router instance for testing
+   */
+  static getRouter(): UniversalRouter {
+    const router = UniversalRouter.getInstance();
+    router.initialize();
+    return router;
+  }
+}

@@ -1,5 +1,5 @@
 import SharedDeeplinkManager from './SharedDeeplinkManager';
-import DeeplinkManager from './DeeplinkManager';
+import DeeplinkManager from './legacy/DeeplinkManager';
 import { store } from '../../store';
 import { RootState } from '../../reducers';
 

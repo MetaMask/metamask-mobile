@@ -32,7 +32,7 @@ import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import DeeplinkManager from '../../core/DeeplinkManager/legacy/DeeplinkManager';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 
