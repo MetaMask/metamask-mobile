@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -116,11 +116,23 @@ const OnboardingNavigator: React.FC = () => {
     cardUserPhase?: CardUserPhase;
   }>();
   const onboardingId = useSelector(selectOnboardingId);
-  const { user, isLoading } = useCardSDK();
+  const { user, isLoading, fetchUserData } = useCardSDK();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Fetch fresh user data on mount if user data is missing
+  // This ensures we always have the most up-to-date onboarding information
+  // when the navigator is accessed
+  useEffect(() => {
+    if (!isMounted && onboardingId && !user) {
+      fetchUserData();
+    }
+    setIsMounted(true);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   const getInitialRouteName = useMemo(() => {
-    // If cardUserPhase is provided, use it to determine the initial route.
-    // We get this from the login response.
+    // Priority 1: Use cardUserPhase if provided (from login response)
     if (cardUserPhase) {
       if (cardUserPhase === 'ACCOUNT' || !user?.contactVerificationId) {
         return Routes.CARD.ONBOARDING.SIGN_UP;
@@ -137,7 +149,10 @@ const OnboardingNavigator: React.FC = () => {
       if (cardUserPhase === 'MAILING_ADDRESS') {
         return Routes.CARD.ONBOARDING.MAILING_ADDRESS;
       }
-    } else if (user?.verificationState && onboardingId) {
+    }
+
+    // Priority 2: Use cached user data if available
+    if (user?.verificationState && onboardingId) {
       if (user.verificationState === 'UNVERIFIED') {
         if (!user?.email) {
           return Routes.CARD.ONBOARDING.SIGN_UP;
@@ -170,11 +185,11 @@ const OnboardingNavigator: React.FC = () => {
       }
     }
 
+    // Default to SIGN_UP route if no user data is available
     return Routes.CARD.ONBOARDING.SIGN_UP;
   }, [user, cardUserPhase, onboardingId]);
 
-  // Show loading indicator while SDK is initializing or user data is being fetched
-  if (isLoading) {
+  if (isLoading && !user) {
     return (
       <Box twClassName="flex-1 items-center justify-center">
         <ActivityIndicator testID="activity-indicator" size="large" />
