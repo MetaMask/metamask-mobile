@@ -20,8 +20,18 @@ async function start() {
   }
 
   const [owner, repo] = GITHUB_REPOSITORY.split('/');
+  if (!owner || !repo) {
+    console.error('GITHUB_REPOSITORY must be in format owner/repo');
+    process.exit(1);
+  }
+
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
   const prNumber = parseInt(PR_NUMBER, 10);
+
+  if (isNaN(prNumber) || prNumber <= 0) {
+    console.error('PR_NUMBER must be a positive integer');
+    process.exit(1);
+  }
 
   // 1. Extract iOS Build Number
   let iosBuildNumber = 'Unknown';
