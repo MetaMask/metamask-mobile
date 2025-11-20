@@ -288,6 +288,9 @@ async function handleUniversalLink({
     instance._handleFastOnboarding(onboardingPath);
   } else if (action === SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON) {
     instance._handleEnableCardButton();
+  } else {
+    // This should never happen due to validation at line 129
+    Logger.log(`Unhandled action '${action}' passed validation`);
   }
   handled();
 }
