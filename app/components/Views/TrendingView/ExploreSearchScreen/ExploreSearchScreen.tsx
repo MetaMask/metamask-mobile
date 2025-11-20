@@ -23,7 +23,6 @@ const ExploreSearchScreen: React.FC = () => {
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
       <ExploreSearchBar
         type="interactive"
-        isSearchFocused
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onCancel={handleSearchCancel}

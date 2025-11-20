@@ -24,6 +24,7 @@ import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarket
 import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
+import { useSearchRequest } from '../../../UI/Trending/hooks/useSearchRequest';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps';
 
@@ -81,18 +82,28 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
     keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
     Section: () => <SectionCard sectionId="tokens" />,
-    useSectionData: () => {
-      const { results, isLoading } = useTrendingRequest({});
+    useSectionData: (searchQuery?: string) => {
+      const { results: searchResults, isLoading: isSearchLoading } =
+        useSearchRequest({
+          query: searchQuery || '',
+          limit: 20,
+          chainIds: [],
+        });
+      const { results: trendingResults, isLoading: isTrendingLoading } =
+        useTrendingRequest({});
 
       // Apply default sorting to match full view (PriceChange, Descending)
       // This ensures the section view shows the same order as the full view
       const sortedResults = sortTrendingTokens(
-        results,
+        trendingResults,
         PriceChangeOption.PriceChange,
         SortDirection.Descending,
       );
 
-      return { data: sortedResults, isLoading };
+      return {
+        data: searchQuery ? searchResults : sortedResults,
+        isLoading: searchQuery ? isSearchLoading : isTrendingLoading,
+      };
     },
   },
   perps: {
@@ -190,7 +201,7 @@ export const useSectionsData = (
   searchQuery?: string,
 ): Record<SectionId, SectionData> => {
   const { data: trendingTokens, isLoading: isTokensLoading } =
-    SECTIONS_CONFIG.tokens.useSectionData();
+    SECTIONS_CONFIG.tokens.useSectionData(searchQuery);
   const { data: perpsMarkets, isLoading: isPerpsLoading } =
     SECTIONS_CONFIG.perps.useSectionData();
   const { data: predictionMarkets, isLoading: isPredictionsLoading } =
