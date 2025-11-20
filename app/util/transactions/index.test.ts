@@ -521,6 +521,41 @@ describe('Transactions utils :: getMethodData', () => {
     );
   });
 
+  it('returns mint for safeMint signature', async () => {
+    const safeMintData = `${SAFE_MINT_SIGNATURE}0000000000000000000000000000000000000000000000000000000000000001`;
+
+    const result = await getMethodData(safeMintData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
+  it('returns mint for mint signature', async () => {
+    const mintData = `${MINT_SIGNATURE}0000000000000000000000000000000000000000000000000000000000000001`;
+
+    const result = await getMethodData(mintData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
+  it('returns mint for mintTo signature', async () => {
+    const mintToData = `${MINT_TO_SIGNATURE}000000000000000000000000abcdef1234567890abcdef1234567890abcdef12`;
+
+    const result = await getMethodData(mintToData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
+  it('returns mint for safeMintWithData signature', async () => {
+    const safeMintWithDataData = `${SAFE_MINT_WITH_DATA}0000000000000000000000000000000000000000000000000000000000000001`;
+
+    const result = await getMethodData(
+      safeMintWithDataData,
+      MOCK_NETWORK_CLIENT_ID,
+    );
+
+    expect(result.name).toEqual(TOKEN_METHOD_MINT);
+  });
+
   it('calls handleMethodData with the correct data', async () => {
     (handleMethodData as jest.Mock).mockResolvedValue({
       parsedRegistryMethod: { name: TOKEN_METHOD_TRANSFER },
