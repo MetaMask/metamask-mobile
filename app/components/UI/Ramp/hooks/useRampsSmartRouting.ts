@@ -98,7 +98,7 @@ export default function useRampsSmartRouting() {
           return;
         }
 
-        const [lastCompletedOrder] = completedOrders.sort(
+        const [lastCompletedOrder] = [...completedOrders].sort(
           (a, b) => b.createdAt - a.createdAt,
         );
 
