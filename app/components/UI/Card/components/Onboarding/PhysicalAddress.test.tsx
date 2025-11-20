@@ -513,6 +513,7 @@ describe('PhysicalAddress Component', () => {
         id: 'user-id',
         email: 'test@example.com',
       },
+      fetchUserData: jest.fn(),
       setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
     });
@@ -1054,7 +1055,7 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION }],
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
           });
         },
         { timeout: 3000 },
@@ -1315,7 +1316,7 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION }],
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
           });
         },
         { timeout: 3000 },
@@ -1435,7 +1436,7 @@ describe('PhysicalAddress Component', () => {
         () => {
           expect(mockReset).toHaveBeenCalledWith({
             index: 0,
-            routes: [{ name: Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION }],
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
           });
         },
         { timeout: 3000 },

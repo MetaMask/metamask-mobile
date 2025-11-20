@@ -119,26 +119,6 @@ export enum CardType {
   METAL = 'METAL',
 }
 
-export interface CardUserDetailsResponse {
-  id: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  email: string;
-  verificationState: CardVerificationState;
-  phoneNumber: string;
-  phoneCountryCode: string;
-  addressLine1: string;
-  addressLine2: string | null;
-  city: string;
-  zip: string;
-  countryOfResidence: string;
-  countryOfNationality: string;
-  usState: string | null;
-  ssn: string | null;
-  createdAt: string;
-}
-
 export interface CardDetailsResponse {
   id: string;
   holderName: string;

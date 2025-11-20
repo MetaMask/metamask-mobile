@@ -375,6 +375,7 @@ const Routes = {
     NOTIFICATION: 'CardNotification',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
+    VERIFYING_REGISTRATION: 'VerifyingRegistration',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -386,7 +387,6 @@ const Routes = {
       PERSONAL_DETAILS: 'CardOnboardingPersonalDetails',
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       MAILING_ADDRESS: 'CardOnboardingMailingAddress',
-      VERIFYING_REGISTRATION: 'CardOnboardingVerifyingRegistration',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       WEBVIEW: 'CardOnboardingWebview',

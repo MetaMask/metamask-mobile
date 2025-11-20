@@ -214,7 +214,7 @@ const MailingAddress = () => {
         // Reset the navigation stack to the verifying registration screen
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION }],
+          routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
         });
         return;
       }

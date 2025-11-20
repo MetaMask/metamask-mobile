@@ -43,7 +43,7 @@ const VerifyingRegistration = () => {
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { sdk } = useCardSDK();
+  const { sdk, setUser } = useCardSDK();
   const [step, setStep] = useState<VerificationStep>('polling');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -84,6 +84,8 @@ const VerifyingRegistration = () => {
         return;
       }
 
+      setUser(response);
+
       if (response.verificationState === 'VERIFIED') {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -109,11 +111,7 @@ const VerifyingRegistration = () => {
           hasNoTimeout: false,
         });
 
-        setTimeout(() => {
-          if (mountedRef.current) {
-            navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
-          }
-        }, 500);
+        navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
         return;
       }
 
@@ -153,6 +151,7 @@ const VerifyingRegistration = () => {
     theme.colors.success.default,
     theme.colors.success.muted,
     toastRef,
+    setUser,
   ]);
 
   const startPolling = useCallback(() => {

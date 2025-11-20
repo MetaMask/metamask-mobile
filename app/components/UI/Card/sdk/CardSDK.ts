@@ -46,7 +46,6 @@ import {
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
   GetOnboardingConsentResponse,
-  CardUserDetailsResponse,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
@@ -817,7 +816,7 @@ export class CardSDK {
     } as CardExchangeTokenResponse;
   };
 
-  getUserDetails = async (): Promise<CardUserDetailsResponse> => {
+  getUserDetails = async (): Promise<UserResponse> => {
     const response = await this.makeRequest(
       '/v1/user',
       { method: 'GET' },
@@ -853,7 +852,7 @@ export class CardSDK {
     }
 
     const data = await response.json();
-    return data as CardUserDetailsResponse;
+    return data as UserResponse;
   };
 
   getCardDetails = async (): Promise<CardDetailsResponse> => {

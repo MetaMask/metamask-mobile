@@ -179,6 +179,7 @@ describe('OnboardingNavigator', () => {
       user: null,
       setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
+      fetchUserData: jest.fn(),
     });
   });
 
@@ -192,6 +193,7 @@ describe('OnboardingNavigator', () => {
           sdk: null,
           setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
+          fetchUserData: jest.fn(),
         });
       });
 
@@ -220,6 +222,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -238,6 +241,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -260,6 +264,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -284,6 +289,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -306,6 +312,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -328,6 +335,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -351,6 +359,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -374,6 +383,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -396,6 +406,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -418,6 +429,7 @@ describe('OnboardingNavigator', () => {
             sdk: null,
             setUser: jest.fn(),
             logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
           });
 
           const { queryByTestId } = renderWithNavigation(
@@ -442,6 +454,7 @@ describe('OnboardingNavigator', () => {
         sdk: null,
         setUser: jest.fn(),
         logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn(),
       });
     });
 
@@ -482,6 +495,7 @@ describe('OnboardingNavigator', () => {
           sdk: null,
           setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
+          fetchUserData: jest.fn(),
         });
 
         jest.spyOn(Alert, 'alert');
@@ -620,6 +634,7 @@ describe('OnboardingNavigator', () => {
           sdk: null,
           setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
+          fetchUserData: jest.fn(),
         });
       });
 
@@ -641,6 +656,7 @@ describe('OnboardingNavigator', () => {
           sdk: null,
           setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
+          fetchUserData: jest.fn(),
         });
 
         renderWithNavigation(<OnboardingNavigator />);
@@ -658,6 +674,7 @@ describe('OnboardingNavigator', () => {
           sdk: null,
           setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
+          fetchUserData: jest.fn(),
         });
 
         renderWithNavigation(<OnboardingNavigator />);

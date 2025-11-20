@@ -298,9 +298,9 @@ jest.mock('../../../../../util/Logger');
 // Mock Routes
 jest.mock('../../../../../constants/navigation/Routes', () => ({
   CARD: {
+    VERIFYING_REGISTRATION: 'VerifyingRegistration',
     ONBOARDING: {
       COMPLETE: 'CardOnboardingComplete',
-      VERIFYING_REGISTRATION: 'CardOnboardingVerifyingRegistration',
       SIGN_UP: 'CardOnboardingSignUp',
     },
   },
@@ -516,6 +516,7 @@ describe('MailingAddress Component', () => {
         id: 'user-id',
         email: 'test@example.com',
       },
+      fetchUserData: jest.fn(),
       setUser: mockSetUser,
       logoutFromProvider: jest.fn(),
     });

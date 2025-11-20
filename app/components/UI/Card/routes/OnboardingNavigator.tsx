@@ -14,7 +14,6 @@ import KYCFailed from '../components/Onboarding/KYCFailed';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import MailingAddress from '../components/Onboarding/MailingAddress';
-import VerifyingRegistration from '../components/Onboarding/VerifyingRegistration';
 import Complete from '../components/Onboarding/Complete';
 import { cardAuthenticationNavigationOptions, headerStyle } from '.';
 import { selectOnboardingId } from '../../../../core/redux/slices/card';
@@ -233,11 +232,6 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.MAILING_ADDRESS}
         component={MailingAddress}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.VERIFYING_REGISTRATION}
-        component={VerifyingRegistration}
         options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
