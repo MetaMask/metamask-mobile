@@ -45,7 +45,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockClearAuthToken = jest.fn();
-const mockGoToRamps = jest.fn();
+const mockGoToAggregator = jest.fn();
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
@@ -81,8 +81,7 @@ jest.mock('../../../sdk', () => ({
 }));
 
 jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
+  useRampNavigation: jest.fn(() => ({ goToAggregator: mockGoToAggregator })),
 }));
 
 jest.mock('../../../../../../../component-library/components/Toast', () => {
@@ -129,11 +128,7 @@ describe('ConfigurationModal', () => {
 
     fireEvent.press(moreWaysToBuyButton);
 
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: 'AGGREGATOR',
-      params: { rampType: expect.anything() },
-      overrideUnifiedBuyFlag: true,
-    });
+    expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
   it('should open support URL when contact support is pressed', () => {

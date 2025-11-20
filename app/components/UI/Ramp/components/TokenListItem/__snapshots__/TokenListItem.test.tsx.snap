@@ -12,6 +12,7 @@ exports[`TokenListItem basic rendering renders correctly and matches snapshot 1`
       "position": "relative",
     }
   }
+  testID="token-list-item-eip155:1/slip44:60"
 >
   <View
     accessibilityRole="none"
@@ -226,6 +227,7 @@ exports[`TokenListItem basic rendering renders disabled token with info button a
       "position": "relative",
     }
   }
+  testID="token-list-item-eip155:1/slip44:60"
 >
   <View
     accessibilityRole="none"

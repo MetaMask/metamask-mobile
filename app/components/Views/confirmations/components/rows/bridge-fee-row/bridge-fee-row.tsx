@@ -76,7 +76,7 @@ export function BridgeFeeRow() {
         rowVariant={InfoRowVariant.Small}
       >
         <Text
-          variant={TextVariant.BodySM}
+          variant={TextVariant.BodyMD}
           color={hasAlert ? TextColor.Error : TextColor.Alternative}
         >
           {feeTotalUsd}
@@ -88,7 +88,7 @@ export function BridgeFeeRow() {
           label={strings('confirm.label.metamask_fee')}
           rowVariant={InfoRowVariant.Small}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {metamaskFeeUsd}
           </Text>
         </InfoRow>
