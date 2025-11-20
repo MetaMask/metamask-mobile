@@ -1892,9 +1892,7 @@ describe('PerpsController', () => {
 
   describe('reportOrderToDataLake', () => {
     beforeEach(() => {
-      // Mock fetch globally
-      global.fetch = jest.fn();
-      // Initialize controller
+      jest.spyOn(global, 'fetch').mockImplementation(jest.fn());
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
     });
