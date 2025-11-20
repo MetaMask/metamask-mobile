@@ -583,9 +583,8 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           ANDROID_BUILD_SUCCESS: ${{ needs.build-android-apks.result == 'success' }}
           IOS_BUILD_SUCCESS: ${{ needs.build-ios-apps.result == 'success' }}
-          # Pass specific artifact URLs if available from upstream jobs, otherwise script uses defaults
-          # ANDROID_ARTIFACTS_URL: ... (Currently standard GitHub run URL is fine for Android)
-          # IOS_ARTIFACTS_URL: ... (Currently TestFlight static link is standard for iOS)
+          IOS_ARTIFACTS_URL: ${{ needs.build-ios-apps.outputs.artifacts-url }}
+          ANDROID_ARTIFACTS_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   log-merge-group-failure:
     name: Log merge group failure

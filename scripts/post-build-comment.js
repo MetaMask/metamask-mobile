@@ -71,21 +71,21 @@ async function start() {
   }
 
   // 2. Construct Comment Body
-  // Use provided URLs or fallback to defaults (though specific URLs are preferred)
-  const testFlightLink = IOS_ARTIFACTS_URL || 'https://testflight.apple.com/join/hBrjtFuA';
-  const artifactsUrl = ANDROID_ARTIFACTS_URL || `https://github.com/${owner}/${repo}/actions/runs/${GITHUB_RUN_ID}`;
+  // Use provided URLs or fallback to standard run URL
+  const defaultArtifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${GITHUB_RUN_ID}`;
+  const iosUrl = IOS_ARTIFACTS_URL || defaultArtifactsUrl;
+  const androidUrl = ANDROID_ARTIFACTS_URL || defaultArtifactsUrl;
 
   // Use specific emojis and format to match the requested style more closely
   const rows = [];
 
   if (IOS_BUILD_SUCCESS === 'true') {
-    // :apple: Release Candidate Build Number ... (access via TestFlight)
-    rows.push(`| :apple: **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
+    // Link to GitHub artifacts for Simulator build
+    rows.push(`| :apple: **iOS** | [Download Artifacts](${iosUrl}) | Build: \`${iosBuildNumber}\` |`);
   }
 
   if (ANDROID_BUILD_SUCCESS === 'true') {
-    // :robot: Release Candidate Download ...
-    rows.push(`| :robot: **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
+    rows.push(`| :robot: **Android** | [Download Artifacts](${androidUrl}) | Check "Artifacts" section |`);
   }
 
   if (rows.length === 0) {
