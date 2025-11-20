@@ -323,7 +323,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  const { candleData, isLoading: isLoadingHistory } = usePerpsLiveCandles({
+  const {
+    candleData,
+    isLoading: isLoadingHistory,
+    fetchMoreHistory,
+  } = usePerpsLiveCandles({
     coin: market?.symbol || '',
     interval: selectedCandlePeriod,
     duration: TimeDuration.YEAR_TO_DATE,
@@ -702,6 +706,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               visibleCandleCount={visibleCandleCount}
               tpslLines={tpslLines}
               symbol={market?.symbol}
+              onNeedMoreHistory={fetchMoreHistory}
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
             />
 

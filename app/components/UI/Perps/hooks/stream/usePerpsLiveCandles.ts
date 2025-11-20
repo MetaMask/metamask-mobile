@@ -27,10 +27,14 @@ export interface UsePerpsLiveCandlesReturn {
   candleData: CandleData | null;
   /** Whether we're waiting for the first real WebSocket data */
   isLoading: boolean;
+  /** Whether we're fetching additional historical candles */
+  isLoadingMore: boolean;
   /** Whether we have received any historical data */
   hasHistoricalData: boolean;
   /** Error state (if any) */
   error: Error | null;
+  /** Fetch more historical candles before the current oldest candle */
+  fetchMoreHistory: () => Promise<void>;
 }
 
 /**
@@ -62,6 +66,7 @@ export function usePerpsLiveCandles(
   const stream = usePerpsStream();
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const hasReceivedFirstUpdate = useRef(false);
 
@@ -130,10 +135,47 @@ export function usePerpsLiveCandles(
   const hasHistoricalData =
     candleData !== null && candleData.candles.length > 0;
 
+  /**
+   * Fetch additional historical candles before the current oldest candle
+   * Used when user scrolls to the left edge of the chart
+   */
+  const fetchMoreHistory = async (): Promise<void> => {
+    if (!coin || isLoadingMore) {
+      return;
+    }
+
+    try {
+      setIsLoadingMore(true);
+      DevLogger.log('usePerpsLiveCandles: Fetching more historical candles', {
+        coin,
+        interval,
+      });
+
+      await stream.candles.fetchHistoricalCandles(coin, interval);
+
+      DevLogger.log(
+        'usePerpsLiveCandles: Successfully fetched more historical candles',
+        { coin, interval },
+      );
+    } catch (err) {
+      const errorInstance = err instanceof Error ? err : new Error(String(err));
+      DevLogger.log('usePerpsLiveCandles: Error fetching more history', {
+        coin,
+        interval,
+        error: errorInstance.message,
+      });
+      setError(errorInstance);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   return {
     candleData,
     isLoading,
+    isLoadingMore,
     hasHistoricalData,
     error,
+    fetchMoreHistory,
   };
 }

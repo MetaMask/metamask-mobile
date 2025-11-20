@@ -244,6 +244,115 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
+   * Fetch additional historical candles before the current oldest candle
+   * Used for loading more history when user scrolls to the left edge of the chart
+   * @param coin - The coin symbol
+   * @param interval - The candle interval
+   * @param limit - Number of additional candles to fetch (default: 250)
+   * @returns Promise that resolves when fetch completes
+   */
+  public async fetchHistoricalCandles(
+    coin: string,
+    interval: CandlePeriod,
+    limit: number = 250,
+  ): Promise<void> {
+    const cacheKey = this.getCacheKey(coin, interval);
+    const cachedData = this.cache.get(cacheKey);
+
+    // If no cached data or no candles, nothing to extend
+    if (!cachedData || cachedData.candles.length === 0) {
+      DevLogger.log(
+        'CandleStreamChannel: No cached data to extend, skipping historical fetch',
+        { coin, interval },
+      );
+      return;
+    }
+
+    // Get the oldest candle timestamp
+    const oldestCandle = cachedData.candles[0];
+    if (!oldestCandle) {
+      return;
+    }
+
+    const oldestTime = oldestCandle.time;
+    const endTime = oldestTime - 1; // Fetch candles ending just before the oldest
+
+    try {
+      DevLogger.log(
+        'CandleStreamChannel: Fetching additional historical candles',
+        { coin, interval, oldestTime, endTime, limit },
+      );
+
+      // Fetch historical candles via controller
+      const newCandleData =
+        await Engine.context.PerpsController.fetchHistoricalCandles({
+          coin,
+          interval,
+          limit,
+          endTime,
+        });
+
+      if (!newCandleData || newCandleData.candles.length === 0) {
+        DevLogger.log(
+          'CandleStreamChannel: No additional historical candles available',
+          { coin, interval },
+        );
+        return;
+      }
+
+      // Merge new candles with existing (prepend older candles)
+      // Filter out duplicates based on timestamp
+      const existingTimes = new Set(cachedData.candles.map((c) => c.time));
+      const newUnique = newCandleData.candles.filter(
+        (c) => !existingTimes.has(c.time),
+      );
+
+      // Combine and sort by time ascending
+      const mergedCandles = [...newUnique, ...cachedData.candles].sort(
+        (a, b) => a.time - b.time,
+      );
+
+      // Limit to max 1000 candles to prevent memory issues
+      const MAX_CANDLES = 1000;
+      const finalCandles =
+        mergedCandles.length > MAX_CANDLES
+          ? mergedCandles.slice(-MAX_CANDLES)
+          : mergedCandles;
+
+      // Update cache with merged data
+      const updatedData: CandleData = {
+        coin: cachedData.coin,
+        interval: cachedData.interval,
+        candles: finalCandles,
+      };
+
+      this.cache.set(cacheKey, updatedData);
+
+      // Notify all subscribers of the updated data
+      this.notifySubscribers(cacheKey, updatedData);
+
+      DevLogger.log(
+        'CandleStreamChannel: Successfully fetched and merged historical candles',
+        {
+          coin,
+          interval,
+          newCandles: newUnique.length,
+          totalCandles: finalCandles.length,
+          oldestTime: finalCandles[0]?.time,
+          newestTime: finalCandles[finalCandles.length - 1]?.time,
+        },
+      );
+    } catch (error) {
+      DevLogger.log('CandleStreamChannel: Error fetching historical candles', {
+        coin,
+        interval,
+        error,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Disconnect all subscriptions
    */
   public disconnectAll(): void {

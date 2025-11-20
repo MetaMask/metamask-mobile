@@ -274,18 +274,20 @@ export class HyperLiquidClientService {
    * @param coin - The coin symbol (e.g., "BTC", "ETH")
    * @param interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
    * @param limit - Number of candles to fetch (default: 100)
+   * @param endTime - End timestamp in milliseconds (default: now). Used for fetching historical data before a specific time.
    * @returns Promise<CandleData | null>
    */
   public async fetchHistoricalCandles(
     coin: string,
     interval: ValidCandleInterval,
     limit: number = 100,
+    endTime?: number,
   ): Promise<CandleData | null> {
     this.ensureInitialized();
 
     try {
       // Calculate start and end times based on interval and limit
-      const now = Date.now();
+      const now = endTime ?? Date.now();
       const intervalMs = this.getIntervalMilliseconds(interval);
       const startTime = now - limit * intervalMs;
 

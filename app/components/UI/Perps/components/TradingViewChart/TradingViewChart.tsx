@@ -44,6 +44,7 @@ interface TradingViewChartProps {
   height?: number;
   tpslLines?: TPSLLines;
   onChartReady?: () => void;
+  onNeedMoreHistory?: () => void; // Callback when user scrolls to left edge and needs more historical data
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
   symbol?: string; // Expected symbol for validation (prevents stale data from previous market)
   testID?: string;
@@ -62,6 +63,7 @@ const TradingViewChart = React.forwardRef<
       height = 350,
       tpslLines,
       onChartReady,
+      onNeedMoreHistory,
       visibleCandleCount = 45, // Default to 45 visible candles
       symbol,
       testID,
@@ -229,6 +231,17 @@ const TradingViewChart = React.forwardRef<
               }
               setOhlcData(message.data);
               break;
+            case 'NEED_MORE_HISTORY':
+              // User scrolled to left edge - request more historical data
+              DevLogger.log(
+                'TradingViewChart: Received NEED_MORE_HISTORY from WebView',
+                {
+                  currentDataLength: message.currentDataLength,
+                  visibleRange: message.visibleRange,
+                },
+              );
+              onNeedMoreHistory?.();
+              break;
             default:
               break;
           }
@@ -239,7 +252,7 @@ const TradingViewChart = React.forwardRef<
           );
         }
       },
-      [onChartReady, ohlcData],
+      [onChartReady, onNeedMoreHistory, ohlcData],
     );
 
     // Convert CandleData to format expected by TradingView Lightweight Charts

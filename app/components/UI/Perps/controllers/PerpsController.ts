@@ -3651,11 +3651,17 @@ export class PerpsController extends BaseController<
   /**
    * Fetch historical candle data
    */
-  async fetchHistoricalCandles(
-    coin: string,
-    interval: CandlePeriod,
-    limit: number = 100,
-  ): Promise<CandleData> {
+  async fetchHistoricalCandles({
+    coin,
+    interval,
+    limit = 100,
+    endTime,
+  }: {
+    coin: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData> {
     const traceId = uuidv4();
     let traceData: { success: boolean; error?: string } | undefined;
 
@@ -3678,6 +3684,7 @@ export class PerpsController extends BaseController<
             coin: string,
             interval: CandlePeriod,
             limit: number,
+            endTime?: number,
           ) => Promise<CandleData>;
         };
       };
@@ -3688,6 +3695,7 @@ export class PerpsController extends BaseController<
           coin,
           interval,
           limit,
+          endTime,
         );
 
         traceData = { success: true };
@@ -3708,6 +3716,7 @@ export class PerpsController extends BaseController<
           coin,
           interval,
           limit,
+          endTime,
         }),
       );
 
