@@ -3,7 +3,7 @@ import { useBridgeQuoteEvents } from '.';
 import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { QuoteWarning, RequestStatus } from '@metamask/bridge-controller';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -77,7 +77,7 @@ describe('useBridgeQuoteEvents', () => {
         () =>
           useBridgeQuoteEvents({
             isSubmitDisabled: false,
-            warnings: [],
+            warnings: warnings as QuoteWarning[],
             ...hookArgs,
           }),
         { state: testState },
