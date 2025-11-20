@@ -294,6 +294,8 @@ jobs:
     needs: [needs_e2e_build]
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
+    outputs:
+      artifacts-url: ${{ steps.build-ios-apps.outputs.artifacts-url }}
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
@@ -583,6 +585,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           ANDROID_BUILD_SUCCESS: ${{ needs.build-android-apks.result == 'success' }}
           IOS_BUILD_SUCCESS: ${{ needs.build-ios-apps.result == 'success' }}
+      # iOS Artifacts URL is passed from build-ios-apps job
           IOS_ARTIFACTS_URL: ${{ needs.build-ios-apps.outputs.artifacts-url }}
           ANDROID_ARTIFACTS_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
