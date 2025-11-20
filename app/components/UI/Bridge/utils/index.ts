@@ -18,6 +18,7 @@ import {
   formatAddressToAssetId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   ETH_CHAIN_ID,
@@ -30,6 +31,7 @@ const ALLOWED_CHAIN_IDS: (Hex | CaipChainId)[] = [
   AVALANCHE_CHAIN_ID,
   LINEA_CHAIN_ID,
   SEI_CHAIN_ID,
+  CHAIN_IDS.MONAD,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   SolScope.Mainnet,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)

@@ -32,8 +32,8 @@ export const hexToBN = (inputHex) =>
   typeof inputHex !== 'string'
     ? new BN4(inputHex, 16)
     : inputHex
-    ? new BN4(remove0x(inputHex), 16)
-    : new BN4(0);
+      ? new BN4(remove0x(inputHex), 16)
+      : new BN4(0);
 
 /**
  * Converts a BN object to a hex string with a '0x' prefix.

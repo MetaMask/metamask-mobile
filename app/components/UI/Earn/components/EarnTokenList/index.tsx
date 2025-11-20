@@ -16,10 +16,7 @@ import Text, {
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
-import {
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../util/networks';
 import { TokenI } from '../../../Tokens/types';
 import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
@@ -359,7 +356,7 @@ const EarnTokenListWrapper = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  if (isStablecoinLendingEnabled && isPortfolioViewEnabled()) {
+  if (isStablecoinLendingEnabled) {
     return <EarnTokenList />;
   }
 

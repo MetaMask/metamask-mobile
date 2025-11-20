@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
+///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   AppState,
@@ -78,7 +81,6 @@ import {
   toHex,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/controller-utils';
-import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
@@ -100,10 +102,12 @@ import {
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
 import {
-  BaseControllerMessenger,
+  RootExtendedMessenger,
   EngineState,
   EngineContext,
   StatefulControllers,
+  getRootExtendedMessenger,
+  RootMessenger,
 } from './types';
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
@@ -163,12 +167,12 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
-import { ppomControllerInit } from './controllers/ppom-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
+import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -190,7 +194,7 @@ export class Engine {
   /**
    * The global controller messenger.
    */
-  controllerMessenger: BaseControllerMessenger;
+  controllerMessenger: RootExtendedMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -256,7 +260,7 @@ export class Engine {
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
-    this.controllerMessenger = new ExtendedControllerMessenger();
+    this.controllerMessenger = getRootExtendedMessenger();
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
@@ -340,11 +344,13 @@ export class Engine {
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+        SamplePetnamesController: samplePetnamesControllerInit,
+        ///: END:ONLY_INCLUDE_IF
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
-        PPOMController: ppomControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -373,7 +379,6 @@ export class Engine {
     const perpsController = controllersByName.PerpsController;
     const phishingController = controllersByName.PhishingController;
     const predictController = controllersByName.PredictController;
-    const ppomController = controllersByName.PPOMController;
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
@@ -457,8 +462,6 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-    // Notify Snaps that the app is active when the Engine is initialized.
-    this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
 
     this.context = {
@@ -507,7 +510,6 @@ export class Engine {
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
       AccountsController: accountsController,
-      PPOMController: ppomController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
       MultichainAssetsController: multichainAssetsController,
@@ -522,6 +524,9 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController: controllersByName.SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -535,14 +540,26 @@ export class Engine {
         delete childControllers[name];
       }
     });
+    const composableControllerMessenger = new Messenger<
+      'ComposableController',
+      never,
+      MessengerEvents<RootMessenger>,
+      RootMessenger
+    >({
+      namespace: 'ComposableController',
+      parent: this.controllerMessenger,
+    });
+
+    this.controllerMessenger.delegate({
+      actions: [],
+      events: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
+      messenger: composableControllerMessenger,
+    });
+
     this.datamodel = new ComposableController<EngineState, StatefulControllers>(
       {
         controllers: childControllers as StatefulControllers,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ComposableController',
-          allowedActions: [],
-          allowedEvents: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
-        }),
+        messenger: composableControllerMessenger,
       },
     );
 
@@ -648,12 +665,19 @@ export class Engine {
         if (state !== 'active' && state !== 'background') {
           return;
         }
+
+        const { isUnlocked } = this.controllerMessenger.call(
+          'KeyringController:getState',
+        );
+
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
-        return this.controllerMessenger.call(
-          'SnapController:setClientActive',
-          state === 'active',
-        );
+        if (isUnlocked) {
+          return this.controllerMessenger.call(
+            'SnapController:setClientActive',
+            state === 'active',
+          );
+        }
       },
     );
     ///: END:ONLY_INCLUDE_IF
@@ -1235,6 +1259,9 @@ export default {
   get state() {
     assertEngineExists(instance);
     const {
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTrackerController,
       AccountTreeController,
@@ -1257,7 +1284,6 @@ export default {
       PermissionController,
       PerpsController,
       PhishingController,
-      PPOMController,
       PredictController,
       PreferencesController,
       RemoteFeatureFlagController,
@@ -1293,6 +1319,9 @@ export default {
     } = instance.datamodel.state;
 
     return {
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTrackerController,
       AccountTreeController,
@@ -1315,7 +1344,6 @@ export default {
       PermissionController,
       PerpsController,
       PhishingController,
-      PPOMController,
       PredictController,
       PreferencesController,
       RemoteFeatureFlagController,

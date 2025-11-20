@@ -31,6 +31,7 @@ export type PredictedFunding = PredictedFundingsResponse[number];
 // Order Types
 export type FrontendOrder = FrontendOpenOrdersResponse[number];
 export type SDKOrderParams = OrderParameters['orders'][number];
+export type OrderType = FrontendOrder['orderType'];
 
 // Re-export Response types for convenience
 export type {

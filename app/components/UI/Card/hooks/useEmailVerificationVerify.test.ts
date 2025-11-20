@@ -98,9 +98,8 @@ describe('useEmailVerificationVerify', () => {
 
       let response: EmailVerificationVerifyResponse | undefined;
       await act(async () => {
-        response = await result.current.verifyEmailVerification(
-          mockVerifyRequest,
-        );
+        response =
+          await result.current.verifyEmailVerification(mockVerifyRequest);
       });
 
       expect(mockEmailVerificationVerify).toHaveBeenCalledWith({

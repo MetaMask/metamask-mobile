@@ -1,7 +1,8 @@
 import { ControllerInitFunction } from '../types';
-import SwapsController from '@metamask/swaps-controller';
+import SwapsController, {
+  type SwapsControllerMessenger,
+} from '@metamask/swaps-controller';
 import AppConstants from '../../AppConstants';
-import { SwapsControllerMessenger } from '../messengers/swaps-controller-messenger';
 import { swapsSupportedChainIds } from '../constants';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../util/networks/engineNetworkUtils';
 

@@ -6,7 +6,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return {
     useTailwind: () => ({
       // Return a minimal style function used in components
-      style: (..._args: unknown[]) => ({} as Record<string, unknown>),
+      style: (..._args: unknown[]) => ({}) as Record<string, unknown>,
     }),
     ThemeProvider: ({ children }: { children: React.ReactNode }) =>
       ReactActual.createElement(ReactActual.Fragment, null, children),

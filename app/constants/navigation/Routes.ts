@@ -75,6 +75,7 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  TRENDING_VIEW: 'TrendingView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
@@ -186,6 +187,7 @@ const Routes = {
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
+    TOKEN_INSIGHTS: 'TokenInsights',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
@@ -214,6 +216,8 @@ const Routes = {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
     WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
+    NFTS_FULL_VIEW: 'NftFullView',
+    TOKENS_FULL_VIEW: 'TokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -243,19 +247,27 @@ const Routes = {
   },
   PERPS: {
     ROOT: 'Perps',
-    TRADING_VIEW: 'PerpsTradingView',
+    PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
     ORDER: 'PerpsOrder',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
-    MARKETS: 'PerpsMarketListView',
+    PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
     MARKET_DETAILS: 'PerpsMarketDetails',
+    MARKET_LIST: 'PerpsTrendingView',
     TUTORIAL: 'PerpsTutorial',
     CLOSE_POSITION: 'PerpsClosePosition',
+    HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
+    PNL_HERO_CARD: 'PerpsPnlHeroCard',
+    ACTIVITY: 'PerpsActivity', // Stack-based activity view for proper back navigation
     MODALS: {
       ROOT: 'PerpsModals',
+      CLOSE_POSITION_MODALS: 'PerpsClosePositionModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
       GTM_MODAL: 'PerpsGTMModal',
+      CLOSE_ALL_POSITIONS: 'PerpsCloseAllPositions',
+      CANCEL_ALL_ORDERS: 'PerpsCancelAllOrders',
+      TOOLTIP: 'PerpsTooltip',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -344,6 +356,9 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SAMPLE_FEATURE: 'SampleFeature',
+  ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
@@ -382,6 +397,7 @@ const Routes = {
   SDK: {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
+  FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
 };
 
 export default Routes;

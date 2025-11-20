@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { ActivityIndicator, FlatList } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -7,15 +7,29 @@ import { PredictActivityType, type PredictActivityItem } from '../../types';
 import { usePredictActivity } from '../../hooks/usePredictActivity';
 import { formatCents } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
+import { PredictEventValues } from '../../constants/eventNames';
 
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
   tabLabel?: string;
+  isVisible?: boolean;
 }
 
-const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = () => {
+const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
+  isVisible,
+}) => {
   const tw = useTailwind();
   const { activity, isLoading } = usePredictActivity({});
+
+  // Track activity list viewed when tab becomes visible
+  useEffect(() => {
+    if (isVisible && !isLoading) {
+      Engine.context.PredictController.trackActivityViewed({
+        activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+      });
+    }
+  }, [isVisible, isLoading]);
 
   const items: PredictActivityItem[] = useMemo(
     () =>

@@ -18,6 +18,7 @@ export type NetworkConnectionBannerState =
       status: NetworkConnectionBannerStatus;
       networkName: string;
       rpcUrl: string;
+      isInfuraEndpoint: boolean;
     };
 
 /**
@@ -47,6 +48,7 @@ const networkConnectionBannerReducer = (
         status: action.status,
         networkName: action.networkName,
         rpcUrl: action.rpcUrl,
+        isInfuraEndpoint: action.isInfuraEndpoint,
       };
     case NetworkConnectionBannerActionType.HIDE_NETWORK_CONNECTION_BANNER:
       return {

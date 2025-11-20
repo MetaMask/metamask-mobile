@@ -1945,7 +1945,7 @@ export function getPerpsMarketDetailsNavbar(navigation, title) {
     },
   });
   // Always navigate back to markets page for consistent navigation
-  const leftAction = () => navigation.navigate(Routes.PERPS.MARKETS);
+  const leftAction = () => navigation.navigate(Routes.PERPS.PERPS_HOME);
 
   return {
     headerTitle: () => (
@@ -2021,16 +2021,16 @@ export function getDepositNavbarOptions(
           />
         )
       : showConfiguration
-      ? () => (
-          <ButtonIcon
-            onPress={onConfigurationPress}
-            iconName={IconName.MoreHorizontal}
-            size={ButtonIconSize.Lg}
-            testID="deposit-configuration-menu-button"
-            style={styles.headerLeftButton}
-          />
-        )
-      : null,
+        ? () => (
+            <ButtonIcon
+              onPress={onConfigurationPress}
+              iconName={IconName.MoreHorizontal}
+              size={ButtonIconSize.Lg}
+              testID="deposit-configuration-menu-button"
+              style={styles.headerLeftButton}
+            />
+          )
+        : null,
     headerRight: showClose
       ? () => (
           <ButtonIcon

@@ -17,7 +17,7 @@ jest.mock('../Connection', () => ({
         isReady: false,
         connect: jest.fn(),
         setTrigger: jest.fn(),
-      } as unknown as Connection),
+      }) as unknown as Connection,
   ),
 }));
 jest.mock('../SDKConnect');

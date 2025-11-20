@@ -1,7 +1,7 @@
-import { SecurityAlertResponse } from '@metamask/transaction-controller';
 import { RootState } from '../../../../reducers';
+import { SecurityAlertResponse } from '../legacy/components/BlockaidBanner/BlockaidBanner.types';
 
 export const selectSignatureSecurityAlertResponse = (
   rootState: RootState,
-): { securityAlertResponse: SecurityAlertResponse } =>
+): { securityAlertResponse?: SecurityAlertResponse } =>
   rootState.signatureRequest;

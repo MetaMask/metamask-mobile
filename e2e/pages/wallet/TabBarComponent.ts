@@ -19,12 +19,20 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
   }
 
+  get tabBarTradeButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
+  }
+
   get tabBarSettingButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
   get tabBarActivityButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
+  }
+
+  get tabBarRewardsButton(): DetoxElement {
+    return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
 
   async tapBrowser(): Promise<void> {
@@ -38,6 +46,11 @@ class TabBarComponent {
         description: 'Tap Browser Button with Validation',
       },
     );
+  }
+
+  async tapHome(): Promise<void> {
+    const homeButton = Matchers.getElementByText('Home');
+    await Gestures.waitAndTap(homeButton);
   }
 
   async tapWallet(): Promise<void> {
@@ -55,6 +68,12 @@ class TabBarComponent {
 
   async tapActions(): Promise<void> {
     await Gestures.waitAndTap(this.tabBarActionButton, {
+      elemDescription: 'Tab Bar - Trade Button',
+    });
+  }
+
+  async tapTrade(): Promise<void> {
+    await Gestures.waitAndTap(this.tabBarTradeButton, {
       elemDescription: 'Tab Bar - Trade Button',
     });
   }
@@ -85,6 +104,20 @@ class TabBarComponent {
       {
         timeout: 10000,
         description: 'Tap Activity Button',
+      },
+    );
+  }
+
+  async tapRewards(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabBarRewardsButton, {
+          delay: 2500,
+        });
+      },
+      {
+        timeout: 10000,
+        description: 'Tap Rewards Button',
       },
     );
   }

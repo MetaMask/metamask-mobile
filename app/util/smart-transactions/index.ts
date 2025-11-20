@@ -12,7 +12,7 @@ import {
   type SmartTransaction,
   type Fees,
 } from '@metamask/smart-transactions-controller';
-import Engine, { type BaseControllerMessenger } from '../../core/Engine';
+import Engine, { type RootExtendedMessenger } from '../../core/Engine';
 import { isProduction } from '../environment';
 
 const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
@@ -87,7 +87,7 @@ export const getShouldUpdateApprovalRequest = (
   !mobileReturnTxHashAsap && (isDapp || isSend || isSwapTransaction);
 
 const waitForSmartTransactionConfirmationDone = (
-  controllerMessenger: BaseControllerMessenger,
+  controllerMessenger: RootExtendedMessenger,
 ): Promise<SmartTransaction | undefined> =>
   new Promise((resolve) => {
     controllerMessenger.subscribe(
@@ -105,7 +105,7 @@ export const getSmartTransactionMetricsProperties = async (
   smartTransactionsController: SmartTransactionsController,
   transactionMeta: TransactionMeta | undefined,
   waitForSmartTransaction: boolean,
-  controllerMessenger?: BaseControllerMessenger,
+  controllerMessenger?: RootExtendedMessenger,
 ) => {
   if (!transactionMeta) return {};
   let smartTransaction =
@@ -117,9 +117,8 @@ export const getSmartTransactionMetricsProperties = async (
     !smartTransaction?.statusMetadata && // We get this after polling for a status for a Smart Transaction.
     controllerMessenger;
   if (shouldWaitForSmartTransactionConfirmationDoneEvent) {
-    smartTransaction = await waitForSmartTransactionConfirmationDone(
-      controllerMessenger,
-    );
+    smartTransaction =
+      await waitForSmartTransactionConfirmationDone(controllerMessenger);
   }
   if (!smartTransaction) {
     return {};

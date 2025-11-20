@@ -54,7 +54,8 @@ export class AIE2ETagsSelector {
     'SmokeNetworkAbstractions',
     'SmokeNetworkExpansion',
     'SmokeTrade',
-    'SmokeWalletPlatform'
+    'SmokeWalletPlatform',
+    'SmokeRewards'
   ];
 
   private readonly availableTags = smokeTags
@@ -673,6 +674,7 @@ TAG COVERAGE:
 - SmokeAccounts: Multi-account, account management
 - SmokeNetworkAbstractions: Network layer, multi-chain
 - SmokeNetworkExpansion: New networks, network config (Solana, Bitcoin, etc)
+- SmokeRewards: Rewards system, points, levels, boosts
 
 TOOLS AVAILABLE:
 - read_file: Read actual file content

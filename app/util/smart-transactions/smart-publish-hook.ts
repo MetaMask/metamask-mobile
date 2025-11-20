@@ -24,23 +24,27 @@ import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import { RAMPS_SEND } from '../../components/UI/Ramp/Aggregator/constants';
-import { Messenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/messenger';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
 import { isPerDappSelectedNetworkEnabled } from '../networks';
 import { isLegacyTransaction } from '../transactions';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
-export type AllowedActions = never;
+type AllowedActions = never;
 
-export type AllowedEvents = SmartTransactionsControllerSmartTransactionEvent;
+type AllowedEvents = SmartTransactionsControllerSmartTransactionEvent;
 
 export interface SubmitSmartTransactionRequest {
   transactionMeta: TransactionMeta;
   signedTransactionInHex?: Hex;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
-  controllerMessenger: Messenger<AllowedActions, AllowedEvents>;
+  controllerMessenger: Messenger<
+    'SmartPublishHook',
+    AllowedActions,
+    AllowedEvents
+  >;
   shouldUseSmartTransaction: boolean;
   approvalController: ApprovalController;
   featureFlags: {

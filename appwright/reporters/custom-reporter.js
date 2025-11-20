@@ -427,8 +427,8 @@ class CustomReporter {
           <html>
           <head>
             <title>Performance Metrics: ${testName} - ${
-          this.metrics[0].device
-        }</title>
+              this.metrics[0].device
+            }</title>
             <style>
               body { font-family: Arial, sans-serif; margin: 40px; }
               table { border-collapse: collapse; width: 100%; }
@@ -480,39 +480,39 @@ class CustomReporter {
                         })
                         .join('')
                     : test.steps && typeof test.steps === 'object'
-                    ? // Backward compatibility for old object structure
-                      Object.entries(test.steps)
-                        .map(
-                          ([stepName, duration]) => `
+                      ? // Backward compatibility for old object structure
+                        Object.entries(test.steps)
+                          .map(
+                            ([stepName, duration]) => `
                         <tr>
                           <td>${stepName}</td>
                           <td>${duration} ms</td>
                         </tr>
                       `,
-                        )
-                        .join('')
-                    : // Fallback to old structure
-                      Object.entries(test)
-                        .filter(
-                          ([key]) =>
-                            key !== 'testName' &&
-                            key !== 'device' &&
-                            key !== 'videoURL' &&
-                            key !== 'sessionId' &&
-                            key !== 'testFailed' &&
-                            key !== 'failureReason' &&
-                            key !== 'note' &&
-                            key !== 'total',
-                        )
-                        .map(
-                          ([key, value]) => `
+                          )
+                          .join('')
+                      : // Fallback to old structure
+                        Object.entries(test)
+                          .filter(
+                            ([key]) =>
+                              key !== 'testName' &&
+                              key !== 'device' &&
+                              key !== 'videoURL' &&
+                              key !== 'sessionId' &&
+                              key !== 'testFailed' &&
+                              key !== 'failureReason' &&
+                              key !== 'note' &&
+                              key !== 'total',
+                          )
+                          .map(
+                            ([key, value]) => `
                         <tr>
                           <td>${key}</td>
                           <td>${value} ms</td>
                         </tr>
                       `,
-                        )
-                        .join('')
+                          )
+                          .join('')
                 }
                 <tr class="total">
                   <td>TOTAL TIME</td>
@@ -611,10 +611,10 @@ class CustomReporter {
                                 'cpu.avg',
                                 'N/A',
                               )}% | Max: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'cpu.max',
-                          'N/A',
-                        )}%</span>
+                                session.profilingSummary,
+                                'cpu.max',
+                                'N/A',
+                              )}%</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #4caf50;">
                               <strong style="color: #4caf50;">Memory</strong><br>
@@ -623,10 +623,10 @@ class CustomReporter {
                                 'memory.avg',
                                 'N/A',
                               )} MB | Max: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'memory.max',
-                          'N/A',
-                        )} MB</span>
+                                session.profilingSummary,
+                                'memory.max',
+                                'N/A',
+                              )} MB</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #ff9800;">
                               <strong style="color: #ff9800;">Battery</strong><br>
@@ -635,12 +635,12 @@ class CustomReporter {
                                 'battery.total',
                                 'N/A',
                               )} mAh (${(
-                          this.getNestedProperty(
-                            session.profilingSummary,
-                            'battery.percentage',
-                            0,
-                          ) * 100
-                        ).toFixed(1)}%)</span>
+                                this.getNestedProperty(
+                                  session.profilingSummary,
+                                  'battery.percentage',
+                                  0,
+                                ) * 100
+                              ).toFixed(1)}%)</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0;">
                               <strong style="color: #9c27b0;">UI Performance</strong><br>
@@ -649,10 +649,10 @@ class CustomReporter {
                                 'uiRendering.slowFrames',
                                 'N/A',
                               )}% | ANRs: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'uiRendering.anrs',
-                          'N/A',
-                        )}</span>
+                                session.profilingSummary,
+                                'uiRendering.anrs',
+                                'N/A',
+                              )}</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #607d8b;">
                               <strong style="color: #607d8b;">Disk I/O</strong><br>
@@ -661,10 +661,10 @@ class CustomReporter {
                                 'diskIO.reads',
                                 'N/A',
                               )} KB | Writes: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'diskIO.writes',
-                          'N/A',
-                        )} KB</span>
+                                session.profilingSummary,
+                                'diskIO.writes',
+                                'N/A',
+                              )} KB</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #795548;">
                               <strong style="color: #795548;">Network I/O</strong><br>
@@ -673,10 +673,10 @@ class CustomReporter {
                                 'networkIO.upload',
                                 'N/A',
                               )} KB | Download: ${this.getNestedProperty(
-                          session.profilingSummary,
-                          'networkIO.download',
-                          'N/A',
-                        )} KB</span>
+                                session.profilingSummary,
+                                'networkIO.download',
+                                'N/A',
+                              )} KB</span>
                             </div>
                           </div>
                           ${

@@ -8,7 +8,7 @@ import https from 'https';
 
 const env = {
   TEST_RESULTS_PATH: process.env.TEST_RESULTS_PATH || 'e2e-smoke-android-all-test-artifacts',
-  TEST_RUNS_PATH: process.env.TEST_RUNS_PATH || 'test/test-results/json-test-report.json',
+  TEST_RUNS_PATH: process.env.TEST_RUNS_PATH || 'test/test-results/test-runs.json',
   RUN_ID: process.env.RUN_ID ? parseInt(process.env.RUN_ID) : Date.now(),
   PR_NUMBER: process.env.PR_NUMBER ? parseInt(process.env.PR_NUMBER) : 0,
   GITHUB_ACTIONS: process.env.GITHUB_ACTIONS === 'true',

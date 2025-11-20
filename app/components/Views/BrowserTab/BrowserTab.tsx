@@ -121,6 +121,7 @@ import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
+import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 
 /**
  * Tab component for the in-app browser
@@ -143,6 +144,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     newTab,
     homePageUrl,
     activeChainId,
+    fromTrending,
   }) => {
     // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -194,6 +196,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }>();
     const fromHomepage = useRef(false);
     const searchEngine = useSelector(selectSearchEngine);
+    const isAssetsTrendingTokensEnabled = useSelector(
+      selectAssetsTrendingTokensEnabled,
+    );
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
       const permissionsControllerState = selectPermissionControllerState(state);
@@ -1350,12 +1355,23 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const onCancelUrlBar = useCallback(() => {
+      // If from trending and feature flag is on, navigate back to trending
+      if (fromTrending && isAssetsTrendingTokensEnabled) {
+        navigation.navigate(Routes.TRENDING_VIEW);
+        return;
+      }
+
       hideAutocomplete();
       // Reset the url bar to the current url
       const hostName =
         new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
       urlBarRef.current?.setNativeProps({ text: hostName });
-    }, [hideAutocomplete]);
+    }, [
+      hideAutocomplete,
+      fromTrending,
+      isAssetsTrendingTokensEnabled,
+      navigation,
+    ]);
 
     const onFocusUrlBar = useCallback(() => {
       // Show the autocomplete results
@@ -1490,6 +1506,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               activeUrl={resolvedUrlRef.current}
               setIsUrlBarFocused={setIsUrlBarFocused}
               isUrlBarFocused={isUrlBarFocused}
+              showCloseButton={fromTrending && isAssetsTrendingTokensEnabled}
             />
             <View style={styles.wrapper}>
               {renderProgressBar()}

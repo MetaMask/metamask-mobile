@@ -41,7 +41,7 @@ const makeMockState = () =>
     },
     settings: { showFiatOnTestnets: false },
     banners: { dismissedBanners: [] },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 // Mocks
 jest.mock('react-redux', () => ({

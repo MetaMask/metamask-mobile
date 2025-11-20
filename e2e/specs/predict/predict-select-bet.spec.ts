@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokeTrade } from '../../tags';
+import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
@@ -19,7 +19,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   );
 };
 
-describe(SmokeTrade('Predictions'), () => {
+describe(SmokePredictions('Predictions'), () => {
   it('should open predict tab and view market details', async () => {
     await withFixtures(
       {

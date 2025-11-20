@@ -19,6 +19,7 @@ import {
 } from '../pay/useTransactionRequiredTokens';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { Hex } from '@metamask/utils';
+import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../transactions/useUpdateTokenAmount');
@@ -26,6 +27,7 @@ jest.mock('../pay/useTransactionPayToken');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
 jest.mock('../pay/useTransactionRequiredTokens');
+jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
 
 jest.useFakeTimers();
 
@@ -78,6 +80,7 @@ describe('useTransactionCustomAmount', () => {
   const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useParamsMock = jest.mocked(useParams);
+  const usePredictBalanceMock = jest.mocked(usePredictBalance);
   const useTransactionRequiredTokensMock = jest.mocked(
     useTransactionRequiredTokens,
   );
@@ -105,6 +108,7 @@ describe('useTransactionCustomAmount', () => {
 
     useParamsMock.mockReturnValue({});
     useTransactionRequiredTokensMock.mockReturnValue([]);
+    usePredictBalanceMock.mockReturnValue({ balance: 0 } as never);
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -150,6 +154,7 @@ describe('useTransactionCustomAmount', () => {
     expect(useTokenFiatRateMock).toHaveBeenCalledWith(
       '0x123',
       expect.anything(),
+      undefined,
     );
   });
 
@@ -281,7 +286,7 @@ describe('useTransactionCustomAmount', () => {
 
     it('to percentage of token balance converted to usd if overridden', async () => {
       const { result } = runHook({
-        transactionMeta: { type: TransactionType.perpsDeposit },
+        transactionMeta: { type: TransactionType.predictDeposit },
       });
 
       await act(async () => {
@@ -363,6 +368,8 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('to percentage of predict balance', async () => {
+      usePredictBalanceMock.mockReturnValue({ balance: 4321.23 } as never);
+
       const { result } = runHook({
         transactionMeta: {
           type: TransactionType.predictWithdraw,
@@ -373,7 +380,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('529.92');
+      expect(result.current.amountFiat).toBe('1858.12');
     });
   });
 });

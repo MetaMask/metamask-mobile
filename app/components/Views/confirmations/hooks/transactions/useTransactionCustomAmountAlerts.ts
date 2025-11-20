@@ -57,7 +57,7 @@ export function useTransactionCustomAmountAlerts({
       isInputChanged);
 
   const keyboardAlertMessage = hasAlert
-    ? firstAlert?.title ?? (firstAlert?.message as string | undefined)
+    ? (firstAlert?.title ?? (firstAlert?.message as string | undefined))
     : undefined;
 
   const alertMessage =

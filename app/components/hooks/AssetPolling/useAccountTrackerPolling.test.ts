@@ -76,9 +76,7 @@ describe('useAccountTrackerPolling', () => {
     },
   } as unknown as RootState;
 
-  it('should poll all network configurations when portfolio view is enabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
+  it('should poll all network configurations', () => {
     const { unmount } = renderHookWithProvider(
       () => useAccountTrackerPolling(),
       { state },
@@ -101,9 +99,7 @@ describe('useAccountTrackerPolling', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it('should use provided network client IDs when specified, even with portfolio view enabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
+  it('should use provided network client IDs when specified', () => {
     const { unmount } = renderHookWithProvider(
       () =>
         useAccountTrackerPolling({
@@ -330,8 +326,7 @@ describe('useAccountTrackerPolling', () => {
       },
     } as unknown as RootState;
 
-    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+    it('should poll enabled EVM networks when global network selector is removed', () => {
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);
@@ -362,33 +357,7 @@ describe('useAccountTrackerPolling', () => {
       ).toHaveBeenCalledTimes(1);
     });
 
-    it('should poll current chain when portfolio view is disabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-
-      const { unmount } = renderHookWithProvider(
-        () => useAccountTrackerPolling(),
-        { state: baseState },
-      );
-
-      const mockedAccountTrackerController = jest.mocked(
-        Engine.context.AccountTrackerController,
-      );
-
-      expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-        networkClientIds: ['selectedNetworkClientId'],
-      });
-
-      unmount();
-      expect(
-        mockedAccountTrackerController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(1);
-    });
-
     it('should handle empty enabled networks gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);
@@ -428,7 +397,6 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle missing network configurations gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);
@@ -474,7 +442,6 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle undefined enabled networks gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest
         .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
         .mockReturnValue(true);
@@ -517,7 +484,9 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle undefined selectedNetworkClientId gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
 
       const stateWithUndefinedClientId = {
         ...baseState,
@@ -542,14 +511,23 @@ describe('useAccountTrackerPolling', () => {
         Engine.context.AccountTrackerController,
       );
 
+      // With global network selector removed, polling should still occur for enabled networks
+      // even when selectedNetworkClientId is undefined
       expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
-        0,
+        1,
       );
+      expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
+        networkClientIds: [
+          'selectedNetworkClientId',
+          'selectedNetworkClientId2',
+          'selectedNetworkClientId3',
+        ],
+      });
 
       unmount();
       expect(
         mockedAccountTrackerController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(0);
+      ).toHaveBeenCalledTimes(1);
     });
   });
 });

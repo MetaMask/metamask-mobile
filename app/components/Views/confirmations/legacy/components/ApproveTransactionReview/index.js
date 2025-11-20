@@ -91,7 +91,6 @@ import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails
 import ShowBlockExplorer from './ShowBlockExplorer';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import SkeletonText from '../../../../../UI/Ramp/Aggregator/components/SkeletonText';
 import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
@@ -601,8 +600,8 @@ class ApproveTransactionReview extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-        ? AppConstants.REQUEST_SOURCES.WC
-        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -1017,30 +1016,20 @@ class ApproveTransactionReview extends PureComponent {
                     />
                     <View style={styles.paddingHorizontal}>
                       <View style={styles.section}>
-                        {!tokenStandard ? (
-                          <SkeletonText style={styles.skeletalView} />
-                        ) : (
-                          isERC2OToken && (
-                            <CustomSpendCap
-                              ticker={tokenSymbol}
-                              dappProposedValue={originalApproveAmount}
-                              tokenSpendValue={tokenSpendValue}
-                              accountBalance={tokenBalance}
-                              unroundedAccountBalance={unroundedAccountBalance}
-                              tokenDecimal={tokenDecimals}
-                              toggleLearnMoreWebPage={
-                                this.toggleLearnMoreWebPage
-                              }
-                              isEditDisabled={Boolean(isReadyToApprove)}
-                              editValue={this.goToSpendCap}
-                              onInputChanged={
-                                this.handleCustomSpendOnInputChange
-                              }
-                              isInputValid={
-                                this.handleSetIsCustomSpendInputValid
-                              }
-                            />
-                          )
+                        {tokenStandard && isERC2OToken && (
+                          <CustomSpendCap
+                            ticker={tokenSymbol}
+                            dappProposedValue={originalApproveAmount}
+                            tokenSpendValue={tokenSpendValue}
+                            accountBalance={tokenBalance}
+                            unroundedAccountBalance={unroundedAccountBalance}
+                            tokenDecimal={tokenDecimals}
+                            toggleLearnMoreWebPage={this.toggleLearnMoreWebPage}
+                            isEditDisabled={Boolean(isReadyToApprove)}
+                            editValue={this.goToSpendCap}
+                            onInputChanged={this.handleCustomSpendOnInputChange}
+                            isInputValid={this.handleSetIsCustomSpendInputValid}
+                          />
                         )}
                         {((isERC2OToken && isReadyToApprove) ||
                           isNonFungibleToken) && (
@@ -1345,12 +1334,12 @@ class ApproveTransactionReview extends PureComponent {
         {viewDetails
           ? this.renderTransactionReview()
           : shouldVerifyContractDetails
-          ? this.renderVerifyContractDetails()
-          : showBlockExplorerModal
-          ? this.renderBlockExplorerView()
-          : isSigningQRObject
-          ? this.renderQRDetails()
-          : this.renderDetails()}
+            ? this.renderVerifyContractDetails()
+            : showBlockExplorerModal
+              ? this.renderBlockExplorerView()
+              : isSigningQRObject
+                ? this.renderQRDetails()
+                : this.renderDetails()}
       </View>
     );
   };

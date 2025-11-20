@@ -4,6 +4,7 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
+import type { RootState } from '../../../../../reducers';
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -40,4 +41,16 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
     // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
+);
+
+/**
+ * Selector for HIP-3 configuration version
+ * Used by ConnectionManager to detect when HIP-3 config changes and trigger reconnection
+ *
+ * @param state - Redux root state
+ * @returns number - Version increments when HIP-3 config changes
+ */
+export const selectHip3ConfigVersion = createSelector(
+  (state: RootState) => state?.engine?.backgroundState?.PerpsController,
+  (perpsController) => perpsController?.hip3ConfigVersion ?? 0,
 );

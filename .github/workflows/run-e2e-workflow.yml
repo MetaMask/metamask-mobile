@@ -53,9 +53,6 @@ jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
-      cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -113,7 +110,7 @@ jobs:
           echo "✅ System images installed"
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@211837de0fe5589cb88bd78bd2fd3237e1e97f48
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
@@ -226,7 +223,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-test-junit-results
+          name: test-e2e-${{ inputs.test-suite-name }}-junit-results
           path: e2e/reports/
           retention-days: 7
 
@@ -234,6 +231,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-test-screenshots
+          name: test-e2e-${{ inputs.test-suite-name }}-screenshots
           path: e2e/artifacts/
           retention-days: 7

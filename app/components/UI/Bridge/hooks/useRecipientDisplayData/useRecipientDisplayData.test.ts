@@ -88,14 +88,14 @@ const setupMultichainState = (
             selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0`,
             wallets: options.emptyWalletsMap
               ? {}
-              : options.walletsMap ??
+              : (options.walletsMap ??
                 createWallet(
                   'wallet1',
                   options.walletName ?? 'Wallet 1',
                   '0',
                   options.groupName ?? accountName,
                   [accountId],
-                ),
+                )),
           },
         },
       }),

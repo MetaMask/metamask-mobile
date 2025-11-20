@@ -140,8 +140,8 @@ export class BackgroundBridge extends EventEmitter {
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
     this.multichainEngine = null;

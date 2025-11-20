@@ -14,6 +14,7 @@ import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 import { useMetrics } from '../../hooks/useMetrics';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
+import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { trace, TraceName } from '../../../util/trace';
 import FundActionMenu from './FundActionMenu';
 
@@ -54,6 +55,7 @@ jest.mock('react-redux');
 jest.mock('../../hooks/useMetrics');
 jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
+jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled');
 jest.mock('../../../util/trace');
 jest.mock('../../../util/networks', () => ({
   getDecimalChainId: jest.fn(),
@@ -79,6 +81,10 @@ const mockUseRampNetwork = useRampNetwork as jest.MockedFunction<
 const mockUseDepositEnabled = useDepositEnabled as jest.MockedFunction<
   typeof useDepositEnabled
 >;
+const mockUseRampsUnifiedV1Enabled =
+  useRampsUnifiedV1Enabled as jest.MockedFunction<
+    typeof useRampsUnifiedV1Enabled
+  >;
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 const { getDecimalChainId } = jest.requireMock('../../../util/networks');
 const { createBuyNavigationDetails, createSellNavigationDetails } =
@@ -128,6 +134,7 @@ describe('FundActionMenu', () => {
 
     mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
     getDecimalChainId.mockReturnValue(1);
     createBuyNavigationDetails.mockReturnValue(['BuyScreen', {}] as never);
     createSellNavigationDetails.mockReturnValue(['SellScreen', {}] as never);
@@ -221,7 +228,7 @@ describe('FundActionMenu', () => {
     });
 
     it('renders all buttons when all features are enabled', () => {
-      const { getByTestId } = render(<FundActionMenu />);
+      const { getByTestId, queryByTestId } = render(<FundActionMenu />);
 
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
@@ -231,6 +238,20 @@ describe('FundActionMenu', () => {
       ).toBeOnTheScreen();
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      ).toBeOnTheScreen();
+      // Unified buy button not shown when hook returns false
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON),
+      ).toBeNull();
+    });
+
+    it('renders unified buy button when useRampsUnifiedV1Enabled returns true', () => {
+      mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+
+      const { getByTestId } = render(<FundActionMenu />);
+
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON),
       ).toBeOnTheScreen();
     });
   });
@@ -278,6 +299,20 @@ describe('FundActionMenu', () => {
       fireEvent.press(sellButton);
 
       expect(sellButton.props.accessibilityState.disabled).toBe(true);
+    });
+
+    it('calls same navigation as buy button when unified buy button is pressed', async () => {
+      mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+
+      const { getByTestId } = render(<FundActionMenu />);
+
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('BuyScreen', {});
+      });
     });
   });
 

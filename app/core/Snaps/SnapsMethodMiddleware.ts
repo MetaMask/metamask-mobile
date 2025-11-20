@@ -8,7 +8,7 @@ import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '../Permissions/constants';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
 import { SnapId } from '@metamask/snaps-sdk';
-import { BaseControllerMessenger, EngineContext } from '../Engine';
+import { RootExtendedMessenger, EngineContext } from '../Engine';
 import { handleSnapRequest } from './utils';
 import { captureException } from '@sentry/react-native';
 import {
@@ -49,7 +49,7 @@ export function getSnapIdFromRequest(
     */
 const snapMethodMiddlewareBuilder = (
   engineContext: EngineContext,
-  controllerMessenger: BaseControllerMessenger,
+  controllerMessenger: RootExtendedMessenger,
   origin: string,
   subjectType: SubjectType,
 ) =>

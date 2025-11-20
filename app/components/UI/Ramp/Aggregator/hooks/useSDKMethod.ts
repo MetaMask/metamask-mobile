@@ -90,7 +90,7 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   Promise<any> | ReturnType<RegionsService[T]>,
 ] {
   const method = typeof config === 'string' ? config : config.method;
-  const onMount = typeof config === 'string' ? true : config.onMount ?? true;
+  const onMount = typeof config === 'string' ? true : (config.onMount ?? true);
 
   const { sdk } = useRampSDK();
   const [data, setData] = useState<Awaited<

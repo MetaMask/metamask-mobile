@@ -316,7 +316,9 @@ export const BridgeTransactionDetails = (
           estimatedCompletionString && (
             <Box style={styles.detailRow}>
               <Text variant={TextVariant.BodyMDMedium}>
-                {strings('bridge_transaction_details.estimated_completion')}{' '}
+                {strings(
+                  'bridge_transaction_details.estimated_completion',
+                )}{' '}
               </Text>
               <Box
                 flexDirection={FlexDirection.Row}

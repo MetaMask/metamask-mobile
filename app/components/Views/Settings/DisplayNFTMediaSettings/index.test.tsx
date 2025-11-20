@@ -95,8 +95,7 @@ describe('DisplayNFTMediaSettings', () => {
     });
 
     it('toggles display NFT media OFF', () => {
-      initialState.engine.backgroundState.PreferencesController.displayNftMedia =
-        true;
+      initialState.engine.backgroundState.PreferencesController.displayNftMedia = true;
 
       const { getByTestId } = renderWithProvider(<DisplayNFTMediaSettings />, {
         state: initialState,

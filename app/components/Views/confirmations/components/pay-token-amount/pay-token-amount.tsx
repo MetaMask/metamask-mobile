@@ -11,6 +11,7 @@ import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { Hex } from 'viem';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { getTokenAddress } from '../../utils/transaction-pay';
 
 export interface PayTokenAmountProps {
   amountHuman: string;
@@ -18,13 +19,14 @@ export interface PayTokenAmountProps {
 
 export function PayTokenAmount({ amountHuman }: PayTokenAmountProps) {
   const { styles } = useStyles(styleSheet, {});
-  const { chainId, txParams } = useTransactionMetadataRequest() ?? {};
+  const transaction = useTransactionMetadataRequest();
+  const { chainId } = transaction ?? { chainId: '0x0' };
   const { payToken } = useTransactionPayToken();
-  const { to } = txParams ?? {};
+  const targetTokenAddress = getTokenAddress(transaction);
 
   const fiatRequests = useMemo(
     () =>
-      payToken && to
+      payToken && targetTokenAddress
         ? [
             {
               chainId: payToken.chainId,
@@ -32,11 +34,11 @@ export function PayTokenAmount({ amountHuman }: PayTokenAmountProps) {
             },
             {
               chainId: chainId as Hex,
-              address: to as Hex,
+              address: targetTokenAddress,
             },
           ]
         : [],
-    [chainId, payToken, to],
+    [chainId, payToken, targetTokenAddress],
   );
 
   const fiatRates = useTokenFiatRates(fiatRequests);

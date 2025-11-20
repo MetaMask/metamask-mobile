@@ -49,7 +49,7 @@ const asyncMigration = async (state: any) => {
 };
 
 describe('asyncifyMigrations', () => {
-  it('should convert synchronous migrations to asynchronous', async () => {
+  it('converts synchronous migrations to asynchronous', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: asyncMigration,
@@ -70,37 +70,6 @@ describe('asyncifyMigrations', () => {
     }
 
     expect(isPromiseMigrations).toEqual(true);
-  });
-
-  it('should only call validation callback after all migrations complete', async () => {
-    const mockValidation = jest.fn();
-    const testMigrationList = {
-      0: synchronousMigration,
-      1: asyncMigration,
-      2: synchronousMigration,
-    };
-
-    // Convert all migrations to async with validation callback
-    const asyncMigrations = asyncifyMigrations(
-      testMigrationList,
-      mockValidation,
-    );
-
-    // Run migrations in sequence and verify validation is only called after the highest migration
-    let state: PersistedState = initialState;
-
-    for (const migrationKey in asyncMigrations) {
-      state = (await asyncMigrations[migrationKey](state)) as PersistedState;
-
-      if (Number(migrationKey) === 2) {
-        // Should be called exactly once after the last migration
-        expect(mockValidation).toHaveBeenCalledTimes(1);
-        expect(mockValidation).toHaveBeenCalledWith(state);
-      } else {
-        // Should not be called for any other migration
-        expect(mockValidation).not.toHaveBeenCalled();
-      }
-    }
   });
 });
 
@@ -124,7 +93,7 @@ describe('migrations', () => {
     });
   });
 
-  it('should migrate successfully when latest migration is synchronous', async () => {
+  it('migrates successfully when latest migration is synchronous', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: synchronousMigration,
@@ -147,7 +116,7 @@ describe('migrations', () => {
     expect((migratedState as Record<string, unknown>).test).toEqual('sync');
   });
 
-  it('should migrate successfully when latest migration is asynchronous', async () => {
+  it('migrates successfully when latest migration is asynchronous', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: asyncMigration,
@@ -170,7 +139,7 @@ describe('migrations', () => {
     expect((migratedState as Record<string, unknown>).test).toEqual('async');
   });
 
-  it('should migrate successfully when using both synchronous and asynchronous migrations', async () => {
+  it('migrates successfully when using both synchronous and asynchronous migrations', async () => {
     const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: asyncMigration,

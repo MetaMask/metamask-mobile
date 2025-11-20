@@ -15,8 +15,10 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
+import { PredictClaimConfirmationSelectorsIDs } from '../../../../../../../e2e/selectors/Predict/Predict.selectors';
 import styleSheet from './predict-claim-footer.styles';
 import { selectPredictWonPositions } from '../../../../../UI/Predict/selectors/predictController';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 
 export interface PredictClaimFooterProps {
   onPress: () => void;
@@ -24,7 +26,13 @@ export interface PredictClaimFooterProps {
 
 export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
   const { styles } = useStyles(styleSheet, {});
-  const wonPositions = useSelector(selectPredictWonPositions);
+  const selectedAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
+  const wonPositions = useSelector(
+    selectPredictWonPositions({
+      address: selectedAddress,
+    }),
+  );
 
   const positionIcons = wonPositions.map((position) => ({
     imageSource: { uri: position.icon },
@@ -52,6 +60,7 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
         label={strings('confirm.predict_claim.button_label')}
         onPress={onPress}
         isInverse
+        testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}
       />
       <Text
         variant={TextVariant.BodyXS}

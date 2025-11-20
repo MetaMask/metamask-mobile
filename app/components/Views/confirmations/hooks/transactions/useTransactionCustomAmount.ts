@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Hex } from '@metamask/utils';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
@@ -9,22 +8,23 @@ import {
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTokenAmount } from './useUpdateTokenAmount';
-import { getTokenTransferData } from '../../utils/transaction-pay';
+import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import { useSelector } from 'react-redux';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { useTransactionRequiredTokens } from '../pay/useTransactionRequiredTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { selectPredictBalanceByAddress } from '../../components/predict-confirmations/predict-temp';
-import { RootState } from '../../../../../reducers';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayFiat } from '../pay/useTransactionPayFiat';
+import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
 
-export function useTransactionCustomAmount() {
+export function useTransactionCustomAmount({
+  currency,
+}: { currency?: string } = {}) {
   const { amount: defaultAmount } = useParams<{ amount?: string }>();
   const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
@@ -44,7 +44,7 @@ export function useTransactionCustomAmount() {
   const { chainId } = transactionMeta;
 
   const tokenAddress = getTokenAddress(transactionMeta);
-  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
+  const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   const tokenBalanceFiat = useTokenBalance();
 
   const { updateTokenAmount: updateTokenAmountCallback } =
@@ -100,9 +100,9 @@ export function useTransactionCustomAmount() {
         .decimalPlaces(2, BigNumber.ROUND_DOWN)
         .toString(10);
 
-      updatePendingAmount(newAmount);
+      setAmountFiat(newAmount);
     },
-    [maxPercentage, tokenBalanceFiat, updatePendingAmount],
+    [maxPercentage, tokenBalanceFiat],
   );
 
   const updateTokenAmount = useCallback(() => {
@@ -162,27 +162,13 @@ function useMaxPercentage() {
   }, [chainId, featureFlags, payToken, requiredTokens]);
 }
 
-function getTokenAddress(transactionMeta: TransactionMeta | undefined): Hex {
-  const nestedCall = transactionMeta && getTokenTransferData(transactionMeta);
-
-  if (nestedCall) {
-    return nestedCall.to;
-  }
-
-  return transactionMeta?.txParams?.to as Hex;
-}
-
 function useTokenBalance() {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const from = (transactionMeta?.txParams?.from ?? '0x0') as Hex;
   const { convertFiat } = useTransactionPayFiat();
 
   const { payToken } = useTransactionPayToken();
   const payTokenBalance = convertFiat(payToken?.tokenFiatAmount ?? 0);
-
-  const predictBalance = useSelector((state: RootState) =>
-    selectPredictBalanceByAddress(state, from),
-  );
+  const { balance: predictBalance } = usePredictBalance({ loadOnMount: true });
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
     ? predictBalance

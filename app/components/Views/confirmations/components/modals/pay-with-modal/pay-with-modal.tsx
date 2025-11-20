@@ -104,6 +104,7 @@ export function PayWithModal() {
           networkName={networkName}
           networkImageSource={networkImageSource}
           isSelected={isSelected}
+          skipNoFeeBadge
         />
       );
     },

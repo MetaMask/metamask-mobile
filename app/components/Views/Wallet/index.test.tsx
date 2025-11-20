@@ -31,6 +31,12 @@ jest.mock('../../UI/Perps/Views/PerpsTabView', () => ({
   default: jest.fn(() => null),
 }));
 
+// Mock PredictTabView
+jest.mock('../../UI/Predict/views/PredictTabView', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
+
 // Mock remoteFeatureFlag util to ensure version check passes
 jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -53,6 +59,12 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPerpsGTMModalEnabled,
   ),
+}));
+
+// Mock the Predict feature flag selector - will be controlled per test
+let mockPredictEnabled = true;
+jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
+  selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
 }));
 
 // Create shared mock reference for TabsList
@@ -984,10 +996,13 @@ describe('Wallet', () => {
             ...mockInitialState.engine.backgroundState
               .NetworkEnablementController,
             enabledNetworkMap: {
-              eip155: enabledNetworks.reduce((acc, network) => {
-                acc[network] = true;
-                return acc;
-              }, {} as Record<string, boolean>),
+              eip155: enabledNetworks.reduce(
+                (acc, network) => {
+                  acc[network] = true;
+                  return acc;
+                },
+                {} as Record<string, boolean>,
+              ),
             },
           },
         },
@@ -1074,11 +1089,13 @@ describe('Wallet', () => {
 
       // Default to enabled
       mockPerpsEnabled = true;
+      mockPredictEnabled = true;
     });
 
     afterEach(() => {
       jest.clearAllMocks();
       mockPerpsEnabled = true; // Reset to default
+      mockPredictEnabled = true; // Reset to default
     });
 
     it('should register visibility callback when Perps is enabled', () => {
@@ -1225,6 +1242,215 @@ describe('Wallet', () => {
     });
   });
 
+  describe('Predict Tab Visibility', () => {
+    let mockPredictTabView: jest.Mock;
+    let mockNavigation: NavigationProp<ParamListBase>;
+
+    beforeEach(() => {
+      // Get the actual mock that was created at the top
+      mockPredictTabView = jest.requireMock(
+        '../../UI/Predict/views/PredictTabView',
+      ).default;
+      mockPredictTabView.mockClear();
+
+      // Setup navigation mock
+      mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      // Default to enabled
+      mockPerpsEnabled = true;
+      mockPredictEnabled = true;
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      mockPerpsEnabled = true; // Reset to default
+      mockPredictEnabled = true; // Reset to default
+    });
+
+    it('should render PredictTabView when Predict is enabled', () => {
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                predictEnabled: true,
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Debug: Check if TabsList was rendered
+      expect(mockTabsListComponent).toHaveBeenCalled();
+
+      // Check that PredictTabView was rendered
+      expect(mockPredictTabView).toHaveBeenCalled();
+
+      // Check the props it was called with
+      const predictTabViewProps = mockPredictTabView.mock.calls[0][0];
+      expect(predictTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+    });
+
+    it('should calculate correct predictTabIndex when both Perps and Predict are enabled', () => {
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                predictEnabled: true,
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Predict should be at index 2 when Perps is enabled (Tokens=0, Perps=1, Predict=2)
+      const predictTabViewProps = mockPredictTabView.mock.calls[0][0];
+      expect(predictTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+    });
+
+    it('should calculate correct predictTabIndex when Predict is enabled but Perps is disabled', () => {
+      // Set Perps to disabled for this test
+      mockPerpsEnabled = false;
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                perpsPerpTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+                predictEnabled: true,
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Predict should be at index 1 when Perps is disabled (Tokens=0, Predict=1)
+      const predictTabViewProps = mockPredictTabView.mock.calls[0][0];
+      expect(predictTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+    });
+
+    it('should not render PredictTabView when Predict is disabled', () => {
+      // Set the flag to disabled for this test
+      mockPredictEnabled = false;
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                predictEnabled: false,
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // PredictTabView should not be rendered
+      expect(mockPredictTabView).not.toHaveBeenCalled();
+    });
+
+    it('should not render PredictTabView on tab change when Predict is disabled', () => {
+      // Set the flag to disabled for this test
+      mockPredictEnabled = false;
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                predictEnabled: false,
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Simulate tab change
+      const tabsList = mockTabsListComponent.mock.calls[0][0];
+      tabsList.onChangeTab({
+        i: 2,
+        ref: { props: { tabLabel: 'Predict' } },
+      });
+
+      // PredictTabView should not be rendered since Predict is disabled
+      expect(mockPredictTabView).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Perps GTM Modal Navigation', () => {
     let mockNavigation: NavigationProp<ParamListBase>;
 
@@ -1242,12 +1468,14 @@ describe('Wallet', () => {
       // Reset flags to default state
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
+      mockPredictEnabled = true;
     });
 
     afterEach(() => {
       // Reset mocks and flags
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
+      mockPredictEnabled = true;
       jest.clearAllMocks();
     });
 

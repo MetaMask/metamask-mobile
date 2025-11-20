@@ -1,7 +1,7 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { usePerpsPositionData } from './usePerpsPositionData';
+import { act, renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
+import { usePerpsPositionData } from './usePerpsPositionData';
 
 // Type definitions for test helpers
 interface PriceUpdate {
@@ -29,6 +29,15 @@ jest.mock('../../../../core/Engine', () => ({
       subscribeToPrices: jest.fn(),
     },
   },
+}));
+
+// Mock Redux selector
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'initialized'), // Default to initialized state
+}));
+
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsInitializationState: jest.fn(),
 }));
 
 describe('usePerpsPositionData', () => {
@@ -141,15 +150,12 @@ describe('usePerpsPositionData', () => {
       }),
     );
 
-    // Wait for initial data to load
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    // Initially not loading
     expect(result.current.isLoadingHistory).toBe(false);
 
-    // Mock a delayed response to capture loading state
     let resolvePromise: (value: typeof mockCandleData) => void;
     mockFetchHistoricalCandles.mockImplementationOnce(
       () =>
@@ -158,33 +164,51 @@ describe('usePerpsPositionData', () => {
         }),
     );
 
-    // Start refresh but don't await it yet
     let refreshPromise: Promise<void>;
     act(() => {
       refreshPromise = result.current.refreshCandleData();
     });
 
-    // Should be loading immediately after refresh starts
     expect(result.current.isLoadingHistory).toBe(true);
 
-    // Resolve the promise to complete the refresh
     act(() => {
       resolvePromise(mockCandleData);
     });
 
-    // Wait for refresh to complete
     await act(async () => {
       await refreshPromise;
     });
 
-    // Should not be loading after refresh completes
     expect(result.current.isLoadingHistory).toBe(false);
-    expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2); // Initial + refresh
+    expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns same candle reference when data is identical during refresh', async () => {
+    const { result } = renderHook(() =>
+      usePerpsPositionData({
+        coin: 'ETH',
+        selectedInterval: CandlePeriod.ONE_HOUR,
+        selectedDuration: TimeDuration.ONE_DAY,
+      }),
+    );
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const initialCandleRef = result.current.candleData;
+
+    mockFetchHistoricalCandles.mockResolvedValue(mockCandleData);
+
+    await act(async () => {
+      await result.current.refreshCandleData();
+    });
+
+    expect(result.current.candleData).toBe(initialCandleRef);
   });
 
   describe('getCurrentCandleStartTime', () => {
     it('calculates correct start time for 1 minute candles', async () => {
-      // Arrange
       const mockDate = new Date('2024-01-01T10:35:45.123Z').getTime();
       jest.spyOn(Date, 'now').mockReturnValue(mockDate);
 
@@ -196,17 +220,55 @@ describe('usePerpsPositionData', () => {
         }),
       );
 
-      // Act - Wait for hook to initialize
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // Assert - Should round down to nearest minute boundary
-      // 10:35:45.123 should round down to 10:35:00.000
-      // const expectedTime = new Date('2024-01-01T10:35:00.000Z').getTime();
-
-      // The getCurrentCandleStartTime logic should be exercised through price updates
       expect(result.current).toBeDefined();
+
+      jest.restoreAllMocks();
+    });
+
+    it('calculates correct start time for 3 minute candles', async () => {
+      const mockDate = new Date('2024-01-01T10:35:45.123Z').getTime();
+      jest.spyOn(Date, 'now').mockReturnValue(mockDate);
+
+      let priceCallback: PriceCallback | undefined;
+      mockSubscribeToPrices.mockImplementation(
+        ({ callback }: SubscribeToPricesParams) => {
+          priceCallback = callback;
+          return jest.fn();
+        },
+      );
+
+      const { result } = renderHook(() =>
+        usePerpsPositionData({
+          coin: 'ETH',
+          selectedInterval: CandlePeriod.THREE_MINUTES,
+          selectedDuration: TimeDuration.ONE_DAY,
+        }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      await act(async () => {
+        priceCallback?.([{ coin: 'ETH', price: 3000 }]);
+      });
+
+      const expectedStartTime =
+        Math.floor(mockDate / (3 * 60 * 1000)) * (3 * 60 * 1000);
+
+      expect(result.current.candleData?.candles).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            time: expectedStartTime,
+            open: '3050',
+            close: '3000',
+          }),
+        ]),
+      );
 
       jest.restoreAllMocks();
     });
@@ -405,8 +467,8 @@ describe('usePerpsPositionData', () => {
         expect.arrayContaining([
           expect.objectContaining({
             time: expectedStartTime,
-            open: '3000',
-            high: '3000',
+            open: '3050',
+            high: '3050',
             low: '3000',
             close: '3000',
             volume: '0',
@@ -465,7 +527,7 @@ describe('usePerpsPositionData', () => {
         expect.arrayContaining([
           expect.objectContaining({
             time: expectedStartTime,
-            open: '3000', // Original
+            open: '3050', // Original
             high: '3100', // Updated to max
             low: '2900', // Updated to min
             close: '2900', // Latest price
@@ -519,7 +581,7 @@ describe('usePerpsPositionData', () => {
       expect(result.current.candleData?.candles).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            open: '3200',
+            open: '3000', // Opens at previous candle's close price
             close: '3200',
           }),
         ]),
@@ -562,7 +624,7 @@ describe('usePerpsPositionData', () => {
       });
 
       // Assert - Should have empty candles array (no historical + no live candle created)
-      expect(result.current.candleData?.candles).toEqual([]);
+      expect(result.current.candleData?.candles).toEqual(undefined);
 
       // Assert - priceData should be set to the update object (even without price field)
       // The hook doesn't validate price field existence, just coin matching
@@ -798,7 +860,7 @@ describe('usePerpsPositionData', () => {
       expect(result.current.candleData?.candles[2]).toEqual(
         expect.objectContaining({
           time: Math.floor(newCandleTime / (60 * 60 * 1000)) * (60 * 60 * 1000),
-          open: '3100',
+          open: '3000', // Open price is the close of the previous candle
           close: '3100',
         }),
       );
@@ -1161,7 +1223,7 @@ describe('usePerpsPositionData', () => {
       });
 
       // Assert
-      expect(result.current.candleData?.candles).toEqual([]);
+      expect(result.current.candleData?.candles).toEqual(undefined);
       expect(result.current.isLoadingHistory).toBe(false);
     });
 

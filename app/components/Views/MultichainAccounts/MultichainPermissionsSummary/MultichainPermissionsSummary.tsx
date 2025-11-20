@@ -582,10 +582,10 @@ const MultichainPermissionsSummary = ({
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
                 : !isAlreadyConnected || isNetworkSwitch
-                ? hostname
-                : strings('permissions.title_dapp_url_has_approval_to', {
-                    dappUrl: hostname,
-                  })}
+                  ? hostname
+                  : strings('permissions.title_dapp_url_has_approval_to', {
+                      dappUrl: hostname,
+                    })}
             </TextComponent>
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}

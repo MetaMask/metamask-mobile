@@ -44,7 +44,7 @@ class SendScreen {
   }
 
   get reviewButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'review-button-send');
+    return AppwrightSelectors.getElementByID(this._device, 'review-button');
   }
 
   get sendAddressInputField() {
@@ -100,13 +100,15 @@ class SendScreen {
     } else {
       console.log('Typing address in send address field');
       const element = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
-      console.log('element got found', address);
       await AppwrightGestures.typeText(element, address);
     }
   }
 
   async clickOnReviewButton() {
-    const reviewButton = await this.reviewButton;
+    const reviewButton = await AppwrightSelectors.getElementByID(this._device, 'review-button');
+    await appwrightExpect(reviewButton).toBeVisible({timeout: 30000});
+
+    console.log('Review button visible, tapping');
     await reviewButton.tap();
   }
 

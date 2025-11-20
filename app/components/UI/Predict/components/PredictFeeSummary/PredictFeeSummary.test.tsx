@@ -22,6 +22,10 @@ describe('PredictFeeSummary', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Rendering', () => {
     it('renders fee summary when not disabled', () => {
       // Arrange

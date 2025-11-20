@@ -97,7 +97,7 @@ function PaymentMethodSelectorModal() {
               color={
                 typeof paymentMethod.iconColor === 'object'
                   ? paymentMethod.iconColor[themeAppearance]
-                  : paymentMethod.iconColor ?? IconColor.Primary
+                  : (paymentMethod.iconColor ?? IconColor.Primary)
               }
             />
           </View>

@@ -817,7 +817,7 @@ describe('Multichain Selectors', () => {
             },
           },
         },
-      } as unknown as RootState);
+      }) as unknown as RootState;
 
     const createTestStateWithSelectedNetwork = (selectedNetworkId: string) =>
       ({
@@ -867,7 +867,7 @@ describe('Multichain Selectors', () => {
             },
           },
         },
-      } as unknown as RootState);
+      }) as unknown as RootState;
 
     beforeEach(() => {
       jest.resetModules();

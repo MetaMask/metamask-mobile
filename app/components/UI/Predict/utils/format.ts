@@ -1,3 +1,4 @@
+import { Dimensions } from 'react-native';
 import { formatWithThreshold } from '../../../../util/assets';
 import { PredictSeries, Recurrence } from '../types';
 
@@ -218,4 +219,44 @@ export const formatCurrencyValue = (
   }
 
   return formatted;
+};
+
+/**
+ * Estimates the number of lines a title will occupy in the header
+ * Based on available width and average character width for HeadingMD variant
+ * HeadingMD: fontSize 18px, lineHeight 24px
+ */
+export const estimateLineCount = (text: string | undefined): number => {
+  if (!text) return 1;
+
+  const screenWidth = Dimensions.get('window').width;
+  // Calculate available width: screen - horizontal padding - back button - icon - gaps
+  // 32px (horizontal padding) + 8px (px-1 on container) + 40px (back button) + 12px (gap) + 40px (icon) + 12px (gap) = ~144px
+  const usedWidth = 144;
+  const availableWidth = screenWidth - usedWidth;
+
+  // HeadingMD font size is 18px with average character width of ~8.5px (accounting for proportional font)
+  const avgCharWidth = 8.5;
+  const charsPerLine = Math.floor(availableWidth / avgCharWidth);
+
+  // Split text into words and simulate word wrapping
+  const words = text.split(' ');
+  let lines = 1;
+  let currentLineLength = 0;
+
+  for (const word of words) {
+    const wordLength = word.length;
+    // Add 1 for space between words
+    const neededLength =
+      currentLineLength === 0 ? wordLength : currentLineLength + 1 + wordLength;
+
+    if (neededLength > charsPerLine) {
+      lines++;
+      currentLineLength = wordLength;
+    } else {
+      currentLineLength = neededLength;
+    }
+  }
+
+  return lines;
 };

@@ -32,8 +32,6 @@ import {
 } from '../../Tokens/constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
-import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
 import { useSelector } from 'react-redux';
 import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../locales/i18n';
@@ -42,8 +40,9 @@ import TagBase, {
   TagSeverity,
 } from '../../../../component-library/base-components/TagBase';
 import Tag from '../../../../component-library/components/Tags/Tag';
-import { accountTypeLabel } from '../../Tokens/TokenList/TokenListItem/TokenListItemBip44';
 import { RootState } from '../../../../reducers';
+import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
+import parseAmount from '../../../../util/parseAmount';
 
 const createStyles = ({
   theme,
@@ -82,6 +81,9 @@ const createStyles = ({
     },
     skeleton: {
       width: 50,
+      padding: 8,
+      borderRadius: 30,
+      backgroundColor: theme.colors.background.alternative,
     },
     secondaryBalance: {
       color: theme.colors.text.alternative,
@@ -107,6 +109,7 @@ interface TokenSelectorItemProps {
   isSelected?: boolean;
   shouldShowBalance?: boolean;
   children?: React.ReactNode;
+  skipNoFeeBadge?: boolean;
 }
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -117,6 +120,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   isSelected = false,
   shouldShowBalance = true,
   children,
+  skipNoFeeBadge = false,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
   const noFeeAssets = useSelector((state: RootState) =>
@@ -148,7 +152,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
 
   const label = token.accountType
-    ? accountTypeLabel[token.accountType]
+    ? ACCOUNT_TYPE_LABELS[token.accountType]
     : undefined;
 
   return (
@@ -214,7 +218,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             >
               <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
               {label && <Tag label={label} />}
-              {isNoFeeAsset && (
+              {!skipNoFeeBadge && isNoFeeAsset && (
                 <TagBase
                   shape={TagShape.Rectangle}
                   severity={TagSeverity.Info}
@@ -235,14 +239,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             {balance &&
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
+                <View style={styles.skeleton} />
               ) : (
                 <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
+                <View style={styles.skeleton} />
               ) : (
                 <Text
                   variant={TextVariant.BodyMD}

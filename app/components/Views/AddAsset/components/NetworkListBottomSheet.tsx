@@ -69,7 +69,13 @@ export default function NetworkListBottomSheet({
       style={styles.bottomSheetWrapperContent}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <BottomSheetHeader onClose={() => setOpenNetworkSelector(false)}>
+      <BottomSheetHeader
+        onClose={() => {
+          sheetRef.current?.onCloseBottomSheet(() => {
+            setOpenNetworkSelector(false);
+          });
+        }}
+      >
         <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
           {strings('networks.select_network')}
         </Text>
@@ -91,7 +97,9 @@ export default function NetworkListBottomSheet({
               }}
               onPress={() => {
                 setSelectedNetwork(network.chainId as Hex);
-                setOpenNetworkSelector(false);
+                sheetRef.current?.onCloseBottomSheet(() => {
+                  setOpenNetworkSelector(false);
+                });
               }}
               isSelected={selectedNetwork === network.chainId}
             />

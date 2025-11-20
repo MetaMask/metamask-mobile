@@ -674,9 +674,6 @@ export const isPermissionsSettingsV1Enabled =
 
 export const isPerDappSelectedNetworkEnabled = () => true;
 
-export const isPortfolioViewEnabled = () =>
-  process.env.PORTFOLIO_VIEW === 'true';
-
 export const isRemoveGlobalNetworkSelectorEnabled = () =>
   process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
 

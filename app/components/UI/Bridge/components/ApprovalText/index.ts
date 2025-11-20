@@ -1,1 +1,1 @@
-export { default } from './ApprovalText';
+export { default } from './ApprovalTooltip';

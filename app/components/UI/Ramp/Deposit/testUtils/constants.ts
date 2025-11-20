@@ -11,6 +11,7 @@ import {
   NativeTransakUserDetailsKycDetails,
 } from '@consensys/native-ramps-sdk';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import type { DepositSDK } from '../sdk';
 
 export const MOCK_US_REGION: DepositRegion = {
   isoCode: 'US',
@@ -259,8 +260,17 @@ export const MOCK_BANK_DETAILS_ORDER = {
   },
 };
 
-export const createMockSDKReturn = (overrides = {}) => ({
+export const createMockSDKReturn = (overrides = {}): DepositSDK => ({
+  sdk: undefined,
+  sdkError: undefined,
+  providerApiKey: null,
   isAuthenticated: false,
+  authToken: undefined,
+  setAuthToken: jest.fn().mockResolvedValue(true),
+  logoutFromProvider: jest.fn().mockResolvedValue(undefined),
+  checkExistingToken: jest.fn().mockResolvedValue(false),
+  getStarted: false,
+  setGetStarted: jest.fn(),
   selectedWalletAddress: '0x1234567890123456789012345678901234567890',
   selectedRegion: MOCK_US_REGION,
   setSelectedRegion: jest.fn(),

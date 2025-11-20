@@ -1753,9 +1753,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-blob-jsi-helper (0.3.1):
-    - React
-    - React-Core
   - react-native-blob-util (0.19.9):
     - DoubleConversion
     - glog
@@ -2941,7 +2938,6 @@ DEPENDENCIES:
   - react-native-aes (from `../node_modules/react-native-aes-crypto`)
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
   - react-native-ble-plx (from `../node_modules/react-native-ble-plx`)
-  - react-native-blob-jsi-helper (from `../node_modules/react-native-blob-jsi-helper`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - react-native-branch (from `../node_modules/react-native-branch`)
   - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
@@ -3193,8 +3189,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-background-timer"
   react-native-ble-plx:
     :path: "../node_modules/react-native-ble-plx"
-  react-native-blob-jsi-helper:
-    :path: "../node_modules/react-native-blob-jsi-helper"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
   react-native-branch:
@@ -3449,7 +3443,6 @@ SPEC CHECKSUMS:
   react-native-aes: e8b2e113d532b0efb6449754492aee9c218dd502
   react-native-background-timer: 007ff829f79644caf2ed013e22f0563560336f86
   react-native-ble-plx: d62fdd568ede8051369f8343f5bb9cf737b1c918
-  react-native-blob-jsi-helper: bd7509e50b0f906044c53ad7ab767786054424c9
   react-native-blob-util: b968f30ac26f1330dd5bd6f62043e25eb4738582
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
   react-native-compat: e3f7645274bc740117c68e35082d2d4082af6dc0

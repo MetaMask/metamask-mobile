@@ -17,7 +17,7 @@ import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 
-export const DEBOUNCE_WAIT = 700;
+export const DEBOUNCE_WAIT = 300;
 
 /**
  * Hook for handling bridge quote request updates

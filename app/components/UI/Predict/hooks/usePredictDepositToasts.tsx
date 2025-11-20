@@ -3,17 +3,33 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictToasts } from './usePredictToasts';
+import { usePredictBalance } from './usePredictBalance';
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../constants/navigation/Routes';
 
-export const usePredictDepositToasts = () => {
+interface UsePredictDepositToastsParams {
+  providerId?: string;
+}
+
+export const usePredictDepositToasts = ({
+  providerId = POLYMARKET_PROVIDER_ID,
+}: UsePredictDepositToastsParams = {}) => {
+  const { loadBalance } = usePredictBalance();
   const { deposit } = usePredictDeposit();
+  const navigation = useNavigation();
 
   usePredictToasts({
+    onConfirmed: () => {
+      loadBalance({ isRefresh: true });
+    },
     transactionType: TransactionType.predictDeposit,
     pendingToastConfig: {
       title: strings('predict.deposit.adding_funds'),
-      description: strings('predict.deposit.estimated_processing_time', {
-        time: 30,
-      }),
+      description: strings('predict.deposit.in_progress_description'),
+      onPress: () => {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      },
     },
     confirmedToastConfig: {
       title: strings('predict.deposit.account_ready'),
@@ -30,6 +46,8 @@ export const usePredictDepositToasts = () => {
       onRetry: deposit,
     },
     clearTransaction: () =>
-      Engine.context.PredictController.clearDepositTransaction(),
+      Engine.context.PredictController.clearPendingDeposit({
+        providerId,
+      }),
   });
 };

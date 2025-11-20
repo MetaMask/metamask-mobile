@@ -108,6 +108,14 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockUseRoute(),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackActivityViewed: jest.fn(),
+    },
+  },
+}));
+
 const baseBuyActivity: PredictActivityItem = {
   id: '1',
   type: PredictActivityType.BUY,
@@ -145,6 +153,10 @@ const renderWithActivity = (overrides?: Partial<PredictActivityItem>) => {
 
 describe('PredictActivityDetail', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

@@ -72,6 +72,10 @@ describe('PredictTransactionsView', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('shows loading indicator when isLoading is true', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce({
       activity: [],

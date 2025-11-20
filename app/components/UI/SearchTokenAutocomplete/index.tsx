@@ -5,7 +5,6 @@ import {
   InteractionManager,
   Text,
   LayoutAnimation,
-  TouchableOpacity,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AssetSearch from '../AssetSearch';
@@ -18,10 +17,7 @@ import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
-import {
-  selectChainId,
-  selectEvmTicker,
-} from '../../../selectors/networkController';
+import { selectEvmTicker } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../util/networks';
@@ -37,7 +33,6 @@ import Button, {
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import Logger from '../../../util/Logger';
 import { Hex } from '@metamask/utils';
-import NetworkImageComponent from '../NetworkImages';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,26 +65,6 @@ const createStyles = (colors: any) =>
     searchInput: {
       paddingBottom: 16,
     },
-    networkCell: {
-      alignItems: 'center',
-    },
-    networkSelectorContainer: {
-      borderWidth: 1,
-      marginTop: 16,
-      borderColor: colors.border.default,
-      borderRadius: 8,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 10,
-    },
-    buttonIconContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    title: {
-      color: colors.text.default,
-    },
   });
 
 interface Props {
@@ -100,20 +75,17 @@ interface Props {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   tabLabel: string;
-  onPress: () => void;
-  isAllNetworksEnabled: boolean;
-  allNetworksEnabled: { [key: string]: boolean };
+
+  /**
+   * The selected network chain ID
+   */
+  selectedChainId: Hex | null;
 }
 
 /**
  * Component that provides ability to add searched assets with metadata.
  */
-const SearchTokenAutocomplete = ({
-  navigation,
-  onPress,
-  isAllNetworksEnabled,
-  allNetworksEnabled,
-}: Props) => {
+const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -126,7 +98,6 @@ const SearchTokenAutocomplete = ({
   const styles = createStyles(colors);
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
-  const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
 
   const setFocusState = useCallback(
@@ -143,7 +114,9 @@ const SearchTokenAutocomplete = ({
         return {
           token_address: address,
           token_symbol: symbol,
-          chain_id: getDecimalChainId(chainId),
+          chain_id: selectedChainId
+            ? getDecimalChainId(selectedChainId)
+            : undefined,
           source: 'Add token dropdown',
         };
       } catch (error) {
@@ -154,7 +127,7 @@ const SearchTokenAutocomplete = ({
         return undefined;
       }
     },
-    [chainId],
+    [selectedChainId],
   );
 
   const handleSearch = useCallback(
@@ -295,7 +268,7 @@ const SearchTokenAutocomplete = ({
     navigation.push('ConfirmAddAsset', {
       selectedAsset: selectedAssets,
       networkName,
-      chainId,
+      chainId: selectedChainId,
       ticker,
       addTokenList,
     });
@@ -304,7 +277,9 @@ const SearchTokenAutocomplete = ({
       createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
         .addProperties({
           source: 'manual',
-          chain_id: getDecimalChainId(chainId),
+          chain_id: selectedChainId
+            ? getDecimalChainId(selectedChainId)
+            : undefined,
         })
         .build(),
     );
@@ -330,7 +305,9 @@ const SearchTokenAutocomplete = ({
         <>
           <Text style={styles.tokenDetectionDescription}>
             {strings('add_asset.banners.search_desc', {
-              network: FORMATTED_NETWORK_NAMES[chainId],
+              network: selectedChainId
+                ? FORMATTED_NETWORK_NAMES[selectedChainId]
+                : '',
             })}
           </Text>
           <Text
@@ -356,7 +333,7 @@ const SearchTokenAutocomplete = ({
     isTokenDetectionEnabled,
     colors,
     styles,
-    chainId,
+    selectedChainId,
   ]);
 
   return (
@@ -364,31 +341,6 @@ const SearchTokenAutocomplete = ({
       <ScrollView>
         <View>
           {renderTokenDetectionBanner()}
-          <TouchableOpacity
-            style={styles.networkSelectorContainer}
-            onPress={onPress}
-            onLongPress={onPress}
-            testID="filter-controls-button"
-          >
-            <TouchableOpacity
-              style={styles.base}
-              disabled={false}
-              onPress={onPress}
-              onLongPress={onPress}
-            >
-              <Text style={styles.title}>
-                {isAllNetworksEnabled
-                  ? strings('wallet.popular_networks')
-                  : networkName}
-              </Text>
-            </TouchableOpacity>
-            <NetworkImageComponent
-              isAllNetworksEnabled={isAllNetworksEnabled}
-              allNetworksEnabled={allNetworksEnabled}
-              onPress={onPress}
-            />
-          </TouchableOpacity>
-
           <View style={styles.searchInput}>
             <AssetSearch
               onSearch={handleSearch}
@@ -396,7 +348,7 @@ const SearchTokenAutocomplete = ({
                 setFocusState(true);
               }}
               onBlur={() => setFocusState(false)}
-              allNetworksEnabled={isAllNetworksEnabled}
+              selectedChainId={selectedChainId}
             />
           </View>
           <MultiAssetListItems
@@ -404,7 +356,7 @@ const SearchTokenAutocomplete = ({
             handleSelectAsset={handleSelectAsset}
             selectedAsset={selectedAssets}
             searchQuery={searchQuery}
-            chainId={chainId}
+            chainId={selectedChainId ?? ''}
             networkName={networkName}
           />
         </View>

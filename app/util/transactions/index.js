@@ -630,11 +630,11 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
-        ? strings('transactions.received_unit', { unit: currencySymbol })
-        : strings('transactions.received_ether')
+          ? strings('transactions.received_unit', { unit: currencySymbol })
+          : strings('transactions.received_ether')
       : currencySymbol
-      ? strings('transactions.sent_unit', { unit: currencySymbol })
-      : strings('transactions.sent_ether');
+        ? strings('transactions.sent_unit', { unit: currencySymbol })
+        : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 
@@ -1699,6 +1699,12 @@ export const getIsSwapApproveOrSwapTransaction = (
   chainId,
 ) => {
   if (!data) {
+    return false;
+  }
+
+  // Exclude token transfers (e.g., WETH sends) - these are not swap transactions
+  const fourByteSignature = getFourByteSignature(data);
+  if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
     return false;
   }
 

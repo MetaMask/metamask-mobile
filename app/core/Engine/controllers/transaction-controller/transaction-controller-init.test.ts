@@ -14,7 +14,7 @@ import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import { ControllerInitRequest } from '../../types';
@@ -30,6 +30,7 @@ import { Hex } from '@metamask/utils';
 import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
@@ -92,8 +93,12 @@ function buildInitRequestMock(
     TransactionControllerInitMessenger
   >
 > {
-  const initMessenger = new ExtendedControllerMessenger();
-  const baseControllerMessenger = new ExtendedControllerMessenger();
+  const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
     initMessenger:
@@ -385,7 +390,7 @@ describe('Transaction Controller Init', () => {
           () =>
             ({
               getHook: () => mockDelegation7702Hook,
-            } as unknown as InstanceType<typeof Delegation7702PublishHook>),
+            }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
         );
       });
 

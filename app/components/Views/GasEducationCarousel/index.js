@@ -304,7 +304,9 @@ const GasEducationCarousel = ({
             {strings('fiat_on_ramp.gas_education_carousel.step_3.subtitle_1')}
           </Text>
           <Text noMargin style={styles.subtitle}>
-            {strings('fiat_on_ramp.gas_education_carousel.step_3.subtitle_2')}{' '}
+            {strings(
+              'fiat_on_ramp.gas_education_carousel.step_3.subtitle_2',
+            )}{' '}
           </Text>
           <Text noMargin style={styles.subtitle}>
             {strings('fiat_on_ramp.gas_education_carousel.step_3.subtitle_3')}{' '}

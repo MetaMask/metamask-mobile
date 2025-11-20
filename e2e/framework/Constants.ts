@@ -4,7 +4,7 @@ import { GanacheHardfork } from './types';
 
 // Port Constants
 export const DEFAULT_FIXTURE_SERVER_PORT = 12345;
-
+export const DEFAULT_COMMAND_QUEUE_SERVER_PORT = 2446;
 export const DEFAULT_MOCKSERVER_PORT = 8000;
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;

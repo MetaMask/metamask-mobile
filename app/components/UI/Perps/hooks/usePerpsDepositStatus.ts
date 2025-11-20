@@ -1,20 +1,20 @@
-import { useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../../../reducers';
-import { usePerpsTrading } from './usePerpsTrading';
-import usePerpsToasts from './usePerpsToasts';
-import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
+import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
+import type { RootState } from '../../../../reducers';
 import {
-  USDC_ARBITRUM_MAINNET_ADDRESS,
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
 } from '../constants/hyperLiquidConfig';
+import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
+import usePerpsToasts from './usePerpsToasts';
+import { usePerpsTrading } from './usePerpsTrading';
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
@@ -116,8 +116,10 @@ export const usePerpsDepositStatus = () => {
       return;
     }
 
-    const currentBalance = parseFloat(liveAccount.availableBalance || '0');
-    const previousBalance = parseFloat(prevAvailableBalanceRef.current);
+    const currentBalance = Number.parseFloat(
+      liveAccount.availableBalance || '0',
+    );
+    const previousBalance = Number.parseFloat(prevAvailableBalanceRef.current);
     // Check if balance increased
     if (currentBalance > previousBalance) {
       // Show success toast

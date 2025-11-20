@@ -721,8 +721,8 @@ function decodeLegacySwapsTx(args) {
     sourceToken.symbol === 'ETH'
       ? totalAmountForEthSourceTokenFormatted
       : decimalSourceAmount
-      ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
-      : `${totalEthGas} ${ticker}`;
+        ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
+        : `${totalEthGas} ${ticker}`;
 
   const isSwap = swapTransaction.action === 'swap';
   let notificationKey, actionKey, value, fiatValue;

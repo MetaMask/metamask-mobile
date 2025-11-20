@@ -17,6 +17,7 @@ const styleSheet = (params: {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',
+      alignItems: 'center',
       marginTop: 40,
       marginBottom: 12,
       minHeight: 100,
@@ -25,6 +26,7 @@ const styleSheet = (params: {
     input: {
       textAlign: 'center',
       fontSize: getFontSize(params.vars.amountLength),
+      lineHeight: getFontSize(params.vars.amountLength) * 1.1,
       fontWeight: '500',
       color: params.vars.hasAlert
         ? params.theme.colors.error.default

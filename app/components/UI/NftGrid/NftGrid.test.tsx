@@ -7,9 +7,14 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { Nft } from '@metamask/assets-controllers';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import {
+  isNftFetchingProgressSelector,
+  multichainCollectiblesByEnabledNetworksSelector,
+} from '../../../reducers/collectibles';
 
 const mockStore = configureMockStore();
 const mockNavigate = jest.fn();
+const mockPush = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -17,6 +22,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
+    push: mockPush,
   }),
 }));
 
@@ -69,12 +75,19 @@ jest.mock('@shopify/flash-list', () => ({
     return (
       <View testID={testID}>
         {ListHeaderComponent}
-        {data && data.length > 0
-          ? data.map((item: unknown, index: number) => (
+        {data && data.length > 0 ? (
+          <>
+            {data.map((item: unknown, index: number) => (
               <View key={index}>{renderItem({ item, index })}</View>
-            ))
-          : ListEmptyComponent}
-        {ListFooterComponent}
+            ))}
+            {ListFooterComponent}
+          </>
+        ) : (
+          <>
+            {ListEmptyComponent}
+            {ListFooterComponent}
+          </>
+        )}
       </View>
     );
   },
@@ -93,6 +106,10 @@ jest.mock('./NftGridHeader', () => {
       <Text>Header</Text>
     </View>
   );
+});
+jest.mock('./NftGridSkeleton', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="nft-grid-skeleton" />;
 });
 
 // Mock CollectiblesEmptyState - has complex dependencies
@@ -135,6 +152,7 @@ jest.mock('../../../../locales/i18n', () => ({
     const strings: Record<string, string> = {
       'wallet.no_collectibles': 'No NFTs yet',
       'wallet.add_collectibles': 'Import NFTs',
+      'wallet.view_all_nfts': 'View all NFTs',
     };
     return strings[key] || key;
   },
@@ -153,6 +171,34 @@ jest.mock('../CollectibleMedia', () => () => null);
 jest.mock('@metamask/design-system-react-native', () => ({
   Text: ({ children }: { children: React.ReactNode }) => children,
   TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm' },
+  FontWeight: { Medium: 'Medium' },
+  Box: ({
+    children,
+    testID,
+  }: {
+    children: React.ReactNode;
+    testID?: string;
+  }) => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID={testID}>{children}</View>;
+  },
+  Button: ({
+    children,
+    onPress,
+    testID,
+  }: {
+    children: React.ReactNode;
+    onPress: () => void;
+    testID?: string;
+  }) => {
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <TouchableOpacity testID={testID} onPress={onPress}>
+        <Text>{children}</Text>
+      </TouchableOpacity>
+    );
+  },
+  ButtonVariant: { Secondary: 'Secondary' },
 }));
 
 // Mock ButtonIcon and its enums
@@ -224,6 +270,20 @@ jest.mock('../../../util/trace', () => ({
   TraceName: { LoadCollectibles: 'LoadCollectibles' },
 }));
 
+// Mock useTailwind
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const styleFunc = (className: string | string[]) => {
+      if (Array.isArray(className)) {
+        return className.reduce((acc, cls) => ({ ...acc, [cls]: true }), {});
+      }
+      return { [className]: true };
+    };
+    styleFunc.style = styleFunc;
+    return styleFunc;
+  },
+}));
+
 describe('NftGrid', () => {
   const mockNft: Nft = {
     address: '0x123',
@@ -254,6 +314,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -268,8 +329,136 @@ describe('NftGrid', () => {
     });
 
     await waitFor(() => {
-      expect(getByTestId('collectible-Test NFT-456')).toBeDefined();
-      expect(getByTestId('nft-grid-header')).toBeDefined();
+      expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      expect(getByTestId('nft-grid-header')).toBeOnTheScreen();
+    });
+  });
+
+  it('renders NFT grid directly without FlashList when homepage redesign is enabled', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      expect(getByTestId('nft-grid-header')).toBeOnTheScreen();
+    });
+  });
+
+  it('renders control bar with add button', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('base-control-bar')).toBeOnTheScreen();
+      expect(getByTestId('import-token-button')).toBeOnTheScreen();
+    });
+  });
+
+  it('applies full view styling when isFullView is true', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('base-control-bar')).toBeOnTheScreen();
+      expect(getByTestId('import-token-button')).toBeOnTheScreen();
+    });
+  });
+
+  it('shows view all button when homepage redesign is enabled and NFT count exceeds limit', async () => {
+    const mockCollectibles = {
+      '0x1': Array.from({ length: 20 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+      })),
+    };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled (maxItems = 18)
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('view-all-nfts-button')).toBeOnTheScreen();
+    });
+  });
+
+  it('hides view all button when homepage redesign is disabled', async () => {
+    const mockCollectibles = {
+      '0x1': Array.from({ length: 20 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+      })),
+    };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled (maxItems = undefined)
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { queryByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(queryByTestId('view-all-nfts-button')).toBeNull();
     });
   });
 
@@ -282,6 +471,7 @@ describe('NftGrid', () => {
     };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -296,19 +486,21 @@ describe('NftGrid', () => {
     });
 
     await waitFor(() => {
-      expect(getByTestId('collectible-Test NFT-456')).toBeDefined();
+      expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
       expect(queryByTestId('collectible-Test NFT-789')).toBeNull();
     });
   });
 
-  it('calls navigation when add collectible is triggered from empty state', async () => {
-    let callCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      callCount++;
-      if (callCount % 2 === 1) {
-        return false; // isNftFetchingProgress
+  it('navigates to AddAsset when add collectible button is pressed', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === isNftFetchingProgressSelector) {
+        return false;
       }
-      return {}; // multichainCollectiblesByEnabledNetworksSelector
+      if (selector === multichainCollectiblesByEnabledNetworksSelector) {
+        return mockCollectibles;
+      }
+      return {};
     });
     const store = mockStore(initialState);
 
@@ -322,15 +514,10 @@ describe('NftGrid', () => {
       jest.advanceTimersByTime(100);
     });
 
-    await waitFor(() => {
-      const emptyState = getByTestId('import-collectible-button');
-      expect(emptyState).toBeDefined();
-    });
+    const addButton = getByTestId('import-token-button');
+    fireEvent.press(addButton);
 
-    const emptyState = getByTestId('import-collectible-button');
-    fireEvent.press(emptyState);
-
-    expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
+    expect(mockPush).toHaveBeenCalledWith('AddAsset', {
       assetType: 'collectible',
     });
     expect(mockTrackEvent).toHaveBeenCalled();
@@ -340,6 +527,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -368,6 +556,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [nftWithoutName] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -382,14 +571,15 @@ describe('NftGrid', () => {
     });
 
     await waitFor(() => {
-      expect(getByTestId('collectible-null-456')).toBeDefined();
+      expect(getByTestId('collectible-null-456')).toBeOnTheScreen();
     });
   });
 
-  it('shows spinner in footer when NFTs are being fetched', async () => {
+  it('renders NFT items when not fetching without homepage redesign', async () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
-      .mockReturnValueOnce(true) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -404,7 +594,31 @@ describe('NftGrid', () => {
     });
 
     await waitFor(() => {
-      expect(getByTestId('collectible-contracts-spinner')).toBeDefined();
+      expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      expect(getByTestId('nft-grid-header')).toBeOnTheScreen();
+    });
+  });
+
+  it('shows empty state when not fetching with homepage redesign enabled and no collectibles', async () => {
+    const mockCollectibles = { '0x1': [] };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('collectibles-empty-state')).toBeOnTheScreen();
     });
   });
 
@@ -412,6 +626,7 @@ describe('NftGrid', () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -433,6 +648,7 @@ describe('NftGrid', () => {
   it('shows empty state when no collectibles and not fetching', async () => {
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce({}); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -447,13 +663,14 @@ describe('NftGrid', () => {
     });
 
     await waitFor(() => {
-      expect(getByTestId('collectibles-empty-state')).toBeDefined();
+      expect(getByTestId('collectibles-empty-state')).toBeOnTheScreen();
     });
   });
 
-  it('hides empty state when fetching NFTs', async () => {
+  it('hides empty state when fetching NFTs without homepage redesign', async () => {
     mockUseSelector
       .mockReturnValueOnce(true) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce({}); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
@@ -472,44 +689,43 @@ describe('NftGrid', () => {
     });
   });
 
-  it('disables add NFT button when isAddNFTEnabled is false', async () => {
-    // Given a user with no collectibles
-    mockUseSelector
-      .mockReturnValueOnce(false) // isNftFetchingProgress
-      .mockReturnValueOnce({}); // multichainCollectiblesByEnabledNetworksSelector
-    const store = mockStore(initialState);
-
-    // When the component renders
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <NftGrid />
-      </Provider>,
-    );
-
-    act(() => {
-      jest.advanceTimersByTime(100);
-    });
-
-    // When the add button is pressed
-    await waitFor(() => {
-      const addButton = getByTestId('import-token-button');
-      fireEvent.press(addButton);
-    });
-
-    // Then it should be temporarily disabled during navigation
-    const addButton = getByTestId('import-token-button');
-    expect(addButton.props.disabled).toBe(false);
-  });
-
-  it('calls navigation when add collectible button in control bar is pressed', async () => {
-    // Given a user with collectibles
+  it('renders NFT items when not fetching with homepage redesign enabled', async () => {
     const mockCollectibles = { '0x1': [mockNft] };
     mockUseSelector
       .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled
       .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
     const store = mockStore(initialState);
 
-    // When the component renders
+    const { getByTestId, queryByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      expect(queryByTestId('collectibles-empty-state')).toBeNull();
+    });
+  });
+
+  it('navigates to full view when view all button is pressed', async () => {
+    const mockCollectibles = {
+      '0x1': Array.from({ length: 20 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+      })),
+    };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled (maxItems = 18)
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
     const { getByTestId } = render(
       <Provider store={store}>
         <NftGrid />
@@ -520,16 +736,83 @@ describe('NftGrid', () => {
       jest.advanceTimersByTime(100);
     });
 
-    // When the add button in control bar is pressed
     await waitFor(() => {
-      const addButton = getByTestId('import-token-button');
-      fireEvent.press(addButton);
+      const viewAllButton = getByTestId('view-all-nfts-button');
+      fireEvent.press(viewAllButton);
     });
 
-    // Then it should navigate to AddAsset screen
-    expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
-      assetType: 'collectible',
+    expect(mockNavigate).toHaveBeenCalledWith('NftFullView');
+  });
+
+  it('limits NFTs to 18 when homepage redesign is enabled and not full view', async () => {
+    const mockCollectibles = {
+      '0x1': Array.from({ length: 25 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+        name: `NFT ${i}`,
+      })),
+    };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled (maxItems = 18)
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId, queryByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
     });
-    expect(mockTrackEvent).toHaveBeenCalled();
+
+    await waitFor(() => {
+      // Should render first 18 NFTs
+      expect(getByTestId('collectible-NFT 0-0')).toBeOnTheScreen();
+      expect(getByTestId('collectible-NFT 17-17')).toBeOnTheScreen();
+
+      // Should NOT render NFTs beyond 18
+      expect(queryByTestId('collectible-NFT 18-18')).toBeNull();
+      expect(queryByTestId('collectible-NFT 24-24')).toBeNull();
+
+      // View all button should be present
+      expect(getByTestId('view-all-nfts-button')).toBeOnTheScreen();
+    });
+  });
+
+  it('does not limit NFTs when full view is enabled', async () => {
+    const mockCollectibles = {
+      '0x1': Array.from({ length: 25 }, (_, i) => ({
+        ...mockNft,
+        tokenId: `${i}`,
+        name: `NFT ${i}`,
+      })),
+    };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(true) // selectHomepageRedesignV1Enabled
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId, queryByTestId } = render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      // Should render all NFTs when full view
+      expect(getByTestId('collectible-NFT 0-0')).toBeOnTheScreen();
+      expect(getByTestId('collectible-NFT 24-24')).toBeOnTheScreen();
+
+      // View all button should NOT be present in full view
+      expect(queryByTestId('view-all-nfts-button')).toBeNull();
+    });
   });
 });

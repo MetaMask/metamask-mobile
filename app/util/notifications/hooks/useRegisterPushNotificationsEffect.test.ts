@@ -1,6 +1,5 @@
 import { waitFor } from '@testing-library/react-native';
 import { createMockNotificationEthSent } from '../../../components/UI/Notification/__mocks__/mock_notifications';
-import Engine from '../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as NotificationSelectorsModule from '../../../selectors/notifications';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
@@ -21,22 +20,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    controllerMessenger: {
-      publish: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('../constants', () => ({
   isNotificationsFeatureEnabled: jest.fn(),
 }));
-
-const arrangeEngineMocks = () => ({
-  mockPublish: jest.mocked(Engine.controllerMessenger.publish),
-});
 
 const arrangeNavigationMocks = () => ({
   mockedNavigate,
@@ -85,13 +71,11 @@ export const arrangeNotificationServiceMock = () => {
 
 describe('useRegisterPushNotificationsEffect - onAppOpenNotification', () => {
   const arrangeMocks = () => {
-    const engine = arrangeEngineMocks();
     const navigation = arrangeNavigationMocks();
     const selectors = arrangeSelectorMocks();
     const notifService = arrangeNotificationServiceMock();
 
     return {
-      engine,
       navigation,
       selectors,
       notifService,
@@ -103,7 +87,7 @@ describe('useRegisterPushNotificationsEffect - onAppOpenNotification', () => {
   });
 
   it('invokes click handler', async () => {
-    const { selectors, notifService, engine, navigation } = arrangeMocks();
+    const { selectors, notifService, navigation } = arrangeMocks();
 
     renderHookWithProvider(() => useRegisterPushNotificationsEffect());
 
@@ -113,7 +97,6 @@ describe('useRegisterPushNotificationsEffect - onAppOpenNotification', () => {
       selectors.mockSelectIsNotificationsFeatureEnabled,
     ).toHaveBeenCalled();
     expect(notifService.mockGetInitialNotification).toHaveBeenCalled();
-    await waitFor(() => expect(engine.mockPublish).toHaveBeenCalled());
     await waitFor(() => expect(navigation.mockedNavigate).toHaveBeenCalled());
   });
 
@@ -131,26 +114,23 @@ describe('useRegisterPushNotificationsEffect - onAppOpenNotification', () => {
   });
 
   it('bails early if unable to get initial notification', async () => {
-    const { notifService, engine } = arrangeMocks();
+    const { notifService } = arrangeMocks();
     notifService.mockGetInitialNotification.mockResolvedValue(null);
 
     renderHookWithProvider(() => useRegisterPushNotificationsEffect());
 
     expect(notifService.mockGetInitialNotification).toHaveBeenCalled();
-    await waitFor(() => expect(engine.mockPublish).not.toHaveBeenCalled());
   });
 });
 
 describe('useRegisterPushNotificationsEffect - onBackgroundEvent', () => {
   const arrangeMocks = () => {
-    const engine = arrangeEngineMocks();
     const navigation = arrangeNavigationMocks();
     const selectors = arrangeSelectorMocks();
     const notifService = arrangeNotificationServiceMock();
     notifService.mockGetInitialNotification.mockResolvedValue(null); // Ensure we are testing the correct effect.
 
     return {
-      engine,
       navigation,
       selectors,
       notifService,
@@ -210,7 +190,6 @@ describe('useRegisterPushNotificationsEffect - onBackgroundEvent', () => {
 
     await act(mocks);
 
-    await waitFor(() => expect(mocks.engine.mockPublish).toHaveBeenCalled());
     await waitFor(() =>
       expect(mocks.navigation.mockedNavigate).toHaveBeenCalled(),
     );
@@ -226,9 +205,6 @@ describe('useRegisterPushNotificationsEffect - onBackgroundEvent', () => {
       return e;
     });
 
-    await waitFor(() =>
-      expect(mocks.engine.mockPublish).not.toHaveBeenCalled(),
-    );
     await waitFor(() =>
       expect(mocks.navigation.mockedNavigate).not.toHaveBeenCalled(),
     );
@@ -248,9 +224,6 @@ describe('useRegisterPushNotificationsEffect - onBackgroundEvent', () => {
       return e;
     });
 
-    await waitFor(() =>
-      expect(mocks.engine.mockPublish).not.toHaveBeenCalled(),
-    );
     await waitFor(() =>
       expect(mocks.navigation.mockedNavigate).not.toHaveBeenCalled(),
     );

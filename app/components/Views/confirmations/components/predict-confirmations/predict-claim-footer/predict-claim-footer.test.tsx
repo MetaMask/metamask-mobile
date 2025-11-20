@@ -49,4 +49,34 @@ describe('PredictClaimFooter', () => {
     // Then the onPress handler is called
     expect(onPressMock).toHaveBeenCalled();
   });
+
+  it('uses fallback address when selectedAddress is undefined', () => {
+    // Arrange - state with no selected account address
+    const stateWithNoAddress = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      otherControllersMock,
+      {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: undefined,
+              },
+            },
+          },
+        },
+      },
+    );
+
+    // Act
+    const { getByTestId } = renderWithProvider(
+      <PredictClaimFooter onPress={noop} />,
+      { state: stateWithNoAddress },
+    );
+
+    // Assert - component renders without crashing
+    expect(getByTestId('predict-claim-footer')).toBeDefined();
+  });
 });

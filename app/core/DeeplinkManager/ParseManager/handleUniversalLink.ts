@@ -12,6 +12,7 @@ import {
 } from './utils/verifySignature';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
+import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../util/general';
 
 const {
@@ -38,6 +39,10 @@ enum SUPPORTED_ACTIONS {
   WC = ACTIONS.WC,
   ONBOARDING = ACTIONS.ONBOARDING,
   ENABLE_CARD_BUTTON = ACTIONS.ENABLE_CARD_BUTTON,
+  // MetaMask SDK specific actions
+  ANDROID_SDK = ACTIONS.ANDROID_SDK,
+  CONNECT = ACTIONS.CONNECT,
+  MMSDK = ACTIONS.MMSDK,
 }
 
 /**
@@ -46,6 +51,15 @@ enum SUPPORTED_ACTIONS {
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
+];
+
+/**
+ * MetaMask SDK actions that should be handled by handleMetaMaskDeeplink
+ */
+const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
+  SUPPORTED_ACTIONS.ANDROID_SDK,
+  SUPPORTED_ACTIONS.CONNECT,
+  SUPPORTED_ACTIONS.MMSDK,
 ];
 
 const interstitialWhitelist = [
@@ -83,6 +97,25 @@ async function handleUniversalLink({
   const action: SUPPORTED_ACTIONS = validatedUrl.pathname.split(
     '/',
   )[1] as SUPPORTED_ACTIONS;
+
+  // Intercept SDK actions and handle them in handleMetaMaskDeeplink
+  if (METAMASK_SDK_ACTIONS.includes(action)) {
+    const mappedUrl = url.replace(
+      `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/`,
+      `${PROTOCOLS.METAMASK}://`,
+    );
+    const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
+    const wcURL = params?.uri || mappedUrlObj.href;
+    handleMetaMaskDeeplink({
+      instance,
+      handled,
+      wcURL,
+      origin: source,
+      params,
+      url: mappedUrl,
+    });
+    return;
+  }
 
   const isSupportedDomain =
     urlObj.hostname === MM_UNIVERSAL_LINK_HOST ||

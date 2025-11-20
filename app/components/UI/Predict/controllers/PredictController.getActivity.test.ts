@@ -45,6 +45,10 @@ describe('PredictController.getActivity', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('fetches activity from a specific provider and passes selected address', async () => {
     const stubProvider: Provider = {
       getActivity: jest.fn(

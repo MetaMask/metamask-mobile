@@ -73,7 +73,6 @@ jest.mock('../Engine', () => {
           AccountsController: { subscribe: jest.fn() },
           SnapController: { subscribe: jest.fn() },
           SubjectMetadataController: { subscribe: jest.fn() },
-          PPOMController: { subscribe: jest.fn() },
           AuthenticationController: { subscribe: jest.fn() },
           UserStorageController: { subscribe: jest.fn() },
           NotificationServicesController: { subscribe: jest.fn() },

@@ -160,8 +160,8 @@ function getNonEvmState(
     selectedAccount.type === SolAccountType.DataAccount
       ? SolScope.Mainnet
       : selectedAccount.scopes[0] === BtcScope.Testnet
-      ? BtcScope.Testnet
-      : BtcScope.Mainnet;
+        ? BtcScope.Testnet
+        : BtcScope.Mainnet;
 
   const state = {
     ...getEvmState(undefined, 1500, showFiatOnTestnets),

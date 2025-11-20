@@ -32,7 +32,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NftController:stateChange',
   'PermissionController:stateChange',
   'PhishingController:stateChange',
-  'PPOMController:stateChange',
   'PreferencesController:stateChange',
   'RemoteFeatureFlagController:stateChange',
   'SelectedNetworkController:stateChange',
@@ -72,6 +71,9 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
   'SeedlessOnboardingController:stateChange',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  'SamplePetnamesController:stateChange',
+  ///: END:ONLY_INCLUDE_IF
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'DelegationController:stateChange',
@@ -89,6 +91,7 @@ export const swapsSupportedChainIds = [
   swapsUtils.LINEA_CHAIN_ID,
   swapsUtils.BASE_CHAIN_ID,
   swapsUtils.SEI_CHAIN_ID,
+  CHAIN_IDS.MONAD,
 ];
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';
@@ -101,6 +104,7 @@ export const OPTIMISM_DISPLAY_NAME = 'OP';
 export const ZK_SYNC_ERA_DISPLAY_NAME = 'zkSync Era';
 export const BASE_DISPLAY_NAME = 'Base';
 export const SEI_DISPLAY_NAME = 'Sei';
+export const MONAD_DISPLAY_NAME = 'Monad';
 
 export const NETWORK_TO_NAME_MAP = {
   [CHAIN_IDS.MAINNET]: MAINNET_DISPLAY_NAME,
@@ -113,4 +117,6 @@ export const NETWORK_TO_NAME_MAP = {
   [CHAIN_IDS.ZKSYNC_ERA]: ZK_SYNC_ERA_DISPLAY_NAME,
   [CHAIN_IDS.BASE]: BASE_DISPLAY_NAME,
   [CHAIN_IDS.SEI]: SEI_DISPLAY_NAME,
+  // TODO: Update to use CHAIN_IDS.MONAD when it is added to the transaction controller
+  [CHAIN_IDS.MONAD]: MONAD_DISPLAY_NAME,
 } as const;

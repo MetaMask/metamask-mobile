@@ -152,7 +152,7 @@ const AccountStatus = ({
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.root}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>

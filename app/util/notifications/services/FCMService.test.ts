@@ -236,9 +236,8 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
   it('sets up listeners for push notifications and returns an unsubscribe handler', async () => {
     const { mockHandler, firebaseMocks } = arrangeMocks();
 
-    const result = await FCMService.listenToPushNotificationsReceived(
-      mockHandler,
-    );
+    const result =
+      await FCMService.listenToPushNotificationsReceived(mockHandler);
     expect(result).toBeDefined();
     expect(firebaseMocks.mockOnMessage).toHaveBeenCalled();
   });
@@ -249,9 +248,8 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
       throw new Error('TEST ERROR');
     });
 
-    const result = await FCMService.listenToPushNotificationsReceived(
-      mockHandler,
-    );
+    const result =
+      await FCMService.listenToPushNotificationsReceived(mockHandler);
     expect(result).toBe(null);
   });
 
@@ -354,7 +352,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
   ): FirebaseMessagingTypes.RemoteMessage =>
     ({
       data,
-    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+    }) as unknown as FirebaseMessagingTypes.RemoteMessage;
 
   const platformTestConfigs = [
     {
@@ -419,7 +417,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
           deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-          kind: 'take_profit_executed',
+          notification_type: 'take_profit_executed',
           data: JSON.parse(testData.data),
         });
       });
@@ -431,7 +429,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         expect(result).toBeFalsy();
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
-          kind: 'take_profit_executed',
+          notification_type: 'take_profit_executed',
           data: JSON.parse(testData.data),
         });
       });
@@ -486,7 +484,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
   ): FirebaseMessagingTypes.RemoteMessage =>
     ({
       data,
-    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+    }) as unknown as FirebaseMessagingTypes.RemoteMessage;
 
   const arrangeAct = (
     // Remote Message Data prop only contains string entries
@@ -521,7 +519,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     );
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
       deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-      kind: 'take_profit_executed',
+      notification_type: 'take_profit_executed',
       data: JSON.parse(testData.data),
     });
   });
@@ -532,7 +530,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
 
     expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
-      kind: 'take_profit_executed',
+      notification_type: 'take_profit_executed',
       data: JSON.parse(testData.data),
     });
   });
@@ -558,7 +556,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
       // Assert - Analytics should still be tracked even if callback fails
       assertTrackEventCalledWith(mocks.mockTrackEvent, {
         deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-        kind: 'take_profit_executed',
+        notification_type: 'take_profit_executed',
         data: JSON.parse(testData.data),
       });
     }).not.toThrow();

@@ -28,12 +28,16 @@ import {
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
+  );
   const tabBarRef = useRef(null);
   const tw = useTailwind();
 
@@ -90,6 +94,12 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigation.navigate(Routes.SETTINGS_VIEW, {
               screen: 'Settings',
             });
+            break;
+          case Routes.TRENDING_VIEW:
+            if (isAssetsTrendingTokensEnabled) {
+              navigation.navigate(Routes.TRENDING_VIEW);
+            }
+            break;
         }
       };
 
@@ -118,6 +128,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       createEventBuilder,
       tw,
       isRewardsEnabled,
+      isAssetsTrendingTokensEnabled,
     ],
   );
 
@@ -131,7 +142,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.End}
-        twClassName="w-full pt-3 px-2 bg-default border-t border-muted"
+        twClassName="w-full pt-3 mb-1 px-2 bg-default border-t border-muted"
         style={[tw.style(`pb-[${bottomInset}px]`)]}
       >
         {renderTabBarItems()}

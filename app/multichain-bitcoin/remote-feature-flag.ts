@@ -19,9 +19,7 @@ export interface BitcoinAccountsFeatureFlag {
  * @param flagValue - The feature flag value from remote config
  * @returns boolean - True if the feature is enabled, false otherwise.
  */
-export const isBitcoinAccountsFeatureEnabled = (
-  flagValue: unknown,
-) => {
+export const isBitcoinAccountsFeatureEnabled = (flagValue: unknown) => {
   if (!flagValue || !APP_VERSION) {
     return false;
   }

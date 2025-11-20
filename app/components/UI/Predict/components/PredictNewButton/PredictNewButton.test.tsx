@@ -131,6 +131,10 @@ describe('PredictNewButton', () => {
     );
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Component Rendering', () => {
     it('renders the button with correct text', () => {
       renderWithProvider(<PredictNewButton />);
@@ -159,15 +163,12 @@ describe('PredictNewButton', () => {
 
       fireEvent.press(button);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.PREDICT.ROOT,
-          params: {
-            screen: Routes.PREDICT.MARKET_LIST,
-          },
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PREDICT.ROOT,
+        {
+          screen: Routes.PREDICT.MARKET_LIST,
         },
-      });
+      );
     });
 
     it('calls navigation only once per press', () => {
@@ -188,15 +189,12 @@ describe('PredictNewButton', () => {
       fireEvent.press(button);
 
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(3);
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.PREDICT.ROOT,
-          params: {
-            screen: Routes.PREDICT.MARKET_LIST,
-          },
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PREDICT.ROOT,
+        {
+          screen: Routes.PREDICT.MARKET_LIST,
         },
-      });
+      );
     });
   });
 

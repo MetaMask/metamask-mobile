@@ -217,9 +217,8 @@ describe('Transaction Element Utils', () => {
       };
 
       // Act
-      const [transactionElement, transactionDetails] = await decodeTransaction(
-        args,
-      );
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
 
       // Assert
       expect(transactionElement).toEqual({
@@ -276,9 +275,8 @@ describe('Transaction Element Utils', () => {
       };
 
       // Act
-      const [transactionElement, transactionDetails] = await decodeTransaction(
-        args,
-      );
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
 
       // Assert
       expect(transactionElement).toEqual({
@@ -337,9 +335,8 @@ describe('Transaction Element Utils', () => {
         },
       };
 
-      const [transactionElement, transactionDetails] = await decodeTransaction(
-        args,
-      );
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
 
       expect(transactionElement).toEqual({
         actionKey: 'Sent USDC',

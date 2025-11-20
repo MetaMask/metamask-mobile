@@ -3,6 +3,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import type { PredictActivity } from '../types';
 
 interface UsePredictActivityOptions {
@@ -55,6 +58,23 @@ export function usePredictActivity(
         const message =
           err instanceof Error ? err.message : 'Failed to load activity';
         setError(message);
+
+        // Capture exception with activity loading context (no user address)
+        Logger.error(ensureError(err), {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            component: 'usePredictActivity',
+          },
+          context: {
+            name: 'usePredictActivity',
+            data: {
+              method: 'loadActivity',
+              action: 'activity_load',
+              operation: 'data_fetching',
+              providerId,
+            },
+          },
+        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);

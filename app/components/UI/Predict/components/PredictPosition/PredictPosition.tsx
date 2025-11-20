@@ -8,7 +8,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictPosition.styles';
-import { getPredictPositionSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -32,35 +32,28 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 
   return (
     <TouchableOpacity
-      testID={getPredictPositionSelector.currentPositionCard(
-        position.outcomeIndex,
-      )}
+      testID={PredictPositionSelectorsIDs.CURRENT_POSITION_CARD}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
-      <View style={styles.positionImage}>
+      <View style={styles.positionImageContainer}>
         <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
       <View style={styles.positionDetails}>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Default}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {title}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           ${initialValue.toFixed(2)} on {outcome} •{' '}
           {(avgPrice * 100).toFixed(0)}¢
         </Text>
       </View>
       <View style={styles.positionPnl}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {formatPrice(currentValue, { maximumDecimals: 2 })}
         </Text>
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodySMMedium}
           color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
         >
           {formatPercentage(percentPnl)}

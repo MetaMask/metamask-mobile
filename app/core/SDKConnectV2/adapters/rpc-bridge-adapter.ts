@@ -1,7 +1,7 @@
 import EventEmitter from 'eventemitter2';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
-import Engine, { BaseControllerMessenger } from '../../Engine';
+import Engine, { RootExtendedMessenger } from '../../Engine';
 import AppConstants from '../../AppConstants';
 import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { ImageSourcePropType } from 'react-native';
@@ -16,7 +16,7 @@ export class RPCBridgeAdapter
 {
   private readonly connInfo: ConnectionInfo;
   private client: BackgroundBridge | null = null;
-  private messenger: BaseControllerMessenger | null = null;
+  private messenger: RootExtendedMessenger | null = null;
   private initialized: Promise<void> | null = null;
   private processing = false;
   private queue: unknown[] = [];
@@ -94,10 +94,7 @@ export class RPCBridgeAdapter
 
     while (this.queue.length > 0) {
       const request = this.queue.shift();
-      this.client.onMessage({
-        name: 'metamask-multichain-provider',
-        data: request,
-      });
+      this.client.onMessage(request);
     }
 
     this.processing = false;

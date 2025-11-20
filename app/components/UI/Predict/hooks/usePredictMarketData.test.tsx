@@ -27,7 +27,8 @@ describe('usePredictMarketData', () => {
       image: 'https://example.com/btc.png',
       status: 'open',
       recurrence: Recurrence.NONE,
-      categories: ['crypto', 'trending'],
+      category: 'crypto',
+      tags: ['trending'],
       outcomes: [
         {
           id: 'outcome-1',
@@ -78,7 +79,8 @@ describe('usePredictMarketData', () => {
       image: 'https://example.com/eth.png',
       status: 'open',
       recurrence: Recurrence.NONE,
-      categories: ['crypto', 'trending'],
+      category: 'crypto',
+      tags: ['trending'],
       outcomes: [
         {
           id: 'outcome-3',
@@ -132,6 +134,10 @@ describe('usePredictMarketData', () => {
     (DevLogger.log as jest.Mock).mockImplementation(() => {
       // Mock implementation
     });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it.skip('should fetch market data successfully', async () => {

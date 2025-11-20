@@ -35,6 +35,7 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 /**
  * PerpsOpenOrderCard Component
@@ -90,8 +91,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       // If side is 'sell', it's closing a long position
       // If side is 'buy', it's closing a short position
       direction = order.side === 'sell' ? 'Close Long' : 'Close Short';
+    } else if (order.detailedOrderType === 'Limit') {
+      // Regular order - only show "Limit Long/Short" for basic limit orders
+      direction = order.side === 'buy' ? 'Limit Long' : 'Limit Short';
     } else {
-      // Regular order
       direction = order.side === 'buy' ? 'long' : 'short';
     }
 
@@ -115,10 +118,11 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   }, [
     order.reduceOnly,
     order.isTrigger,
-    order.side,
+    order.detailedOrderType,
     order.originalSize,
     order.price,
     order.filledSize,
+    order.side,
   ]);
 
   // Allows for retries if cancellation fails.
@@ -177,7 +181,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
           <View style={styles.headerRow}>
             {/* Show order type or direction */}
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {order.detailedOrderType || derivedData.direction}
+              {order.detailedOrderType === 'Limit'
+                ? derivedData.direction
+                : order.detailedOrderType || derivedData.direction}
             </Text>
             {/* Chart activity indicators */}
             {isActiveOnChart && (
@@ -242,7 +248,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             </Text>
           </View>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {formatPositionSize(order.originalSize)} {order.symbol}
+            {formatPositionSize(order.originalSize)}{' '}
+            {getPerpsDisplaySymbol(order.symbol)}
           </Text>
         </View>
 

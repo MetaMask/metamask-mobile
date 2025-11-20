@@ -10,7 +10,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPrice } from '../../utils/format';
 import styleSheet from './PredictPositionResolved.styles';
-import { getPredictPositionSelector } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 dayjs.extend(relativeTime);
 
@@ -46,9 +46,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
 
   return (
     <TouchableOpacity
-      testID={getPredictPositionSelector.resolvedPositionCard(
-        position.outcomeIndex,
-      )}
+      testID={PredictPositionSelectorsIDs.RESOLVED_POSITION_CARD}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
     >
@@ -57,25 +55,40 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
       </View>
       <View style={styles.positionDetails}>
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMDMedium}
           color={TextColor.Default}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
           {title}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodySMMedium}
+          color={TextColor.Alternative}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           ${initialValue.toFixed(2)} on {outcome} • Ended{' '}
           {formatRelativeTime(endDate)}
         </Text>
       </View>
       <View>
         {percentPnl > 0 ? (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Success}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             Won {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
         ) : (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Error}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             Lost{' '}
             {formatPrice(initialValue - currentValue, { maximumDecimals: 2 })}
           </Text>

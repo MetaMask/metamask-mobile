@@ -1,19 +1,22 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
-import {
-  getRewardsDataServiceMessenger,
-  type RewardsDataServiceMessenger,
-} from '../messengers/rewards-data-service-messenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getRewardsDataServiceMessenger } from '../messengers/rewards-data-service-messenger';
 import { ControllerInitRequest } from '../types';
 import { rewardsDataServiceInit } from './rewards-data-service-init';
-import { RewardsDataService } from './rewards-controller/services';
+import {
+  RewardsDataService,
+  RewardsDataServiceMessenger,
+} from './rewards-controller/services';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('./rewards-controller/services');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<RewardsDataServiceMessenger>
 > {
-  const baseMessenger = new ExtendedControllerMessenger<never, never>();
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),

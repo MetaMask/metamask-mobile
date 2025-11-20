@@ -72,8 +72,8 @@ const PriceChart = ({
     priceDiff > 0
       ? theme.colors.primary.default
       : priceDiff < 0
-      ? theme.colors.primary.default
-      : theme.colors.text.alternative;
+        ? theme.colors.primary.default
+        : theme.colors.text.alternative;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;

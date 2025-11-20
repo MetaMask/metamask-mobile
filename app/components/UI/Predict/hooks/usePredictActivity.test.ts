@@ -45,6 +45,10 @@ describe('usePredictActivity', () => {
     );
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('initializes and auto-loads activity on mount', async () => {
     const data = [{ id: '1' }];
     mockGetActivity.mockResolvedValueOnce(data);

@@ -172,9 +172,9 @@ const filterTestnets = (
 export const selectSelectedInternalAccountByScope = createDeepEqualSelector(
   [selectAccountTreeControllerState, selectInternalAccountsById],
   (
-      accountTreeState: AccountTreeControllerState,
-      internalAccountsMap: Record<AccountId, InternalAccount>,
-    ) =>
+    accountTreeState: AccountTreeControllerState,
+    internalAccountsMap: Record<AccountId, InternalAccount>,
+  ) =>
     (scope: CaipChainId): InternalAccount | undefined => {
       if (!accountTreeState?.accountTree?.selectedAccountGroup) {
         return undefined;
@@ -211,9 +211,9 @@ export const selectInternalAccountByAccountGroupAndScope =
   createDeepEqualSelector(
     [selectAccountTreeControllerState, selectInternalAccountsById],
     (
-        accountTreeState: AccountTreeControllerState,
-        internalAccountsMap: Record<AccountId, InternalAccount>,
-      ) =>
+      accountTreeState: AccountTreeControllerState,
+      internalAccountsMap: Record<AccountId, InternalAccount>,
+    ) =>
       (
         scope: CaipChainId,
         accountGroupId: string,

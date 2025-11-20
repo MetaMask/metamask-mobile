@@ -78,11 +78,52 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonVariant: {
       Secondary: 'secondary',
     },
+    ButtonSize: {
+      Lg: 'lg',
+      Md: 'md',
+      Sm: 'sm',
+    },
+    TextColor: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+      PrimaryInverse: 'primary-inverse',
+      Alternative: 'alternative',
+      Muted: 'muted',
+      Success: 'success',
+      Error: 'error',
+      Warning: 'warning',
+      Info: 'info',
+    },
     IconColor: {
       Alternative: '#8A8A8A',
     },
   };
 });
+
+jest.mock(
+  '../../../../../component-library/components-temp/Buttons/ButtonHero',
+  () => {
+    const { TouchableOpacity } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        onPress,
+        testID,
+        children,
+        ...props
+      }: {
+        onPress?: () => void;
+        testID?: string;
+        children?: React.ReactNode;
+        [key: string]: unknown;
+      }) => (
+        <TouchableOpacity testID={testID} onPress={onPress} {...props}>
+          {children}
+        </TouchableOpacity>
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -191,6 +232,16 @@ const mockBalanceResult: {
 };
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => mockBalanceResult,
+}));
+
+// Mock usePredictActionGuard hook
+const mockExecuteGuardedAction = jest.fn(async (action) => await action());
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: mockExecuteGuardedAction,
+    isEligible: true,
+    hasNoBalance: false,
+  }),
 }));
 
 // Mock usePredictClaimablePositions hook
@@ -311,32 +362,54 @@ function setupMarketsWonCardTest(
 
   const ref = React.createRef<{ refresh: () => Promise<void> }>();
 
+  // Test address and account ID to use in state
+  const testAddress = '0x1234567890123456789012345678901234567890';
+  const testAccountId = 'test-account-id';
+
   // Build claimable positions for Redux state
-  const claimablePositions =
+  const claimablePositionsArray =
     claimablePositionsOverrides.positions !== undefined
       ? (claimablePositionsOverrides.positions as unknown as PredictPosition[])
       : props.totalClaimableAmount
-      ? ([
-          {
-            id: 'position-1',
-            status: PredictPositionStatus.WON,
-            cashPnl: props.totalClaimableAmount,
-            marketId: 'market-1',
-            tokenId: 'token-1',
-            outcome: 'Yes',
-            shares: '100',
-            avgPrice: 0.5,
-            currentValue: props.totalClaimableAmount,
-          },
-        ] as unknown as PredictPosition[])
-      : [];
+        ? ([
+            {
+              id: 'position-1',
+              status: PredictPositionStatus.WON,
+              cashPnl: props.totalClaimableAmount,
+              marketId: 'market-1',
+              tokenId: 'token-1',
+              outcome: 'Yes',
+              shares: '100',
+              avgPrice: 0.5,
+              currentValue: props.totalClaimableAmount,
+            },
+          ] as unknown as PredictPosition[])
+        : [];
 
-  // Create Redux state
+  // Create Redux state with claimablePositions keyed by address
   const state = {
     engine: {
       backgroundState: {
         PredictController: {
-          claimablePositions,
+          claimablePositions: {
+            [testAddress]: claimablePositionsArray,
+          },
+        },
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: testAccountId,
+            accounts: {
+              [testAccountId]: {
+                id: testAccountId,
+                address: testAddress,
+                name: 'Test Account',
+                type: 'eip155:eoa' as const,
+                metadata: {
+                  lastSelected: 0,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -363,6 +436,10 @@ describe('MarketsWonCard', () => {
     mockClaimResult.loading = false;
     mockClaimResult.completed = false;
     mockClaimResult.error = false;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('Component Rendering', () => {
@@ -813,6 +890,36 @@ describe('MarketsWonCard', () => {
 
       // Verify the callback is undefined
       expect(props.onClaimPress).toBeUndefined();
+    });
+
+    it('uses fallback address when selectedAddress is undefined', () => {
+      // Arrange - create state with undefined selected account
+      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      const stateWithNoAddress = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              claimablePositions: {
+                '0x0': [],
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: undefined,
+                accounts: {},
+              },
+            },
+          },
+        },
+      };
+
+      // Act
+      const { getByTestId } = renderWithProvider(<MarketsWonCard ref={ref} />, {
+        state: stateWithNoAddress,
+      });
+
+      // Assert - component renders without crashing
+      expect(getByTestId('markets-won-card')).toBeDefined();
     });
   });
 });

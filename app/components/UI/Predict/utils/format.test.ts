@@ -3,11 +3,25 @@ import {
   formatPrice,
   formatAddress,
   formatCurrencyValue,
+  estimateLineCount,
 } from './format';
 
 // Mock the formatWithThreshold utility
 jest.mock('../../../../util/assets', () => ({
   formatWithThreshold: jest.fn(),
+}));
+
+// Mock Dimensions from react-native
+const mockDimensionsGet = jest.fn(() => ({
+  width: 375,
+  height: 667,
+  scale: 2,
+  fontScale: 1,
+}));
+jest.mock('react-native', () => ({
+  Dimensions: {
+    get: mockDimensionsGet,
+  },
 }));
 
 import { formatWithThreshold } from '../../../../util/assets';
@@ -18,6 +32,10 @@ const mockFormatWithThreshold = formatWithThreshold as jest.MockedFunction<
 
 describe('format utils', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -581,6 +599,207 @@ describe('format utils', () => {
 
       // Assert
       expect(result).toBe(expected);
+    });
+  });
+
+  describe('estimateLineCount', () => {
+    beforeEach(() => {
+      mockDimensionsGet.mockReturnValue({
+        width: 375,
+        height: 667,
+        scale: 2,
+        fontScale: 1,
+      });
+    });
+
+    it('returns 1 for undefined text', () => {
+      const result = estimateLineCount(undefined);
+
+      expect(result).toBe(1);
+    });
+
+    it('returns 1 for empty string', () => {
+      const result = estimateLineCount('');
+
+      expect(result).toBe(1);
+    });
+
+    it('returns 1 for short single-line text', () => {
+      const text = 'Short title';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(1);
+    });
+
+    it('returns 1 for text that fits on single line', () => {
+      // Available width: 375 - 144 = 231px
+      // Chars per line: floor(231 / 8.5) = 27 chars
+      const text = 'Will Bitcoin reach $100k?';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(1);
+    });
+
+    it('returns 2 for text that requires two lines', () => {
+      // Text that needs wrapping - needs to exceed ~27 characters per line with word boundaries
+      const text =
+        'Will the cryptocurrency market continue to grow significantly next year?';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it('returns 3 for text that requires three lines', () => {
+      const text =
+        'Will the cryptocurrency decentralized blockchain market continue to grow significantly next year and reach unprecedented extraordinary heights with Bitcoin Ethereum?';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(3);
+    });
+
+    it('calculates line count based on screen width for iPhone 14 Pro Max', () => {
+      mockDimensionsGet.mockReturnValue({
+        width: 430,
+        height: 932,
+        scale: 3,
+        fontScale: 1,
+      });
+      // Available width: 430 - 144 = 286px
+      // Chars per line: floor(286 / 8.5) = 33 chars
+      const text =
+        'Will cryptocurrency blockchain decentralized markets continue to grow and expand globally with widespread mainstream adoption?';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it('calculates line count based on screen width for iPhone SE', () => {
+      mockDimensionsGet.mockReturnValue({
+        width: 375,
+        height: 667,
+        scale: 2,
+        fontScale: 1,
+      });
+      // Available width: 375 - 144 = 231px
+      // Chars per line: floor(231 / 8.5) = 27 chars
+      const text =
+        'Will cryptocurrency decentralized blockchain markets continue growing next year?';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it('handles text with single very long word', () => {
+      const text =
+        'Supercalifragilisticexpialidocious extraordinarily phenomenal unprecedented';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it('handles text with multiple spaces between words', () => {
+      const text =
+        'Will  cryptocurrency  blockchain  decentralized  markets  continue  growing  next  year  indefinitely?';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it('handles text starting with space', () => {
+      const text =
+        ' Will cryptocurrency blockchain decentralized markets continue to grow significantly next year?';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it('handles text ending with space', () => {
+      const text =
+        'Will cryptocurrency blockchain decentralized markets continue to grow significantly next year? ';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it('handles single character text', () => {
+      const text = 'A';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(1);
+    });
+
+    it('handles text with special characters', () => {
+      const text =
+        'Will BTC/ETH reach $100k/€90k during the upcoming fiscal year consistently?';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it('handles text with numbers', () => {
+      const text =
+        '123456789 will this wrap to the next line with additional content about markets?';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it.each([
+      ['', 1],
+      ['A', 1],
+      ['Short', 1],
+      ['Will Bitcoin reach $100k?', 1],
+      [
+        'Will cryptocurrency blockchain decentralized markets continue to grow significantly next year?',
+        2,
+      ],
+      [
+        'Will the cryptocurrency decentralized blockchain market continue to grow significantly next year and reach unprecedented extraordinary heights?',
+        3,
+      ],
+    ])('estimates line count for text "%s" as %d lines', (text, expected) => {
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(expected);
+    });
+
+    it('handles text with exactly characters per line', () => {
+      // Long text that wraps
+      const text =
+        'This text has exactly the right length to wrap to two complete lines with content';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBe(2);
+    });
+
+    it('correctly wraps words at boundary', () => {
+      // Test word wrapping at exact boundary
+      mockDimensionsGet.mockReturnValue({
+        width: 375,
+        height: 667,
+        scale: 2,
+        fontScale: 1,
+      });
+      const text =
+        'This is a test to check word boundary wrapping behavior correctly and accurately';
+
+      const result = estimateLineCount(text);
+
+      expect(result).toBeGreaterThan(1);
     });
   });
 });

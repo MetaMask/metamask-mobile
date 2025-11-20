@@ -7,12 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import CopyableField from './CopyableField';
 import { strings } from '../../../../../../locales/i18n';
-
-const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';
-const REFERRAL_BASE_URL = `https://${REFERRAL_LINK_PATH}`;
-
-const buildReferralUrl = (referralCode: string): string =>
-  `${REFERRAL_BASE_URL}${referralCode}`;
+import { REFERRAL_LINK_PATH, buildReferralUrl } from '../../utils';
 
 interface ReferralActionsSectionProps {
   referralCode?: string | null;

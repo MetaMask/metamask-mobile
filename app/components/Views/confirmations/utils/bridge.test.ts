@@ -5,7 +5,7 @@ import {
   QuoteResponse,
 } from '@metamask/bridge-controller';
 import Engine from '../../../../core/Engine';
-import { ExtendedControllerMessenger } from '../../../../core/ExtendedControllerMessenger';
+import { ExtendedMessenger } from '../../../../core/ExtendedMessenger';
 import {
   BridgeQuoteRequest,
   TransactionBridgeQuote,
@@ -16,6 +16,7 @@ import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { cloneDeep } from 'lodash';
+import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/redux/slices/bridge');
@@ -70,14 +71,20 @@ describe('Confirmations Bridge Utils', () => {
     selectShouldUseSmartTransaction,
   );
   const engineMock = jest.mocked(Engine);
-  let messengerMock: ExtendedControllerMessenger<never, BridgeControllerEvents>;
+  let messengerMock: ExtendedMessenger<
+    MockAnyNamespace,
+    never,
+    BridgeControllerEvents
+  >;
   let bridgeControllerMock: jest.Mocked<BridgeController>;
   let gasFeeControllerMock: jest.Mocked<GasFeeController>;
 
   beforeEach(() => {
     jest.resetAllMocks();
 
-    messengerMock = new ExtendedControllerMessenger();
+    messengerMock = new ExtendedMessenger({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
 
     bridgeControllerMock = {
       fetchQuotes: jest.fn(),
@@ -95,7 +102,7 @@ describe('Confirmations Bridge Utils', () => {
       (state) =>
         ({
           sortedQuotes: state.engine.backgroundState.BridgeController.quotes,
-        } as never),
+        }) as never,
     );
 
     bridgeControllerMock.fetchQuotes

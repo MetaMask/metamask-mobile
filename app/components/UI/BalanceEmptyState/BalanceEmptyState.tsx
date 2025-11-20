@@ -4,6 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
+  Button,
+  ButtonSize,
   Text,
   TextVariant,
   TextColor,
@@ -14,15 +16,15 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import ButtonHero from '../../../component-library/components-temp/Buttons/ButtonHero';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
-import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
+import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 
 /**
  * BalanceEmptyState smart component displays an empty state for wallet balance
@@ -36,14 +38,13 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const chainId = useSelector(selectChainId);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
 
   const handleAction = () => {
-    navigation.navigate(...createDepositNavigationDetails());
+    navigation.navigate(...createBuyNavigationDetails());
 
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
-      ).build(),
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED).build(),
     );
 
     trackEvent(
@@ -52,13 +53,14 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           text: 'Add funds',
           location: 'BalanceEmptyState',
           chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: 'DEPOSIT',
+          ramp_type: 'BUY',
+          region: rampGeodetectedRegion,
         })
         .build(),
     );
 
     trace({
-      name: TraceName.LoadDepositExperience,
+      name: TraceName.LoadRampExperience,
     });
   };
 
@@ -104,13 +106,14 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           {strings('wallet.get_ready_for_web3')}
         </Text>
       </Box>
-      <ButtonHero
+      <Button
+        size={ButtonSize.Lg}
         onPress={handleAction}
         isFullWidth
         testID={`${testID}-action-button`}
       >
         {strings('wallet.add_funds')}
-      </ButtonHero>
+      </Button>
     </Box>
   );
 };

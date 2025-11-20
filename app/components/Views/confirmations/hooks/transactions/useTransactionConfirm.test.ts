@@ -4,7 +4,7 @@ import {
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import useApprovalRequest from '../useApprovalRequest';
-import { useTransactionConfirm } from './useTransactionConfirm';
+import { GO_BACK_TYPES, useTransactionConfirm } from './useTransactionConfirm';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { merge, noop } from 'lodash';
@@ -390,7 +390,7 @@ describe('useTransactionConfirm', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
       });
     });
 
@@ -418,6 +418,26 @@ describe('useTransactionConfirm', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();
     });
+
+    it.each(GO_BACK_TYPES)(
+      'navigates to previous page if $type',
+      async (type) => {
+        useFullScreenConfirmationMock.mockReturnValue({
+          isFullScreenConfirmation: true,
+        });
+
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: transactionIdMock,
+          type,
+        } as TransactionMeta);
+
+        const { result } = renderHook();
+        await result.current.onConfirm();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalled();
+      },
+    );
   });
 
   describe('handleSmartTransaction', () => {

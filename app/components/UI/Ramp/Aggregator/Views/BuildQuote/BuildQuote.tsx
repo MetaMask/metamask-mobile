@@ -141,7 +141,6 @@ const BuildQuote = () => {
     selectedRegion,
     selectedAsset,
     selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId,
     selectedAddress,
     selectedNetworkName,
     sdkError,
@@ -185,7 +184,6 @@ const BuildQuote = () => {
   }, [paymentMethods, themeAppearance]);
 
   const {
-    defaultFiatCurrency,
     queryDefaultFiatCurrency,
     fiatCurrencies,
     queryGetFiatCurrencies,
@@ -201,8 +199,13 @@ const BuildQuote = () => {
     queryGetCryptoCurrencies,
   } = useCryptoCurrencies();
 
-  const { limits, isAmountBelowMinimum, isAmountAboveMaximum, isAmountValid } =
-    useLimits();
+  const {
+    limits,
+    isFetching: isFetchingLimits,
+    isAmountBelowMinimum,
+    isAmountAboveMaximum,
+    isAmountValid,
+  } = useLimits();
 
   useIntentAmount(
     setAmount,
@@ -241,32 +244,6 @@ const BuildQuote = () => {
       }
     }, [shouldShowUnsupportedModal, navigation, regions, selectedRegion]),
   );
-
-  useEffect(() => {
-    const handleRegionChange = async () => {
-      if (
-        selectedRegion &&
-        selectedFiatCurrencyId === defaultFiatCurrency?.id
-      ) {
-        const newRegionCurrency = await queryDefaultFiatCurrency(
-          selectedRegion.id,
-          selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
-        );
-        if (newRegionCurrency?.id) {
-          setSelectedFiatCurrencyId(newRegionCurrency.id);
-        }
-      }
-    };
-
-    handleRegionChange();
-  }, [
-    selectedRegion,
-    selectedFiatCurrencyId,
-    defaultFiatCurrency?.id,
-    queryDefaultFiatCurrency,
-    selectedPaymentMethodId,
-    setSelectedFiatCurrencyId,
-  ]);
 
   const gasLimitEstimation = useERC20GasLimitEstimation({
     tokenAddress: selectedAsset?.address,
@@ -418,10 +395,11 @@ const BuildQuote = () => {
     : undefined;
 
   const isFetching =
+    isFetchingRegions ||
+    isFetchingFiatCurrency ||
     isFetchingCryptoCurrencies ||
     isFetchingPaymentMethods ||
-    isFetchingFiatCurrency ||
-    isFetchingRegions;
+    isFetchingLimits;
 
   const handleCancelPress = useCallback(() => {
     if (!selectedAsset?.network?.chainId) {
@@ -671,6 +649,8 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_source: currentFiatCurrency.symbol,
           currency_destination: selectedAsset.symbol,
+          currency_destination_symbol: selectedAsset.symbol,
+          currency_destination_network: selectedAsset.network?.shortName,
           chain_id_destination: selectedAsset.network?.chainId,
         });
       } else {
@@ -678,6 +658,8 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_destination: currentFiatCurrency.symbol,
           currency_source: selectedAsset.symbol,
+          currency_source_symbol: selectedAsset.symbol,
+          currency_source_network: selectedAsset.network?.shortName,
           chain_id_source: selectedAsset.network?.chainId,
         });
       }
@@ -894,20 +876,31 @@ const BuildQuote = () => {
               {isSell ? (
                 <>
                   <View style={styles.spacer} />
-                  <SelectorButton
-                    accessibilityRole="button"
-                    accessible
-                    onPress={handleFiatSelectorPress}
-                  >
-                    <Text variant={TextVariant.BodyLGMedium}>
-                      {currentFiatCurrency?.symbol}
-                    </Text>
-                  </SelectorButton>
+                  {isFetchingRegions ||
+                  isFetchingFiatCurrency ||
+                  !selectedFiatCurrencyId ? (
+                    <SkeletonText thick />
+                  ) : (
+                    <SelectorButton
+                      accessibilityRole="button"
+                      accessible
+                      onPress={handleFiatSelectorPress}
+                    >
+                      <Text variant={TextVariant.BodyLGMedium}>
+                        {currentFiatCurrency?.symbol}
+                      </Text>
+                    </SelectorButton>
+                  )}
                 </>
               ) : null}
             </Row>
             <AssetSelectorButton
-              loading={isFetchingRegions || isFetchingCryptoCurrencies}
+              loading={
+                isFetchingRegions ||
+                isFetchingFiatCurrency ||
+                isFetchingCryptoCurrencies ||
+                !selectedAsset?.id
+              }
               label={
                 isBuy
                   ? strings('fiat_on_ramp_aggregator.want_to_buy')
@@ -938,7 +931,10 @@ const BuildQuote = () => {
               onPress={handleAssetSelectorPress}
             />
             <Row>
-              {isFetchingRegions || isFetchingCryptoCurrencies ? (
+              {isFetchingRegions ||
+              isFetchingFiatCurrency ||
+              isFetchingCryptoCurrencies ||
+              !selectedAsset?.id ? (
                 <SkeletonText thin medium />
               ) : (
                 <Text
@@ -971,7 +967,7 @@ const BuildQuote = () => {
               loading={
                 isFetchingRegions ||
                 isFetchingFiatCurrency ||
-                isFetchingCryptoCurrencies
+                !selectedFiatCurrencyId
               }
               onCurrencyPress={isBuy ? handleFiatSelectorPress : undefined}
             />
@@ -1048,9 +1044,10 @@ const BuildQuote = () => {
               <PaymentMethodSelector
                 loading={
                   isFetchingRegions ||
-                  // isFetchingCryptoCurrencies ||
-                  // isFetchingFiatCurrency ||
-                  isFetchingPaymentMethods
+                  isFetchingFiatCurrency ||
+                  isFetchingCryptoCurrencies ||
+                  isFetchingPaymentMethods ||
+                  !selectedPaymentMethodId
                 }
                 label={
                   isBuy
