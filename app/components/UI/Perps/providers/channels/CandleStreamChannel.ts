@@ -187,10 +187,17 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
     // Check if controller is reinitializing
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      setTimeout(
-        () => this.connect(coin, interval, duration, cacheKey),
-        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
-      );
+      setTimeout(() => {
+        // Verify subscription still active before reconnecting
+        const hasActiveSubscribers = Array.from(this.subscribers.values()).some(
+          (sub) => sub.cacheKey === cacheKey,
+        );
+
+        // Only reconnect if subscribers still exist and no connection established
+        if (hasActiveSubscribers && !this.wsSubscriptions.has(cacheKey)) {
+          this.connect(coin, interval, duration, cacheKey);
+        }
+      }, PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
       return;
     }
 
@@ -337,10 +344,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       );
 
       // Limit to max 1000 candles to prevent memory issues
+      // Keep oldest candles when loading history (user scrolled left)
       const MAX_CANDLES = 1000;
       const finalCandles =
         mergedCandles.length > MAX_CANDLES
-          ? mergedCandles.slice(-MAX_CANDLES)
+          ? mergedCandles.slice(0, MAX_CANDLES)
           : mergedCandles;
 
       // Update cache with merged data
