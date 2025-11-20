@@ -1252,6 +1252,39 @@ describe('TradingService', () => {
         }),
       );
     });
+
+    it('tracks analytics on position close failure', async () => {
+      const params: ClosePositionParams = {
+        coin: 'BTC',
+      };
+      const mockFailureResult: OrderResult = {
+        success: false,
+        error: 'Insufficient liquidity',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.closePosition.mockResolvedValue(mockFailureResult);
+      (
+        RewardsIntegrationService.calculateUserFeeDiscount as jest.Mock
+      ).mockResolvedValue(undefined);
+
+      const result = await TradingService.closePosition({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(result).toEqual(mockFailureResult);
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            status: 'failed',
+            error_message: 'Insufficient liquidity',
+          }),
+        }),
+      );
+    });
   });
 
   describe('closePositions', () => {

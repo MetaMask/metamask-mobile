@@ -21,6 +21,8 @@ import type {
   FeeCalculationParams,
   AssetRoute,
 } from '../types';
+import type { CandleData } from '../../types/perps-types';
+import type { CandlePeriod } from '../../constants/chartConfig';
 
 jest.mock('../../../../../util/trace');
 jest.mock('../../../../../util/Logger');
@@ -839,6 +841,99 @@ describe('MarketDataService', () => {
 
       expect(result).toBe(`https://explorer.example.com/address/${address}`);
       expect(mockProvider.getBlockExplorerUrl).toHaveBeenCalledWith(address);
+    });
+  });
+
+  describe('fetchHistoricalCandles', () => {
+    const mockCandleData: CandleData = {
+      coin: 'BTC',
+      interval: '1h' as CandlePeriod,
+      candles: [
+        {
+          time: 1700000000,
+          open: '50000',
+          high: '51000',
+          low: '49500',
+          close: '50500',
+          volume: '1000',
+        },
+      ],
+    };
+
+    it('fetches historical candles successfully', async () => {
+      const hyperLiquidProvider = mockProvider as unknown as {
+        clientService: {
+          fetchHistoricalCandles: jest.Mock;
+        };
+      };
+      hyperLiquidProvider.clientService = {
+        fetchHistoricalCandles: jest.fn().mockResolvedValue(mockCandleData),
+      };
+
+      const result = await MarketDataService.fetchHistoricalCandles({
+        provider: mockProvider,
+        coin: 'BTC',
+        interval: '1h' as CandlePeriod,
+        limit: 100,
+        context: mockContext,
+      });
+
+      expect(result).toEqual(mockCandleData);
+      expect(
+        hyperLiquidProvider.clientService.fetchHistoricalCandles,
+      ).toHaveBeenCalledWith('BTC', '1h', 100);
+      expect(trace).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Perps Fetch Historical Candles' }),
+      );
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Perps Fetch Historical Candles',
+          data: { success: true },
+        }),
+      );
+    });
+
+    it('throws error when provider lacks clientService support', async () => {
+      const providerWithoutClient = { ...mockProvider };
+
+      await expect(
+        MarketDataService.fetchHistoricalCandles({
+          provider: providerWithoutClient,
+          coin: 'BTC',
+          interval: '1h' as CandlePeriod,
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Historical candles not supported by provider');
+
+      expect(Logger.error).toHaveBeenCalled();
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ success: false }),
+        }),
+      );
+    });
+
+    it('updates error state on failure', async () => {
+      const hyperLiquidProvider = mockProvider as unknown as {
+        clientService: {
+          fetchHistoricalCandles: jest.Mock;
+        };
+      };
+      const mockError = new Error('Network timeout');
+      hyperLiquidProvider.clientService = {
+        fetchHistoricalCandles: jest.fn().mockRejectedValue(mockError),
+      };
+
+      await expect(
+        MarketDataService.fetchHistoricalCandles({
+          provider: mockProvider,
+          coin: 'BTC',
+          interval: '1h' as CandlePeriod,
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Network timeout');
+
+      expect(mockContext.stateManager?.update).toHaveBeenCalled();
     });
   });
 });

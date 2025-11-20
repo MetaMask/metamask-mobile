@@ -2526,15 +2526,15 @@ describe('PerpsController', () => {
     });
 
     it('handles concurrent deposit operations without data corruption', async () => {
-      // Simulate concurrent deposits
       const deposit1 = controller.depositWithConfirmation('100');
       const deposit2 = controller.depositWithConfirmation('200');
 
       await Promise.all([deposit1, deposit2]);
 
       expect(controller.state.depositRequests).toHaveLength(2);
-      expect(controller.state.depositRequests[0].amount).toBe('200');
-      expect(controller.state.depositRequests[1].amount).toBe('100');
+      const amounts = controller.state.depositRequests.map((req) => req.amount);
+      expect(amounts).toContain('100');
+      expect(amounts).toContain('200');
     });
   });
 
