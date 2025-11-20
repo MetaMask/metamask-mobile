@@ -12,16 +12,29 @@ import { useRampTokens } from '../../hooks/useRampTokens';
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
+const mockParentGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
     goBack: mockGoBack,
+    dangerouslyGetParent: () => ({
+      goBack: mockParentGoBack,
+    }),
   }),
 }));
 
-function renderWithProvider(component: React.ComponentType) {
+interface CustomTestState {
+  fiatOrders?: {
+    rampRoutingDecision?: UnifiedRampRoutingType;
+  };
+}
+
+function renderWithProvider(
+  component: React.ComponentType,
+  customState?: CustomTestState,
+) {
   return renderScreen(
     component,
     {
@@ -35,6 +48,7 @@ function renderWithProvider(component: React.ComponentType) {
         fiatOrders: {
           detectedGeolocation: 'US',
           rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
+          ...customState?.fiatOrders,
         },
       },
     },
@@ -42,6 +56,14 @@ function renderWithProvider(component: React.ComponentType) {
 }
 
 jest.mock('../../Deposit/hooks/useSearchTokenResults', () => jest.fn());
+
+const mockGoToBuy = jest.fn();
+
+jest.mock('../../hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({
+    goToBuy: mockGoToBuy,
+  }),
+}));
 
 jest.mock('../../hooks/useRampTokens', () => ({
   useRampTokens: jest.fn(),
@@ -110,6 +132,18 @@ describe('TokenSelection Component', () => {
         }),
       );
     });
+  });
+
+  it('calls goToBuy when token is pressed', () => {
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
+    fireEvent.press(firstToken);
+
+    expect(mockGoToBuy).toHaveBeenCalledWith({
+      assetId: mockTokens[0].assetId,
+    });
+    expect(mockParentGoBack).toHaveBeenCalled();
   });
 
   it('navigates to unsupported token modal when info button is pressed', () => {
