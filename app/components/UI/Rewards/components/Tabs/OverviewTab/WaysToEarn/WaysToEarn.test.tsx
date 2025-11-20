@@ -1,13 +1,17 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { WaysToEarn, WayToEarnType } from './WaysToEarn';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
 import { SwapBridgeNavigationLocation } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
-import { selectRewardsCardSpendFeatureFlags } from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
+import {
+  selectRewardsCardSpendFeatureFlags,
+  selectRewardsMusdDepositEnabledFlag,
+} from '../../../../../../../selectors/featureFlagController/rewards';
+import { useFeatureFlag } from '../../../../../../../components/hooks/useFeatureFlag';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
 
@@ -20,6 +24,7 @@ const mockCreateEventBuilder = jest.fn();
 let mockIsFirstTimePerpsUser = false;
 let mockIsCardSpendEnabled = false;
 let mockIsPredictEnabled = false;
+let mockIsMusdDepositEnabled = false;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -53,6 +58,17 @@ jest.mock('../../../../../../hooks/useMetrics', () => ({
   },
 }));
 
+// Mock useFeatureFlag hook
+jest.mock('../../../../../../../components/hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual(
+    '../../../../../../../components/hooks/useFeatureFlag',
+  );
+  return {
+    useFeatureFlag: jest.fn(),
+    FeatureFlagNames: actual.FeatureFlagNames,
+  };
+});
+
 // Mock getNativeAssetForChainId
 jest.mock('@metamask/bridge-controller', () => ({
   getNativeAssetForChainId: jest.fn(() => ({
@@ -64,6 +80,10 @@ jest.mock('@metamask/bridge-controller', () => ({
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
+>;
+
+const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+  typeof useFeatureFlag
 >;
 
 // Mock i18n strings
@@ -113,6 +133,15 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'rewards.ways_to_earn.card.sheet.description':
         'Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).',
       'rewards.ways_to_earn.card.sheet.cta_label': 'Manage Card',
+      // Deposit MUSD strings
+      'rewards.ways_to_earn.deposit_musd.title': 'Deposit mUSD',
+      'rewards.ways_to_earn.deposit_musd.description':
+        '2 points per $100 deposited',
+      'rewards.ways_to_earn.deposit_musd.sheet.title': 'Deposit mUSD',
+      'rewards.ways_to_earn.deposit_musd.sheet.points': '2 points per $100',
+      'rewards.ways_to_earn.deposit_musd.sheet.description':
+        'Earn points on every $100 mUSD you deposit.',
+      'rewards.ways_to_earn.deposit_musd.sheet.cta_label': 'Deposit mUSD',
     };
     return mockStrings[key] || key;
   }),
@@ -161,11 +190,15 @@ jest.mock(
 );
 
 describe('WaysToEarn', () => {
+  let openURLSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     mockIsFirstTimePerpsUser = false;
     mockIsCardSpendEnabled = false;
     mockIsPredictEnabled = false;
+    mockIsMusdDepositEnabled = false;
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -189,11 +222,13 @@ describe('WaysToEarn', () => {
       if (selector === selectRewardsCardSpendFeatureFlags) {
         return mockIsCardSpendEnabled;
       }
-      if (selector === selectPredictEnabledFlag) {
-        return mockIsPredictEnabled;
+      if (selector === selectRewardsMusdDepositEnabledFlag) {
+        return mockIsMusdDepositEnabled;
       }
       return undefined;
     });
+    // Mock useFeatureFlag for predict flag
+    mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
   });
 
   it('renders the component title', () => {
@@ -217,6 +252,8 @@ describe('WaysToEarn', () => {
     expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
     // MM Card Spend hidden when flag disabled
     expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
+    // Deposit mUSD hidden when flag disabled
+    expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
   });
 
   it('displays correct descriptions for each earning way', () => {
@@ -230,6 +267,7 @@ describe('WaysToEarn', () => {
     expect(getByText('Earn points from past trades')).toBeOnTheScreen();
     expect(queryByText('20 points per $10 prediction')).not.toBeOnTheScreen();
     expect(queryByText('1 point per $1 spent')).not.toBeOnTheScreen();
+    expect(queryByText('Earn points on deposits')).not.toBeOnTheScreen();
   });
 
   it('opens referral bottom sheet modal when referral item is pressed', () => {
@@ -465,6 +503,7 @@ describe('WaysToEarn', () => {
       expect(WayToEarnType.LOYALTY).toBe('loyalty');
       expect(WayToEarnType.PREDICT).toBe('predict');
       expect(WayToEarnType.CARD).toBe('card');
+      expect(WayToEarnType.DEPOSIT_MUSD).toBe('deposit_musd');
     });
   });
 
@@ -478,6 +517,7 @@ describe('WaysToEarn', () => {
 
       // Enable flag
       mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       rerender(<WaysToEarn />);
 
       // Assert visible now
@@ -488,6 +528,7 @@ describe('WaysToEarn', () => {
     it('opens modal for predict earning way when pressed', () => {
       // Arrange
       mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       const { getByText } = render(<WaysToEarn />);
       const predictButton = getByText('Prediction markets');
 
@@ -516,6 +557,7 @@ describe('WaysToEarn', () => {
     it('navigates to predict market list when predict CTA is pressed', () => {
       // Arrange
       mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       const { getByText } = render(<WaysToEarn />);
       const predictButton = getByText('Prediction markets');
 
@@ -535,6 +577,9 @@ describe('WaysToEarn', () => {
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: expect.any(String),
+        },
       });
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -580,6 +625,81 @@ describe('WaysToEarn', () => {
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    });
+  });
+
+  describe('Deposit mUSD', () => {
+    it('shows Deposit mUSD earning way only when feature flag is enabled', () => {
+      // Arrange
+      const { queryByText, rerender } = render(<WaysToEarn />);
+
+      // Assert hidden by default
+      expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
+
+      // Enable flag
+      mockIsMusdDepositEnabled = true;
+      rerender(<WaysToEarn />);
+
+      // Assert visible now
+      expect(queryByText('Deposit mUSD')).toBeOnTheScreen();
+      expect(queryByText('2 points per $100 deposited')).toBeOnTheScreen();
+    });
+
+    it('opens modal for deposit mUSD earning way when pressed', () => {
+      // Arrange
+      mockIsMusdDepositEnabled = true;
+      const { getByText } = render(<WaysToEarn />);
+      const depositMusdButton = getByText('Deposit mUSD');
+
+      // Act
+      fireEvent.press(depositMusdButton);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          type: ModalType.Confirmation,
+          showIcon: false,
+          showCancelButton: false,
+          confirmAction: expect.objectContaining({
+            label: 'Deposit mUSD',
+            variant: 'Primary',
+          }),
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+    });
+
+    it('opens URL when deposit mUSD CTA is pressed', () => {
+      // Arrange
+      mockIsMusdDepositEnabled = true;
+      const { getByText } = render(<WaysToEarn />);
+      const depositMusdButton = getByText('Deposit mUSD');
+
+      // Act
+      fireEvent.press(depositMusdButton);
+
+      // Get the onPress handler from the modal navigation call
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      // Execute the CTA action
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(openURLSpy).toHaveBeenCalledWith(
+        'https://go.metamask.io/turtle-musd',
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
+      );
     });
   });
 

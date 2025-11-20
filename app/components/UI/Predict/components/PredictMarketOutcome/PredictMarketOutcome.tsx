@@ -73,7 +73,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const getYesPercentage = (): string => {
     const prices = getOutcomePrices();
     if (prices.length > 0) {
-      return formatPercentage(prices[0] * 100);
+      return formatPercentage(prices[0] * 100, { truncate: true });
     }
     return '0%';
   };
@@ -96,14 +96,11 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint,
-          },
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome,
+          outcomeToken: token,
+          entryPoint,
         });
       },
       {

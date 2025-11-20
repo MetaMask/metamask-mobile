@@ -18,9 +18,7 @@ const styleSheet = (params: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 40,
-      marginBottom: 12,
-      minHeight: 100,
+      minHeight: 70,
       gap: 5,
     },
     input: {

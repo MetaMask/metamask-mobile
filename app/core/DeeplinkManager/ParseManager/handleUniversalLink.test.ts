@@ -603,7 +603,7 @@ describe('handleUniversalLinks', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockHandlePredict).toHaveBeenCalledWith('');
+      expect(mockHandlePredict).toHaveBeenCalledWith('', 'test-source');
     });
 
     it('calls _handlePredict when action is PREDICT with market parameter', async () => {
@@ -626,7 +626,10 @@ describe('handleUniversalLinks', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockHandlePredict).toHaveBeenCalledWith('?market=23246');
+      expect(mockHandlePredict).toHaveBeenCalledWith(
+        '?market=23246',
+        'test-source',
+      );
     });
 
     it('calls _handlePredict when action is PREDICT with marketId parameter', async () => {
@@ -649,7 +652,10 @@ describe('handleUniversalLinks', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockHandlePredict).toHaveBeenCalledWith('?marketId=12345');
+      expect(mockHandlePredict).toHaveBeenCalledWith(
+        '?marketId=12345',
+        'test-source',
+      );
     });
 
     it('calls _handlePredict with full query string when multiple parameters present', async () => {
@@ -674,6 +680,7 @@ describe('handleUniversalLinks', () => {
       expect(handled).toHaveBeenCalled();
       expect(mockHandlePredict).toHaveBeenCalledWith(
         '?market=23246&utm_source=campaign',
+        'test-source',
       );
     });
   });

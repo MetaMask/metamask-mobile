@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Linking } from 'react-native';
 import {
   Box,
   Text,
@@ -27,8 +27,15 @@ import {
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
-import { selectRewardsCardSpendFeatureFlags } from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
+import {
+  selectRewardsCardSpendFeatureFlags,
+  selectRewardsMusdDepositEnabledFlag,
+} from '../../../../../../../selectors/featureFlagController/rewards';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../../hooks/useFeatureFlag';
+import { PredictEventValues } from '../../../../../Predict/constants/eventNames';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -42,6 +49,7 @@ export enum WayToEarnType {
   LOYALTY = 'loyalty',
   PREDICT = 'predict',
   CARD = 'card',
+  DEPOSIT_MUSD = 'deposit_musd',
 }
 
 interface WayToEarn {
@@ -87,6 +95,12 @@ const waysToEarn: WayToEarn[] = [
     title: strings('rewards.ways_to_earn.card.title'),
     description: strings('rewards.ways_to_earn.card.description'),
     icon: IconName.Card,
+  },
+  {
+    type: WayToEarnType.DEPOSIT_MUSD,
+    title: strings('rewards.ways_to_earn.deposit_musd.title'),
+    description: strings('rewards.ways_to_earn.deposit_musd.description'),
+    icon: IconName.Coin,
   },
 ];
 
@@ -196,6 +210,21 @@ const getBottomSheetData = (type: WayToEarnType) => {
         ),
         ctaLabel: strings('rewards.ways_to_earn.card.sheet.cta_label'),
       };
+    case WayToEarnType.DEPOSIT_MUSD:
+      return {
+        title: (
+          <WaysToEarnSheetTitle
+            title={strings('rewards.ways_to_earn.deposit_musd.sheet.title')}
+            points={strings('rewards.ways_to_earn.deposit_musd.sheet.points')}
+          />
+        ),
+        description: (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.ways_to_earn.deposit_musd.sheet.description')}
+          </Text>
+        ),
+        ctaLabel: strings('rewards.ways_to_earn.deposit_musd.sheet.cta_label'),
+      };
     default:
       throw new Error(`Unknown earning way type: ${type}`);
   }
@@ -205,7 +234,10 @@ export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
+  const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
@@ -246,10 +278,16 @@ export const WaysToEarn = () => {
       case WayToEarnType.PREDICT:
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_LIST,
+          params: {
+            entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
+          },
         });
         break;
       case WayToEarnType.CARD:
         navigation.navigate(Routes.CARD.ROOT);
+        break;
+      case WayToEarnType.DEPOSIT_MUSD:
+        Linking.openURL('https://go.metamask.io/turtle-musd');
         break;
     }
   };
@@ -268,7 +306,8 @@ export const WaysToEarn = () => {
       case WayToEarnType.LOYALTY:
       case WayToEarnType.PERPS:
       case WayToEarnType.PREDICT:
-      case WayToEarnType.CARD: {
+      case WayToEarnType.CARD:
+      case WayToEarnType.DEPOSIT_MUSD: {
         const { title, description, ctaLabel } = getBottomSheetData(
           wayToEarn.type,
         );
@@ -309,6 +348,12 @@ export const WaysToEarn = () => {
               return false;
             }
             if (wte.type === WayToEarnType.PREDICT && !isPredictEnabled) {
+              return false;
+            }
+            if (
+              wte.type === WayToEarnType.DEPOSIT_MUSD &&
+              !isMusdDepositEnabled
+            ) {
               return false;
             }
             return true;

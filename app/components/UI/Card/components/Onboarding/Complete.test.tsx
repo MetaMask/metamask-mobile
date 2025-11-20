@@ -1,12 +1,25 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import Complete from './Complete';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
+const mockNavigationDispatch = jest.fn();
+const mockStackReplace = jest.fn((routeName: string) => ({
+  type: 'REPLACE',
+  routeName,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  StackActions: {
+    replace: jest.fn((routeName: string) => ({
+      type: 'REPLACE',
+      routeName,
+    })),
+  },
 }));
 
 jest.mock('react-redux', () => ({
@@ -147,16 +160,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('Complete Component', () => {
-  const mockNavigate = jest.fn();
   const mockDispatch = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigationDispatch.mockClear();
+    mockStackReplace.mockClear();
+    (StackActions.replace as jest.Mock).mockImplementation(mockStackReplace);
 
     (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
+      dispatch: mockNavigationDispatch,
     });
 
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -228,32 +243,56 @@ describe('Complete Component', () => {
       expect(button.props.disabled).toBeFalsy();
     });
 
-    it('navigates to card home when pressed', async () => {
+    it('dispatches replace action to card home when pressed', async () => {
       const { getByTestId } = render(<Complete />);
 
       const button = getByTestId('complete-confirm-button');
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ routeName: Routes.CARD.HOME }),
+        );
       });
     });
 
-    it('calls navigate only once per button press', async () => {
+    it('dispatches replace action only once per button press', async () => {
       const { getByTestId } = render(<Complete />);
 
       const button = getByTestId('complete-confirm-button');
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigationDispatch).toHaveBeenCalledTimes(1);
       });
 
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledTimes(2);
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+        expect(mockNavigationDispatch).toHaveBeenCalledTimes(2);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+      });
+    });
+
+    it('falls back to authentication flow when token is missing', async () => {
+      const { getCardBaanxToken } = jest.requireMock(
+        '../../util/cardTokenVault',
+      );
+      getCardBaanxToken.mockResolvedValueOnce({
+        success: false,
+      });
+
+      const { getByTestId } = render(<Complete />);
+      fireEvent.press(getByTestId('complete-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+        );
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ routeName: Routes.CARD.AUTHENTICATION }),
+        );
       });
     });
   });
@@ -265,14 +304,17 @@ describe('Complete Component', () => {
       expect(useNavigation).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to correct route on continue', async () => {
+    it('dispatches replace action to correct route on continue', async () => {
       const { getByTestId } = render(<Complete />);
 
       const button = getByTestId('complete-confirm-button');
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ routeName: Routes.CARD.HOME }),
+        );
       });
     });
   });
@@ -403,7 +445,10 @@ describe('Complete Component', () => {
 
       // Verify navigation to final destination
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ routeName: Routes.CARD.HOME }),
+        );
       });
     });
 
@@ -418,7 +463,10 @@ describe('Complete Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('CardHome');
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ routeName: Routes.CARD.HOME }),
+        );
       });
     });
   });

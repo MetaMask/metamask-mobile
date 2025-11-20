@@ -55,12 +55,6 @@ jest.mock('@react-navigation/stack', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn((...args) => args.join(' ')),
-  })),
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -138,7 +132,12 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
+  strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
+    if (key === 'predict.position_info' && vars) {
+      return `${vars.initialValue} on ${vars.outcome} to win ${vars.shares}`;
+    }
+    return key;
+  }),
 }));
 
 jest.mock('../../../Navbar', () => ({
@@ -164,6 +163,20 @@ jest.mock('../../utils/format', () => ({
     // Simple mock implementation - returns 1 for short text, 2 for longer
     return text.length > 50 ? 2 : 1;
   }),
+  formatCents: jest.fn((dollars: number) => {
+    const cents = dollars * 100;
+    const roundedCents = Number(cents.toFixed(1));
+    if (roundedCents === Math.floor(roundedCents)) {
+      return `${Math.floor(roundedCents)}¢`;
+    }
+    return `${cents.toFixed(1)}¢`;
+  }),
+  formatPositionSize: jest.fn(
+    (
+      value: number,
+      options?: { minimumDecimals?: number; maximumDecimals?: number },
+    ) => value.toFixed(options?.maximumDecimals || 2),
+  ),
 }));
 
 jest.mock('../../hooks/usePredictMarket', () => ({
@@ -224,6 +237,10 @@ jest.mock('../../hooks/usePredictPrices', () => ({
     error: null,
     refetch: jest.fn(),
   })),
+}));
+
+jest.mock('../../hooks/usePredictMeasurement', () => ({
+  usePredictMeasurement: jest.fn(),
 }));
 
 jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
@@ -423,11 +440,14 @@ function createMockMarket(overrides = {}) {
     image: 'https://example.com/bitcoin.png',
     endDate: '2024-12-31T23:59:59Z',
     providerId: 'polymarket',
+    status: 'open',
+    tags: [],
     outcomes: [
       {
         id: 'outcome-1',
         title: 'Yes',
         groupItemTitle: 'Yes',
+        status: 'open',
         tokens: [
           {
             id: 'token-1',
@@ -833,11 +853,16 @@ describe('PredictMarketDetails', () => {
   describe('Chart Rendering', () => {
     it('renders single outcome chart for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            status: 'open',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -860,18 +885,21 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Option A',
+            status: 'open',
             tokens: [{ id: 'token-1', price: 0.4 }],
             volume: 1000000,
           },
           {
             id: 'outcome-2',
             title: 'Option B',
+            status: 'open',
             tokens: [{ id: 'token-2', price: 0.3 }],
             volume: 500000,
           },
           {
             id: 'outcome-3',
             title: 'Option C',
+            status: 'open',
             tokens: [{ id: 'token-3', price: 0.3 }],
             volume: 300000,
           },
@@ -879,6 +907,215 @@ describe('PredictMarketDetails', () => {
       });
 
       setupPredictMarketDetailsTest(multiOutcomeMarket);
+
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+
+    it('does not render chart when all outcomes are closed', () => {
+      const closedOutcomesMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            status: 'closed',
+            tokens: [
+              { id: 'token-1', price: 1.0, title: 'Yes' },
+              { id: 'token-1b', price: 0.0, title: 'No' },
+            ],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'No',
+            status: 'closed',
+            tokens: [
+              { id: 'token-2', price: 0.0, title: 'Yes' },
+              { id: 'token-2b', price: 1.0, title: 'No' },
+            ],
+            volume: 500000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedOutcomesMarket);
+
+      expect(
+        screen.queryByTestId('predict-details-chart'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render chart when market has no open outcomes', () => {
+      const noOpenOutcomesMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'closed',
+            tokens: [{ id: 'token-1', price: 0.5 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(noOpenOutcomesMarket);
+
+      expect(
+        screen.queryByTestId('predict-details-chart'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders chart when market has at least one open outcome', () => {
+      const mixedStatusMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'closed',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Option B',
+            status: 'open',
+            tokens: [{ id: 'token-2', price: 0.5 }],
+            volume: 500000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(mixedStatusMarket);
+
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+
+    it('limits chart data to first 3 open outcomes when more are available', () => {
+      const { usePredictPriceHistory } = jest.requireMock(
+        '../../hooks/usePredictPriceHistory',
+      );
+
+      const marketWithManyOutcomes = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'open',
+            tokens: [{ id: 'token-1', price: 0.25 }],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Option B',
+            status: 'open',
+            tokens: [{ id: 'token-2', price: 0.25 }],
+            volume: 800000,
+          },
+          {
+            id: 'outcome-3',
+            title: 'Option C',
+            status: 'open',
+            tokens: [{ id: 'token-3', price: 0.25 }],
+            volume: 600000,
+          },
+          {
+            id: 'outcome-4',
+            title: 'Option D',
+            status: 'open',
+            tokens: [{ id: 'token-4', price: 0.25 }],
+            volume: 400000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithManyOutcomes);
+
+      expect(usePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketIds: ['token-1', 'token-2', 'token-3'],
+        }),
+      );
+    });
+
+    it('filters out closed outcomes from chart data', () => {
+      const { usePredictPriceHistory } = jest.requireMock(
+        '../../hooks/usePredictPriceHistory',
+      );
+
+      const marketWithMixedStatus = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'closed',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Option B',
+            status: 'open',
+            tokens: [{ id: 'token-2', price: 0.6 }],
+            volume: 800000,
+          },
+          {
+            id: 'outcome-3',
+            title: 'Option C',
+            status: 'open',
+            tokens: [{ id: 'token-3', price: 0.4 }],
+            volume: 600000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithMixedStatus);
+
+      expect(usePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketIds: ['token-2', 'token-3'],
+        }),
+      );
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+
+    it('does not render chart when market has no open outcomes', () => {
+      const emptyOutcomesMarket = createMockMarket({
+        status: 'closed',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Placeholder',
+            status: 'closed',
+            tokens: [
+              { id: 'token-1', title: 'Token', price: 0.5 },
+              { id: 'token-2', title: 'Token 2', price: 0.5 },
+            ],
+            volume: 0,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(emptyOutcomesMarket);
+
+      expect(
+        screen.queryByTestId('predict-details-chart'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders chart even when outcomes have no tokens', () => {
+      const noTokensMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            status: 'open',
+            tokens: [],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(noTokensMarket);
 
       expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
     });
@@ -1141,15 +1378,15 @@ describe('PredictMarketDetails', () => {
       const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-        params: {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.SELL_PREVIEW,
+        {
           position: mockPosition,
           outcome: expect.any(Object),
           market: expect.any(Object),
           entryPoint: 'predict_market_details',
         },
-      });
+      );
     });
 
     it('handles Yes button press for betting', () => {
@@ -1175,15 +1412,15 @@ describe('PredictMarketDetails', () => {
       expect(yesButton).toBeDefined();
       fireEvent.press(yesButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-        params: {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.BUY_PREVIEW,
+        {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         },
-      });
+      );
     });
 
     it('handles No button press for betting', () => {
@@ -1209,15 +1446,15 @@ describe('PredictMarketDetails', () => {
       expect(noButton).toBeDefined();
       fireEvent.press(noButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-        params: {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.BUY_PREVIEW,
+        {
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         },
-      });
+      );
     });
   });
 
@@ -1301,7 +1538,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
+        screen.getByText('$65.00 on Yes to win $100.00', {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
       expect(screen.getByText('+7.70%')).toBeOnTheScreen();
     });
@@ -1337,22 +1576,26 @@ describe('PredictMarketDetails', () => {
 
     it('renders outcomes tab for multi-outcome markets', () => {
       const multiOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
             title: 'Option A',
+            status: 'open',
             tokens: [{ id: 'token-1', price: 0.4 }],
             volume: 1000000,
           },
           {
             id: 'outcome-2',
             title: 'Option B',
+            status: 'open',
             tokens: [{ id: 'token-2', price: 0.3 }],
             volume: 500000,
           },
           {
             id: 'outcome-3',
             title: 'Option C',
+            status: 'open',
             tokens: [{ id: 'token-3', price: 0.3 }],
             volume: 300000,
           },
@@ -1362,7 +1605,9 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(multiOutcomeMarket);
 
       // Outcomes is the default tab when there are no positions
-      expect(screen.getAllByTestId('predict-market-outcome')).toHaveLength(3);
+      expect(
+        screen.getByTestId('predict-market-details-outcomes-tab'),
+      ).toBeOnTheScreen();
     });
 
     it('does not render outcomes tab for single outcome markets', () => {
@@ -1473,7 +1718,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('Yes Option')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
+        screen.getByText('$65.00 on Yes to win $100.00', {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
     });
 
@@ -1504,7 +1751,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('Yes')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
+        screen.getByText('$65.00 on Yes to win $100.00', {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
     });
 
@@ -1906,11 +2155,16 @@ describe('PredictMarketDetails', () => {
 
     it('handles chart color selection for single outcome', () => {
       const singleOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
             title: 'Yes',
-            tokens: [{ id: 'token-1', price: 0.65 }],
+            status: 'open',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
             volume: 1000000,
           },
         ],
@@ -1924,16 +2178,19 @@ describe('PredictMarketDetails', () => {
 
     it('handles chart color selection for multiple outcomes', () => {
       const multiOutcomeMarket = createMockMarket({
+        status: 'open',
         outcomes: [
           {
             id: 'outcome-1',
             title: 'Option A',
+            status: 'open',
             tokens: [{ id: 'token-1', price: 0.4 }],
             volume: 1000000,
           },
           {
             id: 'outcome-2',
             title: 'Option B',
+            status: 'open',
             tokens: [{ id: 'token-2', price: 0.3 }],
             volume: 500000,
           },
@@ -2357,7 +2614,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText('predict.resolved_outcomes')).toBeOnTheScreen();
     });
 
-    it('hides chart when multipleOpenOutcomesPartiallyResolved is true', () => {
+    it('renders chart when market has open outcomes despite partial resolution', () => {
       const marketWithPartialResolution = createMockMarket({
         status: 'open',
         outcomes: [
@@ -2926,6 +3183,211 @@ describe('PredictMarketDetails', () => {
       expect(
         screen.getByTestId('predict-market-details-screen'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Fee Exemption Display', () => {
+    it('displays fee exemption message when market has Middle East tag', () => {
+      const marketWithMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Middle East'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithMiddleEastTag);
+
+      expect(
+        screen.getByText('predict.market_details.fee_exemption'),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides fee exemption message when market does not have Middle East tag', () => {
+      const marketWithoutMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Sports', 'Politics'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithoutMiddleEastTag);
+
+      expect(
+        screen.queryByText('predict.market_details.fee_exemption'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides fee exemption message when market has no tags', () => {
+      const marketWithoutTags = createMockMarket({
+        status: 'open',
+        tags: [],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithoutTags);
+
+      expect(
+        screen.queryByText('predict.market_details.fee_exemption'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides fee exemption message when market tags property is undefined', () => {
+      const marketWithUndefinedTags = createMockMarket({
+        status: 'open',
+        tags: undefined,
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithUndefinedTags);
+
+      expect(
+        screen.queryByText('predict.market_details.fee_exemption'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('displays fee exemption message when Middle East tag exists among multiple tags', () => {
+      const marketWithMultipleTags = createMockMarket({
+        status: 'open',
+        tags: ['Politics', 'Middle East', 'International'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithMultipleTags);
+
+      expect(
+        screen.getByText('predict.market_details.fee_exemption'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays fee exemption message when market is closed with Middle East tag', () => {
+      const closedMarketWithMiddleEastTag = createMockMarket({
+        status: 'closed',
+        tags: ['Middle East'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 1.0 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(closedMarketWithMiddleEastTag);
+
+      // Note: The component currently shows the fee exemption message for closed markets
+      // if they have the Middle East tag. This behavior matches the current implementation.
+      expect(
+        screen.getByText('predict.market_details.fee_exemption'),
+      ).toBeOnTheScreen();
+    });
+
+    it('removes fee exemption message when market updates without Middle East tag', async () => {
+      const { usePredictMarket } = jest.requireMock(
+        '../../hooks/usePredictMarket',
+      );
+
+      const marketWithMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Middle East', 'Politics'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      const { rerender } = setupPredictMarketDetailsTest(
+        marketWithMiddleEastTag,
+      );
+
+      expect(
+        screen.getByText('predict.market_details.fee_exemption'),
+      ).toBeOnTheScreen();
+
+      const marketWithoutMiddleEastTag = createMockMarket({
+        status: 'open',
+        tags: ['Politics'],
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [
+              { id: 'token-1', title: 'Yes', price: 0.65 },
+              { id: 'token-2', title: 'No', price: 0.35 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      usePredictMarket.mockReturnValue({
+        market: marketWithoutMiddleEastTag,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      rerender(<PredictMarketDetails />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText('predict.market_details.fee_exemption'),
+        ).not.toBeOnTheScreen();
+      });
     });
   });
 });

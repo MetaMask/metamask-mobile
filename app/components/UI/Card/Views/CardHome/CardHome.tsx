@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   RefreshControl,
   ScrollView,
@@ -22,7 +23,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -58,11 +59,8 @@ import {
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  setIsAuthenticatedCard,
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  setUserCardLocation,
   clearAllCache,
+  resetAuthenticatedData,
 } from '../../../../../core/redux/slices/card';
 import { useCardProvision } from '../../hooks/useCardProvision';
 import CardWarningBox from '../../components/CardWarningBox/CardWarningBox';
@@ -97,8 +95,13 @@ const CardHome = () => {
   const { PreferencesController } = Engine.context;
   const [retries, setRetries] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
+  const hasTrackedCardHomeView = useRef(false);
+  const hasLoadedCardHomeView = useRef(false);
+  const hasHandledAuthErrorRef = useRef(false);
+  const isComponentUnmountedRef = useRef(false);
   const [
     isCloseSpendingLimitWarningShown,
     setIsCloseSpendingLimitWarningShown,
@@ -189,9 +192,6 @@ const CardHome = () => {
       setIsRefreshing(false);
     }
   }, [fetchAllData]);
-
-  // Track event only once after priorityToken and balances are loaded
-  const hasTrackedCardHomeView = useRef(false);
 
   useEffect(() => {
     // Early return if already tracked to prevent any possibility of duplicate tracking
@@ -497,36 +497,75 @@ const CardHome = () => {
     styles,
   ]);
 
+  useEffect(
+    () => () => {
+      isComponentUnmountedRef.current = true;
+    },
+    [],
+  );
+
   // Handle authentication errors (expired token, invalid credentials, etc.)
   useEffect(() => {
     const handleAuthenticationError = async () => {
-      if (!cardError) {
+      const isAuthError =
+        Boolean(cardError) &&
+        isAuthenticated &&
+        isAuthenticationError(cardError);
+
+      if (!isAuthError) {
+        hasHandledAuthErrorRef.current = false;
         return;
       }
 
-      // Check if the error is authentication-related
-      if (isAuthenticated && isAuthenticationError(cardError)) {
-        Logger.log(
-          'CardHome: Authentication error detected, clearing auth state and redirecting',
-        );
+      if (hasHandledAuthErrorRef.current) {
+        return;
+      }
 
-        // Clear authentication state
+      hasHandledAuthErrorRef.current = true;
+      setIsHandlingAuthError(true);
+
+      Logger.log(
+        'CardHome: Authentication error detected, clearing auth state and redirecting',
+      );
+
+      try {
         await removeCardBaanxToken();
-        dispatch(setIsAuthenticatedCard(false));
-        dispatch(setAuthenticatedPriorityToken(null));
-        dispatch(setAuthenticatedPriorityTokenLastFetched(null));
-        dispatch(setUserCardLocation(null));
 
-        // Clear all cached data
+        if (isComponentUnmountedRef.current) {
+          return;
+        }
+
+        dispatch(resetAuthenticatedData());
         dispatch(clearAllCache());
 
-        // Redirect to welcome screen for re-authentication
-        navigation.navigate(Routes.CARD.WELCOME);
+        navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+      } catch (error) {
+        Logger.log('CardHome: Failed to handle authentication error', error);
+
+        if (!isComponentUnmountedRef.current) {
+          navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+        }
+      } finally {
+        if (!isComponentUnmountedRef.current) {
+          setIsHandlingAuthError(false);
+        }
       }
     };
 
     handleAuthenticationError();
-  }, [cardError, isAuthenticated, dispatch, navigation]);
+  }, [cardError, dispatch, isAuthenticated, navigation]);
+
+  // Load Card Data once CardHome opens
+  useEffect(() => {
+    const loadCardData = async () => {
+      await fetchAllData();
+      hasLoadedCardHomeView.current = true;
+    };
+
+    if (!hasLoadedCardHomeView.current && isAuthenticated) {
+      loadCardData();
+    }
+  }, [fetchAllData, isAuthenticated]);
 
   /**
    * Check if the current token supports the spending limit progress bar feature.
@@ -565,6 +604,16 @@ const CardHome = () => {
   }, [isAuthenticated, isSpendingLimitSupported, priorityToken]);
 
   if (cardError) {
+    const isAuthError = isAuthenticated && isAuthenticationError(cardError);
+
+    if (isHandlingAuthError || isAuthError) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+        </View>
+      );
+    }
+
     return (
       <View style={styles.errorContainer}>
         <Icon
@@ -735,7 +784,11 @@ const CardHome = () => {
               testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
             />
           ) : (
-            <CardAssetItem asset={asset} privacyMode={privacyMode} />
+            <CardAssetItem
+              asset={asset}
+              privacyMode={privacyMode}
+              balanceFormatted={balanceFormatted}
+            />
           )}
         </View>
 

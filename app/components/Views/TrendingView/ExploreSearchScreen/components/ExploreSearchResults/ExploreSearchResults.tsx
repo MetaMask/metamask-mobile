@@ -9,9 +9,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
-  SEARCH_SECTION_ARRAY,
+  SECTIONS_CONFIG,
+  SECTIONS_ARRAY,
   type SectionId,
-} from './config/exploreSearchConfig';
+} from '../../../config/sections.config';
 import { useExploreSearch } from './config/useExploreSearch';
 import { StyleSheet } from 'react-native';
 
@@ -50,13 +51,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const navigation = useNavigation();
   const { data, isLoading } = useExploreSearch(searchQuery);
 
-  // Helper to get section config by id
-  const getSectionById = useCallback(
-    (sectionId: SectionId) =>
-      SEARCH_SECTION_ARRAY.find((s) => s.id === sectionId),
-    [],
-  );
-
   const renderSectionHeader = useCallback(
     (title: string) => (
       <Box twClassName="py-2 bg-default">
@@ -72,7 +66,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const flatData = useMemo(() => {
     const result: FlatListItem[] = [];
 
-    SEARCH_SECTION_ARRAY.forEach((section) => {
+    SECTIONS_ARRAY.forEach((section) => {
       const items = data[section.id];
       const sectionIsLoading = isLoading[section.id];
 
@@ -115,34 +109,27 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return renderSectionHeader(item.data);
       }
 
-      const section = getSectionById(item.sectionId);
+      const section = SECTIONS_CONFIG[item.sectionId];
       if (!section) return null;
 
       if (item.type === 'skeleton') {
         return section.renderSkeleton();
       }
 
-      // Get the onPress handler from the section config if it exists
       // Cast navigation to 'never' to satisfy different navigation param list types
-      const onPressHandler = section.getOnPressHandler?.(navigation as never);
-      return section.renderItem(item.data as never, onPressHandler as never);
+      return section.renderRowItem(item.data, navigation);
     },
-    [navigation, getSectionById, renderSectionHeader],
+    [navigation, renderSectionHeader],
   );
 
-  const keyExtractor = useCallback(
-    (item: FlatListItem, index: number) => {
-      if (item.type === 'header') return `header-${item.data}`;
-      if (item.type === 'skeleton')
-        return `skeleton-${item.sectionId}-${item.index}`;
+  const keyExtractor = useCallback((item: FlatListItem, index: number) => {
+    if (item.type === 'header') return `header-${item.data}`;
+    if (item.type === 'skeleton')
+      return `skeleton-${item.sectionId}-${item.index}`;
 
-      const section = getSectionById(item.sectionId);
-      return section
-        ? section.keyExtractor(item.data as never)
-        : `item-${index}`;
-    },
-    [getSectionById],
-  );
+    const section = SECTIONS_CONFIG[item.sectionId];
+    return section ? section.keyExtractor(item.data) : `item-${index}`;
+  }, []);
 
   if (flatData.length === 0) {
     return (

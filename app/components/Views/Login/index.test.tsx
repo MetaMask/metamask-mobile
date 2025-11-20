@@ -3,7 +3,8 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { InteractionManager, BackHandler, Alert } from 'react-native';
+import { InteractionManager, BackHandler, Alert, Image } from 'react-native';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
 import { strings } from '../../../../locales/i18n';
@@ -74,13 +75,16 @@ jest.mock('../../../util/password', () => ({
   passwordRequirementsMet: jest.fn(),
 }));
 
-// Mock react-native with Keyboard
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Keyboard: {
-    dismiss: jest.fn(),
-  },
-}));
+// Mock react-native Keyboard
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Keyboard: {
+      dismiss: jest.fn(),
+    },
+  };
+});
 
 // Mock StorageWrapper
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -102,6 +106,7 @@ jest.mock('../../../core/Authentication', () => ({
   userEntryAuth: jest.fn(),
   appTriggeredAuth: jest.fn(),
   lockApp: jest.fn(),
+  checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
 }));
 
 jest.mock('../../../actions/security', () => ({
@@ -133,6 +138,28 @@ jest.mock('../../../util/authentication', () => ({
 
 jest.mock('../../../core/BackupVault', () => ({
   getVaultFromBackup: jest.fn(),
+}));
+
+// Mock animation components
+jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
+
+jest.mock('../../UI/FoxAnimation/FoxAnimation');
+
+// Mock Rive animations
+jest.mock('rive-react-native', () => ({
+  __esModule: true,
+  default: () => null,
+  Fit: { Contain: 'contain' },
+  Alignment: { Center: 'center' },
+}));
+
+// Mock safe area context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('../../../util/validators', () => ({
@@ -314,9 +341,6 @@ describe('Login', () => {
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
-        params: {
-          oauthLoginSuccess: false,
-        },
       });
     });
 
@@ -968,17 +992,10 @@ describe('Login', () => {
 
     it('displays invalid password error when decryption fails', async () => {
       // Arrange
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
         currentAuthType: 'password',
-        oauth2Login: true,
       });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('Decrypt failed'),
@@ -1001,36 +1018,13 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
-      expect(mockTrackOnboarding).toHaveBeenCalled();
-      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] &&
-          typeof call[0] === 'object' &&
-          'name' in call[0] &&
-          call[0].name === 'Rehydration Password Failed' &&
-          'properties' in call[0] &&
-          call[0].properties &&
-          typeof call[0].properties === 'object' &&
-          'account_type' in call[0].properties &&
-          call[0].properties.account_type === 'social' &&
-          'error_type' in call[0].properties &&
-          call[0].properties.error_type === 'incorrect_password',
-      );
-      expect(rehydrationCall).toBeDefined();
     });
 
     it('displays invalid password error for Android BAD_DECRYPT error', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
         currentAuthType: 'password',
-        oauth2Login: true,
       });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error(
@@ -1053,36 +1047,13 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
-      expect(mockTrackOnboarding).toHaveBeenCalled();
-      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] &&
-          typeof call[0] === 'object' &&
-          'name' in call[0] &&
-          call[0].name === 'Rehydration Password Failed' &&
-          'properties' in call[0] &&
-          call[0].properties &&
-          typeof call[0].properties === 'object' &&
-          'account_type' in call[0].properties &&
-          call[0].properties.account_type === 'social' &&
-          'error_type' in call[0].properties &&
-          call[0].properties.error_type === 'incorrect_password',
-      );
-      expect(rehydrationCall).toBeDefined();
     });
 
     it('displays invalid password error for Android DoCipher error', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
         currentAuthType: 'password',
-        oauth2Login: true,
       });
       (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
         new Error('error in DoCipher, status: 2'),
@@ -1103,22 +1074,6 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
-      expect(mockTrackOnboarding).toHaveBeenCalled();
-      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] &&
-          typeof call[0] === 'object' &&
-          'name' in call[0] &&
-          call[0].name === 'Rehydration Password Failed' &&
-          'properties' in call[0] &&
-          call[0].properties &&
-          typeof call[0].properties === 'object' &&
-          'account_type' in call[0].properties &&
-          call[0].properties.account_type === 'social' &&
-          'error_type' in call[0].properties &&
-          call[0].properties.error_type === 'incorrect_password',
-      );
-      expect(rehydrationCall).toBeDefined();
     });
 
     it('displays invalid password error when password requirements not met', async () => {
@@ -1153,14 +1108,6 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         strings('login.invalid_password'),
       );
-      const rehydrationCall = mockTrackOnboarding.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] &&
-          typeof call[0] === 'object' &&
-          'name' in call[0] &&
-          call[0].name === 'Rehydration Password Failed',
-      );
-      expect(rehydrationCall).toBeUndefined();
     });
 
     it('displays generic error message for unexpected errors', async () => {
@@ -1183,46 +1130,6 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual(
         'Error: Some unexpected error',
       );
-    });
-
-    it('traces OnboardingPasswordLoginError during onboarding flow', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-          onboardingTraceCtx: 'mockTraceContext',
-        },
-      });
-
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
-        new Error('Some unexpected error'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeOnTheScreen();
-      expect(errorElement.props.children).toEqual(
-        'Error: Some unexpected error',
-      );
-
-      expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingPasswordLoginError,
-        op: TraceOperation.OnboardingError,
-        tags: { errorMessage: 'Error: Some unexpected error' },
-        parentContext: 'mockTraceContext',
-      });
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingPasswordLoginError,
-      });
     });
   });
 
@@ -1382,7 +1289,7 @@ describe('Login', () => {
       );
     });
 
-    it('handleBackPress locks app when oauthLoginSuccess is false', () => {
+    it('locks app when back button is pressed', () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -1399,26 +1306,81 @@ describe('Login', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
+  });
 
-    it('handleBackPress navigates back when oauthLoginSuccess is true', () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
+  describe('Conditional Rendering Based on OAuth Status', () => {
+    describe('Regular Login', () => {
+      beforeEach(() => {
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: false,
+          },
+        });
       });
 
-      renderWithProvider(<Login />);
+      it('renders static MetaMask logo and fox animation', () => {
+        // Arrange & Act
+        const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
+          <Login />,
+        );
 
-      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
-      const result = handleBackPress();
+        // Assert - Fox animation is rendered
+        expect(getByTestId('fox-animation-mock')).toBeDefined();
 
-      expect(mockGoBack).toHaveBeenCalled();
-      expect(Authentication.lockApp).not.toHaveBeenCalled();
-      expect(result).toBe(false);
+        // Assert - Regular login elements
+        expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeDefined();
+
+        // Assert - OAuth elements are hidden
+        expect(queryByTestId(LoginViewSelectors.TITLE_ID)).toBeNull();
+        expect(
+          queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
+        ).toBeNull();
+
+        // Assert - metaMask logo is rendered
+        const images = UNSAFE_root.findAllByType(Image);
+        const hasMetaMaskLogo = images.some(
+          (img) => img.props.source === METAMASK_NAME,
+        );
+
+        expect(hasMetaMaskLogo).toBe(true);
+      });
+
+      it('checks for seedless password status after 100ms delay', () => {
+        // Arrange
+        jest.useFakeTimers();
+        const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+        // Act
+        renderWithProvider(<Login />);
+
+        // Assert
+        expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
+
+        setTimeoutSpy.mockRestore();
+        jest.useRealTimers();
+      });
+    });
+
+    describe('Common Elements', () => {
+      it('renders core login elements', () => {
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: false,
+          },
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+
+        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeDefined();
+        expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeDefined();
+        expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDefined();
+      });
     });
   });
 });
+
 // it('should navigate back and reset OAuth state when using other methods', async () => {
 //   mockRoute.mockReturnValue({
 //     params: {

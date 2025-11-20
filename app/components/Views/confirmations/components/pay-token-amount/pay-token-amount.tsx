@@ -2,9 +2,8 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './pay-token-amount.styles';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
 import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
@@ -21,7 +20,6 @@ export interface PayTokenAmountProps {
 }
 
 export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
-  const { styles } = useStyles(styleSheet, {});
   const transaction = useTransactionMetadataRequest();
   const { chainId } = transaction ?? { chainId: '0x0' };
   const { payToken } = useTransactionPayToken();
@@ -51,7 +49,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
   if (disabled) {
     return (
-      <View testID="pay-token-amount" style={styles.container}>
+      <View testID="pay-token-amount">
         <Text color={TextColor.Muted}>0 ETH</Text>
       </View>
     );
@@ -71,8 +69,8 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const formattedAmount = formatAmount(I18n.locale, payTokenAmount);
 
   return (
-    <View testID="pay-token-amount" style={styles.container}>
-      <Text>
+    <View testID="pay-token-amount">
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {formattedAmount} {payToken?.symbol}
       </Text>
     </View>
@@ -80,10 +78,9 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 }
 
 export function PayTokenAmountSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
   return (
     <View testID="pay-token-amount-skeleton">
-      <Skeleton height={30} width={90} style={styles.skeleton} />
+      <Skeleton height={25} width={90} />
     </View>
   );
 }

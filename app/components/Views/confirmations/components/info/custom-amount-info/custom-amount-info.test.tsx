@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { act } from 'react';
 import { merge, noop } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { CustomAmountInfo, CustomAmountInfoProps } from './custom-amount-info';
@@ -8,9 +8,7 @@ import { otherControllersMock } from '../../../__mocks__/controllers/other-contr
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { AlertKeys } from '../../../constants/alerts';
-import { Alert, Severity } from '../../../types/alerts';
-import { act, fireEvent } from '@testing-library/react-native';
+import { Alert } from '../../../types/alerts';
 import {
   AlertsContextParams,
   useAlerts,
@@ -23,8 +21,9 @@ import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransacti
 import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
-import { RampMode } from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { RampType } from '../../../../../UI/Ramp/Aggregator/types';
+import { fireEvent } from '@testing-library/react-native';
+import { TransactionType } from '@metamask/transaction-controller';
+import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
@@ -37,8 +36,9 @@ jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/transactions/useTransactionConfirm');
 
-const mockGoToRamps = jest.fn();
+const mockGoToBuy = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -48,20 +48,37 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   ...jest.requireActual('../../../../../UI/Ramp/hooks/useRampNavigation'),
   useRampNavigation: () => ({
-    goToRamps: mockGoToRamps,
+    goToBuy: mockGoToBuy,
   }),
 }));
 
 const TOKEN_ADDRESS_MOCK = '0x123' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
 
-function render(props: CustomAmountInfoProps = {}) {
+function render(
+  props: CustomAmountInfoProps & { transactionType?: TransactionType } = {},
+) {
   return renderWithProvider(<CustomAmountInfo {...props} />, {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  type:
+                    props.transactionType ||
+                    TransactionType.contractInteraction,
+                },
+              ],
+            },
+          },
+        },
+      },
     ),
   });
 }
@@ -71,6 +88,7 @@ describe('CustomAmountInfo', () => {
   const useConfirmationContextMock = jest.mocked(useConfirmationContext);
   const useAlertsMock = jest.mocked(useAlerts);
   const useAccountTokensMock = jest.mocked(useAccountTokens);
+  const useTransactionConfirmMock = jest.mocked(useTransactionConfirm);
 
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -127,14 +145,14 @@ describe('CustomAmountInfo', () => {
     } as AlertsContextParams);
 
     useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertTitle: undefined,
       alertMessage: undefined,
-      keyboardAlertMessage: undefined,
-      excludeBannerKeys: [],
     });
 
     useAccountTokensMock.mockReturnValue([]);
     useTransactionPayAvailableTokensMock.mockReturnValue([{}] as AssetType[]);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
+    useTransactionConfirmMock.mockReturnValue({} as never);
   });
 
   it('renders amount', () => {
@@ -145,7 +163,7 @@ describe('CustomAmountInfo', () => {
 
   it('renders payment token', () => {
     const { getByText } = render();
-    expect(getByText('TST')).toBeDefined();
+    expect(getByText('0 TST')).toBeDefined();
   });
 
   it('does not render payment token if disablePay', () => {
@@ -153,38 +171,15 @@ describe('CustomAmountInfo', () => {
     expect(queryByText('TST')).toBeNull();
   });
 
-  it('renders alert banner', async () => {
-    useAlertsMock.mockReturnValue({
-      alerts: [] as Alert[],
-      generalAlerts: [
-        {
-          key: AlertKeys.NoPayTokenQuotes,
-          message: 'Test Banner Alert',
-          isBlocking: true,
-          severity: Severity.Danger,
-        },
-      ],
-      fieldAlerts: [] as Alert[],
-    } as AlertsContextParams);
-
-    const { getByText } = render();
-
-    await act(async () => {
-      fireEvent.press(getByText('Continue'));
-    });
-
-    expect(getByText('Test Banner Alert')).toBeDefined();
-  });
-
-  it('renders alert message', () => {
+  it('renders alert', () => {
     useTransactionCustomAmountAlertsMock.mockReturnValue({
+      alertTitle: 'Test Alert Title',
       alertMessage: 'Test Alert Message',
-      keyboardAlertMessage: undefined,
-      excludeBannerKeys: [],
     });
 
     const { getByText } = render();
 
+    expect(getByText('Test Alert Title')).toBeDefined();
     expect(getByText('Test Alert Message')).toBeDefined();
   });
 
@@ -225,15 +220,23 @@ describe('CustomAmountInfo', () => {
 
     fireEvent.press(getByText(strings('confirm.custom_amount.buy_button')));
 
-    expect(mockGoToRamps).toHaveBeenCalledTimes(1);
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: RampMode.AGGREGATOR,
-      params: {
-        rampType: RampType.BUY,
-        intent: {
-          assetId: 'eip155:1/erc20:0x123',
-        },
-      },
+    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+    expect(mockGoToBuy).toHaveBeenCalledWith({
+      assetId: 'eip155:1/erc20:0x123',
     });
+  });
+
+  it('renders alternate confirm label if predict withdraw', async () => {
+    const { getByText } = render({
+      transactionType: TransactionType.predictWithdraw,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(
+      getByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
+    ).toBeDefined();
   });
 });
