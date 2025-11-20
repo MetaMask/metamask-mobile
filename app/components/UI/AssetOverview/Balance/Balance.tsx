@@ -123,6 +123,13 @@ const Balance = ({
   );
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
   const getPricePercentChange1d = () => {
+    // First check if asset has pricePercentChange1d from navigation params (e.g., from trending view)
+    if (
+      asset?.pricePercentChange1d !== undefined &&
+      asset?.pricePercentChange1d !== null
+    ) {
+      return asset.pricePercentChange1d;
+    }
     if (isEvmNetworkSelected) {
       return evmPricePercentChange1d;
     }
