@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -118,6 +124,9 @@ export const BridgeTokenSelector: React.FC = () => {
       ? formatChainIdToCaip(selectedToken.chainId)
       : undefined,
   );
+
+  // Ref to track if we need to re-search after chain change
+  const shouldResearchAfterChainChange = useRef(false);
 
   // Chain IDs to fetch tokens for
   const chainIdsToFetch = useMemo(() => {
@@ -270,13 +279,28 @@ export const BridgeTokenSelector: React.FC = () => {
     destToken,
   ]);
 
+  // Re-trigger search when chain IDs change if there's an active search
+  useEffect(() => {
+    if (shouldResearchAfterChainChange.current && searchString.trim()) {
+      // Reset the flag
+      shouldResearchAfterChainChange.current = false;
+      // Trigger search with current query on new network
+      searchTokens(searchString);
+    }
+  }, [chainIdsToFetch, searchString, searchTokens]);
+
   const handleChainSelect = (chainId?: CaipChainId) => {
     setSelectedChainId(chainId);
-    // Reset search when changing network
-    setSearchString('');
-    // Cancel any pending debounced searches
-    debouncedSearch.cancel();
-    resetSearch();
+
+    // If there's an active search, prepare to re-trigger it on the new network
+    if (searchString.trim()) {
+      // Cancel any pending debounced searches
+      debouncedSearch.cancel();
+      // Reset search results to clear old network's data
+      resetSearch();
+      // Set flag to trigger search after chain IDs update
+      shouldResearchAfterChainChange.current = true;
+    }
   };
 
   const handleSearchTextChange = (text: string) => {
