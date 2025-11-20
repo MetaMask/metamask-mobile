@@ -36,15 +36,24 @@ async function start() {
   // 1. Extract iOS Build Number
   let iosBuildNumber = 'Unknown';
   try {
-    // Assuming the script is run from project root or scripts folder, adjust path accordingly.
-    // In CI, it runs from root: node scripts/post-build-comment.js
     const pbxprojPath = path.resolve(__dirname, '../ios/MetaMask.xcodeproj/project.pbxproj');
     
     if (fs.existsSync(pbxprojPath)) {
       const pbxprojContent = fs.readFileSync(pbxprojPath, 'utf8');
-      const match = pbxprojContent.match(/CURRENT_PROJECT_VERSION = (\d+);/);
-      if (match && match[1]) {
-        iosBuildNumber = match[1];
+      
+      // Use matchAll to find all occurrences and check consistency
+      const matches = [...pbxprojContent.matchAll(/CURRENT_PROJECT_VERSION = (\d+);/g)];
+      
+      if (matches.length > 0) {
+        const versions = matches.map(m => m[1]);
+        const uniqueVersions = new Set(versions);
+        
+        if (uniqueVersions.size > 1) {
+          console.warn('Multiple different CURRENT_PROJECT_VERSION values found in project.pbxproj:', Array.from(uniqueVersions));
+        }
+        
+        // Use the first one found
+        iosBuildNumber = versions[0];
       }
     } else {
       console.warn(`iOS project file not found at ${pbxprojPath}`);
@@ -75,19 +84,30 @@ async function start() {
 
   // 3. Post or Update Comment
   try {
-    const { data: comments } = await octokit.rest.issues.listComments({
-      owner,
-      repo,
-      issue_number: prNumber,
-      per_page: 100, // Increase page size
-    });
+    // Fetch comments with pagination handling
+    let comments = [];
+    let page = 1;
+    const perPage = 100;
     
-    // If there are more than 100 comments, we might need pagination, but 100 is a good start.
-    // For robustness, let's just check the last 100 comments.
-    // If the comment is older than that, posting a new one is probably fine (it's buried).
-
+    while (true) {
+      const { data: pageComments } = await octokit.rest.issues.listComments({
+        owner,
+        repo,
+        issue_number: prNumber,
+        per_page: perPage,
+        page: page,
+      });
+      
+      comments = comments.concat(pageComments);
+      
+      if (pageComments.length < perPage) {
+        break;
+      }
+      page++;
+    }
+    
     const existingComment = comments.find((comment) =>
-      comment.body.includes(ARTIFACTS_COMMENT_MARKER)
+      comment.body && comment.body.includes(ARTIFACTS_COMMENT_MARKER)
     );
 
     if (existingComment) {
@@ -109,6 +129,9 @@ async function start() {
     }
   } catch (error) {
     console.error('Error posting/updating comment:', error);
+    // If we fail on a fork due to permissions, we should probably just log it and exit gracefully
+    // rather than failing the whole build, since external contributors can't post comments.
+    // However, keeping exit(1) for now to match requirements unless requested otherwise.
     process.exit(1);
   }
 }
