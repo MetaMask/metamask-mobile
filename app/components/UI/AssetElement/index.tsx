@@ -85,7 +85,10 @@ const AssetElement: React.FC<AssetElementProps> = ({
   const handleOnLongPress = () => {
     onLongPress?.(asset);
   };
-
+  const testId = generateTestId(Platform, getAssetTestId(asset.symbol));
+  console.log('--------------------------------');
+  console.log('TEST ID', testId);
+  console.log('--------------------------------');
   // TODO: Use the SensitiveText component when it's available
   // when privacyMode is true, we should hide the balance and the fiat
   return (
@@ -94,7 +97,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
       style={styles.itemWrapper}
-      {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+      {...testId}
     >
       {children}
       <View style={styles.arrow}>
