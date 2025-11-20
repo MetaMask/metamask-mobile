@@ -18,6 +18,7 @@ import { getNetworkImageSource } from '../../../../../../util/networks';
 
 export function GasFeeTokenToast() {
   const transactionMetadata = useTransactionMetadataRequest();
+  console.log('transactionMetadata', transactionMetadata);
   const { chainId } = transactionMetadata || {};
   const toastContext = useContext(ToastContext);
   const toast = toastContext?.toastRef?.current;
