@@ -69,7 +69,12 @@ async function start() {
       owner,
       repo,
       issue_number: prNumber,
+      per_page: 100, // Increase page size
     });
+    
+    // If there are more than 100 comments, we might need pagination, but 100 is a good start.
+    // For robustness, let's just check the last 100 comments.
+    // If the comment is older than that, posting a new one is probably fine (it's buried).
 
     const existingComment = comments.find((comment) =>
       comment.body.includes(ARTIFACTS_COMMENT_MARKER)
