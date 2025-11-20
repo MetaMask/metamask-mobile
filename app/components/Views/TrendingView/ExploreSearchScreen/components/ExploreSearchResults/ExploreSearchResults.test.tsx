@@ -19,7 +19,7 @@ const mockUseExploreSearch = useExploreSearch as jest.MockedFunction<
 
 // Mock child components that render individual items
 jest.mock(
-  '../../../TrendingTokensSection/TrendingTokensList/TrendingTokenRowItem/TrendingTokenRowItem',
+  '../../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
   () => () => null,
 );
 

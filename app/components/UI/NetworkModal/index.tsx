@@ -72,6 +72,7 @@ interface NetworkProps {
   onAccept?: () => void;
   autoSwitchNetwork?: boolean;
   allowNetworkSwitch?: boolean;
+  skipEnableNetwork?: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -93,6 +94,7 @@ const NetworkModals = (props: NetworkProps) => {
     onAccept,
     autoSwitchNetwork,
     allowNetworkSwitch = true,
+    skipEnableNetwork = false,
   } = props;
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
@@ -232,7 +234,7 @@ const NetworkModals = (props: NetworkProps) => {
           ?.networkClientId;
     }
 
-    if (networkClientId) {
+    if (networkClientId && !skipEnableNetwork) {
       onUpdateNetworkFilter();
     }
 

@@ -30,7 +30,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -47,7 +46,7 @@ import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
-  PredictEventType,
+  PredictTradeStatus,
   PredictEventValues,
 } from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
@@ -63,7 +62,9 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
+import { usePredictRewards } from '../../hooks/usePredictRewards';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -75,9 +76,6 @@ const PredictBuyPreview = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
-
-  // Rewards feature flag
-  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   // Prepare analytics properties
   const analyticsProperties = useMemo(
@@ -140,6 +138,17 @@ const PredictBuyPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
+  // Track screen load performance (balance + initial preview)
+  usePredictMeasurement({
+    traceName: TraceName.PredictBuyPreviewView,
+    conditions: [!isBalanceLoading, balance !== undefined, !!market],
+    debugContext: {
+      marketId: market?.id,
+      hasBalance: balance !== undefined,
+      isBalanceLoading,
+    },
+  });
+
   // Track when user changes input to show skeleton only during user input changes
   useEffect(() => {
     if (!isCalculating) {
@@ -163,12 +172,12 @@ const PredictBuyPreview = () => {
 
   const errorMessage = previewError ?? placeOrderError;
 
-  // Track Predict Action Initiated when screen mounts
+  // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
 
     controller.trackPredictOrderEvent({
-      eventType: PredictEventType.INITIATED,
+      status: PredictTradeStatus.INITIATED,
       analyticsProperties,
       providerId: outcome.providerId,
       sharePrice: outcomeToken?.price,
@@ -184,16 +193,6 @@ const PredictBuyPreview = () => {
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
 
-  // Calculate estimated rewards points: 1 point per cent spent on MM fee
-  // Formula: MM fee (in dollars) * 100 = points (rounded)
-  const estimatedPoints = useMemo(
-    () => Math.round(metamaskFee * 100),
-    [metamaskFee],
-  );
-
-  // Show rewards row if feature is enabled and we have a valid amount
-  const shouldShowRewards = rewardsEnabled && currentValue > 0;
-
   // Validation constants and states
   const MINIMUM_BET = 1; // $1 minimum bet
   const hasInsufficientFunds = total > balance;
@@ -206,10 +205,27 @@ const PredictBuyPreview = () => {
     !isBalanceLoading &&
     !isRateLimited;
 
+  const {
+    enabled: isRewardsEnabled,
+    isLoading: isRewardsLoading,
+    accountOptedIn: isAccountOptedIntoRewards,
+    estimatedPoints: estimatedRewardsPoints,
+    hasError: isRewardsError,
+  } = usePredictRewards(
+    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
+  );
+
+  // Show rewards row if we have a valid amount
+  // && either active account address is opted in or not opted in but opt-in is supported
+  const shouldShowRewardsRow =
+    isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
+
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
     ? outcome.groupItemTitle
     : '';
+
+  const maxBetAmount = balance - (providerFee + metamaskFee);
 
   const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
@@ -384,7 +400,12 @@ const PredictBuyPreview = () => {
             color={TextColor.Error}
             style={tw.style('text-center')}
           >
-            {strings('predict.order.prediction_insufficient_funds')}
+            {strings('predict.order.prediction_insufficient_funds', {
+              amount: formatPrice(maxBetAmount, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              }),
+            })}
           </Text>
         </Box>
       );
@@ -458,7 +479,8 @@ const PredictBuyPreview = () => {
         style={tw.style('w-full')}
       >
         <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
-          {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
+          {outcomeToken?.title} ·{' '}
+          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
         </Text>
       </ButtonHero>
     );
@@ -513,10 +535,13 @@ const PredictBuyPreview = () => {
         total={total}
         metamaskFee={metamaskFee}
         providerFee={providerFee}
-        shouldShowRewards={shouldShowRewards}
-        estimatedPoints={estimatedPoints}
-        isLoadingRewards={isCalculating && isUserInputChange}
-        hasRewardsError={false}
+        shouldShowRewardsRow={shouldShowRewardsRow}
+        accountOptedIn={isAccountOptedIntoRewards}
+        estimatedPoints={estimatedRewardsPoints}
+        isLoadingRewards={
+          (isCalculating && isUserInputChange) || isRewardsLoading
+        }
+        hasRewardsError={isRewardsError}
         onFeesInfoPress={handleFeesInfoPress}
       />
       {renderErrorMessage()}

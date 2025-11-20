@@ -198,7 +198,7 @@ describe('useTransactionConfirm', () => {
     expect(resetTransactionMock).toHaveBeenCalled();
   });
 
-  it('calls tryEnableEvmNetwork when feature flag is enabled', async () => {
+  it('calls tryEnableEvmNetwork', async () => {
     const tryEnableEvmNetworkMock = jest.fn();
 
     useNetworkEnablementMock.mockReturnValue({

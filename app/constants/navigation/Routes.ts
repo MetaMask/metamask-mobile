@@ -25,6 +25,7 @@ const Routes = {
       INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
       REGION_SELECTOR: 'RampRegionSelectorModal',
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
+      UNSUPPORTED_TOKEN: 'RampUnsupportedTokenModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
       SETTINGS: 'RampSettingsModal',
     },
@@ -190,6 +191,8 @@ const Routes = {
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
+    ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
+    UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
     TOKEN_INSIGHTS: 'TokenInsights',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
@@ -221,6 +224,7 @@ const Routes = {
     WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
+    TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -288,6 +292,7 @@ const Routes = {
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
+      GTM_MODAL: 'PredictGTMModal',
     },
   },
   LOCK_SCREEN: 'LockScreen',

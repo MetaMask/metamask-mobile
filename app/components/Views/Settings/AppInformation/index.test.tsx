@@ -406,4 +406,48 @@ describe('AppInformation', () => {
       });
     });
   });
+
+  describe('OTA Updates Information Display', () => {
+    it('does not display OTA updates information initially', () => {
+      const { queryByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      expect(queryByText(/Expo Project ID:/)).toBeNull();
+      expect(queryByText(/Update ID:/)).toBeNull();
+      expect(queryByText(/OTA Update Channel:/)).toBeNull();
+      expect(queryByText(/OTA Update runtime version:/)).toBeNull();
+      expect(queryByText(/OTA Update URL:/)).toBeNull();
+      expect(queryByText(/Check Automatically:/)).toBeNull();
+      expect(queryByText(/OTA Update status:/)).toBeNull();
+    });
+
+    it('displays OTA updates information after long-pressing fox icon when OTA updates are enabled', async () => {
+      const { getByText, UNSAFE_getAllByType } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: {} },
+      );
+
+      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const foxTouchable = touchableOpacities.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+
+      if (foxTouchable) {
+        fireEvent(foxTouchable, 'longPress');
+      }
+
+      await waitFor(() => {
+        expect(getByText(/Update ID: mock-update-id/)).toBeTruthy();
+        expect(getByText(/OTA Update Channel: test-channel/)).toBeTruthy();
+        expect(getByText(/OTA Update runtime version: 1.0.0/)).toBeTruthy();
+        expect(getByText(/OTA Update URL: https:\/\/example.com/)).toBeTruthy();
+        expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
+        expect(getByText(/OTA Update status:/)).toBeTruthy();
+      });
+    });
+  });
 });

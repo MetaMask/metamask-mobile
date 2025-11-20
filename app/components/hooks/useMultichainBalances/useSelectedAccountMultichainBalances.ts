@@ -41,17 +41,14 @@ const useSelectedAccountMultichainBalances =
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     const enabledChains = useSelector(selectEVMEnabledNetworks);
+
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
 
-    const shouldAggregateAcrossChains = true;
-
-    const chainsToAggregateAcross = enabledChains;
-
     const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
       [selectedInternalAccount as InternalAccount],
-      shouldAggregateAcrossChains,
-      chainsToAggregateAcross,
+      true,
+      enabledChains,
     );
 
     const totalFiatBalancesCrossEvmChain = useGetTotalFiatBalanceCrossChains(

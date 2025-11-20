@@ -8,13 +8,9 @@ import {
   getRecurrence,
   formatCents,
   formatPositionSize,
+  calculateNetAmount,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
-
-// Mock the formatWithThreshold utility
-jest.mock('../../../../util/assets', () => ({
-  formatWithThreshold: jest.fn(),
-}));
 
 // Mock Dimensions from react-native
 const mockDimensionsGet = jest.fn(() => ({
@@ -29,12 +25,6 @@ jest.mock('react-native', () => ({
   },
 }));
 
-import { formatWithThreshold } from '../../../../util/assets';
-
-const mockFormatWithThreshold = formatWithThreshold as jest.MockedFunction<
-  typeof formatWithThreshold
->;
-
 describe('format utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -45,352 +35,490 @@ describe('format utils', () => {
   });
 
   describe('formatPercentage', () => {
-    it('formats positive decimal percentage with 2 decimal places', () => {
-      // Arrange & Act
-      const result = formatPercentage(5.25);
-
-      // Assert
-      expect(result).toBe('+5.25%');
-    });
-
-    it('formats positive whole number percentage without decimals', () => {
-      // Arrange & Act
-      const result = formatPercentage(100);
-
-      // Assert
-      expect(result).toBe('+100%');
-    });
-
-    it('formats negative decimal percentage with 2 decimal places', () => {
-      // Arrange & Act
-      const result = formatPercentage(-2.75);
-
-      // Assert
-      expect(result).toBe('-2.75%');
-    });
-
-    it('formats negative whole number percentage without decimals', () => {
-      // Arrange & Act
-      const result = formatPercentage(-50);
-
-      // Assert
-      expect(result).toBe('-50%');
-    });
-
-    it('formats zero as 0%', () => {
-      // Arrange & Act
-      const result = formatPercentage(0);
-
-      // Assert
-      expect(result).toBe('0%');
-    });
-
-    it('handles string input with decimal value', () => {
-      // Arrange & Act
-      const result = formatPercentage('3.14159');
-
-      // Assert
-      expect(result).toBe('+3.14%');
-    });
-
-    it('handles string input with whole number', () => {
-      // Arrange & Act
-      const result = formatPercentage('42');
-
-      // Assert
-      expect(result).toBe('+42%');
-    });
-
-    it('handles string input with negative value', () => {
-      // Arrange & Act
-      const result = formatPercentage('-7.89');
-
-      // Assert
-      expect(result).toBe('-7.89%');
-    });
-
-    it('returns default value for NaN input', () => {
-      // Arrange & Act
-      const result = formatPercentage('not-a-number');
-
-      // Assert
-      expect(result).toBe('0.00%');
-    });
-
-    it('returns default value for invalid string', () => {
-      // Arrange & Act
-      const result = formatPercentage('abc');
-
-      // Assert
-      expect(result).toBe('0.00%');
-    });
-
-    it('returns default value for empty string', () => {
-      // Arrange & Act
-      const result = formatPercentage('');
-
-      // Assert
-      expect(result).toBe('0.00%');
-    });
-
-    it.each([
-      [0.01, '+0.01%'],
-      [0.001, '+0.00%'],
-      [1.999, '+2.00%'],
-      [99.999, '+100.00%'],
-      [-0.01, '-0.01%'],
-      [-0.001, '-0.00%'],
-      [-1.999, '-2.00%'],
-    ])('formats %f correctly as %s', (input, expected) => {
-      expect(formatPercentage(input)).toBe(expected);
-    });
-  });
-
-  describe('formatPrice', () => {
-    beforeEach(() => {
-      mockFormatWithThreshold.mockImplementation(
-        (value, _threshold, locale, options) =>
-          new Intl.NumberFormat(locale, options).format(Number(value)),
-      );
-    });
-
-    describe('prices >= 1000', () => {
-      it('formats prices >= 1000 with default 2 minimum decimals', () => {
+    describe('default behavior (truncate=false)', () => {
+      it('formats positive decimal percentage with 2 decimals', () => {
         // Arrange & Act
-        const result = formatPrice(1234.5678);
+        const result = formatPercentage(5.25);
 
         // Assert
-        expect(result).toBe('$1,234.57');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          1234.5678,
-          1000,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        );
+        expect(result).toBe('5.25%');
       });
 
-      it('formats prices >= 1000 with custom minimum decimals', () => {
+      it('formats large percentage without truncation', () => {
         // Arrange & Act
-        const result = formatPrice(50000, { minimumDecimals: 0 });
+        const result = formatPercentage(100);
 
         // Assert
-        expect(result).toBe('$50,000');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          50000,
-          1000,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
-          },
-        );
+        expect(result).toBe('100%');
       });
 
-      it('formats prices >= 1000 with 4 maximum decimals when minimum is higher', () => {
+      it('formats negative decimal percentage with 2 decimals', () => {
         // Arrange & Act
-        const result = formatPrice(1234.5678, { minimumDecimals: 4 });
+        const result = formatPercentage(-2.75);
 
         // Assert
-        expect(result).toBe('$1,234.5678');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          1234.5678,
-          1000,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 4,
-            maximumFractionDigits: 4,
-          },
-        );
+        expect(result).toBe('-2.75%');
       });
-    });
 
-    describe('prices < 1000', () => {
-      it('formats prices < 1000 with up to 4 decimal places', () => {
+      it('formats negative whole number percentage without decimals', () => {
         // Arrange & Act
-        const result = formatPrice(0.1234);
+        const result = formatPercentage(-50);
 
         // Assert
-        expect(result).toBe('$0.1234');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          0.1234,
-          0.0001,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 4,
-          },
-        );
+        expect(result).toBe('-50%');
       });
 
-      it('formats prices < 1000 with custom minimum decimals', () => {
+      it('formats zero as 0%', () => {
         // Arrange & Act
-        const result = formatPrice(123.4567, { minimumDecimals: 0 });
+        const result = formatPercentage(0);
 
         // Assert
-        expect(result).toBe('$123.4567');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          123.4567,
-          0.0001,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 4,
-          },
-        );
+        expect(result).toBe('0%');
       });
 
-      it('formats small prices with 4-decimal rounding', () => {
-        // Arrange & Act
-        const result = formatPrice(0.0001234);
-
-        // Assert
-        expect(result).toBe('$0.0001');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          0.0001234,
-          0.0001,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 4,
-          },
-        );
-      });
-    });
-
-    describe('string inputs', () => {
       it('handles string input with decimal value', () => {
         // Arrange & Act
-        const result = formatPrice('1234.5678');
+        const result = formatPercentage('3.14159');
 
         // Assert
-        expect(result).toBe('$1,234.57');
+        expect(result).toBe('3.14%');
       });
 
-      it('handles string input with small value', () => {
+      it('handles string input with whole number', () => {
         // Arrange & Act
-        const result = formatPrice('0.1234');
+        const result = formatPercentage('42');
 
         // Assert
-        expect(result).toBe('$0.1234');
-      });
-    });
-
-    describe('NaN and invalid inputs', () => {
-      it('returns default value for NaN with default decimals', () => {
-        // Arrange & Act
-        const result = formatPrice('not-a-number');
-
-        // Assert
-        expect(result).toBe('$0.00');
+        expect(result).toBe('42%');
       });
 
-      it('returns default value for NaN with minimumDecimals 0', () => {
+      it('handles string input with negative value', () => {
         // Arrange & Act
-        const result = formatPrice(NaN, { minimumDecimals: 0 });
+        const result = formatPercentage('-7.89');
 
         // Assert
-        expect(result).toBe('$0');
+        expect(result).toBe('-7.89%');
+      });
+
+      it('returns default value for NaN input', () => {
+        // Arrange & Act
+        const result = formatPercentage('not-a-number');
+
+        // Assert
+        expect(result).toBe('0%');
       });
 
       it('returns default value for invalid string', () => {
         // Arrange & Act
-        const result = formatPrice('abc');
+        const result = formatPercentage('abc');
 
         // Assert
-        expect(result).toBe('$0.00');
+        expect(result).toBe('0%');
       });
 
       it('returns default value for empty string', () => {
         // Arrange & Act
-        const result = formatPrice('');
+        const result = formatPercentage('');
 
         // Assert
-        expect(result).toBe('$0.00');
-      });
-    });
-
-    describe('edge cases', () => {
-      it('formats exactly 1000 correctly', () => {
-        // Arrange & Act
-        const result = formatPrice(1000);
-
-        // Assert
-        expect(result).toBe('$1,000.00');
-        expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-          1000,
-          1000,
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        );
+        expect(result).toBe('0%');
       });
 
-      it('formats negative prices correctly', () => {
-        // Arrange & Act
-        const result = formatPrice(-1234.56);
-
-        // Assert
-        expect(result).toBe('-$1,234.56');
-      });
-
-      it('formats zero correctly', () => {
-        // Arrange & Act
-        const result = formatPrice(0);
-
-        // Assert
-        expect(result).toBe('$0.00');
-      });
-
-      it('formats very large numbers correctly', () => {
-        // Arrange & Act
-        const result = formatPrice(1000000);
-
-        // Assert
-        expect(result).toBe('$1,000,000.00');
-      });
-    });
-
-    describe('boundary values', () => {
       it.each([
-        [999.999, '$999.999'],
-        [1000, '$1,000.00'],
-        [1000.001, '$1,000.00'],
-        [0.9999, '$0.9999'],
-        [0.00009999, '$0.0001'],
-      ])('formats boundary value %f as %s', (input, expected) => {
-        const result = formatPrice(input);
-        expect(result).toBe(expected);
+        [0.01, '0.01%'],
+        [0.001, '0%'],
+        [0.5, '0.5%'],
+        [0.9, '0.9%'],
+        [1.999, '2%'],
+        [99, '99%'],
+        [99.999, '100%'],
+        [100, '100%'],
+        [-0.01, '-0.01%'],
+        [-0.001, '0%'],
+        [-1.999, '-2%'],
+      ])('formats %f correctly as %s', (input, expected) => {
+        expect(formatPercentage(input)).toBe(expected);
+      });
+    });
+
+    describe('with truncate=true', () => {
+      it('formats positive decimal percentage with no decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(5.25, { truncate: true });
+
+        // Assert
+        expect(result).toBe('5%');
+      });
+
+      it('formats large percentage as >99%', () => {
+        // Arrange & Act
+        const result = formatPercentage(100, { truncate: true });
+
+        // Assert
+        expect(result).toBe('>99%');
+      });
+
+      it('formats negative decimal percentage with no decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-2.75, { truncate: true });
+
+        // Assert
+        expect(result).toBe('-3%');
+      });
+
+      it('formats negative whole number percentage without decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-50, { truncate: true });
+
+        // Assert
+        expect(result).toBe('-50%');
+      });
+
+      it('formats zero as 0%', () => {
+        // Arrange & Act
+        const result = formatPercentage(0, { truncate: true });
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it('handles string input with decimal value', () => {
+        // Arrange & Act
+        const result = formatPercentage('3.14159', { truncate: true });
+
+        // Assert
+        expect(result).toBe('3%');
+      });
+
+      it('handles string input with whole number', () => {
+        // Arrange & Act
+        const result = formatPercentage('42', { truncate: true });
+
+        // Assert
+        expect(result).toBe('42%');
+      });
+
+      it('handles string input with negative value', () => {
+        // Arrange & Act
+        const result = formatPercentage('-7.89', { truncate: true });
+
+        // Assert
+        expect(result).toBe('-8%');
+      });
+
+      it('returns default value for NaN input', () => {
+        // Arrange & Act
+        const result = formatPercentage('not-a-number', { truncate: true });
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it.each([
+        [0.01, '<1%'],
+        [0.001, '<1%'],
+        [0.5, '<1%'],
+        [0.9, '<1%'],
+        [1.999, '2%'],
+        [99, '>99%'],
+        [99.999, '>99%'],
+        [100, '>99%'],
+        [-0.01, '0%'],
+        [-0.001, '0%'],
+        [-1.999, '-2%'],
+      ])('formats %f correctly as %s', (input, expected) => {
+        expect(formatPercentage(input, { truncate: true })).toBe(expected);
+      });
+    });
+
+    describe('with truncate=false', () => {
+      it('displays integer percentage without decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(5, { truncate: false });
+
+        // Assert
+        expect(result).toBe('5%');
+      });
+
+      it('displays percentage with 2 decimals when not integer', () => {
+        // Arrange & Act
+        const result = formatPercentage(5.25, { truncate: false });
+
+        // Assert
+        expect(result).toBe('5.25%');
+      });
+
+      it('displays percentage with 1 decimal when second decimal is zero', () => {
+        // Arrange & Act
+        const result = formatPercentage(5.5, { truncate: false });
+
+        // Assert
+        expect(result).toBe('5.5%');
+      });
+
+      it('displays values above 99 with actual percentage', () => {
+        // Arrange & Act
+        const result = formatPercentage(99.5, { truncate: false });
+
+        // Assert
+        expect(result).toBe('99.5%');
+      });
+
+      it('displays values above 100 with actual percentage', () => {
+        // Arrange & Act
+        const result = formatPercentage(150, { truncate: false });
+
+        // Assert
+        expect(result).toBe('150%');
+      });
+
+      it('displays values below 1 with actual percentage', () => {
+        // Arrange & Act
+        const result = formatPercentage(0.5, { truncate: false });
+
+        // Assert
+        expect(result).toBe('0.5%');
+      });
+
+      it('displays small decimal values with 2 decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(0.01, { truncate: false });
+
+        // Assert
+        expect(result).toBe('0.01%');
+      });
+
+      it('displays negative percentage with decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-2.75, { truncate: false });
+
+        // Assert
+        expect(result).toBe('-2.75%');
+      });
+
+      it('displays negative integer percentage without decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(-50, { truncate: false });
+
+        // Assert
+        expect(result).toBe('-50%');
+      });
+
+      it('displays zero without decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage(0, { truncate: false });
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it('rounds to 2 decimals when more decimals provided', () => {
+        // Arrange & Act
+        const result = formatPercentage(5.256, { truncate: false });
+
+        // Assert
+        expect(result).toBe('5.26%');
+      });
+
+      it('handles string input with decimals', () => {
+        // Arrange & Act
+        const result = formatPercentage('3.14159', { truncate: false });
+
+        // Assert
+        expect(result).toBe('3.14%');
+      });
+
+      it('handles string input with integer', () => {
+        // Arrange & Act
+        const result = formatPercentage('42', { truncate: false });
+
+        // Assert
+        expect(result).toBe('42%');
+      });
+
+      it('returns default value for NaN input', () => {
+        // Arrange & Act
+        const result = formatPercentage('not-a-number', { truncate: false });
+
+        // Assert
+        expect(result).toBe('0%');
+      });
+
+      it.each([
+        [0.01, '0.01%'],
+        [0.001, '0%'],
+        [0.5, '0.5%'],
+        [0.9, '0.9%'],
+        [1.999, '2%'],
+        [99, '99%'],
+        [99.999, '100%'],
+        [99.5, '99.5%'],
+        [100, '100%'],
+        [150.75, '150.75%'],
+        [-0.01, '-0.01%'],
+        [-0.001, '0%'],
+        [-1.999, '-2%'],
+        [-50, '-50%'],
+        [-2.75, '-2.75%'],
+      ])('formats %f correctly as %s', (input, expected) => {
+        expect(formatPercentage(input, { truncate: false })).toBe(expected);
       });
     });
   });
 
-  describe('formatCurrencyValue', () => {
-    beforeEach(() => {
-      mockFormatWithThreshold.mockImplementation(
-        (value, _threshold, locale, options) =>
-          new Intl.NumberFormat(locale, options).format(Number(value)),
-      );
+  describe('formatPrice', () => {
+    it('formats prices with exactly 2 decimal places (rounded up)', () => {
+      // Arrange & Act
+      const result = formatPrice(1234.5678);
+
+      // Assert
+      expect(result).toBe('$1,234.57');
     });
 
+    it('formats prices ignoring custom minimum decimals option', () => {
+      // Arrange & Act
+      const result = formatPrice(50000, { minimumDecimals: 0 });
+
+      // Assert
+      expect(result).toBe('$50,000');
+    });
+
+    it('formats prices respecting custom minimum decimals option', () => {
+      // Arrange & Act
+      const result = formatPrice(1234.5678, {
+        minimumDecimals: 4,
+        maximumDecimals: 4,
+      });
+
+      // Assert
+      expect(result).toBe('$1,234.5678');
+    });
+
+    it('respects minimumDecimals for integer values', () => {
+      // Arrange & Act
+      const result = formatPrice(100, { minimumDecimals: 2 });
+
+      // Assert
+      expect(result).toBe('$100.00');
+    });
+
+    it('formats small prices with 2 decimal places (rounded)', () => {
+      // Arrange & Act
+      const result = formatPrice(0.1234);
+
+      // Assert
+      expect(result).toBe('$0.12');
+    });
+
+    it('formats very small prices rounded', () => {
+      // Arrange & Act
+      const result = formatPrice(0.0001234);
+
+      // Assert
+      expect(result).toBe('$0');
+    });
+
+    it('handles string input with decimal value', () => {
+      // Arrange & Act
+      const result = formatPrice('1234.5678');
+
+      // Assert
+      expect(result).toBe('$1,234.57');
+    });
+
+    it('handles string input with small value', () => {
+      // Arrange & Act
+      const result = formatPrice('0.1234');
+
+      // Assert
+      expect(result).toBe('$0.12');
+    });
+
+    it('returns default value for NaN with default decimals', () => {
+      // Arrange & Act
+      const result = formatPrice('not-a-number');
+
+      // Assert
+      expect(result).toBe('$0.00');
+    });
+
+    it('returns default value for NaN ignoring options', () => {
+      // Arrange & Act
+      const result = formatPrice(NaN, { minimumDecimals: 0 });
+
+      // Assert
+      expect(result).toBe('$0.00');
+    });
+
+    it('returns default value for invalid string', () => {
+      // Arrange & Act
+      const result = formatPrice('abc');
+
+      // Assert
+      expect(result).toBe('$0.00');
+    });
+
+    it('returns default value for empty string', () => {
+      // Arrange & Act
+      const result = formatPrice('');
+
+      // Assert
+      expect(result).toBe('$0.00');
+    });
+
+    it('formats exactly 1000 correctly', () => {
+      // Arrange & Act
+      const result = formatPrice(1000);
+
+      // Assert
+      expect(result).toBe('$1,000');
+    });
+
+    it('formats negative prices correctly', () => {
+      // Arrange & Act
+      const result = formatPrice(-1234.56);
+
+      // Assert
+      expect(result).toBe('-$1,234.56');
+    });
+
+    it('formats zero correctly', () => {
+      // Arrange & Act
+      const result = formatPrice(0);
+
+      // Assert
+      expect(result).toBe('$0');
+    });
+
+    it('formats very large numbers correctly', () => {
+      // Arrange & Act
+      const result = formatPrice(1000000);
+
+      // Assert
+      expect(result).toBe('$1,000,000');
+    });
+
+    it('rounds up to next cent - 1234.999 becomes $1,235', () => {
+      // Arrange & Act
+      const result = formatPrice(1234.999);
+
+      // Assert
+      expect(result).toBe('$1,235');
+    });
+
+    it.each([
+      [999.999, '$1,000'],
+      [1000, '$1,000'],
+      [1000.001, '$1,000'],
+      [0.9999, '$1'],
+      [0.00009999, '$0'],
+    ])('formats boundary value %f as %s', (input, expected) => {
+      const result = formatPrice(input);
+      expect(result).toBe(expected);
+    });
+  });
+
+  describe('formatCurrencyValue', () => {
     it.each([
       [undefined, undefined],
       [null, undefined],
@@ -420,38 +548,16 @@ describe('format utils', () => {
       expect(result).toBe(expected);
     });
 
-    it('uses absolute value and 2 decimals for values >= 1000', () => {
+    it('uses absolute value and 2 decimals (rounded) for values >= 1000', () => {
       const result = formatCurrencyValue(-1234.567);
 
       expect(result).toBe('$1,234.57');
-      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-        1234.567,
-        1000,
-        'en-US',
-        {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        },
-      );
     });
 
-    it('uses absolute value and 2 decimals for values < 1000', () => {
+    it('uses absolute value and 2 decimals (rounded) for values < 1000', () => {
       const result = formatCurrencyValue(-0.1234);
 
       expect(result).toBe('$0.12');
-      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
-        0.1234,
-        0.0001,
-        'en-US',
-        {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        },
-      );
     });
   });
 
@@ -1253,6 +1359,203 @@ describe('format utils', () => {
       });
 
       expect(result).toBe('5');
+    });
+  });
+
+  describe('calculateNetAmount', () => {
+    it('calculates net amount by subtracting fees from total', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('9.25');
+    });
+
+    it('calculates net amount with high precision decimal values', () => {
+      const params = {
+        totalFiat: '1.04361142938843253220839271649743403',
+        bridgeFeeFiat: '0.036399',
+        networkFeeFiat: '0.008024478270232503211154803918368',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0.9991879511181999');
+    });
+
+    it('returns "0" when total equals sum of fees', () => {
+      const params = {
+        totalFiat: '1.00',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.50',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when fees exceed total', () => {
+      const params = {
+        totalFiat: '1.00',
+        bridgeFeeFiat: '0.75',
+        networkFeeFiat: '0.50',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when totalFiat is undefined', () => {
+      const params = {
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('treats missing bridgeFeeFiat as zero', () => {
+      const params = {
+        totalFiat: '10.00',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('9.75');
+    });
+
+    it('treats missing networkFeeFiat as zero', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0.50',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('9.5');
+    });
+
+    it('returns full total when both fees are missing', () => {
+      const params = {
+        totalFiat: '10.00',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('10');
+    });
+
+    it('returns "0" when all parameters are undefined', () => {
+      const params = {};
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when totalFiat is invalid string', () => {
+      const params = {
+        totalFiat: 'invalid',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when bridgeFeeFiat is invalid string', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: 'invalid',
+        networkFeeFiat: '0.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('returns "0" when networkFeeFiat is invalid string', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0.50',
+        networkFeeFiat: 'invalid',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0');
+    });
+
+    it('calculates correctly when fees are zero', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0',
+        networkFeeFiat: '0',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('10');
+    });
+
+    it('calculates correctly when only bridge fee exists', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '2.50',
+        networkFeeFiat: '0',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('7.5');
+    });
+
+    it('calculates correctly when only network fee exists', () => {
+      const params = {
+        totalFiat: '10.00',
+        bridgeFeeFiat: '0',
+        networkFeeFiat: '3.25',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('6.75');
+    });
+
+    it('handles very small decimal amounts', () => {
+      const params = {
+        totalFiat: '0.001',
+        bridgeFeeFiat: '0.0001',
+        networkFeeFiat: '0.0002',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('0.0007');
+    });
+
+    it('handles large amounts correctly', () => {
+      const params = {
+        totalFiat: '1000000.00',
+        bridgeFeeFiat: '50.00',
+        networkFeeFiat: '25.00',
+      };
+
+      const result = calculateNetAmount(params);
+
+      expect(result).toBe('999925');
     });
   });
 });

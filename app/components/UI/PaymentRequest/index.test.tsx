@@ -210,6 +210,29 @@ describe('PaymentRequest', () => {
     expect(amountInput.props.value).toBe('1.5');
   });
 
+  it('trims leading and trailing spaces from amount input', async () => {
+    const { getByText, getByPlaceholderText } = renderComponent();
+
+    await userEvent.press(getByText('ETH'));
+
+    const amountInput = getByPlaceholderText('0.00');
+    fireEvent.changeText(amountInput, '  1.5  ');
+
+    expect(amountInput.props.value).toBe('1.5');
+  });
+
+  it('handles whitespace-only input without throwing', async () => {
+    const { getByText, getByPlaceholderText } = renderComponent();
+
+    await userEvent.press(getByText('ETH'));
+
+    const amountInput = getByPlaceholderText('0.00');
+
+    expect(() => {
+      fireEvent.changeText(amountInput, '   ');
+    }).not.toThrow();
+  });
+
   it('displays an error when an invalid amount is entered', async () => {
     const { getByText, getByPlaceholderText, queryByText } = renderComponent();
 

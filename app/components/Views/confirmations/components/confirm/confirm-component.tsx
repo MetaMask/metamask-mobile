@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -19,7 +19,7 @@ import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-
 import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
-import { Footer } from '../footer';
+import { Footer, FooterSkeleton } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -27,10 +27,24 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
+import { TransferInfoSkeleton } from '../info/transfer/transfer';
+
+const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
+
+const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
+  PredictClaim = 'predictClaim',
+  Transfer = 'transfer',
 }
 
 export interface ConfirmationParams {
@@ -46,6 +60,7 @@ const ConfirmWrapped = ({
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const alerts = useConfirmationAlerts();
+  const isScrollDisabled = useDisableScroll();
 
   return (
     <ConfirmationContextProvider>
@@ -58,10 +73,13 @@ const ConfirmWrapped = ({
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollViewContent}
                 nestedScrollEnabled
+                scrollEnabled={!isScrollDisabled}
               >
                 <TouchableWithoutFeedback>
                   <>
-                    <AlertBanner ignoreTypes={[TransactionType.perpsDeposit]} />
+                    <AlertBanner
+                      ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                    />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>
@@ -156,18 +174,25 @@ function Loader() {
 
   if (loader === ConfirmationLoader.CustomAmount) {
     return (
-      <SafeAreaView
-        edges={['right', 'bottom', 'left']}
-        style={styles.flatContainer}
-        testID="confirm-loader-custom-amount"
-      >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-        >
-          <CustomAmountInfoSkeleton />
-        </ScrollView>
-      </SafeAreaView>
+      <InfoLoader testId="confirm-loader-custom-amount" loader={loader}>
+        <CustomAmountInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.PredictClaim) {
+    return (
+      <InfoLoader testId="confirm-loader-predict-claim" loader={loader}>
+        <PredictClaimInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.Transfer) {
+    return (
+      <InfoLoader testId="confirm-loader-transfer" loader={loader}>
+        <TransferInfoSkeleton />
+      </InfoLoader>
     );
   }
 
@@ -176,4 +201,37 @@ function Loader() {
       <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
   );
+}
+
+function InfoLoader({
+  children,
+  testId,
+  loader,
+}: {
+  children: ReactNode;
+  testId?: string;
+  loader: ConfirmationLoader;
+}) {
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+
+  return (
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={styles.flatContainer}
+      testID={testId}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        {children}
+      </ScrollView>
+      {loader === ConfirmationLoader.Transfer && <FooterSkeleton />}
+    </SafeAreaView>
+  );
+}
+
+function useDisableScroll() {
+  const transaction = useTransactionMetadataRequest();
+  return hasTransactionType(transaction, TRANSACTION_TYPES_DISABLE_SCROLL);
 }

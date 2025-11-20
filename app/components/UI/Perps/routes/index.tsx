@@ -126,7 +126,6 @@ const PerpsScreenStack = () => (
           options={{
             title: strings('perps.markets.title'),
             headerShown: false,
-            animationEnabled: false,
           }}
         />
 
@@ -262,6 +261,8 @@ const PerpsScreenStack = () => (
           name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
           component={Confirm}
           options={{
+            headerLeft: () => null,
+            headerShown: true,
             title: '',
           }}
         />

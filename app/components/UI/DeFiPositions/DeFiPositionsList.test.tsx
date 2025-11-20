@@ -637,6 +637,18 @@ describe('DeFiPositionsList', () => {
     });
 
     it('renders multiple positions without scroll container when isHomepageRedesignV1Enabled is true', async () => {
+      // Override mock to return both enabled chains
+      const allPositions =
+        mockInitialState.engine.backgroundState.DeFiPositionsController
+          .allDeFiPositions[MOCK_ADDRESS_1] || {};
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue({
+        [MOCK_CHAIN_ID_1]: allPositions[MOCK_CHAIN_ID_1],
+        [MOCK_CHAIN_ID_2]: allPositions[MOCK_CHAIN_ID_2],
+      });
+
       const { findByTestId, findByText, queryByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
         {

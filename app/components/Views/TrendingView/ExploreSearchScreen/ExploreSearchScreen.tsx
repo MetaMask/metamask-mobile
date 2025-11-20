@@ -5,6 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import ExploreSearchBar from '../ExploreSearchBar/ExploreSearchBar';
 import ExploreSearchResults from './components/ExploreSearchResults/ExploreSearchResults';
+import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
+import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -19,15 +21,21 @@ const ExploreSearchScreen: React.FC = () => {
 
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <ExploreSearchBar
-        type="interactive"
-        isSearchFocused
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onCancel={handleSearchCancel}
-      />
+      <Box twClassName="px-4 pb-3">
+        <ExploreSearchBar
+          type="interactive"
+          isSearchFocused
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onCancel={handleSearchCancel}
+        />
+      </Box>
 
-      <ExploreSearchResults searchQuery={searchQuery} />
+      <PerpsConnectionProvider>
+        <PerpsStreamProvider>
+          <ExploreSearchResults searchQuery={searchQuery} />
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
     </Box>
   );
 };

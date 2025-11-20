@@ -21,14 +21,16 @@ import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
 import { formatPrice } from '../../utils/format';
+import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
   providerFee: number;
   metamaskFee: number;
   total: number;
-  shouldShowRewards?: boolean;
-  estimatedPoints?: number;
+  shouldShowRewardsRow?: boolean;
+  accountOptedIn?: boolean | null;
+  estimatedPoints?: number | null;
   isLoadingRewards?: boolean;
   hasRewardsError?: boolean;
   onFeesInfoPress?: () => void;
@@ -39,7 +41,8 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   metamaskFee,
   providerFee,
   total,
-  shouldShowRewards = false,
+  shouldShowRewardsRow = false,
+  accountOptedIn = null,
   estimatedPoints = 0,
   isLoadingRewards = false,
   hasRewardsError = false,
@@ -55,7 +58,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
     <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
       {/* Fees Row with Info Icon */}
       <Box twClassName="flex-row justify-between items-center">
-        <Box twClassName="flex-row items-center gap-1">
+        <Box twClassName="flex-row items-center">
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
             {strings('predict.fee_summary.fees')}
           </Text>
@@ -87,7 +90,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       </Box>
 
       {/* Estimated Points Row */}
-      {shouldShowRewards && (
+      {shouldShowRewardsRow && (
         <KeyValueRow
           field={{
             label: {
@@ -112,16 +115,20 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 justifyContent={BoxJustifyContent.Center}
                 gap={1}
               >
-                <RewardsAnimations
-                  value={estimatedPoints}
-                  state={
-                    isLoadingRewards
-                      ? RewardAnimationState.Loading
-                      : hasRewardsError
-                        ? RewardAnimationState.ErrorState
-                        : RewardAnimationState.Idle
-                  }
-                />
+                {accountOptedIn ? (
+                  <RewardsAnimations
+                    value={estimatedPoints ?? 0}
+                    state={
+                      isLoadingRewards
+                        ? RewardAnimationState.Loading
+                        : hasRewardsError
+                          ? RewardAnimationState.ErrorState
+                          : RewardAnimationState.Idle
+                    }
+                  />
+                ) : (
+                  <AddRewardsAccount />
+                )}
               </Box>
             ),
             ...(hasRewardsError && {

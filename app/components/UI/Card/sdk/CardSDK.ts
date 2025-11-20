@@ -45,6 +45,7 @@ import {
   CardNetwork,
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
+  GetOnboardingConsentResponse,
 } from '../types';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
@@ -586,6 +587,13 @@ export class CardSDK {
         // If we can't parse response, continue without it
       }
 
+      if (responseBody?.message?.includes('Your account has been disabled')) {
+        throw new CardError(
+          CardErrorType.ACCOUNT_DISABLED,
+          responseBody?.message,
+        );
+      }
+
       // Handle specific HTTP status codes
       if (
         response.status === 401 ||
@@ -1000,7 +1008,7 @@ export class CardSDK {
 
     if (delegationSettingNetwork.environment === 'staging') {
       return {
-        symbol: delegationSettingToken.symbol.toUpperCase(),
+        symbol: tokenDetails.symbol,
         address: tokenDetails.address,
         decimals: delegationSettingToken.decimals,
         decimalChainId: delegationSettingNetwork.chainId,
@@ -1012,7 +1020,7 @@ export class CardSDK {
     }
 
     return {
-      symbol: delegationSettingToken.symbol.toUpperCase(),
+      symbol: tokenDetails.symbol,
       address: delegationSettingToken.address,
       decimals: delegationSettingToken.decimals,
       decimalChainId: delegationSettingNetwork.chainId,
@@ -1998,6 +2006,63 @@ export class CardSDK {
       throw new CardError(
         CardErrorType.UNKNOWN_ERROR,
         'Failed to get registration status',
+        error as Error,
+      );
+    }
+  };
+
+  getConsentSetByOnboardingId = async (
+    onboardingId: string,
+  ): Promise<GetOnboardingConsentResponse | null> => {
+    try {
+      const response = await this.makeRequest(
+        `/v2/consent/onboarding/${onboardingId}`,
+        {
+          method: 'GET',
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status === 404) {
+          return null;
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              'Failed to get consent set by onboarding id',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting consent set by onboarding id',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('getConsentSetByOnboardingId response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('getConsentSetByOnboardingId error', error);
+      if (error instanceof CardError) {
+        throw error;
+      }
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to get consent set by onboarding id',
         error as Error,
       );
     }

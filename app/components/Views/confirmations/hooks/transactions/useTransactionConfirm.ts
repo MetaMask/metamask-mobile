@@ -140,8 +140,6 @@ export function useTransactionConfirm() {
 
     // Replace/remove this once we have redesigned send flow
     dispatch(resetTransaction());
-
-    // Enable the network if it's not enabled for the Network Manager
     tryEnableEvmNetwork(chainId);
   }, [
     chainId,

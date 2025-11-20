@@ -15,10 +15,6 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
-jest.mock('../../util/networks', () => ({
-  ...jest.requireActual('../../util/networks'),
-}));
-
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {

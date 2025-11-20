@@ -8,6 +8,7 @@ import {
   AuthResponse,
   OAuthUserInfo,
   OAuthLoginResultType,
+  LoginHandlerResult,
 } from './OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import {
@@ -20,6 +21,10 @@ import {
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../Engine/controllers/seedless-onboarding-controller/error';
 import { MetaMetrics } from '../Analytics';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
@@ -114,6 +119,23 @@ export class OAuthService {
           authConnection
         ];
 
+      const refreshToken = data.refresh_token;
+      const revokeToken = data.revoke_token;
+
+      if (!refreshToken) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          'No refresh token found',
+        );
+      }
+
+      if (!revokeToken) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          'No revoke token found',
+        );
+      }
+
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
@@ -122,8 +144,8 @@ export class OAuthService {
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,
           socialLoginEmail: accountName,
-          refreshToken: data.refresh_token,
-          revokeToken: data.revoke_token,
+          refreshToken,
+          revokeToken,
           accessToken: data.access_token,
           metadataAccessToken: data.metadata_access_token,
         });
@@ -195,14 +217,23 @@ export class OAuthService {
     this.#dispatchLogin();
 
     try {
-      let result, data, handleCodeFlowResult;
+      let result: LoginHandlerResult,
+        data: AuthResponse,
+        handleCodeFlowResult: HandleOAuthLoginResult;
       let providerLoginSuccess = false;
       try {
         trace({
           name: TraceName.OnboardingOAuthProviderLogin,
           op: TraceOperation.OnboardingSecurityOp,
         });
-        result = await loginHandler.login();
+        const loginResult = await loginHandler.login();
+        if (!loginResult) {
+          throw new OAuthError(
+            'Login handler return empty result',
+            OAuthErrorType.LoginError,
+          );
+        }
+        result = loginResult;
         providerLoginSuccess = true;
       } catch (error) {
         const errorMessage =

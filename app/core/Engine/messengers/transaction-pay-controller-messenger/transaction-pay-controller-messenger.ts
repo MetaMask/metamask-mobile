@@ -5,6 +5,8 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
+import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
+import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
 
 export function getTransactionPayControllerMessenger(
   rootMessenger: RootMessenger,
@@ -33,6 +35,7 @@ export function getTransactionPayControllerMessenger(
       'TokenListController:getState',
       'TokenRatesController:getState',
       'TokensController:getState',
+      'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
     ],
@@ -41,6 +44,40 @@ export function getTransactionPayControllerMessenger(
       'TransactionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
     ],
+    messenger,
+  });
+
+  return messenger;
+}
+
+type InitMessengerActions =
+  | DelegationControllerSignDelegationAction
+  | KeyringControllerSignEip7702AuthorizationAction;
+type InitMessengerEvents = never;
+
+export type TransactionPayControllerInitMessenger = ReturnType<
+  typeof getTransactionPayControllerInitMessenger
+>;
+
+export function getTransactionPayControllerInitMessenger(
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'TransactionPayControllerInit',
+    InitMessengerActions,
+    InitMessengerEvents,
+    RootMessenger
+  >({
+    namespace: 'TransactionPayControllerInit',
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    actions: [
+      'DelegationController:signDelegation',
+      'KeyringController:signEip7702Authorization',
+    ],
+    events: [],
     messenger,
   });
 
