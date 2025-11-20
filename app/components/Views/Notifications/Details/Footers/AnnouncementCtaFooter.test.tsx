@@ -2,7 +2,7 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import AnnouncementCtaFooter from './AnnouncementCtaFooter';
-import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/entry/SharedDeeplinkManager';
 import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';

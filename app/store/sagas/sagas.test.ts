@@ -22,11 +22,11 @@ import {
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../core/DeeplinkManager/entry/SharedDeeplinkManager';
 import Engine from '../../core/Engine';
-import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import DeeplinkManager from '../../core/DeeplinkManager/legacy/DeeplinkManager';
 import branch from 'react-native-branch';
-import { handleDeeplink } from '../../core/DeeplinkManager/Handlers/handleDeeplink';
+import { handleDeeplink } from '../../core/DeeplinkManager/entry/handleDeeplink';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
