@@ -429,7 +429,7 @@ describe('PerpsController', () => {
       );
     });
 
-    it('should apply remote blocked regions when available during construction', () => {
+    it('applies remote blocked regions when available during construction', () => {
       // Given: Remote feature flags with blocked regions
       const mockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
@@ -460,7 +460,7 @@ describe('PerpsController', () => {
       expect(blockedRegionList.list).toEqual(['US-NY', 'CA-ON']);
     });
 
-    it('should use fallback regions when remote flags are not available', () => {
+    it('uses fallback regions when remote flags are not available', () => {
       // Given: Remote feature flags without blocked regions
       const mockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
@@ -486,7 +486,7 @@ describe('PerpsController', () => {
       expect(blockedRegionList.list).toEqual(['FALLBACK-US', 'FALLBACK-CA']);
     });
 
-    it('should never downgrade from remote to fallback regions', () => {
+    it('never downgrade from remote to fallback regions', () => {
       // Given: Remote feature flags with blocked regions
       const mockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
@@ -566,7 +566,7 @@ describe('PerpsController', () => {
   });
 
   describe('HIP-3 Configuration Integration', () => {
-    it('should delegate HIP-3 config updates to FeatureFlagConfigurationService', () => {
+    it('delegates HIP-3 config updates to FeatureFlagConfigurationService', () => {
       const spy = jest.spyOn(
         FeatureFlagConfigurationService,
         'refreshEligibility',
@@ -592,7 +592,7 @@ describe('PerpsController', () => {
       spy.mockRestore();
     });
 
-    it('should not crash on malformed remote flags', () => {
+    it('does not crash on malformed remote flags', () => {
       const malformedFlags = {
         remoteFeatureFlags: {
           perpsHip3AllowlistMarkets: 123,
@@ -606,7 +606,7 @@ describe('PerpsController', () => {
   });
 
   describe('getActiveProvider', () => {
-    it('should throw error when not initialized', () => {
+    it('throws error when not initialized', () => {
       controller.testSetInitialized(false);
 
       expect(() => controller.getActiveProvider()).toThrow(
@@ -614,7 +614,7 @@ describe('PerpsController', () => {
       );
     });
 
-    it('should return provider when initialized', () => {
+    it('returns provider when initialized', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
 
@@ -624,14 +624,14 @@ describe('PerpsController', () => {
   });
 
   describe('init', () => {
-    it('should initialize providers successfully', async () => {
+    it('initializes providers successfully', async () => {
       await controller.init();
 
       expect(controller.testGetInitialized()).toBe(true);
       expect(controller.testGetProviders().has('hyperliquid')).toBe(true);
     });
 
-    it('should handle initialization when already initialized', async () => {
+    it('handles initialization when already initialized', async () => {
       // First initialization
       await controller.init();
       expect(controller.testGetInitialized()).toBe(true);
@@ -698,7 +698,7 @@ describe('PerpsController', () => {
   });
 
   describe('getPositions', () => {
-    it('should get positions successfully', async () => {
+    it('gets positions successfully', async () => {
       const mockPositions = [
         {
           coin: 'ETH',
@@ -737,7 +737,7 @@ describe('PerpsController', () => {
       });
     });
 
-    it('should handle getPositions error', async () => {
+    it('handles getPositions error', async () => {
       const errorMessage = 'Network error';
 
       markControllerAsInitialized();
@@ -752,7 +752,7 @@ describe('PerpsController', () => {
   });
 
   describe('getAccountState', () => {
-    it('should get account state successfully', async () => {
+    it('gets account state successfully', async () => {
       const mockAccountState = {
         availableBalance: '1000',
         marginUsed: '500',
@@ -779,7 +779,7 @@ describe('PerpsController', () => {
   });
 
   describe('placeOrder', () => {
-    it('should place order successfully', async () => {
+    it('places order successfully', async () => {
       const orderParams = {
         coin: 'BTC',
         isBuy: true,
@@ -812,7 +812,7 @@ describe('PerpsController', () => {
       );
     });
 
-    it('should handle placeOrder error', async () => {
+    it('handles placeOrder error', async () => {
       const orderParams = {
         coin: 'BTC',
         isBuy: true,
@@ -836,7 +836,7 @@ describe('PerpsController', () => {
   });
 
   describe('getMarkets', () => {
-    it('should get markets successfully', async () => {
+    it('gets markets successfully', async () => {
       const mockMarkets = [
         {
           name: 'BTC',
@@ -870,7 +870,7 @@ describe('PerpsController', () => {
   });
 
   describe('cancelOrder', () => {
-    it('should cancel order successfully', async () => {
+    it('cancels order successfully', async () => {
       const cancelParams = {
         orderId: 'order-123',
         coin: 'BTC',
@@ -968,7 +968,7 @@ describe('PerpsController', () => {
   });
 
   describe('closePosition', () => {
-    it('should close position successfully', async () => {
+    it('closes position successfully', async () => {
       const closeParams = {
         coin: 'BTC',
         orderType: 'market' as const,
@@ -1002,7 +1002,7 @@ describe('PerpsController', () => {
   });
 
   describe('closePositions', () => {
-    it('should delegate to TradingService.closePositions', async () => {
+    it('delegates to TradingService.closePositions', async () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
 
@@ -1028,7 +1028,7 @@ describe('PerpsController', () => {
   });
 
   describe('validateOrder', () => {
-    it('should validate order successfully', async () => {
+    it('validates order successfully', async () => {
       const orderParams = {
         coin: 'BTC',
         isBuy: true,
@@ -1057,7 +1057,7 @@ describe('PerpsController', () => {
   });
 
   describe('getOrderFills', () => {
-    it('should get order fills successfully', async () => {
+    it('gets order fills successfully', async () => {
       const mockOrderFills = [
         {
           orderId: 'order-123',
@@ -1091,7 +1091,7 @@ describe('PerpsController', () => {
   });
 
   describe('getOrders', () => {
-    it('should get orders successfully', async () => {
+    it('gets orders successfully', async () => {
       const mockOrders = [
         {
           orderId: 'order-123',
@@ -1124,7 +1124,7 @@ describe('PerpsController', () => {
   });
 
   describe('subscribeToPrices', () => {
-    it('should subscribe to price updates', () => {
+    it('subscribes to price updates', () => {
       const mockUnsubscribe = jest.fn();
       const params = {
         symbols: ['BTC', 'ETH'],
@@ -1143,7 +1143,7 @@ describe('PerpsController', () => {
   });
 
   describe('subscribeToPositions', () => {
-    it('should subscribe to position updates', () => {
+    it('subscribes to position updates', () => {
       const mockUnsubscribe = jest.fn();
       const params = {
         callback: jest.fn(),
@@ -1161,7 +1161,7 @@ describe('PerpsController', () => {
   });
 
   describe('withdraw', () => {
-    it('should withdraw successfully', async () => {
+    it('withdraws successfully', async () => {
       const withdrawParams = {
         amount: '100',
         destination:
@@ -1188,7 +1188,7 @@ describe('PerpsController', () => {
   });
 
   describe('calculateLiquidationPrice', () => {
-    it('should calculate liquidation price successfully', async () => {
+    it('calculates liquidation price successfully', async () => {
       const liquidationParams = {
         entryPrice: 50000,
         leverage: 10,
@@ -1218,7 +1218,7 @@ describe('PerpsController', () => {
   });
 
   describe('getMaxLeverage', () => {
-    it('should get max leverage successfully', async () => {
+    it('gets max leverage successfully', async () => {
       const asset = 'BTC';
       const mockMaxLeverage = 50;
 
@@ -1239,7 +1239,7 @@ describe('PerpsController', () => {
   });
 
   describe('getWithdrawalRoutes', () => {
-    it('should get withdrawal routes successfully', () => {
+    it('gets withdrawal routes successfully', () => {
       const mockRoutes = [
         {
           assetId:
@@ -1270,7 +1270,7 @@ describe('PerpsController', () => {
   });
 
   describe('getBlockExplorerUrl', () => {
-    it('should get block explorer URL successfully', () => {
+    it('gets block explorer URL successfully', () => {
       const address = '0x1234567890123456789012345678901234567890';
       const mockUrl =
         'https://app.hyperliquid.xyz/explorer/address/0x1234567890123456789012345678901234567890';
@@ -1292,7 +1292,7 @@ describe('PerpsController', () => {
   });
 
   describe('error handling', () => {
-    it('should handle provider errors gracefully', async () => {
+    it('handles provider errors gracefully', async () => {
       const errorMessage = 'Provider connection failed';
 
       markControllerAsInitialized();
@@ -1305,7 +1305,7 @@ describe('PerpsController', () => {
       expect(MarketDataService.getPositions).toHaveBeenCalled();
     });
 
-    it('should handle network errors', async () => {
+    it('handles network errors', async () => {
       const errorMessage = 'Network timeout';
 
       markControllerAsInitialized();
@@ -1320,7 +1320,7 @@ describe('PerpsController', () => {
   });
 
   describe('state management', () => {
-    it('should return positions without updating state', async () => {
+    it('returns positions without updating state', async () => {
       const mockPositions = [
         {
           coin: 'ETH',
@@ -1355,7 +1355,7 @@ describe('PerpsController', () => {
       expect(MarketDataService.getPositions).toHaveBeenCalled();
     });
 
-    it('should handle errors without updating state', async () => {
+    it('handles errors without updating state', async () => {
       const errorMessage = 'Failed to fetch positions';
 
       markControllerAsInitialized();
@@ -1370,7 +1370,7 @@ describe('PerpsController', () => {
   });
 
   describe('connection management', () => {
-    it('should handle disconnection', async () => {
+    it('handles disconnection', async () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       mockProvider.disconnect.mockResolvedValue({ success: true });
@@ -1381,7 +1381,7 @@ describe('PerpsController', () => {
       expect(controller.state.connectionStatus).toBe('disconnected');
     });
 
-    it('should handle connection status from state', () => {
+    it('handles connection status from state', () => {
       // Test that we can access connection status from controller state
       expect(controller.state.connectionStatus).toBe('disconnected');
 
@@ -1394,7 +1394,7 @@ describe('PerpsController', () => {
   });
 
   describe('utility methods', () => {
-    it('should get funding information', async () => {
+    it('gets funding information', async () => {
       const mockFunding = [
         {
           symbol: 'BTC',
@@ -1421,7 +1421,7 @@ describe('PerpsController', () => {
       });
     });
 
-    it('should get order fills with parameters', async () => {
+    it('gets order fills with parameters', async () => {
       const params = { limit: 10, user: '0x123' as `0x${string}` };
       const mockOrderFills = [
         {
@@ -1456,7 +1456,7 @@ describe('PerpsController', () => {
   });
 
   describe('order management', () => {
-    it('should edit order successfully', async () => {
+    it('edits order successfully', async () => {
       const editParams = {
         orderId: 'order-123',
         newOrder: {
@@ -1490,7 +1490,7 @@ describe('PerpsController', () => {
       );
     });
 
-    it('should handle edit order error', async () => {
+    it('handles edit order error', async () => {
       const editParams = {
         orderId: 'order-123',
         newOrder: {
@@ -1518,7 +1518,7 @@ describe('PerpsController', () => {
   });
 
   describe('subscription management', () => {
-    it('should subscribe to order fills', () => {
+    it('subscribes to order fills', () => {
       const mockUnsubscribe = jest.fn();
       const params = {
         callback: jest.fn(),
@@ -1534,7 +1534,7 @@ describe('PerpsController', () => {
       expect(mockProvider.subscribeToOrderFills).toHaveBeenCalledWith(params);
     });
 
-    it('should set live data configuration', () => {
+    it('sets live data configuration', () => {
       const config = {
         priceThrottleMs: 1000,
         positionThrottleMs: 2000,
@@ -1549,7 +1549,7 @@ describe('PerpsController', () => {
       expect(mockProvider.setLiveDataConfig).toHaveBeenCalledWith(config);
     });
 
-    it('should handle subscription cleanup', () => {
+    it('handles subscription cleanup', () => {
       const mockUnsubscribe = jest.fn();
       const params = {
         symbols: ['BTC', 'ETH'],
@@ -1569,7 +1569,7 @@ describe('PerpsController', () => {
   });
 
   describe('deposit operations', () => {
-    it('should clear deposit result', () => {
+    it('clears deposit result', () => {
       // Test that clearDepositResult method exists and can be called
       expect(() => controller.clearDepositResult()).not.toThrow();
 
@@ -1579,7 +1579,7 @@ describe('PerpsController', () => {
   });
 
   describe('withdrawal operations', () => {
-    it('should clear withdraw result', () => {
+    it('clears withdraw result', () => {
       // Test that clearWithdrawResult method exists and can be called
       expect(() => controller.clearWithdrawResult()).not.toThrow();
 
@@ -1589,14 +1589,14 @@ describe('PerpsController', () => {
   });
 
   describe('network management', () => {
-    it('should get current network', () => {
+    it('gets current network', () => {
       const network = controller.getCurrentNetwork();
 
       expect(['mainnet', 'testnet']).toContain(network);
       expect(typeof network).toBe('string');
     });
 
-    it('should get withdrawal routes', () => {
+    it('gets withdrawal routes', () => {
       const mockRoutes = [
         {
           assetId:
@@ -1627,13 +1627,13 @@ describe('PerpsController', () => {
   });
 
   describe('user management', () => {
-    it('should check if first time user on current network', () => {
+    it('checks if first time user on current network', () => {
       const isFirstTime = controller.isFirstTimeUserOnCurrentNetwork();
 
       expect(typeof isFirstTime).toBe('boolean');
     });
 
-    it('should mark tutorial as completed', () => {
+    it('marks tutorial as completed', () => {
       // Test that markTutorialCompleted method exists and can be called
       expect(() => controller.markTutorialCompleted()).not.toThrow();
 
@@ -1643,12 +1643,12 @@ describe('PerpsController', () => {
   });
 
   describe('watchlist markets', () => {
-    it('should return empty array by default', () => {
+    it('returns empty array by default', () => {
       const watchlist = controller.getWatchlistMarkets();
       expect(watchlist).toEqual([]);
     });
 
-    it('should toggle watchlist market (add)', () => {
+    it('toggles watchlist market (add)', () => {
       controller.toggleWatchlistMarket('BTC');
 
       const watchlist = controller.getWatchlistMarkets();
@@ -1656,7 +1656,7 @@ describe('PerpsController', () => {
       expect(controller.isWatchlistMarket('BTC')).toBe(true);
     });
 
-    it('should toggle watchlist market (remove)', () => {
+    it('toggles watchlist market (remove)', () => {
       controller.toggleWatchlistMarket('BTC');
       controller.toggleWatchlistMarket('BTC');
 
@@ -1665,7 +1665,7 @@ describe('PerpsController', () => {
       expect(controller.isWatchlistMarket('BTC')).toBe(false);
     });
 
-    it('should handle multiple watchlist markets', () => {
+    it('handles multiple watchlist markets', () => {
       controller.toggleWatchlistMarket('BTC');
       controller.toggleWatchlistMarket('ETH');
       controller.toggleWatchlistMarket('SOL');
@@ -1677,7 +1677,7 @@ describe('PerpsController', () => {
       expect(watchlist).toContain('SOL');
     });
 
-    it('should persist watchlist per network', () => {
+    it('persist watchlist per network', () => {
       // Add to watchlist on mainnet (default is testnet in dev, so set to false)
       controller.testUpdate((state) => {
         state.isTestnet = false;
@@ -1709,7 +1709,7 @@ describe('PerpsController', () => {
   });
 
   describe('additional subscriptions', () => {
-    it('should subscribe to orders', () => {
+    it('subscribes to orders', () => {
       const mockUnsubscribe = jest.fn();
       const params = {
         callback: jest.fn(),
@@ -1725,7 +1725,7 @@ describe('PerpsController', () => {
       expect(mockProvider.subscribeToOrders).toHaveBeenCalledWith(params);
     });
 
-    it('should subscribe to account updates', () => {
+    it('subscribes to account updates', () => {
       const mockUnsubscribe = jest.fn();
       const params = {
         callback: jest.fn(),
@@ -1743,7 +1743,7 @@ describe('PerpsController', () => {
   });
 
   describe('validation methods', () => {
-    it('should validate close position', async () => {
+    it('validates close position', async () => {
       const closeParams = {
         coin: 'BTC',
         orderType: 'market' as const,
@@ -1770,7 +1770,7 @@ describe('PerpsController', () => {
       });
     });
 
-    it('should validate withdrawal', async () => {
+    it('validates withdrawal', async () => {
       const withdrawParams = {
         amount: '100',
         destination:
@@ -1796,7 +1796,7 @@ describe('PerpsController', () => {
   });
 
   describe('position management', () => {
-    it('should update position TP/SL', async () => {
+    it('updates position TP/SL', async () => {
       const updateParams = {
         coin: 'BTC',
         takeProfitPrice: '55000',
@@ -1826,7 +1826,7 @@ describe('PerpsController', () => {
       );
     });
 
-    it('should calculate maintenance margin', async () => {
+    it('calculates maintenance margin', async () => {
       const marginParams = {
         coin: 'BTC',
         size: '1.0',
@@ -1855,7 +1855,7 @@ describe('PerpsController', () => {
   });
 
   describe('fee calculations', () => {
-    it('should calculate fees', async () => {
+    it('calculates fees', async () => {
       const feeParams = {
         orderType: 'market' as const,
         isMaker: false,
@@ -1901,7 +1901,7 @@ describe('PerpsController', () => {
       jest.restoreAllMocks();
     });
 
-    it('should skip data lake reporting for testnet', async () => {
+    it('skips data lake reporting for testnet', async () => {
       const mockCallTestnet = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
@@ -2025,6 +2025,14 @@ describe('PerpsController', () => {
           result: Promise.resolve(mockTxHash),
           transactionMeta: mockTransactionMeta,
         });
+    });
+
+    afterEach(() => {
+      // Clean up mock properties added in beforeEach to prevent test pollution
+      delete (Engine.context.NetworkController as any)
+        .findNetworkClientIdByChainId;
+      delete (Engine.context.TransactionController as any).addTransaction;
+      jest.clearAllMocks();
     });
 
     it('returns promise result', async () => {
@@ -2253,6 +2261,21 @@ describe('PerpsController', () => {
       expect(controller.state.depositRequests[0].status).toBe('completed');
       expect(controller.state.depositRequests[0].success).toBe(true);
       expect(controller.state.depositRequests[0].txHash).toBe(mockTxHash);
+    });
+
+    it('handles concurrent deposit operations without data corruption', async () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+
+      const deposit1 = controller.depositWithConfirmation('100');
+      const deposit2 = controller.depositWithConfirmation('200');
+
+      await Promise.all([deposit1, deposit2]);
+
+      expect(controller.state.depositRequests).toHaveLength(2);
+      const amounts = controller.state.depositRequests.map((req) => req.amount);
+      expect(amounts).toContain('100');
+      expect(amounts).toContain('200');
     });
   });
 
@@ -2521,18 +2544,6 @@ describe('PerpsController', () => {
 
       expect(() => controller.getWithdrawalRoutes()).not.toThrow();
       expect(controller.getWithdrawalRoutes()).toEqual([]);
-    });
-
-    it('handles concurrent deposit operations without data corruption', async () => {
-      const deposit1 = controller.depositWithConfirmation('100');
-      const deposit2 = controller.depositWithConfirmation('200');
-
-      await Promise.all([deposit1, deposit2]);
-
-      expect(controller.state.depositRequests).toHaveLength(2);
-      const amounts = controller.state.depositRequests.map((req) => req.amount);
-      expect(amounts).toContain('100');
-      expect(amounts).toContain('200');
     });
   });
 
