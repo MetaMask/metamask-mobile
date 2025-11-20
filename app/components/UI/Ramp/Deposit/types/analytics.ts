@@ -1,9 +1,18 @@
 interface RampsButtonClicked {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'BUY';
+  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY';
   user_id?: string;
   region: string;
   location: string;
+  ramp_routing?:
+    | 'DEPOSIT'
+    | 'AGGREGATOR BUY'
+    | 'AGGREGATOR SELL'
+    | 'UNSUPPORTED'
+    | 'ERROR';
+  is_authenticated?: boolean;
+  preferred_provider?: string;
+  order_count?: number;
 }
 
 interface RampsDepositCashButtonClicked {
