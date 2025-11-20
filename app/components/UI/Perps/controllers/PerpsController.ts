@@ -140,9 +140,6 @@ export type PerpsControllerState = {
     };
   };
 
-  // Order management (trackingData never stored, only used for analytics)
-  pendingOrders: Omit<OrderParams, 'trackingData'>[];
-
   // Simple deposit state (transient, for UI feedback)
   depositInProgress: boolean;
   // Internal transaction id for the deposit transaction
@@ -253,7 +250,6 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   accountState: null,
   positions: [],
   perpsBalances: {},
-  pendingOrders: [],
   depositInProgress: false,
   lastDepositResult: null,
   withdrawInProgress: false,
@@ -342,12 +338,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
     usedInUi: true,
   },
   initializationAttempts: {
-    includeInStateLogs: true,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: false,
-  },
-  pendingOrders: {
     includeInStateLogs: true,
     persist: false,
     includeInDebugSnapshot: false,

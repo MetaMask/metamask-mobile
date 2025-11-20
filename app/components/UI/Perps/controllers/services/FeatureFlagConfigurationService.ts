@@ -40,6 +40,78 @@ export class FeatureFlagConfigurationService {
   }
 
   /**
+   * Validate and parse market list from remote feature flags
+   * Handles both string (comma-separated) and array formats from LaunchDarkly
+   */
+  private static validateMarketList(
+    remoteValue: unknown,
+    fieldName: string,
+    currentValue: string[],
+  ): string[] | undefined {
+    DevLogger.log(`PerpsController: HIP-3 ${fieldName} validation`, {
+      remoteValue,
+      type: typeof remoteValue,
+      isArray: Array.isArray(remoteValue),
+    });
+
+    // LaunchDarkly returns comma-separated strings for list values
+    if (typeof remoteValue === 'string') {
+      const parsed = parseCommaSeparatedString(remoteValue);
+
+      if (parsed.length > 0) {
+        DevLogger.log(
+          `PerpsController: HIP-3 ${fieldName} validated from string`,
+          { validatedMarkets: parsed },
+        );
+        return parsed;
+      }
+
+      DevLogger.log(
+        `PerpsController: HIP-3 ${fieldName} string was empty after parsing`,
+        { fallbackValue: currentValue },
+      );
+      return undefined;
+    }
+
+    // Fallback: Validate array of non-empty strings
+    if (
+      Array.isArray(remoteValue) &&
+      remoteValue.every((item) => typeof item === 'string' && item.length > 0)
+    ) {
+      const validatedMarkets = (remoteValue as string[])
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      DevLogger.log(
+        `PerpsController: HIP-3 ${fieldName} validated from array`,
+        { validatedMarkets },
+      );
+      return validatedMarkets;
+    }
+
+    DevLogger.log(
+      `PerpsController: HIP-3 ${fieldName} validation FAILED - falling back to local config`,
+      {
+        reason: Array.isArray(remoteValue)
+          ? 'Array contains non-string or empty values'
+          : 'Invalid type (expected string or array)',
+        fallbackValue: currentValue,
+      },
+    );
+    return undefined;
+  }
+
+  /**
+   * Check if arrays have different values (order-independent comparison)
+   */
+  private static arraysHaveDifferentValues(a: string[], b: string[]): boolean {
+    return (
+      JSON.stringify([...a].sort((x, y) => x.localeCompare(y))) !==
+      JSON.stringify([...b].sort((x, y) => x.localeCompare(y)))
+    );
+  }
+
+  /**
    * Refresh HIP-3 configuration when remote feature flags change.
    * This method extracts HIP-3 settings from remote flags, validates them,
    * and updates internal state if they differ from current values.
@@ -81,115 +153,28 @@ export class FeatureFlagConfigurationService {
       willUse: validatedEquity !== undefined ? 'remote' : 'fallback',
     });
 
-    // Extract and validate remote HIP-3 allowlist markets (allowlist)
-    let validatedAllowlistMarkets: string[] | undefined;
-    if (hasProperty(remoteFlags, 'perpsHip3AllowlistMarkets')) {
-      const remoteMarkets = remoteFlags.perpsHip3AllowlistMarkets;
-
-      DevLogger.log('PerpsController: HIP-3 allowlistMarkets validation', {
-        remoteMarkets,
-        type: typeof remoteMarkets,
-        isArray: Array.isArray(remoteMarkets),
-      });
-
-      // LaunchDarkly returns comma-separated strings for list values
-      if (typeof remoteMarkets === 'string') {
-        const parsed = parseCommaSeparatedString(remoteMarkets);
-
-        if (parsed.length > 0) {
-          validatedAllowlistMarkets = parsed;
-          DevLogger.log(
-            'PerpsController: HIP-3 allowlistMarkets validated from string',
-            { validatedAllowlistMarkets },
-          );
-        } else {
-          DevLogger.log(
-            'PerpsController: HIP-3 allowlistMarkets string was empty after parsing',
-            { fallbackValue: currentConfig.allowlistMarkets },
-          );
-        }
-      } else if (
-        Array.isArray(remoteMarkets) &&
-        remoteMarkets.every(
-          (item) => typeof item === 'string' && item.length > 0,
+    // Extract and validate remote HIP-3 market lists
+    const validatedAllowlistMarkets = hasProperty(
+      remoteFlags,
+      'perpsHip3AllowlistMarkets',
+    )
+      ? this.validateMarketList(
+          remoteFlags.perpsHip3AllowlistMarkets,
+          'allowlistMarkets',
+          currentConfig.allowlistMarkets,
         )
-      ) {
-        // Fallback: Validate array of non-empty strings (in case format changes)
-        validatedAllowlistMarkets = (remoteMarkets as string[])
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0);
+      : undefined;
 
-        DevLogger.log(
-          'PerpsController: HIP-3 allowlistMarkets validated from array',
-          { validatedAllowlistMarkets },
-        );
-      } else {
-        DevLogger.log(
-          'PerpsController: HIP-3 allowlistMarkets validation FAILED - falling back to local config',
-          {
-            reason: Array.isArray(remoteMarkets)
-              ? 'Array contains non-string or empty values'
-              : 'Invalid type (expected string or array)',
-            fallbackValue: currentConfig.allowlistMarkets,
-          },
-        );
-      }
-    }
-
-    // Extract and validate remote HIP-3 blocklist markets (blocklist)
-    let validatedBlocklistMarkets: string[] | undefined;
-    if (hasProperty(remoteFlags, 'perpsHip3BlocklistMarkets')) {
-      const remoteBlocked = remoteFlags.perpsHip3BlocklistMarkets;
-
-      DevLogger.log('PerpsController: HIP-3 blocklistMarkets validation', {
-        remoteBlocked,
-        type: typeof remoteBlocked,
-        isArray: Array.isArray(remoteBlocked),
-      });
-
-      // LaunchDarkly returns comma-separated strings for list values
-      if (typeof remoteBlocked === 'string') {
-        const parsed = parseCommaSeparatedString(remoteBlocked);
-
-        if (parsed.length > 0) {
-          validatedBlocklistMarkets = parsed;
-          DevLogger.log(
-            'PerpsController: HIP-3 blocklistMarkets validated from string',
-            { validatedBlocklistMarkets },
-          );
-        } else {
-          DevLogger.log(
-            'PerpsController: HIP-3 blocklistMarkets string was empty after parsing',
-            { fallbackValue: currentConfig.blocklistMarkets },
-          );
-        }
-      } else if (
-        Array.isArray(remoteBlocked) &&
-        remoteBlocked.every(
-          (item) => typeof item === 'string' && item.length > 0,
+    const validatedBlocklistMarkets = hasProperty(
+      remoteFlags,
+      'perpsHip3BlocklistMarkets',
+    )
+      ? this.validateMarketList(
+          remoteFlags.perpsHip3BlocklistMarkets,
+          'blocklistMarkets',
+          currentConfig.blocklistMarkets,
         )
-      ) {
-        // Fallback: Validate array of non-empty strings (in case format changes)
-        validatedBlocklistMarkets = (remoteBlocked as string[])
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0);
-
-        DevLogger.log(
-          'PerpsController: HIP-3 blocklistMarkets validated from array',
-          { validatedBlocklistMarkets },
-        );
-      } else {
-        DevLogger.log(
-          'PerpsController: HIP-3 blocklistMarkets validation FAILED - falling back to local config',
-          {
-            reason: Array.isArray(remoteBlocked)
-              ? 'Array contains non-string or empty values'
-              : 'Invalid type (expected string or array)',
-            fallbackValue: currentConfig.blocklistMarkets,
-          },
-        );
-      }
-    }
+      : undefined;
 
     // Detect changes (only if we have valid remote values)
     const equityChanged =
@@ -197,24 +182,16 @@ export class FeatureFlagConfigurationService {
       validatedEquity !== currentConfig.enabled;
     const allowlistMarketsChanged =
       validatedAllowlistMarkets !== undefined &&
-      JSON.stringify(
-        [...validatedAllowlistMarkets].sort((a, b) => a.localeCompare(b)),
-      ) !==
-        JSON.stringify(
-          [...currentConfig.allowlistMarkets].sort((a, b) =>
-            a.localeCompare(b),
-          ),
-        );
+      this.arraysHaveDifferentValues(
+        validatedAllowlistMarkets,
+        currentConfig.allowlistMarkets,
+      );
     const blocklistMarketsChanged =
       validatedBlocklistMarkets !== undefined &&
-      JSON.stringify(
-        [...validatedBlocklistMarkets].sort((a, b) => a.localeCompare(b)),
-      ) !==
-        JSON.stringify(
-          [...currentConfig.blocklistMarkets].sort((a, b) =>
-            a.localeCompare(b),
-          ),
-        );
+      this.arraysHaveDifferentValues(
+        validatedBlocklistMarkets,
+        currentConfig.blocklistMarkets,
+      );
 
     if (equityChanged || allowlistMarketsChanged || blocklistMarketsChanged) {
       DevLogger.log(

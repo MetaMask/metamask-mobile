@@ -59,6 +59,132 @@ export class TradingService {
   }
 
   /**
+   * Track order result analytics event (success or failure)
+   */
+  private static trackOrderResult(options: {
+    result: OrderResult | null;
+    error?: Error;
+    params: OrderParams;
+    context: ServiceContext;
+    duration: number;
+  }): void {
+    const { result, error, params, context, duration } = options;
+
+    const status =
+      result?.success === true
+        ? PerpsEventValues.STATUS.EXECUTED
+        : PerpsEventValues.STATUS.FAILED;
+
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+    ).addProperties({
+      [PerpsEventProperties.STATUS]: status,
+      [PerpsEventProperties.ASSET]: params.coin,
+      [PerpsEventProperties.DIRECTION]: params.isBuy
+        ? PerpsEventValues.DIRECTION.LONG
+        : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.ORDER_TYPE]: params.orderType,
+      [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
+      [PerpsEventProperties.ORDER_SIZE]: result?.filledSize || params.size,
+      [PerpsEventProperties.COMPLETION_DURATION]: duration,
+      [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
+      [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
+      [PerpsEventProperties.ASSET_PRICE]:
+        result?.averagePrice || params.trackingData?.marketPrice,
+      ...(params.orderType === 'limit' && {
+        [PerpsEventProperties.LIMIT_PRICE]: params.price,
+      }),
+    });
+
+    // Add success-specific properties
+    if (status === PerpsEventValues.STATUS.EXECUTED) {
+      eventBuilder.addProperties({
+        [PerpsEventProperties.METAMASK_FEE]: params.trackingData?.metamaskFee,
+        [PerpsEventProperties.METAMASK_FEE_RATE]:
+          params.trackingData?.metamaskFeeRate,
+        [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+          params.trackingData?.feeDiscountPercentage,
+        [PerpsEventProperties.ESTIMATED_REWARDS]:
+          params.trackingData?.estimatedPoints,
+        ...(params.takeProfitPrice && {
+          [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
+            params.takeProfitPrice,
+          ),
+        }),
+        ...(params.stopLossPrice && {
+          [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
+            params.stopLossPrice,
+          ),
+        }),
+      });
+    } else {
+      // Add failure-specific properties
+      eventBuilder.addProperties({
+        [PerpsEventProperties.ERROR_MESSAGE]:
+          error?.message || result?.error || 'Unknown error',
+      });
+    }
+
+    context.analytics.trackEvent(eventBuilder.build());
+  }
+
+  /**
+   * Handle successful order placement (state updates, analytics, data lake reporting)
+   */
+  private static async handleOrderSuccess(options: {
+    params: OrderParams;
+    context: ServiceContext;
+    reportOrderToDataLake: (params: {
+      action: 'open' | 'close';
+      coin: string;
+      sl_price?: number;
+      tp_price?: number;
+    }) => Promise<{ success: boolean; error?: string }>;
+  }): Promise<void> {
+    const { params, context, reportOrderToDataLake } = options;
+
+    // Update state on success
+    if (context.stateManager) {
+      context.stateManager.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+      });
+    }
+
+    // Save executed trade configuration for this market
+    if (params.leverage && context.saveTradeConfiguration) {
+      context.saveTradeConfiguration(params.coin, params.leverage);
+    }
+
+    // Report to data lake (fire-and-forget with retry)
+    reportOrderToDataLake({
+      action: 'open',
+      coin: params.coin,
+      sl_price: params.stopLossPrice
+        ? parseFloat(params.stopLossPrice)
+        : undefined,
+      tp_price: params.takeProfitPrice
+        ? parseFloat(params.takeProfitPrice)
+        : undefined,
+    }).catch((error) => {
+      Logger.error(ensureError(error), {
+        tags: {
+          feature: 'perps',
+          provider: context.tracingContext.provider,
+          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+        },
+        context: {
+          name: context.errorContext.controller,
+          data: {
+            method: context.errorContext.method,
+            operation: 'reportOrderToDataLake',
+            coin: params.coin,
+          },
+        },
+      });
+    });
+  }
+
+  /**
    * Execute a trading operation with fee discount context
    * Ensures fee discount is always cleared after operation (success or failure)
    */
@@ -141,14 +267,6 @@ export class TradingService {
         hasDiscount: feeDiscountBips !== undefined,
       });
 
-      // Optimistic update - exclude trackingData to avoid persisting analytics data
-      const { trackingData, ...orderWithoutTracking } = params;
-      if (context.stateManager) {
-        context.stateManager.update((state) => {
-          state.pendingOrders.push(orderWithoutTracking);
-        });
-      }
-
       DevLogger.log('TradingService: Submitting order to provider', {
         coin: params.coin,
         orderType: params.orderType,
@@ -173,162 +291,40 @@ export class TradingService {
       });
 
       // Update state and handle success/failure
+      const completionDuration = performance.now() - startTime;
+
       if (result.success) {
-        // Update state only on success
-        if (context.stateManager) {
-          context.stateManager.update((state) => {
-            state.pendingOrders = state.pendingOrders.filter(
-              (o) => o !== orderWithoutTracking,
-            );
-            state.lastUpdateTimestamp = Date.now();
-          });
-        }
-
-        // Save executed trade configuration for this market
-        if (params.leverage && context.saveTradeConfiguration) {
-          context.saveTradeConfiguration(params.coin, params.leverage);
-        }
-
-        // Track trade transaction executed
-        const completionDuration = performance.now() - startTime;
-
-        const eventBuilder = MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        ).addProperties({
-          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-          [PerpsEventProperties.ASSET]: params.coin,
-          [PerpsEventProperties.DIRECTION]: params.isBuy
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-          [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-          [PerpsEventProperties.ORDER_SIZE]: result.filledSize || params.size,
-          [PerpsEventProperties.ASSET_PRICE]:
-            result.averagePrice || params.trackingData?.marketPrice,
-          [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
-          [PerpsEventProperties.METAMASK_FEE]: params.trackingData?.metamaskFee,
-          [PerpsEventProperties.METAMASK_FEE_RATE]:
-            params.trackingData?.metamaskFeeRate,
-          [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-            params.trackingData?.feeDiscountPercentage,
-          [PerpsEventProperties.ESTIMATED_REWARDS]:
-            params.trackingData?.estimatedPoints,
-          [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-          // Add TP/SL if set (for new orders)
-          ...(params.takeProfitPrice && {
-            [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
-              params.takeProfitPrice,
-            ),
-          }),
-          ...(params.stopLossPrice && {
-            [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(
-              params.stopLossPrice,
-            ),
-          }),
+        // Handle success: state updates, data lake reporting
+        await this.handleOrderSuccess({
+          params,
+          context,
+          reportOrderToDataLake,
         });
-
-        context.analytics.trackEvent(eventBuilder.build());
-
-        // Report to data lake (fire-and-forget with retry)
-        reportOrderToDataLake({
-          action: 'open',
-          coin: params.coin,
-          sl_price: params.stopLossPrice
-            ? parseFloat(params.stopLossPrice)
-            : undefined,
-          tp_price: params.takeProfitPrice
-            ? parseFloat(params.takeProfitPrice)
-            : undefined,
-        }).catch((error) => {
-          Logger.error(ensureError(error), {
-            tags: {
-              feature: 'perps',
-              provider: context.tracingContext.provider,
-              network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-            },
-            context: {
-              name: context.errorContext.controller,
-              data: {
-                method: context.errorContext.method,
-                operation: 'reportOrderToDataLake',
-                coin: params.coin,
-              },
-            },
-          });
-        });
-
         traceData = { success: true, orderId: result.orderId || '' };
       } else {
-        // Track trade transaction failed
-        const completionDuration = performance.now() - startTime;
-        context.analytics.trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-              [PerpsEventProperties.ASSET]: params.coin,
-              [PerpsEventProperties.DIRECTION]: params.isBuy
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-              [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-              [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-              [PerpsEventProperties.ORDER_SIZE]: params.size,
-              [PerpsEventProperties.MARGIN_USED]:
-                params.trackingData?.marginUsed,
-              [PerpsEventProperties.LIMIT_PRICE]:
-                params.orderType === 'limit' ? params.price : null,
-              [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
-              [PerpsEventProperties.ASSET_PRICE]:
-                params.trackingData?.marketPrice,
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              [PerpsEventProperties.ERROR_MESSAGE]:
-                result.error || 'Unknown error',
-            })
-            .build(),
-        );
-
-        // Remove from pending orders even on failure since the attempt is complete
-        if (context.stateManager) {
-          context.stateManager.update((state) => {
-            state.pendingOrders = state.pendingOrders.filter(
-              (o) => o !== orderWithoutTracking,
-            );
-          });
-        }
-
         traceData = { success: false, error: result.error || 'Unknown error' };
       }
 
+      // Track analytics (success or failure)
+      this.trackOrderResult({
+        result,
+        params,
+        context,
+        duration: completionDuration,
+      });
+
       return result;
     } catch (error) {
-      // Track trade transaction failed (catch block)
       const completionDuration = performance.now() - startTime;
-      context.analytics.trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        )
-          .addProperties({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ASSET]: params.coin,
-            [PerpsEventProperties.DIRECTION]: params.isBuy
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.size,
-            [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
-            [PerpsEventProperties.LIMIT_PRICE]:
-              params.orderType === 'limit' ? params.price : null,
-            [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
-            [PerpsEventProperties.ASSET_PRICE]:
-              params.trackingData?.marketPrice,
-            [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              error instanceof Error ? error.message : 'Unknown error',
-          })
-          .build(),
-      );
+
+      // Track analytics for exception
+      this.trackOrderResult({
+        result: null,
+        error: error instanceof Error ? error : undefined,
+        params,
+        context,
+        duration: completionDuration,
+      });
 
       // withFeeDiscount handles fee discount cleanup automatically
 
@@ -361,6 +357,277 @@ export class TradingService {
         data: traceData,
       });
     }
+  }
+
+  /**
+   * Load position data with performance measurement
+   */
+  private static async loadPositionData(options: {
+    coin: string;
+    context: ServiceContext;
+    traceSpan: TraceContext;
+  }): Promise<Position | undefined> {
+    const { coin, context, traceSpan } = options;
+
+    const positionLoadStart = performance.now();
+    try {
+      const positions = context.getPositions
+        ? await context.getPositions()
+        : [];
+      const position = positions.find((p) => p.coin === coin);
+
+      setMeasurement(
+        PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
+        performance.now() - positionLoadStart,
+        'millisecond',
+        traceSpan,
+      );
+
+      return position;
+    } catch (err) {
+      DevLogger.log(
+        'TradingService: Could not get position data for tracking',
+        err,
+      );
+      return undefined;
+    }
+  }
+
+  /**
+   * Calculate close position metrics
+   */
+  private static calculateCloseMetrics(
+    position: Position,
+    params: ClosePositionParams,
+    result: OrderResult,
+  ): {
+    direction: string;
+    closePercentage: number;
+    closeType: string;
+    orderType: string;
+    filledSize: number;
+    requestedSize: number;
+    isPartiallyFilled: boolean;
+  } {
+    const direction =
+      parseFloat(position.size) > 0
+        ? PerpsEventValues.DIRECTION.LONG
+        : PerpsEventValues.DIRECTION.SHORT;
+
+    const filledSize = result.filledSize ? parseFloat(result.filledSize) : 0;
+    const requestedSize = params.size
+      ? parseFloat(params.size)
+      : Math.abs(parseFloat(position.size));
+    const isPartiallyFilled = filledSize > 0 && filledSize < requestedSize;
+
+    const orderType = params.orderType || PerpsEventValues.ORDER_TYPE.MARKET;
+    const closePercentage = params.size
+      ? (parseFloat(params.size) / Math.abs(parseFloat(position.size))) * 100
+      : 100;
+    const closeType =
+      closePercentage === 100
+        ? PerpsEventValues.CLOSE_TYPE.FULL
+        : PerpsEventValues.CLOSE_TYPE.PARTIAL;
+
+    return {
+      direction,
+      closePercentage,
+      closeType,
+      orderType,
+      filledSize,
+      requestedSize,
+      isPartiallyFilled,
+    };
+  }
+
+  /**
+   * Build event properties for position close analytics
+   */
+  private static buildCloseEventProperties(
+    position: Position,
+    params: ClosePositionParams,
+    metrics: {
+      direction: string;
+      closePercentage: number;
+      closeType: string;
+      orderType: string;
+      requestedSize: number;
+    },
+    result: OrderResult | null,
+    status: string,
+    error?: string,
+  ): Record<string, unknown> {
+    const baseProperties = {
+      [PerpsEventProperties.STATUS]: status,
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.DIRECTION]: metrics.direction,
+      [PerpsEventProperties.ORDER_TYPE]: metrics.orderType,
+      [PerpsEventProperties.ORDER_SIZE]: metrics.requestedSize,
+      [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
+        parseFloat(position.size),
+      ),
+      [PerpsEventProperties.PERCENTAGE_CLOSED]: metrics.closePercentage,
+      [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
+        ? parseFloat(position.unrealizedPnl)
+        : null,
+      [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
+        ? parseFloat(position.returnOnEquity) * 100
+        : null,
+      [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
+      [PerpsEventProperties.METAMASK_FEE]:
+        params.trackingData?.metamaskFee || null,
+      [PerpsEventProperties.METAMASK_FEE_RATE]:
+        params.trackingData?.metamaskFeeRate || null,
+      [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+        params.trackingData?.feeDiscountPercentage || null,
+      [PerpsEventProperties.ESTIMATED_REWARDS]:
+        params.trackingData?.estimatedPoints || null,
+      [PerpsEventProperties.ASSET_PRICE]:
+        params.trackingData?.marketPrice || result?.averagePrice || null,
+      [PerpsEventProperties.LIMIT_PRICE]:
+        params.orderType === 'limit' ? params.price : null,
+      [PerpsEventProperties.RECEIVED_AMOUNT]:
+        params.trackingData?.receivedAmount || null,
+    };
+
+    // Add success-specific properties
+    if (status === PerpsEventValues.STATUS.EXECUTED) {
+      return {
+        ...baseProperties,
+        [PerpsEventProperties.CLOSE_TYPE]: metrics.closeType,
+      };
+    }
+
+    // Add error for failures
+    return {
+      ...baseProperties,
+      ...(error && { [PerpsEventProperties.ERROR_MESSAGE]: error }),
+    };
+  }
+
+  /**
+   * Track position close result analytics (consolidates all tracking logic)
+   */
+  private static trackPositionCloseResult(options: {
+    position: Position | undefined;
+    result: OrderResult | null;
+    error?: Error;
+    params: ClosePositionParams;
+    context: ServiceContext;
+    duration: number;
+  }): void {
+    const { position, result, error, params, context, duration } = options;
+
+    if (!position) {
+      return;
+    }
+
+    const metrics = result
+      ? this.calculateCloseMetrics(position, params, result)
+      : {
+          direction:
+            parseFloat(position.size) > 0
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          closePercentage: params.size
+            ? (parseFloat(params.size) / Math.abs(parseFloat(position.size))) *
+              100
+            : 100,
+          closeType: PerpsEventValues.CLOSE_TYPE.FULL,
+          orderType: params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
+          requestedSize: params.size
+            ? parseFloat(params.size)
+            : Math.abs(parseFloat(position.size)),
+          filledSize: 0,
+          isPartiallyFilled: false,
+        };
+
+    // Track partially filled event if applicable
+    if (result?.success && metrics.isPartiallyFilled) {
+      const partialProperties = this.buildCloseEventProperties(
+        position,
+        params,
+        metrics,
+        result,
+        PerpsEventValues.STATUS.PARTIALLY_FILLED,
+      );
+
+      context.analytics.trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+        )
+          .addProperties({
+            ...partialProperties,
+            [PerpsEventProperties.AMOUNT_FILLED]: metrics.filledSize,
+            [PerpsEventProperties.REMAINING_AMOUNT]:
+              metrics.requestedSize - metrics.filledSize,
+            [PerpsEventProperties.COMPLETION_DURATION]: duration,
+          })
+          .build(),
+      );
+    }
+
+    // Determine status
+    const status =
+      result?.success === true
+        ? PerpsEventValues.STATUS.EXECUTED
+        : PerpsEventValues.STATUS.FAILED;
+
+    const errorMessage = error?.message || result?.error;
+
+    // Track main close event
+    const eventProperties = this.buildCloseEventProperties(
+      position,
+      params,
+      metrics,
+      result,
+      status,
+      errorMessage,
+    );
+
+    context.analytics.trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+      )
+        .addProperties({
+          ...eventProperties,
+          [PerpsEventProperties.COMPLETION_DURATION]: duration,
+        })
+        .build(),
+    );
+  }
+
+  /**
+   * Handle data lake reporting (fire-and-forget)
+   */
+  private static handleDataLakeReporting(
+    reportOrderToDataLake: (params: {
+      action: 'open' | 'close';
+      coin: string;
+    }) => Promise<{ success: boolean; error?: string }>,
+    coin: string,
+    context: ServiceContext,
+  ): void {
+    reportOrderToDataLake({
+      action: 'close',
+      coin,
+    }).catch((error) => {
+      Logger.error(ensureError(error), {
+        tags: {
+          feature: 'perps',
+          provider: context.tracingContext.provider,
+          network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
+        },
+        context: {
+          name: context.errorContext.controller,
+          data: {
+            method: context.errorContext.method,
+            operation: 'reportOrderToDataLake',
+            coin,
+          },
+        },
+      });
+    });
   }
 
   /**
@@ -856,8 +1123,8 @@ export class TradingService {
     const { provider, params, context, reportOrderToDataLake } = options;
     const traceId = uuidv4();
     const startTime = performance.now();
-    // Get position data for event tracking
     let position: Position | undefined;
+    let result: OrderResult | undefined;
     let traceData:
       | { success: boolean; error?: string; filledSize?: string }
       | undefined;
@@ -875,25 +1142,12 @@ export class TradingService {
         },
       });
 
-      // Measure position loading time
-      const positionLoadStart = performance.now();
-      try {
-        const positions = context.getPositions
-          ? await context.getPositions()
-          : [];
-        position = positions.find((p) => p.coin === params.coin);
-        setMeasurement(
-          PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
-          performance.now() - positionLoadStart,
-          'millisecond',
-          traceSpan,
-        );
-      } catch (err) {
-        DevLogger.log(
-          'TradingService: Could not get position data for tracking',
-          err,
-        );
-      }
+      // Load position data with measurement
+      position = await this.loadPositionData({
+        coin: params.coin,
+        context,
+        traceSpan,
+      });
 
       // Calculate fee discount with measurement
       const feeDiscountBips = await this.calculateFeeDiscountWithMeasurement(
@@ -902,7 +1156,7 @@ export class TradingService {
       );
 
       // Execute position close with fee discount management
-      const result = await this.withFeeDiscount({
+      result = await this.withFeeDiscount({
         provider,
         feeDiscountBips,
         operation: () => provider.closePosition(params),
@@ -910,190 +1164,34 @@ export class TradingService {
 
       const completionDuration = performance.now() - startTime;
 
-      if (result.success && position) {
-        // Update state
+      if (result.success) {
+        // Update state on success
         if (context.stateManager) {
           context.stateManager.update((state) => {
             state.lastUpdateTimestamp = Date.now();
           });
         }
 
-        // Report to data lake (fire-and-forget with retry)
-        reportOrderToDataLake({
-          action: 'close',
-          coin: params.coin,
-        }).catch((error) => {
-          Logger.error(ensureError(error), {
-            tags: {
-              feature: 'perps',
-              provider: context.tracingContext.provider,
-              network: context.tracingContext.isTestnet ? 'testnet' : 'mainnet',
-            },
-            context: {
-              name: context.errorContext.controller,
-              data: {
-                method: context.errorContext.method,
-                operation: 'reportOrderToDataLake',
-                coin: params.coin,
-              },
-            },
-          });
-        });
-
-        // Determine direction from position size
-        const direction =
-          parseFloat(position.size) > 0
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT;
-
-        // Check if partially filled
-        const filledSize = result.filledSize
-          ? parseFloat(result.filledSize)
-          : 0;
-        const requestedSize = params.size
-          ? parseFloat(params.size)
-          : Math.abs(parseFloat(position.size));
-        const isPartiallyFilled = filledSize > 0 && filledSize < requestedSize;
-
-        if (isPartiallyFilled) {
-          // Track partially filled event
-          context.analytics.trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
-            )
-              .addProperties({
-                [PerpsEventProperties.STATUS]:
-                  PerpsEventValues.STATUS.PARTIALLY_FILLED,
-                [PerpsEventProperties.ASSET]: position.coin,
-                [PerpsEventProperties.DIRECTION]: direction,
-                [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
-                  parseFloat(position.size),
-                ),
-                [PerpsEventProperties.ORDER_SIZE]: requestedSize,
-                [PerpsEventProperties.ORDER_TYPE]:
-                  params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
-                [PerpsEventProperties.AMOUNT_FILLED]: filledSize,
-                [PerpsEventProperties.REMAINING_AMOUNT]:
-                  requestedSize - filledSize,
-                [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              })
-              .build(),
-          );
-        }
-
-        // Track position close executed event
-        const orderType =
-          params.orderType || PerpsEventValues.ORDER_TYPE.MARKET;
-        const closePercentage = params.size
-          ? (parseFloat(params.size) / Math.abs(parseFloat(position.size))) *
-            100
-          : 100;
-        const closeType =
-          closePercentage === 100
-            ? PerpsEventValues.CLOSE_TYPE.FULL
-            : PerpsEventValues.CLOSE_TYPE.PARTIAL;
-
-        context.analytics.trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-              [PerpsEventProperties.ASSET]: position.coin,
-              [PerpsEventProperties.DIRECTION]: direction,
-              [PerpsEventProperties.ORDER_TYPE]: orderType,
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              [PerpsEventProperties.PERCENTAGE_CLOSED]: closePercentage,
-              [PerpsEventProperties.CLOSE_TYPE]: closeType,
-              [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
-                parseFloat(position.size),
-              ),
-              [PerpsEventProperties.ORDER_SIZE]: params.size
-                ? parseFloat(params.size)
-                : Math.abs(parseFloat(position.size)),
-              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
-                ? parseFloat(position.unrealizedPnl)
-                : null,
-              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
-                ? parseFloat(position.returnOnEquity) * 100
-                : null,
-              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
-              [PerpsEventProperties.METAMASK_FEE]:
-                params.trackingData?.metamaskFee || null,
-              [PerpsEventProperties.METAMASK_FEE_RATE]:
-                params.trackingData?.metamaskFeeRate || null,
-              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-                params.trackingData?.feeDiscountPercentage || null,
-              [PerpsEventProperties.ESTIMATED_REWARDS]:
-                params.trackingData?.estimatedPoints || null,
-              [PerpsEventProperties.ASSET_PRICE]:
-                params.trackingData?.marketPrice || result.averagePrice || null,
-              [PerpsEventProperties.LIMIT_PRICE]:
-                params.orderType === 'limit' ? params.price : null,
-              [PerpsEventProperties.RECEIVED_AMOUNT]:
-                params.trackingData?.receivedAmount || null,
-            })
-            .build(),
+        // Report to data lake (fire-and-forget)
+        this.handleDataLakeReporting(
+          reportOrderToDataLake,
+          params.coin,
+          context,
         );
 
         traceData = { success: true, filledSize: result.filledSize || '' };
-      } else if (!result.success && position) {
-        // Track position close failed event
-        const direction =
-          parseFloat(position.size) > 0
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT;
-
+      } else {
         traceData = { success: false, error: result.error || 'Unknown error' };
-
-        context.analytics.trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-              [PerpsEventProperties.ASSET]: position.coin,
-              [PerpsEventProperties.DIRECTION]: direction,
-              [PerpsEventProperties.ORDER_SIZE]:
-                params.size || Math.abs(parseFloat(position.size)),
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              [PerpsEventProperties.ERROR_MESSAGE]:
-                result.error || 'Unknown error',
-              [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
-                parseFloat(position.size),
-              ),
-              [PerpsEventProperties.ORDER_TYPE]:
-                params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
-              [PerpsEventProperties.PERCENTAGE_CLOSED]: params.size
-                ? (parseFloat(params.size) /
-                    Math.abs(parseFloat(position.size))) *
-                  100
-                : 100,
-              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
-                ? parseFloat(position.unrealizedPnl)
-                : null,
-              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
-                ? parseFloat(position.returnOnEquity) * 100
-                : null,
-              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
-              [PerpsEventProperties.METAMASK_FEE]:
-                params.trackingData?.metamaskFee || null,
-              [PerpsEventProperties.METAMASK_FEE_RATE]:
-                params.trackingData?.metamaskFeeRate || null,
-              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-                params.trackingData?.feeDiscountPercentage || null,
-              [PerpsEventProperties.ESTIMATED_REWARDS]:
-                params.trackingData?.estimatedPoints || null,
-              [PerpsEventProperties.ASSET_PRICE]:
-                params.trackingData?.marketPrice || result.averagePrice || null,
-              [PerpsEventProperties.LIMIT_PRICE]:
-                params.orderType === 'limit' ? params.price : null,
-              [PerpsEventProperties.RECEIVED_AMOUNT]:
-                params.trackingData?.receivedAmount || null,
-            })
-            .build(),
-        );
       }
+
+      // Track analytics (success or failure, includes partial fills)
+      this.trackPositionCloseResult({
+        position,
+        result,
+        params,
+        context,
+        duration: completionDuration,
+      });
 
       return result;
     } catch (error) {
@@ -1104,53 +1202,15 @@ export class TradingService {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
 
-      if (position) {
-        // Track position close failed event for exceptions
-        const direction =
-          parseFloat(position.size) > 0
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT;
-
-        context.analytics.trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
-          )
-            .addProperties({
-              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-              [PerpsEventProperties.ASSET]: position.coin,
-              [PerpsEventProperties.DIRECTION]: direction,
-              [PerpsEventProperties.ORDER_SIZE]:
-                params.size || Math.abs(parseFloat(position.size)),
-              [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
-              [PerpsEventProperties.ERROR_MESSAGE]:
-                error instanceof Error ? error.message : 'Unknown error',
-              [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
-                parseFloat(position.size),
-              ),
-              [PerpsEventProperties.ORDER_TYPE]:
-                params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
-              [PerpsEventProperties.PERCENTAGE_CLOSED]: params.size
-                ? (parseFloat(params.size) /
-                    Math.abs(parseFloat(position.size))) *
-                  100
-                : 100,
-              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
-                ? parseFloat(position.unrealizedPnl)
-                : null,
-              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
-                ? parseFloat(position.returnOnEquity) * 100
-                : null,
-              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
-              [PerpsEventProperties.ASSET_PRICE]:
-                params.trackingData?.marketPrice || null,
-              [PerpsEventProperties.LIMIT_PRICE]:
-                params.orderType === 'limit' ? params.price : null,
-              [PerpsEventProperties.RECEIVED_AMOUNT]:
-                params.trackingData?.receivedAmount || null,
-            })
-            .build(),
-        );
-      }
+      // Track analytics for exception
+      this.trackPositionCloseResult({
+        position,
+        result: null,
+        error: error instanceof Error ? error : undefined,
+        params,
+        context,
+        duration: completionDuration,
+      });
 
       Logger.error(ensureError(error), {
         tags: {

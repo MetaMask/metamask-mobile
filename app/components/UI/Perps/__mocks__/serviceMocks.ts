@@ -39,7 +39,6 @@ export const createMockPerpsControllerState = (
   accountState: null,
   positions: [],
   perpsBalances: {},
-  pendingOrders: [],
   depositInProgress: false,
   lastDepositTransactionId: null,
   lastDepositResult: null,
