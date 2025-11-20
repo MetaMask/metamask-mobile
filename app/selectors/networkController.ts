@@ -158,6 +158,10 @@ export const selectEvmChainId = createSelector(
   (providerConfig) => providerConfig.chainId,
 );
 
+/**
+ * @deprecated this does not reliabially return selected chain as users can have "popular networks" selected (multiple networks)
+ * Logic and components need to handle multiple networks selected
+ */
 export const selectChainId = createDeepEqualSelector(
   selectSelectedNonEvmNetworkChainId,
   selectEvmChainId,
