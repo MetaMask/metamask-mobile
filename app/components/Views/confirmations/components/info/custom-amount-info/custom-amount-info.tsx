@@ -102,7 +102,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     return (
       <Box style={styles.container}>
-        <Box>
+        <Box style={styles.inputContainer}>
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
@@ -148,7 +148,7 @@ export function CustomAmountInfoSkeleton() {
 
   return (
     <Box style={styles.container}>
-      <Box>
+      <Box style={styles.inputContainer}>
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
         <PayWithRowSkeleton />
@@ -215,6 +215,7 @@ function BuySection() {
         variant={ButtonVariants.Primary}
         onPress={handleBuyPress}
         width={ButtonWidthTypes.Full}
+        size={ButtonSize.Lg}
       />
     </Box>
   );
