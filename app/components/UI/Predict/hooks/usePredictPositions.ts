@@ -139,30 +139,6 @@ export function usePredictPositions(
         if (!claimable) {
           // `positions` state only stores active positions
           setPositions(validPositions);
-
-          // Check for optimistic positions and manage auto-refresh
-          const hasOptimisticPosition = validPositions.some(
-            (position) => position.optimistic,
-          );
-
-          // Only manage auto-refresh if user hasn't set it manually
-          if (!isUserSetAutoRefresh.current) {
-            if (hasOptimisticPosition && !isAutoEnabledRefresh.current) {
-              // Enable auto-refresh when optimistic position is detected
-              setEffectiveAutoRefreshTimeout(2000); // 2 seconds
-              isAutoEnabledRefresh.current = true;
-              DevLogger.log(
-                'usePredictPositions: Auto-enabled refresh for optimistic position',
-              );
-            } else if (!hasOptimisticPosition && isAutoEnabledRefresh.current) {
-              // Disable auto-refresh when no optimistic positions
-              setEffectiveAutoRefreshTimeout(undefined);
-              isAutoEnabledRefresh.current = false;
-              DevLogger.log(
-                'usePredictPositions: Auto-disabled refresh (no optimistic positions)',
-              );
-            }
-          }
         }
 
         DevLogger.log('usePredictPositions: Loaded positions', {
@@ -245,6 +221,35 @@ export function usePredictPositions(
       setEffectiveAutoRefreshTimeout(autoRefreshTimeout);
     }
   }, [autoRefreshTimeout]);
+
+  // Check for optimistic positions and manage auto-refresh
+  useEffect(() => {
+    console.log('isUserSetAutoRefresh.current', isUserSetAutoRefresh.current);
+    // Only manage auto-refresh if user hasn't set it manually
+    if (isUserSetAutoRefresh.current) {
+      return;
+    }
+
+    const hasOptimisticPosition = positions.some(
+      (position) => position.optimistic,
+    );
+
+    if (hasOptimisticPosition && !isAutoEnabledRefresh.current) {
+      // Enable auto-refresh when optimistic position is detected
+      setEffectiveAutoRefreshTimeout(2000); // 2 seconds
+      isAutoEnabledRefresh.current = true;
+      DevLogger.log(
+        'usePredictPositions: Auto-enabled refresh for optimistic position',
+      );
+    } else if (!hasOptimisticPosition && isAutoEnabledRefresh.current) {
+      // Disable auto-refresh when no optimistic positions
+      setEffectiveAutoRefreshTimeout(undefined);
+      isAutoEnabledRefresh.current = false;
+      DevLogger.log(
+        'usePredictPositions: Auto-disabled refresh (no optimistic positions)',
+      );
+    }
+  }, [positions]);
 
   // Auto-refresh functionality
   useEffect(() => {
