@@ -1967,8 +1967,8 @@
       "place_order_failed": "Failed to place order",
       "preview_failed": "Failed to preview order",
       "preview_no_order_book": "No order book found",
-      "preview_no_order_match_buy": "No order match found for buy",
-      "preview_no_order_match_sell": "No order match found for sell",
+      "preview_no_order_match_buy": "Not enough shares available at market price to place your order right now.",
+      "preview_no_order_match_sell": "There isn't enough demand at market price to cash out right now.",
       "claim_failed": "Failed to claim",
       "unknown_error": "An unknown error occurred",
       "order_not_fully_filled": "Failed to fill your order"
