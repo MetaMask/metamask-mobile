@@ -354,6 +354,7 @@ export const NETWORK_CHAIN_ID: {
   readonly BERACHAIN: '0x138de';
   readonly EDU: '0xa3c3';
   readonly ABSTRACT: '0xab5';
+  readonly CHILIZ_MAINNET: '0x15b38';
   readonly OMNI: '0xa6';
   readonly XRPLEVM: '0x15f900';
   readonly FRAXTAL: '0xfc';
@@ -389,6 +390,7 @@ export const NETWORK_CHAIN_ID: {
   BERACHAIN: '0x138de',
   EDU: '0xa3c3',
   ABSTRACT: '0xab5',
+  CHILIZ_MAINNET: '0x15b38',
   OMNI: '0xa6',
   XRPLEVM: '0x15f900',
   FRAXTAL: '0xfc',
@@ -429,6 +431,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.BERACHAIN]: require('../../images/berachain.png'),
   [NETWORK_CHAIN_ID.EDU]: require('../../images/edu.png'),
   [NETWORK_CHAIN_ID.ABSTRACT]: require('../../images/abstract.png'),
+  [NETWORK_CHAIN_ID.CHILIZ_MAINNET]: require('../../images/chiliz.png'),
   [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
