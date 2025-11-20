@@ -1,0 +1,153 @@
+name: TEMP Android Flask E2E Smoke Tests (Repacking)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - '**'  # Run on all branches when pushed
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  needs_e2e_build:
+    name: 'Detect Mobile Build Changes'
+    uses: ./.github/workflows/needs-e2e-build.yml
+
+  # Build Main app first
+  build-android-main-apps:
+    name: 'Build Android Main Apps'
+    if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
+    secrets: inherit
+
+  # Repack Main to Flask
+  repack-android-flask-apps:
+    name: 'Repack Android Flask Apps'
+    if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    needs: [build-android-main-apps]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # Download artifacts from the previous job in THIS workflow
+      - name: Download Main App APK
+        uses: actions/download-artifact@v4
+        with:
+          name: main-e2e-release.apk
+          path: android/app/build/outputs/apk/prod/release/
+
+      - name: Download Main Test APK
+        uses: actions/download-artifact@v4
+        with:
+          name: main-e2e-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/prod/release/
+
+      - name: Repack Main to Flask
+        run: node scripts/repack.js
+        env:
+          PLATFORM: android
+          METAMASK_BUILD_TYPE: flask
+          SOURCE_APK: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          KEYSTORE_TYPE: flask
+
+      - name: Prepare Flask Artifacts
+        run: |
+          # Create destination directory for Test APK
+          mkdir -p android/app/build/outputs/apk/androidTest/flask/release/
+          # Copy Main Test APK to Flask location (assuming tests are compatible)
+          cp android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk
+
+      - name: Upload Flask APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flask-e2e-release.apk
+          path: android/app/build/outputs/apk/flask/release/app-flask-release.apk
+          retention-days: 1
+
+      - name: Upload Flask Test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flask-e2e-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk
+          retention-days: 1
+
+  flask-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2, 3]
+      fail-fast: false
+    needs: [repack-android-flask-apps]
+    if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: flask-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'FlaskBuildTests'
+      split_number: ${{ matrix.split }}
+      total_splits: 3
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      build_type: 'flask'
+    secrets: inherit
+
+  report-android-smoke-tests:
+    name: Report Android Smoke Tests
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    needs:
+      - flask-android-smoke
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download shards test artifacts (XMLs + Screenshots)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: 'test-e2e-*-android-*'
+
+      - name: Post Test Report
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: 'TEMP Android Flask E2E Smoke Test Results (Repacking)'
+          path: 'all-test-artifacts/**/junit.xml'
+          reporter: 'jest-junit'
+          fail-on-error: false
+          list-suites: 'failed'
+          list-tests: 'failed'
+
+      - name: Upload all test artifacts (XMLs + Screenshots)
+        uses: actions/upload-artifact@v4
+        with:
+          name: temp-e2e-smoke-android-flask-all-test-artifacts
+          path: all-test-artifacts/
+
