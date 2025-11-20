@@ -171,6 +171,8 @@ const mockActiveQuote = {
 
 describe('useRewards', () => {
   const mockCall = Engine.controllerMessenger.call as jest.Mock;
+  const mockSubscribe = Engine.controllerMessenger.subscribe as jest.Mock;
+  const mockUnsubscribe = Engine.controllerMessenger.unsubscribe as jest.Mock;
 
   const defaultSourceToken = {
     address: '0x0000000000000000000000000000000000000000' as Hex,
@@ -190,6 +192,9 @@ describe('useRewards', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset subscription handler storage
+    mockSubscribe.mockClear();
+    mockUnsubscribe.mockClear();
   });
 
   describe('when rewards feature is disabled', () => {
@@ -225,6 +230,7 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: false,
           accountOptedIn: null,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
@@ -240,7 +246,7 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -276,11 +282,12 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: false,
           accountOptedIn: false,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getFirstSubscriptionId',
+        'RewardsController:getCandidateSubscriptionId',
       );
       expect(mockCall).toHaveBeenCalledWith(
         'RewardsController:getHasAccountOptedIn',
@@ -297,7 +304,7 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -333,11 +340,12 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: false,
           accountOptedIn: false,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getFirstSubscriptionId',
+        'RewardsController:getCandidateSubscriptionId',
       );
       expect(mockCall).toHaveBeenCalledWith(
         'RewardsController:getHasAccountOptedIn',
@@ -356,7 +364,7 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -392,6 +400,7 @@ describe('useRewards', () => {
           estimatedPoints: 100,
           hasError: false,
           accountOptedIn: true,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
@@ -426,7 +435,7 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -499,6 +508,7 @@ describe('useRewards', () => {
         estimatedPoints: null,
         hasError: false,
         accountOptedIn: null,
+        rewardsAccountScope: expect.any(Object),
       });
 
       // Should not call Engine methods
@@ -529,6 +539,7 @@ describe('useRewards', () => {
         estimatedPoints: null,
         hasError: false,
         accountOptedIn: null,
+        rewardsAccountScope: null,
       });
     });
 
@@ -556,6 +567,7 @@ describe('useRewards', () => {
         estimatedPoints: null,
         hasError: false,
         accountOptedIn: null,
+        rewardsAccountScope: expect.any(Object),
       });
     });
 
@@ -583,6 +595,7 @@ describe('useRewards', () => {
         estimatedPoints: null,
         hasError: false,
         accountOptedIn: null,
+        rewardsAccountScope: expect.any(Object),
       });
     });
   });
@@ -593,7 +606,7 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve(null);
         }
         return Promise.resolve(null);
@@ -623,6 +636,7 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: false,
           accountOptedIn: null,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
@@ -630,7 +644,7 @@ describe('useRewards', () => {
         'RewardsController:isRewardsFeatureEnabled',
       );
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getFirstSubscriptionId',
+        'RewardsController:getCandidateSubscriptionId',
       );
       expect(mockCall).not.toHaveBeenCalledWith(
         'RewardsController:getHasAccountOptedIn',
@@ -645,7 +659,7 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -681,6 +695,7 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: true,
           accountOptedIn: true,
+          rewardsAccountScope: expect.any(Object),
         });
       });
     });
@@ -717,6 +732,7 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: true,
           accountOptedIn: null,
+          rewardsAccountScope: expect.any(Object),
         });
       });
     });
@@ -726,7 +742,7 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -759,6 +775,7 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: true,
           accountOptedIn: null,
+          rewardsAccountScope: expect.any(Object),
         });
       });
     });
@@ -769,7 +786,7 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -808,7 +825,7 @@ describe('useRewards', () => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -840,6 +857,7 @@ describe('useRewards', () => {
           estimatedPoints: 100,
           hasError: false,
           accountOptedIn: true,
+          rewardsAccountScope: expect.any(Object),
         });
       });
     });

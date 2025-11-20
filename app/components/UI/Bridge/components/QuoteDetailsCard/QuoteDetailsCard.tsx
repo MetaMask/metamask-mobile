@@ -71,6 +71,7 @@ const QuoteDetailsCard: React.FC = () => {
     shouldShowRewardsRow,
     hasError: hasRewardsError,
     accountOptedIn,
+    rewardsAccountScope,
   } = useRewards({
     activeQuote,
     isQuoteLoading,
@@ -287,7 +288,7 @@ const QuoteDetailsCard: React.FC = () => {
         <QuoteDetailsRecipientKeyValueRow />
 
         {/* Estimated Points */}
-        {shouldShowRewardsRow && (
+        {shouldShowRewardsRow && (accountOptedIn || rewardsAccountScope) && (
           <Box testID="bridge-rewards-row">
             <KeyValueRow
               field={{
@@ -323,8 +324,13 @@ const QuoteDetailsCard: React.FC = () => {
                               : RewardAnimationState.Idle
                         }
                       />
+                    ) : rewardsAccountScope ? (
+                      <AddRewardsAccount
+                        testID="bridge-add-rewards-account"
+                        account={rewardsAccountScope}
+                      />
                     ) : (
-                      <AddRewardsAccount testID="bridge-add-rewards-account" />
+                      <></>
                     )}
                   </Box>
                 ),
