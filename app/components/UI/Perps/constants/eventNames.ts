@@ -194,6 +194,8 @@ export const PerpsEventValues = {
     TUTORIAL_NAVIGATION: 'tutorial_navigation',
     CANDLE_PERIOD_VIEWED: 'candle_period_viewed',
     CANDLE_PERIOD_CHANGED: 'candle_period_changed',
+    FAVORITE_TOGGLED: 'favorite_toggled',
+    BUTTON_CLICKED: 'button_clicked',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
@@ -201,6 +203,8 @@ export const PerpsEventValues = {
     STOP_LOSS_SET: 'stop_loss_set',
     TAKE_PROFIT_SET: 'take_profit_set',
     ADL_LEARN_MORE: 'adl_learn_more',
+    FAVORITE_MARKET: 'favorite_market',
+    UNFAVORITE_MARKET: 'unfavorite_market',
   },
   NOTIFICATION_TYPE: {
     POSITION_LIQUIDATED: 'position_liquidated',

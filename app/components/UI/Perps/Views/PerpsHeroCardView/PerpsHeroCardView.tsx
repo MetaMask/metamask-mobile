@@ -136,6 +136,12 @@ const PerpsHeroCardView: React.FC = () => {
   }, []);
 
   // Track PnL hero card screen viewed
+  // Determine entry point: asset_screen or close_toast
+  const entryPoint =
+    source === PerpsEventValues.SOURCE.CLOSE_TOAST
+      ? PerpsEventValues.SOURCE.CLOSE_TOAST
+      : PerpsEventValues.SOURCE.PERP_ASSET_SCREEN;
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
@@ -146,8 +152,7 @@ const PerpsHeroCardView: React.FC = () => {
         data.direction === 'long'
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.SOURCE]:
-        source || PerpsEventValues.SOURCE.POSITION_SCREEN,
+      [PerpsEventProperties.SOURCE]: entryPoint,
       [PerpsEventProperties.PNL_DOLLAR]: data.pnl,
       [PerpsEventProperties.PNL_PERCENT]: data.roe,
     },
