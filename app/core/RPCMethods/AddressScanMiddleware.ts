@@ -80,13 +80,11 @@ function getChainIdForRequest(
  * @param phishingController - The phishing controller
  * @param chainId - The chainId
  * @param address - The address to scan
- * @param context - Context string for logging
  */
 async function scanAddress(
   phishingController: PhishingController,
   chainId: string,
   address: string,
-  context: string,
 ): Promise<void> {
   if (!resemblesAddress(address)) {
     return;
@@ -96,7 +94,7 @@ async function scanAddress(
     await phishingController.scanAddress(chainId, address);
   } catch (error) {
     Logger.log(
-      `[AddressScanMiddleware] Failed to scan address ${address} (${context}):`,
+      `[AddressScanMiddleware] Failed to scan address ${address}:`,
       error,
     );
   }
@@ -126,7 +124,7 @@ async function handleEthSendTransaction(
   const { to, data } = txParams as { to?: string; data?: string };
 
   if (to) {
-    await scanAddress(phishingController, chainId, to, 'transaction:to');
+    await scanAddress(phishingController, chainId, to);
   }
 
   if (data && typeof data === 'string') {
@@ -134,12 +132,7 @@ async function handleEthSendTransaction(
       data as unknown as Hex,
     );
     if (spenderAddress) {
-      await scanAddress(
-        phishingController,
-        chainId,
-        spenderAddress,
-        'transaction:spender',
-      );
+      await scanAddress(phishingController, chainId, spenderAddress);
     }
   }
 }
@@ -171,22 +164,12 @@ async function handleEthSignTypedData(
 
   const verifyingContract = typedDataMessage.domain?.verifyingContract;
   if (verifyingContract) {
-    await scanAddress(
-      phishingController,
-      chainId,
-      verifyingContract,
-      'signature:verifyingContract',
-    );
+    await scanAddress(phishingController, chainId, verifyingContract);
   }
 
   const spenderAddress = extractSpenderFromPermitMessage(typedDataMessage);
   if (spenderAddress) {
-    await scanAddress(
-      phishingController,
-      chainId,
-      spenderAddress,
-      'signature:spender',
-    );
+    await scanAddress(phishingController, chainId, spenderAddress);
   }
 }
 
