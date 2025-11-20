@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 
@@ -67,6 +73,8 @@ const OnboardingAnimation = ({
   const { themeAppearance } = useAppThemeFromContext();
   const styles = createStyles();
 
+  const [isPlaying, setIsPlaying] = useState(false);
+
   const moveLogoUp = useCallback(() => {
     Animated.parallel([
       Animated.timing(logoPosition, {
@@ -93,7 +101,7 @@ const OnboardingAnimation = ({
     }
 
     try {
-      if (logoRef.current) {
+      if (logoRef.current && isPlaying) {
         const isDarkMode = themeAppearance === 'dark';
         logoRef.current.setInputState('WordmarkBuildUp', 'Dark', isDarkMode);
         logoRef.current.fireState('WordmarkBuildUp', 'Start');
@@ -115,13 +123,14 @@ const OnboardingAnimation = ({
     setStartFoxAnimation,
     logoPosition,
     buttonsOpacity,
+    isPlaying,
   ]);
 
   useEffect(() => {
     if (startOnboardingAnimation) {
       startRiveAnimation();
     }
-  }, [startOnboardingAnimation, startRiveAnimation]);
+  }, [startRiveAnimation, startOnboardingAnimation]);
 
   return (
     <>
@@ -141,9 +150,11 @@ const OnboardingAnimation = ({
             source={MetaMaskWordmarkAnimation}
             fit={Fit.Contain}
             alignment={Alignment.Center}
-            autoplay={false}
             stateMachineName="WordmarkBuildUp"
             testID="metamask-wordmark-animation"
+            onPlay={() => {
+              setIsPlaying(true);
+            }}
           />
         </Animated.View>
       </View>

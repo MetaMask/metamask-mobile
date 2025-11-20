@@ -78,6 +78,7 @@ const config = {
   },
   // Disable jest cache
   cache: false,
+  prettierPath: require.resolve('prettier-2'),
 };
 
 // eslint-disable-next-line import/no-commonjs
