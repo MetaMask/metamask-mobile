@@ -20,6 +20,8 @@ async function start() {
     GITHUB_RUN_ID,
     ANDROID_BUILD_SUCCESS,
     IOS_BUILD_SUCCESS,
+    IOS_ARTIFACTS_URL,
+    ANDROID_ARTIFACTS_URL,
   } = process.env;
 
   if (!GITHUB_TOKEN || !GITHUB_REPOSITORY || !PR_NUMBER || !GITHUB_RUN_ID) {
@@ -69,17 +71,20 @@ async function start() {
   }
 
   // 2. Construct Comment Body
-  const testFlightLink = 'https://testflight.apple.com/join/hBrjtFuA';
-  const artifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${GITHUB_RUN_ID}`;
+  // Use provided URLs or fallback to defaults (though specific URLs are preferred)
+  const testFlightLink = IOS_ARTIFACTS_URL || 'https://testflight.apple.com/join/hBrjtFuA';
+  const artifactsUrl = ANDROID_ARTIFACTS_URL || `https://github.com/${owner}/${repo}/actions/runs/${GITHUB_RUN_ID}`;
 
   // Use specific emojis and format to match the requested style more closely
   const rows = [];
 
   if (IOS_BUILD_SUCCESS === 'true') {
+    // :apple: Release Candidate Build Number ... (access via TestFlight)
     rows.push(`| :apple: **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
   }
 
   if (ANDROID_BUILD_SUCCESS === 'true') {
+    // :robot: Release Candidate Download ...
     rows.push(`| :robot: **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
   }
 
