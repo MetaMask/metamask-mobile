@@ -69,7 +69,7 @@ const InfoRow = ({
 
   const labelVariant =
     rowVariant === InfoRowVariant.Small
-      ? TextVariant.BodySM
+      ? TextVariant.BodyMD
       : TextVariant.BodyMDMedium;
 
   return (
@@ -124,8 +124,12 @@ const InfoRow = ({
 };
 
 export const InfoRowSkeleton: React.FC<{ testId?: string }> = ({ testId }) => (
-  <InfoRow testID={testId} labelChildren={<Skeleton width={100} height={14} />}>
-    <Skeleton width={80} height={14} />
+  <InfoRow
+    testID={testId}
+    rowVariant={InfoRowVariant.Small}
+    labelChildren={<Skeleton width={100} height={20} />}
+  >
+    <Skeleton width={80} height={20} />
   </InfoRow>
 );
 
