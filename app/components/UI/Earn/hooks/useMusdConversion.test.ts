@@ -304,6 +304,7 @@ describe('useMusdConversion', () => {
 
       expect(result.current.error).toBe('Transaction failed');
       expect(Logger.error).toHaveBeenCalled();
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
     });
 
     it('uses custom navigationStack when provided', async () => {

@@ -212,6 +212,10 @@ export const useMusdConversion = () => {
         );
 
         setError(errorMessage);
+
+        // Prevent user from being stuck on confirmation screen without a transaction.
+        navigation.goBack();
+
         throw err;
       }
     },
