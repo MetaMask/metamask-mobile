@@ -59,7 +59,8 @@ const RiveMock = forwardRef<RiveRef, MockRiveProps>(
       if (onPlay) {
         onPlay();
       }
-    }, [onPlay]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return <View testID={testID} {...viewProps} />;
   },
