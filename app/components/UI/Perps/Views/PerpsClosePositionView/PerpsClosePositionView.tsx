@@ -550,6 +550,8 @@ const PerpsClosePositionView: React.FC = () => {
       isLoadingFees={feeResults.isLoadingMetamaskFee}
       isLoadingRewards={rewardsState.isLoading}
       hasRewardsError={rewardsState.hasError}
+      accountOptedIn={rewardsState.accountOptedIn}
+      rewardsAccount={rewardsState.account}
       isInputFocused={isInputFocused}
       testIDs={{
         feesTooltip: PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,

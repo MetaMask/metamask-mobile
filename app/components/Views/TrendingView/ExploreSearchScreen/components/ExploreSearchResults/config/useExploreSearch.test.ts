@@ -28,7 +28,7 @@ const mockUseTrendingRequest = jest.fn();
 const mockUsePerpsMarkets = jest.fn();
 const mockUsePredictMarketData = jest.fn();
 
-jest.mock('../../../../../../UI/Assets/hooks/useTrendingRequest', () => ({
+jest.mock('../../../../../../UI/Trending/hooks/useTrendingRequest', () => ({
   useTrendingRequest: () => mockUseTrendingRequest(),
 }));
 

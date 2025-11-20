@@ -372,7 +372,6 @@ exports[`ActivityView should render correctly 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": undefined,
                               "borderRadius": 8,
                               "borderStyle": "solid",
                               "borderWidth": 1,

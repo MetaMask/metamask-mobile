@@ -25,9 +25,11 @@ import { type PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBot
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import { useStyles } from '../../../../hooks/useStyles';
 import createStyles from './PerpsCloseSummary.styles';
 import Routes from '../../../../../constants/navigation/Routes';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface PerpsCloseSummaryProps {
   /** Total margin including P&L */
@@ -61,7 +63,10 @@ export interface PerpsCloseSummaryProps {
   isLoadingRewards?: boolean;
   /** Whether there was an error calculating rewards */
   hasRewardsError?: boolean;
-
+  /** Whether the account has opted in to rewards */
+  accountOptedIn?: boolean | null;
+  /** The account that is currently in scope */
+  rewardsAccount?: InternalAccount | null;
   /** Optional styling for container */
   style?: ViewStyle;
   /** Whether input is focused (for padding adjustment) */
@@ -105,6 +110,8 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   isLoadingFees = false,
   isLoadingRewards = false,
   hasRewardsError = false,
+  accountOptedIn = null,
+  rewardsAccount = undefined,
   style,
   isInputFocused = false,
   enableTooltips = true,
@@ -266,40 +273,46 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       </View>
 
       {/* Estimated Points */}
-      {shouldShowRewards && (
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryLabel}>
-            {enableTooltips ? (
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('points')}
-                style={styles.labelWithTooltip}
-                testID={testIDs?.pointsTooltip}
-              >
+      {shouldShowRewards &&
+        (accountOptedIn ||
+          (accountOptedIn === false && rewardsAccount !== undefined)) && (
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryLabel}>
+              {enableTooltips ? (
+                <TouchableOpacity
+                  onPress={() => handleTooltipPress('points')}
+                  style={styles.labelWithTooltip}
+                  testID={testIDs?.pointsTooltip}
+                >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {strings('perps.estimated_points')}
+                  </Text>
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.Muted}
+                  />
+                </TouchableOpacity>
+              ) : (
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {strings('perps.estimated_points')}
                 </Text>
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.Muted}
+              )}
+            </View>
+            <View style={styles.summaryValue}>
+              {accountOptedIn ? (
+                <RewardsAnimations
+                  value={estimatedPoints}
+                  bonusBips={bonusBips}
+                  shouldShow={shouldShowRewards}
+                  state={rewardAnimationState}
                 />
-              </TouchableOpacity>
-            ) : (
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {strings('perps.estimated_points')}
-              </Text>
-            )}
+              ) : (
+                <AddRewardsAccount account={rewardsAccount ?? undefined} />
+              )}
+            </View>
           </View>
-          <View style={styles.summaryValue}>
-            <RewardsAnimations
-              value={estimatedPoints}
-              bonusBips={bonusBips}
-              shouldShow={shouldShowRewards}
-              state={rewardAnimationState}
-            />
-          </View>
-        </View>
-      )}
+        )}
     </View>
   );
 };
