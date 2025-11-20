@@ -473,7 +473,6 @@
     "connectionStatus": "disconnected",
     "positions": [],
     "accountState": null,
-    "pendingOrders": [],
     "depositInProgress": false,
     "depositRequests": {},
     "lastDepositTransactionId": null,

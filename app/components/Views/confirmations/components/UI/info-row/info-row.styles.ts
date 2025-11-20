@@ -25,7 +25,7 @@ const styleSheet = (params: {
       flexDirection: 'row',
       alignSelf: 'flex-start',
       alignItems: 'center',
-      minHeight: vars.variant === InfoRowVariant.Small ? 0 : 24,
+      minHeight: 24,
       paddingEnd: 4,
       marginRight: 'auto',
     },
