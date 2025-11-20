@@ -1034,20 +1034,11 @@ export const createTradingViewChartTemplate = (
             if (window.candlestickSeries && visibleData.length > 0) {
                 const firstTime = visibleData[0].time;
                 const lastTime = visibleData[visibleData.length - 1].time;
-                
-                // Calculate the time interval between candles for padding
-                const timeInterval = visibleData.length > 1 
-                    ? visibleData[1].time - visibleData[0].time 
-                    : 60; // Default to 1 minute if only one candle
-                
-                // Add padding to ensure the latest candle is fully visible
-                // Add half a candle period to the end to ensure latest candle is visible
-                const paddedLastTime = lastTime + (timeInterval / 2);
-                
+
                 try {
                     window.chart.timeScale().setVisibleRange({
                         from: firstTime,
-                        to: paddedLastTime,
+                        to: lastTime,
                     });
                 } catch (error) {
                     console.error('TradingView: Error setting visible range:', error);
