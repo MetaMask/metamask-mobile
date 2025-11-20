@@ -15,7 +15,7 @@ import { getGasFeeEstimatesForTransaction } from './gas';
 import { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Logger from '../../../../util/Logger';
-import { Fee } from '@metamask/smart-transactions-controller/dist/types';
+import { Fee } from '@metamask/smart-transactions-controller';
 import {
   getGasIncludedTransactionFees,
   type GasIncludedQuote,

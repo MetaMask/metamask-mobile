@@ -1,13 +1,29 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../../../util/test/renderWithProvider';
 import RegionSelectorModal from './RegionSelectorModal';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { RampSDK } from '../../sdk';
-import { RampType } from '../../types';
+import { RampType, Region } from '../../types';
 
-const mockRegions = [
+const mockedCaliforniaState: DeepPartial<Region> = {
+  emoji: '🇺🇸',
+  id: '/regions/us-ca',
+  name: 'California',
+  stateId: 'ca',
+  support: {
+    buy: true,
+    sell: true,
+  },
+  unsupported: false,
+  detected: false,
+};
+
+const mockRegions: DeepPartial<Region>[] = [
   {
     currencies: ['/currencies/fiat/eur'],
     emoji: '🇵🇹',
@@ -39,20 +55,7 @@ const mockRegions = [
     emoji: '🇺🇸',
     id: '/regions/us',
     name: 'United States of America',
-    states: [
-      {
-        emoji: '🇺🇸',
-        id: '/regions/us-ca',
-        name: 'California',
-        stateId: 'ca',
-        support: {
-          buy: true,
-          sell: true,
-        },
-        unsupported: false,
-        detected: false,
-      },
-    ],
+    states: [mockedCaliforniaState],
     enableSell: true,
     support: {
       buy: false,
@@ -134,6 +137,18 @@ describe('RegionSelectorModal', () => {
   });
 
   it('renders the modal with region list', () => {
+    const { toJSON } = render(RegionSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders the modal with selected region in list', () => {
+    mockUseRampSDKValues.selectedRegion = mockRegions[0] as Region; // Portugal
+    const { toJSON } = render(RegionSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders the modal with selected state in list', () => {
+    mockUseRampSDKValues.selectedRegion = mockedCaliforniaState as Region; // Portugal
     const { toJSON } = render(RegionSelectorModal);
     expect(toJSON()).toMatchSnapshot();
   });

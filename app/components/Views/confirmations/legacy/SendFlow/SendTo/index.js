@@ -59,8 +59,11 @@ import {
 } from '../../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../../UI/AddToAddressBookWrapper';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
-import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
+import { withRampNavigation } from '../../../../../UI/Ramp/hooks/withRampNavigation';
+import {
+  getDetectedGeolocation,
+  getRampNetworks,
+} from '../../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
@@ -98,6 +101,18 @@ class SendFlow extends PureComponent {
      * Selected address as string
      */
     selectedAddress: PropTypes.string,
+    /**
+     * Function to navigate to ramp flows
+     */
+    goToBuy: PropTypes.func,
+    /**
+     * RampMode enum
+     */
+    RampMode: PropTypes.object,
+    /**
+     * AggregatorRampType enum
+     */
+    AggregatorRampType: PropTypes.object,
     /**
      * List of accounts from the AccountsController
      */
@@ -159,6 +174,10 @@ class SendFlow extends PureComponent {
      * Network image source
      */
     networkImageSource: PropTypes.object,
+    /**
+     * Geodetected region for ramp
+     */
+    rampGeodetectedRegion: PropTypes.string,
   };
 
   addressToInputRef = React.createRef();
@@ -182,14 +201,14 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     navigation.setOptions(
-      getSendFlowTitle(
-        'send.send_to',
+      getSendFlowTitle({
+        title: 'send.send_to',
         navigation,
         route,
-        colors,
+        themeColors: colors,
         resetTransaction,
-        null,
-      ),
+        transaction: null,
+      }),
     );
   };
 
@@ -328,7 +347,7 @@ class SendFlow extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate(...createBuyNavigationDetails());
+    this.props.goToBuy();
 
     this.props.metrics.trackEvent(
       this.props.metrics
@@ -337,6 +356,7 @@ class SendFlow extends PureComponent {
           button_location: 'Send Flow warning',
           button_copy: 'Buy Native Token',
           chain_id_destination: this.props.globalChainId,
+          region: this.props.rampGeodetectedRegion,
         })
         .build(),
     );
@@ -410,8 +430,8 @@ class SendFlow extends PureComponent {
     return filteredAddressBook[checksummedAddress]
       ? filteredAddressBook[checksummedAddress].name
       : matchingAccount
-      ? matchingAccount.metadata.name
-      : null;
+        ? matchingAccount.metadata.name
+        : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
@@ -759,6 +779,7 @@ const mapStateToProps = (state) => {
     networkImageSource: selectNetworkImageSource(state, globalChainId),
     networkName:
       selectNetworkConfigurations(state)?.[globalChainId]?.name || '',
+    rampGeodetectedRegion: getDetectedGeolocation(state),
   };
 };
 
@@ -790,4 +811,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withMetricsAwareness(SendFlow));
+)(withRampNavigation(withMetricsAwareness(SendFlow)));

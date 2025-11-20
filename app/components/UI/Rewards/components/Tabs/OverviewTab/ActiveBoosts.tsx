@@ -38,17 +38,28 @@ import { Skeleton } from '../../../../../../component-library/components/Skeleto
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { handleDeeplink } from '../../../../../../core/DeeplinkManager/Handlers/handleDeeplink';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
-const CARD_SPACING = 16;
+// SNAP_ADJUSTMENT accounts for the horizontal padding and margin applied to the BoostCard
+// and its container.
+// Calculation: BoostCard container has horizontal padding of 16px (px-4) on each side,
+// and BoostCard itself has marginRight of 10px.
+// Total adjustment = 16 (left padding) + 16 (right padding) + 10 (card margin) = 42
+const SNAP_ADJUSTMENT = 16 + 16 + 10;
 
 interface BoostCardProps {
   boost: PointsBoostDto;
   index: number;
+  isLast: boolean;
 }
 
-const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
+const BoostCard: React.FC<BoostCardProps> = ({
+  boost,
+  index: _index,
+  isLast: _isLast,
+}) => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -65,10 +76,14 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
     return formatTimeRemaining(new Date(boost.endDate));
   }, [boost.endDate]);
 
-  // Go to swap view with Linea asset atm.
-  // TODO: coordinate backend changes to support other default assets, or go to perps
   const handleBoostTap = () => {
-    goToSwaps();
+    //Use deeplink if provided, otherwise fallback to goToSwaps
+    if (boost.deeplink) {
+      handleDeeplink({ uri: boost.deeplink });
+    } else {
+      goToSwaps();
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_ACTIVE_BOOST_CLICKED)
         .addProperties({
@@ -98,7 +113,11 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
     if (boost.endDate) {
       return (
         <Box twClassName="flex-row items-center gap-2">
-          <Icon name={IconName.Clock} size={IconSize.Sm} />
+          <Icon
+            name={IconName.Clock}
+            size={IconSize.Sm}
+            twClassName="text-white"
+          />
           <Text variant={TextVariant.BodySm} twClassName="text-white">
             {timeRemaining}
           </Text>
@@ -113,7 +132,11 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
     <TouchableOpacity onPress={handleBoostTap} activeOpacity={0.8}>
       <Box
         style={[
-          tw.style('rounded-xl max-w-60 p-4 mr-2 h-32 relative'),
+          tw.style(
+            `rounded-xl max-w-60 p-4 h-32 relative ${
+              _index === 0 ? 'ml-4' : ''
+            } ${!_isLast ? 'mr-4' : ''}`,
+          ),
           {
             width: CARD_WIDTH,
             backgroundColor: boost.backgroundColor || tw.color('bg-default'),
@@ -160,7 +183,7 @@ const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
   count,
   isLoading,
 }) => (
-  <Box>
+  <Box twClassName="px-4">
     <Box twClassName="flex-row items-center gap-2">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
         {strings('rewards.active_boosts_title')}
@@ -217,7 +240,7 @@ const ActiveBoosts: React.FC<{
       !hasError
     ) {
       return (
-        <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
+        <Skeleton style={tw.style('h-32 mx-4 bg-rounded')} width={CARD_WIDTH} />
       );
     }
 
@@ -229,11 +252,17 @@ const ActiveBoosts: React.FC<{
             horizontal
             showsHorizontalScrollIndicator={false}
             decelerationRate="fast"
-            snapToInterval={CARD_WIDTH + CARD_SPACING}
+            snapToInterval={CARD_WIDTH - SNAP_ADJUSTMENT}
             snapToAlignment="start"
+            contentContainerStyle={tw.style('pr-4')}
           >
             {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
-              <BoostCard key={boost.id} boost={boost} index={index} />
+              <BoostCard
+                key={boost.id}
+                boost={boost}
+                index={index}
+                isLast={index === activeBoosts.length - 1}
+              />
             ))}
           </ScrollView>
         </GestureDetector>
@@ -249,7 +278,7 @@ const ActiveBoosts: React.FC<{
   }
 
   return (
-    <Box twClassName="py-4 gap-4">
+    <Box twClassName="pt-2 pb-4 gap-4">
       {/* Always show section header */}
       <SectionHeader
         count={activeBoosts?.length || null}

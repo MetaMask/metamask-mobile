@@ -8,6 +8,7 @@ export const createStyles = (theme: Theme) =>
     wrapper: {
       backgroundColor: theme.colors.background.default,
       flex: 1,
+      paddingBottom: 16,
     },
     normalText: {
       color: theme.colors.text.default,
@@ -78,6 +79,7 @@ export const createStyles = (theme: Theme) =>
       borderColor: theme.colors.border.default,
       padding: 10,
       color: theme.colors.text.default,
+      ...fontStyles.normal,
     },
     icon: {
       color: theme.colors.error.default,

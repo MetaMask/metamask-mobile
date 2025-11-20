@@ -1,8 +1,12 @@
 import { Interface } from '@ethersproject/abi';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   addMMOriginatedTransaction,
   get4ByteCode,
+  hasTransactionType,
   parseStandardTokenTransactionData,
 } from './transaction';
 import {
@@ -164,5 +168,48 @@ describe('get4ByteCode', () => {
     const transactionData = '0x1234567811111111111111111111111111111111';
     const result = get4ByteCode(transactionData);
     expect(result).toBe('0x12345678');
+  });
+});
+
+describe('hasTransactionType', () => {
+  it('returns true if transaction type matches', () => {
+    const txMeta = {
+      type: TransactionType.simpleSend,
+    } as TransactionMeta;
+
+    expect(
+      hasTransactionType(txMeta, [
+        TransactionType.bridge,
+        TransactionType.simpleSend,
+      ]),
+    ).toBe(true);
+  });
+
+  it('returns true if nested transaction type matches', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.simpleSend }],
+    } as TransactionMeta;
+
+    expect(
+      hasTransactionType(txMeta, [
+        TransactionType.bridge,
+        TransactionType.simpleSend,
+      ]),
+    ).toBe(true);
+  });
+
+  it('returns false if neither transaction type nor nested transaction types match', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.bridge }],
+    } as TransactionMeta;
+
+    expect(
+      hasTransactionType(txMeta, [
+        TransactionType.simpleSend,
+        TransactionType.cancel,
+      ]),
+    ).toBe(false);
   });
 });

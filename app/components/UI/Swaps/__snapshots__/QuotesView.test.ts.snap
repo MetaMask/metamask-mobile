@@ -802,6 +802,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                         undefined,
                                         undefined,
                                         undefined,
+                                        undefined,
                                       ],
                                     ]
                                   }
@@ -947,6 +948,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                           "textAlign": "center",
                                           "textAlignVertical": "center",
                                         },
+                                        undefined,
                                         undefined,
                                         undefined,
                                         undefined,

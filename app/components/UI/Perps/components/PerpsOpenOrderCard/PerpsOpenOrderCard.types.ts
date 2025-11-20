@@ -14,7 +14,13 @@ export interface PerpsOpenOrderCardProps {
 }
 
 export interface OpenOrderCardDerivedData {
-  direction: 'long' | 'short' | 'Close Long' | 'Close Short';
+  direction:
+    | 'long'
+    | 'short'
+    | 'Close Long'
+    | 'Close Short'
+    | 'Limit Long'
+    | 'Limit Short';
   sizeInUSD: string;
   fillPercentage: number;
 }

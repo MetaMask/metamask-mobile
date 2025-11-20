@@ -1,5 +1,5 @@
-import React, { useCallback, useRef } from 'react';
-import { Image, ImageBackground, Text as RNText } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Image, ImageBackground, Platform, Text as RNText } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -34,10 +34,14 @@ import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import Device from '../../../../../util/device';
+import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
+import storageWrapper from '../../../../../store/storage-wrapper';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 /**
  * OnboardingIntroStep Component
@@ -54,20 +58,33 @@ const OnboardingIntroStep: React.FC<{
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
+
+  const setHasSeenRewardsIntroModal = useCallback(async () => {
+    await storageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true');
+  }, []);
+
+  useEffect(() => {
+    setHasSeenRewardsIntroModal();
+  }, [setHasSeenRewardsIntroModal]);
 
   // Selectors
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
   const optinAllowedForGeoLoading = useSelector(
     selectOptinAllowedForGeoLoading,
   );
-  const internalAccount = useSelector(selectSelectedInternalAccount);
+  const accountGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
+  );
   const optinAllowedForGeoError = useSelector(selectOptinAllowedForGeoError);
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   // Computed state
   const candidateSubscriptionIdLoading =
-    !subscriptionId && candidateSubscriptionId === 'pending';
+    !subscriptionId &&
+    (candidateSubscriptionId === 'pending' ||
+      candidateSubscriptionId === 'retry');
   const candidateSubscriptionIdError = candidateSubscriptionId === 'error';
 
   // If we don't know of a subscription id, we need to fetch the geo rewards metadata
@@ -155,8 +172,12 @@ const OnboardingIntroStep: React.FC<{
       return;
     }
 
-    // Check for hardware account restrictions
-    if (internalAccount && isHardwareAccount(internalAccount?.address)) {
+    // Check for hardware account restrictions for default account associated with group.
+    if (
+      accountGroupAccounts.some((account) =>
+        isHardwareAccount(account?.address),
+      )
+    ) {
       showErrorModal(
         'rewards.onboarding.not_supported_hardware_account_title',
         'rewards.onboarding.not_supported_hardware_account_description',
@@ -164,14 +185,19 @@ const OnboardingIntroStep: React.FC<{
       return;
     }
 
-    // Check if account type is supported for opt-in
-    if (
-      internalAccount &&
-      !Engine.controllerMessenger.call(
-        'RewardsController:isOptInSupported',
-        internalAccount,
-      )
-    ) {
+    // Check if any account in the active account group is supported for opt-in
+    const hasAnySupportedAccount = accountGroupAccounts.some((account) => {
+      try {
+        return Engine.controllerMessenger.call(
+          'RewardsController:isOptInSupported',
+          account,
+        );
+      } catch {
+        return false;
+      }
+    });
+
+    if (!hasAnySupportedAccount) {
       showErrorModal(
         'rewards.onboarding.not_supported_account_type_title',
         'rewards.onboarding.not_supported_account_type_description',
@@ -192,7 +218,7 @@ const OnboardingIntroStep: React.FC<{
     showErrorModal,
     showRetryErrorModal,
     fetchGeoRewardsMetadata,
-    internalAccount,
+    accountGroupAccounts,
   ]);
 
   /**
@@ -259,9 +285,11 @@ const OnboardingIntroStep: React.FC<{
       <Box twClassName="justify-center items-center">
         <RNText
           style={[
-            tw.style('text-center text-white text-12 leading-1'),
+            tw.style('text-center text-white text-12 leading-1 pt-1'),
             // eslint-disable-next-line react-native/no-inline-styles
-            { fontFamily: 'MM Poly Regular', fontWeight: '500' },
+            {
+              fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
+            },
           ]}
         >
           {title}
@@ -306,6 +334,7 @@ const OnboardingIntroStep: React.FC<{
         loadingText={strings('rewards.onboarding.intro_confirm_geo_loading')}
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
+        testID={REWARDS_VIEW_SELECTORS.CLAIM_BUTTON}
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {confirmLabel}
@@ -317,6 +346,7 @@ const OnboardingIntroStep: React.FC<{
         isDisabled={candidateSubscriptionIdLoading || !!subscriptionId}
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
+        testID={REWARDS_VIEW_SELECTORS.SKIP_BUTTON}
       >
         <Text variant={TextVariant.BodyMd} twClassName="text-white font-medium">
           {strings('rewards.onboarding.intro_skip')}
@@ -333,11 +363,11 @@ const OnboardingIntroStep: React.FC<{
     <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-grow px-4 py-8')}
+        style={tw.style(`flex-1 px-4 pt-8 ${isLargeDevice ? 'pb-8' : ''}`)}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[10%]" />
+        {isLargeDevice && <Box twClassName="flex-basis-[10%]" />}
 
         {/* Title Section */}
         {renderTitle()}

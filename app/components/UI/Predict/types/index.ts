@@ -59,13 +59,6 @@ export interface OffchainTradeResponse {
   response: unknown;
 }
 
-export type PredictOrderStatus =
-  | 'idle'
-  | 'pending'
-  | 'filled'
-  | 'cancelled'
-  | 'error';
-
 export enum PredictClaimStatus {
   IDLE = 'idle',
   PENDING = 'pending',
@@ -74,35 +67,21 @@ export enum PredictClaimStatus {
   ERROR = 'error',
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictOrder = {
-  id: string;
-  providerId: string;
-  chainId: number;
-  marketId?: string;
-  outcomeId: string;
-  outcomeTokenId: string;
-  isBuy: boolean;
-  size: number;
-  price: number;
-  status: PredictOrderStatus;
-  error?: string;
-  timestamp: number;
-  lastUpdated: number;
-  onchainTradeParams: OnchainTradeParams[];
-  offchainTradeParams?: OffchainTradeParams;
-};
+export enum PredictDepositStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  ERROR = 'error',
+}
 
-export type PredictClaim = {
-  positionId: string;
-  chainId: number;
-  status: PredictClaimStatus;
-  txParams: {
-    to: Hex;
-    data: Hex;
-    value: Hex;
-  };
-};
+export enum PredictWithdrawStatus {
+  IDLE = 'idle',
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  ERROR = 'error',
+}
 
 export type PredictMarket = {
   id: string;
@@ -114,8 +93,11 @@ export type PredictMarket = {
   image: string;
   status: 'open' | 'closed' | 'resolved';
   recurrence: Recurrence;
-  categories: PredictCategory[];
+  category: PredictCategory;
+  tags: string[];
   outcomes: PredictOutcome[];
+  liquidity: number;
+  volume: number;
 };
 
 export type PredictSeries = {
@@ -131,6 +113,7 @@ export type PredictCategory =
 
 export type PredictOutcome = {
   id: string;
+  providerId: string;
   marketId: string;
   title: string;
   description: string;
@@ -141,6 +124,8 @@ export type PredictOutcome = {
   groupItemTitle: string;
   negRisk?: boolean;
   tickSize?: string;
+  resolvedBy?: string;
+  resolutionStatus?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -153,6 +138,9 @@ export interface PredictActivity {
   id: string;
   providerId: string;
   entry: PredictActivityEntry;
+  title?: string;
+  outcome?: string;
+  icon?: string;
 }
 
 export type PredictActivityEntry =
@@ -183,7 +171,32 @@ export interface PredictActivitySell {
 export interface PredictActivityClaimWinnings {
   type: 'claimWinnings';
   timestamp: number;
-  // tbd
+  amount: number;
+}
+
+export enum PredictActivityType {
+  BUY = 'BUY',
+  SELL = 'SELL',
+  CLAIM = 'CLAIM',
+}
+
+export interface PredictActivityItem {
+  id: string;
+  type: PredictActivityType;
+  marketTitle: string;
+  detail: string;
+  amountUsd: number;
+  icon?: string;
+  outcome?: string;
+  percentChange?: number;
+  providerId?: string;
+  priceImpactPercentage?: number;
+  metamaskFeeUsd?: number;
+  providerFeeUsd?: number;
+  totalUsd?: number;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
+  entry: PredictActivityEntry;
 }
 
 export interface PredictPriceHistoryPoint {
@@ -196,6 +209,37 @@ export interface GetPriceHistoryParams {
   providerId?: string;
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
+}
+
+/**
+ * Parameters for fetching prices from CLOB /prices endpoint
+ */
+export interface GetPriceParams {
+  providerId: string;
+  queries: PriceQuery[];
+}
+
+export interface PriceQuery {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+}
+
+export interface GetPriceResponse {
+  providerId: string;
+  results: PriceResult[];
+}
+
+export interface PriceResult {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  entry: PriceEntry;
+}
+
+export interface PriceEntry {
+  buy: number;
+  sell: number;
 }
 
 export enum PredictPositionStatus {
@@ -228,32 +272,62 @@ export type PredictPosition = {
   avgPrice: number;
   endDate: string;
   negRisk?: boolean;
+  optimistic?: boolean;
 };
 
-export type PredictNotification = {
-  orderId: string;
-  status: PredictOrderStatus;
+export type PredictBalance = {
+  balance: number;
+  validUntil: number;
 };
-
-export interface BuyParams {
-  market: PredictMarket;
-  outcomeId: string;
-  outcomeTokenId: string;
-  size: number;
-}
-
-export interface SellParams {
-  position: PredictPosition;
-}
 
 export interface ClaimParams {
-  positions: PredictPosition[];
+  providerId: string;
 }
 
-export type Result<T = void> = {
-  success: boolean;
-  id?: string;
-  ids?: string[];
-  error?: string;
-  value?: T;
+export interface GetMarketPriceResponse {
+  price: number;
+}
+
+export type Result<T = void> =
+  | {
+      success: true;
+      response: T;
+      error?: never;
+    }
+  | {
+      success: false;
+      error: string;
+      response?: never;
+    };
+
+export interface UnrealizedPnL {
+  user: string;
+  cashUpnl: number;
+  percentUpnl: number;
+}
+
+export type PredictClaim = {
+  batchId: string;
+  chainId: number;
+  status: PredictClaimStatus;
+};
+
+export type PredictDeposit = {
+  batchId: string;
+  chainId: number;
+  status: PredictDepositStatus;
+  providerId: string;
+};
+
+export type PredictWithdraw = {
+  chainId: number;
+  status: PredictWithdrawStatus;
+  providerId: string;
+  predictAddress: Hex;
+  transactionId: string;
+  amount: number;
+};
+
+export type PredictAccountMeta = {
+  isOnboarded: boolean;
 };

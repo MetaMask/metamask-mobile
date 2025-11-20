@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useSelector } from 'react-redux';
 import { isAddress } from 'ethers/lib/utils';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isBitcoinChainId, isSolanaChainId } from '@metamask/bridge-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
 
 import { AssetType, TokenStandard } from '../../types/token';
@@ -20,6 +20,7 @@ jest.mock('ethers/lib/utils', () => ({
 
 jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn(),
+  isBitcoinChainId: jest.fn(),
 }));
 
 jest.mock('@metamask/keyring-api', () => ({
@@ -35,6 +36,7 @@ const mockUseSelector = jest.mocked(useSelector);
 const mockIsEvmAddress = jest.mocked(isAddress);
 const mockIsSolanaChainId = jest.mocked(isSolanaChainId);
 const mockIsEvmAccountType = jest.mocked(isEvmAccountType);
+const mockIsBitcoinChainId = jest.mocked(isBitcoinChainId);
 
 describe('useSendContext', () => {
   const mockAccount1 = {
@@ -131,6 +133,7 @@ describe('useSendContext', () => {
     mockIsEvmAddress.mockReturnValue(false);
     mockIsSolanaChainId.mockReturnValue(false);
     mockIsEvmAccountType.mockReturnValue(true);
+    mockIsBitcoinChainId.mockReturnValue(false);
   });
 
   it('provides initial context values', () => {

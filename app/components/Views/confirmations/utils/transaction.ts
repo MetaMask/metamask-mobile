@@ -101,3 +101,20 @@ export async function addMMOriginatedTransaction(
 export function get4ByteCode(data: string) {
   return data.slice(0, 10).toLowerCase();
 }
+
+export function hasTransactionType(
+  transactionMeta: TransactionMeta | undefined,
+  types: TransactionType[],
+) {
+  const { nestedTransactions, type } = transactionMeta ?? {};
+
+  if (types.includes(type as TransactionType)) {
+    return true;
+  }
+
+  return (
+    nestedTransactions?.some((tx) =>
+      types.includes(tx.type as TransactionType),
+    ) ?? false
+  );
+}

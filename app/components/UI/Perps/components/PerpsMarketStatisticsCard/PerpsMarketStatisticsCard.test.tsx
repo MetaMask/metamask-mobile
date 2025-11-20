@@ -4,6 +4,24 @@ import PerpsMarketStatisticsCard from './PerpsMarketStatisticsCard';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 
+// Navigation mock functions
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
+      setOptions: jest.fn(),
+    }),
+  };
+});
+
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -79,9 +97,9 @@ describe('PerpsMarketStatisticsCard', () => {
       <PerpsMarketStatisticsCard {...defaultProps} />,
     );
 
-    // Check 24hr high/low row
-    expect(getByText('perps.market.24hr_high')).toBeOnTheScreen();
-    expect(getByText('perps.market.24hr_low')).toBeOnTheScreen();
+    // Check 24h high/low row
+    expect(getByText('perps.market.24h_high')).toBeOnTheScreen();
+    expect(getByText('perps.market.24h_low')).toBeOnTheScreen();
     expect(getByText('$50,000.00')).toBeOnTheScreen();
     expect(getByText('$45,000.00')).toBeOnTheScreen();
 

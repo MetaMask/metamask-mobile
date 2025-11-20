@@ -29,6 +29,10 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: -12, // Compensate for padding to maintain visual alignment
       marginRight: -12,
     },
+    backButton: {
+      padding: 8,
+      marginRight: 8,
+    },
     headerTitle: {
       textAlign: 'left',
     },
@@ -38,9 +42,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     titleButtonsRightContainer: {
       flexDirection: 'row',
-    },
-    tutorialButton: {
-      padding: 4,
     },
     searchButton: {
       padding: 4,
@@ -52,6 +53,14 @@ const styleSheet = (params: { theme: Theme }) => {
     listContainerWithTabBar: {
       flex: 1,
     },
+    tabsContainer: {
+      flex: 1,
+      paddingTop: 12,
+    },
+    tabScrollView: {
+      flex: 1,
+    },
+    tabContentContainer: {},
     tabBarContainer: {
       position: 'absolute',
       bottom: 0,
@@ -137,11 +146,8 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     searchContainer: {
-      marginHorizontal: 16,
-      marginTop: 16,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      borderRadius: 12,
+      paddingTop: 16,
+      paddingHorizontal: 16,
     },
     searchInputContainer: {
       flexDirection: 'row',
@@ -150,6 +156,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 8,
+      minHeight: 50,
     },
     searchIcon: {
       marginRight: 10,
@@ -159,6 +166,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       fontSize: 16,
       color: colors.text.default,
+      includeFontPadding: false, // Android-specific: removes extra font padding
     },
     clearButton: {
       padding: 4,

@@ -1,31 +1,43 @@
-import React from 'react';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import React, { useMemo } from 'react';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
-import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
-import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../../core/redux/slices/confirmationMetrics';
-import { RootState } from '../../../../../../reducers';
 import { View } from 'react-native';
-import { SkeletonRow } from '../skeleton-row';
+import { BigNumber } from 'bignumber.js';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayTotals,
+} from '../../../hooks/pay/useTransactionPayData';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 
 export function TotalRow() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
-  const { totalFormatted } = useTransactionTotalFiat({ log: true });
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const isLoading = useIsTransactionPayLoading();
+  const totals = useTransactionPayTotals();
 
-  const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
-  );
+  const totalUsd = useMemo(() => {
+    if (!totals?.total) return '';
 
-  if (isQuotesLoading) {
-    return <SkeletonRow testId="total-row-skeleton" />;
+    return formatFiat(new BigNumber(totals.total.usd));
+  }, [totals, formatFiat]);
+
+  if (isLoading) {
+    return <InfoRowSkeleton testId="total-row-skeleton" />;
   }
 
   return (
     <View testID="total-row">
-      <InfoRow label={strings('confirm.label.total')}>
-        <Text>{totalFormatted}</Text>
+      <InfoRow
+        label={strings('confirm.label.total')}
+        rowVariant={InfoRowVariant.Small}
+      >
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {totalUsd}
+        </Text>
       </InfoRow>
     </View>
   );

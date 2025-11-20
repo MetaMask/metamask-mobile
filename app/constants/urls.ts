@@ -10,6 +10,8 @@ export const NON_CUSTODIAL_WALLET_URL =
   'https://support.metamask.io/getting-started/metamask-is-a-self-custodial-wallet/';
 export const KEEP_SRP_SAFE_URL =
   'https://support.metamask.io/privacy-and-security/staying-safe-in-web3/scammers-and-phishers-rugpulls-and-airdrop-scams/';
+export const PRIVATE_KEY_GUIDE_URL =
+  'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/#private-keys';
 export const LEARN_MORE_URL =
   'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/';
 export const WHY_TRANSACTION_TAKE_TIME_URL =
@@ -49,6 +51,7 @@ export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
 export const MAINNET_BLOCK_EXPLORER = 'https://etherscan.io';
 export const SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.etherscan.io';
 export const BASE_MAINNET_BLOCK_EXPLORER = 'https://basescan.org';
+export const BSC_MAINNET_BLOCK_EXPLORER = 'https://bscscan.com';
 
 // Rpcs
 export const MAINNET_DEFAULT_RPC_URL = `https://mainnet.infura.io/v3/${infuraProjectId}`;
@@ -94,7 +97,7 @@ export const ADD_CUSTOM_NETWORK_ARTCILE =
   'https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/';
 
 export const LEDGER_SUPPORT_LINK =
-  'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true';
+  'https://support.ledger.com/article/16748796611613-zd';
 
 export const GOERLI_DEPRECATED_ARTICLE =
   'https://github.com/eth-clients/goerli#goerli-goerlitzer-testnet';

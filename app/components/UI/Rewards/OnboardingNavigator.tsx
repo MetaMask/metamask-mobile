@@ -10,7 +10,6 @@ import OnboardingStep2 from './components/Onboarding/OnboardingStep2';
 import OnboardingStep3 from './components/Onboarding/OnboardingStep3';
 import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
-import { useParams } from '../../../util/navigation/navUtils';
 import { strings } from '../../../../locales/i18n';
 import RewardsIntroModal from './components/Onboarding/RewardsIntroModal';
 
@@ -18,7 +17,6 @@ const Stack = createStackNavigator();
 
 const OnboardingNavigator: React.FC = () => {
   const activeStep = useSelector(selectOnboardingActiveStep);
-  const urlParams = useParams<{ isFromDeeplink: boolean; referral?: string }>();
 
   const getInitialRoute = useCallback(() => {
     switch (activeStep) {
@@ -79,7 +77,6 @@ const OnboardingNavigator: React.FC = () => {
           name={Routes.REWARDS_ONBOARDING_4}
           component={OnboardingStep4}
           options={{ headerShown: false }}
-          initialParams={{ ...urlParams }}
         />
       </Stack.Navigator>
     </UnmountOnBlur>

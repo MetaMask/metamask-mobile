@@ -25,7 +25,9 @@ export const createKycWebviewModalNavigationDetails =
 function KycWebviewModal() {
   const { quote, workFlowRunId } = useParams<KycWebviewModalParams>();
 
-  const { routeAfterAuthentication } = useDepositRouting();
+  const { routeAfterAuthentication } = useDepositRouting({
+    screenLocation: 'KycWebviewModal Screen',
+  });
 
   const { idProofStatus } = useIdProofPolling(workFlowRunId, 1000, true, 0);
 

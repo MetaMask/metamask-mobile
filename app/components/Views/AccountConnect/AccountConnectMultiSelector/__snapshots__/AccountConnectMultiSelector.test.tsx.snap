@@ -299,7 +299,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           <TouchableOpacity
             buttonProps={
               {
-                "buttonTestId": "main-wallet-account-actions",
+                "buttonTestId": "multichain-account-cell-menu",
                 "onButtonClick": [Function],
               }
             }
@@ -338,7 +338,6 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 >
                   <TouchableOpacity
                     disabled={false}
-                    onPressIn={[Function]}
                     style={
                       {
                         "alignItems": "center",
@@ -369,7 +368,6 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         fill="currentColor"
                         height={20}
                         name="CheckBold"
-                        onPressIn={[Function]}
                         style={
                           {
                             "height": 20,
@@ -489,7 +487,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           <TouchableOpacity
             buttonProps={
               {
-                "buttonTestId": "main-wallet-account-actions",
+                "buttonTestId": "multichain-account-cell-menu",
                 "onButtonClick": [Function],
               }
             }
@@ -528,7 +526,6 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 >
                   <TouchableOpacity
                     disabled={false}
-                    onPressIn={[Function]}
                     style={
                       {
                         "alignItems": "center",

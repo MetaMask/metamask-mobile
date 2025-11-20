@@ -35,8 +35,9 @@ const mockStore = configureMockStore();
 
 export const getWrapper =
   (store: ReturnType<typeof mockStore>) =>
-  ({ children }: { children: React.ReactNode }) =>
-    <Provider store={store}>{children}</Provider>;
+  ({ children }: { children: React.ReactNode }) => (
+    <Provider store={store}>{children}</Provider>
+  );
 
 interface MockEngineInstance {
   context: {

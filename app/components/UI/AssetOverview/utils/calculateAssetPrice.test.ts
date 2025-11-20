@@ -99,6 +99,23 @@ describe('calculateAssetPrice', () => {
     });
   });
 
+  it('should fallback to exchangeRate for non-EVM when multichainAssetRates is unavailable', () => {
+    const result = calculateAssetPrice({
+      _asset: mockAsset,
+      isEvmAssetSelected: false,
+      exchangeRate: 1800, // Fallback rate in fiat (USD)
+      prices: mockPrices,
+      timePeriod: '1d',
+    });
+
+    expect(result).toEqual({
+      currentPrice: 1800,
+      priceDiff: 1700, // 1800 - 100
+      comparePrice: 100,
+      pricePercentChange: undefined, // No market data available
+    });
+  });
+
   it('should handle different time periods for price percent change', () => {
     const multichainAssetRates = {
       rate: 2500,

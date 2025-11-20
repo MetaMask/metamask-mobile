@@ -1,18 +1,17 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
-import { waitFor } from '@testing-library/react-native';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { Hex } from '@metamask/utils';
 import { EthScope, SolScope } from '@metamask/keyring-api';
-import Engine from '../../../../../core/Engine';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
-import {
-  selectIsBridgeEnabledSource,
-  selectIsUnifiedSwapsEnabled,
-} from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
+import {
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../../../util/analytics/actionButtonTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -21,10 +20,26 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
 }));
 
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+
+jest.mock('../../../../hooks/useMetrics', () => {
+  const actualMetrics = jest.requireActual('../../../../hooks/useMetrics');
+  return {
+    ...actualMetrics,
+    useMetrics: jest.fn(() => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    })),
+  };
+});
+
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
-  selectIsBridgeEnabledSource: jest.fn(() => true),
-  selectIsUnifiedSwapsEnabled: jest.fn(() => false),
+  selectIsBridgeEnabledSourceFactory: jest.fn(() => () => true),
 }));
 
 const mockGoToPortfolioBridge = jest.fn();
@@ -98,6 +113,12 @@ describe('useSwapBridgeNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Setup event builder chain
+    mockBuild.mockReturnValue({ category: 'test' });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+
     // Setup default mocks for Ethereum
     mockUseCurrentNetworkInfo.mockReturnValue({
       enabledNetworks: [{ chainId: '1', enabled: true }],
@@ -131,7 +152,7 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
@@ -145,7 +166,7 @@ describe('useSwapBridgeNavigation', () => {
           chainId: mockChainId,
         },
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
     });
   });
@@ -169,19 +190,19 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
         sourceToken: mockToken,
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
     });
   });
 
-  it('navigates to Bridge when goToBridge is called and bridge UI is enabled', () => {
+  it('navigates to Bridge when goToSwaps is called and bridge UI is enabled', () => {
     const { result } = renderHookWithProvider(
       () =>
         useSwapBridgeNavigation({
@@ -191,118 +212,15 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
         sourceToken: mockNativeAsset,
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
-    });
-  });
-
-  it('calls goToPortfolioBridge when goToBridge is called and isBridgeEnabledSource is false', () => {
-    (selectIsBridgeEnabledSource as unknown as jest.Mock).mockReturnValueOnce(
-      false,
-    );
-
-    const { result } = renderHookWithProvider(
-      () =>
-        useSwapBridgeNavigation({
-          location: mockLocation,
-          sourcePage: mockSourcePage,
-        }),
-      { state: initialState },
-    );
-
-    result.current.goToBridge();
-
-    expect(mockGoToPortfolioBridge).toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('navigates to Swaps when goToSwaps is called and token chainId matches selected chainId', async () => {
-    const { result } = renderHookWithProvider(
-      () =>
-        useSwapBridgeNavigation({
-          location: mockLocation,
-          sourcePage: mockSourcePage,
-        }),
-      { state: initialState },
-    );
-
-    result.current.goToSwaps();
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: mockNativeAsset.address,
-          chainId: mockChainId,
-          sourcePage: mockSourcePage,
-        },
-      });
-    });
-
-    expect(
-      Engine.context.MultichainNetworkController.setActiveNetwork,
-    ).not.toHaveBeenCalled();
-  });
-
-  it('switches network and navigates to Swaps when goToSwaps is called and token chainId differs from selected chainId', async () => {
-    const differentChainId = '0xa' as Hex;
-    const mockToken: BridgeToken = {
-      address: '0x0000000000000000000000000000000000000001',
-      symbol: 'TOKEN',
-      name: 'Test Token',
-      decimals: 18,
-      chainId: differentChainId,
-    };
-
-    const { result } = renderHookWithProvider(
-      () =>
-        useSwapBridgeNavigation({
-          location: mockLocation,
-          sourcePage: mockSourcePage,
-          sourceToken: mockToken,
-        }),
-      { state: initialState },
-    );
-
-    result.current.goToSwaps();
-
-    await waitFor(() => {
-      expect(
-        Engine.context.NetworkController.getNetworkConfigurationByChainId,
-      ).toHaveBeenCalledWith(differentChainId);
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toHaveBeenCalledWith('optimismNetworkClientId');
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: mockToken.address,
-          chainId: mockToken.chainId,
-          sourcePage: mockSourcePage,
-        },
-      });
     });
   });
 
@@ -334,7 +252,7 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
@@ -348,7 +266,7 @@ describe('useSwapBridgeNavigation', () => {
           chainId: '0x89', // Should be converted to hex format
         },
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
     });
   });
@@ -377,7 +295,7 @@ describe('useSwapBridgeNavigation', () => {
       { state: initialState },
     );
 
-    result.current.goToBridge();
+    result.current.goToSwaps();
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
@@ -391,17 +309,13 @@ describe('useSwapBridgeNavigation', () => {
           chainId: '0x1', // Should use mainnet fallback
         },
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
+        bridgeViewMode: BridgeViewMode.Unified,
       },
     });
   });
 
   describe('Unified', () => {
     it('navigates to Bridge when goToSwaps is called and unified swaps is enabled', () => {
-      (selectIsUnifiedSwapsEnabled as unknown as jest.Mock).mockReturnValueOnce(
-        true,
-      );
-
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
@@ -454,7 +368,7 @@ describe('useSwapBridgeNavigation', () => {
         { state: initialState },
       );
 
-      result.current.goToBridge();
+      result.current.goToSwaps();
 
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
@@ -468,7 +382,7 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet, // Should keep CAIP format for Solana
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Bridge,
+          bridgeViewMode: BridgeViewMode.Unified,
         },
       });
     });
@@ -520,7 +434,7 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
+          bridgeViewMode: BridgeViewMode.Unified,
         },
       });
     });
@@ -572,8 +486,146 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
+          bridgeViewMode: BridgeViewMode.Unified,
         },
+      });
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks action button click with correct properties when location is TabBar', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TabBar,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.HOME,
+      });
+      expect(mockBuild).toHaveBeenCalled();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
+    });
+
+    it('tracks action button click with correct properties when location is TokenDetails', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenDetails,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.ASSET_DETAILS,
+      });
+    });
+
+    it('tracks action button click when location is Swaps', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.Swaps,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.ASSET_DETAILS,
+      });
+    });
+
+    it('tracks action button click when location is Rewards', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.Rewards,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.ASSET_DETAILS,
+      });
+    });
+
+    it('tracks action button click event is fired exactly once per navigation', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TabBar,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      // The hook tracks two events: ACTION_BUTTON_CLICKED and SWAP_BUTTON_CLICKED
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+      expect(mockAddProperties).toHaveBeenCalledTimes(2);
+      expect(mockBuild).toHaveBeenCalledTimes(2);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('tracks action button click with provided source token', () => {
+      const mockToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000001',
+        symbol: 'TOKEN',
+        name: 'Test Token',
+        decimals: 18,
+        chainId: mockChainId,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenDetails,
+            sourcePage: mockSourcePage,
+            sourceToken: mockToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: 'Swap',
+        location: ActionLocation.ASSET_DETAILS,
       });
     });
   });

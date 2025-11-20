@@ -15,11 +15,14 @@ import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
 import styles from '../MultichainTransactionListItem/MultichainTransactionListItem.styles';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
-import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
-import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import {
+  getSwapBridgeTxActivityTitle,
+  handleUnifiedSwapsTxHistoryItemClick,
+} from '../Bridge/utils/transaction-history';
 import { ethers } from 'ethers';
+import { formatAmountWithThreshold } from '../../../util/number';
 
 const MultichainBridgeTransactionListItem = ({
   transaction,
@@ -42,8 +45,10 @@ const MultichainBridgeTransactionListItem = ({
     bridgeHistoryItem.quote.destAsset.chainId;
 
   const handlePress = () => {
-    navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
+    handleUnifiedSwapsTxHistoryItemClick({
+      navigation,
       multiChainTx: transaction,
+      bridgeTxHistoryItem: bridgeHistoryItem,
     });
   };
 
@@ -64,10 +69,14 @@ const MultichainBridgeTransactionListItem = ({
       bridgeHistoryItem.status.destChain?.txHash,
   );
 
-  const displayAmount = ethers.utils.formatUnits(
-    bridgeHistoryItem.quote.srcTokenAmount,
-    bridgeHistoryItem.quote.srcAsset.decimals,
+  const rawAmount = parseFloat(
+    ethers.utils.formatUnits(
+      bridgeHistoryItem.quote.srcTokenAmount,
+      bridgeHistoryItem.quote.srcAsset.decimals,
+    ),
   );
+
+  const displayAmount = formatAmountWithThreshold(rawAmount, 5);
 
   return (
     <>

@@ -11,26 +11,28 @@ import {
   WalletDevice,
   TransactionEnvelopeType,
 } from '@metamask/transaction-controller';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import {
-  type SmartTransaction,
   ClientId,
-} from '@metamask/smart-transactions-controller/dist/types';
+  SmartTransactionsController,
+  SmartTransactionsControllerMessenger,
+  SmartTransactionsControllerSmartTransactionEvent,
+  type SmartTransaction,
+} from '@metamask/smart-transactions-controller';
 
 import {
-  AllowedActions,
-  AllowedEvents,
   SubmitSmartTransactionRequest,
   submitSmartTransactionHook,
   submitBatchSmartTransactionHook,
 } from './smart-publish-hook';
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
-import { Messenger } from '@metamask/base-controller';
 import {
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerStateChangeEvent,
-} from '@metamask/network-controller';
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
 
 interface PendingApprovalsData {
@@ -75,7 +77,7 @@ const createTransactionControllerMock = () =>
     ),
     state: { transactions: [] },
     update: jest.fn(),
-  } as unknown as jest.Mocked<TransactionController>);
+  }) as unknown as jest.Mocked<TransactionController>;
 
 const getDefaultAddAndShowApprovalRequest = () => jest.fn();
 const createApprovalControllerMock = ({
@@ -91,7 +93,7 @@ const createApprovalControllerMock = ({
     },
     addAndShowApprovalRequest,
     updateRequestState: jest.fn(),
-  } as unknown as jest.Mocked<ApprovalController>);
+  }) as unknown as jest.Mocked<ApprovalController>;
 
 const defaultTransactionMeta: TransactionMeta = {
   origin: 'http://localhost',
@@ -124,7 +126,7 @@ type WithRequestCallback<ReturnValue> = ({
   smartTransactionsController,
 }: {
   request: SubmitSmartTransactionRequestMocked;
-  controllerMessenger: SubmitSmartTransactionRequestMocked['controllerMessenger'];
+  controllerMessenger: RootMessenger;
   getFeesSpy: jest.SpyInstance;
   submitSignedTransactionsSpy: jest.SpyInstance;
   smartTransactionsController: SmartTransactionsController;
@@ -133,6 +135,17 @@ type WithRequestCallback<ReturnValue> = ({
 type WithRequestArgs<ReturnValue> =
   | [WithRequestCallback<ReturnValue>]
   | [WithRequestOptions, WithRequestCallback<ReturnValue>];
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<SmartTransactionsControllerMessenger>,
+  MessengerEvents<SmartTransactionsControllerMessenger>
+>;
+
+const getRootMessenger = (): RootMessenger =>
+  new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
 
 function withRequest<ReturnValue>(
   ...args: WithRequestArgs<ReturnValue>
@@ -143,25 +156,50 @@ function withRequest<ReturnValue>(
     pendingApprovals = [],
     ...options
   } = rest;
-  const messenger = new Messenger<
-    NetworkControllerGetNetworkClientByIdAction | AllowedActions,
-    NetworkControllerStateChangeEvent | AllowedEvents
-  >();
+  const rootMessenger = getRootMessenger();
+
+  const smartTransactionControllerMessenger = new Messenger<
+    'SmartTransactionsController',
+    MessengerActions<SmartTransactionsControllerMessenger>,
+    MessengerEvents<SmartTransactionsControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'SmartTransactionsController',
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    actions: [
+      'NetworkController:getNetworkClientById',
+      'TransactionController:getNonceLock',
+      'TransactionController:getTransactions',
+      'TransactionController:confirmExternalTransaction',
+      'TransactionController:updateTransaction',
+    ],
+    events: ['NetworkController:stateChange'],
+    messenger: smartTransactionControllerMessenger,
+  });
+
+  const smartPublishHookMessenger = new Messenger<
+    'SmartPublishHook',
+    never,
+    SmartTransactionsControllerSmartTransactionEvent,
+    RootMessenger
+  >({
+    namespace: 'SmartPublishHook',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: [],
+    events: ['SmartTransactionsController:smartTransaction'],
+    messenger: smartPublishHookMessenger,
+  });
 
   const smartTransactionsController = new SmartTransactionsController({
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-    messenger: messenger.getRestricted({
-      name: 'SmartTransactionsController',
-      allowedActions: ['NetworkController:getNetworkClientById'],
-      allowedEvents: ['NetworkController:stateChange'],
-    }),
-    getNonceLock: jest.fn(),
-    confirmExternalTransaction: jest.fn(),
+    messenger: smartTransactionControllerMessenger,
     trackMetaMetricsEvent: jest.fn(),
-    getTransactions: jest.fn(),
     getMetaMetricsProps: jest.fn(),
     getFeatureFlags: jest.fn(),
-    updateTransaction: jest.fn(),
     clientId: ClientId.Mobile,
   });
 
@@ -190,7 +228,7 @@ function withRequest<ReturnValue>(
     },
     smartTransactionsController,
     transactions: [], // Ensure transactions is always an array, not undefined
-    controllerMessenger: messenger,
+    controllerMessenger: smartPublishHookMessenger,
     transactionController: createTransactionControllerMock(),
     shouldUseSmartTransaction: true,
     approvalController: createApprovalControllerMock({
@@ -217,7 +255,7 @@ function withRequest<ReturnValue>(
   };
 
   return fn({
-    controllerMessenger: messenger,
+    controllerMessenger: rootMessenger,
     request,
     getFeesSpy,
     submitSignedTransactionsSpy,
@@ -248,22 +286,6 @@ describe('submitSmartTransactionHook', () => {
       delete request.transactionMeta.txParams.maxFeePerGas;
       delete request.transactionMeta.txParams.maxPriorityFeePerGas;
 
-      const result = await submitSmartTransactionHook(request);
-      expect(result).toEqual({ transactionHash: undefined });
-    });
-  });
-
-  it('falls back to regular transaction submit if it is a bridge transaction', async () => {
-    withRequest(async ({ request }) => {
-      request.transactionMeta.type = TransactionType.bridge;
-      const result = await submitSmartTransactionHook(request);
-      expect(result).toEqual({ transactionHash: undefined });
-    });
-  });
-
-  it('falls back to regular transaction submit if it is a bridgeApproval transaction', async () => {
-    withRequest(async ({ request }) => {
-      request.transactionMeta.type = TransactionType.bridgeApproval;
       const result = await submitSmartTransactionHook(request);
       expect(result).toEqual({ transactionHash: undefined });
     });

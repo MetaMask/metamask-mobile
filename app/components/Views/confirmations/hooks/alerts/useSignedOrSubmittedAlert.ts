@@ -10,33 +10,43 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
+
+export const PAY_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 const BLOCK_STATUS = [TransactionStatus.signed, TransactionStatus.approved];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
   const transactionMetadata = useTransactionMetadataRequest();
-
-  const {
-    chainId,
-    id: transactionId,
-    txParams,
-    type,
-  } = transactionMetadata || {};
-
+  const { chainId, id: transactionId, txParams } = transactionMetadata || {};
   const { from } = txParams ?? {};
 
-  const existingTransaction = transactions.find(
-    (transaction) =>
-      BLOCK_STATUS.includes(transaction.status) &&
+  const existingTransaction = transactions.find((transaction) => {
+    const blockStatuses = [...BLOCK_STATUS];
+
+    if (hasTransactionType(transactionMetadata, PAY_TYPES)) {
+      blockStatuses.push(TransactionStatus.submitted);
+    }
+
+    return (
+      blockStatuses.includes(transaction.status) &&
       transaction.id !== transactionId &&
       transaction.chainId === chainId &&
-      transaction.txParams.from.toLowerCase() === from?.toLowerCase(),
-  );
+      transaction.txParams.from.toLowerCase() === from?.toLowerCase()
+    );
+  });
 
-  const isPerpsDeposit =
-    type === TransactionType.perpsDeposit &&
-    existingTransaction?.type === TransactionType.perpsDeposit;
+  const isTransactionPay = PAY_TYPES.some(
+    (payType) =>
+      transactionMetadata &&
+      existingTransaction &&
+      hasTransactionType(transactionMetadata, [payType]) &&
+      hasTransactionType(existingTransaction, [payType]),
+  );
 
   const showAlert = Boolean(existingTransaction);
 
@@ -49,14 +59,14 @@ export const useSignedOrSubmittedAlert = () => {
       {
         isBlocking: true,
         key: AlertKeys.SignedOrSubmitted,
-        message: isPerpsDeposit
+        message: isTransactionPay
           ? strings('alert_system.signed_or_submitted_perps_deposit.message')
           : strings('alert_system.signed_or_submitted.message'),
-        title: isPerpsDeposit
+        title: isTransactionPay
           ? strings('alert_system.signed_or_submitted_perps_deposit.title')
           : strings('alert_system.signed_or_submitted.title'),
         severity: Severity.Danger,
       },
     ];
-  }, [isPerpsDeposit, showAlert]);
+  }, [isTransactionPay, showAlert]);
 };

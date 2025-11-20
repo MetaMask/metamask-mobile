@@ -1,23 +1,65 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { hasProperty } from '@metamask/utils';
+import {
+  validatedVersionGatedFeatureFlag,
+  VersionGatedFeatureFlag,
+} from '../../../util/remoteFeatureFlag';
 
-const DEFAULT_REWARDS_ENABLED = false;
-export const FEATURE_FLAG_NAME = 'rewards';
-export const ANNOUNCEMENT_MODAL_FLAG_NAME = 'rewardsAnnouncementModal';
-
-export const selectRewardsEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    hasProperty(remoteFeatureFlags, FEATURE_FLAG_NAME)
-      ? (remoteFeatureFlags[FEATURE_FLAG_NAME] as boolean)
-      : DEFAULT_REWARDS_ENABLED,
-);
+const DEFAULT_REWARDS_ANNOUNCEMENT_MODAL_ENABLED = false;
+const DEFAULT_CARD_SPEND_ENABLED = false;
+const DEFAULT_MUSD_DEPOSIT_ENABLED = false;
+export const ANNOUNCEMENT_MODAL_FLAG_NAME = 'rewardsAnnouncementModalEnabled';
+export const CARD_SPEND_FLAG_NAME = 'rewardsEnableCardSpend';
+export const MUSD_DEPOSIT_FLAG_NAME = 'rewardsEnableMusdDeposit';
 
 export const selectRewardsAnnouncementModalEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    hasProperty(remoteFeatureFlags, ANNOUNCEMENT_MODAL_FLAG_NAME)
-      ? (remoteFeatureFlags[ANNOUNCEMENT_MODAL_FLAG_NAME] as boolean)
-      : DEFAULT_REWARDS_ENABLED,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, ANNOUNCEMENT_MODAL_FLAG_NAME)) {
+      return DEFAULT_REWARDS_ANNOUNCEMENT_MODAL_ENABLED;
+    }
+    const remoteFlag = remoteFeatureFlags[
+      ANNOUNCEMENT_MODAL_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      DEFAULT_REWARDS_ANNOUNCEMENT_MODAL_ENABLED
+    );
+  },
+);
+
+export const selectRewardsCardSpendFeatureFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, CARD_SPEND_FLAG_NAME)) {
+      return DEFAULT_CARD_SPEND_ENABLED;
+    }
+    const cardSpendConfig = remoteFeatureFlags[
+      CARD_SPEND_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(cardSpendConfig) ??
+      DEFAULT_CARD_SPEND_ENABLED
+    );
+  },
+);
+
+export const selectRewardsMusdDepositEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, MUSD_DEPOSIT_FLAG_NAME)) {
+      return DEFAULT_MUSD_DEPOSIT_ENABLED;
+    }
+    const musdDepositConfig = remoteFeatureFlags[
+      MUSD_DEPOSIT_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(musdDepositConfig) ??
+      DEFAULT_MUSD_DEPOSIT_ENABLED
+    );
+  },
 );

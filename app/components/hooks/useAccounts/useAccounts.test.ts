@@ -5,8 +5,6 @@ import useAccounts from './useAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import { toChecksumAddress } from '../../../util/address';
 
 jest.mock('../../../core/Engine', () => ({
@@ -35,10 +33,6 @@ const MOCK_ACCOUNT_1: Account = {
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
-  assets: {
-    fiatBalance: '$0.00\n0 ETH',
-  },
-  balanceError: undefined,
   caipAccountId: `eip155:0:${MOCK_ACCOUNTS[0].address}`,
   scopes: [EthScope.Eoa],
   isLoadingAccount: false,
@@ -51,10 +45,6 @@ const MOCK_ACCOUNT_2: Account = {
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,
-  assets: {
-    fiatBalance: '$0.00\n0 ETH',
-  },
-  balanceError: undefined,
   caipAccountId: `eip155:0:${MOCK_ACCOUNTS[1].address}`,
   scopes: [EthScope.Eoa],
   isLoadingAccount: false,
@@ -112,24 +102,7 @@ describe('useAccounts', () => {
     expect(result.current.ensByAccountAddress).toStrictEqual({});
   });
 
-  it('populates balanceError property for accounts', async () => {
-    const expectedBalanceError = 'Insufficient funds';
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useAccounts({
-        checkBalanceError: (balance) =>
-          balance === '0' ? 'Insufficient funds' : '',
-      }),
-    );
-    await act(async () => {
-      await waitForNextUpdate();
-    });
-    expect(result.current.accounts[0].balanceError).toStrictEqual(
-      expectedBalanceError,
-    );
-  });
-
   it('returns internal accounts', async () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
     const expectedInternalAccounts: Account[] = [
       MOCK_ACCOUNT_1,
       MOCK_ACCOUNT_2,

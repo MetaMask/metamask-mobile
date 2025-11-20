@@ -43,7 +43,7 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
-      test: './node_modules/@deeeed/hyperliquid-node20',
+      test: './node_modules/@nktkas/hyperliquid',
       plugins: [
         [
           '@babel/plugin-transform-modules-commonjs',

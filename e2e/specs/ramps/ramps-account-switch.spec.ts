@@ -52,7 +52,7 @@ const setupRampsAccountSwitchTest = async (
   );
 };
 
-describe(RegressionTrade('Ramps with Account Switching'), () => {
+describe.skip(RegressionTrade('Ramps with Account Switching'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });

@@ -1,6 +1,10 @@
+import { BtcAccountType } from '@metamask/keyring-api';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { TokenListItemBip44 } from './TokenListItemBip44';
+import {
+  ACCOUNT_TYPE_LABEL_TEST_ID,
+  TokenListItemBip44,
+} from './TokenListItemBip44';
 import { FlashListAssetKey } from '..';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { isTestNet } from '../../../../../util/networks';
@@ -41,6 +45,8 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
 }));
 
 jest.mock('../../../Stake/hooks/useStakingChain', () => ({
+  __esModule: true,
+  default: () => ({ isStakingSupportedChain: false }),
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
 
@@ -60,18 +66,30 @@ jest.mock('../../../../../util/assets', () => ({
   formatWithThreshold: jest.fn((value) => `${value} TEST`),
 }));
 
-jest.mock('../../../../../util/networks', () => ({
-  getDefaultNetworkByChainId: jest.fn(),
-  getTestNetImageByChainId: jest.fn(() => 'testnet.png'),
-  isTestNet: jest.fn(),
-}));
+jest.mock('../../../../../util/networks', () => {
+  const actual = jest.requireActual('../../../../../util/networks');
 
-jest.mock('../../../../../util/networks/customNetworks', () => ({
-  CustomNetworkImgMapping: {},
-  PopularList: [],
-  UnpopularNetworkList: [],
-  getNonEvmNetworkImageSourceByChainId: jest.fn(),
-}));
+  return {
+    ...actual,
+    getDefaultNetworkByChainId: jest.fn(),
+    getTestNetImageByChainId: jest.fn(() => 'testnet.png'),
+    isTestNet: jest.fn(),
+  };
+});
+
+jest.mock('../../../../../util/networks/customNetworks', () => {
+  const actual = jest.requireActual(
+    '../../../../../util/networks/customNetworks',
+  );
+
+  return {
+    ...actual,
+    CustomNetworkImgMapping: {},
+    PopularList: [],
+    UnpopularNetworkList: [],
+    getNonEvmNetworkImageSourceByChainId: jest.fn(),
+  };
+});
 
 jest.mock('../../../../../constants/network', () => ({
   NETWORKS_CHAIN_ID: {
@@ -306,6 +324,34 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Account Type Label', () => {
+    it('renders the correct account type label', () => {
+      prepareMocks({
+        asset: { ...defaultAsset, accountType: BtcAccountType.P2wpkh },
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toHaveTextContent(
+        'Native SegWit',
+      );
     });
   });
 });

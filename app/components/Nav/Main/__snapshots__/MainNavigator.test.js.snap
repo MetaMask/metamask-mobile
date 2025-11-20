@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MainNavigator should match snapshot when browser is not infullscreen mode on BrowserTabHome route 1`] = `
+<View
+  testID="main-navigator"
+>
+  <View
+    testID="tab-bar-item-Wallet"
+  />
+  <View
+    testID="tab-bar-item-Browser"
+  />
+  <View
+    testID="tab-bar-item-Trade"
+  />
+  <View
+    testID="tab-bar-item-Activity"
+  />
+  <View
+    testID="tab-bar-item-Rewards"
+  />
+</View>
+`;

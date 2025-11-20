@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useRef } from 'react';
+import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
 import { PanResponder } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -22,6 +22,8 @@ import { setOnboardingActiveStep } from '../../../../../reducers/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Device from '../../../../../util/device';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 interface OnboardingStepProps {
   // Progress indicator props
@@ -65,6 +67,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
 
   const onClose = useCallback(() => {
     dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
@@ -100,7 +103,9 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
     <KeyboardAwareScrollView
       keyboardShouldPersistTaps="handled"
       testID="onboarding-step-container"
-      contentContainerStyle={tw.style('min-h-full px-4 py-8')}
+      contentContainerStyle={tw.style(
+        `min-h-full px-4 ${isLargeDevice ? 'py-8' : 'py-2'}`,
+      )}
       {...panResponder.panHandlers}
     >
       <Box twClassName="mt-8 justify-center items-center">
@@ -142,7 +147,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
               isLoading={onNextLoading}
               loadingText={onNextLoadingText}
               isDisabled={onNextDisabled || onNextLoading}
-              testID="next-button"
+              testID={REWARDS_VIEW_SELECTORS.NEXT_BUTTON}
             >
               {nextButtonText || strings('rewards.onboarding.step_confirm')}
             </Button>
@@ -153,7 +158,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
                 size={ButtonSize.Lg}
                 onPress={onSkip}
                 twClassName="w-full bg-gray-500 border-gray-500"
-                testID="skip-button"
+                testID={REWARDS_VIEW_SELECTORS.SKIP_BUTTON}
               >
                 <Text twClassName="text-text-default">
                   {strings('rewards.onboarding.step_skip')}

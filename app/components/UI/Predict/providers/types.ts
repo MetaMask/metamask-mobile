@@ -1,16 +1,18 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import {
   GetPriceHistoryParams,
-  OffchainTradeParams,
+  GetPriceParams,
+  GetPriceResponse,
   PredictActivity,
   PredictCategory,
-  PredictClaim,
   PredictMarket,
-  PredictOrder,
   PredictPosition,
   PredictPriceHistoryPoint,
   Result,
+  Side,
 } from '../types';
+import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export interface GetMarketsParams {
   providerId?: string;
@@ -32,56 +34,229 @@ export interface GetMarketsParams {
 export interface Signer {
   address: string;
   signTypedMessage: KeyringController['signTypedMessage'];
+  signPersonalMessage: KeyringController['signPersonalMessage'];
 }
 
-export interface BuyOrderParams {
-  signer: Signer;
-  market: PredictMarket;
+export interface PlaceOrderParams {
+  providerId: string;
+  preview: OrderPreview;
+  analyticsProperties?: {
+    marketId?: string;
+    marketTitle?: string;
+    marketCategory?: string;
+    marketTags?: string[];
+    entryPoint?: string;
+    transactionType?: string;
+    sharePrice?: number;
+    liquidity?: number;
+    volume?: number;
+    marketType?: string;
+    outcome?: string;
+  };
+}
+
+export interface PreviewOrderParams {
+  providerId: string;
+  marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
+  side: Side;
   size: number;
+  // For sell orders, we can store the position ID
+  // so we can perform optimistic updates
+  positionId?: string;
 }
 
-export interface SellOrderParams {
-  signer: Signer;
-  position: PredictPosition;
+// Fees in US dollars
+export interface PredictFees {
+  metamaskFee: number;
+  providerFee: number;
+  totalFee: number;
 }
+
+export interface GeoBlockResponse {
+  isEligible: boolean;
+  country?: string;
+}
+
+/**
+ * @example
+ * side = BUY;
+ * maxAmountSpent = 12.34; // $12.34
+ * minAmountReceived = 54.32; // 54.32 shares
+ * sharePrice = 0.1234; // $0.1234
+ * slippage = 0.01; // 1%
+ *
+ * side = SELL;
+ * maxAmountSpent = 42.23; // 42.23 shares
+ * minAmountReceived = 48.56; // $48.56
+ * sharePrice = 0.3456; // $0.3456
+ * slippage = 0.005; // 0.5%
+ */
+export interface OrderPreview {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  timestamp: number;
+  side: Side;
+  sharePrice: number;
+  maxAmountSpent: number;
+  minAmountReceived: number;
+  slippage: number;
+  tickSize: number;
+  minOrderSize: number;
+  negRisk: boolean;
+  fees?: PredictFees;
+  rateLimited?: boolean;
+  // For sell orders, we can store the position ID
+  // so we can perform optimistic updates
+  positionId?: string;
+}
+
+export type OrderResult = Result<{
+  id: string;
+  spentAmount: string;
+  receivedAmount: string;
+  txHashes?: string[];
+}>;
 
 export interface ClaimOrderParams {
-  position: PredictPosition;
+  positions: PredictPosition[];
+  signer: Signer;
+}
+
+export interface ClaimOrderResponse {
+  chainId: number;
+  transactions: {
+    params: {
+      to: Hex;
+      data?: Hex;
+      value?: Hex;
+    };
+    type?: TransactionType;
+  }[];
 }
 
 export interface GetPositionsParams {
-  address?: string;
   providerId?: string;
+  address?: string;
+  claimable?: boolean;
+  marketId?: string;
+  outcomeId?: string;
   limit?: number;
   offset?: number;
-  claimable?: boolean;
+}
+
+export interface PrepareDepositParams {
+  providerId: string;
+}
+
+export interface GetAccountStateParams {
+  providerId: string;
+}
+
+export interface PrepareDepositResponse {
+  chainId: Hex;
+  transactions: {
+    params: {
+      to: Hex;
+      data: Hex;
+    };
+    type?: TransactionType;
+  }[];
+}
+
+export interface GetPredictWalletParams {
+  providerId: string;
+}
+
+export interface AccountState {
+  address: Hex;
+  isDeployed: boolean;
+  hasAllowances: boolean;
+}
+
+export interface GetBalanceParams {
+  address?: string;
+  providerId: string;
+}
+
+export interface PrepareWithdrawParams {
+  providerId: string;
+}
+
+export interface PrepareWithdrawResponse {
+  chainId: Hex;
+  transaction: {
+    params: {
+      to: Hex;
+      data: Hex;
+    };
+    type?: TransactionType;
+  };
+  predictAddress: Hex;
+}
+
+export interface SignWithdrawParams {
+  callData: Hex;
+  signer: Signer;
+}
+
+export interface SignWithdrawResponse {
+  callData: Hex;
+  amount: number;
 }
 
 export interface PredictProvider {
+  readonly providerId: string;
+  readonly name: string;
+  readonly chainId: number;
+
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;
+  getPrices(
+    params: Omit<GetPriceParams, 'providerId'>,
+  ): Promise<GetPriceResponse>;
 
   // User information
   getPositions(
     params: Omit<GetPositionsParams, 'address'> & { address: string },
   ): Promise<PredictPosition[]>;
   getActivity(params: { address: string }): Promise<PredictActivity[]>;
+  getUnrealizedPnL(params: {
+    address: string;
+  }): Promise<import('../types').UnrealizedPnL>;
 
   // Order management
-  prepareBuyOrder(params: BuyOrderParams): Promise<PredictOrder>;
-  prepareSellOrder(params: SellOrderParams): Promise<PredictOrder>;
+  previewOrder(
+    params: Omit<PreviewOrderParams, 'providerId'> & { signer: Signer },
+  ): Promise<OrderPreview>;
+  placeOrder(
+    params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
+  ): Promise<OrderResult>;
 
   // Claim management
-  prepareClaim(params: ClaimOrderParams): PredictClaim;
-
-  submitOffchainTrade?(params: OffchainTradeParams): Promise<Result>;
+  prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
+  confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 
   // Eligibility (Geo-Blocking)
-  isEligible(): Promise<boolean>;
+  isEligible(): Promise<GeoBlockResponse>;
+
+  // Predict wallet management
+  prepareDeposit(
+    params: PrepareDepositParams & { signer: Signer },
+  ): Promise<PrepareDepositResponse>;
+  getAccountState(
+    params: GetAccountStateParams & { ownerAddress: string },
+  ): Promise<AccountState>;
+  prepareWithdraw(
+    params: PrepareWithdrawParams & { signer: Signer },
+  ): Promise<PrepareWithdrawResponse>;
+  signWithdraw?(params: SignWithdrawParams): Promise<SignWithdrawResponse>;
+
+  getBalance(params: GetBalanceParams): Promise<number>;
 }

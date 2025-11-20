@@ -33,7 +33,17 @@ describe('useContacts', () => {
 
   const mockSolanaContact = {
     name: 'Solana Contact',
-    address: 'Sol1234567890123456789012345678901234567890',
+    address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+  };
+
+  const mockBitcoinContact = {
+    name: 'Bitcoin Contact',
+    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+  };
+
+  const mockTronContact = {
+    name: 'Tron Contact',
+    address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
   };
 
   const mockInvalidContact = {
@@ -48,6 +58,12 @@ describe('useContacts', () => {
     },
     '101': {
       contact3: mockSolanaContact,
+    },
+    'bip122:1': {
+      contact6: mockBitcoinContact,
+    },
+    'tron:1': {
+      contact7: mockTronContact,
     },
     '137': {
       contact4: mockInvalidContact,
@@ -71,6 +87,8 @@ describe('useContacts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
     });
   });
 
@@ -82,6 +100,8 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
     });
 
@@ -128,50 +148,6 @@ describe('useContacts', () => {
     });
   });
 
-  describe('when isSolanaSendType is true', () => {
-    beforeEach(() => {
-      mockUseSendType.mockReturnValue({
-        isEvmSendType: false,
-        isSolanaSendType: true,
-        isEvmNativeSendType: false,
-        isNonEvmSendType: false,
-        isNonEvmNativeSendType: false,
-      });
-    });
-
-    it('returns Solana compatible contacts', () => {
-      const { result } = renderHook(() => useContacts());
-
-      expect(result.current).toEqual([
-        {
-          contactName: 'Solana Contact',
-          address: 'Sol1234567890123456789012345678901234567890',
-        },
-      ]);
-    });
-
-    it('filters out EVM addresses', () => {
-      const { result } = renderHook(() => useContacts());
-
-      const addresses = result.current.map((contact) => contact.address);
-      expect(addresses).not.toContain(
-        '0x1234567890123456789012345678901234567890',
-      );
-      expect(addresses).not.toContain(
-        '0x9876543210987654321098765432109876543210',
-      );
-    });
-
-    it('only includes addresses not starting with 0x and at least 32 characters', () => {
-      const { result } = renderHook(() => useContacts());
-
-      result.current.forEach((contact) => {
-        expect(contact.address).not.toMatch(/^0x/);
-        expect(contact.address.length).toBeGreaterThanOrEqual(32);
-      });
-    });
-  });
-
   describe('when neither EVM nor Solana send type is active', () => {
     beforeEach(() => {
       mockUseSendType.mockReturnValue({
@@ -180,13 +156,15 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
     });
 
     it('returns all contacts without filtering', () => {
       const { result } = renderHook(() => useContacts());
 
-      expect(result.current).toHaveLength(4);
+      expect(result.current).toHaveLength(6);
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
@@ -199,7 +177,7 @@ describe('useContacts', () => {
           },
           {
             contactName: 'Solana Contact',
-            address: 'Sol1234567890123456789012345678901234567890',
+            address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
           },
           {
             contactName: 'Invalid Contact',
@@ -220,6 +198,20 @@ describe('useContacts', () => {
 
     const { result } = renderHook(() => useContacts());
 
+    expect(result.current).toEqual([]);
+  });
+
+  it('returns empty array when isNonEvmSendType is true', () => {
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: true,
+      isSolanaSendType: false,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: true,
+      isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
+    });
+    const { result } = renderHook(() => useContacts());
     expect(result.current).toEqual([]);
   });
 
@@ -278,7 +270,7 @@ describe('useContacts', () => {
         },
         validSolana: {
           contactName: 'Valid Solana',
-          address: 'Sol12345678901234567890123456789012345678901234567890',
+          address: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
         },
         invalidSolanaShort: {
           contactName: 'Invalid Solana Short',
@@ -303,6 +295,8 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
+        isTronSendType: false,
       });
 
       const { result } = renderHook(() => useContacts());
@@ -313,21 +307,32 @@ describe('useContacts', () => {
       );
     });
 
-    it('filters addresses correctly for Solana when addresses have different lengths', () => {
-      mockUseSendType.mockReturnValue({
-        isEvmSendType: false,
-        isSolanaSendType: true,
-        isEvmNativeSendType: false,
-        isNonEvmSendType: false,
-        isNonEvmNativeSendType: false,
+    it('filters out zero address burn address', () => {
+      const burnAddressBook = {
+        '1': {
+          contact1: mockEvmContact1,
+          burnContact: {
+            name: 'Burn Address',
+            address: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      };
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAddressBook) {
+          return burnAddressBook;
+        }
+        return {};
       });
 
       const { result } = renderHook(() => useContacts());
 
       expect(result.current).toHaveLength(1);
-      expect(result.current[0].address).toBe(
-        'Sol12345678901234567890123456789012345678901234567890',
-      );
+      expect(result.current[0].address).toBe(mockEvmContact1.address);
+      expect(
+        result.current.find(
+          (c) => c.address === '0x0000000000000000000000000000000000000000',
+        ),
+      ).toBeUndefined();
     });
   });
 });

@@ -1,0 +1,69 @@
+name: Android Flask E2E Smoke Tests
+
+on:
+  workflow_call:
+    inputs:
+      changed_files:
+        description: 'Changed files'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  flask-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2, 3]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: flask-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'FlaskBuildTests'
+      split_number: ${{ matrix.split }}
+      total_splits: 3
+      changed_files: ${{ inputs.changed_files }}
+      build_type: 'flask'
+    secrets: inherit
+
+  report-android-smoke-tests:
+    name: Report Android Smoke Tests
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    needs:
+      - flask-android-smoke
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download shards test artifacts (XMLs + Screenshots)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: 'test-e2e-*-android-*'
+
+      - name: Post Test Report
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: 'Android Flask E2E Smoke Test Results'
+          path: 'all-test-artifacts/**/junit.xml'
+          reporter: 'jest-junit'
+          fail-on-error: false
+          list-suites: 'failed'
+          list-tests: 'failed'
+
+      - name: Upload all test artifacts (XMLs + Screenshots)
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-smoke-android-flask-all-test-artifacts
+          path: all-test-artifacts/

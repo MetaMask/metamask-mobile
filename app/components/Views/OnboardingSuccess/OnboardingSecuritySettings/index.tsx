@@ -25,7 +25,7 @@ const SecuritySettings = () => {
   useOnboardingHeader(strings('default_settings.drawer_security_title'));
 
   return (
-    <ScrollView style={styles.root}>
+    <ScrollView style={styles.scrollRoot}>
       <NetworkDetailsCheckSettings />
       {shouldShowSocialLoginFeatures && (
         <>

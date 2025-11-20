@@ -1,13 +1,16 @@
 import {
   BridgeClientId,
   fetchBridgeTokens,
+  formatAddressToAssetId,
   formatChainIdToCaip,
   formatChainIdToHex,
-  isSolanaChainId,
+  isBitcoinChainId,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
+import { BtcAccountType } from '@metamask/keyring-api';
 import { BridgeToken } from '../../types';
 import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
@@ -18,13 +21,32 @@ import { SwapsControllerState } from '@metamask/swaps-controller';
 import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
-import { normalizeToCaipAssetType } from '../../utils';
 import { memoize } from 'lodash';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
-import { TokenListToken } from '@metamask/assets-controllers';
+import { Asset, TokenListToken } from '@metamask/assets-controllers';
+import packageJSON from '../../../../../../package.json';
+import { getTokenIconUrl } from '../../utils';
 
+const { version: clientVersion } = packageJSON;
 const MAX_TOP_TOKENS = 30;
 export const memoizedFetchBridgeTokens = memoize(fetchBridgeTokens);
+
+/**
+ * Only needed for BTC
+ * @param chainId - The chain ID to get the account type for
+ * @returns The account type for the chain ID
+ */
+const getAccountType = (
+  chainId: Hex | CaipChainId,
+): Asset['accountType'] | undefined => {
+  let accountType: Asset['accountType'] | undefined;
+
+  if (isBitcoinChainId(chainId)) {
+    accountType = BtcAccountType.P2wpkh;
+  }
+
+  return accountType;
+};
 
 /**
  * Convert cached tokens from TokenListController to BridgeToken format
@@ -35,22 +57,29 @@ const formatCachedTokenListControllerTokens = (
 ): Record<string, BridgeToken> => {
   const bridgeTokenObj: Record<string, BridgeToken> = {};
 
-  Object.entries(cachedTokens).forEach(([address, token]) => {
-    const caipChainId = formatChainIdToCaip(chainId);
-    const hexChainId = formatChainIdToHex(chainId);
+  const caipChainId = formatChainIdToCaip(chainId);
+  const hexChainId = formatChainIdToHex(chainId);
+  const isNonEnvChain = isNonEvmChainId(caipChainId);
 
-    // Convert Solana addresses to CAIP format for consistent deduplication
-    const tokenAddress = isSolanaChainId(caipChainId)
-      ? normalizeToCaipAssetType(token.address, caipChainId)
-      : token.address;
+  Object.entries(cachedTokens).forEach(([address, token]) => {
+    // Convert non-EVM addresses to CAIP format for consistent deduplication
+    const assetId = formatAddressToAssetId(token.address, caipChainId);
+    const tokenAddress = isNonEnvChain ? assetId : token.address;
+
+    if (!tokenAddress) {
+      throw new Error(
+        `Invalid token address: ${token.address} for chain ID: ${chainId}`,
+      );
+    }
 
     bridgeTokenObj[address] = {
       address: tokenAddress,
       symbol: token.symbol,
       name: token.name,
-      image: token.iconUrl || '',
+      image: getTokenIconUrl(assetId, isNonEnvChain) || token.iconUrl || '',
       decimals: token.decimals,
-      chainId: isSolanaChainId(caipChainId) ? caipChainId : hexChainId,
+      chainId: isNonEnvChain ? caipChainId : hexChainId,
+      accountType: getAccountType(caipChainId),
     };
   });
 
@@ -70,21 +99,28 @@ export const useTopTokens = ({
 } => {
   const swapsChainCache: SwapsControllerState['chainCache'] =
     useSelector(selectChainCache);
-  const swapsTopAssets = useMemo(
-    () => (chainId ? swapsChainCache[chainId]?.topAssets : null),
-    [chainId, swapsChainCache],
-  );
-  // For non-EVM chains, we don't need to fetch top assets from the Swaps API
-  const swapsTopAssetsPending = isCaipChainId(chainId)
-    ? false
-    : !swapsTopAssets;
+  const { swapsTopAssets, swapsTopAssetsPending } = useMemo(() => {
+    if (!chainId) {
+      return { swapsTopAssets: null, swapsTopAssetsPending: true };
+    }
+
+    // For non-EVM chains, we don't need to fetch top assets from the Swaps API
+    if (isCaipChainId(chainId)) {
+      return { swapsTopAssets: null, swapsTopAssetsPending: false };
+    }
+
+    return {
+      swapsTopAssets: swapsChainCache[chainId]?.topAssets || null,
+      swapsTopAssetsPending: false,
+    };
+  }, [chainId, swapsChainCache]);
 
   // Get cached tokens from TokenListController
-  const cachedTokensByChain = useSelector(selectERC20TokensByChain);
-  const cachedTokensForChain = useMemo(() => {
-    if (!chainId || !cachedTokensByChain) return null;
+  const cachedEvmTokensByChain = useSelector(selectERC20TokensByChain);
+  const cachedEvmTokensForChain = useMemo(() => {
+    if (!chainId || !cachedEvmTokensByChain) return null;
 
-    if (isSolanaChainId(chainId)) {
+    if (isNonEvmChainId(chainId)) {
       return null;
     }
 
@@ -94,12 +130,12 @@ export const useTopTokens = ({
       : chainId;
 
     // Type assertion for the cache object which may have chainId keys
-    return cachedTokensByChain[hexChainId]?.data || null;
-  }, [chainId, cachedTokensByChain]);
+    return cachedEvmTokensByChain[hexChainId]?.data || null;
+  }, [chainId, cachedEvmTokensByChain]);
 
   // Check if we have cached tokens to avoid unnecessary API calls
   const hasCachedTokens = Boolean(
-    cachedTokensForChain && Object.keys(cachedTokensForChain).length > 0,
+    cachedEvmTokensForChain && Object.keys(cachedEvmTokensForChain).length > 0,
   );
 
   // Get top assets for Solana from Bridge API feature flags for now,
@@ -136,9 +172,9 @@ export const useTopTokens = ({
     }
 
     // If we have cached tokens, use them instead of fetching from bridge API
-    if (hasCachedTokens && cachedTokensForChain) {
+    if (hasCachedTokens && cachedEvmTokensForChain) {
       return formatCachedTokenListControllerTokens(
-        cachedTokensForChain,
+        cachedEvmTokensForChain,
         chainId,
       );
     }
@@ -149,6 +185,7 @@ export const useTopTokens = ({
       BridgeClientId.MOBILE,
       handleFetch,
       BRIDGE_API_BASE_URL,
+      clientVersion,
     );
 
     // Convert from BridgeAsset type to BridgeToken type
@@ -159,9 +196,11 @@ export const useTopTokens = ({
       const caipChainId = formatChainIdToCaip(bridgeAsset.chainId);
       const hexChainId = formatChainIdToHex(bridgeAsset.chainId);
 
-      // Convert Solana addresses to CAIP format for consistent deduplication
-      const tokenAddress = isSolanaChainId(caipChainId)
-        ? normalizeToCaipAssetType(bridgeAsset.address, caipChainId)
+      // Convert non-EVM addresses to CAIP format for consistent deduplication
+      const isNonEvmChain = isNonEvmChainId(caipChainId);
+
+      const tokenAddress = isNonEvmChain
+        ? bridgeAsset.assetId
         : bridgeAsset.address;
 
       bridgeTokenObj[addr] = {
@@ -170,12 +209,13 @@ export const useTopTokens = ({
         name: bridgeAsset.name,
         image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
         decimals: bridgeAsset.decimals,
-        chainId: isSolanaChainId(caipChainId) ? caipChainId : hexChainId,
+        chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
+        accountType: getAccountType(caipChainId),
       };
     });
 
     return bridgeTokenObj;
-  }, [chainId, hasCachedTokens, cachedTokensForChain]);
+  }, [chainId, hasCachedTokens, cachedEvmTokensForChain]);
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
   const { topTokens, remainingTokens } = useMemo(() => {
@@ -192,11 +232,10 @@ export const useTopTokens = ({
       [];
 
     // Helper function to add a token if it's not already added and we haven't reached the limit
-    const addTokenIfNotExists = (token: BridgeToken) => {
-      const normalizedAddress = isSolanaChainId(token.chainId)
-        ? token.address // Solana addresses are case-sensitive
-        : token.address.toLowerCase(); // EVM addresses are case-insensitive
-
+    const addTokenIfNotExists = (
+      token: BridgeToken,
+      normalizedAddress: string,
+    ) => {
       if (!addedAddresses.has(normalizedAddress)) {
         addedAddresses.add(normalizedAddress);
         if (result.length < MAX_TOP_TOKENS) {
@@ -217,22 +256,20 @@ export const useTopTokens = ({
         bridgeTokens[toChecksumHexAddress(topAssetAddr)];
 
       if (candidateBridgeToken) {
-        addTokenIfNotExists(candidateBridgeToken);
+        const normalizedAddress = isNonEvmChainId(candidateBridgeToken.chainId)
+          ? candidateBridgeToken.address // Solana addresses are case-sensitive, TODO but are Bitcoin addresses case-sensitive?
+          : candidateBridgeToken.address.toLowerCase(); // EVM addresses are case-insensitive
+        addTokenIfNotExists(candidateBridgeToken, normalizedAddress);
       }
     }
 
     // Then iterate through all bridge tokens to either add to top tokens or remaining tokens
     for (const token of Object.values(bridgeTokens)) {
-      const normalizedAddress = isSolanaChainId(token.chainId)
-        ? token.address // Solana addresses are case-sensitive
+      const normalizedAddress = isNonEvmChainId(token.chainId)
+        ? token.address // Solana addresses are case-sensitive, TODO but are Bitcoin addresses case-sensitive?
         : token.address.toLowerCase(); // EVM addresses are case-insensitive
 
-      // Skip if already added to top tokens
-      if (addedAddresses.has(normalizedAddress)) {
-        continue;
-      }
-
-      addTokenIfNotExists(token);
+      addTokenIfNotExists(token, normalizedAddress);
     }
 
     return {

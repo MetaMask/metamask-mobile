@@ -1,5 +1,8 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
@@ -9,11 +12,20 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useConfirmActions } from '../useConfirmActions';
-import { useMaxValueMode } from '../useMaxValueMode';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { noop } from 'lodash';
+import { useConfirmationContext } from '../../context/confirmation-context';
+import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+import {
+  TransactionPayRequiredToken,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,
@@ -25,6 +37,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn().mockImplementation((selector) => selector()),
 }));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -34,7 +47,7 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-jest.mock('../useMaxValueMode');
+
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayToken');
@@ -44,6 +57,13 @@ jest.mock('../../../../../selectors/networkController');
 jest.mock('../../../../../reducers/transaction', () => ({
   selectTransactionState: jest.fn(),
 }));
+jest.mock('../../context/confirmation-context');
+jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(),
+}));
+jest.mock('../gas/useIsGaslessSupported');
+jest.mock('../pay/useTransactionPayData');
+jest.mock('../pay/useTransactionPayData');
 
 describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -51,13 +71,20 @@ describe('useInsufficientBalanceAlert', () => {
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
-  const mockUseMaxValueMode = jest.mocked(useMaxValueMode);
   const mockSelectNetworkConfigurations = jest.mocked(
     selectNetworkConfigurations,
   );
   const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
+  const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
+  const mockUseRampNavigation = jest.mocked(useRampNavigation);
+  const mockGoToBuy = jest.fn();
+  const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
+  );
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 
-  const mockChainId = '0x1';
+  const mockChainId = '0x1' as Hex;
   const mockFromAddress = '0x123';
   const mockNativeCurrency = 'ETH';
   const mockTransaction = {
@@ -73,6 +100,10 @@ describe('useInsufficientBalanceAlert', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: false,
+      isSupported: false,
+    });
     mockUseAccountNativeBalance.mockReturnValue({
       balanceWeiInHex: '0x8', // 8 wei
     } as unknown as ReturnType<typeof useAccountNativeBalance>);
@@ -84,7 +115,7 @@ describe('useInsufficientBalanceAlert', () => {
     } as unknown as ReturnType<typeof selectNetworkConfigurations>);
     mockUseTransactionPayToken.mockReturnValue({
       payToken: undefined,
-      setPayToken: noop,
+      setPayToken: noop as never,
     });
 
     (strings as jest.Mock).mockImplementation((key, params) => {
@@ -99,12 +130,25 @@ describe('useInsufficientBalanceAlert', () => {
       }
       return key;
     });
-    mockUseMaxValueMode.mockReturnValue({
-      maxValueMode: false,
-    });
     mockUseConfirmActions.mockReturnValue({
       onReject: jest.fn(),
       onConfirm: jest.fn(),
+    });
+    mockUseConfirmationContext.mockReturnValue({
+      isTransactionValueUpdating: false,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
+    mockUseRampNavigation.mockReturnValue({
+      goToBuy: mockGoToBuy,
+      goToAggregator: jest.fn(),
+      goToSell: jest.fn(),
+      goToDeposit: jest.fn(),
+    });
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([]);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+      setPayToken: jest.fn(),
     });
   });
 
@@ -115,10 +159,10 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('return empty array when max value mode is enabled', () => {
-    mockUseMaxValueMode.mockReturnValue({
-      maxValueMode: true,
-    });
+  it('return empty array when isTransactionValueUpdating is true', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isTransactionValueUpdating: true,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
     expect(result.current).toEqual([]);
@@ -206,10 +250,23 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current[0].key).toBe(AlertKeys.InsufficientBalance);
   });
 
-  it('returns empty array if pay token selected', () => {
-    mockUseTransactionPayToken.mockReturnValue({
-      setPayToken: noop,
-      payToken: {} as never,
+  it('returns empty array if transaction type ignored', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...mockTransaction,
+      type: TransactionType.predictWithdraw,
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert if pay token', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: '0x123' as Hex,
+      } as TransactionPaymentToken,
+      setPayToken: jest.fn(),
     });
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
@@ -217,11 +274,33 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
+  it('returns alert if pay token matches required token', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: '0x123' as Hex,
+        chainId: mockChainId,
+      } as TransactionPaymentToken,
+      setPayToken: jest.fn(),
+    });
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: '0x123' as Hex,
+        chainId: mockChainId,
+      } as TransactionPayRequiredToken,
+    ]);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toHaveLength(1);
+  });
+
   describe('when ignoreGasFeeToken is true', () => {
     it('returns empty array', () => {
-      mockUseMaxValueMode.mockReturnValue({
-        maxValueMode: true,
-      });
+      mockUseAccountNativeBalance.mockReturnValue({
+        balanceWeiInHex: '0xC',
+      } as unknown as ReturnType<typeof useAccountNativeBalance>);
+
       const { result } = renderHook(() =>
         useInsufficientBalanceAlert({ ignoreGasFeeToken: true }),
       );
@@ -248,6 +327,22 @@ describe('useInsufficientBalanceAlert', () => {
           skipConfirmation: true,
         },
       ]);
+    });
+  });
+
+  describe('when isGasFeeSponsored is true', () => {
+    it('returns empty array', () => {
+      mockUseAccountNativeBalance.mockReturnValue({
+        balanceWeiInHex: '0xC',
+      } as unknown as ReturnType<typeof useAccountNativeBalance>);
+      const txWithGasFeeSponsored = {
+        ...mockTransaction,
+        isGasFeeSponsored: true,
+      };
+      mockUseTransactionMetadataRequest.mockReturnValue(txWithGasFeeSponsored);
+
+      const { result } = renderHook(() => useInsufficientBalanceAlert());
+      expect(result.current).toEqual([]);
     });
   });
 });

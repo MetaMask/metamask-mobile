@@ -3,11 +3,12 @@ import { useSelector } from 'react-redux';
 
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { type RecipientType } from '../../components/UI/recipient';
+import { LOWER_CASED_BURN_ADDRESSES } from '../../utils/send-address-validations';
 import { useSendType } from './useSendType';
 
 export const useContacts = () => {
   const addressBook = useSelector(selectAddressBook);
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { isEvmSendType, isNonEvmSendType } = useSendType();
 
   const contacts = useMemo(() => {
     const flattenedContacts: RecipientType[] = [];
@@ -26,21 +27,20 @@ export const useContacts = () => {
     });
 
     return flattenedContacts.filter((contact) => {
-      // We cannot use isEvmAccountType and isSolanaAccount here because we are not using the internal accounts
-      // Potentially we may want to have manual validation for the contacts
       if (isEvmSendType) {
         return (
-          contact.address.startsWith('0x') && contact.address.length === 42
-        );
-      }
-      if (isSolanaSendType) {
-        return (
-          !contact.address.startsWith('0x') && contact.address.length >= 32
+          contact.address.startsWith('0x') &&
+          contact.address.length === 42 &&
+          !LOWER_CASED_BURN_ADDRESSES.includes(contact.address.toLowerCase())
         );
       }
       return true;
     });
-  }, [addressBook, isEvmSendType, isSolanaSendType]);
+  }, [addressBook, isEvmSendType]);
+
+  if (isNonEvmSendType) {
+    return [];
+  }
 
   return contacts;
 };

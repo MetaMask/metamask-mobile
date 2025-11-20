@@ -69,10 +69,13 @@ export enum TraceName {
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
-  CollectibleContractsComponent = 'Collectible Contracts Component',
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SampleFeatureListPetNames = 'Sample Feature List Pet Names',
+  SampleFeatureAddPetName = 'Sample Feature Add Pet Name',
+  ///: END:ONLY_INCLUDE_IF
   OnboardingNewSocialAccountExists = 'Onboarding - New Social Account Exists',
   OnboardingNewSocialCreateWallet = 'Onboarding - New Social Create Wallet',
   OnboardingNewSrpCreateWallet = 'Onboarding - New SRP Create Wallet',
@@ -134,16 +137,68 @@ export enum TraceName {
   PerpsClosePosition = 'Perps Close Position',
   PerpsDeposit = 'Perps Deposit',
   PerpsWithdraw = 'Perps Withdraw',
-  PerpsOrderExecution = 'Perps Order Execution',
+  PerpsPlaceOrder = 'Perps Place Order',
+  PerpsEditOrder = 'Perps Edit Order',
   PerpsCancelOrder = 'Perps Cancel Order',
+  PerpsUpdateTPSL = 'Perps Update TP/SL',
+  PerpsOrderSubmissionToast = 'Perps Order Submission Toast',
   PerpsMarketDataUpdate = 'Perps Market Data Update',
-  PerpsAccountStateUpdate = 'Perps Account State Update',
   PerpsOrderView = 'Perps Order View',
-  PerpsPositionsView = 'Perps Positions View',
+  PerpsTabView = 'Perps Tab View',
   PerpsMarketListView = 'Perps Market List View',
   PerpsPositionDetailsView = 'Perps Position Details View',
+  PerpsTransactionsView = 'Perps Transactions View',
+  PerpsOrderFillsFetch = 'Perps Order Fills Fetch',
+  PerpsOrdersFetch = 'Perps Orders Fetch',
+  PerpsFundingFetch = 'Perps Funding Fetch',
+  PerpsGetPositions = 'Perps Get Positions',
+  PerpsGetAccountState = 'Perps Get Account State',
+  PerpsGetHistoricalPortfolio = 'Perps Get Historical Portfolio',
+  PerpsGetMarkets = 'Perps Get Markets',
+  PerpsFetchHistoricalCandles = 'Perps Fetch Historical Candles',
   PerpsWebSocketConnected = 'Perps WebSocket Connected',
   PerpsWebSocketDisconnected = 'Perps WebSocket Disconnected',
+  PerpsWebSocketFirstPositions = 'Perps WebSocket First Positions',
+  PerpsWebSocketFirstOrders = 'Perps WebSocket First Orders',
+  PerpsWebSocketFirstAccount = 'Perps WebSocket First Account',
+  PerpsDataLakeReport = 'Perps Data Lake Report',
+  PerpsRewardsAPICall = 'Perps Rewards API Call',
+  PerpsClosePositionView = 'Perps Close Position View',
+  PerpsWithdrawView = 'Perps Withdraw View',
+  PerpsConnectionEstablishment = 'Perps Connection Establishment',
+  PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
+  // Predict
+  PredictFeedView = 'Predict Feed View',
+  PredictMarketDetailsView = 'Predict Market Details View',
+  PredictBuyPreviewView = 'Predict Buy Preview View',
+  PredictSellPreviewView = 'Predict Sell Preview View',
+  PredictActivityDetailView = 'Predict Activity Detail View',
+  PredictTransactionHistoryView = 'Predict Transaction History View',
+  PredictTabView = 'Predict Tab View',
+  PredictAddFundsModal = 'Predict Add Funds Modal',
+  PredictUnavailableModal = 'Predict Unavailable Modal',
+  PredictOrderSubmissionToast = 'Predict Order Submission Toast',
+  PredictOrderConfirmationToast = 'Predict Order Confirmation Toast',
+  PredictCashoutSubmissionToast = 'Predict Cashout Submission Toast',
+  PredictCashoutConfirmationToast = 'Predict Cashout Confirmation Toast',
+
+  // Predict Operations
+  PredictPlaceOrder = 'Predict Place Order',
+  PredictOrderPreview = 'Predict Order Preview',
+  PredictClaim = 'Predict Claim',
+  PredictDeposit = 'Predict Deposit',
+  PredictWithdraw = 'Predict Withdraw',
+
+  // Predict Data Fetches
+  PredictGetMarkets = 'Predict Get Markets',
+  PredictGetMarket = 'Predict Get Market',
+  PredictGetPositions = 'Predict Get Positions',
+  PredictGetActivity = 'Predict Get Activity',
+  PredictGetBalance = 'Predict Get Balance',
+  PredictGetAccountState = 'Predict Get Account State',
+  PredictGetPriceHistory = 'Predict Get Price History',
+  PredictGetPrices = 'Predict Get Prices',
+  PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
 }
 
 export enum TraceOperation {
@@ -166,6 +221,10 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
   DiscoverAccounts = 'discover.accounts',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SampleFeatureListPetNames = 'sample.feature.list.pet.names',
+  SampleFeatureAddPetName = 'sample.feature.add.pet.name',
+  ///: END:ONLY_INCLUDE_IF
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
@@ -181,6 +240,10 @@ export enum TraceOperation {
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
+  // Predict
+  PredictOperation = 'predict.operation',
+  PredictOrderSubmission = 'predict.order_submission',
+  PredictDataFetch = 'predict.data_fetch',
 }
 
 const ID_DEFAULT = 'default';
@@ -200,8 +263,9 @@ export interface PendingTrace {
 }
 /**
  * A context object to associate traces with each other and generate nested traces.
+ * When trace() is called without a callback, it returns a Span that can be manually ended.
  */
-export type TraceContext = unknown;
+export type TraceContext = Span | undefined;
 /**
  * A callback function that can be traced.
  */
@@ -551,7 +615,7 @@ function startTrace(request: TraceRequest): TraceContext {
     }
 
     bufferTraceStartCallLocal(request, parentTraceName);
-    return { _buffered: true, _name: name, _id: id, _local: true };
+    return undefined;
   }
 
   const callback = (span: Span | undefined) => {

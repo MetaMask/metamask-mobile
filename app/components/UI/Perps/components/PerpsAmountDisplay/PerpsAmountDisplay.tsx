@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, TouchableOpacity, View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Text, {
   TextColor,
@@ -7,8 +8,14 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  formatPositionSize,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import createStyles from './PerpsAmountDisplay.styles';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsAmountDisplayProps {
   amount: string;
@@ -22,6 +29,7 @@ interface PerpsAmountDisplayProps {
   tokenSymbol?: string;
   showMaxAmount?: boolean;
   hasError?: boolean;
+  isLoading?: boolean;
 }
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
@@ -36,10 +44,22 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   tokenSymbol,
   showMaxAmount = true,
   hasError = false,
+  isLoading = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Calculate display value - extracted from nested ternary for clarity
+  const displayValue = (() => {
+    if (showTokenAmount && tokenAmount && tokenSymbol) {
+      return `${formatPositionSize(tokenAmount)} ${getPerpsDisplaySymbol(tokenSymbol)}`;
+    }
+    if (amount) {
+      return formatPerpsFiat(amount, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+    }
+    return PERPS_CONSTANTS.ZERO_AMOUNT_DISPLAY;
+  })();
 
   useEffect(() => {
     if (isActive) {
@@ -80,22 +100,24 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       )}
       <View style={styles.amountRow}>
         {/* Text only takes 1 arg */}
-        <Text
-          testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-          color={hasError ? TextColor.Error : TextColor.Default}
-          variant={TextVariant.BodyMDBold}
-          style={
-            Platform.OS === 'android'
-              ? styles.amountValueTokenAndroid
-              : styles.amountValueToken
-          }
-        >
-          {showTokenAmount && tokenAmount && tokenSymbol
-            ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
-            : amount
-            ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
-            : '$0'}
-        </Text>
+        {isLoading ? (
+          <SkeletonPlaceholder>
+            <SkeletonPlaceholder.Item width={80} height={20} borderRadius={4} />
+          </SkeletonPlaceholder>
+        ) : (
+          <Text
+            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+            color={hasError ? TextColor.Error : TextColor.Default}
+            variant={TextVariant.BodyMDBold}
+            style={
+              Platform.OS === 'android'
+                ? styles.amountValueTokenAndroid
+                : styles.amountValueToken
+            }
+          >
+            {displayValue}
+          </Text>
+        )}
         {isActive && (
           <Animated.View
             testID="cursor"
@@ -116,7 +138,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           style={styles.maxAmount}
           testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}
         >
-          {formatPositionSize(tokenAmount)} {tokenSymbol}
+          {formatPositionSize(tokenAmount)} {getPerpsDisplaySymbol(tokenSymbol)}
         </Text>
       )}
       {showWarning && (

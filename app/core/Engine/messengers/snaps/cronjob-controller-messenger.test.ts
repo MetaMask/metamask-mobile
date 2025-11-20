@@ -1,12 +1,31 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import { CronjobControllerMessenger } from '@metamask/snaps-controllers';
 import { getCronjobControllerMessenger } from './cronjob-controller-messenger';
 
-describe('getCronjobControllerMessenger', () => {
-  it('returns a restricted controller messenger', () => {
-    const controllerMessenger = new Messenger<never, never>();
-    const cronjobControllerMessenger =
-      getCronjobControllerMessenger(controllerMessenger);
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<CronjobControllerMessenger>,
+  MessengerEvents<CronjobControllerMessenger>
+>;
 
-    expect(cronjobControllerMessenger).toBeInstanceOf(RestrictedMessenger);
+const getRootMessenger = (): RootMessenger =>
+  new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+
+describe('getCronjobControllerMessenger', () => {
+  it('returns a messenger', () => {
+    const rootMessenger = getRootMessenger();
+
+    const cronjobControllerMessenger =
+      getCronjobControllerMessenger(rootMessenger);
+
+    expect(cronjobControllerMessenger).toBeInstanceOf(Messenger);
   });
 });

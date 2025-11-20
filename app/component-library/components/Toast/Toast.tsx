@@ -26,21 +26,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
-import Text, { TextVariant } from '../Texts/Text';
+import Text, { TextColor, TextVariant } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
 import {
+  ToastDescriptionOptions,
   ToastLabelOptions,
   ToastLinkButtonOptions,
   ToastOptions,
   ToastRef,
   ToastVariants,
 } from './Toast.types';
-import styles from './Toast.styles';
+import styleSheet from './Toast.styles';
 import { ToastSelectorsIDs } from '../../../../e2e/selectors/wallet/ToastModal.selectors';
 import { ButtonProps } from '../Buttons/Button/Button.types';
 import { TAB_BAR_HEIGHT } from '../Navigation/TabBar/TabBar.constants';
+import { useStyles } from '../../hooks';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -48,20 +50,22 @@ const bottomPadding = 16;
 const screenHeight = Dimensions.get('window').height;
 
 const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
+  const { styles } = useStyles(styleSheet, {});
   const [toastOptions, setToastOptions] = useState<ToastOptions | undefined>(
     undefined,
   );
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
+  const customOffset = toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateYProgress.value - TAB_BAR_HEIGHT }],
+    transform: [
+      { translateY: translateYProgress.value - TAB_BAR_HEIGHT - customOffset },
+    ],
   }));
-  const baseStyle: StyleProp<Animated.AnimateStyle<StyleProp<ViewStyle>>> =
-    useMemo(
-      () => [styles.base, animatedStyle],
-      /* eslint-disable-next-line */
-      [],
-    );
+  const baseStyle: StyleProp<ViewStyle> = useMemo(
+    () => [styles.base, animatedStyle],
+    [styles.base, animatedStyle],
+  );
 
   const resetState = () => setToastOptions(undefined);
 
@@ -139,13 +143,25 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     </Text>
   );
 
-  const renderButtonLink = (linkButtonOptions?: ToastLinkButtonOptions) =>
+  const renderDescription = (descriptionOptions?: ToastDescriptionOptions) =>
+    descriptionOptions && (
+      <Text
+        variant={TextVariant.BodySM}
+        color={TextColor.Alternative}
+        style={styles.description}
+      >
+        {descriptionOptions.description}
+      </Text>
+    );
+
+  const renderActionButton = (linkButtonOptions?: ToastLinkButtonOptions) =>
     linkButtonOptions && (
       <Button
-        variant={ButtonVariants.Link}
+        variant={ButtonVariants.Secondary}
         onPress={linkButtonOptions.onPress}
         labelTextVariant={TextVariant.BodyMD}
         label={linkButtonOptions.label}
+        style={styles.actionButton}
       />
     );
 
@@ -154,6 +170,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       variant={ButtonVariants.Primary}
       onPress={() => closeButtonOptions?.onPress()}
       label={closeButtonOptions?.label}
+      endIconName={closeButtonOptions?.endIconName}
+      style={closeButtonOptions?.style}
     />
   );
 
@@ -217,6 +235,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const renderToastContent = (options: ToastOptions) => {
     const {
       labelOptions,
+      descriptionOptions,
       linkButtonOptions,
       closeButtonOptions,
       startAccessory,
@@ -233,7 +252,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           testID={ToastSelectorsIDs.CONTAINER}
         >
           {renderLabel(labelOptions)}
-          {renderButtonLink(linkButtonOptions)}
+          {renderDescription(descriptionOptions)}
+          {renderActionButton(linkButtonOptions)}
         </View>
         {closeButtonOptions ? renderCloseButton(closeButtonOptions) : null}
       </>

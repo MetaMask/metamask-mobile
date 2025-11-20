@@ -25,6 +25,7 @@ import {
   trace,
   endTrace,
 } from '../../../util/trace';
+import type { Span } from '@sentry/core';
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
   dismiss: jest.fn(),
@@ -85,16 +86,12 @@ jest.mock('../../hooks/useMetrics', () => {
   };
 });
 
-// Enable fake timers
-jest.useFakeTimers();
-
 describe('ImportFromSecretRecoveryPhrase', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    jest.clearAllMocks();
   });
 
   beforeEach(() => {
-    jest.clearAllTimers();
     jest.clearAllMocks();
   });
 
@@ -295,13 +292,25 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         strings('import_from_seed.srp_placeholder'),
       );
 
-      fireEvent.changeText(input, 'say');
+      await act(async () => {
+        fireEvent.changeText(input, 'say');
+      });
+
+      // Wait for the first grid input to be created
+      await waitFor(() => {
+        const firstGridInput = getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+        );
+        expect(firstGridInput).toBeOnTheScreen();
+      });
+
+      // Get the first grid input
+      const firstGridInput = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
 
       await act(async () => {
-        fireEvent(input, 'onSubmitEditing', {
-          nativeEvent: { key: 'Enter' },
-          index: 0,
-        });
+        fireEvent(firstGridInput, 'onSubmitEditing');
       });
 
       await waitFor(() => {
@@ -1621,8 +1630,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('starts and ends trace with onboardingTraceCtx', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const mockOnboardingTraceCtx = {
+        traceId: 'test-trace-id',
+      } as unknown as Span;
+      const mockTraceCtx = {
+        traceId: 'password-setup-trace-id',
+      } as unknown as Span;
 
       mockTrace.mockReturnValue(mockTraceCtx);
 

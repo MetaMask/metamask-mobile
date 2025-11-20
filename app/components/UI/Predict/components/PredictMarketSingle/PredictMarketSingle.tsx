@@ -4,9 +4,9 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback } from 'react';
-import { Alert, Image, View, TouchableOpacity } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Image, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -19,29 +19,131 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { usePredictBuy } from '../../hooks/usePredictBuy';
-import { PredictMarket as PredictMarketType } from '../../types';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import Routes from '../../../../../constants/navigation/Routes';
+import {
+  PredictMarket as PredictMarketType,
+  PredictOutcomeToken,
+} from '../../types';
+import {
+  PredictNavigationParamList,
+  PredictEntryPoint,
+} from '../../types/navigation';
+import { PredictEventValues } from '../../constants/eventNames';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictNavigationParamList } from '../../types/navigation';
+
+interface SemiCircleYesPercentageProps {
+  percentage: number;
+  size?: number;
+  compensateCaps?: boolean;
+  startAngle?: number;
+}
+
+const SemiCircleYesPercentage = ({
+  percentage,
+  size = 40,
+  compensateCaps = true,
+  startAngle = 180,
+}: SemiCircleYesPercentageProps) => {
+  const { theme } = useStyles(() => ({}), {});
+  const tw = useTailwind();
+  const radius = size / 2;
+  const strokeWidth = 4;
+
+  const fullCircumference = 2 * Math.PI * (radius - strokeWidth / 2);
+  const semiCircumference = fullCircumference / 2;
+
+  let progress = Math.min(Math.max(percentage, 0), 100) / 100;
+
+  if (compensateCaps && progress > 0) {
+    const capCompensation = strokeWidth / radius;
+    const adjustment = capCompensation / Math.PI / 2;
+    progress = Math.min(progress, 1 - adjustment);
+  }
+
+  const backgroundDasharray = `${semiCircumference} ${fullCircumference}`;
+  const progressDasharray = `${
+    semiCircumference * progress
+  } ${fullCircumference}`;
+
+  return (
+    <Box
+      twClassName="relative items-center justify-end"
+      style={{ width: size, height: size / 2 }}
+    >
+      <Svg width={size} height={size / 2} style={tw.style('absolute')}>
+        <Defs>
+          <LinearGradient
+            id="progressGradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="0%"
+          >
+            <Stop offset="0%" stopColor={theme.colors.success.default} />
+            <Stop offset="100%" stopColor={theme.colors.success.default} />
+          </LinearGradient>
+        </Defs>
+
+        {/* Background semi-circle */}
+        <Circle
+          cx={radius}
+          cy={radius}
+          r={radius - strokeWidth / 2}
+          stroke={theme.colors.border.muted}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={backgroundDasharray}
+          transform={`rotate(${startAngle} ${radius} ${radius})`}
+        />
+
+        {/* Progress arc */}
+        <Circle
+          cx={radius}
+          cy={radius}
+          r={radius - strokeWidth / 2}
+          stroke="url(#progressGradient)"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={progressDasharray}
+          transform={`rotate(${startAngle} ${radius} ${radius})`}
+          strokeLinecap="round"
+        />
+      </Svg>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        color={TextColor.Success}
+        style={tw.style('-mb-1.5')}
+      >
+        {percentage}%
+      </Text>
+    </Box>
+  );
+};
+
 interface PredictMarketSingleProps {
   market: PredictMarketType;
+  testID?: string;
+  entryPoint?: PredictEntryPoint;
+  isCarousel?: boolean;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
+  testID,
+  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  isCarousel = false,
 }) => {
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
-  const { placeBuyOrder, reset, loading, currentOrderParams } = usePredictBuy({
-    onError: (error) => {
-      Alert.alert('Order failed', error);
-      reset();
-    },
+
+  const { executeGuardedAction } = usePredictActionGuard({
+    providerId: market.providerId,
+    navigation,
   });
 
   const getOutcomePrices = (): number[] =>
@@ -49,10 +151,17 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const getYesPercentage = (): number => {
     const prices = getOutcomePrices();
-    if (prices.length > 0) {
-      return Math.round(prices[0] * 100);
+    if (prices.length === 0) {
+      return 0;
     }
-    return 0;
+
+    const yesPrice = Number(prices[0]);
+
+    if (!Number.isFinite(yesPrice)) {
+      return 0;
+    }
+
+    return Math.round(yesPrice * 100);
   };
 
   const getTitle = (): string => outcome.title ?? 'Unknown Market';
@@ -63,126 +172,32 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const yesPercentage = getYesPercentage();
 
-  const isOutcomeTokenLoading = useCallback(
-    (outcomeTokenId: string) =>
-      currentOrderParams?.outcomeTokenId === outcomeTokenId && loading,
-    [currentOrderParams, loading],
-  );
-
-  const handleYes = () => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[0].id,
-      market,
-    });
-  };
-
-  const handleNo = () => {
-    placeBuyOrder({
-      size: 1,
-      outcomeId: outcome.id,
-      outcomeTokenId: outcome.tokens[1].id,
-      market,
-    });
-  };
-
-  interface SemiCircleYesPercentageProps {
-    percentage: number;
-    size?: number;
-    compensateCaps?: boolean;
-    startAngle?: number;
-  }
-
-  const SemiCircleYesPercentage = ({
-    percentage,
-    size = 40,
-    compensateCaps = true,
-    startAngle = 180,
-  }: SemiCircleYesPercentageProps) => {
-    const { theme } = useStyles(() => ({}), {});
-    const radius = size / 2;
-    const strokeWidth = 4;
-
-    const fullCircumference = 2 * Math.PI * (radius - strokeWidth / 2);
-    const semiCircumference = fullCircumference / 2;
-
-    let progress = Math.min(Math.max(percentage, 0), 100) / 100;
-
-    if (compensateCaps && progress > 0) {
-      const capCompensation = strokeWidth / radius;
-      const adjustment = capCompensation / Math.PI / 2;
-      progress = Math.min(progress, 1 - adjustment);
-    }
-
-    const backgroundDasharray = `${semiCircumference} ${fullCircumference}`;
-    const progressDasharray = `${
-      semiCircumference * progress
-    } ${fullCircumference}`;
-
-    return (
-      <Box
-        twClassName="relative items-center justify-end"
-        style={{ width: size, height: size / 2 }}
-      >
-        <Svg width={size} height={size / 2} style={tw.style('absolute')}>
-          <Defs>
-            <LinearGradient
-              id="progressGradient"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
-              <Stop offset="0%" stopColor={theme.colors.success.default} />
-              <Stop offset="100%" stopColor={theme.colors.success.default} />
-            </LinearGradient>
-          </Defs>
-
-          {/* Background semi-circle */}
-          <Circle
-            cx={radius}
-            cy={radius}
-            r={radius - strokeWidth / 2}
-            stroke={theme.colors.border.muted}
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={backgroundDasharray}
-            transform={`rotate(${startAngle} ${radius} ${radius})`}
-          />
-
-          {/* Progress arc */}
-          <Circle
-            cx={radius}
-            cy={radius}
-            r={radius - strokeWidth / 2}
-            stroke="url(#progressGradient)"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={progressDasharray}
-            transform={`rotate(${startAngle} ${radius} ${radius})`}
-            strokeLinecap="round"
-          />
-        </Svg>
-        <Text
-          variant={TextVariant.HeadingSM}
-          color={TextColor.Success}
-          style={tw.style('-mb-1')}
-        >
-          {percentage}%
-        </Text>
-      </Box>
+  const handleBuy = (token: PredictOutcomeToken) => {
+    executeGuardedAction(
+      () => {
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome,
+          outcomeToken: token,
+          entryPoint,
+        });
+      },
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
     );
   };
 
   return (
     <TouchableOpacity
+      testID={testID}
       onPress={() => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MARKET_DETAILS,
-          params: {
-            marketId: market.id,
-          },
+        navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
+          marketId: market.id,
+          entryPoint,
+          title: market.title,
+          image: getImageUrl(),
         });
       }}
     >
@@ -193,7 +208,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             alignItems={BoxAlignItems.Center}
             twClassName="flex-1 gap-3"
           >
-            <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
               {getImageUrl() ? (
                 <Image
                   source={{ uri: getImageUrl() }}
@@ -205,9 +220,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
               )}
             </Box>
             <Text
-              variant={TextVariant.HeadingMD}
+              variant={TextVariant.BodyMDMedium}
               color={TextColor.Default}
               style={tw.style('flex-1 font-medium')}
+              numberOfLines={2}
             >
               {getTitle()}
             </Text>
@@ -223,13 +239,11 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Success}>
-                {strings('predict.buy_yes')}
+                {outcome.tokens[0].title}
               </Text>
             }
-            onPress={handleYes}
+            onPress={() => handleBuy(outcome.tokens[0])}
             style={styles.buttonYes}
-            disabled={loading}
-            loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -237,13 +251,11 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {strings('predict.buy_no')}
+                {outcome.tokens[1].title}
               </Text>
             }
-            onPress={handleNo}
+            onPress={() => handleBuy(outcome.tokens[1])}
             style={styles.buttonNo}
-            disabled={loading}
-            loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
           />
         </View>
         <View style={styles.marketFooter}>

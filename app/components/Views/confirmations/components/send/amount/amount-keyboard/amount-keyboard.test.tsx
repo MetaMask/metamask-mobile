@@ -10,10 +10,14 @@ import {
   ETHEREUM_ADDRESS,
   evmSendStateMock,
   MOCK_NFT1155,
+  SOLANA_ASSET,
 } from '../../../../__mocks__/send.mock';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendContext } from '../../../../context/send-context';
 import { useRouteParams } from '../../../../hooks/send/useRouteParams';
+import { useSendType } from '../../../../hooks/send/useSendType';
+// eslint-disable-next-line import/no-namespace
+import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
 import { getBackgroundColor } from './amount-keyboard.styles';
 import { AmountKeyboard } from './amount-keyboard';
 
@@ -43,6 +47,10 @@ jest.mock('../../../../context/send-context', () => ({
 
 jest.mock('../../../../hooks/send/usePercentageAmount', () => ({
   usePercentageAmount: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/send/useSendType', () => ({
+  useSendType: jest.fn(),
 }));
 
 const mockGoBack = jest.fn();
@@ -104,7 +112,11 @@ const renderComponent = (
 };
 
 describe('Amount', () => {
+  const mockUseSendType = jest.mocked(useSendType);
   beforeEach(() => {
+    mockUseSendType.mockReturnValue({
+      isNonEvmSendType: false,
+    } as unknown as ReturnType<typeof useSendType>);
     mockUsePercentageAmount.mockReturnValue({
       getPercentageAmount: () => 10,
       isMaxAmountSupported: true,
@@ -130,7 +142,7 @@ describe('Amount', () => {
     const { getByRole } = renderComponent(undefined, '');
     expect(
       getByRole('button', { name: 'Next' }).props.style.backgroundColor,
-    ).toEqual('#4459ff1a');
+    ).toEqual('#b7bbc8');
   });
 
   it('call updateValue with MaxMode true when Max button is pressed', () => {
@@ -145,13 +157,30 @@ describe('Amount', () => {
     fireEvent.press(getByRole('button', { name: 'Max' }));
     expect(mockUpdateValue).toHaveBeenCalledWith(10, true);
   });
+
+  it('call validateNonEvmAmountAsync when continue button is pressed', () => {
+    const mockValidateNonEvmAmountAsync = jest.fn();
+    mockUseSendType.mockReturnValue({
+      isNonEvmSendType: true,
+    } as unknown as ReturnType<typeof useSendType>);
+    mockUseSendContext.mockReturnValue({
+      asset: SOLANA_ASSET,
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+    jest.spyOn(AmountValidation, 'useAmountValidation').mockReturnValue({
+      validateNonEvmAmountAsync: mockValidateNonEvmAmountAsync,
+    } as unknown as ReturnType<typeof AmountValidation.useAmountValidation>);
+    const { getByText } = renderComponent();
+    fireEvent.press(getByText('Continue'));
+    expect(mockValidateNonEvmAmountAsync).toHaveBeenCalled();
+  });
 });
 
 describe('getBackgroundColor', () => {
   it('return correct color depending on amount value and error', () => {
-    expect(getBackgroundColor(mockTheme, false, false)).toEqual('#4459ff');
+    expect(getBackgroundColor(mockTheme, false, false)).toEqual('#121314');
     expect(getBackgroundColor(mockTheme, true, false)).toEqual('#ca3542');
-    expect(getBackgroundColor(mockTheme, false, true)).toEqual('#4459ff1a');
+    expect(getBackgroundColor(mockTheme, false, true)).toEqual('#b7bbc8');
     expect(getBackgroundColor(mockTheme, true, true)).toEqual('#ca3542');
   });
 });

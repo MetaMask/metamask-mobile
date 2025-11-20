@@ -1,11 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
-import {
-  View,
-  Image,
-  ScrollView,
-  Dimensions,
-  SafeAreaView,
-} from 'react-native';
+import { View, Image, ScrollView, Dimensions, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import Text from '../../../component-library/components/Texts/Text';
@@ -32,6 +27,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
+  TraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -55,7 +51,8 @@ interface AccountStatusProps {
 interface AccountRouteParams {
   accountName?: string;
   oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: string;
+  onboardingTraceCtx?: TraceContext;
+  provider?: string;
 }
 
 const AccountStatus = ({
@@ -70,6 +67,7 @@ const AccountStatus = ({
     ?.oauthLoginSuccess;
   const onboardingTraceCtx = (route.params as AccountRouteParams)
     ?.onboardingTraceCtx;
+  const provider = (route.params as AccountRouteParams)?.provider;
 
   // check for small screen size
   const isSmallScreen = Dimensions.get('window').width < 375;
@@ -132,6 +130,7 @@ const AccountStatus = ({
         [PREVIOUS_SCREEN]: previousScreen,
         oauthLoginSuccess,
         onboardingTraceCtx,
+        provider,
       }),
     );
     track(
@@ -141,8 +140,22 @@ const AccountStatus = ({
     );
   };
 
+  const descriptionForFoundTypeAccountStatus = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      return 'account_status.account_already_exists_ios_new_user_description';
+    }
+    return 'account_status.account_already_exists_description';
+  }, []);
+
+  const buttonLabelForFoundTypeAccountStatus = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      return 'account_status.unlock_wallet';
+    }
+    return 'account_status.log_in';
+  }, []);
+
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.root}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>
@@ -160,7 +173,7 @@ const AccountStatus = ({
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings(
                   type === 'found'
-                    ? 'account_status.account_already_exists_description'
+                    ? descriptionForFoundTypeAccountStatus()
                     : 'account_status.account_not_found_description',
                   {
                     accountName,
@@ -185,7 +198,7 @@ const AccountStatus = ({
             }}
             label={
               type === 'found'
-                ? strings('account_status.log_in')
+                ? strings(buttonLabelForFoundTypeAccountStatus())
                 : strings('account_status.create_new_wallet')
             }
           />

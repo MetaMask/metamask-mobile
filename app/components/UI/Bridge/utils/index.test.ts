@@ -1,9 +1,5 @@
 import '../_mocks_/initialState';
-import {
-  isBridgeAllowed,
-  wipeBridgeStatus,
-  normalizeToCaipAssetType,
-} from './index';
+import { isBridgeAllowed, wipeBridgeStatus, getTokenIconUrl } from './index';
 import AppConstants from '../../../../core/AppConstants';
 import {
   ARBITRUM_CHAIN_ID,
@@ -19,8 +15,14 @@ import {
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
+import {
+  formatAddressToAssetId,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 
 jest.mock('../../../../core/AppConstants', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../core/AppConstants'),
   BRIDGE: {
     ACTIVE: true,
   },
@@ -126,26 +128,115 @@ describe('Bridge Utils', () => {
     });
   });
 
-  describe('normalizeToCaipAssetType', () => {
-    it('should return CAIP format address as-is', () => {
-      const caipAddress =
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-      const result = normalizeToCaipAssetType(caipAddress, SolScope.Mainnet);
-      expect(result).toBe(caipAddress);
-    });
+  describe('getTokenIconUrl', () => {
+    it('should return token icon URL for native token on Ethereum', () => {
+      // Arrange
+      const nativeTokenAddress = '0x0000000000000000000000000000000000000000';
+      const nativeTokenAssetId = formatAddressToAssetId(
+        nativeTokenAddress,
+        ETH_CHAIN_ID,
+      );
 
-    it('should convert raw address to CAIP token format', () => {
-      const rawAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
-      const result = normalizeToCaipAssetType(rawAddress, SolScope.Mainnet);
+      // Act
+      const result = getTokenIconUrl(
+        nativeTokenAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
+
+      // Assert
       expect(result).toBe(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
       );
     });
 
-    it('should handle different chain IDs', () => {
-      const address = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-      const result = normalizeToCaipAssetType(address, ETH_CHAIN_ID);
-      expect(result).toBe(`${ETH_CHAIN_ID}/token:${address}`);
+    it('should return token icon URL for ERC20 token on Ethereum', () => {
+      // Arrange
+      const usdcAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const usdcAssetId = formatAddressToAssetId(usdcAddress, ETH_CHAIN_ID);
+
+      // Act
+      const result = getTokenIconUrl(
+        usdcAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
+
+      // Assert
+      expect(result).toBe(
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+      );
+    });
+
+    it('should return token icon URL for Solana native token', () => {
+      // Arrange
+      const solNativeAddress = '0x0000000000000000000000000000000000000000';
+      const solNativeAssetId = formatAddressToAssetId(
+        solNativeAddress,
+        SolScope.Mainnet,
+      );
+      // Act
+      const result = getTokenIconUrl(
+        solNativeAssetId,
+        isNonEvmChainId(SolScope.Mainnet),
+      );
+
+      // Assert
+      expect(result).toBe(
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+      );
+    });
+
+    it('should return token icon URL for Solana SPL token', () => {
+      // Arrange
+      const usdcSolanaAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+      const usdcSolanaAssetId = formatAddressToAssetId(
+        usdcSolanaAddress,
+        SolScope.Mainnet,
+      );
+
+      // Act
+      const result = getTokenIconUrl(
+        usdcSolanaAssetId,
+        isNonEvmChainId(SolScope.Mainnet),
+      );
+
+      // Assert
+      expect(result).toBe(
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
+      );
+    });
+
+    it('should return undefined for invalid address', () => {
+      // Arrange
+      const invalidAddress = 'invalid';
+      const invalidAssetId = formatAddressToAssetId(
+        invalidAddress,
+        ETH_CHAIN_ID,
+      );
+
+      // Act
+      const result = getTokenIconUrl(
+        invalidAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
+
+      // Assert
+      expect(result).toBeUndefined();
+    });
+
+    it('should return native token icon URL for empty address', () => {
+      // Arrange
+      const emptyAddress = '';
+      const emptyAssetId = formatAddressToAssetId(emptyAddress, ETH_CHAIN_ID);
+      // Act
+      const result = getTokenIconUrl(
+        emptyAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
+
+      // Assert
+      expect(result).toBe(
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+      );
     });
   });
 });

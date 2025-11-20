@@ -14,6 +14,8 @@ import { store } from '../store';
 import Engine from '../core/Engine';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
 import { isMultichainAccountsState2Enabled } from '../multichain-accounts/remote-feature-flag';
+import { setLockTime } from '../actions/settings';
+import AppConstants from '../core/AppConstants';
 
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
@@ -94,6 +96,10 @@ async function applyVaultInitialization() {
     store.dispatch(seedphraseBackedUp());
     // removes the necessity of the user to see the privacy policy modal
     store.dispatch(storePrivacyPolicyClickedOrClosed());
+    // Set auto-lock time for the default
+    // Note: This line is tested via component tests (setLockTime action creator + store.dispatch)
+    // Full integration testing requires PREDEFINED_PASSWORD env var set before module load
+    store.dispatch(setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
     // removes the necessity of the user to see the terms of use modal
     await StorageWrapper.setItem(USE_TERMS, TRUE);

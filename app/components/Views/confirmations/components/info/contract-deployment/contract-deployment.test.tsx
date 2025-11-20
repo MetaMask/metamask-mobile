@@ -49,6 +49,8 @@ jest.mock('../../../hooks/gas/useGasFeeToken', () => ({
   useSelectedGasFeeToken: jest.fn(),
 }));
 
+jest.mock('../../../hooks/tokens/useTokenWithBalance');
+
 jest.mock('../../../hooks/gas/useIsGaslessSupported', () => ({
   useIsGaslessSupported: jest.fn().mockReturnValue({
     isSupported: false,
@@ -92,7 +94,7 @@ describe('Contract Deployment', () => {
       state: contractDeploymentTransactionStateMock,
     });
 
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
   });
 });

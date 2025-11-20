@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import Device from '../../../../../util/device';
 import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) =>
@@ -11,14 +12,15 @@ const styleSheet = (params: { theme: Theme }) =>
       borderTopLeftRadius: 12,
       borderTopRightRadius: 12,
       padding: 12,
-      paddingBottom: 20,
+      marginBottom: 0,
+      paddingBottom: Device.isIos() ? 20 : 12,
     },
     percentageButton: {
       borderRadius: 12,
+      color: params.theme.colors.text.default,
       backgroundColor: params.theme.colors.background.muted,
       height: 48,
       flexGrow: 1,
-      fontSize: 20,
     },
   });
 

@@ -101,6 +101,12 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
+    shareButton: {
+      alignSelf: 'center',
+      backgroundColor: colors.background.muted,
+      height: 40,
+      width: 40,
+    },
   });
 };
 

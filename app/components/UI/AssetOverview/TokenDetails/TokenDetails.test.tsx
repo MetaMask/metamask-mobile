@@ -18,12 +18,18 @@ import TokenDetails from './';
 import * as reactRedux from 'react-redux';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { handleFetch } from '@metamask/controller-utils';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {},
   },
+}));
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  handleFetch: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -300,6 +306,10 @@ describe('TokenDetails', () => {
             mockTokenMarketDataByChainId['0x1'][
               '0x6B175474E89094C44Da98b954EedeAC495271d0F'
             ],
+          // null metadata ensures:
+          // 1. tokenList is null (no aggregators array in metadata)
+          // 2. tokenMetadata is null (so tokenMetadata condition is false)
+          metadata: null,
         },
         selectConversionRateBySymbol: mockExchangeRate,
         selectNativeCurrencyByChainId: 'ETH',
@@ -331,12 +341,169 @@ describe('TokenDetails', () => {
       }
     });
 
-    const { getByText, queryByText, debug } = renderWithProvider(
-      <TokenDetails asset={mockDAI} />,
+    const tokenWithoutAddress = {
+      ...mockDAI,
+      address: '', // Empty address makes contractAddress null
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={tokenWithoutAddress} />,
       { state: initialState },
     );
-    debug();
     expect(queryByText('Token details')).toBeNull();
     expect(getByText('Market details')).toBeDefined();
+  });
+
+  const mockSolanaToken = {
+    address:
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
+    aggregators: [],
+    balanceFiat: '$10.00',
+    balance: '10',
+    logo: 'https://example.com/jup.png',
+    decimals: 9,
+    image: 'https://example.com/jup.png',
+    name: 'Jupiter',
+    symbol: 'JUP',
+    isETH: false,
+    hasBalanceError: false,
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  };
+
+  const mockUseSelectorImplementation =
+    (customMocks: Record<string, unknown>) => (selectorOrCallback: unknown) => {
+      if (typeof selectorOrCallback === 'function') {
+        const selectorString = selectorOrCallback.toString();
+        const matchedKey = Object.keys(customMocks).find((key) =>
+          selectorString.includes(key),
+        );
+        if (matchedKey) return customMocks[matchedKey];
+      }
+
+      switch (selectorOrCallback) {
+        case selectCurrentCurrency:
+          return mockCurrentCurrency;
+        case selectIsEvmNetworkSelected:
+          return customMocks.isEvmNetwork ?? true;
+        case selectMultichainAssetsRates:
+          return customMocks.multichainRates ?? {};
+        default:
+          return undefined;
+      }
+    };
+
+  it('should fetch market data from API for non-imported EVM token', async () => {
+    const testToken = {
+      ...mockDAI,
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      symbol: 'USDC',
+    };
+
+    jest.mocked(handleFetch).mockResolvedValue({
+      'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+        price: 0.0005,
+        marketCap: '5000000',
+      },
+    });
+
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectEvmTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { findByText } = renderWithProvider(
+      <TokenDetails asset={testToken} />,
+      { state: initialState },
+    );
+
+    await findByText('Market details');
+    expect(handleFetch).toHaveBeenCalledWith(
+      expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
+    );
+  });
+
+  it('should fetch market data from API for non-imported Solana token', async () => {
+    jest.mocked(handleFetch).mockResolvedValue({
+      [mockSolanaToken.address]: {
+        price: 0.431111,
+        marketCap: '1364703778',
+      },
+    });
+
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectEvmTokenMarketData: null,
+        isEvmNetwork: false,
+      }),
+    );
+
+    const { findByText } = renderWithProvider(
+      <TokenDetails asset={mockSolanaToken} />,
+      { state: initialState },
+    );
+
+    await findByText('Market details');
+    expect(handleFetch).toHaveBeenCalledWith(
+      expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
+    );
+  });
+
+  it('should not fetch market data when already cached for EVM token', async () => {
+    jest.clearAllMocks();
+
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectEvmTokenMarketData: {
+          marketData: {
+            price: 0.0005,
+            marketCap: '5000000',
+          },
+        },
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { getByText } = renderWithProvider(<TokenDetails asset={mockDAI} />, {
+      state: initialState,
+    });
+
+    expect(getByText('Market details')).toBeDefined();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(handleFetch).not.toHaveBeenCalled();
+  });
+
+  it('should not fetch market data when already cached for Solana token', async () => {
+    jest.clearAllMocks();
+
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectEvmTokenMarketData: null,
+        multichainRates: {
+          [mockSolanaToken.address]: {
+            rate: 0.431111,
+            marketData: {
+              allTimeHigh: 2,
+              marketCap: '1364703778',
+            },
+          },
+        },
+        isEvmNetwork: false,
+      }),
+    );
+
+    const { getByText } = renderWithProvider(
+      <TokenDetails asset={mockSolanaToken} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Market details')).toBeDefined();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(handleFetch).not.toHaveBeenCalled();
   });
 });

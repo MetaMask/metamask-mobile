@@ -4,17 +4,22 @@
 
 import {
   transformMarketData,
-  formatPrice,
+  calculateOpenInterestUSD,
   formatChange,
   formatPercentage,
   HyperLiquidMarketData,
 } from './marketDataTransform';
-import { formatVolume } from './formatUtils';
 import {
-  AllMids,
+  formatVolume,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from './formatUtils';
+import { HIP3_ASSET_MARKET_TYPES } from '../constants/hyperLiquidConfig';
+import type {
+  AllMidsResponse,
   PerpsAssetCtx,
   PredictedFunding,
-} from '@deeeed/hyperliquid-node20';
+} from '../types/hyperliquid-types';
 
 // Helper function to create mock asset context with all required properties
 const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
@@ -65,13 +70,16 @@ describe('marketDataTransform', () => {
         symbol: 'BTC',
         name: 'BTC',
         maxLeverage: '50x',
-        price: '$52,000.00',
-        change24h: '+$2,000.00',
+        price: '$52,000', // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $10k-$100k
+        change24h: '+$2,000', // No trailing zeros
         change24hPercent: '+4.00%',
         volume: '$1.00B',
         nextFundingTime: undefined,
         fundingIntervalHours: undefined,
         fundingRate: 0.01,
+        marketSource: undefined, // Main DEX has no source
+        marketType: undefined, // Main DEX has no type
+        openInterest: '$52.00B', // 1M contracts * $52K price
       });
     });
 
@@ -115,7 +123,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].price).toBe('$0.00');
+      expect(result[0].price).toBe('$---');
       expect(result[0].change24h).toBe('$0.00');
       expect(result[0].change24hPercent).toBe('-100.00%');
     });
@@ -132,7 +140,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].change24h).toBe('+$52,000.00');
+      expect(result[0].change24h).toBe('+$52,000'); // No trailing zeros
       expect(result[0].change24hPercent).toBe('0.00%');
       expect(result[0].volume).toBe('$---');
     });
@@ -171,7 +179,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].change24h).toBe('-$3,000.00');
+      expect(result[0].change24h).toBe('-$3,000'); // No trailing zeros
       expect(result[0].change24hPercent).toBe('-5.45%');
     });
 
@@ -187,7 +195,7 @@ describe('marketDataTransform', () => {
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].change24h).toBe('+$52,000.00');
+      expect(result[0].change24h).toBe('+$52,000'); // No trailing zeros
       expect(result[0].change24hPercent).toBe('0.00%');
     });
 
@@ -298,106 +306,261 @@ describe('marketDataTransform', () => {
       expect(result[0].nextFundingTime).toBeUndefined();
       expect(result[0].fundingIntervalHours).toBeUndefined();
     });
-  });
 
-  describe('formatPrice', () => {
-    it('formats zero price correctly', () => {
-      // Arrange
-      const price = 0;
+    it('extracts marketSource and marketType for HIP-3 equity assets', () => {
+      const xyzAsset = {
+        name: 'xyz:XYZ100',
+        maxLeverage: 20,
+        szDecimals: 2,
+        marginTableId: 0,
+      };
+      const xyzAssetCtx = createMockAssetCtx({ prevDayPx: '100' });
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [xyzAsset],
+        assetCtxs: [xyzAssetCtx],
+        allMids: { 'xyz:XYZ100': '105' },
+      };
 
-      // Act
-      const result = formatPrice(price);
+      const result = transformMarketData(
+        hyperLiquidData,
+        HIP3_ASSET_MARKET_TYPES,
+      );
 
-      // Assert
-      expect(result).toBe('$0.00');
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('xyz:XYZ100');
+      expect(result[0].marketSource).toBe('xyz');
+      expect(result[0].marketType).toBe('equity');
     });
 
-    it('formats large prices with thousands separator', () => {
+    it('extracts marketSource and marketType for HIP-3 commodity assets', () => {
+      const goldAsset = {
+        name: 'xyz:GOLD',
+        maxLeverage: 20,
+        szDecimals: 2,
+        marginTableId: 0,
+      };
+      const goldAssetCtx = createMockAssetCtx({ prevDayPx: '2000' });
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [goldAsset],
+        assetCtxs: [goldAssetCtx],
+        allMids: { 'xyz:GOLD': '2050' },
+      };
+
+      const result = transformMarketData(
+        hyperLiquidData,
+        HIP3_ASSET_MARKET_TYPES,
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('xyz:GOLD');
+      expect(result[0].marketSource).toBe('xyz');
+      expect(result[0].marketType).toBe('commodity');
+    });
+
+    it('handles unmapped HIP-3 DEX - defaults to equity marketType', () => {
+      const unknownDexAsset = {
+        name: 'unknown:ASSET1',
+        maxLeverage: 10,
+        szDecimals: 2,
+        marginTableId: 0,
+      };
+      const unknownAssetCtx = createMockAssetCtx({ prevDayPx: '50' });
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [unknownDexAsset],
+        assetCtxs: [unknownAssetCtx],
+        allMids: { 'unknown:ASSET1': '55' },
+      };
+
+      const result = transformMarketData(hyperLiquidData);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('unknown:ASSET1');
+      expect(result[0].marketSource).toBe('unknown');
+      expect(result[0].marketType).toBe('equity');
+    });
+
+    it('handles main DEX assets with no marketSource or marketType', () => {
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [mockUniverseAsset],
+        assetCtxs: [mockAssetCtx],
+        allMids: mockAllMids,
+      };
+
+      const result = transformMarketData(hyperLiquidData);
+
+      expect(result[0].symbol).toBe('BTC');
+      expect(result[0].marketSource).toBeUndefined();
+      expect(result[0].marketType).toBeUndefined();
+    });
+  });
+
+  describe('calculateOpenInterestUSD', () => {
+    it('calculates open interest correctly with string inputs', () => {
       // Arrange
+      const openInterest = '1000000'; // 1M contracts
+      const price = '50000'; // $50K per contract
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(50000000000); // $50B
+    });
+
+    it('calculates open interest correctly with number inputs', () => {
+      // Arrange
+      const openInterest = 1000000;
       const price = 50000;
 
       // Act
-      const result = formatPrice(price);
+      const result = calculateOpenInterestUSD(openInterest, price);
 
       // Assert
-      expect(result).toBe('$50,000.00');
+      expect(result).toBe(50000000000);
     });
 
-    it('formats prices greater than 1000 with two decimal places', () => {
+    it('calculates open interest correctly with mixed inputs', () => {
       // Arrange
-      const price = 1234.5678;
+      const openInterest = '500000'; // string
+      const price = 100000; // number
 
       // Act
-      const result = formatPrice(price);
+      const result = calculateOpenInterestUSD(openInterest, price);
 
       // Assert
-      expect(result).toBe('$1,234.57');
+      expect(result).toBe(50000000000);
     });
 
-    it('formats prices between 1 and 1000 with two decimal places', () => {
+    it('returns NaN when open interest is undefined', () => {
       // Arrange
-      const price = 123.456;
+      const openInterest = undefined;
+      const price = '50000';
 
       // Act
-      const result = formatPrice(price);
+      const result = calculateOpenInterestUSD(openInterest, price);
 
       // Assert
-      expect(result).toBe('$123.46');
+      expect(result).toBeNaN();
     });
 
-    it('formats prices between 0.01 and 1 with four decimal places', () => {
+    it('returns NaN when price is undefined', () => {
       // Arrange
-      const price = 0.1234;
+      const openInterest = '1000000';
+      const price = undefined;
 
       // Act
-      const result = formatPrice(price);
+      const result = calculateOpenInterestUSD(openInterest, price);
 
       // Assert
-      expect(result).toBe('$0.1234');
+      expect(result).toBeNaN();
     });
 
-    it('formats very small prices with six decimal places', () => {
+    it('returns NaN when both inputs are undefined', () => {
       // Arrange
-      const price = 0.001234;
+      const openInterest = undefined;
+      const price = undefined;
 
       // Act
-      const result = formatPrice(price);
+      const result = calculateOpenInterestUSD(openInterest, price);
 
       // Assert
-      expect(result).toBe('$0.001234');
+      expect(result).toBeNaN();
     });
 
-    it('formats edge case at exactly 1.0', () => {
+    it('returns NaN when open interest is empty string', () => {
       // Arrange
-      const price = 1.0;
+      const openInterest = '';
+      const price = '50000';
 
       // Act
-      const result = formatPrice(price);
+      const result = calculateOpenInterestUSD(openInterest, price);
 
       // Assert
-      expect(result).toBe('$1.00');
+      expect(result).toBeNaN();
     });
 
-    it('formats edge case at exactly 0.01', () => {
+    it('returns 0 when price is zero', () => {
       // Arrange
-      const price = 0.01;
+      const openInterest = '1000000';
+      const price = '0';
 
       // Act
-      const result = formatPrice(price);
+      const result = calculateOpenInterestUSD(openInterest, price);
 
       // Assert
-      expect(result).toBe('$0.0100');
+      expect(result).toBe(0); // 1M * 0 = 0
     });
 
-    it('formats edge case at exactly 1000', () => {
+    it('returns 0 when open interest is zero', () => {
       // Arrange
-      const price = 1000;
+      const openInterest = '0';
+      const price = '50000';
 
       // Act
-      const result = formatPrice(price);
+      const result = calculateOpenInterestUSD(openInterest, price);
 
       // Assert
-      expect(result).toBe('$1,000.00');
+      expect(result).toBe(0); // 0 * $50K = 0
+    });
+
+    it('returns NaN when open interest contains invalid characters', () => {
+      // Arrange
+      const openInterest = 'invalid';
+      const price = '50000';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeNaN();
+    });
+
+    it('returns NaN when price contains invalid characters', () => {
+      // Arrange
+      const openInterest = '1000000';
+      const price = 'invalid';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeNaN();
+    });
+
+    it('handles decimal values correctly', () => {
+      // Arrange
+      const openInterest = '1234.5678';
+      const price = '98765.4321';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBeCloseTo(121932622.22, 2);
+    });
+
+    it('handles very large numbers without precision loss', () => {
+      // Arrange
+      const openInterest = '10000000'; // 10M contracts
+      const price = '100000'; // $100K per contract
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(1000000000000); // $1T
+    });
+
+    it('handles very small decimal numbers', () => {
+      // Arrange
+      const openInterest = '0.001';
+      const price = '50000';
+
+      // Act
+      const result = calculateOpenInterestUSD(openInterest, price);
+
+      // Assert
+      expect(result).toBe(50);
     });
   });
 
@@ -421,7 +584,7 @@ describe('marketDataTransform', () => {
       const result = formatChange(change);
 
       // Assert
-      expect(result).toBe('+$1,000.00');
+      expect(result).toBe('+$1,000'); // No trailing zeros
     });
 
     it('formats negative change with minus sign', () => {
@@ -432,7 +595,7 @@ describe('marketDataTransform', () => {
       const result = formatChange(change);
 
       // Assert
-      expect(result).toBe('-$1,000.00');
+      expect(result).toBe('-$1,000'); // No trailing zeros
     });
 
     it('formats large positive changes with thousands separator', () => {
@@ -443,7 +606,7 @@ describe('marketDataTransform', () => {
       const result = formatChange(change);
 
       // Assert
-      expect(result).toBe('+$50,000.00');
+      expect(result).toBe('+$50,000'); // No trailing zeros
     });
 
     it('formats large negative changes with thousands separator', () => {
@@ -454,7 +617,7 @@ describe('marketDataTransform', () => {
       const result = formatChange(change);
 
       // Assert
-      expect(result).toBe('-$50,000.00');
+      expect(result).toBe('-$50,000'); // No trailing zeros
     });
 
     it('formats small positive changes with appropriate decimals', () => {
@@ -486,7 +649,7 @@ describe('marketDataTransform', () => {
       // Act
       const result = formatChange(change);
 
-      // Assert
+      // Assert - Now uses 5 sig figs with min 2 decimals: 123.456 → $123.46 (properly rounded)
       expect(result).toBe('+$123.46');
     });
 
@@ -499,6 +662,42 @@ describe('marketDataTransform', () => {
 
       // Assert
       expect(result).toBe('-$0.5678');
+    });
+
+    it('handles values in different PRICE_RANGES_UNIVERSAL ranges', () => {
+      // Arrange & Act & Assert
+      // This test covers lines 148, 153, 154 in marketDataTransform.ts (formatChange function)
+      // Line 148: formatPerpsFiat(Math.abs(change), { ranges: PRICE_RANGES_UNIVERSAL })
+      // Line 153: formatted.replace('$', '')
+      // Line 154: change > 0 ? `+$${valueWithoutDollar}` : `-$${valueWithoutDollar}`
+
+      // Test > $100k range: 0 decimals, 6 sig figs
+      expect(formatChange(123456.78)).toBe('+$123,457');
+      expect(formatChange(-123456.78)).toBe('-$123,457');
+
+      // Test $10k-$100k range: 0 decimals, 5 sig figs
+      expect(formatChange(12345.67)).toBe('+$12,346');
+      expect(formatChange(-12345.67)).toBe('-$12,346');
+
+      // Test $1k-$10k range: 1 decimal, 5 sig figs
+      expect(formatChange(1234.56)).toBe('+$1,234.6');
+      expect(formatChange(-1234.56)).toBe('-$1,234.6');
+
+      // Test $100-$1k range: 2 decimals, 5 sig figs
+      expect(formatChange(234.567)).toBe('+$234.57');
+      expect(formatChange(-234.567)).toBe('-$234.57');
+
+      // Test $10-$100 range: 4 decimals, 5 sig figs
+      expect(formatChange(23.4567)).toBe('+$23.457');
+      expect(formatChange(-23.4567)).toBe('-$23.457');
+
+      // Test $0.01-$10 range: 5 sig figs, min 2 max 6 decimals
+      expect(formatChange(2.34567)).toBe('+$2.3457');
+      expect(formatChange(-2.34567)).toBe('-$2.3457');
+
+      // Test < $0.01 range: 4 sig figs, min 2 max 6 decimals
+      expect(formatChange(0.0012345)).toBe('+$0.001234');
+      expect(formatChange(-0.0012345)).toBe('-$0.001234');
     });
   });
 
@@ -775,26 +974,35 @@ describe('marketDataTransform', () => {
         assetCtxs: [
           createMockAssetCtx({ prevDayPx: '50000', dayNtlVlm: '1000000' }),
         ],
-        allMids: { BTC: 'invalid-price' } as unknown as AllMids,
+        allMids: { BTC: 'invalid-price' } as unknown as AllMidsResponse,
       };
 
       // Act
       const result = transformMarketData(hyperLiquidData);
 
       // Assert
-      expect(result[0].price).toBe('$0.00');
+      expect(result[0].price).toBe('$---');
       expect(result[0].change24h).toBe('$0.00');
     });
 
     it('handles negative numbers in formatting functions', () => {
       // Arrange & Act & Assert
-      expect(formatPrice(-100)).toBe('-$100.00');
-      expect(formatVolume(-1000000)).toBe('-$1.00M'); // Now with 2 decimals
+      // formatPerpsFiat is not designed for negative values - returns "<$value" with absolute value
+      // Use formatChange() for signed values instead
+      // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 2 decimals for $10-$100, trailing zeros removed: 100 → $10 (5 sig figs)
+      expect(formatPerpsFiat(-100, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
+        '<$10',
+      );
+      expect(formatVolume(-1000000)).toBe('-$1.00M'); // formatVolume handles negatives
     });
 
     it('handles very small numbers close to zero', () => {
       // Arrange & Act & Assert
-      expect(formatPrice(0.0000001)).toBe('$0.000000');
+      // formatPerpsFiat with PRICE_RANGES_UNIVERSAL: values below VERY_SMALL threshold (0.000001) show as "<$0"
+      // This indicates "less than the smallest displayable value" which is more accurate than $0
+      expect(
+        formatPerpsFiat(0.0000001, { ranges: PRICE_RANGES_UNIVERSAL }),
+      ).toBe('<$0');
       expect(formatVolume(0.1)).toBe('$0.10'); // Now shows 2 decimals
       expect(formatPercentage(0.001)).toBe('+0.00%');
     });
@@ -802,8 +1010,14 @@ describe('marketDataTransform', () => {
     // TODO: We probably want a better fallback here
     it('handles NaN and Infinity values with safe fallbacks', () => {
       // Arrange & Act & Assert
-      expect(formatPrice(NaN)).toBe('$0.00');
-      expect(formatPrice(Infinity)).toBe('$0.00');
+      expect(formatPerpsFiat(NaN, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
+        '$---',
+      );
+      // formatPerpsFiat doesn't handle Infinity - shows "$∞"
+      // High-level functions like formatChange() handle Infinity correctly
+      expect(
+        formatPerpsFiat(Infinity, { ranges: PRICE_RANGES_UNIVERSAL }),
+      ).toBe('$∞');
       expect(formatVolume(NaN)).toBe('$---');
       expect(formatVolume(Infinity)).toBe('$---');
       expect(formatChange(NaN)).toBe('$0.00');

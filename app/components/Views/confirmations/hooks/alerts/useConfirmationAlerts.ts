@@ -7,10 +7,10 @@ import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { Alert } from '../../types/alerts';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
-import { usePerpsDepositMinimumAlert } from './usePerpsDepositMinimumAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
-import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
+import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
+import { useBurnAddressAlert } from './useBurnAddressAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -23,11 +23,11 @@ function useTransactionAlerts(): Alert[] {
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
   const pendingTransactionAlert = usePendingTransactionAlert();
   const batchedUnusedApprovalsAlert = useBatchedUnusedApprovalsAlert();
-  const perpsDepositMinimumAlert = usePerpsDepositMinimumAlert();
   const insufficientPayTokenBalanceAlert =
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
-  const insufficientPayTokenNativeAlert = useInsufficientPayTokenNativeAlert();
+  const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
+  const burnAddressAlert = useBurnAddressAlert();
 
   return useMemo(
     () => [
@@ -35,20 +35,20 @@ function useTransactionAlerts(): Alert[] {
       ...batchedUnusedApprovalsAlert,
       ...pendingTransactionAlert,
       ...signedOrSubmittedAlert,
-      ...perpsDepositMinimumAlert,
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
-      ...insufficientPayTokenNativeAlert,
+      ...insufficientPredictBalanceAlert,
+      ...burnAddressAlert,
     ],
     [
       insufficientBalanceAlert,
       batchedUnusedApprovalsAlert,
       pendingTransactionAlert,
       signedOrSubmittedAlert,
-      perpsDepositMinimumAlert,
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
-      insufficientPayTokenNativeAlert,
+      insufficientPredictBalanceAlert,
+      burnAddressAlert,
     ],
   );
 }

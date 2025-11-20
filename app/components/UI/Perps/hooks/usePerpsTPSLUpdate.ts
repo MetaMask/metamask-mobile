@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { Position } from '../controllers/types';
+import type { Position, TPSLTrackingData } from '../controllers/types';
 import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
 
@@ -27,6 +27,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       position: Position,
       takeProfitPrice: string | undefined,
       stopLossPrice: string | undefined,
+      trackingData?: TPSLTrackingData,
     ) => {
       setIsUpdating(true);
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
@@ -36,6 +37,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           coin: position.coin,
           takeProfitPrice,
           stopLossPrice,
+          trackingData,
         });
 
         if (result.success) {
@@ -50,14 +52,16 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         } else {
           DevLogger.log('Failed to update position TP/SL:', result.error);
 
+          const errorMessage = result.error || strings('perps.errors.unknown');
+
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-              result.error,
+              errorMessage,
             ),
           );
 
           // Call error callback if provided
-          options?.onError?.(result.error || strings('perps.errors.unknown'));
+          options?.onError?.(errorMessage);
         }
       } catch (error) {
         DevLogger.log('Error updating position TP/SL:', error);

@@ -6,23 +6,25 @@ import modalsReducer from './modals';
 import settingsReducer from './settings';
 import alertReducer from './alert';
 import transactionReducer from './transaction';
-import legalNoticesReducer from './legalNotices';
+import legalNoticesReducer, { LegalNoticesState } from './legalNotices';
 import userReducer, { UserState } from './user';
 import onboardingReducer, { OnboardingState } from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
-import signatureRequestReducer from './signatureRequest';
+import signatureRequestReducer, {
+  SignatureRequestState,
+} from './signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
 import navigationReducer, { NavigationState } from './navigation';
 import networkOnboardReducer from './networkSelector';
 import securityReducer, { SecurityState } from './security';
+import accountsReducer, { iAccountEvent as AccountsState } from './accounts';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
 import rpcEventReducer from './rpcEvents';
-import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import qrKeyringScannerReducer from '../core/redux/slices/qrKeyringScanner';
@@ -39,6 +41,9 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import sampleCounterReducer from '../features/SampleFeature/reducers/sample-counter';
+///: END:ONLY_INCLUDE_IF
 import cardReducer from '../core/redux/slices/card';
 import rewardsReducer, { RewardsState } from './rewards';
 import { isTest } from '../util/test/utils';
@@ -48,22 +53,21 @@ import { isTest } from '../util/test/utils';
  *
  * @template reducer A reducer function
  */
-export type StateFromReducer<reducer> = reducer extends Reducer<
-  infer State,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  any
->
-  ? State
-  : never;
+export type StateFromReducer<reducer> =
+  reducer extends Reducer<
+    infer State,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any
+  >
+    ? State
+    : never;
 
 // TODO: Convert all reducers to valid TypeScript Redux reducers, and add them
 // to this type. Once that is complete, we can automatically generate this type
 // using the `StateFromReducersMapObject` type from redux.
 export interface RootState {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  legalNotices: any;
+  legalNotices: LegalNoticesState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectibles: any;
@@ -114,15 +118,11 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   experimentalSettings: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  signatureRequest: any;
+  signatureRequest: SignatureRequestState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rpcEvents: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  accounts: any;
+  accounts: AccountsState;
   inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
   confirmationMetrics: StateFromReducer<typeof confirmationMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
@@ -132,6 +132,9 @@ export interface RootState {
   banners: BannersState;
   card: StateFromReducer<typeof cardReducer>;
   performance?: PerformanceState;
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  sampleCounter: StateFromReducer<typeof sampleCounterReducer>;
+  ///: END:ONLY_INCLUDE_IF
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
   networkConnectionBanner: NetworkConnectionBannerState;
@@ -171,6 +174,9 @@ const baseReducers = {
   banners: bannersReducer,
   card: cardReducer,
   confirmationMetrics: confirmationMetricsReducer,
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  sampleCounter: sampleCounterReducer,
+  ///: END:ONLY_INCLUDE_IF
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,

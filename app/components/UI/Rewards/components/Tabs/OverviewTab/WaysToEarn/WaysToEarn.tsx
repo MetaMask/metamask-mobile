@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Linking } from 'react-native';
 import {
   Box,
   Text,
@@ -28,6 +28,15 @@ import {
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
 import {
+  selectRewardsCardSpendFeatureFlags,
+  selectRewardsMusdDepositEnabledFlag,
+} from '../../../../../../../selectors/featureFlagController/rewards';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../../hooks/useFeatureFlag';
+import { PredictEventValues } from '../../../../../Predict/constants/eventNames';
+import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
@@ -38,6 +47,9 @@ export enum WayToEarnType {
   PERPS = 'perps',
   REFERRALS = 'referrals',
   LOYALTY = 'loyalty',
+  PREDICT = 'predict',
+  CARD = 'card',
+  DEPOSIT_MUSD = 'deposit_musd',
 }
 
 interface WayToEarn {
@@ -61,6 +73,12 @@ const waysToEarn: WayToEarn[] = [
     icon: IconName.Candlestick,
   },
   {
+    type: WayToEarnType.PREDICT,
+    title: strings('rewards.ways_to_earn.predict.title'),
+    description: strings('rewards.ways_to_earn.predict.description'),
+    icon: IconName.Speedometer,
+  },
+  {
     type: WayToEarnType.REFERRALS,
     title: strings('rewards.ways_to_earn.referrals.title'),
     description: strings('rewards.ways_to_earn.referrals.description'),
@@ -71,6 +89,18 @@ const waysToEarn: WayToEarn[] = [
     title: strings('rewards.ways_to_earn.loyalty.title'),
     description: strings('rewards.ways_to_earn.loyalty.description'),
     icon: IconName.Gift,
+  },
+  {
+    type: WayToEarnType.CARD,
+    title: strings('rewards.ways_to_earn.card.title'),
+    description: strings('rewards.ways_to_earn.card.description'),
+    icon: IconName.Card,
+  },
+  {
+    type: WayToEarnType.DEPOSIT_MUSD,
+    title: strings('rewards.ways_to_earn.deposit_musd.title'),
+    description: strings('rewards.ways_to_earn.deposit_musd.description'),
+    icon: IconName.Coin,
   },
 ];
 
@@ -150,6 +180,51 @@ const getBottomSheetData = (type: WayToEarnType) => {
         ),
         ctaLabel: strings('rewards.ways_to_earn.loyalty.sheet.cta_label'),
       };
+    case WayToEarnType.PREDICT:
+      return {
+        title: (
+          <WaysToEarnSheetTitle
+            title={strings('rewards.ways_to_earn.predict.sheet.title')}
+            points={strings('rewards.ways_to_earn.predict.sheet.points')}
+          />
+        ),
+        description: (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.ways_to_earn.predict.sheet.description')}
+          </Text>
+        ),
+        ctaLabel: strings('rewards.ways_to_earn.predict.sheet.cta_label'),
+      };
+    case WayToEarnType.CARD:
+      return {
+        title: (
+          <WaysToEarnSheetTitle
+            title={strings('rewards.ways_to_earn.card.sheet.title')}
+            points={strings('rewards.ways_to_earn.card.sheet.points')}
+          />
+        ),
+        description: (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.ways_to_earn.card.sheet.description')}
+          </Text>
+        ),
+        ctaLabel: strings('rewards.ways_to_earn.card.sheet.cta_label'),
+      };
+    case WayToEarnType.DEPOSIT_MUSD:
+      return {
+        title: (
+          <WaysToEarnSheetTitle
+            title={strings('rewards.ways_to_earn.deposit_musd.sheet.title')}
+            points={strings('rewards.ways_to_earn.deposit_musd.sheet.points')}
+          />
+        ),
+        description: (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.ways_to_earn.deposit_musd.sheet.description')}
+          </Text>
+        ),
+        ctaLabel: strings('rewards.ways_to_earn.deposit_musd.sheet.cta_label'),
+      };
     default:
       throw new Error(`Unknown earning way type: ${type}`);
   }
@@ -158,6 +233,11 @@ const getBottomSheetData = (type: WayToEarnType) => {
 export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
+  const isPredictEnabled = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
+  const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
@@ -167,18 +247,13 @@ export const WaysToEarn = () => {
   });
 
   const goToPerps = useCallback(() => {
-    let params: Record<string, string> | null = null;
     if (isFirstTimePerpsUser) {
-      params = {
-        screen: Routes.PERPS.TUTORIAL,
-      };
+      navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
-      params = {
-        screen: Routes.PERPS.MARKETS,
-      };
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+      });
     }
-
-    navigation.navigate(Routes.PERPS.ROOT, params);
   }, [navigation, isFirstTimePerpsUser]);
 
   const handleCTAPress = async (type: WayToEarnType) => {
@@ -200,6 +275,20 @@ export const WaysToEarn = () => {
       case WayToEarnType.LOYALTY:
         navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         break;
+      case WayToEarnType.PREDICT:
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MARKET_LIST,
+          params: {
+            entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
+          },
+        });
+        break;
+      case WayToEarnType.CARD:
+        navigation.navigate(Routes.CARD.ROOT);
+        break;
+      case WayToEarnType.DEPOSIT_MUSD:
+        Linking.openURL('https://go.metamask.io/turtle-musd');
+        break;
     }
   };
 
@@ -215,7 +304,10 @@ export const WaysToEarn = () => {
     switch (wayToEarn.type) {
       case WayToEarnType.SWAPS:
       case WayToEarnType.LOYALTY:
-      case WayToEarnType.PERPS: {
+      case WayToEarnType.PERPS:
+      case WayToEarnType.PREDICT:
+      case WayToEarnType.CARD:
+      case WayToEarnType.DEPOSIT_MUSD: {
         const { title, description, ctaLabel } = getBottomSheetData(
           wayToEarn.type,
         );
@@ -235,14 +327,15 @@ export const WaysToEarn = () => {
         });
         break;
       }
-      case WayToEarnType.REFERRALS:
-        navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
+      case WayToEarnType.REFERRALS: {
+        navigation.navigate(Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL);
         break;
+      }
     }
   };
 
   return (
-    <Box twClassName="py-4">
+    <Box twClassName="p-4">
       <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
         {strings('rewards.ways_to_earn.title')}
       </Text>
@@ -250,13 +343,27 @@ export const WaysToEarn = () => {
       <Box twClassName="rounded-xl bg-muted">
         <FlatList
           horizontal={false}
-          data={waysToEarn}
+          data={waysToEarn.filter((wte) => {
+            if (wte.type === WayToEarnType.CARD && !isCardSpendEnabled) {
+              return false;
+            }
+            if (wte.type === WayToEarnType.PREDICT && !isPredictEnabled) {
+              return false;
+            }
+            if (
+              wte.type === WayToEarnType.DEPOSIT_MUSD &&
+              !isMusdDepositEnabled
+            ) {
+              return false;
+            }
+            return true;
+          })}
           keyExtractor={(wayToEarn) => wayToEarn.title}
           ItemSeparatorComponent={Separator}
           scrollEnabled={false}
           renderItem={({ item: wayToEarn }) => (
             <ButtonBase
-              twClassName="h-auto px-4 py-4 bg-inherit"
+              twClassName="h-auto px-4 py-3 bg-inherit"
               onPress={() => handleEarningWayPress(wayToEarn)}
             >
               <Box

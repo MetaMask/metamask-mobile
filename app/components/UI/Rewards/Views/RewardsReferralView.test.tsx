@@ -60,11 +60,7 @@ const mockGetNavigationOptionsTitle =
     typeof getNavigationOptionsTitle
   >;
 
-// Import hook mocks
-import { useSeasonStatus } from '../hooks/useSeasonStatus';
-const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
-  typeof useSeasonStatus
->;
+// Import hook mocks - useSeasonStatus removed from component
 
 // Mock ErrorBoundary
 jest.mock('../../../Views/ErrorBoundary', () => ({
@@ -87,10 +83,7 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-// Mock hooks
-jest.mock('../hooks/useSeasonStatus', () => ({
-  useSeasonStatus: jest.fn(),
-}));
+// Mock hooks - useSeasonStatus hook removed from component
 
 // Mock ReferralDetails component
 jest.mock('../components/ReferralDetails/ReferralDetails', () => ({
@@ -131,10 +124,7 @@ describe('RewardsReferralView', () => {
       return undefined;
     });
 
-    // Setup default hook mock return values
-    mockUseSeasonStatus.mockReturnValue({
-      fetchSeasonStatus: jest.fn(),
-    });
+    // Setup default hook mock return values - useSeasonStatus removed
   });
 
   describe('rendering', () => {
@@ -274,23 +264,7 @@ describe('RewardsReferralView', () => {
   });
 
   describe('hook integration', () => {
-    it('should call useSeasonStatus hook on mount', () => {
-      // Act
-      render(<RewardsReferralView />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalled();
-    });
-
-    it('should call useSeasonStatus hook for season data availability', () => {
-      // Given that this view doesn't have seasonstatus component
-      // When the component renders
-
-      // Act
-      render(<RewardsReferralView />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
-    });
+    // useSeasonStatus hook was removed from the component
+    // No hook integration tests needed for this component
   });
 });

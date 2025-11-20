@@ -3,11 +3,13 @@ import {
   render,
   fireEvent,
   waitFor,
-  userEvent,
+  renderHook,
 } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Linking } from 'react-native';
-import Carousel from './';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import AppConstants from '../../../core/AppConstants';
+import Carousel, { useFetchCarouselSlides } from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
@@ -20,6 +22,7 @@ import { selectLastSelectedSolanaAccount } from '../../../selectors/accountsCont
 import Routes from '../../../constants/navigation/Routes';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { SolScope } from '@metamask/keyring-api';
+import { setContentPreviewToken } from '../../../actions/notification/helpers';
 
 const makeMockState = () =>
   ({
@@ -39,7 +42,7 @@ const makeMockState = () =>
     },
     settings: { showFiatOnTestnets: false },
     banners: { dismissedBanners: [] },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 // Mocks
 jest.mock('react-redux', () => ({
@@ -62,6 +65,10 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
     trackEvent: jest.fn(),
     createEventBuilder: () => ({ build: () => ({}) }),
   }),
+}));
+
+jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+  parse: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -198,8 +205,10 @@ describe('Carousel Slide Filtering', () => {
 
 describe('Carousel Navigation', () => {
   it('opens external URLs when slide is clicked', async () => {
+    const slideID = 'deeplink-slide';
+    const slideTestID = `carousel-slide-${slideID}`;
     const urlSlide = createMockSlide({
-      id: 'url-slide',
+      id: slideID,
       navigation: { type: 'url', href: 'https://metamask.io' },
     });
     mockFetchCarouselSlides.mockResolvedValue({
@@ -208,9 +217,36 @@ describe('Carousel Navigation', () => {
     });
 
     const { findByTestId } = render(<Carousel />);
-    const slide = await findByTestId('carousel-slide-url-slide');
+    const slide = await findByTestId(slideTestID);
     fireEvent.press(slide);
+
     expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io');
+    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+  });
+
+  it('handles internal deeplinks through SharedDeeplinkManager', async () => {
+    const slideID = 'deeplink-slide';
+    const slideTestID = `carousel-slide-${slideID}`;
+    const deeplinkSlide = createMockSlide({
+      id: slideID,
+      navigation: { type: 'url', href: 'https://link.metamask.io/swap' },
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [deeplinkSlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+    const slide = await findByTestId(slideTestID);
+    fireEvent.press(slide);
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+      'https://link.metamask.io/swap',
+      {
+        origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+      },
+    );
+    expect(Linking.openURL).not.toHaveBeenCalled();
   });
 
   it('navigates to buy flow for fund slides', async () => {
@@ -318,7 +354,7 @@ describe('Carousel Solana Integration', () => {
     const { findByTestId } = render(<Carousel />);
     const slide = await findByTestId('carousel-slide-solana');
     expect(slide).toBeVisible();
-    await userEvent.press(slide);
+    fireEvent.press(slide);
   };
 
   it('switches to existing Solana account when clicked', async () => {
@@ -393,5 +429,45 @@ describe('Carousel UI Behavior', () => {
     // Next slide should also be rendered (stacked behind)
     const nextSlide = await findByTestId('carousel-slide-slide-2');
     expect(nextSlide).toBeOnTheScreen();
+  });
+});
+
+describe('useFetchCarouselSlides()', () => {
+  it('fetches initial content and refeches on preview token change', async () => {
+    // Arrange - Act - Assert: Initial Fetch
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [createMockSlide({ id: 'initial-slide' })],
+    });
+    const { result } = renderHook(() => useFetchCarouselSlides());
+    await waitFor(() => {
+      expect(mockFetchCarouselSlides).toHaveBeenCalled();
+      expect(result.current.priorityContentfulSlides).toHaveLength(0);
+      expect(result.current.regularContentfulSlides).toHaveLength(1);
+    });
+
+    // Arrange - Act - Assert: Preview Token Subscription Refetch
+    mockFetchCarouselSlides.mockClear();
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [createMockSlide({ id: 'new-slide' })],
+      regularSlides: [],
+    });
+    setContentPreviewToken('new-preview-token'); // fire the subscription on new token
+    await waitFor(() => {
+      expect(mockFetchCarouselSlides).toHaveBeenCalled();
+      expect(result.current.priorityContentfulSlides).toHaveLength(1);
+      expect(result.current.regularContentfulSlides).toHaveLength(0);
+    });
+  });
+
+  it('does not fetch when feature flag is disabled', () => {
+    jest
+      .spyOn(FeatureFlagSelectorsModule, 'selectContentfulCarouselEnabledFlag')
+      .mockReturnValue(false);
+
+    renderHook(() => useFetchCarouselSlides());
+
+    // Should not fetch when feature is disabled
+    expect(mockFetchCarouselSlides).not.toHaveBeenCalled();
   });
 });

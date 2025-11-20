@@ -127,9 +127,8 @@ describe('PerpsGTMModal', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.TUTORIAL,
-      params: { isFromGTMModal: true },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+      isFromGTMModal: true,
     });
   });
 

@@ -8,7 +8,6 @@ import reducer, {
   setSlippage,
   setBridgeViewMode,
   selectBridgeViewMode,
-  selectIsUnifiedSwapsEnabled,
   setDestToken,
   selectBip44DefaultPair,
 } from '.';
@@ -18,13 +17,7 @@ import {
 } from '../../../../components/UI/Bridge/types';
 import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
-import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { cloneDeep } from 'lodash';
-
-jest.mock('./utils/isUnifiedSwapsEnvVarEnabled', () => ({
-  isUnifiedSwapsEnvVarEnabled: jest.fn(),
-}));
 
 describe('bridge slice', () => {
   const mockToken: BridgeToken = {
@@ -57,11 +50,14 @@ describe('bridge slice', () => {
         destAmount: undefined,
         sourceToken: undefined,
         destToken: undefined,
+        gasIncluded: false,
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
         slippage: '0.5',
         isSubmittingTx: false,
+        isSelectingRecipient: false,
+        isMaxSourceAmount: false,
       });
     });
   });
@@ -199,102 +195,6 @@ describe('bridge slice', () => {
     });
   });
 
-  describe('selectIsUnifiedSwapsEnabled', () => {
-    const mockChainId = '0x1' as Hex;
-    const mockIsUnifiedSwapsEnvVarEnabled =
-      isUnifiedSwapsEnvVarEnabled as jest.MockedFunction<
-        typeof isUnifiedSwapsEnvVarEnabled
-      >;
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    const createMockState = (
-      isUnifiedUIEnabled: boolean,
-      chainId = mockChainId,
-    ): RootState => {
-      const state = cloneDeep(mockRootState);
-      const caipChainId = formatChainIdToCaip(chainId);
-
-      // Directly modify the field we need
-      const chain =
-        state.engine.backgroundState.RemoteFeatureFlagController
-          .remoteFeatureFlags.bridgeConfigV2.chains[caipChainId];
-      if (chain) {
-        chain.isUnifiedUIEnabled = isUnifiedUIEnabled;
-      }
-
-      return state as unknown as RootState;
-    };
-
-    it('should return true when MM_UNIFIED_SWAPS_ENABLED is true and isUnifiedUIEnabled is true', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(true);
-      const mockState = createMockState(true);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(true);
-    });
-
-    it('should return false when MM_UNIFIED_SWAPS_ENABLED is true but isUnifiedUIEnabled is false', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(true);
-      const mockState = createMockState(false);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when MM_UNIFIED_SWAPS_ENABLED is false even if isUnifiedUIEnabled is true', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(false);
-      const mockState = createMockState(true);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when MM_UNIFIED_SWAPS_ENABLED is false and isUnifiedUIEnabled is false', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(false);
-      const mockState = createMockState(false);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when MM_UNIFIED_SWAPS_ENABLED is undefined', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(false);
-      const mockState = createMockState(true);
-
-      const result = selectIsUnifiedSwapsEnabled(mockState);
-      expect(result).toBe(false);
-    });
-
-    it('should return false when chain is not configured in bridge feature flags', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(true);
-      const mockState = cloneDeep(mockRootState);
-      // @ts-expect-error - we want to test the case where the chain is not configured
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
-        formatChainIdToCaip('0x1')
-      ] = undefined;
-
-      const result = selectIsUnifiedSwapsEnabled(
-        mockState as unknown as RootState,
-      );
-      expect(result).toBe(false);
-    });
-
-    it('should return false when bridge feature flags are missing', () => {
-      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(true);
-      const mockState = JSON.parse(JSON.stringify(mockRootState));
-
-      // Directly modify to remove bridge config
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2 =
-        undefined;
-
-      const result = selectIsUnifiedSwapsEnabled(mockState as RootState);
-      expect(result).toBe(false);
-    });
-  });
-
   describe('selectBip44DefaultPair', () => {
     it('should return sourceAsset and destAsset when valid bip44DefaultPairs exist for eip155', () => {
       const result = selectBip44DefaultPair(
@@ -327,8 +227,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toEqual({
@@ -358,8 +257,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       const result = selectBip44DefaultPair(mockState as unknown as RootState);
 
       expect(result).toEqual({
@@ -398,8 +296,7 @@ describe('bridge slice', () => {
       const mockState = cloneDeep(mockRootState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
-      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected =
-        false;
+      mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         {
           eip155: {

@@ -11,7 +11,7 @@ on:
     - cron: '0 2-6 * * *'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
@@ -108,7 +108,7 @@ jobs:
         scripts:
           - lint
           - lint:tsc
-          - format:check:changed
+          - format:check
           - audit:ci
           - test:depcheck
           - test:tgz-check
@@ -227,37 +227,38 @@ jobs:
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml
 
-  ai-e2e-analysis:
-    name: 'AI E2E Analysis'
+  smart-e2e-selection:
+    name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
     continue-on-error: true
-    needs: [needs_e2e_build]
     permissions:
       contents: read
       pull-requests: write
     outputs:
-      test-matrix: ${{ steps.ai-analysis.outputs.test-matrix }}
+      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
+      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
     steps:
       - name: Checkout for action definition
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            .github/actions/ai-e2e-analysis
+            .github/actions/smart-e2e-selection
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 
-      - name: Run AI E2E Analysis
-        id: ai-analysis
-        uses: ./.github/actions/ai-e2e-analysis
+      - name: Run Smart E2E Selection
+        id: e2e-selection
+        uses: ./.github/actions/smart-e2e-selection
         with:
-          changed-files: ${{ needs.needs_e2e_build.outputs.changed_files }}
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
-          pr-number: ${{ github.event.pull_request.number }}
+          pr-number: ${{ github.event.pull_request.number}}
           repository: ${{ github.repository }}
-          post-comment: 'false'
+          post-comment: 'true'
 
+  # Main E2E tests
+  
   build-android-apks:
     name: 'Build Android APKs'
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
@@ -266,6 +267,10 @@ jobs:
       id-token: write
     needs: [needs_e2e_build]
     uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
     secrets: inherit
 
   e2e-smoke-tests-android:
@@ -276,6 +281,65 @@ jobs:
       id-token: write
     needs: [needs_e2e_build, build-android-apks]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+    secrets: inherit
+
+  build-ios-apps:
+    name: 'Build iOS Apps'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
+  ios-tests-ready:
+    name: 'iOS Tests Ready'
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    needs: [needs_e2e_build, build-ios-apps]
+    steps:
+      - name: iOS build complete
+        run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
+
+  e2e-smoke-tests-ios:
+    name: 'iOS E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+    secrets: inherit
+
+  # Flask E2E tests
+
+  build-android-flask-apks:
+    name: 'Build Android Flask APKs'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'flask'
+      metamask_environment: 'e2e'
+      keystore_target: 'flask'
+    secrets: inherit
+
+  e2e-smoke-tests-android-flask:
+    name: 'Android Flask E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-android-flask-apks]
+    uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
     secrets: inherit
@@ -300,9 +364,11 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
+        env:
+          NODE_OPTIONS: --max_old_space_size=8192
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 45
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
@@ -437,10 +503,9 @@ jobs:
       - name: Check workflow files
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
-  all-jobs-pass-merge-pr:
+  all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' }}
     needs:
       [
         check-diff,
@@ -457,38 +522,20 @@ jobs:
       - name: Set jobs passed status
         id: jobs-passed-status
         run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
-  all-jobs-pass:
-    name: All jobs pass (merge_group)
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'merge_group' }}
-    needs:
-      [
-        check-diff,
-        dedupe,
-        scripts,
-        unit-tests,
-        check-workflows,
-        js-bundle-size-check,
-        sonar-cloud-quality-gate-status,
-      ]
-    outputs:
-      ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
-    steps:
-      - name: Set jobs passed status
-        id: jobs-passed-status
-        run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
-  check-all-jobs-pass-merge-pr:
+  check-all-jobs-pass:
     name: Check all jobs pass
-    if: ${{ github.event_name != 'merge_group' && always() }}
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     needs:
-      - all-jobs-pass-merge-pr
+      - all-jobs-pass
       - needs_e2e_build
       - e2e-smoke-tests-android
+      - e2e-smoke-tests-ios
+      - e2e-smoke-tests-android-flask
     steps:
       - run: |
           # Check if all non-E2E jobs passed
-          if [[ "${{ needs.all-jobs-pass-merge-pr.outputs.ALL_JOBS_PASSED }}" != "true" ]]; then
+          if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" != "true" ]]; then
             echo "Non-E2E jobs failed"
             exit 1
           fi
@@ -499,22 +546,17 @@ jobs:
               echo "Android E2E tests failed"
               exit 1
             fi
+            if [[ "${{ needs.e2e-smoke-tests-ios.result }}" == "failure" ]]; then
+              echo "iOS E2E tests failed"
+              exit 1
+            fi
+            if [[ "${{ needs.e2e-smoke-tests-android-flask.result }}" == "failure" ]]; then
+              echo "Android Flask E2E tests failed"
+              exit 1
+            fi
           fi
 
           echo "All required jobs passed"
-  check-all-jobs-pass:
-    name: Check all jobs pass (merge_group)
-    runs-on: ubuntu-latest
-    needs: all-jobs-pass
-    if: ${{ github.event_name == 'merge_group' && always() }}
-    steps:
-      - run: |
-          if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" == "true" ]]; then
-            echo "All jobs passed. Unblock PR."
-          else
-            echo "All jobs passed step skipped. Block PR."
-            exit 1
-          fi
 
   log-merge-group-failure:
     name: Log merge group failure

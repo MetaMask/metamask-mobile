@@ -1,6 +1,3 @@
-// External dependencies.
-import { UseAccountsParams } from '../../../components/hooks/useAccounts';
-
 /**
  * Enum to track states of the account selector screen.
  */
@@ -31,11 +28,6 @@ export interface AccountSelectorParams {
    * Optional boolean that indicates if the sheet is for selection only. Other account actions are disabled when this is true.
    */
   isSelectOnly?: boolean;
-  /**
-   * Optional callback that is used to check for a balance requirement. Non-empty string will render the account item non-selectable.
-   * @param balance - The ticker balance of an account in wei and hex string format.
-   */
-  checkBalanceError?: UseAccountsParams['checkBalanceError'];
   /**
    * Optional boolean to indicate if privacy mode is disabled.
    */

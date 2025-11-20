@@ -27,15 +27,12 @@ jobs:
       IGNORE_BOXLOGS_DEVELOPMENT: true
       CI: 'true'
       NODE_OPTIONS: '--max-old-space-size=8192'
-      MM_UNIFIED_SWAPS_ENABLED: 'true'
-      MM_BRIDGE_ENABLED: 'true'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       SEEDLESS_ONBOARDING_ENABLED: 'true'
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
-      BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -60,17 +57,17 @@ jobs:
 
       - name: Cache Xcode derived data
         uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
+        env:
+          XCODE_CACHE_VERSION: 1
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
             ios/build
-          key: ${{ runner.os }}-xcode-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-xcode-
+          key: ${{ runner.os }}-xcode-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@2e4ce39610e441f28d50f30af8725ecf6bd540b8
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
         with:
           platform: ios
           setup-simulator: false
@@ -176,15 +173,12 @@ jobs:
           GITHUB_CI: 'true'
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
-          MM_UNIFIED_SWAPS_ENABLED: 'true'
-          MM_BRIDGE_ENABLED: 'true'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
           MM_SECURITY_ALERTS_API_ENABLED: 'true'
           MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
-          BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -223,8 +217,10 @@ jobs:
         continue-on-error: true
 
       # Upload source map file for crash debugging and error tracking if exists
+      # Only runs when repack step runs (cache hit), as that's when sourcemap is generated
       - name: Upload iOS Source Map
         id: upload-sourcemap
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: index.js.map

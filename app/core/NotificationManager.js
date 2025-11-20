@@ -11,7 +11,7 @@ import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectEvmTicker } from '../selectors/networkController';
 import { store } from '../store';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 
 import Logger from '../util/Logger';
 import {
@@ -19,12 +19,16 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { endTrace, trace, TraceName } from '../util/trace';
+import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictClaim,
+  TransactionType.predictWithdraw,
 ];
 
-export const PERPS_DEPOSIT_SKIP_STATUS = [
+export const IN_PROGRESS_SKIP_STATUS = [
   TransactionStatus.unapproved,
   TransactionStatus.approved,
   TransactionStatus.signed,
@@ -515,19 +519,40 @@ class NotificationManager {
 
   #shouldSkipNotification(transactionMeta) {
     const { TransactionController } = Engine.context;
+    const { transactions } = TransactionController.state;
 
-    if (SKIP_NOTIFICATION_TRANSACTION_TYPES.includes(transactionMeta?.type)) {
+    if (
+      hasTransactionType(transactionMeta, SKIP_NOTIFICATION_TRANSACTION_TYPES)
+    ) {
       return true;
     }
 
-    const isPerpsDepositInProgress =
-      TransactionController.state.transactions.some(
-        (tx) =>
-          tx.type === TransactionType.perpsDeposit &&
-          PERPS_DEPOSIT_SKIP_STATUS.includes(tx.status),
-      );
+    const isSkippedInProgress = transactions.some(
+      (tx) =>
+        hasTransactionType(tx, SKIP_NOTIFICATION_TRANSACTION_TYPES) &&
+        IN_PROGRESS_SKIP_STATUS.includes(tx.status),
+    );
 
-    return isPerpsDepositInProgress;
+    if (isSkippedInProgress) {
+      return true;
+    }
+
+    const isRequired = transactions.some((tx) =>
+      tx.requiredTransactionIds?.includes(transactionMeta?.id),
+    );
+
+    if (isRequired) {
+      return true;
+    }
+
+    const isSameBatch = transactions.some(
+      (tx) =>
+        hasTransactionType(tx, SKIP_NOTIFICATION_TRANSACTION_TYPES) &&
+        tx.batchId &&
+        tx.batchId === transactionMeta?.batchId,
+    );
+
+    return isSameBatch;
   }
 }
 

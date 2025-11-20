@@ -5,6 +5,8 @@ import {
   EthScope,
   EthAccountType,
   SolAccountType,
+  BtcScope,
+  BtcAccountType,
 } from '@metamask/keyring-api';
 import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { ethers } from 'ethers';
@@ -29,6 +31,9 @@ export const solanaAccountId = 'solanaAccountId';
 export const solanaAccountAddress =
   'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
 
+export const btcAccountId = 'btcAccountId';
+export const btcAccountAddress = 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq';
+
 // Ethereum tokens
 export const ethToken1Address =
   '0x0000000000000000000000000000000000000001' as Hex;
@@ -44,6 +49,9 @@ export const solanaNativeTokenAddress =
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as CaipAssetId;
 export const solanaToken2Address =
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetId;
+
+export const btcNativeTokenAddress =
+  'bip122:000000000019d6689c085ae165831e93/slip44:0' as CaipAssetId;
 
 export const initialState = {
   engine: {
@@ -75,13 +83,22 @@ export const initialState = {
               [formatChainIdToCaip(ethChainId)]: {
                 isActiveSrc: true,
                 isActiveDest: true,
-                isUnifiedUIEnabled: true,
                 isGaslessSwapEnabled: true,
               },
               [formatChainIdToCaip(optimismChainId)]: {
                 isActiveSrc: true,
                 isActiveDest: true,
-                isUnifiedUIEnabled: true,
+                isGaslessSwapEnabled: false,
+              },
+              [SolScope.Mainnet]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+                isGaslessSwapEnabled: false,
+              },
+              [BtcScope.Mainnet]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+                isGaslessSwapEnabled: false,
               },
             },
             bip44DefaultPairs: {
@@ -231,13 +248,16 @@ export const initialState = {
           [SolScope.Mainnet]: {
             chainId: SolScope.Mainnet,
             name: 'Solana',
-            nativeCurrency: 'SOL',
-            rpcEndpoints: [
-              {
-                networkClientId: 'solana',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
+            nativeCurrency:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as const,
+            isEvm: false as const,
+          },
+          [BtcScope.Mainnet]: {
+            chainId: 'bip122:000000000019d6689c085ae165831e93' as const,
+            name: 'Bitcoin',
+            nativeCurrency:
+              'bip122:000000000019d6689c085ae165831e93/slip44:0' as const,
+            isEvm: false as const,
           },
         },
       },
@@ -253,13 +273,53 @@ export const initialState = {
               unit: 'USDC',
             },
           },
+          [btcAccountId]: {
+            [btcNativeTokenAddress]: {
+              amount: '0.015',
+              unit: 'BTC',
+            },
+          },
         },
       },
       MultichainAssetsController: {
         accountsAssets: {
           [solanaAccountId]: [solanaNativeTokenAddress, solanaToken2Address],
+          [btcAccountId]: [btcNativeTokenAddress],
         },
         assetsMetadata: {
+          [btcNativeTokenAddress]: {
+            fungible: true as const,
+            name: 'Bitcoin',
+            units: [
+              {
+                name: 'Bitcoin',
+                decimals: 8,
+                symbol: 'BTC',
+              },
+              {
+                name: 'CentiBitcoin',
+                decimals: 6,
+                symbol: 'cBTC',
+              },
+              {
+                name: 'MilliBitcoin',
+                decimals: 5,
+                symbol: 'mBTC',
+              },
+              {
+                name: 'Bit',
+                decimals: 2,
+                symbol: 'bits',
+              },
+              {
+                name: 'Satoshi',
+                decimals: 0,
+                symbol: 'satoshi',
+              },
+            ],
+            iconUrl: 'btcIconUrl',
+            symbol: 'BTC',
+          },
           [solanaNativeTokenAddress]: {
             name: 'Solana',
             symbol: 'SOL',
@@ -300,6 +360,10 @@ export const initialState = {
             rate: '1', // 1 USDC = 1 USD
             conversionTime: 0,
           },
+          [btcNativeTokenAddress]: {
+            rate: '100000', // 1 BTC = 100000 USD
+            conversionTime: 0,
+          },
         },
       },
       AccountsController: {
@@ -322,6 +386,16 @@ export const initialState = {
               name: 'Account 2',
               type: SolAccountType.DataAccount,
               scopes: [SolScope.Mainnet],
+              metadata: {
+                lastSelected: 0,
+              },
+            },
+            [btcAccountId]: {
+              id: btcAccountId,
+              address: btcAccountAddress,
+              name: 'Account 3',
+              type: BtcAccountType.P2wpkh,
+              scopes: [BtcScope.Mainnet],
               metadata: {
                 lastSelected: 0,
               },
@@ -354,7 +428,7 @@ export const initialState = {
                       groupIndex: 0,
                     },
                   },
-                  accounts: [evmAccountId, solanaAccountId],
+                  accounts: [evmAccountId, solanaAccountId, btcAccountId],
                 },
               },
             },
@@ -516,12 +590,16 @@ export const initialState = {
                 chainId: 1,
                 address: '0x123',
                 decimals: 18,
+                symbol: 'TOKEN1',
+                name: 'Token One',
               },
               destChainId: 10,
               destAsset: {
                 chainId: 10,
                 address: '0x456',
                 decimals: 18,
+                symbol: 'TOKEN2',
+                name: 'Token Two',
               },
               srcTokenAmount: '1000000000000000000',
               destTokenAmount: '2000000000000000000',
@@ -538,6 +616,35 @@ export const initialState = {
             startTime: Date.now(),
             estimatedProcessingTimeInSeconds: 300,
           },
+          'solana-swap-tx': {
+            quote: {
+              srcChainId: 1151111081099710, // Solana Mainnet
+              destChainId: 1151111081099710, // Same chain = swap
+              srcAsset: {
+                address: 'So11111111111111111111111111111111111111112',
+                symbol: 'SOL',
+                decimals: 9,
+                name: 'Solana',
+              },
+              destAsset: {
+                address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                symbol: 'USDC',
+                decimals: 6,
+                name: 'USD Coin',
+              },
+              srcTokenAmount: '1000000000',
+              destTokenAmount: '100000000',
+            },
+            status: {
+              status: StatusTypes.PENDING,
+              srcChain: {
+                txHash: 'solana-tx-hash-123',
+              },
+            },
+            account: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61', // Solana account from initialState
+            startTime: Date.now(),
+            estimatedProcessingTimeInSeconds: 60,
+          },
         },
       },
     },
@@ -545,12 +652,14 @@ export const initialState = {
   bridge: {
     sourceAmount: undefined,
     destAmount: undefined,
-    destChainId: undefined,
+    destAddress: undefined,
     sourceToken: undefined,
     destToken: undefined,
     selectedSourceChainIds: undefined,
     selectedDestChainId: undefined,
     slippage: '0.5',
+    isSubmittingTx: false,
     bridgeViewMode: undefined,
+    isSelectingRecipient: false,
   },
 };

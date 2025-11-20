@@ -11,10 +11,10 @@ import React, { useCallback, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { GasFeeTokenIcon, GasFeeTokenIconSize } from '../gas-fee-token-icon';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
-import { useInsufficientBalanceAlert } from '../../../hooks/alerts/useInsufficientBalanceAlert';
 import { useSelectedGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
 import { GasFeeTokenModal } from '../gas-fee-token-modal';
+import { useIsInsufficientBalance } from '../../../hooks/useIsInsufficientBalance';
 
 export function SelectedGasFeeToken() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,9 +29,7 @@ export function SelectedGasFeeToken() {
   const { isSupported: isGaslessSupported, isSmartTransaction } =
     useIsGaslessSupported();
 
-  const hasInsufficientNative = Boolean(
-    useInsufficientBalanceAlert({ ignoreGasFeeToken: true }).length,
-  );
+  const hasInsufficientNative = useIsInsufficientBalance();
 
   const hasOnlyFutureNativeToken =
     gasFeeTokens?.length === 1 &&
@@ -67,13 +65,14 @@ export function SelectedGasFeeToken() {
         onPress={handlePress}
         style={styles.gasFeeTokenButton}
         testID="selected-gas-fee-token"
+        disabled={!supportsGasFeeTokens}
       >
         <GasFeeTokenIcon
           tokenAddress={gasFeeToken?.tokenAddress ?? NATIVE_TOKEN_ADDRESS}
           size={GasFeeTokenIconSize.Sm}
         />
         <Text>{symbol}</Text>
-        {hasGasFeeTokens && !hasOnlyFutureNativeToken && (
+        {supportsGasFeeTokens && (
           <Icon
             testID="selected-gas-fee-token-arrow"
             name={IconName.ArrowDown}

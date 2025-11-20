@@ -4,8 +4,25 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import CustomNetwork from './CustomNetwork';
 import { CustomNetworkProps } from './CustomNetwork.types';
 import { PopularList } from '../../../../../../util/networks/customNetworks';
+import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../../../selectors/featureFlagController/networkBlacklist';
+import { toHex } from '@metamask/controller-utils';
 
-const getMockState = () => ({ engine: { backgroundState } });
+// Mock the blacklist selector
+jest.mock(
+  '../../../../../../selectors/featureFlagController/networkBlacklist',
+  () => ({
+    selectAdditionalNetworksBlacklistFeatureFlag: jest.fn(),
+  }),
+);
+
+const getMockState = (blacklistedChainIds: string[] = []) => {
+  // Set up the mock selector to return the blacklist
+  (
+    selectAdditionalNetworksBlacklistFeatureFlag as unknown as jest.Mock
+  ).mockReturnValue(blacklistedChainIds);
+
+  return { engine: { backgroundState } };
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -66,5 +83,35 @@ describe('CustomNetwork component', () => {
     ).forEach((n) => {
       expect(queryByText(n.name)).not.toBeOnTheScreen();
     });
+  });
+
+  it('hides blacklisted networks from the list', () => {
+    const props = getMockCustomNetworkProps({ showAddedNetworks: true });
+    const blacklistedChainIds = [toHex('43114'), toHex('42161')]; // Avalanche and Arbitrum
+    const mockState = getMockState(blacklistedChainIds);
+    const { queryByText } = renderWithProvider(<CustomNetwork {...props} />, {
+      state: mockState,
+    });
+
+    // These networks should be hidden
+    expect(queryByText('Avalanche')).not.toBeOnTheScreen();
+    expect(queryByText('Arbitrum')).not.toBeOnTheScreen();
+
+    // Other networks should still be visible
+    expect(queryByText('Base')).toBeOnTheScreen();
+    expect(queryByText('Polygon')).toBeOnTheScreen();
+  });
+
+  it('shows all networks when blacklist is empty', () => {
+    const props = getMockCustomNetworkProps({ showAddedNetworks: true });
+    const mockState = getMockState([]);
+    const { queryByText } = renderWithProvider(<CustomNetwork {...props} />, {
+      state: mockState,
+    });
+
+    // All networks should be visible
+    expect(queryByText('Avalanche')).toBeOnTheScreen();
+    expect(queryByText('Arbitrum')).toBeOnTheScreen();
+    expect(queryByText('Base')).toBeOnTheScreen();
   });
 });

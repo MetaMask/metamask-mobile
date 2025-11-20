@@ -1,13 +1,21 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from 'react';
 import { Modal, Animated, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  ButtonBase,
   BoxFlexDirection,
   BoxAlignItems,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
@@ -38,25 +46,132 @@ import { BigNumber } from 'bignumber.js';
 import {
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
+  INITIAL_AMOUNT_UI_PROGRESS,
 } from '../../constants/hyperLiquidConfig';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
-import images from '../../../../../images/image-icons';
+import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
+import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
+import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
+import styleSheet from './PerpsMarketBalanceActions.styles';
+import HyperLiquidLogo from '../../../../../images/hl_icon.png';
+import { useStyles } from '../../../../hooks/useStyles';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { PerpsProgressBar } from '../PerpsProgressBar';
+import { RootState } from '../../../../../reducers';
 
 interface PerpsMarketBalanceActionsProps {}
+
+const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
+  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Box
+      twClassName="mx-4 mt-4 mb-4 p-4 rounded-xl"
+      style={tw.style('bg-background-section')}
+      testID={`${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`}
+    >
+      {/* Balance Section Skeleton */}
+      <Box twClassName="mb-3">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="justify-between"
+        >
+          <Box>
+            {/* Balance Value Skeleton */}
+            <Skeleton
+              width={120}
+              height={24}
+              style={styles.skeletonBalanceValue}
+            />
+            {/* Available Balance Label Skeleton */}
+            <Skeleton width={100} height={14} />
+          </Box>
+
+          {/* Token Avatar Skeleton */}
+          <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
+        </Box>
+      </Box>
+
+      {/* Buttons Section Skeleton */}
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+        {/* Add Funds Button Skeleton */}
+        <Box twClassName="flex-1">
+          <Skeleton width="100%" height={48} style={styles.skeletonButton} />
+        </Box>
+        {/* Withdraw Button Skeleton */}
+        <Box twClassName="flex-1">
+          <Skeleton width="100%" height={48} style={styles.skeletonButton} />
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
 const PerpsMarketBalanceActions: React.FC<
   PerpsMarketBalanceActionsProps
 > = () => {
   const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isEligible = useSelector(selectPerpsEligibility);
+  const { isDepositInProgress } = usePerpsDepositProgress();
+
+  // Get withdrawal requests from controller state
+  const withdrawalRequests = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.withdrawalRequests || [],
+  );
 
   // State for eligibility modal
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     React.useState(false);
 
+  // State for transaction amount
+  const [transactionAmountWei, setTransactionAmountWei] = useState<
+    string | null
+  >(null);
+
+  // Extract all transaction state logic
+  const {
+    withdrawalAmount,
+    hasActiveWithdrawals,
+    statusText,
+    isAnyTransactionInProgress,
+  } = usePerpsTransactionState({
+    withdrawalRequests,
+    isDepositInProgress,
+  });
+
+  // Memoized conditions for cleaner logic
+  const isOnlyDepositInProgress = useMemo(
+    () => isDepositInProgress && !hasActiveWithdrawals,
+    [isDepositInProgress, hasActiveWithdrawals],
+  );
+
+  const isOnlyWithdrawalInProgress = useMemo(
+    () => !isDepositInProgress && hasActiveWithdrawals,
+    [isDepositInProgress, hasActiveWithdrawals],
+  );
+
+  const shouldShowDollarAmount = useMemo(
+    () =>
+      (isOnlyDepositInProgress && transactionAmountWei) ||
+      (isOnlyWithdrawalInProgress && withdrawalAmount),
+    [
+      isOnlyDepositInProgress,
+      isOnlyWithdrawalInProgress,
+      transactionAmountWei,
+      withdrawalAmount,
+    ],
+  );
+
   // Use live account data with 1 second throttle for balance display
-  const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
+    throttleMs: 1000,
+  });
 
   // Trading and network management hooks
   const { depositWithConfirmation } = usePerpsTrading();
@@ -94,6 +209,10 @@ const PerpsMarketBalanceActions: React.FC<
         startBalancePulse(balanceChange);
       } catch (animationError) {
         // Silently handle animation errors to avoid disrupting UX
+        DevLogger.log(
+          'PerpsMarketBalanceActions: Balance animation error:',
+          animationError,
+        );
       }
     }
 
@@ -157,6 +276,11 @@ const PerpsMarketBalanceActions: React.FC<
   const availableBalance = perpsAccount?.availableBalance || '0';
   const isBalanceEmpty = BigNumber(availableBalance).isZero();
 
+  // Show skeleton while loading initial account data
+  if (isInitialLoading) {
+    return <PerpsMarketBalanceActionsSkeleton />;
+  }
+
   // Don't render if no balance data is available yet
   if (!perpsAccount) {
     return null;
@@ -165,25 +289,52 @@ const PerpsMarketBalanceActions: React.FC<
   return (
     <>
       <Box
-        twClassName="mx-4 mt-4 mb-4 p-4 rounded-xl"
+        twClassName="mx-4 mt-4 mb-4 rounded-xl overflow-hidden"
         style={tw.style('bg-background-section')}
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
+        <PerpsProgressBar
+          progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
+          height={4}
+          onTransactionAmountChange={setTransactionAmountWei}
+        />
+        {/* Single Progress Section */}
+        {isAnyTransactionInProgress && (
+          <Box twClassName="p-4">
+            <Box twClassName="w-full flex-row justify-between">
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {statusText}
+              </Text>
+              {/* Only show dollar value when there's a single transaction in progress */}
+              {shouldShowDollarAmount && (
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Default}
+                >
+                  {isOnlyDepositInProgress && transactionAmountWei
+                    ? convertPerpsAmountToUSD(transactionAmountWei)
+                    : isOnlyWithdrawalInProgress && withdrawalAmount
+                      ? convertPerpsAmountToUSD(withdrawalAmount)
+                      : null}
+                </Text>
+              )}
+            </Box>
+          </Box>
+        )}
+        {isAnyTransactionInProgress && (
+          <Box twClassName="w-full border-b border-muted"></Box>
+        )}
         {/* Balance Section */}
-        <Box twClassName="mb-4">
+        <Box twClassName="p-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="justify-between"
           >
             <Box>
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-                style={tw.style('mb-1')}
-              >
-                {strings('perps.available_balance')}
-              </Text>
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <Text
                   variant={TextVariant.HeadingMD}
@@ -193,73 +344,62 @@ const PerpsMarketBalanceActions: React.FC<
                   {formatPerpsFiat(availableBalance)}
                 </Text>
               </Animated.View>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {strings('perps.available_balance')}
+              </Text>
             </Box>
 
             {/* USDC Token Avatar with HyperLiquid Badge */}
             <BadgeWrapper
+              style={styles.assetIconWrapper}
               badgePosition={BadgePosition.BottomRight}
               badgeElement={
                 <Badge
                   variant={BadgeVariant.Network}
-                  imageSource={images.HL}
+                  imageSource={HyperLiquidLogo}
                   name="HyperLiquid"
+                  style={styles.hyperliquidIcon}
                 />
               }
             >
               <AvatarToken
                 name={USDC_SYMBOL}
                 imageSource={{ uri: USDC_TOKEN_ICON_URL }}
-                size={AvatarSize.Lg}
+                size={AvatarSize.Md}
               />
             </BadgeWrapper>
           </Box>
         </Box>
 
         {/* Buttons Section */}
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+        <Box twClassName="mx-4 mb-4 gap-3" flexDirection={BoxFlexDirection.Row}>
           {/* Add Funds Button */}
           <Box twClassName="flex-1">
-            <ButtonBase
-              twClassName="h-12 rounded-xl"
-              style={({ pressed }) =>
-                tw.style(
-                  'bg-subsection flex-row items-center justify-center w-full',
-                  pressed && 'bg-background-pressed',
-                )
+            <Button
+              variant={
+                isBalanceEmpty ? ButtonVariant.Primary : ButtonVariant.Secondary
               }
+              size={ButtonSize.Lg}
               onPress={handleAddFunds}
+              isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
             >
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-              >
-                {strings('perps.add_funds')}
-              </Text>
-            </ButtonBase>
+              {strings('perps.add_funds')}
+            </Button>
           </Box>
 
           {/* Withdraw Button */}
           {!isBalanceEmpty && (
             <Box twClassName="flex-1">
-              <ButtonBase
-                twClassName="h-12 rounded-xl"
-                style={({ pressed }) =>
-                  tw.style(
-                    'bg-subsection flex-row items-center justify-center w-full',
-                    pressed && 'bg-background-pressed',
-                  )
-                }
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
                 onPress={handleWithdraw}
+                isFullWidth
                 testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
               >
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {strings('perps.withdraw')}
-                </Text>
-              </ButtonBase>
+                {strings('perps.withdraw')}
+              </Button>
             </Box>
           )}
         </Box>

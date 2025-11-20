@@ -91,42 +91,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   })),
 }));
 
-// Mock format utilities
-jest.mock('../../utils/formatUtils', () => ({
-  formatPerpsFiat: jest.fn((value, options = {}) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    if (isNaN(num)) return '$0.00';
-    // Handle dynamic decimals from ranges config - match component behavior
-    if (options.ranges && options.ranges.length > 0) {
-      const range = options.ranges[0];
-      if (
-        range.minimumDecimals !== undefined &&
-        range.maximumDecimals !== undefined
-      ) {
-        // Use the minimumDecimals as set by the component logic
-        return `$${num.toFixed(range.minimumDecimals)}`;
-      }
-    }
-    return `$${num.toFixed(2)}`;
-  }),
-  formatWithSignificantDigits: jest.fn((value, significantDigits) => {
-    const num = typeof value === 'number' ? value : parseFloat(value);
-    if (isNaN(num)) return { value: '0', formatted: '$0.00' };
-    return {
-      value: num.toFixed(significantDigits || 2),
-      formatted: `$${num.toFixed(significantDigits || 2)}`,
-    };
-  }),
-  PRICE_RANGES_POSITION_VIEW: [
-    {
-      condition: () => true,
-      minimumDecimals: 2,
-      maximumDecimals: 2,
-      threshold: 0.01,
-    },
-  ],
-}));
-
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -384,7 +348,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
         screen.getByText('perps.order.limit_price_modal.title'),
       ).toBeOnTheScreen();
       expect(screen.getByText(/ETH/)).toBeOnTheScreen();
-      expect(screen.getByText(/\$3000/)).toBeOnTheScreen();
+      expect(screen.getByText(/\$3,000/)).toBeOnTheScreen();
     });
 
     it('returns null when not visible', () => {
@@ -404,7 +368,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
       render(<PerpsLimitPriceBottomSheet {...defaultProps} />);
 
       // Assert - prices are rendered somewhere in the component
-      expect(screen.getByText(/\$3000/)).toBeOnTheScreen(); // Current price
+      expect(screen.getByText(/\$3,000/)).toBeOnTheScreen(); // Current price with thousands separator
     });
 
     it('displays placeholder when no limit price is set', () => {
@@ -425,7 +389,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
       render(<PerpsLimitPriceBottomSheet {...props} />);
 
       // Assert
-      expect(screen.getByText(/\$3100/)).toBeOnTheScreen(); // Formatted limit price display
+      expect(screen.getByText(/\$3,100/)).toBeOnTheScreen(); // Formatted limit price display with thousands separator
       expect(screen.getByText('3100')).toBeOnTheScreen(); // Keypad value
     });
 
@@ -724,6 +688,124 @@ describe('PerpsLimitPriceBottomSheet', () => {
       expect(screen.getByTestId('keypad-component')).toBeOnTheScreen();
       expect(screen.getByTestId('keypad-button-1')).toBeOnTheScreen();
       expect(screen.getByTestId('keypad-button-clear')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Decimal Point and Trailing Zero Display', () => {
+    it('displays decimal point immediately when typed', () => {
+      // Arrange
+      render(<PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="0." />);
+
+      // Act - Component should render the raw value with decimal point
+
+      // Assert
+      expect(screen.getByText('$0.')).toBeOnTheScreen();
+    });
+
+    it('displays single trailing zero after decimal point', () => {
+      // Arrange
+      render(<PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="0.0" />);
+
+      // Act - Component should preserve the trailing zero
+
+      // Assert
+      expect(screen.getByText('$0.0')).toBeOnTheScreen();
+    });
+
+    it('displays multiple trailing zeros after decimal point', () => {
+      // Arrange
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="0.00" />,
+      );
+
+      // Act - Component should preserve trailing zeros
+
+      // Assert
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+    });
+
+    it('displays decimal point with integer value and preserves currency formatting', () => {
+      // Arrange
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="345." />,
+      );
+
+      // Act - Should format integer part with currency, append decimal
+
+      // Assert
+      expect(screen.getByText('$345.')).toBeOnTheScreen();
+    });
+
+    it('displays trailing zero with integer value', () => {
+      // Arrange
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="345.0" />,
+      );
+
+      // Act - Should show integer with decimal and trailing zero
+
+      // Assert
+      expect(screen.getByText('$345.0')).toBeOnTheScreen();
+    });
+
+    it('displays multiple trailing zeros with integer value', () => {
+      // Arrange
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="345.00" />,
+      );
+
+      // Act - Should preserve all trailing zeros
+
+      // Assert
+      expect(screen.getByText('$345.00')).toBeOnTheScreen();
+    });
+
+    it('preserves thousands separator when decimal point is added', () => {
+      // Arrange
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="12345." />,
+      );
+
+      // Act - Should format with thousands separator and decimal
+
+      // Assert
+      expect(screen.getByText('$12,345.')).toBeOnTheScreen();
+    });
+
+    it('preserves thousands separator with trailing zeros', () => {
+      // Arrange
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="12345.00" />,
+      );
+
+      // Act - Should format with thousands separator and trailing zeros
+
+      // Assert
+      expect(screen.getByText('$12,345.00')).toBeOnTheScreen();
+    });
+
+    it('formats complete decimal numbers normally', () => {
+      // Arrange
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="123.45" />,
+      );
+
+      // Act - Complete numbers use normal formatting
+
+      // Assert
+      expect(screen.getByText('$123.45')).toBeOnTheScreen();
+    });
+
+    it('displays trailing zero in middle of decimal value', () => {
+      // Arrange
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="123.10" />,
+      );
+
+      // Act - Should preserve trailing zero even in middle positions
+
+      // Assert
+      expect(screen.getByText('$123.10')).toBeOnTheScreen();
     });
   });
 

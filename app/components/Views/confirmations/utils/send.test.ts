@@ -4,6 +4,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 
+import ppomUtil from '../../../../lib/ppom/ppom-util';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
 // eslint-disable-next-line import/no-namespace
@@ -33,6 +34,11 @@ jest.mock('../../../../core/Engine', () => ({
       findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
     },
   },
+}));
+
+jest.mock('../../../../lib/ppom/ppom-util', () => ({
+  ...jest.requireActual('../../../../lib/ppom/ppom-util'),
+  validateRequest: jest.fn(),
 }));
 
 describe('handleSendPageNavigation', () => {
@@ -160,6 +166,27 @@ describe('submitEvmTransaction', () => {
       value: '10',
     });
     expect(mockAddTransaction).toHaveBeenCalled();
+  });
+
+  it('invokes ppomUtil.validateRequest', () => {
+    jest.spyOn(TransactionUtils, 'addTransaction').mockImplementation(() =>
+      Promise.resolve({
+        result: Promise.resolve('123'),
+        transactionMeta: { id: '123' } as TransactionMeta,
+      }),
+    );
+    const mockValidateRequest = jest
+      .spyOn(ppomUtil, 'validateRequest')
+      .mockImplementation(() => Promise.resolve());
+
+    submitEvmTransaction({
+      asset: { isNative: true } as AssetType,
+      chainId: '0x1',
+      from: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+      to: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA967b',
+      value: '10',
+    });
+    expect(mockValidateRequest).toHaveBeenCalled();
   });
 
   describe('sets transaction type', () => {

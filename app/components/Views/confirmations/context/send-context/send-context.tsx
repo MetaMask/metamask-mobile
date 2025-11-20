@@ -8,14 +8,12 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
-import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 
-import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { AssetType, Nft } from '../../types/token';
+import { AssetProtocol, PROTOCOL_CONFIG } from '../../constants/protocol';
 
 export interface SendContextType {
   asset?: AssetType | Nft;
@@ -74,27 +72,19 @@ export const SendContextProvider: React.FC<{
       } else {
         // We don't have accountId in the updated asset - this is a navigation from outside of the send flow
         // Hence we need to update the fromAccount from the selected group
-        const isEvmAsset = updatedAsset?.address
-          ? isEvmAddress(updatedAsset.address)
-          : undefined;
-        const isSolanaAsset = updatedAsset?.chainId
-          ? isSolanaChainId(updatedAsset.chainId)
-          : undefined;
-
         const selectedAccountGroupAccounts = selectedGroup?.accounts.map(
           (accountId) => accounts[accountId],
         );
 
-        if (isEvmAsset) {
-          const evmAccount = selectedAccountGroupAccounts?.find((account) =>
-            isEvmAccountType(account.type),
-          );
-          updateFromAccount(evmAccount);
-        } else if (isSolanaAsset) {
-          const solanaAccount = selectedAccountGroupAccounts?.find((account) =>
-            isSolanaAccount(account),
-          );
-          updateFromAccount(solanaAccount);
+        for (const protocol of Object.values(AssetProtocol)) {
+          const config = PROTOCOL_CONFIG[protocol];
+          if (updatedAsset && config.isAssetType(updatedAsset)) {
+            const account = selectedAccountGroupAccounts?.find((acc) =>
+              config.isAccountType(acc),
+            );
+            updateFromAccount(account);
+            break;
+          }
         }
       }
     },

@@ -11,10 +11,17 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
+import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
+import { TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT } from '../../../../../component-library/components/Form/TextField/TextField.constants';
 import ClipboardManager from '../../../../../core/ClipboardManager';
-import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendContext } from '../../context/send-context/send-context';
+
+const INPUT_STYLE_OVERRIDE = {
+  height: undefined,
+  lineHeight: undefined,
+  paddingVertical: 0,
+};
 
 export const RecipientInput = ({
   isRecipientSelectedFromList,
@@ -27,8 +34,6 @@ export const RecipientInput = ({
 }) => {
   const { to, updateTo } = useSendContext();
   const inputRef = useRef<TextInput>(null);
-  const { setRecipientInputMethodManual, setRecipientInputMethodPasted } =
-    useRecipientSelectionMetrics();
 
   const handlePaste = useCallback(async () => {
     resetStateOnInput();
@@ -36,7 +41,6 @@ export const RecipientInput = ({
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
         const trimmedText = clipboardText.trim();
-        setRecipientInputMethodPasted();
         updateTo(trimmedText);
         setPastedRecipient(trimmedText);
         setTimeout(() => {
@@ -50,13 +54,7 @@ export const RecipientInput = ({
       // eslint-disable-next-line no-console
       console.log('error while pasting', error);
     }
-  }, [
-    updateTo,
-    inputRef,
-    setPastedRecipient,
-    resetStateOnInput,
-    setRecipientInputMethodPasted,
-  ]);
+  }, [updateTo, inputRef, setPastedRecipient, resetStateOnInput]);
 
   const handleClearInput = useCallback(() => {
     updateTo('');
@@ -69,15 +67,9 @@ export const RecipientInput = ({
     async (toAddress: string) => {
       resetStateOnInput();
       updateTo(toAddress);
-      setRecipientInputMethodManual();
       setPastedRecipient(undefined);
     },
-    [
-      resetStateOnInput,
-      setPastedRecipient,
-      setRecipientInputMethodManual,
-      updateTo,
-    ],
+    [resetStateOnInput, setPastedRecipient, updateTo],
   );
 
   const defaultStartAccessory = useMemo(
@@ -113,18 +105,31 @@ export const RecipientInput = ({
   return (
     <Box twClassName="w-full px-4 py-2">
       <TextField
-        autoCorrect={false}
-        ref={inputRef}
-        value={to}
-        onChangeText={handleTextChange}
-        spellCheck={false}
-        autoComplete="off"
-        autoCapitalize="none"
-        placeholder={strings('send.enter_address_to_send_to')}
         size={TextFieldSize.Lg}
         endAccessory={renderEndAccessory}
         startAccessory={defaultStartAccessory}
-        autoFocus={false}
+        inputElement={
+          <Input
+            textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
+            ref={inputRef}
+            value={to}
+            onChangeText={handleTextChange}
+            autoCorrect={false}
+            multiline={false}
+            numberOfLines={1}
+            scrollEnabled={false}
+            textAlignVertical="center"
+            textBreakStrategy="simple"
+            spellCheck={false}
+            autoComplete="off"
+            autoCapitalize="none"
+            placeholder={strings('send.enter_address_to_send_to')}
+            autoFocus={false}
+            testID="recipient-address-input"
+            isStateStylesDisabled
+            style={INPUT_STYLE_OVERRIDE}
+          />
+        }
       />
     </Box>
   );

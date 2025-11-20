@@ -13,7 +13,7 @@ export const selectBrowserHistoryWithType = createDeepEqualSelector(
     history
       .map(
         (item) =>
-          ({ ...item, category: UrlAutocompleteCategory.Recents } as const),
+          ({ ...item, category: UrlAutocompleteCategory.Recents }) as const,
       )
       .reverse(),
 );
@@ -23,6 +23,9 @@ export const selectBrowserBookmarksWithType = createDeepEqualSelector(
   (bookmarks: SiteItem[]) =>
     bookmarks.map(
       (item) =>
-        ({ ...item, category: UrlAutocompleteCategory.Favorites } as const),
+        ({ ...item, category: UrlAutocompleteCategory.Favorites }) as const,
     ),
 );
+
+export const selectBrowserFullscreen = (state: RootState) =>
+  state.browser.isFullscreen;

@@ -69,7 +69,7 @@ describe('formatAmount', () => {
           format: jest.fn().mockImplementation(() => '123,123'),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
     expect(formatAmount(123123)).toBe('123,123');
     jest.spyOn(Intl, 'NumberFormat').mockClear();
@@ -84,7 +84,7 @@ describe('formatAmount', () => {
           }),
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }) as any,
     );
     expect(formatAmount(123123)).toBe('123123');
     jest.spyOn(Intl, 'NumberFormat').mockClear();

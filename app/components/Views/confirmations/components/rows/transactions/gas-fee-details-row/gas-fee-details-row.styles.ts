@@ -8,6 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     primaryValue: {
       color: theme.colors.text.default,
+      paddingRight: 4,
       ...fontStyles.normal,
     },
     secondaryValue: {
@@ -40,6 +41,17 @@ const styleSheet = (params: { theme: Theme }) => {
     gasFeeTokenText: {
       textAlign: 'left',
       flex: 1,
+    },
+    skeletonBorderRadius: {
+      borderRadius: 4,
+    },
+    skeletonRowContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      minHeight: 24,
+      paddingBottom: 8,
+      paddingHorizontal: 8,
     },
   });
 };

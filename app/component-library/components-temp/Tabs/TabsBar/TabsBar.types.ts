@@ -34,4 +34,8 @@ export interface TabsBarProps extends BoxProps {
    * Test ID for the component
    */
   testID?: string;
+  /**
+   * Tailwind CSS classes to apply to the main container
+   */
+  twClassName?: string;
 }

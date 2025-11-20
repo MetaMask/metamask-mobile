@@ -5,19 +5,14 @@
 import {
   formatRewardsDate,
   formatTimeRemaining,
-  getEventDetails,
-  PerpsEventType,
   formatNumber,
   getIconName,
   formatUrl,
+  formatUTCDate,
+  formatRewardsMusdDepositPayloadDate,
 } from './formatUtils';
-import {
-  PointsEventDto,
-  PointsEventEarnType,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
-import TEST_ADDRESS from '../../../../constants/address';
 
 const mockGetTimeDifferenceFromNow =
   getTimeDifferenceFromNow as jest.MockedFunction<
@@ -44,6 +39,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.events.type.take_profit': 'Take profit',
       'rewards.events.type.stop_loss': 'Stop loss',
       'rewards.events.type.uncategorized_event': 'Uncategorized event',
+      'perps.market.long': 'Long',
+      'perps.market.short': 'Short',
     };
     return t[key] || key;
   }),
@@ -92,504 +89,8 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('getEventDetails', () => {
-    const createMockEvent = (
-      type: PointsEventDto['type'],
-      payload: PointsEventDto['payload'] = null,
-    ): PointsEventDto => {
-      const baseEvent = {
-        id: 'test-id',
-        timestamp: new Date('2024-01-15T14:30:00Z'),
-        value: 100,
-        bonus: null,
-        accountAddress: TEST_ADDRESS,
-        updatedAt: new Date('2024-01-15T14:30:00Z'),
-      };
-
-      switch (type) {
-        case 'SWAP':
-          return {
-            ...baseEvent,
-            type: 'SWAP' as const,
-            payload: payload as (PointsEventDto & { type: 'SWAP' })['payload'],
-          };
-        case 'PERPS':
-          return {
-            ...baseEvent,
-            type: 'PERPS' as const,
-            payload: payload as (PointsEventDto & { type: 'PERPS' })['payload'],
-          };
-        default:
-          return {
-            ...baseEvent,
-            type: type as PointsEventEarnType,
-            payload: null,
-          };
-      }
-    };
-
-    describe('SWAP events', () => {
-      it('returns correct details for SWAP event', () => {
-        // Given a SWAP event
-        const event = createMockEvent('SWAP', {
-          srcAsset: {
-            symbol: 'ETH',
-            amount: '420000000000',
-            decimals: 9,
-            type: 'eip155:1/slip44:60',
-          },
-          destAsset: {
-            symbol: 'USDC',
-            amount: '1000000',
-            decimals: 6,
-            type: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          },
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return swap details
-        expect(result).toEqual({
-          title: 'Swap',
-          details: '420 ETH to USDC',
-          icon: IconName.SwapVertical,
-        });
-      });
-    });
-
-    describe('PERPS events', () => {
-      it('returns correct details for perps OPEN_POSITION long event', () => {
-        // Given a PERPS OPEN_POSITION event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '1000000000000000000', // 1 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 1 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for perps OPEN_POSITION short event', () => {
-        // Given a PERPS OPEN_POSITION SHORT event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'SHORT',
-          asset: {
-            symbol: 'BTC',
-            amount: '500000000000000000', // 0.5 BTC with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:0',
-          },
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Short 0.5 BTC',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for perps CLOSE_POSITION event with zero pnl', () => {
-        // Given a PERPS CLOSE_POSITION event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.CLOSE_POSITION,
-          asset: {
-            symbol: 'ETH',
-            amount: '1000000000000000000', // 1 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          pnl: '0',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Closed position',
-          details: 'ETH $0',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for PERPS TAKE_PROFIT event', () => {
-        // Given a PERPS TAKE_PROFIT event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.TAKE_PROFIT,
-          asset: {
-            symbol: 'BTC',
-            amount: '250000000000000000', // 0.25 BTC with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:0',
-          },
-          pnl: '100',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Take profit',
-          details: 'BTC +$100',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for PERPS STOP_LOSS event', () => {
-        // Given a PERPS STOP_LOSS event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.STOP_LOSS,
-          asset: {
-            symbol: 'ETH',
-            amount: '500000000000000000', // 0.5 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          pnl: '1.234',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Stop loss',
-          details: 'ETH +$1.23',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns correct details for PERPS STOP_LOSS event with negative pnl', () => {
-        // Given a PERPS STOP_LOSS event
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.STOP_LOSS,
-          asset: {
-            symbol: 'ETH',
-            amount: '500000000000000000', // 0.5 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          pnl: '-1.20',
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return perps details
-        expect(result).toEqual({
-          title: 'Stop loss',
-          details: 'ETH -$1.2',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns undefined details for PERPS event with invalid payload', () => {
-        // Given a PERPS event with invalid payload
-        const event = createMockEvent('PERPS', {
-          type: 'INVALID_TYPE' as PerpsEventType,
-          asset: {
-            symbol: 'ETH',
-            amount: '1000000000000000000',
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        // When getting event details
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        // Then it should return undefined details
-        expect(result).toEqual({
-          title: 'Uncategorized event',
-          details: undefined,
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('returns undefined details for PERPS event with undefined asset decimals', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '1000000000000000000',
-            decimals: undefined as unknown as number,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: undefined,
-          icon: IconName.Candlestick,
-        });
-      });
-    });
-
-    describe('REFERRAL events', () => {
-      it('returns correct details for REFERRAL event', () => {
-        const event = createMockEvent('REFERRAL');
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Referral action',
-          details: undefined,
-          icon: IconName.UserCircleAdd,
-        });
-      });
-    });
-
-    describe('SIGN_UP_BONUS events', () => {
-      it('returns correct details for SIGN_UP_BONUS event', () => {
-        const event = createMockEvent('SIGN_UP_BONUS');
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Sign up bonus',
-          details: TEST_ADDRESS,
-          icon: IconName.Edit,
-        });
-      });
-
-      it('returns empty details when account name is not provided', () => {
-        const event = createMockEvent('SIGN_UP_BONUS');
-
-        const result = getEventDetails(event, undefined);
-
-        expect(result).toEqual({
-          title: 'Sign up bonus',
-          details: undefined,
-          icon: IconName.Edit,
-        });
-      });
-    });
-
-    describe('LOYALTY_BONUS events', () => {
-      it('returns correct details for LOYALTY_BONUS event', () => {
-        const event = createMockEvent('LOYALTY_BONUS');
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Loyalty bonus',
-          details: TEST_ADDRESS,
-          icon: IconName.ThumbUp,
-        });
-      });
-    });
-
-    describe('ONE_TIME_BONUS events', () => {
-      it('returns correct details for ONE_TIME_BONUS event', () => {
-        const event = createMockEvent('ONE_TIME_BONUS');
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'One-time bonus',
-          details: undefined,
-          icon: IconName.Gift,
-        });
-      });
-    });
-
-    describe('unknown event types', () => {
-      it('returns uncategorized event details for unknown type', () => {
-        const event = createMockEvent('UNKNOWN_TYPE' as PointsEventDto['type']);
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Uncategorized event',
-          details: undefined,
-          icon: IconName.Star,
-        });
-      });
-    });
-
-    describe('edge cases', () => {
-      it('handles PERPS event with zero amount', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '0',
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 0 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('handles PERPS event with very large amount', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '1000000000000000000000000', // 1,000,000 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 1000000 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('handles PERPS event with decimal result (1.5 should display as 1.5, not 1.50)', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '1500000000000000000', // 1.5 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 1.5 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('formats PERPS event amounts to at most 3 decimal places (1.23456 should display as 1.235)', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '1234560000000000000', // 1.23456 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 1.235 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('formats whole numbers without decimal places (50 should display as 50, not 50.00)', () => {
-        const event = createMockEvent('PERPS', {
-          type: PerpsEventType.OPEN_POSITION,
-          direction: 'LONG',
-          asset: {
-            symbol: 'ETH',
-            amount: '50000000000000000000', // 50 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Opened position',
-          details: 'Long 50 ETH',
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('formats SWAP event amounts to at most 3 decimal places', () => {
-        const event = createMockEvent('SWAP', {
-          srcAsset: {
-            symbol: 'ETH',
-            amount: '1234560000000000000', // 1.23456 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          destAsset: {
-            symbol: 'USDC',
-            amount: '2000000000', // 2000 USDC with 6 decimals
-            decimals: 6,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Swap',
-          details: '1.235 ETH to USDC',
-          icon: IconName.SwapVertical,
-        });
-      });
-
-      it('formats SWAP event with whole numbers without decimal places (50 should display as 50, not 50.00)', () => {
-        const event = createMockEvent('SWAP', {
-          srcAsset: {
-            symbol: 'ETH',
-            amount: '50000000000000000000', // 50 ETH with 18 decimals
-            decimals: 18,
-            type: 'eip155:1/slip44:60',
-          },
-          destAsset: {
-            symbol: 'USDC',
-            amount: '100000000', // 100 USDC with 6 decimals
-            decimals: 6,
-            type: 'eip155:1/slip44:60',
-          },
-        });
-
-        const result = getEventDetails(event, TEST_ADDRESS);
-
-        expect(result).toEqual({
-          title: 'Swap',
-          details: '50 ETH to USDC',
-          icon: IconName.SwapVertical,
-        });
-      });
-    });
-  });
-
   describe('formatTimeRemaining', () => {
-    it('should return formatted time with days and hours when hours > 0', () => {
+    it('returns formatted time with days, hours, and minutes when all are positive', () => {
       // Given: 2 days, 5 hours, 30 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 2,
@@ -602,14 +103,14 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format
-      expect(result).toBe('2d 5h');
+      // Then: should return days, hours, and minutes format
+      expect(result).toBe('2d 5h 30m');
       expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledWith(
         endDate.getTime(),
       );
     });
 
-    it('should return formatted time with only minutes when hours = 0 and minutes > 0', () => {
+    it('returns formatted time with only minutes when hours and days are zero', () => {
       // Given: 0 hours, 45 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -626,7 +127,7 @@ describe('formatUtils', () => {
       expect(result).toBe('45m');
     });
 
-    it('should return null when both hours and minutes are 0', () => {
+    it('returns null when days, hours, and minutes are all zero', () => {
       // Given: 0 hours, 0 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -643,7 +144,7 @@ describe('formatUtils', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null when minutes are negative (past date)', () => {
+    it('returns null when time values are negative for past date', () => {
       // Given: negative minutes (past date)
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -660,7 +161,7 @@ describe('formatUtils', () => {
       expect(result).toBeNull();
     });
 
-    it('should handle edge case with 0 days, 1 hour, 0 minutes', () => {
+    it('returns only hours when days and minutes are zero', () => {
       // Given: exactly 1 hour remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -673,11 +174,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format
-      expect(result).toBe('0d 1h');
+      // Then: should return hours format only
+      expect(result).toBe('1h');
     });
 
-    it('should handle large time differences correctly', () => {
+    it('returns days, hours, and minutes for large time differences', () => {
       // Given: 365 days, 23 hours, 59 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 365,
@@ -690,11 +191,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format
-      expect(result).toBe('365d 23h');
+      // Then: should return days, hours, and minutes format
+      expect(result).toBe('365d 23h 59m');
     });
 
-    it('should handle single digit values correctly', () => {
+    it('returns single digit values without padding', () => {
       // Given: 1 day, 1 hour, 1 minute remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 1,
@@ -707,11 +208,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format without padding
-      expect(result).toBe('1d 1h');
+      // Then: should return days, hours, and minutes format without padding
+      expect(result).toBe('1d 1h 1m');
     });
 
-    it('should prioritize hours over minutes when hours > 0', () => {
+    it('returns hours and minutes when days are zero', () => {
       // Given: 0 days, 2 hours, 59 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -724,11 +225,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format (ignoring minutes)
-      expect(result).toBe('0d 2h');
+      // Then: should return hours and minutes format
+      expect(result).toBe('2h 59m');
     });
 
-    it('should handle exactly 1 minute remaining', () => {
+    it('returns exactly 1 minute when only minutes remain', () => {
       // Given: exactly 1 minute remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -745,7 +246,7 @@ describe('formatUtils', () => {
       expect(result).toBe('1m');
     });
 
-    it('should handle zero days with hours correctly', () => {
+    it('returns hours and minutes when days are zero', () => {
       // Given: 0 days, 12 hours, 30 minutes remaining
       mockGetTimeDifferenceFromNow.mockReturnValue({
         days: 0,
@@ -758,11 +259,11 @@ describe('formatUtils', () => {
       // When: formatting time remaining
       const result = formatTimeRemaining(endDate);
 
-      // Then: should return days and hours format with 0 days
-      expect(result).toBe('0d 12h');
+      // Then: should return hours and minutes format
+      expect(result).toBe('12h 30m');
     });
 
-    it('should call getTimeDifferenceFromNow with correct timestamp', () => {
+    it('calls getTimeDifferenceFromNow with correct timestamp', () => {
       // Given: a specific end date
       const endDate = new Date('2024-06-15T10:30:00Z');
       const expectedTimestamp = endDate.getTime();
@@ -781,6 +282,57 @@ describe('formatUtils', () => {
         expectedTimestamp,
       );
       expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns days and minutes when hours are zero', () => {
+      // Given: 3 days, 0 hours, 15 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 3,
+        hours: 0,
+        minutes: 15,
+      });
+
+      const endDate = new Date('2024-01-04T12:15:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and minutes format
+      expect(result).toBe('3d 15m');
+    });
+
+    it('returns only days when hours and minutes are zero', () => {
+      // Given: 5 days, 0 hours, 0 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 5,
+        hours: 0,
+        minutes: 0,
+      });
+
+      const endDate = new Date('2024-01-06T12:00:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days format only
+      expect(result).toBe('5d');
+    });
+
+    it('trims trailing space when minutes are zero', () => {
+      // Given: 2 days, 3 hours, 0 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 2,
+        hours: 3,
+        minutes: 0,
+      });
+
+      const endDate = new Date('2024-12-31T15:00:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and hours format without trailing space
+      expect(result).toBe('2d 3h');
     });
   });
 
@@ -1198,6 +750,382 @@ describe('formatUtils', () => {
           'unpkg.com',
         );
       });
+    });
+  });
+
+  describe('formatUTCDate', () => {
+    it('formats ISO date string in default locale (en-US)', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate);
+
+      // Then it should return formatted date in en-US format
+      expect(result).toMatch(/11\/11\/2025|11\.11\.2025|Nov 11, 2025/);
+    });
+
+    it('formats ISO date string with custom locale', () => {
+      // Given an ISO date string and French locale
+      const isoDate = '2025-11-11';
+      const locale = 'fr-FR';
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate, locale);
+
+      // Then it should return formatted date in French format
+      expect(result).toMatch(/11\/11\/2025|11\.11\.2025/);
+    });
+
+    it('formats ISO date string with custom options', () => {
+      // Given an ISO date string with custom formatting options
+      const isoDate = '2025-11-11';
+      const options: Intl.DateTimeFormatOptions = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      };
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate, 'en-US', options);
+
+      // Then it should return formatted date with long month name
+      expect(result).toBe('November 11, 2025');
+    });
+
+    it('handles dates at year boundaries correctly', () => {
+      // Given dates at year boundaries
+      const newYear = '2025-01-01';
+      const endYear = '2025-12-31';
+
+      // When formatting the dates
+      const newYearResult = formatUTCDate(newYear);
+      const endYearResult = formatUTCDate(endYear);
+
+      // Then they should be formatted correctly
+      expect(newYearResult).toMatch(/1\/1\/2025|1\.1\.2025|Jan 1, 2025/);
+      expect(endYearResult).toMatch(/12\/31\/2025|31\.12\.2025|Dec 31, 2025/);
+    });
+
+    it('prevents timezone shifts by using UTC', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate, 'en-US');
+
+      // Then it should always show November 11 regardless of local timezone
+      // The date should be interpreted as midnight UTC
+      expect(result).toMatch(/11/);
+    });
+
+    it('handles leap year dates correctly', () => {
+      // Given a leap year date
+      const leapYearDate = '2024-02-29';
+
+      // When formatting the date
+      const result = formatUTCDate(leapYearDate);
+
+      // Then it should format correctly
+      expect(result).toMatch(/29/);
+    });
+
+    it('uses default options when custom options are provided', () => {
+      // Given an ISO date string with partial custom options
+      const isoDate = '2025-11-11';
+      const options: Intl.DateTimeFormatOptions = {
+        month: 'short',
+      };
+
+      // When formatting the date
+      const result = formatUTCDate(isoDate, 'en-US', options);
+
+      // Then it should merge with default options (year, day, timeZone)
+      expect(result).toMatch(/Nov/);
+      expect(result).toMatch(/11/);
+      expect(result).toMatch(/2025/);
+    });
+
+    it('handles different locales correctly', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting with different locales
+      const enResult = formatUTCDate(isoDate, 'en-US');
+      const deResult = formatUTCDate(isoDate, 'de-DE');
+      const jaResult = formatUTCDate(isoDate, 'ja-JP');
+
+      // Then they should be formatted according to locale conventions
+      expect(enResult).toBeTruthy();
+      expect(deResult).toBeTruthy();
+      expect(jaResult).toBeTruthy();
+      // All should contain the date components
+      expect(enResult).toMatch(/11/);
+      expect(deResult).toMatch(/11/);
+      expect(jaResult).toMatch(/11/);
+    });
+  });
+
+  describe('formatRewardsMusdDepositPayloadDate', () => {
+    it('formats ISO date string for mUSD deposit with default locale', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should return formatted date with short month name
+      expect(result).toMatch(/Nov 11, 2025|11 Nov 2025/);
+    });
+
+    it('formats ISO date string for mUSD deposit with custom locale', () => {
+      // Given an ISO date string and French locale
+      const isoDate = '2025-11-11';
+      const locale = 'fr-FR';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate, locale);
+
+      // Then it should return formatted date in French format
+      expect(result).toMatch(/nov\.|nov/);
+      expect(result).toMatch(/11/);
+      expect(result).toMatch(/2025/);
+    });
+
+    it('formats date with correct format (year, short month, day)', () => {
+      // Given an ISO date string
+      const isoDate = '2025-12-25';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate, 'en-US');
+
+      // Then it should have year, short month, and day
+      expect(result).toMatch(/Dec/);
+      expect(result).toMatch(/25/);
+      expect(result).toMatch(/2025/);
+    });
+
+    it('handles dates at month boundaries', () => {
+      // Given dates at month boundaries
+      const firstOfMonth = '2025-01-01';
+      const lastOfMonth = '2025-01-31';
+
+      // When formatting the dates
+      const firstResult = formatRewardsMusdDepositPayloadDate(firstOfMonth);
+      const lastResult = formatRewardsMusdDepositPayloadDate(lastOfMonth);
+
+      // Then they should be formatted correctly
+      expect(firstResult).toMatch(/Jan/);
+      expect(firstResult).toMatch(/1/);
+      expect(lastResult).toMatch(/Jan/);
+      expect(lastResult).toMatch(/31/);
+    });
+
+    it('prevents timezone shifts by using UTC', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should always show the correct date regardless of local timezone
+      expect(result).toMatch(/Nov/);
+      expect(result).toMatch(/11/);
+    });
+
+    it('uses I18n.locale as default when no locale provided', () => {
+      // Given an ISO date string without locale
+      const isoDate = '2025-11-11';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should use the default locale from I18n
+      expect(result).toBeTruthy();
+      expect(result).toMatch(/11/);
+    });
+
+    it('returns null for undefined input', () => {
+      // Given undefined input
+      const isoDate = undefined;
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should return null
+      expect(result).toBeNull();
+    });
+
+    it('returns null for empty string', () => {
+      // Given an empty string
+      const isoDate = '';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(isoDate);
+
+      // Then it should return null
+      expect(result).toBeNull();
+    });
+
+    it('returns null for non-string input', () => {
+      // Given non-string inputs
+      const numberInput = 20251111 as unknown as string;
+      const objectInput = { date: '2025-11-11' } as unknown as string;
+      const arrayInput = ['2025', '11', '11'] as unknown as string;
+
+      // When formatting the dates
+      const numberResult = formatRewardsMusdDepositPayloadDate(numberInput);
+      const objectResult = formatRewardsMusdDepositPayloadDate(objectInput);
+      const arrayResult = formatRewardsMusdDepositPayloadDate(arrayInput);
+
+      // Then they should all return null
+      expect(numberResult).toBeNull();
+      expect(objectResult).toBeNull();
+      expect(arrayResult).toBeNull();
+    });
+
+    it('returns null for invalid date format - wrong separator', () => {
+      // Given date strings with wrong separators
+      const slashDate = '2025/11/11';
+      const dotDate = '2025.11.11';
+      const spaceDate = '2025 11 11';
+
+      // When formatting the dates
+      const slashResult = formatRewardsMusdDepositPayloadDate(slashDate);
+      const dotResult = formatRewardsMusdDepositPayloadDate(dotDate);
+      const spaceResult = formatRewardsMusdDepositPayloadDate(spaceDate);
+
+      // Then they should all return null
+      expect(slashResult).toBeNull();
+      expect(dotResult).toBeNull();
+      expect(spaceResult).toBeNull();
+    });
+
+    it('returns null for invalid date format - wrong length', () => {
+      // Given date strings with wrong length
+      const shortDate = '2025-11';
+      const longDate = '2025-11-11-12';
+      const noSeparators = '20251111';
+
+      // When formatting the dates
+      const shortResult = formatRewardsMusdDepositPayloadDate(shortDate);
+      const longResult = formatRewardsMusdDepositPayloadDate(longDate);
+      const noSeparatorsResult =
+        formatRewardsMusdDepositPayloadDate(noSeparators);
+
+      // Then they should all return null
+      expect(shortResult).toBeNull();
+      expect(longResult).toBeNull();
+      expect(noSeparatorsResult).toBeNull();
+    });
+
+    it('returns null for invalid date format - non-numeric characters', () => {
+      // Given date strings with non-numeric characters
+      const textDate = 'abcd-ef-gh';
+      const mixedDate = '2025-1a-11';
+      const lettersDate = 'YYYY-MM-DD';
+
+      // When formatting the dates
+      const textResult = formatRewardsMusdDepositPayloadDate(textDate);
+      const mixedResult = formatRewardsMusdDepositPayloadDate(mixedDate);
+      const lettersResult = formatRewardsMusdDepositPayloadDate(lettersDate);
+
+      // Then they should all return null
+      expect(textResult).toBeNull();
+      expect(mixedResult).toBeNull();
+      expect(lettersResult).toBeNull();
+    });
+
+    it('returns null for invalid date format - incomplete date parts', () => {
+      // Given date strings with incomplete parts
+      const oneDigitYear = '5-11-11';
+      const oneDigitMonth = '2025-1-11';
+      const oneDigitDay = '2025-11-1';
+      const twoDigitYear = '25-11-11';
+
+      // When formatting the dates
+      const oneDigitYearResult =
+        formatRewardsMusdDepositPayloadDate(oneDigitYear);
+      const oneDigitMonthResult =
+        formatRewardsMusdDepositPayloadDate(oneDigitMonth);
+      const oneDigitDayResult =
+        formatRewardsMusdDepositPayloadDate(oneDigitDay);
+      const twoDigitYearResult =
+        formatRewardsMusdDepositPayloadDate(twoDigitYear);
+
+      // Then they should all return null
+      expect(oneDigitYearResult).toBeNull();
+      expect(oneDigitMonthResult).toBeNull();
+      expect(oneDigitDayResult).toBeNull();
+      expect(twoDigitYearResult).toBeNull();
+    });
+
+    it('returns null for date with extra whitespace', () => {
+      // Given date strings with whitespace
+      const leadingSpace = ' 2025-11-11';
+      const trailingSpace = '2025-11-11 ';
+      const bothSpaces = ' 2025-11-11 ';
+
+      // When formatting the dates
+      const leadingResult = formatRewardsMusdDepositPayloadDate(leadingSpace);
+      const trailingResult = formatRewardsMusdDepositPayloadDate(trailingSpace);
+      const bothResult = formatRewardsMusdDepositPayloadDate(bothSpaces);
+
+      // Then they should all return null
+      expect(leadingResult).toBeNull();
+      expect(trailingResult).toBeNull();
+      expect(bothResult).toBeNull();
+    });
+
+    it('handles leap year dates correctly', () => {
+      // Given a leap year date
+      const leapYearDate = '2024-02-29';
+
+      // When formatting the date
+      const result = formatRewardsMusdDepositPayloadDate(leapYearDate);
+
+      // Then it should format correctly
+      expect(result).toBeTruthy();
+      expect(result).toMatch(/Feb/);
+      expect(result).toMatch(/29/);
+      expect(result).toMatch(/2024/);
+    });
+
+    it('handles dates at year boundaries correctly', () => {
+      // Given dates at year boundaries
+      const newYear = '2025-01-01';
+      const endYear = '2025-12-31';
+
+      // When formatting the dates
+      const newYearResult = formatRewardsMusdDepositPayloadDate(newYear);
+      const endYearResult = formatRewardsMusdDepositPayloadDate(endYear);
+
+      // Then they should be formatted correctly
+      expect(newYearResult).toBeTruthy();
+      expect(newYearResult).toMatch(/Jan/);
+      expect(newYearResult).toMatch(/1/);
+      expect(endYearResult).toBeTruthy();
+      expect(endYearResult).toMatch(/Dec/);
+      expect(endYearResult).toMatch(/31/);
+    });
+
+    it('handles different locales correctly', () => {
+      // Given an ISO date string
+      const isoDate = '2025-11-11';
+
+      // When formatting with different locales
+      const enResult = formatRewardsMusdDepositPayloadDate(isoDate, 'en-US');
+      const deResult = formatRewardsMusdDepositPayloadDate(isoDate, 'de-DE');
+      const jaResult = formatRewardsMusdDepositPayloadDate(isoDate, 'ja-JP');
+
+      // Then they should be formatted according to locale conventions
+      expect(enResult).toBeTruthy();
+      expect(deResult).toBeTruthy();
+      expect(jaResult).toBeTruthy();
+      // All should contain the date components
+      expect(enResult).toMatch(/11/);
+      expect(deResult).toMatch(/11/);
+      expect(jaResult).toMatch(/11/);
     });
   });
 });

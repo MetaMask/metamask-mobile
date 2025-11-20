@@ -1,8 +1,7 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Modal, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import {
   PerpsPositionsViewSelectorsIDs,
   PerpsTabViewSelectorsIDs,
@@ -15,36 +14,35 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
+import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import {
-  TouchablePerpsComponent,
-  useCoordinatedPress,
-} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
+import { useSelector } from 'react-redux';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
-  usePerpsPerformance,
 } from '../../hooks';
-import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PerpsEmptyState } from '../PerpsEmptyState';
+import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 
 interface PerpsTabViewProps {}
 
@@ -54,22 +52,29 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     useState(false);
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { track } = usePerpsEventTracking();
   const { account } = usePerpsLiveAccount();
-
-  const hasTrackedHomescreen = useRef(false);
-  const { startMeasure, endMeasure } = usePerpsPerformance();
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
   });
 
-  const orders = usePerpsLiveOrders({
+  // Track Perps tab load performance - measures time from tab mount to data ready
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsTabView,
+    conditions: [
+      !isInitialLoading,
+      !!positions,
+      account?.totalBalance !== undefined,
+    ],
+  });
+
+  const { orders } = usePerpsLiveOrders({
     hideTpSl: true, // Filter out TP/SL orders
     throttleMs: 1000, // Update orders every second
   });
-
-  const isEligible = useSelector(selectPerpsEligibility);
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
@@ -77,75 +82,58 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
-  // Start measuring position data load time on mount
-  useEffect(() => {
-    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
-  }, [startMeasure]);
-
-  // Track homescreen tab viewed - only once when positions and account are loaded
-  useEffect(() => {
-    if (
-      !hasTrackedHomescreen.current &&
-      !isInitialLoading &&
-      positions &&
-      account?.totalBalance !== undefined
-    ) {
-      // Track position data loaded performance
-      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
-
-      // Track homescreen tab viewed event with exact property names from requirements
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
-        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
-          [PerpsEventProperties.ASSET]: p.coin,
-          [PerpsEventProperties.LEVERAGE]: p.leverage.value,
-          [PerpsEventProperties.DIRECTION]:
-            parseFloat(p.size) > 0
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-        })),
-      });
-
-      hasTrackedHomescreen.current = true;
-    }
-  }, [isInitialLoading, positions, account?.totalBalance, track, endMeasure]);
+  // Track homescreen tab viewed - declarative (main's event name, privacy-compliant count)
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    conditions: [
+      !isInitialLoading,
+      !!positions,
+      account?.totalBalance !== undefined,
+    ],
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
+      [PerpsEventProperties.OPEN_POSITION]: positions?.length || 0,
+    },
+  });
 
   const handleManageBalancePress = useCallback(() => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.BALANCE_MODAL,
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PerpsEventValues.SOURCE.HOMESCREEN_TAB },
     });
-  }, [navigation, isEligible]);
+  }, [navigation]);
 
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {
       // Navigate to tutorial for first-time users
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-      });
+      navigation.navigate(Routes.PERPS.TUTORIAL);
     } else {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKETS,
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: PerpsEventValues.SOURCE.POSITION_TAB },
       });
     }
   }, [navigation, isFirstTimeUser]);
 
-  const coordinatedPress = useCoordinatedPress();
+  // Modal handlers - now using navigation to modal stack
+  const handleCloseAllPress = useCallback(() => {
+    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
+    });
+  }, [navigation]);
 
-  const memoizedPressHandler = useCallback(() => {
-    coordinatedPress(handleNewTrade);
-  }, [coordinatedPress, handleNewTrade]);
+  const handleCancelAllPress = useCallback(() => {
+    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+    });
+  }, [navigation]);
 
   const renderStartTradeCTA = () => (
-    <TouchablePerpsComponent
+    <TouchableOpacity
       style={styles.startTradeCTA}
-      onPress={memoizedPressHandler}
+      onPress={handleNewTrade}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
     >
       <View style={styles.startTradeContent}>
@@ -160,7 +148,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TouchablePerpsComponent>
+    </TouchableOpacity>
   );
 
   const renderOrdersSection = () => {
@@ -175,10 +163,19 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.order.open_orders')}
           </Text>
+          <TouchableOpacity onPress={handleCancelAllPress}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.home.cancel_all')}
+            </Text>
+          </TouchableOpacity>
         </View>
         <View>
           {orders.map((order) => (
-            <PerpsCard key={order.orderId} order={order} />
+            <PerpsCard
+              key={order.orderId}
+              order={order}
+              source={PerpsEventValues.SOURCE.POSITION_TAB}
+            />
           ))}
           {(!positions || positions.length === 0) && renderStartTradeCTA()}
         </View>
@@ -208,6 +205,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           >
             {strings('perps.position.title')}
           </Text>
+          <TouchableOpacity onPress={handleCloseAllPress}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.home.close_all')}
+            </Text>
+          </TouchableOpacity>
         </View>
         <View>
           {positions.map((position, index) => {
@@ -220,6 +222,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 <PerpsCard
                   key={`${position.coin}-${index}`}
                   position={position}
+                  source={PerpsEventValues.SOURCE.POSITION_TAB}
                 />
               </View>
             );
@@ -231,29 +234,39 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   };
 
   return (
-    <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
+    <SafeAreaView
+      style={[
+        styles.wrapper,
+        isHomepageRedesignV1Enabled && { flex: undefined },
+      ]}
+      edges={['left', 'right']}
+    >
       <>
         <PerpsTabControlBar
           onManageBalancePress={handleManageBalancePress}
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView style={styles.content}>
-          <View style={styles.contentContainer}>
-            {!isInitialLoading && hasNoPositionsOrOrders ? (
-              <PerpsEmptyState
-                onAction={handleNewTrade}
-                testID="perps-empty-state"
-                twClassName="mx-auto"
-              />
-            ) : (
-              <View style={styles.tradeInfoContainer}>
-                <View>{renderPositionsSection()}</View>
-                <View>{renderOrdersSection()}</View>
-              </View>
-            )}
-          </View>
-        </ScrollView>
+        <ConditionalScrollView
+          isScrollEnabled={!isHomepageRedesignV1Enabled}
+          scrollViewProps={{
+            style: styles.content,
+            testID: PerpsTabViewSelectorsIDs.SCROLL_VIEW,
+          }}
+        >
+          {!isInitialLoading && hasNoPositionsOrOrders ? (
+            <PerpsEmptyState
+              onAction={handleNewTrade}
+              testID="perps-empty-state"
+              twClassName="mx-auto"
+            />
+          ) : (
+            <View style={styles.tradeInfoContainer}>
+              <View>{renderPositionsSection()}</View>
+              <View>{renderOrdersSection()}</View>
+            </View>
+          )}
+        </ConditionalScrollView>
         {isEligibilityModalVisible && (
           // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
           <View>

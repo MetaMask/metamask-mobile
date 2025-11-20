@@ -16,15 +16,18 @@ const logger = {
   warn: (msg) => console.warn(`⚠️  ${msg}`),
 };
 
+const isFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
+
 /**
  * Get Android keystore configuration
+ * Currently supports 'flask' and 'main' build types
  */
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
   const keystorePath = process.env.ANDROID_KEYSTORE_PATH;
-  const keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
-  const keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
-  const keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  const keystorePassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+  const keyAlias = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+  const keyPassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
 
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
     logger.error(
@@ -48,12 +51,13 @@ function getKeystoreConfig() {
 
 /**
  * Repack Android APK
+ * Currently supports 'flask' and 'main' build types
  */
 async function repackAndroid() {
   const startTime = Date.now();
-  const sourceApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
-  const repackedApk = 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
-  const finalApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const sourceApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const repackedApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release-repack.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
+  const finalApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
   const sourcemapPath = 'sourcemaps/android/index.android.bundle.map';
   const workingDir = 'android/app/build/repack-working-main';
 
@@ -116,17 +120,17 @@ async function repackAndroid() {
  */
 function generateExpoPlistIfNeeded(appPath) {
   const expoPlistPath = path.join(appPath, 'Expo.plist');
-  
+
   if (fs.existsSync(expoPlistPath)) {
     logger.info('Expo.plist already exists, skipping generation');
     return;
   }
-  
+
   logger.warn('Expo.plist not found, generating it...');
-  
+
   const appConfig = require(path.join(process.cwd(), 'app.config.js'));
   const packageJson = require(path.join(process.cwd(), 'package.json'));
-  
+
   const manifestBody = JSON.stringify({
     name: appConfig.name || 'MetaMask',
     slug: 'metamask-mobile',
@@ -134,7 +138,7 @@ function generateExpoPlistIfNeeded(appPath) {
     ios: appConfig.ios || {},
     android: appConfig.android || {},
   });
-  
+
   const plistXml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -151,7 +155,7 @@ function generateExpoPlistIfNeeded(appPath) {
   <string>${manifestBody.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</string>
 </dict>
 </plist>`;
-  
+
   fs.writeFileSync(expoPlistPath, plistXml, 'utf8');
   logger.success(`Generated Expo.plist at: ${expoPlistPath}`);
 }
@@ -175,7 +179,7 @@ async function repackIos() {
     if (!fs.existsSync(sourceApp)) {
       throw new Error(`App not found: ${sourceApp}`);
     }
-    
+
     // Generate Expo.plist if it doesn't exist (fallback for builds that don't auto-generate it)
     generateExpoPlistIfNeeded(sourceApp);
 
@@ -229,7 +233,7 @@ async function repackIos() {
  */
 async function main() {
   const platform = (process.env.PLATFORM || '').toLowerCase();
-  
+
   logger.info(`🔧 Repack Platform: ${platform.toUpperCase()}`);
   logger.info(`📍 Working Directory: ${process.cwd()}`);
   logger.info(`🌍 Environment: ${process.env.CI ? 'CI' : 'Local'}`);

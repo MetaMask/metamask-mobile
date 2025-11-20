@@ -29,6 +29,7 @@ jest.mock('../PredictMarketMultiple', () => {
 
 const mockSingleOutcome: PredictOutcome = {
   id: 'test-outcome-1',
+  providerId: 'test-provider',
   marketId: 'test-market-1',
   title: 'Will Bitcoin reach $150,000 by end of year?',
   description: 'Bitcoin price prediction market',
@@ -54,6 +55,7 @@ const mockSingleOutcome: PredictOutcome = {
 
 const mockMultipleOutcome1: PredictOutcome = {
   id: 'test-outcome-2',
+  providerId: 'test-provider',
   marketId: 'test-market-2',
   title: 'Bitcoin prediction',
   description: 'Bitcoin price prediction',
@@ -71,6 +73,7 @@ const mockMultipleOutcome1: PredictOutcome = {
 
 const mockMultipleOutcome2: PredictOutcome = {
   id: 'test-outcome-3',
+  providerId: 'test-provider',
   marketId: 'test-market-2',
   title: 'Ethereum prediction',
   description: 'Ethereum price prediction',
@@ -95,8 +98,11 @@ const mockSingleMarket: PredictMarketType = {
   image: 'https://example.com/bitcoin.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [mockSingleOutcome],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const mockMultipleMarket: PredictMarketType = {
@@ -108,8 +114,11 @@ const mockMultipleMarket: PredictMarketType = {
   image: 'https://example.com/crypto.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  categories: ['crypto'],
+  category: 'crypto',
+  tags: [],
   outcomes: [mockMultipleOutcome1, mockMultipleOutcome2],
+  liquidity: 1000000,
+  volume: 1000000,
 };
 
 const initialState = {

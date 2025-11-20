@@ -11,7 +11,6 @@ import {
   ARBITRUM_TESTNET_CAIP_CHAIN_ID,
 } from '../constants/hyperLiquidConfig';
 
-// Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));

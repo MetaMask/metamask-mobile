@@ -71,15 +71,15 @@ exports[`MainActionButton should render correctly 1`] = `
       <SvgMock
         color="#686e7d"
         fill="currentColor"
-        height={20}
+        height={24}
         name="Add"
         style={
           {
-            "height": 20,
-            "width": 20,
+            "height": 24,
+            "width": 24,
           }
         }
-        width={20}
+        width={24}
       />
       <Text
         accessibilityRole="text"

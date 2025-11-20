@@ -14,6 +14,7 @@ import { ChainId, StatusTypes } from '@metamask/bridge-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
+import { cloneDeep } from 'lodash';
 
 // Mock dependencies
 jest.mock('../../../../core/Engine', () => ({
@@ -390,7 +391,7 @@ describe('decodeSwapsTx', () => {
         renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
         actionKey: 'Swap USDC to ETH',
         notificationKey: 'Swap complete (USDC to ETH)',
-        value: '-5.0 USDC',
+        value: '5 USDC',
         fiatValue: '$5.01',
         transactionType: 'swaps_transaction',
       },
@@ -398,12 +399,12 @@ describe('decodeSwapsTx', () => {
         renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
         renderTo: '0x881d40237659c251811cec9c364ef91dc08d300c',
         hash: '0xac561978ed01a8828e30c193c8368b0baec0f8c8c85c933c324c06352a16aeb6',
-        renderValue: '5.0 USDC',
+        renderValue: '5 USDC',
         renderGas: 264667,
         renderGasPrice: undefined,
         renderTotalGas: '0.00053 ETH',
         txChainId: '0x1',
-        summaryAmount: '5.0 USDC',
+        summaryAmount: '5 USDC',
         summaryFee: '0.00053 ETH',
         summaryTotalAmount: '5.00053 ETH',
         summarySecondaryTotalAmount: '$6.33',
@@ -637,7 +638,8 @@ describe('decodeBridgeTx', () => {
         renderTo: '0x0439e60f02a8900a951603950d8d4527f400c3f1',
         renderFrom: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
         actionKey: 'Bridge to Optimism',
-        value: '-0.00099125 ETH',
+        notificationKey: undefined,
+        value: '-0.00099 ETH',
         fiatValue: '$2.49',
         transactionType: 'bridge_transaction',
       },
@@ -728,7 +730,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     const tx = mockTx as any;
 
     // Act
-    handleUnifiedSwapsTxHistoryItemClick(navigation, tx);
+    handleUnifiedSwapsTxHistoryItemClick({ navigation, evmTxMeta: tx });
 
     // Assert
     expect(navigation.navigate).toHaveBeenCalledWith(
@@ -747,7 +749,11 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     };
 
     // Act
-    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+    handleUnifiedSwapsTxHistoryItemClick({
+      navigation,
+      evmTxMeta: tx,
+      bridgeTxHistoryItem,
+    });
 
     // Assert
     expect(
@@ -767,7 +773,11 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     };
 
     // Act
-    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+    handleUnifiedSwapsTxHistoryItemClick({
+      navigation,
+      evmTxMeta: tx,
+      bridgeTxHistoryItem,
+    });
 
     // Assert
     expect(
@@ -781,13 +791,21 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     // Arrange
     const navigation = mockNavigation as any;
     const tx = { ...mockTx, type: TransactionType.swap } as any;
-    const bridgeTxHistoryItem = {
-      ...mockBridgeTxHistoryItem,
-      attempts: { counter: MAX_ATTEMPTS, lastAttemptTime: Date.now() },
+
+    const bridgeTxHistoryItem = cloneDeep(mockBridgeTxHistoryItem);
+    bridgeTxHistoryItem.attempts = {
+      counter: MAX_ATTEMPTS,
+      lastAttemptTime: Date.now(),
     };
+    bridgeTxHistoryItem.quote.srcAsset.chainId = 10;
+    bridgeTxHistoryItem.quote.destAsset.chainId = 10;
 
     // Act
-    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+    handleUnifiedSwapsTxHistoryItemClick({
+      navigation,
+      evmTxMeta: tx,
+      bridgeTxHistoryItem,
+    });
 
     // Assert
     expect(
@@ -801,7 +819,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     const tx = { ...mockTx, type: TransactionType.bridge } as any;
 
     // Act
-    handleUnifiedSwapsTxHistoryItemClick(navigation, tx);
+    handleUnifiedSwapsTxHistoryItemClick({ navigation, evmTxMeta: tx });
 
     // Assert
     expect(
@@ -819,7 +837,11 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     };
 
     // Act
-    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+    handleUnifiedSwapsTxHistoryItemClick({
+      navigation,
+      evmTxMeta: tx,
+      bridgeTxHistoryItem,
+    });
 
     // Assert
     expect(
@@ -837,7 +859,11 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     };
 
     // Act
-    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+    handleUnifiedSwapsTxHistoryItemClick({
+      navigation,
+      evmTxMeta: tx,
+      bridgeTxHistoryItem,
+    });
 
     // Assert
     expect(
@@ -851,7 +877,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     const tx = { ...mockTx, type: TransactionType.swap } as any;
 
     // Act
-    handleUnifiedSwapsTxHistoryItemClick(navigation, tx);
+    handleUnifiedSwapsTxHistoryItemClick({ navigation, evmTxMeta: tx });
 
     // Assert
     expect(navigation.navigate).toHaveBeenCalledWith(

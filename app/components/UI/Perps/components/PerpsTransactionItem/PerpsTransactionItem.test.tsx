@@ -1,18 +1,58 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
-import PerpsTransactionItem from './PerpsTransactionItem';
+import { StyleSheet, Linking } from 'react-native';
+import PerpsTransactionItem, { FillType } from './PerpsTransactionItem';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
 } from '../../types/transactionHistory';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
+
+// Mock Redux selector
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+// Mock the multichain accounts selector
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
+
+// Mock TagBase component
+jest.mock('../../../../../component-library/base-components/TagBase', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    severity,
+  }: {
+    children: React.ReactNode;
+    severity: string;
+  }) => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID={`tag-base-${severity}`}>{children}</View>;
+  },
+  TagSeverity: {
+    Default: 'default',
+    Danger: 'danger',
+    Info: 'info',
+  },
+  TagShape: {
+    Pill: 'pill',
+  },
+}));
 
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => ({
   __esModule: true,
   default: ({ size, testID }: { size: number; testID?: string }) => {
     const { View } = jest.requireActual('react-native');
+
     return (
       <View
         testID={testID || 'perps-token-logo'}
@@ -20,6 +60,21 @@ jest.mock('../PerpsTokenLogo', () => ({
       />
     );
   },
+}));
+
+// Mock localization
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
+}));
+
+// Mock Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock usePerpsEventTracking
+jest.mock('../../hooks', () => ({
+  usePerpsEventTracking: jest.fn(),
 }));
 
 const mockColors = {
@@ -70,6 +125,11 @@ const mockStyles = StyleSheet.create({
   rightContent: {
     alignItems: 'flex-end',
   },
+  fillTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
 });
 
 const mockTransaction = {
@@ -93,18 +153,35 @@ const mockTransaction = {
     feeToken: 'USDC',
     action: 'Opened',
     dir: 'long',
+    fillType: FillType.Standard,
   },
 };
 
 describe('PerpsTransactionItem', () => {
   const mockOnPress = jest.fn();
   const mockRenderRightContent = jest.fn().mockReturnValue('Right Content');
+  const mockTrack = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock useSelector to return a function that returns the account
+    // Pattern: useSelector(selectSelectedInternalAccountByScope)(EVM_SCOPE)
+    const { useSelector } = jest.requireMock('react-redux');
+
+    // useSelector should return a function that, when called with scope, returns the account
+    useSelector.mockReturnValue(() => ({
+      address: '0x123',
+    }));
+
+    // Mock usePerpsEventTracking hook
+    const { usePerpsEventTracking } = jest.requireMock('../../hooks');
+    usePerpsEventTracking.mockReturnValue({
+      track: mockTrack,
+    });
   });
 
-  it('should render transaction item with correct content', () => {
+  it('renders transaction item with correct content', () => {
     const { getByText, getByTestId } = render(
       <PerpsTransactionItem
         item={mockTransaction}
@@ -322,5 +399,211 @@ describe('PerpsTransactionItem', () => {
     expect(
       getByTestId(PerpsTransactionSelectorsIDs.TRANSACTION_ITEM),
     ).toBeTruthy();
+  });
+
+  describe('Badge Display', () => {
+    it('should display take profit badge for TP fills', () => {
+      const tpTransaction = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          fillType: FillType.TakeProfit,
+        },
+      };
+
+      const { getByText, getByTestId } = render(
+        <PerpsTransactionItem
+          item={tpTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(getByText('perps.transactions.order.take_profit')).toBeTruthy();
+      expect(getByTestId('tag-base-default')).toBeTruthy();
+    });
+
+    it('should display stop loss badge for SL fills', () => {
+      const slTransaction = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          fillType: FillType.StopLoss,
+        },
+      };
+
+      const { getByText, getByTestId } = render(
+        <PerpsTransactionItem
+          item={slTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(getByText('perps.transactions.order.stop_loss')).toBeTruthy();
+      expect(getByTestId('tag-base-default')).toBeTruthy();
+    });
+
+    it('should display liquidation badge for liquidated fills', () => {
+      const liquidationTransaction = {
+        id: 'test-tx-liquidation',
+        type: 'trade' as const,
+        category: 'position_close' as const,
+        title: 'Closed ETH long',
+        subtitle: '1.5 ETH',
+        timestamp: 1640995200000,
+        asset: 'ETH',
+        fill: {
+          shortTitle: 'Closed long',
+          amount: '-$1000.00',
+          amountNumber: -1000,
+          isPositive: false,
+          size: '1.5',
+          entryPrice: '2000',
+          points: '0',
+          pnl: '-1000',
+          fee: '5.00',
+          feeToken: 'USDC',
+          action: 'Closed',
+          liquidation: {
+            liquidatedUser: '0x123',
+            markPx: '44900',
+            method: 'market',
+          },
+          fillType: FillType.Liquidation,
+        },
+      };
+
+      const { getByText, getByTestId } = render(
+        <PerpsTransactionItem
+          item={liquidationTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(getByText('perps.transactions.order.liquidated')).toBeTruthy();
+      expect(getByTestId('tag-base-danger')).toBeTruthy();
+    });
+
+    it('should display auto deleveraging badge for auto deleveraging fills', () => {
+      const adlTransaction = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          fillType: FillType.AutoDeleveraging,
+        },
+      };
+
+      const { getByText, getByTestId } = render(
+        <PerpsTransactionItem
+          item={adlTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(
+        getByText('perps.transactions.order.auto_deleveraging'),
+      ).toBeTruthy();
+      expect(getByTestId('tag-base-info')).toBeTruthy();
+    });
+
+    it('tracks event and opens support URL when ADL tag is pressed', () => {
+      const adlTransaction = {
+        ...mockTransaction,
+        asset: 'BTC',
+        timestamp: 1234567890000,
+        fill: {
+          ...mockTransaction.fill,
+          fillType: FillType.AutoDeleveraging,
+        },
+      };
+
+      const { getByText } = render(
+        <PerpsTransactionItem
+          item={adlTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      const adlTag = getByText('perps.transactions.order.auto_deleveraging');
+      fireEvent.press(adlTag);
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        PERPS_SUPPORT_ARTICLES_URLS.ADL_URL,
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TAP,
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
+          [PerpsEventProperties.TAB_NAME]:
+            PerpsEventValues.PERPS_HISTORY_TABS.TRADES,
+          [PerpsEventProperties.ACTION_TYPE]:
+            PerpsEventValues.ACTION_TYPE.ADL_LEARN_MORE,
+          [PerpsEventProperties.ASSET]: 'BTC',
+          [PerpsEventProperties.ORDER_TIMESTAMP]: 1234567890000,
+        },
+      );
+    });
+
+    it('should not display badge for regular fills', () => {
+      const regularTransaction = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          fillType: FillType.Standard,
+        },
+      };
+
+      const { queryByText, queryByTestId } = render(
+        <PerpsTransactionItem
+          item={regularTransaction}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(queryByText('perps.transactions.order.take_profit')).toBeFalsy();
+      expect(queryByText('perps.transactions.order.stop_loss')).toBeFalsy();
+      expect(queryByText('perps.transactions.order.liquidated')).toBeFalsy();
+      expect(queryByTestId(/tag-base/)).toBeFalsy();
+    });
+
+    it('should not display liquidation badge if liquidated user is different', () => {
+      const otherUserLiquidation = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          fillType: FillType.Liquidation,
+          liquidation: {
+            liquidatedUser: '0x456', // Different user
+            markPx: '44900',
+            method: 'market',
+          },
+        },
+      };
+
+      const { queryByText } = render(
+        <PerpsTransactionItem
+          item={otherUserLiquidation}
+          styles={mockStyles}
+          onPress={mockOnPress}
+          renderRightContent={mockRenderRightContent}
+        />,
+      );
+
+      expect(queryByText('perps.transactions.order.liquidated')).toBeFalsy();
+    });
   });
 });

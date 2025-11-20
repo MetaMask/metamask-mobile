@@ -77,7 +77,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
       support: true,
       chains: {
         '1': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
           isGaslessSwapEnabled: true,
@@ -85,55 +84,44 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
         '10': {
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '56': {
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
         },
         '137': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
         },
         '324': {
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '1329': {
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '8453': {
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '42161': {
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
         },
         '43114': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
         },
         '59144': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
         },
         '20000000000001': {
-          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
         },
         '1151111081099710': {
-          isUnifiedUIEnabled: true,
           refreshRate: 10000,
           topAssets: [
             'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
@@ -249,6 +237,13 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     },
   },
   {
+    enableMultichainAccountsState2: {
+      enabled: false,
+      featureVersion: '2',
+      minimumVersion: '7.53.0',
+    },
+  },
+  {
     mobileMinimumVersions: {
       androidMinimumAPIVersion: 0,
       appMinimumBuild: 0,
@@ -268,6 +263,21 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   },
   {
     walletFrameworkRpcFailoverEnabled: true,
+  },
+  {
+    predictTradingEnabled: {
+      enabled: false,
+      minimumVersion: '7.60.0',
+    },
+  },
+  {
+    additionalNetworksBlacklist: [], // Empty by default, can be overridden in tests
+  },
+  {
+    rampsUnifiedBuyV1: {
+      minimumVersion: '7.61.0',
+      active: false,
+    },
   },
 ];
 
@@ -328,36 +338,29 @@ export const createRemoteFeatureFlagsMock = (
 };
 
 /**
- * Sets up default remote feature flags mock on mockttp server
+ * Sets up default remote feature flags mock on mockttp server for both main and flask distributions
  * This will be called automatically and can be overridden by testSpecificMock
  */
 export const setupRemoteFeatureFlagsMock = async (
   mockServer: Mockttp,
   flagOverrides: Record<string, unknown> = {},
-  distribution: string = 'main',
 ): Promise<void> => {
-  const {
-    urlEndpoint: devUrl,
-    response,
-    responseCode,
-  } = createRemoteFeatureFlagsMock(flagOverrides, distribution);
-  const { urlEndpoint: prodUrl } = createRemoteFeatureFlagsMock(
-    flagOverrides,
-    distribution,
-    'prod',
+  const environments = ['dev', 'test', 'prod'] as const;
+  const distributions = ['main', 'flask'] as const;
+
+  const mockPromises = distributions.flatMap((distribution) =>
+    environments.map((environment) => {
+      const { urlEndpoint, response, responseCode } =
+        createRemoteFeatureFlagsMock(flagOverrides, distribution, environment);
+
+      return setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode,
+      });
+    }),
   );
 
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: devUrl,
-    response,
-    responseCode,
-  });
-
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: prodUrl,
-    response,
-    responseCode,
-  });
+  await Promise.all(mockPromises);
 };

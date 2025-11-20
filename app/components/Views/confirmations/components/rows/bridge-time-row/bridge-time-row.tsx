@@ -1,47 +1,67 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import InfoRow from '../../UI/info-row';
-import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import {
-  selectIsTransactionBridgeQuotesLoadingById,
-  selectTransactionBridgeQuotesById,
-} from '../../../../../../core/redux/slices/confirmationMetrics';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../../reducers';
-import Text from '../../../../../../component-library/components/Texts/Text';
-import { SkeletonRow } from '../skeleton-row';
+  useIsTransactionPayLoading,
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
+
+const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
 export function BridgeTimeRow() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
+  const isLoading = useIsTransactionPayLoading();
+  const { estimatedDuration } = useTransactionPayTotals() ?? {};
+  const quotes = useTransactionPayQuotes();
+  const { payToken } = useTransactionPayToken();
+  const { chainId } = useTransactionMetadataRequest() ?? {};
 
-  const isQuotesLoading = useSelector((state: RootState) =>
-    selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
-  );
-
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
-  );
-
-  const showEstimate = isQuotesLoading || Boolean(quotes?.length);
-
-  const estimatedTimeSeconds = quotes?.reduce(
-    (acc, quote) => acc + quote.estimatedProcessingTimeInSeconds,
-    0,
-  );
+  const showEstimate = isLoading || Boolean(quotes?.length);
 
   if (!showEstimate) {
     return null;
   }
 
-  if (isQuotesLoading) {
-    return <SkeletonRow testId="bridge-time-row-skeleton" />;
+  if (isLoading) {
+    return <InfoRowSkeleton testId="bridge-time-row-skeleton" />;
   }
 
+  const isSameChain = payToken?.chainId === chainId;
+  const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
+
   return (
-    <InfoRow label={strings('confirm.label.bridge_estimated_time')}>
-      <Text>
-        {estimatedTimeSeconds} {strings('unit.second')}
+    <InfoRow
+      label={strings('confirm.label.bridge_estimated_time')}
+      rowVariant={InfoRowVariant.Small}
+    >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        {formattedSeconds}
       </Text>
     </InfoRow>
   );
+}
+
+function formatSeconds(seconds: number, isSameChainPayment: boolean) {
+  if (isSameChainPayment) {
+    return `${SAME_CHAIN_DURATION_SECONDS} ${strings('unit.second')}`;
+  }
+
+  if (seconds <= 30) {
+    return `< 1 ${strings('unit.minute')}`;
+  }
+
+  if (seconds <= 60) {
+    return `1 ${strings('unit.minute')}`;
+  }
+
+  const minutes = Math.ceil(seconds / 60);
+
+  return `${minutes} ${strings('unit.minute')}`;
 }

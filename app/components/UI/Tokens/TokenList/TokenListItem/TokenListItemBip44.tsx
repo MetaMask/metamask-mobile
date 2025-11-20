@@ -15,29 +15,30 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
-
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
-import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
 import createStyles from '../../styles';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { FlashListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../Earn/selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
+import Tag from '../../../../../component-library/components/Tags/Tag';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
+import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
+
+import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
+
+export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -73,7 +74,6 @@ export const TokenListItemBip44 = React.memo(
     const { getEarnToken } = useEarnTokens();
 
     // Earn feature flags
-    const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
@@ -106,7 +106,6 @@ export const TokenListItemBip44 = React.memo(
         )}%`
       : undefined;
 
-    const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
     const earnToken = getEarnToken(asset as TokenI);
 
     const networkBadgeSource = useMemo(
@@ -131,33 +130,33 @@ export const TokenListItemBip44 = React.memo(
       });
     };
 
+    const isStakeable = useSelector((state: RootState) =>
+      selectIsStakeableToken(state, asset as TokenI),
+    );
+
     const renderEarnCta = useCallback(() => {
       if (!asset) {
         return null;
       }
-      const isCurrentAssetEth =
-        asset.isNative && asset.chainId?.startsWith('eip') && !asset.isStaked;
-      const shouldShowPooledStakingCta =
-        isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
+
+      const shouldShowStakeCta = isStakeable && !asset?.isStaked;
 
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
+      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [
-      asset,
-      earnToken,
-      isPooledStakingEnabled,
-      isStablecoinLendingEnabled,
-      isStakingSupportedChain,
-    ]);
+    }, [asset, earnToken, isStablecoinLendingEnabled, isStakeable]);
 
     if (!asset || !chainId) {
       return null;
     }
+
+    const label = asset.accountType
+      ? ACCOUNT_TYPE_LABELS[asset.accountType]
+      : undefined;
 
     return (
       <AssetElement
@@ -194,7 +193,7 @@ export const TokenListItemBip44 = React.memo(
             <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
-            {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
+            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
           <View style={styles.percentageChange}>
             {

@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { DepositRegion } from '@consensys/native-ramps-sdk';
 
 import Text, {
   TextVariant,
@@ -18,14 +19,20 @@ import Button, {
 
 import styleSheet from './UnsupportedRegionModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 
 import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
 import { useDepositSDK } from '../../../sdk';
-import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
+import { useRampNavigation } from '../../../../hooks/useRampNavigation';
 
+export interface UnsupportedRegionModalParams {
+  regions: DepositRegion[];
+}
 export const createUnsupportedRegionModalNavigationDetails =
   createNavigationDetails(
     Routes.DEPOSIT.MODALS.ID,
@@ -36,6 +43,8 @@ function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { selectedRegion } = useDepositSDK();
+  const { regions } = useParams<UnsupportedRegionModalParams>();
+  const { goToAggregator } = useRampNavigation();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -43,15 +52,19 @@ function UnsupportedRegionModal() {
     sheetRef.current?.onCloseBottomSheet(() => {
       // @ts-expect-error navigation prop mismatch
       navigation.dangerouslyGetParent()?.pop();
-      navigation.navigate(...createBuyNavigationDetails());
+      goToAggregator();
     });
-  }, [navigation]);
+  }, [navigation, goToAggregator]);
 
   const handleSelectDifferentRegion = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(...createRegionSelectorModalNavigationDetails());
+      navigation.navigate(
+        ...createRegionSelectorModalNavigationDetails({
+          regions,
+        }),
+      );
     });
-  }, [navigation]);
+  }, [navigation, regions]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {

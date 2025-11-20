@@ -1,27 +1,21 @@
 /* eslint-disable */
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import React, { PureComponent } from 'react';
 import {
-  StyleSheet,
   View,
   TextInput,
   SafeAreaView,
   Linking,
+  KeyboardAvoidingView,
 } from 'react-native';
-import { connect } from 'react-redux';
-import { typography } from '@metamask/design-tokens';
 import isUrl from 'is-url';
-import {
-  fontStyles,
-  colors as staticColors,
-} from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import Networks, {
   isPrivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
-  isPortfolioViewEnabled,
   isValidNetworkName,
   getDecimalChainId,
   isWhitelistedSymbol,
@@ -46,7 +40,6 @@ import sanitizeUrl, {
 } from '../../../../../util/sanitizeUrl';
 import onlyKeepHost from '../../../../../util/onlyKeepHost';
 import { themeAppearanceLight } from '../../../../../constants/storage';
-import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import Button, {
   ButtonVariants,
@@ -88,10 +81,8 @@ import ButtonPrimary from '../../../../../component-library/components/Buttons/B
 import { RpcEndpointType } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
 import ReusableModal from '../../../../../components/UI/ReusableModal';
-import Device from '../../../../../util/device';
 import { ScrollView } from 'react-native-gesture-handler';
 import Text, {
-  getFontFamily,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT } from '../../../../../component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
@@ -106,303 +97,11 @@ import {
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { NETWORK_TO_NAME_MAP } from '../../../../../core/Engine/constants';
+import { createStyles } from './index.styles';
 
 const formatNetworkRpcUrl = (rpcUrl) => {
   return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
 };
-
-const createStyles = (colors) =>
-  StyleSheet.create({
-    baseAll: {
-      padding: 16,
-    },
-    addRpcButton: {
-      position: 'absolute',
-      alignSelf: 'center',
-    },
-    screen: {
-      flex: 1,
-      paddingHorizontal: 24,
-      paddingVertical: 16,
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      backgroundColor: colors.background.default,
-    },
-    container: {
-      flex: 1,
-    },
-    headerText: {
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    scrollViewContent: {
-      paddingBottom: 16,
-    },
-    scrollableBox: {
-      height: 164,
-      marginVertical: 10,
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignSelf: 'center',
-      bottom: 64,
-    },
-    footer: {
-      height: 60,
-      justifyContent: 'center',
-      alignItems: 'center',
-      position: 'absolute',
-      bottom: 16,
-      left: 0,
-      right: 0,
-      zIndex: 10, // Ensures it stays on top of other components
-    },
-    content: {
-      justifyContent: 'center',
-      paddingHorizontal: 16,
-      flexGrow: 1,
-    },
-    addRpcNameButton: {
-      paddingTop: 32,
-      alignSelf: 'center',
-    },
-    sheet: {
-      flexDirection: 'column',
-      bottom: 0,
-      top: Device.getDeviceHeight() * 0.5,
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      height: Device.getDeviceHeight() * 0.5,
-    },
-    sheetSmall: {
-      position: 'absolute',
-      bottom: 0,
-      top: Device.getDeviceHeight() * 0.7,
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      height: Device.getDeviceHeight() * 0.3,
-    },
-    sheetRpcForm: {
-      position: 'absolute',
-      bottom: 0,
-      top: Device.getDeviceHeight() * 0.3,
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-    },
-    notch: {
-      width: 48,
-      height: 5,
-      borderRadius: 4,
-      backgroundColor: colors.border.default,
-      marginTop: 4,
-      alignSelf: 'center',
-    },
-    rpcMenu: {
-      paddingHorizontal: 16,
-      flex: 1,
-    },
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flexGrow: 1,
-      flexDirection: 'column',
-    },
-    informationWrapper: {
-      flex: 1,
-      paddingHorizontal: 16,
-    },
-    informationCustomWrapper: {},
-    scrollWrapper: {
-      flex: 1,
-      paddingVertical: 12,
-    },
-    scrollWrapperOverlay: {
-      flex: 1,
-      paddingVertical: 12,
-      opacity: 0.5,
-    },
-    onboardingInput: {
-      borderColor: staticColors.transparent,
-      padding: 0,
-    },
-    inputDisabled: {
-      borderColor: colors.border.muted,
-      color: colors.text.muted,
-    },
-    input: {
-      ...fontStyles.normal,
-      borderColor: colors.border.default,
-      borderRadius: 5,
-      borderWidth: 2,
-      padding: 10,
-      color: colors.text.default,
-    },
-    dropDownInput: {
-      borderColor: colors.border.default,
-      borderRadius: 5,
-      borderWidth: 2,
-    },
-    inputWithError: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-      borderColor: colors.error.default,
-      borderRadius: 5,
-      borderWidth: 1,
-      paddingTop: 2,
-      paddingBottom: 12,
-      paddingHorizontal: 12,
-      color: colors.text.default,
-    },
-    inputWithFocus: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-      borderColor: colors.primary.default,
-      borderRadius: 5,
-      borderWidth: 2,
-      paddingTop: 2,
-      paddingBottom: 12,
-      paddingHorizontal: 12,
-      color: colors.text.default,
-    },
-    warningText: {
-      ...fontStyles.normal,
-      color: colors.error.default,
-      marginTop: 4,
-      paddingLeft: 2,
-      paddingRight: 4,
-    },
-    warningContainer: {
-      marginTop: 16,
-      flexGrow: 1,
-      flexShrink: 1,
-    },
-    newWarningContainer: {
-      flexGrow: 1,
-      flexShrink: 1,
-    },
-    heading: {
-      fontSize: 16,
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-    label: {
-      fontSize: 14,
-      paddingVertical: 12,
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-    link: {
-      color: colors.primary.default,
-    },
-    title: {
-      fontSize: 20,
-      paddingVertical: 12,
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-    desc: {
-      fontSize: 14,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    messageWarning: {
-      paddingVertical: 2,
-      fontSize: 14,
-      color: colors.warning.default,
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-    },
-    suggestionButton: {
-      color: colors.text.default,
-      paddingLeft: 2,
-      paddingRight: 4,
-      marginTop: 4,
-    },
-    inlineWarning: {
-      paddingVertical: 2,
-      fontSize: 14,
-      color: colors.text.default,
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-    },
-    inlineWarningMessage: {
-      paddingVertical: 2,
-      color: colors.warning.default,
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-    },
-    buttonsWrapper: {
-      marginVertical: 12,
-      flexDirection: 'row',
-      alignSelf: 'flex-end',
-    },
-    buttonsContainer: {
-      flex: 1,
-      flexDirection: 'column',
-      alignSelf: 'flex-end',
-    },
-    editableButtonsContainer: {
-      flex: 1,
-      flexDirection: 'row',
-    },
-    networksWrapper: {
-      marginTop: 12,
-    },
-    popularNetwork: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginVertical: 12,
-    },
-    tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.primary.default,
-    },
-    tabStyle: {
-      paddingVertical: 8,
-    },
-    textStyle: {
-      ...fontStyles.bold,
-      fontSize: 14,
-    },
-    popularNetworkImage: {
-      width: 20,
-      height: 20,
-      marginRight: 10,
-      borderRadius: 10,
-    },
-    popularWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    icon: {
-      marginRight: moderateScale(12, 1.5),
-      marginTop: 4,
-    },
-    button: {
-      flex: 1,
-    },
-    disabledButton: {
-      backgroundColor: colors.primary.muted,
-    },
-    cancel: {
-      marginRight: 16,
-    },
-    blueText: {
-      color: colors.primary.default,
-      marginTop: 1,
-    },
-    bottomSection: {
-      flex: 1,
-      flexDirection: 'column',
-    },
-    rpcTitleWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-  });
 
 const allNetworks = getAllNetworks();
 
@@ -897,8 +596,8 @@ export class NetworkSettings extends PureComponent {
     isCustomMainnet
       ? navigation.navigate('OptinMetrics')
       : shouldNetworkSwitchPopToWallet
-      ? navigation.navigate('WalletView')
-      : navigation.goBack();
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
   };
 
   /**
@@ -971,18 +670,16 @@ export class NetworkSettings extends PureComponent {
     }
 
     // Set tokenNetworkFilter
-    if (isPortfolioViewEnabled()) {
-      const { PreferencesController } = Engine.context;
-      if (!isAllNetworks) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      } else {
-        PreferencesController.setTokenNetworkFilter({
-          ...tokenNetworkFilter,
-          [chainId]: true,
-        });
-      }
+    const { PreferencesController } = Engine.context;
+    if (!isAllNetworks) {
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+    } else {
+      PreferencesController.setTokenNetworkFilter({
+        ...tokenNetworkFilter,
+        [chainId]: true,
+      });
     }
 
     if (isRemoveGlobalNetworkSelectorEnabled()) {
@@ -1182,6 +879,9 @@ export class NetworkSettings extends PureComponent {
    */
   validateSymbol = (chainToMatch = null) => {
     const { ticker, networkList, chainId } = this.state;
+    const { networkConfigurations } = this.props;
+    const networkConfiguration = networkConfigurations[chainId];
+    const networkConfigurationSymbol = networkConfiguration?.nativeCurrency;
 
     if (isWhitelistedSymbol(chainId, ticker)) {
       return this.setState({
@@ -1196,9 +896,11 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    const symbol = chainToMatch
-      ? chainToMatch?.nativeCurrency?.symbol ?? null
-      : networkList?.nativeCurrency?.symbol ?? null;
+    const symbol = networkConfigurationSymbol
+      ? networkConfigurationSymbol
+      : chainToMatch
+        ? (chainToMatch?.nativeCurrency?.symbol ?? null)
+        : (networkList?.nativeCurrency?.symbol ?? null);
 
     const symbolToUse =
       symbol?.toLowerCase() === ticker?.toLowerCase() ? undefined : symbol;
@@ -1477,9 +1179,11 @@ export class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
-  onTickerChange = async (ticker) => {
-    await this.setState({ ticker, validatedSymbol: false });
-    this.getCurrentState();
+  onTickerChange = (ticker) => {
+    this.setState({ ticker, validatedSymbol: false }, () => {
+      this.getCurrentState();
+      this.validateSymbol();
+    });
   };
 
   // this function will autofill the symbol field with the value in parameter
@@ -2194,22 +1898,24 @@ export class NetworkSettings extends PureComponent {
             shouldGoBack={false}
           >
             <View style={styles.notch} />
-            <BottomSheetHeader
-              onBack={() => {
-                this.closeAddRpcForm();
-                this.openRpcModal();
-              }}
-              style={styles.baseAll}
-            >
-              <Text style={styles.heading}>
+            <View style={styles.container}>
+              {/* Sticky Header */}
+              <BottomSheetHeader
+                onBack={() => {
+                  this.closeAddRpcForm();
+                  this.openRpcModal();
+                }}
+                style={styles.baseAll}
+              >
                 {strings('app_settings.add_rpc_url')}
-              </Text>
-            </BottomSheetHeader>
-            <KeyboardAwareScrollView
-              enableOnAndroid
-              keyboardShouldPersistTaps="handled"
-            >
-              <SafeAreaView style={styles.rpcMenu}>
+              </BottomSheetHeader>
+              {/* Keyboard Aware Scrollable Middle Content */}
+              <KeyboardAwareScrollView
+                enableOnAndroid
+                keyboardShouldPersistTaps="handled"
+                extraScrollHeight={80}
+              >
+                {/* URL Input */}
                 <Text style={styles.label}>
                   {strings('app_settings.network_rpc_url_label')}
                 </Text>
@@ -2232,6 +1938,7 @@ export class NetworkSettings extends PureComponent {
                     <Text style={styles.warningText}>{warningRpcUrl}</Text>
                   </View>
                 )}
+                {/* RPC Name Input */}
                 <Text style={styles.label}>
                   {strings('app_settings.network_rpc_name_label')}
                 </Text>
@@ -2248,7 +1955,8 @@ export class NetworkSettings extends PureComponent {
                   testID={NetworksViewSelectorsIDs.RPC_NAME_INPUT}
                   keyboardAppearance={themeAppearance}
                 />
-                <View style={styles.addRpcNameButton}>
+                {/* Add RPC Button */}
+                <View style={styles.scrollableBox}>
                   <ButtonPrimary
                     label={strings('app_settings.add_rpc_url')}
                     size={ButtonSize.Lg}
@@ -2256,13 +1964,13 @@ export class NetworkSettings extends PureComponent {
                       this.onRpcItemAdd(rpcUrlForm, rpcNameForm);
                     }}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                     isDisabled={!!warningRpcUrl}
                     testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                   />
                 </View>
-              </SafeAreaView>
-            </KeyboardAwareScrollView>
+              </KeyboardAwareScrollView>
+            </View>
           </ReusableModal>
         ) : null}
         {isNetworkUiRedesignEnabled() && showAddBlockExplorerForm.isVisible ? (
@@ -2279,9 +1987,7 @@ export class NetworkSettings extends PureComponent {
               }}
               style={styles.baseAll}
             >
-              <Text style={styles.heading}>
-                {strings('app_settings.add_block_explorer_url')}
-              </Text>
+              {strings('app_settings.add_block_explorer_url')}
             </BottomSheetHeader>
             <KeyboardAwareScrollView
               enableOnAndroid
@@ -2325,7 +2031,7 @@ export class NetworkSettings extends PureComponent {
                       this.onBlockExplorerItemAdd(blockExplorerUrlForm);
                     }}
                     width={ButtonWidthTypes.Full}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                     isDisabled={
                       !blockExplorerUrl ||
                       !blockExplorerUrlForm ||
@@ -2354,9 +2060,7 @@ export class NetworkSettings extends PureComponent {
             <View style={styles.container}>
               {/* Sticky Header */}
               <BottomSheetHeader>
-                <Text style={styles.heading}>
-                  {strings('app_settings.add_block_explorer_url')}
-                </Text>
+                {strings('app_settings.add_block_explorer_url')}
               </BottomSheetHeader>
 
               {/* Scrollable Middle Content */}
@@ -2401,7 +2105,7 @@ export class NetworkSettings extends PureComponent {
                     }}
                     testID={NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                   />
                 </View>
               </ScrollView>
@@ -2421,9 +2125,7 @@ export class NetworkSettings extends PureComponent {
             <View style={styles.container}>
               {/* Sticky Header */}
               <BottomSheetHeader>
-                <Text style={styles.heading}>
-                  {strings('app_settings.add_rpc_url')}
-                </Text>
+                {strings('app_settings.add_rpc_url')}
               </BottomSheetHeader>
 
               {/* Scrollable Middle Content */}
@@ -2509,7 +2211,7 @@ export class NetworkSettings extends PureComponent {
                       this.closeRpcModal();
                     }}
                     width={ButtonWidthTypes.Auto}
-                    labelTextVariant={TextVariant.DisplayMD}
+                    labelTextVariant={TextVariant.BodyMD}
                     testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                   />
                 </View>

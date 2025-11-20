@@ -217,11 +217,6 @@ const createMockStateWithAccount = (accountType = EthAccountType.Eoa) => ({
 
 jest.unmock('react-native/Libraries/Interaction/InteractionManager');
 
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
   getBuildNumber: jest.fn().mockReturnValue(1),
@@ -282,6 +277,13 @@ jest.mock('../../../selectors/earnController', () => ({
     }),
   },
 }));
+
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
 
 describe('Asset', () => {
   it('should render correctly', () => {

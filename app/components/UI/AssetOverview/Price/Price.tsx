@@ -19,10 +19,6 @@ import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { CaipAssetType } from '@metamask/utils';
-import { AssetConversion } from '@metamask/snaps-sdk';
-///: END:ONLY_INCLUDE_IF
 
 interface PriceProps {
   asset: TokenI;
@@ -33,10 +29,6 @@ interface PriceProps {
   comparePrice: number;
   isLoading: boolean;
   timePeriod: TimePeriod;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainAssetsRates: Record<CaipAssetType, AssetConversion>;
-  ///: END:ONLY_INCLUDE_IF
-  isEvmAssetSelected: boolean;
 }
 
 const Price = ({
@@ -48,21 +40,7 @@ const Price = ({
   comparePrice,
   isLoading,
   timePeriod,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainAssetsRates,
-  ///: END:ONLY_INCLUDE_IF
-  isEvmAssetSelected,
 }: PriceProps) => {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const assetAddress = asset.address;
-  const isCaipAssetType = assetAddress.startsWith(`${asset.chainId}`);
-  const normalizedCaipAssetTypeAddress = isCaipAssetType
-    ? assetAddress
-    : `${asset.chainId}/token:${asset.address}`;
-  const multichainAssetRates =
-    multichainAssetsRates[normalizedCaipAssetTypeAddress as CaipAssetType];
-  ///: END:ONLY_INCLUDE_IF
-
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
   const distributedPriceData = useMemo(() => {
@@ -91,9 +69,7 @@ const Price = ({
     activeChartIndex >= 0 &&
     distributedPriceData[activeChartIndex]?.[1] !== undefined
       ? distributedPriceData[activeChartIndex][1]
-      : isEvmAssetSelected
-      ? currentPrice
-      : Number(multichainAssetRates?.rate);
+      : currentPrice;
 
   const date: string | undefined =
     activeChartIndex >= 0 &&
@@ -167,8 +143,8 @@ const Price = ({
                     diff > 0
                       ? 'trending-up'
                       : diff < 0
-                      ? 'trending-down'
-                      : 'minus'
+                        ? 'trending-down'
+                        : 'minus'
                   }
                   size={16}
                   style={styles.priceDiffIcon}

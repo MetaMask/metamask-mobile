@@ -1,11 +1,21 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { handleRewardsErrorMessage } from '../utils';
-import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import {
+  selectSelectedAccountGroup,
+  selectAccountGroupsByWallet,
+  selectWalletByAccount,
+  selectSelectedAccountGroupInternalAccounts,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import Engine from '../../../../core/Engine';
+import { useLinkAccountGroup } from './useLinkAccountGroup';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { AccountGroupId } from '@metamask/account-api';
 
 export interface UseOptinResult {
   /**
@@ -34,11 +44,40 @@ export interface UseOptinResult {
 }
 
 export const useOptin = (): UseOptinResult => {
-  const account = useSelector(selectSelectedInternalAccount);
+  const accountGroup = useSelector(selectSelectedAccountGroup);
   const [optinError, setOptinError] = useState<string | null>(null);
   const dispatch = useDispatch();
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { linkAccountGroup } = useLinkAccountGroup(false);
+  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const walletsMap = useSelector(selectWalletByAccount);
+  const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
+  const currentAccountWalletId = useMemo(
+    () => (activeAccount ? walletsMap(activeAccount.id)?.id : null),
+    [activeAccount, walletsMap],
+  );
+  const sideEffectAccountGroupIdToLink = useMemo(
+    () =>
+      accountGroupsByWallet?.find(
+        (accGroup) => accGroup.wallet.id === currentAccountWalletId,
+      )?.data?.[0]?.id,
+    [accountGroupsByWallet, currentAccountWalletId],
+  );
+  const activeGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
+  );
+  const selectInternalAccountsByGroupIdSelector = useSelector(
+    selectInternalAccountsByGroupId,
+  );
+  const sideEffectAccounts = useMemo(() => {
+    if (!sideEffectAccountGroupIdToLink) {
+      return [];
+    }
+    return selectInternalAccountsByGroupIdSelector(
+      sideEffectAccountGroupIdToLink,
+    );
+  }, [sideEffectAccountGroupIdToLink, selectInternalAccountsByGroupIdSelector]);
 
   const handleOptin = useCallback(
     async ({
@@ -48,9 +87,10 @@ export const useOptin = (): UseOptinResult => {
       referralCode?: string;
       isPrefilled?: boolean;
     }) => {
-      if (!account) {
+      if (!accountGroup?.id) {
         return;
       }
+      const selectedAccountGroupId = accountGroup.id;
       const referred = Boolean(referralCode);
       const metricsProps = {
         referred,
@@ -63,24 +103,53 @@ export const useOptin = (): UseOptinResult => {
           .build(),
       );
 
+      let subscriptionId: string | null = null;
+
       try {
         setOptinLoading(true);
         setOptinError(null);
 
-        const subscriptionId = await Engine.controllerMessenger.call(
+        const accountsToOptIn =
+          sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
+            ? sideEffectAccounts
+            : activeGroupAccounts;
+
+        const accountGroupToLinkAfterOptIn =
+          sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
+            ? selectedAccountGroupId
+            : sideEffectAccountGroupIdToLink;
+
+        subscriptionId = await Engine.controllerMessenger.call(
           'RewardsController:optIn',
-          account,
+          accountsToOptIn as InternalAccount[],
           referralCode || undefined,
         );
+
         if (subscriptionId) {
-          dispatch(setCandidateSubscriptionId(subscriptionId));
+          if (accountGroupToLinkAfterOptIn) {
+            try {
+              await linkAccountGroup(
+                accountGroupToLinkAfterOptIn as AccountGroupId,
+              );
+            } catch {
+              // Failed to link first account group in same wallet.
+            }
+          }
           addTraitsToUser({
             [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
+            ...(referralCode && {
+              [UserProfileProperty.REWARDS_REFERRED]: true,
+              [UserProfileProperty.REWARDS_REFERRAL_CODE_USED]: referralCode,
+            }),
           });
           trackEvent(
             createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_COMPLETED)
               .addProperties(metricsProps)
               .build(),
+          );
+        } else {
+          throw new Error(
+            'Failed to opt in any account from the account group',
           );
         }
       } catch (error) {
@@ -91,11 +160,25 @@ export const useOptin = (): UseOptinResult => {
         );
         const errorMessage = handleRewardsErrorMessage(error);
         setOptinError(errorMessage);
-      } finally {
-        setOptinLoading(false);
       }
+
+      if (subscriptionId) {
+        dispatch(setCandidateSubscriptionId(subscriptionId));
+      }
+
+      setOptinLoading(false);
     },
-    [account, createEventBuilder, dispatch, trackEvent, addTraitsToUser],
+    [
+      accountGroup?.id,
+      trackEvent,
+      createEventBuilder,
+      sideEffectAccountGroupIdToLink,
+      sideEffectAccounts,
+      activeGroupAccounts,
+      addTraitsToUser,
+      linkAccountGroup,
+      dispatch,
+    ],
   );
 
   const clearOptinError = useCallback(() => setOptinError(null), []);

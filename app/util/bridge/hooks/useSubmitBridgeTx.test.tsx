@@ -8,8 +8,7 @@ import {
   DummyQuotesNoApproval,
   DummyQuotesWithApproval,
 } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
-import { QuoteResponse } from '../../../components/UI/Bridge/types';
-import { QuoteMetadata } from '@metamask/bridge-controller';
+import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';

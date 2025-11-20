@@ -1,1 +1,0 @@
-export { createTokenSearchDiscoveryController } from './utils';

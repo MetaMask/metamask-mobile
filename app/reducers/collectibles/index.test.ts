@@ -3,7 +3,6 @@ import { KnownCaipNamespace } from '@metamask/utils';
 import reducer, {
   ADD_FAVORITE_COLLECTIBLE,
   REMOVE_FAVORITE_COLLECTIBLE,
-  multichainCollectibleContractsByEnabledNetworksSelector,
   multichainCollectiblesByEnabledNetworksSelector,
 } from './index';
 import mockedEngine from '../../core/__mocks__/MockedEngine';
@@ -183,12 +182,6 @@ describe('collectibles selectors', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890';
   const mockAddress2 = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
-  const mockNftContracts = {
-    name: 'Contract 1',
-    address: '0xContractA',
-    symbol: 'C1',
-  };
-
   const mockNfts = [
     {
       tokenId: '1',
@@ -243,151 +236,7 @@ describe('collectibles selectors', () => {
           },
         },
       },
-    } as unknown as RootState);
-
-  describe('multichainCollectibleContractsByEnabledNetworksSelector', () => {
-    it('should return contracts only for enabled networks', () => {
-      const allNftContracts = {
-        [mockAddress]: {
-          '0x1': [mockNftContracts],
-          '0x89': [{ ...mockNftContracts, name: 'Contract 2' }],
-          '0xa86a': [{ ...mockNftContracts, name: 'Contract 3' }],
-        },
-      };
-
-      const state = createMockState(allNftContracts, {}, mockAddress, {
-        [KnownCaipNamespace.Eip155]: {
-          '0x1': true,
-          '0x89': false,
-          '0xa86a': true,
-        },
-      });
-
-      const result =
-        multichainCollectibleContractsByEnabledNetworksSelector(state);
-
-      // Only enabled networks are included in the result
-      expect(result).toEqual({
-        '0x1': [mockNftContracts],
-        '0xa86a': [{ ...mockNftContracts, name: 'Contract 3' }],
-      });
-      // Disabled network is not included
-      expect((result as Record<string, unknown>)['0x89']).toBeUndefined();
-    });
-
-    it('should return empty object when no contracts exist for address', () => {
-      const state = createMockState(
-        {}, // No contracts
-        {},
-        mockAddress,
-        {
-          [KnownCaipNamespace.Eip155]: {
-            '0x1': true,
-            '0x89': true,
-          },
-        },
-      );
-
-      const result =
-        multichainCollectibleContractsByEnabledNetworksSelector(state);
-      expect(result).toEqual({});
-    });
-
-    it('should return empty object when no networks are enabled', () => {
-      const allNftContracts = {
-        [mockAddress]: {
-          '0x1': [mockNftContracts],
-          '0x89': [mockNftContracts],
-        },
-      };
-
-      const state = createMockState(allNftContracts, {}, mockAddress, {
-        [KnownCaipNamespace.Eip155]: {
-          '0x1': false,
-          '0x89': false,
-        },
-      });
-
-      const result =
-        multichainCollectibleContractsByEnabledNetworksSelector(state);
-      expect(result).toEqual({});
-    });
-
-    it('should handle missing chains in contracts data', () => {
-      const allNftContracts = {
-        [mockAddress]: {
-          '0x1': [mockNftContracts],
-          // '0x89' not present in contracts
-        },
-      };
-
-      const state = createMockState(allNftContracts, {}, mockAddress, {
-        [KnownCaipNamespace.Eip155]: {
-          '0x1': true,
-          '0x89': true, // Enabled but no contracts
-          '0xa86a': true,
-        },
-      });
-
-      const result =
-        multichainCollectibleContractsByEnabledNetworksSelector(state);
-
-      expect(result).toEqual({
-        '0x1': [mockNftContracts],
-        '0x89': [], // Empty array for enabled but missing chain
-        '0xa86a': [],
-      });
-    });
-
-    it('should handle missing EIP155 namespace in enabled networks', () => {
-      const allNftContracts = {
-        [mockAddress]: {
-          '0x1': [mockNftContracts],
-        },
-      };
-
-      const state = createMockState(allNftContracts, {}, mockAddress, {
-        // No EIP155 namespace
-        [KnownCaipNamespace.Solana]: {
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
-        },
-      });
-
-      // The selector should return empty object when EIP155 namespace is missing
-      const result =
-        multichainCollectibleContractsByEnabledNetworksSelector(state);
-      expect(result).toEqual({});
-    });
-
-    it('should handle different addresses correctly', () => {
-      const allNftContracts = {
-        [mockAddress]: {
-          '0x1': [mockNftContracts],
-        },
-        [mockAddress2]: {
-          '0x1': [{ ...mockNftContracts, name: 'Different Contract' }],
-        },
-      };
-
-      const state = createMockState(
-        allNftContracts,
-        {},
-        mockAddress2, // Selected different address
-        {
-          [KnownCaipNamespace.Eip155]: {
-            '0x1': true,
-          },
-        },
-      );
-
-      const result =
-        multichainCollectibleContractsByEnabledNetworksSelector(state);
-
-      expect(result).toEqual({
-        '0x1': [{ ...mockNftContracts, name: 'Different Contract' }],
-      });
-    });
-  });
+    }) as unknown as RootState;
 
   describe('multichainCollectiblesByEnabledNetworksSelector', () => {
     it('should return NFTs only for enabled networks', () => {

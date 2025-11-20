@@ -6,6 +6,13 @@ import {
 } from '@metamask/transaction-controller';
 import { uniq } from 'lodash';
 import { Hex } from '@metamask/utils';
+import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+
+export const PAY_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
 
 /**
  * Determines if the transaction is from or to the current wallet
@@ -83,45 +90,16 @@ export const filterByAddressAndNetwork = (
   tokens: any[],
   selectedAddress: string,
   tokenNetworkFilter: { [key: string]: boolean },
-  allTransactions?: TransactionMeta[],
+  allTransactions: TransactionMeta[],
+  bridgeHistory: Record<string, BridgeHistoryItem>,
 ): boolean => {
   const {
-    batchId,
-    id: transactionId,
     isTransfer,
     transferInformation,
     txParams: { from, to },
-    type,
   } = tx;
 
-  const requiredTransactionIds = allTransactions
-    ?.map((t) => t.requiredTransactionIds ?? [])
-    .flat();
-
-  const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
-
-  if (isRequiredTransaction) {
-    return false;
-  }
-
-  const requiredTransactionHashes = allTransactions
-    ?.filter((t) => requiredTransactionIds?.includes(t.id) && t.hash)
-    .map((t) => t.hash?.toLowerCase());
-
-  if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
-    return false;
-  }
-
-  const isInBatchWithPerpsDeposit =
-    type !== TransactionType.perpsDeposit &&
-    allTransactions?.some(
-      (t) =>
-        batchId &&
-        t.batchId === batchId &&
-        t.type === TransactionType.perpsDeposit,
-    );
-
-  if (isInBatchWithPerpsDeposit) {
+  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [], bridgeHistory)) {
     return false;
   }
 
@@ -155,45 +133,16 @@ export const filterByAddress = (
   tx: TransactionMeta,
   tokens: { address: string }[],
   selectedAddress: string,
-  allTransactions?: TransactionMeta[],
+  allTransactions: TransactionMeta[],
+  bridgeHistory: Record<string, BridgeHistoryItem>,
 ): boolean => {
   const {
-    batchId,
-    id: transactionId,
     isTransfer,
     transferInformation,
     txParams: { from, to },
-    type,
   } = tx;
 
-  const requiredTransactionIds = allTransactions
-    ?.map((t) => t.requiredTransactionIds ?? [])
-    .flat();
-
-  const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
-
-  if (isRequiredTransaction) {
-    return false;
-  }
-
-  const requiredTransactionHashes = allTransactions
-    ?.filter((t) => requiredTransactionIds?.includes(t.id) && t.hash)
-    .map((t) => t.hash?.toLowerCase());
-
-  if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
-    return false;
-  }
-
-  const isInBatchWithPerpsDeposit =
-    type !== TransactionType.perpsDeposit &&
-    allTransactions?.some(
-      (t) =>
-        batchId &&
-        t.batchId === batchId &&
-        t.type === TransactionType.perpsDeposit,
-    );
-
-  if (isInBatchWithPerpsDeposit) {
+  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [], bridgeHistory)) {
     return false;
   }
 
@@ -232,4 +181,56 @@ export function isTransactionOnChains(
   );
 
   return requiredTransactionChainIds.some((id) => chainIds.includes(id));
+}
+
+function isFilteredByMetaMaskPay(
+  tx: TransactionMeta,
+  allTransactions: TransactionMeta[],
+  bridgeHistory: Record<string, BridgeHistoryItem>,
+): boolean {
+  const { batchId, id: transactionId, isIntentComplete } = tx;
+
+  if (isIntentComplete) {
+    return false;
+  }
+
+  const requiredTransactionIds = allTransactions
+    ?.map((t) => t.requiredTransactionIds ?? [])
+    .flat();
+
+  const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
+
+  if (isRequiredTransaction) {
+    return true;
+  }
+
+  const isBridgeReceive =
+    tx.hash &&
+    Object.values(bridgeHistory).some(
+      (item) =>
+        item.status.destChain?.txHash?.toLowerCase() ===
+          tx.hash?.toLowerCase() &&
+        requiredTransactionIds.includes(item.txMetaId),
+    );
+
+  if (isBridgeReceive) {
+    return true;
+  }
+
+  const requiredTransactionHashes = allTransactions
+    ?.filter((t) => requiredTransactionIds?.includes(t.id) && t.hash)
+    .map((t) => t.hash?.toLowerCase());
+
+  if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
+    return true;
+  }
+
+  const isInPayBatch =
+    !hasTransactionType(tx, PAY_TYPES) &&
+    Boolean(batchId) &&
+    allTransactions?.some(
+      (t) => t.batchId === batchId && hasTransactionType(t, PAY_TYPES),
+    );
+
+  return isInPayBatch;
 }

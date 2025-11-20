@@ -1,15 +1,25 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector, useDispatch } from 'react-redux';
-import { useOptin } from './useOptIn';
+import useOptin from './useOptIn';
 import Engine from '../../../../core/Engine';
-import { handleRewardsErrorMessage } from '../utils';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
+import { useMetrics } from '../../../hooks/useMetrics';
+import {
+  selectSelectedAccountGroup,
+  selectAccountGroupsByWallet,
+  selectWalletByAccount,
+  selectSelectedAccountGroupInternalAccounts,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { useLinkAccountGroup } from './useLinkAccountGroup';
+import { AccountGroupId } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
   useDispatch: jest.fn(),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -18,695 +28,853 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../utils', () => ({
-  handleRewardsErrorMessage: jest.fn(),
-  deriveAccountMetricProps: jest.fn().mockReturnValue({
-    account_type: 'Imported',
-    scope: 'evm',
-  }),
-}));
-
 jest.mock('../../../../reducers/rewards', () => ({
   setCandidateSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    REWARDS_OPT_IN_STARTED: 'Rewards Opt-in Started',
+    REWARDS_OPT_IN_COMPLETED: 'Rewards Opt-in Completed',
+    REWARDS_OPT_IN_FAILED: 'Rewards Opt-in Failed',
+  },
+  useMetrics: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroup: jest.fn(),
+    selectAccountGroupsByWallet: jest.fn(),
+    selectWalletByAccount: jest.fn(),
+    selectSelectedAccountGroupInternalAccounts: jest.fn(),
+  }),
+);
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectInternalAccountsByGroupId: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccount: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types',
+  () => ({
+    UserProfileProperty: {
+      HAS_REWARDS_OPTED_IN: 'has_rewards_opted_in',
+      ON: 'on',
+      REWARDS_REFERRED: 'rewards_referred',
+      REWARDS_REFERRAL_CODE_USED: 'rewards_referral_code_used',
+    },
+  }),
+);
+
+jest.mock('../../../../util/Logger', () => ({
+  log: jest.fn(),
+}));
+
+jest.mock('../utils', () => ({
+  handleRewardsErrorMessage: jest.fn((error) => `Error: ${error.message}`),
+}));
+
+jest.mock('./useLinkAccountGroup', () => ({
+  useLinkAccountGroup: jest.fn(),
+}));
+
 describe('useOptIn', () => {
+  const mockDispatch = jest.fn();
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-  const mockDispatch = jest.fn();
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
-  const mockHandleRewardsErrorMessage =
-    handleRewardsErrorMessage as jest.MockedFunction<
-      typeof handleRewardsErrorMessage
-    >;
+  const mockUseMetrics = jest.mocked(useMetrics);
   const mockSetCandidateSubscriptionId =
     setCandidateSubscriptionId as jest.MockedFunction<
       typeof setCandidateSubscriptionId
     >;
 
-  const mockAccount: InternalAccount = {
-    id: 'account-1',
-    address: '0x123456789abcdef',
-    metadata: {
-      name: 'Test Account',
-      importTime: Date.now(),
-      keyring: {
-        type: 'HD Key Tree',
+  // Mock selectors
+
+  const mockSelectSelectedAccountGroup = jest.mocked(
+    selectSelectedAccountGroup,
+  );
+  const mockSelectAccountGroupsByWallet = jest.mocked(
+    selectAccountGroupsByWallet,
+  );
+  const mockSelectWalletByAccount = jest.mocked(selectWalletByAccount);
+  const mockSelectSelectedAccountGroupInternalAccounts = jest.mocked(
+    selectSelectedAccountGroupInternalAccounts,
+  );
+  const mockSelectInternalAccountsByGroupId = jest.mocked(
+    selectInternalAccountsByGroupId,
+  );
+  const mockSelectSelectedInternalAccount = jest.mocked(
+    selectSelectedInternalAccount,
+  );
+  const mockUseLinkAccountGroup = jest.mocked(useLinkAccountGroup);
+
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn().mockReturnValue({
+    addProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({
+      event: expect.any(String),
+      properties: expect.any(Object),
+    }),
+  });
+  const mockAddTraitsToUser = jest.fn();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockAccountGroup = {
+    id: 'group-1' as AccountGroupId,
+    accounts: ['account-1'],
+    metadata: { name: 'Test Group' },
+  } as never;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockWallet = {
+    id: 'wallet-1',
+    name: 'Test Wallet',
+    type: 'keyring' as const,
+    status: 'unlocked' as const,
+    groups: {},
+    metadata: { name: 'Test Wallet' },
+  } as never;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockWalletSection = {
+    title: 'Test Wallet',
+    wallet: { id: 'wallet-1', name: 'Test Wallet' },
+    data: [
+      {
+        type: 'single' as const,
+        id: 'group-1',
+        accounts: ['account-1'],
+        metadata: { name: 'Group 1' },
       },
-    },
-    options: {},
-    methods: ['personal_sign', 'eth_signTransaction'],
-    type: 'eip155:eoa',
-    scopes: ['eip155:1'],
-  } as InternalAccount;
+    ],
+  } as never;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockActiveAccount = {
+    id: 'account-1',
+    address: '0x123',
+    metadata: { name: 'Account 1' },
+  } as never;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockActiveGroupAccounts: InternalAccount[] = [
+    {
+      id: 'account-1',
+      address: '0x123',
+      metadata: { name: 'Account 1' },
+    } as InternalAccount,
+  ];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockSideEffectAccounts: InternalAccount[] = [
+    {
+      id: 'account-2',
+      address: '0x456',
+      metadata: { name: 'Account 2' },
+    } as InternalAccount,
+  ];
+
+  const mockLinkAccountGroup = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(mockAccount);
     mockUseDispatch.mockReturnValue(mockDispatch);
-    mockSetCandidateSubscriptionId.mockReturnValue({
-      type: 'rewards/setCandidateSubscriptionId',
-      payload: expect.any(String),
+
+    // Reset mock event builder functions
+    mockCreateEventBuilder.mockClear();
+    mockTrackEvent.mockClear();
+    mockAddTraitsToUser.mockClear();
+
+    // Setup default selector values
+    mockSelectSelectedAccountGroup.mockReturnValue(mockAccountGroup);
+    mockSelectAccountGroupsByWallet.mockReturnValue([mockWalletSection]);
+    mockSelectWalletByAccount.mockReturnValue(
+      (_accountId: string) => mockWallet,
+    );
+    mockSelectSelectedAccountGroupInternalAccounts.mockReturnValue(
+      mockActiveGroupAccounts,
+    );
+    mockSelectInternalAccountsByGroupId.mockReturnValue(
+      (_groupId: string) => [],
+    );
+    mockSelectSelectedInternalAccount.mockReturnValue(mockActiveAccount);
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+      if (selector === selectAccountGroupsByWallet) return [mockWalletSection];
+      if (selector === selectWalletByAccount)
+        return (_accountId: string) => mockWallet;
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return mockActiveGroupAccounts;
+      if (selector === selectInternalAccountsByGroupId)
+        return (_groupId: string) => [];
+      if (selector === selectSelectedInternalAccount) return mockActiveAccount;
+      return undefined;
     });
+
+    // Setup useMetrics mock
+    mockUseMetrics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+      addTraitsToUser: mockAddTraitsToUser,
+    } as never);
+
+    // Setup useLinkAccountGroup mock
+    mockUseLinkAccountGroup.mockReturnValue({
+      linkAccountGroup: mockLinkAccountGroup,
+      isLoading: false,
+      isError: false,
+    } as never);
+
+    // Setup default Engine call response
+    mockEngineCall.mockResolvedValue('subscription-123');
   });
 
-  describe('initial state', () => {
-    it('should initialize with correct default values', () => {
+  describe('Basic functionality', () => {
+    it('should return hook interface', () => {
       const { result } = renderHook(() => useOptin());
 
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-      expect(typeof result.current.optin).toBe('function');
-      expect(typeof result.current.clearOptinError).toBe('function');
-    });
-  });
-
-  describe('successful opt-in', () => {
-    it('should handle successful opt-in with referral code', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST123' });
+      expect(result.current).toEqual({
+        optin: expect.any(Function),
+        optinLoading: false,
+        optinError: null,
+        clearOptinError: expect.any(Function),
       });
-
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockAccount,
-        'TEST123',
-      );
     });
 
-    it('should handle successful opt-in without referral code', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
-
+    it('should handle successful optin with active group accounts', async () => {
       const { result } = renderHook(() => useOptin());
 
-      // Act
       await act(async () => {
         await result.current.optin({});
       });
 
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockAccount,
+        mockActiveGroupAccounts,
         undefined,
       );
-    });
-
-    it('should handle successful opt-in with empty referral code', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: '' });
-      });
-
-      // Assert
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockAccount,
-        undefined,
-      );
-    });
-  });
-
-  describe('subscription ID dispatch handling', () => {
-    it('should dispatch setCandidateSubscriptionId when subscriptionId is returned', async () => {
-      // Arrange
-      const mockSubscriptionId = 'subscription-12345';
-      mockEngineCall.mockResolvedValueOnce(mockSubscriptionId);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST123' });
-      });
-
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
       expect(mockDispatch).toHaveBeenCalledWith(
-        mockSetCandidateSubscriptionId(mockSubscriptionId),
+        mockSetCandidateSubscriptionId('subscription-123'),
       );
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockAccount,
-        'TEST123',
+      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+        has_rewards_opted_in: 'on',
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'Rewards Opt-in Started',
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'Rewards Opt-in Completed',
+        }),
       );
     });
 
-    it('should dispatch setCandidateSubscriptionId when subscriptionId is returned without referral code', async () => {
-      // Arrange
-      const mockSubscriptionId = 'subscription-67890';
-      mockEngineCall.mockResolvedValueOnce(mockSubscriptionId);
-
+    it('should handle optin with referral code', async () => {
       const { result } = renderHook(() => useOptin());
 
-      // Act
       await act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        mockSetCandidateSubscriptionId(mockSubscriptionId),
-      );
-    });
-
-    it('should not dispatch setCandidateSubscriptionId when subscriptionId is undefined', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST123' });
-      });
-
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-      expect(mockDispatch).not.toHaveBeenCalledWith(
-        expect.any(Function), // Any dispatch call with action creator
-      );
-      expect(mockSetCandidateSubscriptionId).not.toHaveBeenCalled();
-    });
-
-    it('should not dispatch setCandidateSubscriptionId when subscriptionId is null', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(null);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert
-      expect(mockDispatch).not.toHaveBeenCalledWith(
-        expect.any(Function), // Any dispatch call with action creator
-      );
-      expect(mockSetCandidateSubscriptionId).not.toHaveBeenCalled();
-    });
-
-    it('should not dispatch setCandidateSubscriptionId when subscriptionId is empty string', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce('');
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST' });
-      });
-
-      // Assert
-      expect(mockDispatch).not.toHaveBeenCalledWith(
-        expect.any(Function), // Any dispatch call with action creator
-      );
-      expect(mockSetCandidateSubscriptionId).not.toHaveBeenCalled();
-    });
-
-    it('should handle dispatch during error scenario - no dispatch when error occurs', async () => {
-      // Arrange
-      const mockError = new Error('Network error');
-      mockEngineCall.mockRejectedValueOnce(mockError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce(
-        'Network error occurred',
-      );
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST123' });
-      });
-
-      // Assert
-      expect(result.current.optinError).toBe('Network error occurred');
-      expect(mockDispatch).not.toHaveBeenCalledWith(
-        expect.any(Function), // Any dispatch call with action creator
-      );
-      expect(mockSetCandidateSubscriptionId).not.toHaveBeenCalled();
-    });
-
-    it('should dispatch with different subscription ID types correctly', async () => {
-      // Test different subscription ID formats
-      const testCases = [
-        'sub-12345',
-        'SUBSCRIPTION_ABC123',
-        '123456789',
-        'uuid-4-format-id-123',
-      ];
-
-      for (const subscriptionId of testCases) {
-        // Arrange
-        jest.clearAllMocks(); // Clear previous calls
-        mockEngineCall.mockResolvedValueOnce(subscriptionId);
-
-        const { result } = renderHook(() => useOptin());
-
-        // Act
-        await act(async () => {
-          await result.current.optin({});
+        await result.current.optin({
+          referralCode: 'ABC123',
+          isPrefilled: true,
         });
+      });
 
-        // Assert
-        expect(mockDispatch).toHaveBeenCalledWith(
-          mockSetCandidateSubscriptionId(subscriptionId),
-        );
-      }
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockActiveGroupAccounts,
+        'ABC123',
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'Rewards Opt-in Started',
+      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Started and Completed
+      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+        has_rewards_opted_in: 'on',
+        rewards_referred: true,
+        rewards_referral_code_used: 'ABC123',
+      });
     });
-  });
 
-  describe('error handling', () => {
-    it('should handle API errors and show handled error message', async () => {
-      // Arrange
-      const mockError = new Error('Account already registered');
-      const handledErrorMessage = 'This account is already registered';
-      mockEngineCall.mockRejectedValueOnce(mockError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce(handledErrorMessage);
+    it('should handle optin failure', async () => {
+      const error = new Error('Network error');
+      mockEngineCall.mockRejectedValue(error);
 
       const { result } = renderHook(() => useOptin());
 
-      // Act
       await act(async () => {
-        await result.current.optin({ referralCode: 'TEST123' });
+        await result.current.optin({});
       });
 
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBe(handledErrorMessage);
-
-      expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mockError);
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockAccount,
-        'TEST123',
+      expect(result.current.optinError).toBe('Error: Network error');
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'Rewards Opt-in Failed',
+        }),
       );
     });
 
-    it('should handle different error types through error handler', async () => {
-      // Arrange
-      const mockError = { data: { message: 'Network request failed' } };
-      const handledErrorMessage = 'Service is not available at the moment';
-      mockEngineCall.mockRejectedValueOnce(mockError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce(handledErrorMessage);
-
+    it('should clear optin error', () => {
       const { result } = renderHook(() => useOptin());
 
-      // Act
-      await act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert
-      expect(result.current.optinError).toBe(handledErrorMessage);
-      expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mockError);
-    });
-
-    it('should clear previous error before new opt-in attempt', async () => {
-      // Arrange - first call that fails
-      const firstError = new Error('First error');
-      const firstHandledError = 'First handled error';
-      mockEngineCall.mockRejectedValueOnce(firstError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce(firstHandledError);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - first failed attempt
-      await act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert - should have error state
-      expect(result.current.optinError).toBe(firstHandledError);
-
-      // Arrange - second call that succeeds
-      mockEngineCall.mockResolvedValueOnce(undefined);
-
-      // Act - second successful attempt
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST' });
-      });
-
-      // Assert - error should be cleared
-      expect(result.current.optinError).toBeNull();
-    });
-  });
-
-  describe('loading state management', () => {
-    it('should set loading to true during API call and false after success', async () => {
-      // Arrange
-      let resolveApiCall: (value: undefined) => void;
-      const apiCallPromise = new Promise<undefined>((resolve) => {
-        resolveApiCall = resolve;
-      });
-      mockEngineCall.mockReturnValueOnce(apiCallPromise);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - start opt-in
-      const optinPromise = act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert - loading should be true
-      expect(result.current.optinLoading).toBe(true);
-      expect(result.current.optinError).toBeNull();
-
-      // Act - resolve API call
-      act(() => {
-        resolveApiCall(undefined);
-      });
-
-      // Wait for the promise to resolve
-      await optinPromise;
-
-      // Assert - loading should be false
-      expect(result.current.optinLoading).toBe(false);
-    });
-
-    it('should set loading to true during API call and false after error', async () => {
-      // Arrange
-      let rejectApiCall: (error: Error) => void;
-      const apiCallPromise = new Promise<undefined>((_, reject) => {
-        rejectApiCall = reject;
-      });
-      mockEngineCall.mockReturnValueOnce(apiCallPromise);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce('Test error');
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - start opt-in
-      const optinPromise = act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert - loading should be true
-      expect(result.current.optinLoading).toBe(true);
-
-      // Act - reject API call
-      act(() => {
-        rejectApiCall(new Error('Test error'));
-      });
-
-      // Wait for the promise to resolve
-      await optinPromise;
-
-      // Assert - loading should be false
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBe('Test error');
-    });
-  });
-
-  describe('clearOptinError functionality', () => {
-    it('should clear error when clearOptinError is called', async () => {
-      // Arrange - create error state
-      const mockError = new Error('Test error');
-      mockEngineCall.mockRejectedValueOnce(mockError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce('Test error message');
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - create error state
-      await act(async () => {
-        await result.current.optin({});
-      });
-
-      // Assert - should have error
-      expect(result.current.optinError).toBe('Test error message');
-
-      // Act - clear error
       act(() => {
         result.current.clearOptinError();
       });
 
-      // Assert - error should be cleared
       expect(result.current.optinError).toBeNull();
     });
 
-    it('should handle multiple calls to clearOptinError gracefully', () => {
-      const { result } = renderHook(() => useOptin());
-
-      // Act - call clearOptinError multiple times
-      act(() => {
-        result.current.clearOptinError();
-        result.current.clearOptinError();
-        result.current.clearOptinError();
+    it('should skip optin when no account group is selected', async () => {
+      mockSelectSelectedAccountGroup.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup) return null;
+        if (selector === selectAccountGroupsByWallet)
+          return [mockWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return mockActiveGroupAccounts;
+        if (selector === selectInternalAccountsByGroupId)
+          return (_groupId: string) => [];
+        if (selector === selectSelectedInternalAccount)
+          return mockActiveAccount;
+        return undefined;
       });
 
-      // Assert - should remain null
-      expect(result.current.optinError).toBeNull();
-    });
-  });
-
-  describe('account dependency handling', () => {
-    it('should not call API when account is null', async () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(null);
-
       const { result } = renderHook(() => useOptin());
 
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'TEST' });
-      });
-
-      // Assert
-      expect(mockEngineCall).not.toHaveBeenCalled();
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-    });
-
-    it('should not call API when account is undefined', async () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(undefined);
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act
       await act(async () => {
         await result.current.optin({});
       });
 
-      // Assert
       expect(mockEngineCall).not.toHaveBeenCalled();
     });
 
-    it('should update function when account changes', () => {
-      const { result, rerender } = renderHook(() => useOptin());
+    it('should skip optin when account group has no id', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const accountGroupWithoutId = {
+        accounts: ['account-1'],
+        metadata: { name: 'Test Group' },
+      } as never;
 
-      const firstOptinFunction = result.current.optin;
-
-      // Change account
-      const newAccount = {
-        ...mockAccount,
-        id: 'account-2',
-        address: '0xabcdef123456789',
-      };
-      mockUseSelector.mockReturnValue(newAccount);
-
-      rerender();
-
-      const secondOptinFunction = result.current.optin;
-
-      expect(firstOptinFunction).not.toBe(secondOptinFunction);
-    });
-
-    it('should maintain stable function reference when account is unchanged', () => {
-      const { result, rerender } = renderHook(() => useOptin());
-
-      const firstOptinFunction = result.current.optin;
-
-      // Rerender without changing account
-      rerender();
-
-      const secondOptinFunction = result.current.optin;
-
-      expect(firstOptinFunction).toBe(secondOptinFunction);
-    });
-  });
-
-  describe('clearOptinError callback stability', () => {
-    it('should maintain stable clearOptinError reference across renders', () => {
-      const { result, rerender } = renderHook(() => useOptin());
-
-      const firstClearFunction = result.current.clearOptinError;
-
-      rerender();
-
-      const secondClearFunction = result.current.clearOptinError;
-
-      expect(firstClearFunction).toBe(secondClearFunction);
-    });
-  });
-
-  describe('dispatch function stability', () => {
-    it('should maintain stable dispatch reference when dispatch function changes', () => {
-      const { result, rerender } = renderHook(() => useOptin());
-
-      const firstOptinFunction = result.current.optin;
-
-      // Change dispatch function
-      const newMockDispatch = jest.fn();
-      mockUseDispatch.mockReturnValue(newMockDispatch);
-
-      rerender();
-
-      const secondOptinFunction = result.current.optin;
-
-      // Functions should be different because dispatch dependency changed
-      expect(firstOptinFunction).not.toBe(secondOptinFunction);
-    });
-
-    it('should maintain stable dispatch reference when dispatch function is unchanged', () => {
-      const { result, rerender } = renderHook(() => useOptin());
-
-      const firstOptinFunction = result.current.optin;
-
-      // Rerender without changing dependencies
-      rerender();
-
-      const secondOptinFunction = result.current.optin;
-
-      // Functions should be the same because dependencies haven't changed
-      expect(firstOptinFunction).toBe(secondOptinFunction);
-    });
-  });
-
-  describe('referral code handling', () => {
-    it('should handle undefined referral code', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
+      mockSelectSelectedAccountGroup.mockReturnValue(accountGroupWithoutId);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup)
+          return accountGroupWithoutId;
+        if (selector === selectAccountGroupsByWallet)
+          return [mockWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return mockActiveGroupAccounts;
+        if (selector === selectInternalAccountsByGroupId)
+          return (_groupId: string) => [];
+        if (selector === selectSelectedInternalAccount)
+          return mockActiveAccount;
+        return undefined;
+      });
 
       const { result } = renderHook(() => useOptin());
 
-      // Act
       await act(async () => {
-        await result.current.optin({ referralCode: undefined });
+        await result.current.optin({});
       });
 
-      // Assert
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when subscriptionId is null', async () => {
+      mockEngineCall.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      expect(result.current.optinError).toBe(
+        'Error: Failed to opt in any account from the account group',
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'Rewards Opt-in Failed',
+        }),
+      );
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Side effect account group behavior', () => {
+    beforeEach(() => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectAccountGroupsByWallet)
+          return [mockWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return mockActiveGroupAccounts;
+        if (selector === selectInternalAccountsByGroupId)
+          return (_groupId: string) => [];
+        if (selector === selectSelectedInternalAccount)
+          return mockActiveAccount;
+        return undefined;
+      });
+    });
+
+    it('should use side effect accounts and link selected account group when side effect accounts exist', async () => {
+      // Setup wallet section with a different group ID for side effect
+      const sideEffectWalletSection = {
+        title: 'Test Wallet',
+        wallet: mockWallet,
+        data: [
+          {
+            type: 'single' as const,
+            id: 'side-effect-group-1', // Different from current account group
+            accounts: ['account-2'],
+            metadata: { name: 'Side Effect Group' },
+          },
+        ],
+      } as never;
+
+      mockSelectAccountGroupsByWallet.mockReturnValue([
+        sideEffectWalletSection,
+      ]);
+      mockSelectInternalAccountsByGroupId.mockReturnValue((groupId: string) => {
+        if (groupId === 'side-effect-group-1') {
+          return mockSideEffectAccounts;
+        }
+        return [];
+      });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectAccountGroupsByWallet)
+          return [sideEffectWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return mockActiveGroupAccounts;
+        if (selector === selectInternalAccountsByGroupId)
+          return (groupId: string) => {
+            if (groupId === 'side-effect-group-1') {
+              return mockSideEffectAccounts;
+            }
+            return [];
+          };
+        if (selector === selectSelectedInternalAccount)
+          return mockActiveAccount;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should call optin with side effect accounts
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
-        mockAccount,
+        mockSideEffectAccounts,
         undefined,
       );
-    });
 
-    it('should handle referral code with special characters', async () => {
-      // Arrange
-      mockEngineCall.mockResolvedValueOnce(undefined);
+      // Then should link the selected account group (group-1) after optin completes
+      expect(mockLinkAccountGroup).toHaveBeenCalledWith('group-1');
 
-      const { result } = renderHook(() => useOptin());
-
-      // Act
-      await act(async () => {
-        await result.current.optin({ referralCode: 'REF-123_ABC!@#' });
-      });
-
-      // Assert
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockAccount,
-        'REF-123_ABC!@#',
+      // Should dispatch subscription ID after linkAccountGroup
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetCandidateSubscriptionId('subscription-123'),
       );
     });
-  });
 
-  describe('edge cases', () => {
-    it('should handle multiple simultaneous opt-in calls correctly', async () => {
-      // Arrange
-      let resolveFirst: (value: undefined) => void;
-      let resolveSecond: (value: undefined) => void;
+    it('should use active group accounts and link side effect account group when side effect accounts are empty', async () => {
+      // Setup wallet section with a different group ID for side effect
+      const sideEffectWalletSection = {
+        title: 'Test Wallet',
+        wallet: mockWallet,
+        data: [
+          {
+            type: 'single' as const,
+            id: 'side-effect-group-1', // Different from current account group
+            accounts: ['account-2'],
+            metadata: { name: 'Side Effect Group' },
+          },
+        ],
+      } as never;
 
-      const firstPromise = new Promise<undefined>((resolve) => {
-        resolveFirst = resolve;
+      mockSelectAccountGroupsByWallet.mockReturnValue([
+        sideEffectWalletSection,
+      ]);
+      // Return empty array for side effect accounts
+      mockSelectInternalAccountsByGroupId.mockReturnValue(
+        (_groupId: string) => [],
+      );
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectAccountGroupsByWallet)
+          return [sideEffectWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return mockActiveGroupAccounts;
+        if (selector === selectInternalAccountsByGroupId)
+          return (_groupId: string) => [];
+        if (selector === selectSelectedInternalAccount)
+          return mockActiveAccount;
+        return undefined;
       });
-      const secondPromise = new Promise<undefined>((resolve) => {
-        resolveSecond = resolve;
-      });
-
-      mockEngineCall
-        .mockReturnValueOnce(firstPromise)
-        .mockReturnValueOnce(secondPromise);
 
       const { result } = renderHook(() => useOptin());
 
-      // Act - start both calls
-      const firstCallPromise = act(async () => {
-        await result.current.optin({ referralCode: 'FIRST' });
-      });
-
-      const secondCallPromise = act(async () => {
-        await result.current.optin({ referralCode: 'SECOND' });
-      });
-
-      // Assert - should be loading
-      expect(result.current.optinLoading).toBe(true);
-
-      // Act - resolve both
-      act(() => {
-        resolveFirst(undefined);
-        resolveSecond(undefined);
-      });
-
-      // Wait for both to complete
-      await Promise.all([firstCallPromise, secondCallPromise]);
-
-      // Assert
-      expect(result.current.optinLoading).toBe(false);
-      expect(result.current.optinError).toBeNull();
-      expect(mockEngineCall).toHaveBeenCalledTimes(2);
-    });
-
-    it('should handle rapid opt-in and error clear calls', async () => {
-      // Arrange
-      const mockError = new Error('Test error');
-      mockEngineCall.mockRejectedValueOnce(mockError);
-      mockHandleRewardsErrorMessage.mockReturnValueOnce('Test error message');
-
-      const { result } = renderHook(() => useOptin());
-
-      // Act - opt-in and immediately clear error
       await act(async () => {
         await result.current.optin({});
       });
 
-      act(() => {
-        result.current.clearOptinError();
+      // Should call optin with active group accounts
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockActiveGroupAccounts,
+        undefined,
+      );
+
+      // Should link the side effect account group
+      expect(mockLinkAccountGroup).toHaveBeenCalledWith('side-effect-group-1');
+
+      // Should dispatch subscription ID
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetCandidateSubscriptionId('subscription-123'),
+      );
+    });
+
+    it('should handle case when side effect account group is not found', async () => {
+      mockSelectAccountGroupsByWallet.mockReturnValue([]);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectAccountGroupsByWallet) return [];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return mockActiveGroupAccounts;
+        if (selector === selectInternalAccountsByGroupId)
+          return (_groupId: string) => [];
+        if (selector === selectSelectedInternalAccount)
+          return mockActiveAccount;
+        return undefined;
       });
 
-      // Assert
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should only call optin with active group accounts, not link account group
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockActiveGroupAccounts,
+        undefined,
+      );
+      expect(mockLinkAccountGroup).not.toHaveBeenCalled();
+    });
+
+    it('should handle case when current account wallet is not found', async () => {
+      mockSelectAccountGroupsByWallet.mockReturnValue([
+        {
+          title: 'Different Wallet',
+          wallet: { id: 'keyring:different', name: 'Different Wallet' },
+          data: [
+            {
+              type: 'single' as const,
+              id: 'group-different',
+              accounts: ['account-1'],
+              metadata: { name: 'Different Group' },
+            },
+          ],
+        },
+      ] as never);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectAccountGroupsByWallet)
+          return [
+            {
+              title: 'Different Wallet',
+              wallet: { id: 'keyring:different', name: 'Different Wallet' },
+              data: [
+                {
+                  type: 'single' as const,
+                  id: 'group-different',
+                  accounts: ['account-1'],
+                  metadata: { name: 'Different Group' },
+                },
+              ],
+            },
+          ];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return mockActiveGroupAccounts;
+        if (selector === selectInternalAccountsByGroupId)
+          return (_groupId: string) => [];
+        if (selector === selectSelectedInternalAccount)
+          return mockActiveAccount;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should only call optin with active group accounts, not link account group
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockActiveGroupAccounts,
+        undefined,
+      );
+      expect(mockLinkAccountGroup).not.toHaveBeenCalled();
+    });
+
+    it('should complete optin successfully even if linkAccountGroup fails', async () => {
+      // Setup wallet section with a different group ID for side effect
+      const sideEffectWalletSection = {
+        title: 'Test Wallet',
+        wallet: mockWallet,
+        data: [
+          {
+            type: 'single' as const,
+            id: 'side-effect-group-1', // Different from current account group
+            accounts: ['account-2'],
+            metadata: { name: 'Side Effect Group' },
+          },
+        ],
+      } as never;
+
+      mockSelectAccountGroupsByWallet.mockReturnValue([
+        sideEffectWalletSection,
+      ]);
+      mockSelectInternalAccountsByGroupId.mockReturnValue((groupId: string) => {
+        if (groupId === 'side-effect-group-1') {
+          return mockSideEffectAccounts;
+        }
+        return [];
+      });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectAccountGroupsByWallet)
+          return [sideEffectWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return mockActiveGroupAccounts;
+        if (selector === selectInternalAccountsByGroupId)
+          return (groupId: string) => {
+            if (groupId === 'side-effect-group-1') {
+              return mockSideEffectAccounts;
+            }
+            return [];
+          };
+        if (selector === selectSelectedInternalAccount)
+          return mockActiveAccount;
+        return undefined;
+      });
+
+      // Mock linkAccountGroup to throw an error
+      mockLinkAccountGroup.mockRejectedValue(
+        new Error('Failed to link account group'),
+      );
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should call optin with side effect accounts
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockSideEffectAccounts,
+        undefined,
+      );
+
+      // Should attempt to link the selected account group (group-1)
+      expect(mockLinkAccountGroup).toHaveBeenCalledWith('group-1');
+
+      // Should still dispatch subscription ID even though linkAccountGroup failed
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetCandidateSubscriptionId('subscription-123'),
+      );
+
+      // Should not set an error (linkAccountGroup failure is silently handled)
       expect(result.current.optinError).toBeNull();
+
+      // Should complete loading (set to false)
+      expect(result.current.optinLoading).toBe(false);
+
+      // Should still track success events
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: 'Rewards Opt-in Completed',
+        }),
+      );
+    });
+
+    it('should not call linkAccountGroup when optin fails', async () => {
+      // Setup wallet section with a different group ID for side effect
+      const sideEffectWalletSection = {
+        title: 'Test Wallet',
+        wallet: mockWallet,
+        data: [
+          {
+            type: 'single' as const,
+            id: 'side-effect-group-1', // Different from current account group
+            accounts: ['account-2'],
+            metadata: { name: 'Side Effect Group' },
+          },
+        ],
+      } as never;
+
+      mockSelectAccountGroupsByWallet.mockReturnValue([
+        sideEffectWalletSection,
+      ]);
+      mockSelectInternalAccountsByGroupId.mockReturnValue((groupId: string) => {
+        if (groupId === 'side-effect-group-1') {
+          return mockSideEffectAccounts;
+        }
+        return [];
+      });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSelectedAccountGroup) return mockAccountGroup;
+        if (selector === selectAccountGroupsByWallet)
+          return [sideEffectWalletSection];
+        if (selector === selectWalletByAccount)
+          return (_accountId: string) => mockWallet;
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return mockActiveGroupAccounts;
+        if (selector === selectInternalAccountsByGroupId)
+          return (groupId: string) => {
+            if (groupId === 'side-effect-group-1') {
+              return mockSideEffectAccounts;
+            }
+            return [];
+          };
+        if (selector === selectSelectedInternalAccount)
+          return mockActiveAccount;
+        return undefined;
+      });
+
+      // Mock optin to fail
+      const error = new Error('Optin failed');
+      mockEngineCall.mockRejectedValue(error);
+
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      // Should have attempted optin with side effect accounts
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optIn',
+        mockSideEffectAccounts,
+        undefined,
+      );
+
+      // Should not call linkAccountGroup since optin failed
+      expect(mockLinkAccountGroup).not.toHaveBeenCalled();
+
+      // Should not dispatch subscription ID since optin failed
+      expect(mockDispatch).not.toHaveBeenCalled();
+
+      // Should set error
+      expect(result.current.optinError).toBe('Error: Optin failed');
+
+      // Should complete loading (set to false)
+      expect(result.current.optinLoading).toBe(false);
+    });
+  });
+
+  describe('Metrics tracking', () => {
+    it('should track metrics with referral code properties', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({
+          referralCode: 'REF123',
+          isPrefilled: false,
+        });
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'Rewards Opt-in Started',
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'Rewards Opt-in Completed',
+      );
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        referred: true,
+        referral_code_used: 'REF123',
+        referral_code_input_type: 'manual',
+      });
+    });
+
+    it('should track metrics without referral code properties', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      await act(async () => {
+        await result.current.optin({});
+      });
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        referred: false,
+        referral_code_used: undefined,
+        referral_code_input_type: 'manual',
+      });
+    });
+  });
+
+  describe('Loading states', () => {
+    it('should manage loading state correctly', async () => {
+      const { result } = renderHook(() => useOptin());
+
+      expect(result.current.optinLoading).toBe(false);
+
+      let optinPromise: Promise<void>;
+      await act(async () => {
+        optinPromise = result.current.optin({});
+      });
+
+      // Loading should be true during operation
+      expect(result.current.optinLoading).toBe(false); // Completed
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      (await optinPromise!) as unknown as Promise<void>;
       expect(result.current.optinLoading).toBe(false);
     });
   });

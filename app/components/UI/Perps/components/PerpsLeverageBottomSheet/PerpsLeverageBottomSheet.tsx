@@ -1,4 +1,5 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import React, {
   memo,
   useCallback,
@@ -19,7 +20,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -35,6 +35,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
@@ -47,25 +48,21 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import {
-  formatPerpsFiat,
-  formatPrice,
-  PRICE_RANGES_DETAILED_VIEW,
-} from '../../utils/formatUtils';
-import { createStyles } from './PerpsLeverageBottomSheet.styles';
-import {
-  LEVERAGE_COLORS,
   getLeverageRiskLevel,
+  LEVERAGE_COLORS,
 } from '../../constants/leverageColors';
 import {
   LEVERAGE_SLIDER_CONFIG,
   PERFORMANCE_CONFIG,
 } from '../../constants/perpsConfig';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
+import { createStyles } from './PerpsLeverageBottomSheet.styles';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -101,8 +98,8 @@ interface PerpsLeverageBottomSheetProps {
 const LeverageSlider: React.FC<{
   value: number;
   onValueChange: (value: number) => void;
-  onDragStart?: () => void;
-  onDragEnd?: (value: number) => void;
+  onDragStart: () => void;
+  onDragEnd: (value: number) => void;
   minValue: number;
   maxValue: number;
   colors: Theme['colors'];
@@ -218,9 +215,7 @@ const LeverageSlider: React.FC<{
     .onBegin(() => {
       isPressed.value = true;
       runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
-      if (onDragStart) {
-        runOnJS(onDragStart)();
-      }
+      runOnJS(onDragStart)();
     })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
@@ -236,25 +231,28 @@ const LeverageSlider: React.FC<{
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
       runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
-      if (onDragEnd) {
-        runOnJS(onDragEnd)(currentValue);
-      }
+      runOnJS(onDragEnd)(currentValue);
     })
     .onFinalize(() => {
       isPressed.value = false;
       thumbScale.value = 1; // Direct assignment, no spring
     });
 
-  const tapGesture = Gesture.Tap().onEnd((event) => {
+  const handleHoldEnd = (event: { x: number }) => {
     const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
     translateX.value = newPosition; // Direct assignment for instant response
     const newValue = positionToValue(newPosition, sliderWidth.value);
     runOnJS(updateValue)(newValue);
     runOnJS(checkThresholdCrossing)(newValue);
     runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-  });
+    runOnJS(onDragEnd)(newValue);
+  };
 
-  const composed = Gesture.Simultaneous(tapGesture, panGesture);
+  const tapGesture = Gesture.Tap().onEnd(handleHoldEnd);
+
+  const holdGesture = Gesture.LongPress().onEnd(handleHoldEnd);
+
+  const composed = Gesture.Simultaneous(tapGesture, panGesture, holdGesture);
 
   // Generate tick marks based on max leverage using configuration constants
   const tickMarks = useMemo(() => {
@@ -284,7 +282,11 @@ const LeverageSlider: React.FC<{
   return (
     <GestureHandlerRootView style={styles.leverageSliderContainer}>
       <GestureDetector gesture={composed}>
-        <View style={styles.leverageTrack} onLayout={handleLayout}>
+        <View
+          style={styles.leverageTrack}
+          onLayout={handleLayout}
+          testID="leverage-slider-track"
+        >
           {/* Progress bar with clipped gradient */}
           <Animated.View style={[styles.progressContainer, progressStyle]}>
             {/* Using leverage risk colors - will be replaced with design tokens */}
@@ -342,15 +344,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [draggingLeverage, setDraggingLeverage] = useState(initialLeverage);
   const [isDragging, setIsDragging] = useState(false);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
-  const { track } = usePerpsEventTracking();
-  const hasTrackedLeverageView = useRef(false);
+  const [shouldShowSkeleton, setShouldShowSkeleton] = useState(false);
 
   // Dynamically calculate liquidation price based on tempLeverage
   // Use limit price for limit orders, market price for market orders
   const entryPrice = useMemo(
     () =>
       orderType === 'limit' && limitPrice
-        ? parseFloat(limitPrice)
+        ? Number.parseFloat(limitPrice)
         : currentPrice,
     [orderType, limitPrice, currentPrice],
   );
@@ -369,61 +370,40 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       },
     );
 
-  // Calculate theoretical liquidation price for immediate drag feedback
-  const theoreticalLiquidationPrice = useMemo(() => {
-    const leverageToUse = isDragging ? draggingLeverage : tempLeverage;
+  // Instead of using isDragging || isCalculating, we use shouldShowSkeleton to show the skeleton
+  // Otherwise the skeleton would flicker for a split second when the user stops dragging and the liquidation price is not yet being calculated
+  useEffect(() => {
+    setShouldShowSkeleton(isCalculating);
+  }, [isCalculating]);
 
-    if (!entryPrice || leverageToUse <= 0) return 0;
-
-    // Standard isolated margin liquidation price calculation for immediate feedback
-    // This provides accurate theoretical values during drag, API provides precise values after
-    const liquidationMultiplier =
-      direction === 'long'
-        ? 1 - 1 / leverageToUse // Long: liquidation when price drops by 1/leverage
-        : 1 + 1 / leverageToUse; // Short: liquidation when price rises by 1/leverage
-
-    return entryPrice * liquidationMultiplier;
-  }, [entryPrice, direction, isDragging, draggingLeverage, tempLeverage]);
-
-  // Use theoretical price during drag for immediate feedback, API price when settled
-  // Show skeleton while API is calculating (not dragging and calculating)
-  const dynamicLiquidationPrice = isDragging
-    ? theoreticalLiquidationPrice
-    : parseFloat(apiLiquidationPrice) || theoreticalLiquidationPrice;
-
-  // Track screen load performance
-  usePerpsScreenTracking({
-    screenName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
-    dependencies: [isVisible],
-  });
+  const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
 
   useEffect(() => {
     if (isVisible) {
       bottomSheetRef.current?.onOpenBottomSheet();
     } else {
       // Reset all state when the bottom sheet is closed
-      hasTrackedLeverageView.current = false;
       setTempLeverage(initialLeverage);
       setDraggingLeverage(initialLeverage);
       setIsDragging(false);
+      setShouldShowSkeleton(false);
     }
   }, [isVisible, initialLeverage]);
 
-  // Track leverage screen viewed event - separate concern
-  useEffect(() => {
-    if (isVisible && !hasTrackedLeverageView.current) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.LEVERAGE,
-        [PerpsEventProperties.ASSET]: asset,
-        [PerpsEventProperties.DIRECTION]:
-          direction === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-      });
-      hasTrackedLeverageView.current = true;
-    }
-  }, [isVisible, direction, asset, track]);
+  // Track leverage screen viewed event
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    conditions: [isVisible],
+    resetConditions: [!isVisible], // Auto-reset when modal closes
+    properties: {
+      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.LEVERAGE,
+      [PerpsEventProperties.ASSET]: asset,
+      [PerpsEventProperties.DIRECTION]:
+        direction === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+    },
+  });
 
   const handleConfirm = () => {
     DevLogger.log(
@@ -484,8 +464,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     );
     const baseOptions = [2, 5, 10, 20, 40];
     const filtered = baseOptions.filter((option) => option <= maxLeverage);
-    DevLogger.log(`Available leverage options: ${filtered.join(', ')}`);
-    return filtered;
+
+    // Special case: when maxLeverage is 3, show both 2x and 3x buttons
+    const options = maxLeverage === 3 ? [2, 3] : filtered;
+
+    DevLogger.log(`Available leverage options: ${options.join(', ')}`);
+    return options;
   }, [maxLeverage]);
 
   /**
@@ -626,7 +610,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               variant={TextVariant.BodySM}
               style={[warningStyles.textStyle, styles.warningText]}
             >
-              {!isDragging && isCalculating ? (
+              {shouldShowSkeleton || Number.isNaN(dynamicLiquidationPrice) ? (
                 <Skeleton height={16} width={200} />
               ) : (
                 strings('perps.order.leverage_modal.liquidation_warning', {
@@ -658,7 +642,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   color={warningStyles.priceColor}
                   style={styles.priceIcon}
                 />
-                {!isDragging && isCalculating ? (
+                {shouldShowSkeleton || Number.isNaN(dynamicLiquidationPrice) ? (
                   <Skeleton height={20} width={80} />
                 ) : (
                   <Text
@@ -666,7 +650,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                     style={{ color: warningStyles.priceColor }}
                   >
                     {formatPerpsFiat(dynamicLiquidationPrice, {
-                      ranges: PRICE_RANGES_DETAILED_VIEW,
+                      ranges: PRICE_RANGES_UNIVERSAL,
                     })}
                   </Text>
                 )}
@@ -677,7 +661,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 {strings('perps.order.leverage_modal.current_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPrice(currentPrice)}
+                {formatPerpsFiat(currentPrice, {
+                  ranges: PRICE_RANGES_UNIVERSAL,
+                })}
               </Text>
             </View>
           </View>
@@ -698,11 +684,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <LeverageSlider
             value={isDragging ? draggingLeverage : tempLeverage}
             onValueChange={(newValue) => {
+              setShouldShowSkeleton(true);
+
               if (isDragging) {
                 setDraggingLeverage(newValue);
               } else {
                 setTempLeverage(newValue);
               }
+              setShouldShowSkeleton(true);
             }}
             onDragStart={() => {
               setIsDragging(true);
@@ -712,6 +701,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               setIsDragging(false);
               setTempLeverage(finalValue);
               setInputMethod('slider');
+              if (tempLeverage === finalValue) {
+                setShouldShowSkeleton(false);
+              }
             }}
             minValue={minLeverage}
             maxValue={maxLeverage}
@@ -746,6 +738,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 setInputMethod('preset');
                 // Add haptic feedback for quick select buttons
                 impactAsync(ImpactFeedbackStyle.Light);
+                if (value !== tempLeverage) {
+                  setShouldShowSkeleton(true);
+                }
               }}
             >
               <Text

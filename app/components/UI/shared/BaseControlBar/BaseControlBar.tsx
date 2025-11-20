@@ -1,5 +1,5 @@
 import React, { useCallback, ReactNode, useMemo, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { SolScope } from '@metamask/keyring-api';
@@ -16,20 +16,10 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import {
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-} from '../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
-import {
-  isRemoveGlobalNetworkSelectorEnabled,
-  getNetworkImageSource,
-} from '../../../../util/networks';
-import {
-  createTokenBottomSheetFilterNavDetails,
-  createTokensBottomSheetNavDetails,
-} from '../../Tokens/TokensBottomSheet';
+import { getNetworkImageSource } from '../../../../util/networks';
+import { createTokensBottomSheetNavDetails } from '../../Tokens/TokensBottomSheet';
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
@@ -77,6 +67,10 @@ export interface BaseControlBarProps {
    * Custom wrapper component for the control buttons
    */
   customWrapper?: 'outer' | 'none';
+  /**
+   * Custom style to apply to the action bar wrapper
+   */
+  style?: ViewStyle;
 }
 
 const BaseControlBar: React.FC<BaseControlBarProps> = ({
@@ -88,13 +82,12 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   additionalButtons,
   useEvmSelectionLogic = false,
   customWrapper = 'outer',
+  style,
 }) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
   const navigation = useNavigation();
 
   // Shared selectors
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
   const isMultichainAccountsState2Enabled = useSelector(
@@ -158,14 +151,8 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate(...createNetworkManagerNavDetails({}));
-    } else if (useEvmSelectionLogic && isEvmSelected) {
-      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
-    } else if (!useEvmSelectionLogic) {
-      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
-    }
-  }, [navigation, isEvmSelected, useEvmSelectionLogic]);
+    navigation.navigate(...createNetworkManagerNavDetails({}));
+  }, [navigation]);
 
   const defaultShowSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
@@ -183,40 +170,26 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   // Shared network label rendering
   const renderNetworkLabel = () => (
-    <>
-      {isRemoveGlobalNetworkSelectorEnabled() ? (
-        <View style={styles.networkManagerWrapper}>
-          {!areAllNetworksSelected && (
-            <Avatar
-              variant={AvatarVariant.Network}
-              size={AvatarSize.Xs}
-              name={networkName}
-              imageSource={networkImageSource}
-            />
-          )}
-          <TextComponent
-            variant={TextVariant.BodyMDMedium}
-            style={styles.controlButtonText}
-            numberOfLines={1}
-            testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
-          >
-            {displayAllNetworks
-              ? strings('wallet.popular_networks')
-              : currentNetworkName ?? strings('wallet.current_network')}
-          </TextComponent>
-        </View>
-      ) : (
-        <TextComponent
-          variant={TextVariant.BodyMDMedium}
-          style={styles.controlButtonText}
-          numberOfLines={1}
-        >
-          {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
-            ? strings('wallet.popular_networks')
-            : networkName ?? strings('wallet.current_network')}
-        </TextComponent>
+    <View style={styles.networkManagerWrapper}>
+      {!areAllNetworksSelected && (
+        <Avatar
+          variant={AvatarVariant.Network}
+          size={AvatarSize.Xs}
+          name={networkName}
+          imageSource={networkImageSource}
+        />
       )}
-    </>
+      <TextComponent
+        variant={TextVariant.BodyMDMedium}
+        style={styles.controlButtonText}
+        numberOfLines={1}
+        testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
+      >
+        {displayAllNetworks
+          ? strings('wallet.popular_networks')
+          : (currentNetworkName ?? strings('wallet.current_network'))}
+      </TextComponent>
+    </View>
   );
 
   const networkButton = (
@@ -240,6 +213,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       }
       style={isDisabled ? styles.controlButtonDisabled : styles.controlButton}
       disabled={isDisabled}
+      activeOpacity={0.2}
     />
   );
 
@@ -255,7 +229,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   if (customWrapper === 'none') {
     return (
-      <View style={styles.actionBarWrapper}>
+      <View style={[styles.actionBarWrapper, style]}>
         {networkButton}
         {sortButton}
         {additionalButtons}
@@ -264,7 +238,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   }
 
   return (
-    <View style={styles.actionBarWrapper}>
+    <View style={[styles.actionBarWrapper, style]}>
       <View style={styles.controlButtonOuterWrapper}>
         {networkButton}
         <View style={styles.controlButtonInnerWrapper}>

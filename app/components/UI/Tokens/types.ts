@@ -1,3 +1,5 @@
+import { KeyringAccountType } from '@metamask/keyring-api';
+
 export interface BrowserTab {
   id: string;
   url: string;
@@ -20,4 +22,6 @@ export interface TokenI {
   chainId?: string;
   isNative?: boolean;
   ticker?: string;
+  accountType?: KeyringAccountType;
+  pricePercentChange1d?: number;
 }

@@ -22,6 +22,8 @@ ignores:
   - 'reflect-metadata'
   # Husky is used for pre-commit hooks
   - 'husky'
+  # Auto changelog tooling used in release scripts
+  - '@metamask/auto-changelog'
   # Remove this once it's used in the project
   - 'rive-react-native'
   # Appwright will be used in a follow up PR. We will remove once PR is ready
@@ -68,6 +70,7 @@ ignores:
   - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
+  - 'prettier-2'
 
   ## Unused devDependencies to investigate
   - '@metamask/swappable-obj-proxy'
@@ -121,3 +124,5 @@ ignores:
   - 'react-native-pager-view'
   # this dependency can probably be removed, needs investigation
   - '@types/react-test-renderer'
+  # runtime for dependecies using Nitro Modules (@metamask/native-utils)
+  - 'react-native-nitro-modules'

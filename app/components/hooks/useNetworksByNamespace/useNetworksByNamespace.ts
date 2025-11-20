@@ -22,6 +22,7 @@ export interface ProcessedNetwork {
   isSelected: boolean;
   imageSource: ImageSourcePropType;
   networkTypeOrRpcUrl?: string;
+  hasMultipleRpcs?: boolean;
 }
 
 export enum NetworkType {
@@ -114,37 +115,23 @@ const useProcessedNetworks = (
   networkType: NetworkType,
 ): ProcessedNetwork[] =>
   useMemo(() => {
-    if (networkType === NetworkType.Popular) {
-      return (
-        filteredNetworkConfigurations as [
-          string,
-          EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-        ][]
-      ).map(([, network]) => {
-        const rpcUrl =
-          'rpcEndpoints' in network
-            ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
-            : undefined;
+    const isPopular = networkType === NetworkType.Popular;
 
-        const isSelected = Boolean(
-          enabledNetworksForNamespace[network.chainId],
-        );
+    return filteredNetworkConfigurations.map((config) => {
+      const network = isPopular
+        ? (
+            config as [
+              string,
+              EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+            ]
+          )[1]
+        : (config as EvmAndMultichainNetworkConfigurationsWithCaipChainId);
 
-        return {
-          id: network.caipChainId,
-          name: network.name,
-          caipChainId: network.caipChainId,
-          isSelected,
-          imageSource: getNetworkImageSource({
-            chainId: network.caipChainId,
-          }),
-          networkTypeOrRpcUrl: rpcUrl,
-        };
-      });
-    }
-    return (
-      filteredNetworkConfigurations as EvmAndMultichainNetworkConfigurationsWithCaipChainId[]
-    ).map((network) => {
+      const rpcEndpointsCount =
+        'rpcEndpoints' in network ? (network.rpcEndpoints?.length ?? 0) : 0;
+
+      const hasMultipleRpcs = rpcEndpointsCount > 1;
+
       const rpcUrl =
         'rpcEndpoints' in network
           ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
@@ -159,6 +146,7 @@ const useProcessedNetworks = (
         isSelected,
         imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
         networkTypeOrRpcUrl: rpcUrl,
+        hasMultipleRpcs,
       };
     });
   }, [filteredNetworkConfigurations, enabledNetworksForNamespace, networkType]);

@@ -23,6 +23,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
+        isInfuraEndpoint: true,
       } as const;
       const unknownAction = {
         type: 'UNKNOWN_ACTION_TYPE',
@@ -56,6 +57,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName,
         rpcUrl,
+        isInfuraEndpoint: true,
       });
 
       const result = reducer(initialState, action);
@@ -66,6 +68,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName,
         rpcUrl,
+        isInfuraEndpoint: true,
       });
     });
 
@@ -76,6 +79,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
+        isInfuraEndpoint: true,
       } as const;
 
       const newChainId = '0x89';
@@ -86,6 +90,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName: newNetworkName,
         rpcUrl: newNetworkRpcUrl,
+        isInfuraEndpoint: false,
       });
 
       const result = reducer(existingState, action);
@@ -96,6 +101,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName: newNetworkName,
         rpcUrl: newNetworkRpcUrl,
+        isInfuraEndpoint: false,
       });
     });
   });
@@ -108,6 +114,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
+        isInfuraEndpoint: true,
       } as const;
       const action = hideNetworkConnectionBanner();
 
@@ -137,6 +144,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName,
         rpcUrl,
+        isInfuraEndpoint: false,
       });
       const hideAction = hideNetworkConnectionBanner();
 
@@ -148,6 +156,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName,
         rpcUrl,
+        isInfuraEndpoint: false,
       });
 
       const afterHide = reducer(afterShow, hideAction);
@@ -166,6 +175,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
+        isInfuraEndpoint: true,
       } as const;
       const action = hideNetworkConnectionBanner();
 
@@ -178,6 +188,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName: 'Ethereum Mainnet',
         rpcUrl: 'https://mainnet.infura.io/v3/123',
+        isInfuraEndpoint: true,
       });
     });
 
@@ -187,6 +198,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
 
       const result = reducer(initialState, action);
@@ -198,6 +210,7 @@ describe('networkConnectionBanner reducer', () => {
         status: 'degraded',
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        isInfuraEndpoint: false,
       });
     });
   });

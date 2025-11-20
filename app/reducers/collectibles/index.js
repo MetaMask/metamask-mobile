@@ -23,60 +23,11 @@ export const collectibleContractsSelector = createSelector(
     allNftContracts[address]?.[chainId] || [],
 );
 
-export const multichainCollectibleContractsSelector = createSelector(
-  selectSelectedInternalAccountAddress,
-  selectAllNftContracts,
-  (address, allNftContracts) => allNftContracts[address] || {},
-);
-
-export const multichainCollectibleContractsByEnabledNetworksSelector =
-  createDeepEqualSelector(
-    selectSelectedInternalAccountAddress,
-    selectAllNftContracts,
-    selectEnabledNetworksByNamespace,
-    (address, allNftContracts, enabledNetworks) => {
-      const addressContracts = allNftContracts[address];
-
-      if (!addressContracts || Object.keys(addressContracts).length === 0) {
-        return {};
-      }
-
-      const enabledNetworksForEip155 =
-        enabledNetworks?.[KnownCaipNamespace.Eip155] || {};
-
-      if (
-        !enabledNetworksForEip155 ||
-        Object.keys(enabledNetworksForEip155).length === 0
-      ) {
-        return {};
-      }
-
-      const enabledChainIds = Object.keys(enabledNetworksForEip155).filter(
-        (chainId) => enabledNetworksForEip155[chainId],
-      );
-
-      if (enabledChainIds.length === 0) {
-        return {};
-      }
-
-      return enabledChainIds.reduce((acc, chainId) => {
-        acc[chainId] = addressContracts[chainId] || [];
-        return acc;
-      }, {});
-    },
-  );
-
 export const collectiblesSelector = createDeepEqualSelector(
   selectSelectedInternalAccountAddress,
   selectChainId,
   selectAllNfts,
   (address, chainId, allNfts) => allNfts[address]?.[chainId] || [],
-);
-
-export const multichainCollectiblesSelector = createDeepEqualSelector(
-  selectSelectedInternalAccountAddress,
-  selectAllNfts,
-  (address, allNfts) => allNfts[address] || {},
 );
 
 export const multichainCollectiblesByEnabledNetworksSelector =

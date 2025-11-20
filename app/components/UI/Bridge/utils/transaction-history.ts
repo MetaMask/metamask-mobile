@@ -1,18 +1,16 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isSolanaChainId,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { Transaction } from '@metamask/keyring-api';
 import {
   BridgeHistoryItem,
   MAX_ATTEMPTS,
 } from '@metamask/bridge-status-controller';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../constants/bridge';
 import { strings } from '../../../../../locales/i18n';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { TRANSACTION_TYPES } from '../../../../util/transactions';
 import { calculateTotalGas } from '../../TransactionElement/utils-gas';
 import {
@@ -21,6 +19,7 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   weiToFiat,
+  formatAmountWithThreshold,
 } from '../../../../util/number';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
@@ -44,7 +43,7 @@ export const getSwapBridgeTxActivityTitle = (
   }
 
   // Bridge
-  const destChainId = isSolanaChainId(quote.destChainId)
+  const destChainId = isNonEvmChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
     : formatChainIdToHex(quote.destChainId);
   const destChainName = NETWORK_TO_SHORT_NETWORK_NAME_MAP[destChainId];
@@ -74,10 +73,14 @@ export const decodeBridgeTx = (args: {
   const { quote } = bridgeTxHistoryItem;
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
-  const sourceAmountSent = ethers.utils.formatUnits(
-    bridgeTxHistoryItem.quote.srcTokenAmount,
-    quote.srcAsset.decimals,
+  const rawSourceAmount = parseFloat(
+    ethers.utils.formatUnits(
+      bridgeTxHistoryItem.quote.srcTokenAmount,
+      quote.srcAsset.decimals,
+    ),
   );
+  const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
+
   const renderTo = tx.txParams.to;
   const renderFrom = tx.txParams.from;
 
@@ -87,7 +90,7 @@ export const decodeBridgeTx = (args: {
     : contractExchangeRates?.[toFormattedAddress(quote.srcAsset.address)]
         ?.price;
   const sourceAmountFiatNumber = balanceToFiatNumber(
-    Number(sourceAmountSent),
+    rawSourceAmount,
     conversionRate,
     sourceExchangeRate,
   );
@@ -137,10 +140,14 @@ export const decodeSwapsTx = (args: {
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
   const destTokenSymbol = quote.destAsset?.symbol;
-  const sourceAmountSent = ethers.utils.formatUnits(
-    bridgeTxHistoryItem.quote.srcTokenAmount,
-    quote.srcAsset.decimals,
+  const rawSourceAmount = parseFloat(
+    ethers.utils.formatUnits(
+      bridgeTxHistoryItem.quote.srcTokenAmount,
+      quote.srcAsset.decimals,
+    ),
   );
+  const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
+
   const renderTo = tx.txParams.to;
   const renderFrom = tx.txParams.from;
 
@@ -156,7 +163,7 @@ export const decodeSwapsTx = (args: {
     : contractExchangeRates?.[toFormattedAddress(quote.srcAsset.address)]
         ?.price;
   const sourceAmountFiatNumber = balanceToFiatNumber(
-    Number(sourceAmountSent),
+    rawSourceAmount,
     conversionRate,
     sourceExchangeRate,
   );
@@ -181,13 +188,13 @@ export const decodeSwapsTx = (args: {
         destinationToken: destTokenSymbol,
       },
     ),
-    value: `-${sourceAmountSent} ${sourceTokenSymbol}`,
+    value: `${sourceAmountSent} ${sourceTokenSymbol}`,
     fiatValue: sourceAmountFiatValue,
     transactionType: TRANSACTION_TYPES.SWAPS_TRANSACTION,
   };
 
   const summaryTotalAmountNativeToken = `${
-    Number(sourceAmountSent) + Number(totalGasDecimalAmount)
+    rawSourceAmount + Number(totalGasDecimalAmount)
   } ${gasTokenSymbol}`;
   const summaryTotalAmountNativeTokenFiat = addCurrencySymbol(
     sourceAmountFiatNumber + weiToFiatNumber(totalGas, conversionRate),
@@ -227,19 +234,28 @@ export const decodeSwapsTx = (args: {
   return [transactionElement, transactionDetails];
 };
 
-export const handleUnifiedSwapsTxHistoryItemClick = (
-  navigation: ReturnType<typeof useNavigation>,
-  tx: TransactionMeta,
-  bridgeTxHistoryItem?: BridgeHistoryItem,
-) => {
+export const handleUnifiedSwapsTxHistoryItemClick = ({
+  navigation,
+  evmTxMeta,
+  multiChainTx,
+  bridgeTxHistoryItem,
+}: {
+  navigation: ReturnType<typeof useNavigation>;
+  evmTxMeta?: TransactionMeta;
+  multiChainTx?: Transaction;
+  bridgeTxHistoryItem?: BridgeHistoryItem;
+}) => {
   navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
-    evmTxMeta: tx,
+    evmTxMeta,
+    multiChainTx,
   });
 
   // Reset attempts if the bridge transaction has reached the max attempts and user has clicked on the transaction
-  if (bridgeTxHistoryItem && tx.type === TransactionType.bridge) {
-    const { attempts } = bridgeTxHistoryItem;
-    if (attempts && attempts.counter >= MAX_ATTEMPTS) {
+  if (bridgeTxHistoryItem) {
+    const { quote, attempts } = bridgeTxHistoryItem;
+    const isBridge = quote.srcAsset.chainId !== quote.destAsset.chainId;
+
+    if (isBridge && attempts && attempts.counter >= MAX_ATTEMPTS) {
       Engine.context.BridgeStatusController.restartPollingForFailedAttempts({
         txMetaId: bridgeTxHistoryItem.txMetaId,
       });

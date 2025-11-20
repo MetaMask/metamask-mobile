@@ -3,7 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsOrderTypeBottomSheet from './PerpsOrderTypeBottomSheet';
 import type { OrderType } from '../../controllers/types';
 
-// Mock dependencies
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
   SafeAreaConsumer: ({

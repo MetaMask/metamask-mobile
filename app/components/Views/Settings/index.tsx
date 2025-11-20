@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { getSettingsNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -21,7 +22,6 @@ import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -36,7 +36,6 @@ const Settings = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<any>();
@@ -55,10 +54,9 @@ const Settings = () => {
         strings('app_settings.title'),
         colors,
         navigation,
-        isRewardsEnabled,
       ),
     );
-  }, [navigation, colors, isRewardsEnabled]);
+  }, [navigation, colors]);
 
   useEffect(() => {
     updateNavBar();
@@ -100,10 +98,6 @@ const Settings = () => {
     navigation.navigate('SecuritySettings');
   };
 
-  const onPressNetworks = () => {
-    navigation.navigate('NetworksSettings');
-  };
-
   const onPressOnRamp = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED).build(),
@@ -133,6 +127,9 @@ const Settings = () => {
 
   const onPressDeveloperOptions = () => {
     navigation.navigate('DeveloperOptions');
+  };
+  const onPressFeatureFlagOverride = () => {
+    navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
   };
 
   const goToManagePermissions = () => {
@@ -218,142 +215,147 @@ const Settings = () => {
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
-    <ScrollView
-      style={styles.wrapper}
-      testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
-    >
-      <SettingsDrawer
-        description={strings('app_settings.general_desc')}
-        onPress={onPressGeneral}
-        title={strings('app_settings.general_title')}
-        testID={SettingsViewSelectorsIDs.GENERAL}
-      />
-      <SettingsDrawer
-        description={strings('app_settings.security_desc')}
-        onPress={onPressSecurity}
-        title={strings('app_settings.security_title')}
-        warning={
-          !oauthFlow && !seedphraseBackedUp
-            ? strings('drawer.settings_warning')
-            : ''
-        }
-        testID={SettingsViewSelectorsIDs.SECURITY}
-      />
-      <SettingsDrawer
-        description={strings('app_settings.advanced_desc')}
-        onPress={onPressAdvanced}
-        title={strings('app_settings.advanced_title')}
-        testID={SettingsViewSelectorsIDs.ADVANCED}
-      />
-      <SettingsDrawer
-        description={strings('backupAndSync.description')}
-        onPress={onPressBackupAndSync}
-        title={strings('backupAndSync.title')}
-        testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
-      />
-      {isNotificationsFeatureEnabled() && (
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
+      <ScrollView
+        style={styles.wrapper}
+        testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
+      >
         <SettingsDrawer
-          description={strings('app_settings.notifications_desc')}
-          onPress={onPressNotifications}
-          title={strings('app_settings.notifications_title')}
-          testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
+          description={strings('app_settings.general_desc')}
+          onPress={onPressGeneral}
+          title={strings('app_settings.general_title')}
+          testID={SettingsViewSelectorsIDs.GENERAL}
         />
-      )}
-      {isPermissionsSettingsV1Enabled && (
         <SettingsDrawer
-          description={strings('app_settings.permissions_desc')}
-          onPress={goToManagePermissions}
-          title={strings('app_settings.permissions_title')}
-          testID={SettingsViewSelectorsIDs.PERMISSIONS}
+          description={strings('app_settings.security_desc')}
+          onPress={onPressSecurity}
+          title={strings('app_settings.security_title')}
+          warning={
+            !oauthFlow && !seedphraseBackedUp
+              ? strings('drawer.settings_warning')
+              : ''
+          }
+          testID={SettingsViewSelectorsIDs.SECURITY}
         />
-      )}
-      {isEvmSelected && (
         <SettingsDrawer
-          description={strings('app_settings.contacts_desc')}
-          onPress={onPressContacts}
-          title={strings('app_settings.contacts_title')}
-          testID={SettingsViewSelectorsIDs.CONTACTS}
+          description={strings('app_settings.advanced_desc')}
+          onPress={onPressAdvanced}
+          title={strings('app_settings.advanced_title')}
+          testID={SettingsViewSelectorsIDs.ADVANCED}
         />
-      )}
-      <SettingsDrawer
-        title={strings('app_settings.networks_title')}
-        description={strings('app_settings.networks_desc')}
-        onPress={onPressNetworks}
-        testID={SettingsViewSelectorsIDs.NETWORKS}
-      />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
-      }
-      <SettingsDrawer
-        title={strings('app_settings.snaps.title')}
-        description={strings('app_settings.snaps.description')}
-        onPress={onPressSnaps}
-        testID={SettingsViewSelectorsIDs.SNAPS}
-      />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
-      <SettingsDrawer
-        title={strings('app_settings.fiat_on_ramp.title')}
-        description={strings('app_settings.fiat_on_ramp.description')}
-        onPress={onPressOnRamp}
-        testID={SettingsViewSelectorsIDs.ON_RAMP}
-      />
-      <SettingsDrawer
-        title={strings('app_settings.experimental_title')}
-        description={strings('app_settings.experimental_desc')}
-        onPress={onPressExperimental}
-        testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
-      />
-      {
-        /**
-         * This drawer is only visible in test mode.
-         * It is used to test the AES crypto functions.
-         *
-         * If this is shown in production, it is a bug.
-         */
-        isTest && (
+        <SettingsDrawer
+          description={strings('backupAndSync.description')}
+          onPress={onPressBackupAndSync}
+          title={strings('backupAndSync.title')}
+          testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
+        />
+        {isNotificationsFeatureEnabled() && (
           <SettingsDrawer
-            title={strings('app_settings.aes_crypto_test_form_title')}
-            description={strings(
-              'app_settings.aes_crypto_test_form_description',
-            )}
-            onPress={onPressAesCryptoTestForm}
-            testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
+            description={strings('app_settings.notifications_desc')}
+            onPress={onPressNotifications}
+            title={strings('app_settings.notifications_title')}
+            testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
           />
-        )
-      }
-      <SettingsDrawer
-        title={aboutMetaMaskTitle}
-        onPress={onPressInfo}
-        testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
-      />
-      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        )}
+        {isPermissionsSettingsV1Enabled && (
+          <SettingsDrawer
+            description={strings('app_settings.permissions_desc')}
+            onPress={goToManagePermissions}
+            title={strings('app_settings.permissions_title')}
+            testID={SettingsViewSelectorsIDs.PERMISSIONS}
+          />
+        )}
+        {isEvmSelected && (
+          <SettingsDrawer
+            description={strings('app_settings.contacts_desc')}
+            onPress={onPressContacts}
+            title={strings('app_settings.contacts_title')}
+            testID={SettingsViewSelectorsIDs.CONTACTS}
+          />
+        )}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+        }
         <SettingsDrawer
-          title={strings('app_settings.developer_options.title')}
-          onPress={onPressDeveloperOptions}
+          title={strings('app_settings.snaps.title')}
+          description={strings('app_settings.snaps.description')}
+          onPress={onPressSnaps}
+          testID={SettingsViewSelectorsIDs.SNAPS}
         />
-      )}
-      <SettingsDrawer
-        title={strings('app_settings.request_feature')}
-        onPress={submitFeedback}
-        renderArrowRight={false}
-        testID={SettingsViewSelectorsIDs.REQUEST}
-      />
-      <SettingsDrawer
-        title={strings('app_settings.contact_support')}
-        onPress={showHelp}
-        renderArrowRight={false}
-        testID={SettingsViewSelectorsIDs.CONTACT}
-      />
-      <SettingsDrawer
-        title={strings('drawer.lock')}
-        onPress={lock}
-        renderArrowRight={false}
-        testID={SettingsViewSelectorsIDs.LOCK}
-        titleColor={TextColor.Primary}
-      />
-    </ScrollView>
+        {
+          ///: END:ONLY_INCLUDE_IF
+        }
+        <SettingsDrawer
+          title={strings('app_settings.fiat_on_ramp.title')}
+          description={strings('app_settings.fiat_on_ramp.description')}
+          onPress={onPressOnRamp}
+          testID={SettingsViewSelectorsIDs.ON_RAMP}
+        />
+        <SettingsDrawer
+          title={strings('app_settings.experimental_title')}
+          description={strings('app_settings.experimental_desc')}
+          onPress={onPressExperimental}
+          testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
+        />
+        {
+          /**
+           * This drawer is only visible in test mode.
+           * It is used to test the AES crypto functions.
+           *
+           * If this is shown in production, it is a bug.
+           */
+          isTest && (
+            <SettingsDrawer
+              title={strings('app_settings.aes_crypto_test_form_title')}
+              description={strings(
+                'app_settings.aes_crypto_test_form_description',
+              )}
+              onPress={onPressAesCryptoTestForm}
+              testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
+            />
+          )
+        }
+        <SettingsDrawer
+          title={aboutMetaMaskTitle}
+          onPress={onPressInfo}
+          testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
+        />
+        {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+          <SettingsDrawer
+            title={strings('app_settings.developer_options.title')}
+            onPress={onPressDeveloperOptions}
+          />
+        )}
+        {process.env.METAMASK_ENVIRONMENT !== 'production' && (
+          <SettingsDrawer
+            title={strings('app_settings.feature_flag_override.title')}
+            description={strings(
+              'app_settings.feature_flag_override.description',
+            )}
+            onPress={onPressFeatureFlagOverride}
+          />
+        )}
+        <SettingsDrawer
+          title={strings('app_settings.request_feature')}
+          onPress={submitFeedback}
+          renderArrowRight={false}
+          testID={SettingsViewSelectorsIDs.REQUEST}
+        />
+        <SettingsDrawer
+          title={strings('app_settings.contact_support')}
+          onPress={showHelp}
+          renderArrowRight={false}
+          testID={SettingsViewSelectorsIDs.CONTACT}
+        />
+        <SettingsDrawer
+          title={strings('drawer.lock')}
+          onPress={lock}
+          renderArrowRight={false}
+          testID={SettingsViewSelectorsIDs.LOCK}
+          titleColor={TextColor.Primary}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

@@ -4,7 +4,10 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
+import {
+  PAY_TYPES,
+  useSignedOrSubmittedAlert,
+} from './useSignedOrSubmittedAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
 import { AlertKeys } from '../../constants/alerts';
@@ -160,44 +163,91 @@ describe('useSignedOrSubmittedAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert if current and existing transaction are perps deposit', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue({
-      ...TRANSACTION_META_MOCK,
-      id: '2',
-      status: TransactionStatus.confirmed,
-      type: TransactionType.perpsDeposit,
-    } as TransactionMeta);
+  it.each(PAY_TYPES)(
+    'returns alert if current and existing transaction are %s',
+    (type) => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        ...TRANSACTION_META_MOCK,
+        id: '2',
+        status: TransactionStatus.confirmed,
+        type,
+      } as TransactionMeta);
 
-    const { result } = renderHookWithProvider(
-      () => useSignedOrSubmittedAlert(),
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              TransactionController: {
-                transactions: [
-                  {
-                    ...TRANSACTION_META_MOCK,
-                    type: TransactionType.perpsDeposit,
-                  },
-                ],
+      const { result } = renderHookWithProvider(
+        () => useSignedOrSubmittedAlert(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                TransactionController: {
+                  transactions: [
+                    {
+                      ...TRANSACTION_META_MOCK,
+                      type,
+                    },
+                  ],
+                },
               },
             },
           },
         },
-      },
-    );
+      );
 
-    expect(result.current).toStrictEqual([
-      {
-        isBlocking: true,
-        key: AlertKeys.SignedOrSubmitted,
-        message: strings(
-          'alert_system.signed_or_submitted_perps_deposit.message',
-        ),
-        title: strings('alert_system.signed_or_submitted_perps_deposit.title'),
-        severity: Severity.Danger,
-      },
-    ]);
-  });
+      expect(result.current).toStrictEqual([
+        {
+          isBlocking: true,
+          key: AlertKeys.SignedOrSubmitted,
+          message: strings(
+            'alert_system.signed_or_submitted_perps_deposit.message',
+          ),
+          title: strings(
+            'alert_system.signed_or_submitted_perps_deposit.title',
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    },
+  );
+
+  it.each(PAY_TYPES)(
+    'returns alert if existing transaction is submitted and current type is %s',
+    (type) => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        ...TRANSACTION_META_MOCK,
+        id: '2',
+        status: TransactionStatus.confirmed,
+        type,
+      } as TransactionMeta);
+
+      const existingTransaction = {
+        ...TRANSACTION_META_MOCK,
+        status: TransactionStatus.submitted,
+      };
+
+      const { result } = renderHookWithProvider(
+        () => useSignedOrSubmittedAlert(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                TransactionController: {
+                  transactions: [existingTransaction],
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current).toStrictEqual([
+        {
+          isBlocking: true,
+          key: AlertKeys.SignedOrSubmitted,
+          message: strings('alert_system.signed_or_submitted.message'),
+          title: strings('alert_system.signed_or_submitted.title'),
+          severity: Severity.Danger,
+        },
+      ]);
+    },
+  );
 });

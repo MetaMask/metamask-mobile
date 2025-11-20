@@ -23,7 +23,7 @@ export const TEST_ADDRESSES = {
 
 // Test amounts for send flows
 export const TEST_AMOUNTS = {
-  ETHEREUM: '0.00001',
+  ETHEREUM: '0.0001',
   SOLANA: '0.001',
 };
 

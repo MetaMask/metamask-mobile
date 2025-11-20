@@ -8,9 +8,10 @@ import type {
   HyperLiquidTransportConfig,
   TradingDefaultsConfig,
   FeeRatesConfig,
-} from '../types';
+} from '../types/perps-types';
 
 // Network constants
+export const ARBITRUM_MAINNET_CHAIN_ID_HEX = '0xa4b1';
 export const ARBITRUM_MAINNET_CHAIN_ID = '42161';
 export const ARBITRUM_TESTNET_CHAIN_ID = '421614';
 export const ARBITRUM_MAINNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_MAINNET_CHAIN_ID}`;
@@ -57,6 +58,10 @@ export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
 export const HYPERLIQUID_ASSET_ICONS_BASE_URL =
   'https://app.hyperliquid.xyz/coins/';
 
+// HIP-3 asset icons base URL (for assets with dex:symbol format)
+export const HIP3_ASSET_ICONS_BASE_URL =
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/';
+
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
   USDC: {
@@ -94,7 +99,6 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
   marginPercent: 10, // 10% fixed margin default
   takeProfitPercent: 0.3, // 30% take profit
   stopLossPercent: 0.1, // 10% stop loss
-  slippage: 0.05, // 5% max slippage protection
   amount: {
     mainnet: 10, // $10 minimum order size
     testnet: 10, // $10 minimum order size
@@ -109,6 +113,38 @@ export const FEE_RATES: FeeRatesConfig = {
   maker: 0.00015, // 0.015% - Limit orders that add liquidity
 };
 
+/**
+ * HIP-3 fee multiplier configuration
+ *
+ * HIP-3 (builder-deployed) perpetual markets charge 2x base fees compared to
+ * validator-operated markets. This covers a 50/50 split between the protocol
+ * and the builder/deployer.
+ *
+ * Reference: HIP-3.md line 45 - "From the user perspective, fees are 2x the
+ * usual fees on validator-operated perp markets."
+ *
+ * Applied to:
+ * - Base fee rates (taker/maker)
+ * - User-specific discounted rates
+ * - All fee calculations for HIP-3 assets (identified by dex:SYMBOL format)
+ *
+ * Example: For xyz:TSLA (HIP-3 asset):
+ * - Base taker rate: 0.045%
+ * - After HIP-3 multiplier: 0.045% × 2 = 0.090%
+ * - Protocol receives: 0.045% (same as regular markets)
+ * - Builder receives: 0.045% (deployed market incentive)
+ *
+ * @see HIP-3.md for detailed protocol specification
+ * @see parseAssetName() in HyperLiquidProvider for HIP-3 asset detection
+ */
+export const HIP3_FEE_CONFIG = {
+  /**
+   * Fee multiplier for HIP-3 assets (2x base rate)
+   * Covers 50% deployer share + 50% protocol share
+   */
+  FEE_MULTIPLIER: 2,
+} as const;
+
 const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
 
 // Builder fee configuration
@@ -122,7 +158,7 @@ export const BUILDER_FEE_CONFIG = {
   maxFeeTenthsBps: BUILDER_FEE_MAX_FEE_DECIMAL * 100000,
   maxFeeRate: `${(BUILDER_FEE_MAX_FEE_DECIMAL * 100)
     .toFixed(4)
-    .replace(/\.?0+$/, '')}%` as `${string}%`,
+    .replace(/\.?0+$/, '')}%`,
 };
 
 // Referral code configuration
@@ -166,6 +202,7 @@ export const DEPOSIT_CONFIG = {
 
 // Withdrawal constants (HyperLiquid-specific)
 export const HYPERLIQUID_WITHDRAWAL_MINUTES = 5; // HyperLiquid withdrawal processing time in minutes
+export const HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS = 30000; // 30 seconds progress update interval
 
 // Type helpers
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
@@ -202,3 +239,111 @@ export function getSupportedAssets(isTestnet?: boolean): CaipAssetId[] {
 export const CAIP_ASSET_NAMESPACES = {
   ERC20: 'erc20',
 } as const;
+
+/**
+ * HyperLiquid protocol-specific configuration
+ * Contains constants specific to HyperLiquid's perps exchange
+ */
+export const HYPERLIQUID_CONFIG = {
+  // Exchange name used in predicted funding data
+  // HyperLiquid uses 'HlPerp' as their perps exchange identifier
+  EXCHANGE_NAME: 'HlPerp',
+} as const;
+
+/**
+ * HIP-3 multi-DEX asset ID calculation constants
+ * Per HIP-3-IMPLEMENTATION.md:
+ * - Main DEX: assetId = index (0, 1, 2, ...)
+ * - HIP-3 DEX: assetId = BASE_ASSET_ID + (perpDexIndex × DEX_MULTIPLIER) + index
+ *
+ * This formula enables proper order routing across multiple DEXs:
+ * - Main DEX (perpDexIndex=0): Uses index directly (BTC=0, ETH=1, SOL=2, etc.)
+ * - xyz DEX (perpDexIndex=1): 100000 + (1 × 10000) + index = 110000-110999
+ * - abc DEX (perpDexIndex=2): 100000 + (2 × 10000) + index = 120000-120999
+ *
+ * Supports up to 10 HIP-3 DEXs with 10000 assets each.
+ */
+export const HIP3_ASSET_ID_CONFIG = {
+  // Base offset for HIP-3 asset IDs (100000)
+  // Ensures HIP-3 asset IDs don't conflict with main DEX indices
+  BASE_ASSET_ID: 100000,
+
+  // Multiplier for DEX index in asset ID calculation (10000)
+  // Allocates 10000 asset ID slots per DEX (0-9999)
+  DEX_MULTIPLIER: 10000,
+} as const;
+
+/**
+ * Basis points conversion constant
+ * 1 basis point (bp) = 0.01% = 0.0001 as decimal
+ * Used for fee discount calculations (e.g., 6500 bps = 65%)
+ */
+export const BASIS_POINTS_DIVISOR = 10000;
+
+/**
+ * HIP-3 asset market type classifications (PRODUCTION DEFAULT)
+ *
+ * This is the production default configuration, can be overridden via feature flag
+ * (remoteFeatureFlags.perpsAssetMarketTypes) for dynamic control.
+ *
+ * Maps asset symbols (e.g., "xyz:TSLA") to their market type for badge display.
+ *
+ * Market type determines the badge shown in the UI:
+ * - 'equity': STOCK badge (stocks like TSLA, NVDA)
+ * - 'commodity': COMMODITY badge (commodities like GOLD)
+ * - 'forex': FOREX badge (forex pairs)
+ * - undefined: No badge for crypto or unmapped assets
+ *
+ * Format: 'dex:SYMBOL' → MarketType
+ * This allows flexible per-asset classification.
+ * Assets not listed here will have no market type (undefined).
+ */
+export const HIP3_ASSET_MARKET_TYPES: Record<
+  string,
+  'equity' | 'commodity' | 'forex' | 'crypto'
+> = {
+  // xyz DEX - Equities
+  'xyz:TSLA': 'equity',
+  'xyz:NVDA': 'equity',
+  'xyz:XYZ100': 'equity',
+
+  // xyz DEX - Commodities
+  'xyz:GOLD': 'commodity',
+
+  // Future asset mappings as xyz adds more markets
+} as const;
+
+/**
+ * HIP-3 margin management configuration
+ * Controls margin buffers and auto-rebalance behavior for HIP-3 DEXes with isolated margin
+ *
+ * Background: HyperLiquid validates availableBalance >= totalRequiredMargin BEFORE reallocating
+ * existing locked margin. This requires temporary over-funding when increasing positions,
+ * followed by automatic cleanup to minimize locked capital.
+ */
+export const HIP3_MARGIN_CONFIG = {
+  /**
+   * Margin buffer multiplier for fees and slippage (0.3% = multiply by 1.003)
+   * Covers HyperLiquid's max taker fee (0.035%) with comfortable margin
+   */
+  BUFFER_MULTIPLIER: 1.003,
+
+  /**
+   * Desired buffer to keep on HIP-3 DEX after auto-rebalance (USDC amount)
+   * Small buffer allows quick follow-up orders without transfers
+   */
+  REBALANCE_DESIRED_BUFFER: 0.1,
+
+  /**
+   * Minimum excess threshold to trigger auto-rebalance (USDC amount)
+   * Prevents unnecessary transfers for tiny amounts
+   */
+  REBALANCE_MIN_THRESHOLD: 0.1,
+} as const;
+
+// Progress bar constants
+export const INITIAL_AMOUNT_UI_PROGRESS = 10;
+export const WITHDRAWAL_PROGRESS_STAGES = [
+  25, 35, 45, 55, 65, 75, 85, 90, 95, 98,
+];
+export const PROGRESS_BAR_COMPLETION_DELAY_MS = 500;

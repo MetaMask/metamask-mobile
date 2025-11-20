@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
@@ -55,13 +56,15 @@ const GeneralSettings = () => {
   };
 
   return (
-    <ScrollView style={styles.root}>
-      <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
-      <BackupAndSyncToggle
-        trackBackupAndSyncToggleEventOverride={trackBackupAndSyncToggleEvent}
-      />
-      <ManageNetworksComponent />
-    </ScrollView>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
+      <ScrollView style={styles.scrollRoot}>
+        <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
+        <BackupAndSyncToggle
+          trackBackupAndSyncToggleEventOverride={trackBackupAndSyncToggleEvent}
+        />
+        <ManageNetworksComponent />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

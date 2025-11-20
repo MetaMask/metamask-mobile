@@ -71,17 +71,23 @@ jobs:
         run: |
           .github/scripts/resolve-previous-ref.sh
 
+  generate-build-version:
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.3.0
+    permissions:
+      id-token: write
+
   create-release-pr:
-    needs: [resolve-bases, resolve-previous-ref]
+    needs: [resolve-bases, resolve-previous-ref, generate-build-version]
     name: Create Release Pull Request using Github Tools
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@6090afa85c94a6b64a79e992d94b11610d02181a
+    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@6a04e4d0c8c25680a7543cfcd2e2fb7125b6759c
     with:
       platform: mobile
       checkout-base-branch: ${{ needs.resolve-bases.outputs.checkout_base }}
       release-pr-base-branch: ${{ needs.resolve-bases.outputs.release_base }}
       semver-version: ${{ inputs.semver-version }}
       previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
-      github-tools-version: 6090afa85c94a6b64a79e992d94b11610d02181a
+      mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
+      github-tools-version: 6a04e4d0c8c25680a7543cfcd2e2fb7125b6759c
     secrets:
       # This token needs write permissions to metamask-mobile & read permissions to metamask-planning
       # If called from auto-create-release-pr use the PR_TOKEN passed in as an input, if called manually use github secret token values
@@ -91,23 +97,4 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-
-  add-e2e-label:
-    needs: create-release-pr
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - name: Add Run Smoke E2E label to release PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Find the release PR that was just created
-          PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --head "release/${{ inputs.semver-version }}" --json number --jq '.[0].number')
-          if [ -n "$PR_NUMBER" ]; then
-            gh pr edit "$PR_NUMBER" --repo ${{ github.repository }} --add-label "Run Smoke E2E"
-            echo "Added 'Run Smoke E2E' label to PR #$PR_NUMBER"
-          else
-            echo "Could not find release PR for release/${{ inputs.semver-version }}"
-            exit 1
-          fi
+      id-token: write

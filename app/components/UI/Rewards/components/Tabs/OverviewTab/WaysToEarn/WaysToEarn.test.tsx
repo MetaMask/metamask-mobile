@@ -1,16 +1,30 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { WaysToEarn, WayToEarnType } from './WaysToEarn';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
 import { SwapBridgeNavigationLocation } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
+import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
+import {
+  selectRewardsCardSpendFeatureFlags,
+  selectRewardsMusdDepositEnabledFlag,
+} from '../../../../../../../selectors/featureFlagController/rewards';
+import { useFeatureFlag } from '../../../../../../../components/hooks/useFeatureFlag';
+import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../../../../utils';
 
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockGoToSwaps = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
 let mockIsFirstTimePerpsUser = false;
+let mockIsCardSpendEnabled = false;
+let mockIsPredictEnabled = false;
+let mockIsMusdDepositEnabled = false;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -29,12 +43,31 @@ jest.mock('../../../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
 // Mock react-redux
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(
-    () =>
-      // For the isFirstTimePerpsUser selector
-      mockIsFirstTimePerpsUser,
-  ),
+  useSelector: jest.fn(),
 }));
+
+// Mock useMetrics hook
+jest.mock('../../../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  })),
+  MetaMetricsEvents: {
+    REWARDS_WAYS_TO_EARN_CTA_CLICKED: 'rewards_ways_to_earn_cta_clicked',
+    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
+  },
+}));
+
+// Mock useFeatureFlag hook
+jest.mock('../../../../../../../components/hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual(
+    '../../../../../../../components/hooks/useFeatureFlag',
+  );
+  return {
+    useFeatureFlag: jest.fn(),
+    FeatureFlagNames: actual.FeatureFlagNames,
+  };
+});
 
 // Mock getNativeAssetForChainId
 jest.mock('@metamask/bridge-controller', () => ({
@@ -47,6 +80,10 @@ jest.mock('@metamask/bridge-controller', () => ({
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
+>;
+
+const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+  typeof useFeatureFlag
 >;
 
 // Mock i18n strings
@@ -79,6 +116,32 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'rewards.ways_to_earn.loyalty.sheet.description':
         'Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.',
       'rewards.ways_to_earn.loyalty.sheet.cta_label': 'Add accounts',
+      // Predict strings
+      'rewards.ways_to_earn.predict.title': 'Prediction markets',
+      'rewards.ways_to_earn.predict.description':
+        '20 points per $10 prediction',
+      'rewards.ways_to_earn.predict.sheet.title': 'Prediction markets',
+      'rewards.ways_to_earn.predict.sheet.points': '20 points per $10',
+      'rewards.ways_to_earn.predict.sheet.description':
+        'Earn points on every $10 you trade.',
+      'rewards.ways_to_earn.predict.sheet.cta_label': 'Browse markets',
+      // Card strings
+      'rewards.ways_to_earn.card.title': 'MetaMask Card',
+      'rewards.ways_to_earn.card.description': '1 point per $1 spent',
+      'rewards.ways_to_earn.card.sheet.title': 'MetaMask Card',
+      'rewards.ways_to_earn.card.sheet.points': '1 point per $1 spent',
+      'rewards.ways_to_earn.card.sheet.description':
+        'Earn points every time you use your MetaMask Card for purchases, plus 1% cash back (3% for Metal cardholders).',
+      'rewards.ways_to_earn.card.sheet.cta_label': 'Manage Card',
+      // Deposit MUSD strings
+      'rewards.ways_to_earn.deposit_musd.title': 'Deposit mUSD',
+      'rewards.ways_to_earn.deposit_musd.description':
+        '2 points per $100 deposited',
+      'rewards.ways_to_earn.deposit_musd.sheet.title': 'Deposit mUSD',
+      'rewards.ways_to_earn.deposit_musd.sheet.points': '2 points per $100',
+      'rewards.ways_to_earn.deposit_musd.sheet.description':
+        'Earn points on every $100 mUSD you deposit.',
+      'rewards.ways_to_earn.deposit_musd.sheet.cta_label': 'Deposit mUSD',
     };
     return mockStrings[key] || key;
   }),
@@ -115,9 +178,9 @@ jest.mock(
   () => ({
     __esModule: true,
     default: () => {
-      const React = jest.requireActual('react');
+      const ReactActual = jest.requireActual('react');
       const { Text } = jest.requireActual('react-native');
-      return React.createElement(
+      return ReactActual.createElement(
         Text,
         { testID: 'metamask-rewards-points' },
         'Points Icon',
@@ -127,14 +190,45 @@ jest.mock(
 );
 
 describe('WaysToEarn', () => {
+  let openURLSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    openURLSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     mockIsFirstTimePerpsUser = false;
+    mockIsCardSpendEnabled = false;
+    mockIsPredictEnabled = false;
+    mockIsMusdDepositEnabled = false;
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
     } as unknown as ReturnType<typeof useNavigation>);
+
+    // Mock createEventBuilder to return a builder object
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      addSensitiveProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    }));
+
+    // Assign useSelector implementation here so we can safely reference imported selectors
+    const mockUseSelector = jest.requireMock('react-redux')
+      .useSelector as jest.Mock;
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectIsFirstTimePerpsUser) {
+        return mockIsFirstTimePerpsUser;
+      }
+      if (selector === selectRewardsCardSpendFeatureFlags) {
+        return mockIsCardSpendEnabled;
+      }
+      if (selector === selectRewardsMusdDepositEnabledFlag) {
+        return mockIsMusdDepositEnabled;
+      }
+      return undefined;
+    });
+    // Mock useFeatureFlag for predict flag
+    mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
   });
 
   it('renders the component title', () => {
@@ -147,27 +241,36 @@ describe('WaysToEarn', () => {
 
   it('renders all earning ways', () => {
     // Arrange & Act
-    const { getByText } = render(<WaysToEarn />);
+    const { getByText, queryByText } = render(<WaysToEarn />);
 
     // Assert
     expect(getByText('Swap')).toBeOnTheScreen();
     expect(getByText('Perps')).toBeOnTheScreen();
     expect(getByText('Refer friends')).toBeOnTheScreen();
     expect(getByText('Loyalty bonus')).toBeOnTheScreen();
+    // Predict hidden when flag disabled
+    expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
+    // MM Card Spend hidden when flag disabled
+    expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
+    // Deposit mUSD hidden when flag disabled
+    expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
   });
 
   it('displays correct descriptions for each earning way', () => {
     // Arrange & Act
-    const { getByText } = render(<WaysToEarn />);
+    const { getByText, queryByText } = render(<WaysToEarn />);
 
     // Assert
     expect(getByText('80 points per $100')).toBeOnTheScreen();
     expect(getByText('10 points per $100')).toBeOnTheScreen();
     expect(getByText('10 points per 50 from friends')).toBeOnTheScreen();
     expect(getByText('Earn points from past trades')).toBeOnTheScreen();
+    expect(queryByText('20 points per $10 prediction')).not.toBeOnTheScreen();
+    expect(queryByText('1 point per $1 spent')).not.toBeOnTheScreen();
+    expect(queryByText('Earn points on deposits')).not.toBeOnTheScreen();
   });
 
-  it('navigates to referrals when referral item is pressed', () => {
+  it('opens referral bottom sheet modal when referral item is pressed', () => {
     // Arrange
     const { getByText } = render(<WaysToEarn />);
     const referralButton = getByText('Refer friends');
@@ -176,7 +279,13 @@ describe('WaysToEarn', () => {
     fireEvent.press(referralButton);
 
     // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_REFERRAL_BOTTOM_SHEET_MODAL,
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+    );
   });
 
   it('opens modal for swap earning way when pressed', () => {
@@ -199,6 +308,10 @@ describe('WaysToEarn', () => {
           variant: 'Primary',
         }),
       }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
     );
   });
 
@@ -245,6 +358,10 @@ describe('WaysToEarn', () => {
     // Assert
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockGoToSwaps).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
+    );
   });
 
   it('navigates to perps tutorial for first-time users', () => {
@@ -267,9 +384,7 @@ describe('WaysToEarn', () => {
 
     // Assert
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.TUTORIAL,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
   });
 
   it('navigates to perps markets for returning users', () => {
@@ -293,7 +408,7 @@ describe('WaysToEarn', () => {
     // Assert
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKETS,
+      screen: Routes.PERPS.PERPS_HOME,
     });
   });
 
@@ -386,6 +501,205 @@ describe('WaysToEarn', () => {
       expect(WayToEarnType.PERPS).toBe('perps');
       expect(WayToEarnType.REFERRALS).toBe('referrals');
       expect(WayToEarnType.LOYALTY).toBe('loyalty');
+      expect(WayToEarnType.PREDICT).toBe('predict');
+      expect(WayToEarnType.CARD).toBe('card');
+      expect(WayToEarnType.DEPOSIT_MUSD).toBe('deposit_musd');
+    });
+  });
+
+  describe('Predict', () => {
+    it('shows Predict earning way only when feature flag is enabled', () => {
+      // Arrange
+      const { queryByText, rerender } = render(<WaysToEarn />);
+
+      // Assert hidden by default
+      expect(queryByText('Prediction markets')).not.toBeOnTheScreen();
+
+      // Enable flag
+      mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
+      rerender(<WaysToEarn />);
+
+      // Assert visible now
+      expect(queryByText('Prediction markets')).toBeOnTheScreen();
+      expect(queryByText('20 points per $10 prediction')).toBeOnTheScreen();
+    });
+
+    it('opens modal for predict earning way when pressed', () => {
+      // Arrange
+      mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
+      const { getByText } = render(<WaysToEarn />);
+      const predictButton = getByText('Prediction markets');
+
+      // Act
+      fireEvent.press(predictButton);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          type: ModalType.Confirmation,
+          showIcon: false,
+          showCancelButton: false,
+          confirmAction: expect.objectContaining({
+            label: 'Browse markets',
+            variant: 'Primary',
+          }),
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+    });
+
+    it('navigates to predict market list when predict CTA is pressed', () => {
+      // Arrange
+      mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
+      const { getByText } = render(<WaysToEarn />);
+      const predictButton = getByText('Prediction markets');
+
+      // Act
+      fireEvent.press(predictButton);
+
+      // Get the onPress handler from the modal navigation call
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      // Execute the CTA action
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: expect.any(String),
+        },
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
+      );
+    });
+  });
+
+  describe('Card spend', () => {
+    it('shows Card earning way only when feature flag is enabled', () => {
+      // Arrange
+      const { queryByText, rerender } = render(<WaysToEarn />);
+
+      // Assert hidden by default
+      expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
+
+      // Enable flag
+      mockIsCardSpendEnabled = true;
+      rerender(<WaysToEarn />);
+
+      // Assert visible now
+      expect(queryByText('MetaMask Card')).toBeOnTheScreen();
+      expect(queryByText('1 point per $1 spent')).toBeOnTheScreen();
+    });
+
+    it('opens modal and navigates to Card root on CTA', () => {
+      // Arrange
+      mockIsCardSpendEnabled = true;
+      const { getByText } = render(<WaysToEarn />);
+
+      // Open card info modal
+      fireEvent.press(getByText('MetaMask Card'));
+
+      // Extract confirm action
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      // Act
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    });
+  });
+
+  describe('Deposit mUSD', () => {
+    it('shows Deposit mUSD earning way only when feature flag is enabled', () => {
+      // Arrange
+      const { queryByText, rerender } = render(<WaysToEarn />);
+
+      // Assert hidden by default
+      expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
+
+      // Enable flag
+      mockIsMusdDepositEnabled = true;
+      rerender(<WaysToEarn />);
+
+      // Assert visible now
+      expect(queryByText('Deposit mUSD')).toBeOnTheScreen();
+      expect(queryByText('2 points per $100 deposited')).toBeOnTheScreen();
+    });
+
+    it('opens modal for deposit mUSD earning way when pressed', () => {
+      // Arrange
+      mockIsMusdDepositEnabled = true;
+      const { getByText } = render(<WaysToEarn />);
+      const depositMusdButton = getByText('Deposit mUSD');
+
+      // Act
+      fireEvent.press(depositMusdButton);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          type: ModalType.Confirmation,
+          showIcon: false,
+          showCancelButton: false,
+          confirmAction: expect.objectContaining({
+            label: 'Deposit mUSD',
+            variant: 'Primary',
+          }),
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+    });
+
+    it('opens URL when deposit mUSD CTA is pressed', () => {
+      // Arrange
+      mockIsMusdDepositEnabled = true;
+      const { getByText } = render(<WaysToEarn />);
+      const depositMusdButton = getByText('Deposit mUSD');
+
+      // Act
+      fireEvent.press(depositMusdButton);
+
+      // Get the onPress handler from the modal navigation call
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      // Execute the CTA action
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(openURLSpy).toHaveBeenCalledWith(
+        'https://go.metamask.io/turtle-musd',
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
+      );
     });
   });
 
@@ -404,6 +718,61 @@ describe('WaysToEarn', () => {
         location: SwapBridgeNavigationLocation.Rewards,
         sourcePage: 'rewards_overview',
       });
+    });
+  });
+
+  describe('Metrics tracking', () => {
+    it('tracks button click event with correct properties when earning way is pressed', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+      const swapButton = getByText('Swap');
+
+      // Act
+      fireEvent.press(swapButton);
+
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+      const builder = mockCreateEventBuilder.mock.results[0].value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        button_type: RewardsMetricsButtons.WAYS_TO_EARN,
+        ways_to_earn_type: WayToEarnType.SWAPS,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CTA click event with correct properties when CTA is pressed', () => {
+      // Arrange
+      const { getByText } = render(<WaysToEarn />);
+      const swapButton = getByText('Swap');
+
+      // Act
+      fireEvent.press(swapButton);
+
+      // Get the onPress handler from the modal navigation call
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      // Clear previous calls to track only CTA event
+      mockCreateEventBuilder.mockClear();
+      mockTrackEvent.mockClear();
+
+      // Execute the CTA action
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
+      );
+      const ctaBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(ctaBuilder).toBeTruthy();
+      expect(ctaBuilder.addProperties).toHaveBeenCalledWith({
+        ways_to_earn_type: WayToEarnType.SWAPS,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

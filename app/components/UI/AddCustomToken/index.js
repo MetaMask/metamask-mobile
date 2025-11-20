@@ -1,13 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-  Text,
-  TextInput,
-  View,
-  StyleSheet,
-  InteractionManager,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { Text, TextInput, View, StyleSheet, ScrollView } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -26,7 +18,6 @@ import { regex } from '../../../../app/util/regex';
 import {
   getBlockExplorerAddressUrl,
   getDecimalChainId,
-  getNetworkImageSource,
 } from '../../../util/networks';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
@@ -35,7 +26,6 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import Icon, {
-  IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
@@ -45,11 +35,6 @@ import Banner, {
 } from '../../../component-library/components/Banners/Banner';
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import Logger from '../../../util/Logger';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
@@ -124,24 +109,10 @@ const createStyles = (colors) =>
       position: 'relative',
       width: '100%',
       alignSelf: 'center',
+      marginBottom: 16,
     },
     textWrapper: {
       padding: 0,
-    },
-    networkSelectorContainer: {
-      borderWidth: 1,
-      marginBottom: 16,
-      marginTop: 4,
-      borderColor: colors.border.default,
-      borderRadius: 8,
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 16,
-    },
-    networkSelectorText: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      fontSize: 16,
     },
   });
 
@@ -191,11 +162,6 @@ class AddCustomToken extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
-
-    /**
-     * Function to set the open network selector
-     */
-    setOpenNetworkSelector: PropTypes.func,
 
     /**
      * The selected network
@@ -289,12 +255,13 @@ class AddCustomToken extends PureComponent {
 
   onAddressChange = async (address) => {
     this.setState({ address });
+    const validated = await this.validateCustomTokenAddress(address);
+
     if (address.length === 42) {
       try {
         this.setState({ isSymbolEditable: false });
         this.setState({ isDecimalEditable: false });
 
-        const validated = await this.validateCustomTokenAddress(address);
         if (validated) {
           const { AssetsContractController } = Engine.context;
           const [decimals, symbol, name] = await Promise.all([
@@ -311,7 +278,6 @@ class AddCustomToken extends PureComponent {
               this.props.networkClientId,
             ),
           ]);
-
           this.setState({
             decimals: String(decimals),
             symbol,
@@ -331,7 +297,6 @@ class AddCustomToken extends PureComponent {
         decimals: '',
         symbol: '',
         name: '',
-        warningAddress: '',
         warningSymbol: '',
         warningDecimals: '',
       });
@@ -355,7 +320,6 @@ class AddCustomToken extends PureComponent {
       isValidTokenAddress && (await isSmartContractAddress(address, chainId));
 
     const addressWithoutSpaces = address.replace(regex.addressWithSpaces, '');
-
     if (addressWithoutSpaces.length === 0) {
       this.setState({
         warningAddress: strings('token.address_cant_be_empty'),
@@ -365,6 +329,7 @@ class AddCustomToken extends PureComponent {
       this.setState({
         warningAddress: strings('token.address_must_be_valid'),
       });
+
       validated = false;
     } else if (!toSmartContract) {
       this.setState({
@@ -568,20 +533,20 @@ class AddCustomToken extends PureComponent {
     const addressInputStyle = onFocusAddress
       ? { ...styles.textInput, ...styles.textInputFocus }
       : warningAddress
-      ? styles.textInputError
-      : styles.textInput;
+        ? styles.textInputError
+        : styles.textInput;
 
     const textInputDecimalsStyle = !isDecimalEditable
       ? { ...styles.textInput, ...styles.textInputDisabled }
       : warningDecimals
-      ? styles.textInputError
-      : styles.textInput;
+        ? styles.textInputError
+        : styles.textInput;
 
     const textInputSymbolStyle = !isSymbolEditable
       ? { ...styles.textInput, ...styles.textInputDisabled }
       : warningSymbol
-      ? styles.textInputError
-      : styles.textInput;
+        ? styles.textInputError
+        : styles.textInput;
 
     const { title, url } = getBlockExplorerAddressUrl(
       this.props.type,
@@ -593,39 +558,6 @@ class AddCustomToken extends PureComponent {
         <ScrollView>
           {this.renderBanner()}
           <View style={styles.addressWrapper}>
-            <TouchableOpacity
-              style={styles.networkSelectorContainer}
-              onPress={() => this.props.setOpenNetworkSelector(true)}
-              onLongPress={() => this.props.setOpenNetworkSelector(true)}
-            >
-              <Text style={styles.networkSelectorText}>
-                {this.props.selectedNetwork ||
-                  strings('networks.select_network')}
-              </Text>
-              <View style={styles.overlappingAvatarsContainer}>
-                {this.props.selectedNetwork ? (
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Sm}
-                    name={this.props.selectedNetwork}
-                    imageSource={getNetworkImageSource({
-                      networkType: 'evm',
-                      chainId: this.props.chainId,
-                    })}
-                    testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
-                  />
-                ) : null}
-
-                <ButtonIcon
-                  iconName={IconName.ArrowDown}
-                  iconColor={IconColor.Default}
-                  testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
-                  onPress={() => this.props.setOpenNetworkSelector(true)}
-                  accessibilityRole="button"
-                  style={styles.buttonIcon}
-                />
-              </View>
-            </TouchableOpacity>
             <Text style={styles.inputLabel}>
               {strings('asset_details.address')}
             </Text>

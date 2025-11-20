@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Dimensions,
   Linking,
@@ -121,6 +121,8 @@ const RevealPrivateCredential = ({
     useState<string>('');
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const passwordInputRef = useRef<TextInput>(null);
+
   const keyringId = route?.params?.keyringId;
 
   const checkSummedAddress = useSelector(
@@ -482,6 +484,7 @@ const RevealPrivateCredential = ({
         {strings('reveal_credential.enter_password')}
       </Text>
       <TextInput
+        ref={passwordInputRef}
         style={styles.input}
         placeholder={'Password'}
         placeholderTextColor={colors.text.muted}
@@ -491,6 +494,11 @@ const RevealPrivateCredential = ({
         onSubmitEditing={tryUnlock}
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
+        onTouchStart={() => {
+          if (!passwordInputRef.current?.isFocused()) {
+            passwordInputRef.current?.focus();
+          }
+        }}
       />
       <Text
         style={styles.warningText}

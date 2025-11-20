@@ -41,6 +41,10 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       paddingTop: 0,
       marginTop: 16,
     },
+    tabsSection: {
+      paddingVertical: 8,
+      // No horizontal padding - TabsList provides its own
+    },
     // Fixed actions footer - positioned at bottom of screen
     actionsFooter: {
       backgroundColor: theme.colors.background.default,
@@ -70,8 +74,8 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       padding: 24,
     },
     riskDisclaimer: {
-      paddingHorizontal: 4,
-      paddingTop: 8,
       textAlign: 'left',
+      lineHeight: 14,
+      paddingTop: 8,
     },
   });

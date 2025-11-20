@@ -7,6 +7,7 @@ import ContractAddressRegistry from '../../app/util/test/contract-address-regist
 import Ganache from '../../app/util/test/ganache';
 import { Mockttp } from 'mockttp';
 import FixtureBuilder from './fixtures/FixtureBuilder';
+import CommandQueueServer from './fixtures/CommandQueueServer';
 
 export interface GestureOptions {
   timeout?: number;
@@ -75,6 +76,25 @@ export interface RampsRegion {
   detected: boolean;
 }
 
+export enum ServerStatus {
+  STOPPED = 'stopped',
+  STARTED = 'started',
+}
+
+/**
+ * Interface representing a resource that can be started and stopped.
+ * Examples: FixtureServer, MockServer, CommandQueueServer, etc.
+ */
+export interface Resource {
+  stop(): Promise<void>;
+  start(): Promise<void>;
+  isStarted(): boolean;
+  setServerPort(port: number): void;
+  getServerPort(): number;
+  getServerStatus(): ServerStatus;
+  getServerUrl?: string;
+}
+
 // Fixtures and Local Node Types
 // Available local node types
 export enum LocalNodeType {
@@ -82,6 +102,14 @@ export enum LocalNodeType {
   ganache = 'ganache',
   bitcoin = 'bitcoin',
 }
+
+export enum PerpsModifiersCommandTypes {
+  pushPrice = 'push-price',
+  forceLiquidation = 'force-liquidation',
+  mockDeposit = 'mock-deposit',
+}
+
+export type CommandType = PerpsModifiersCommandTypes;
 
 export enum GanacheHardfork {
   london = 'london',
@@ -157,6 +185,7 @@ export interface TestSuiteParams {
   contractRegistry?: ContractAddressRegistry;
   mockServer: Mockttp;
   localNodes?: LocalNode[];
+  commandQueueServer?: CommandQueueServer;
 }
 
 /**
@@ -203,7 +232,7 @@ export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
 
 /**
  * The options for the withFixtures function.
- * @param {FixtureBuilder} fixture - The state of the fixture to load.
+ * @param {FixtureBuilder | ((ctx: { localNodes?: LocalNode[] }) => FixtureBuilder | Promise<FixtureBuilder>)} fixture - The state of the fixture to load or a function that returns a fixture builder.
  * @param {boolean} [restartDevice=false] - If true, restarts the app to apply the loaded fixture.
  * @param {string[]} [smartContracts] - The smart contracts to load for test. These will be deployed on the different {localNodeOptions}
  * @param {LocalNodeOptionsInput} [localNodeOptions] - The local node options to use for the test.
@@ -216,7 +245,11 @@ export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
  * @param {() => Promise<void>} [endTestfn] - The function to execute after the test is finished.
  */
 export interface WithFixturesOptions {
-  fixture: FixtureBuilder;
+  fixture:
+    | FixtureBuilder
+    | ((ctx: {
+        localNodes?: LocalNode[];
+      }) => FixtureBuilder | Promise<FixtureBuilder>);
   restartDevice?: boolean;
   smartContracts?: string[];
   disableLocalNodes?: boolean;
@@ -228,4 +261,11 @@ export interface WithFixturesOptions {
   permissions?: Record<string, unknown>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTestfn?: (...args: any[]) => Promise<void>;
+  /**
+   * Skip reloading React Native during cleanup to preserve app state between tests.
+   * Use this when tests need to maintain state across multiple `it` blocks.
+   * @default false
+   */
+  skipReactNativeReload?: boolean;
+  useCommandQueueServer?: boolean;
 }

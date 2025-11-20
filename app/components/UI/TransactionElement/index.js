@@ -59,6 +59,7 @@ import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRa
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -151,6 +152,13 @@ const transactionIconSentFailed = require('../../../images/transaction-icons/sen
 const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
 const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
 /* eslint-enable import/no-commonjs */
+
+const NEW_TRANSACTION_DETAILS_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictClaim,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 /**
  * View that renders a transaction item part of transactions list
@@ -271,12 +279,13 @@ class TransactionElement extends PureComponent {
       this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
 
     if (tx.type === TransactionType.bridge || isUnifiedSwap) {
-      handleUnifiedSwapsTxHistoryItemClick(
-        this.props.navigation,
-        tx,
-        this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
-      );
-    } else if (tx.type === TransactionType.perpsDeposit) {
+      handleUnifiedSwapsTxHistoryItemClick({
+        navigation: this.props.navigation,
+        evmTxMeta: tx,
+        bridgeTxHistoryItem:
+          this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
+      });
+    } else if (hasTransactionType(tx, NEW_TRANSACTION_DETAILS_TYPES)) {
       this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
         transactionId: tx.id,
       });

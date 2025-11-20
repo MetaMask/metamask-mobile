@@ -5,6 +5,7 @@ import {
   SettingsViewSelectorsText,
 } from '../../selectors/Settings/SettingsView.selectors';
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
+import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
 
 class SettingsView {
   get title(): DetoxElement {
@@ -25,10 +26,6 @@ class SettingsView {
 
   get securityAndPrivacyButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
-  }
-
-  get networksButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
   }
 
   get notificationsButton(): DetoxElement {
@@ -126,12 +123,6 @@ class SettingsView {
     });
   }
 
-  async tapNetworks(): Promise<void> {
-    await Gestures.waitAndTap(this.networksButton, {
-      elemDescription: 'Settings - Networks Button',
-    });
-  }
-
   async tapNotifications(): Promise<void> {
     await Gestures.waitAndTap(this.notificationsButton, {
       elemDescription: 'Settings - Notifications Button',
@@ -175,6 +166,21 @@ class SettingsView {
     });
   }
 
+  get developerOptionsButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.DEVELOPER_OPTIONS);
+  }
+
+  async scrollToDeveloperOptions() {
+    await Gestures.scrollToElement(
+      this.developerOptionsButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async tapDeveloperOptions() {
+    await Gestures.waitAndTap(this.developerOptionsButton);
+  }
+
   async tapSnaps(): Promise<void> {
     await Gestures.scrollToElement(
       this.snapsSectionButton,
@@ -186,6 +192,16 @@ class SettingsView {
 
     await Gestures.tap(this.snapsSectionButton, {
       elemDescription: 'Settings - Snaps Button',
+    });
+  }
+
+  get closeButton(): DetoxElement {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+  }
+
+  async tapCloseButton(): Promise<void> {
+    await Gestures.tap(this.closeButton, {
+      elemDescription: 'Settings - Close Button',
     });
   }
 }

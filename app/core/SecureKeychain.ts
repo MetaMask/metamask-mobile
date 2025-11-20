@@ -98,7 +98,7 @@ const SecureKeychain = {
    * @param scopeOptions - Keychain options that define the scope to clear
    * @returns Promise that resolves when the scope is cleared
    */
-  async clearSecureScope(scopeOptions: Keychain.Options) {
+  async clearSecureScope(scopeOptions: Keychain.SetOptions) {
     return Keychain.resetGenericPassword(scopeOptions);
   },
 
@@ -112,7 +112,7 @@ const SecureKeychain = {
   async setSecureItem(
     key: string,
     value: string,
-    scopeOptions: Keychain.Options,
+    scopeOptions: Keychain.SetOptions,
   ) {
     const encryptedValue = await instance.encryptPassword(value);
     return Keychain.setGenericPassword(key, encryptedValue, scopeOptions);
@@ -123,7 +123,7 @@ const SecureKeychain = {
    * @param scopeOptions - Keychain options that define the scope to retrieve from
    * @returns Promise that resolves to an object with key and value, or null if not found
    */
-  async getSecureItem(scopeOptions: Keychain.Options) {
+  async getSecureItem(scopeOptions: Keychain.SetOptions) {
     if (instance) {
       try {
         instance.isAuthenticating = true;
@@ -162,9 +162,8 @@ const SecureKeychain = {
     if (instance) {
       try {
         instance.isAuthenticating = true;
-        const keychainObject = await Keychain.getGenericPassword(
-          defaultOptions,
-        );
+        const keychainObject =
+          await Keychain.getGenericPassword(defaultOptions);
         if (keychainObject && keychainObject.password) {
           const encryptedPassword = keychainObject.password;
           const decrypted = await instance.decryptPassword(encryptedPassword);
@@ -182,7 +181,7 @@ const SecureKeychain = {
   },
 
   async setGenericPassword(password: string, type?: SecureKeychainTypes) {
-    const authOptions: Keychain.Options = {
+    const authOptions: Keychain.SetOptions = {
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     };
 
@@ -253,6 +252,7 @@ const SecureKeychain = {
 
             return;
           }
+          throw error;
         }
       }
     } else if (type === this.TYPES.PASSCODE) {

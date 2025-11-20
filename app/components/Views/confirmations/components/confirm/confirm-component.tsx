@@ -1,10 +1,5 @@
-import React, { useEffect } from 'react';
-import {
-  BackHandler,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import React, { ReactNode, useEffect } from 'react';
+import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
@@ -24,17 +19,32 @@ import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-
 import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
-import { Footer } from '../footer';
+import { Footer, FooterSkeleton } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
-import { PerpsDepositSkeleton } from '../../external/perps-temp/components/deposit-skeleton';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
+import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '../../utils/transaction';
+import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
+import { TransferInfoSkeleton } from '../info/transfer/transfer';
+
+const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
+
+const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 export enum ConfirmationLoader {
   Default = 'default',
-  PerpsDeposit = 'perpsDeposit',
+  CustomAmount = 'customAmount',
+  PredictClaim = 'predictClaim',
+  Transfer = 'transfer',
 }
 
 export interface ConfirmationParams {
@@ -46,10 +56,11 @@ const ConfirmWrapped = ({
   styles,
   route,
 }: {
-  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+  styles: ReturnType<typeof styleSheet>;
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const alerts = useConfirmationAlerts();
+  const isScrollDisabled = useDisableScroll();
 
   return (
     <ConfirmationContextProvider>
@@ -59,17 +70,16 @@ const ConfirmWrapped = ({
             <LedgerContextProvider>
               <Title />
               <ScrollView
-                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 style={styles.scrollView}
-                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 contentContainerStyle={styles.scrollViewContent}
                 nestedScrollEnabled
+                scrollEnabled={!isScrollDisabled}
               >
                 <TouchableWithoutFeedback>
                   <>
-                    <AlertBanner ignoreTypes={[TransactionType.perpsDeposit]} />
+                    <AlertBanner
+                      ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                    />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>
@@ -133,9 +143,13 @@ export const Confirm = ({ route }: ConfirmProps) => {
   // Show confirmation in a flat container if the confirmation is full screen
   if (isFullScreenConfirmation) {
     return (
-      <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
+      <SafeAreaView
+        edges={['right', 'bottom', 'left']}
+        style={styles.flatContainer}
+        testID={ConfirmationUIType.FLAT}
+      >
         <ConfirmWrapped styles={styles} route={route} />
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -158,16 +172,27 @@ function Loader() {
   const params = useParams<ConfirmationParams>();
   const loader = params?.loader ?? ConfirmationLoader.Default;
 
-  if (loader === ConfirmationLoader.PerpsDeposit) {
+  if (loader === ConfirmationLoader.CustomAmount) {
     return (
-      <View style={styles.flatContainer} testID="confirm-loader-perps-deposit">
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-        >
-          <PerpsDepositSkeleton />
-        </ScrollView>
-      </View>
+      <InfoLoader testId="confirm-loader-custom-amount" loader={loader}>
+        <CustomAmountInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.PredictClaim) {
+    return (
+      <InfoLoader testId="confirm-loader-predict-claim" loader={loader}>
+        <PredictClaimInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.Transfer) {
+    return (
+      <InfoLoader testId="confirm-loader-transfer" loader={loader}>
+        <TransferInfoSkeleton />
+      </InfoLoader>
     );
   }
 
@@ -176,4 +201,37 @@ function Loader() {
       <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
   );
+}
+
+function InfoLoader({
+  children,
+  testId,
+  loader,
+}: {
+  children: ReactNode;
+  testId?: string;
+  loader: ConfirmationLoader;
+}) {
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+
+  return (
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={styles.flatContainer}
+      testID={testId}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        {children}
+      </ScrollView>
+      {loader === ConfirmationLoader.Transfer && <FooterSkeleton />}
+    </SafeAreaView>
+  );
+}
+
+function useDisableScroll() {
+  const transaction = useTransactionMetadataRequest();
+  return hasTransactionType(transaction, TRANSACTION_TYPES_DISABLE_SCROLL);
 }

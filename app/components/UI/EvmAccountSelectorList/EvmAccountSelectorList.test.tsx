@@ -199,10 +199,18 @@ const initialState = {
         networksWithTransactionActivity:
           MOCK_NETWORKS_WITH_TRANSACTION_ACTIVITY,
       },
-      FeatureFlagController: {
-        multichainAccounts: {
-          enabled: false,
-          enabledForDevelopment: false,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          enableMultichainAccounts: {
+            enabled: false,
+            featureVersion: null,
+            minimumVersion: null,
+          },
+          enableMultichainAccountsState2: {
+            enabled: false,
+            featureVersion: null,
+            minimumVersion: null,
+          },
         },
       },
     },

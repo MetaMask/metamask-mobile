@@ -3,13 +3,17 @@
  */
 export const PERPS_CONSTANTS = {
   FEATURE_FLAG_KEY: 'perpsEnabled',
+  FEATURE_NAME: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
   WEBSOCKET_TIMEOUT: 5000, // 5 seconds
   WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
   BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
   CONNECTION_TIMEOUT_MS: 10_000, // 10 seconds timeout for connection and position loading states
+  DEFAULT_MONITORING_TIMEOUT_MS: 10_000, // 10 seconds default timeout for data monitoring operations
 
   // Connection timing constants
   CONNECTION_GRACE_PERIOD_MS: 20_000, // 20 seconds grace period before actual disconnection (same as BACKGROUND_DISCONNECT_DELAY for semantic clarity)
+  CONNECTION_ATTEMPT_TIMEOUT_MS: 30_000, // 30 seconds timeout for connection attempts to prevent indefinite hanging
+  WEBSOCKET_PING_TIMEOUT_MS: 5_000, // 5 seconds timeout for WebSocket health check ping
   RECONNECTION_CLEANUP_DELAY_MS: 500, // Platform-agnostic delay to ensure WebSocket is ready
   RECONNECTION_DELAY_ANDROID_MS: 300, // Android-specific reconnection delay for better reliability on slower devices
   RECONNECTION_DELAY_IOS_MS: 100, // iOS-specific reconnection delay for optimal performance
@@ -21,7 +25,12 @@ export const PERPS_CONSTANTS = {
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
   FALLBACK_PRICE_DISPLAY: '$---', // Display when price data is unavailable
+  FALLBACK_PERCENTAGE_DISPLAY: '--%', // Display when change data is unavailable
   FALLBACK_DATA_DISPLAY: '--', // Display when non-price data is unavailable
+  ZERO_AMOUNT_DISPLAY: '$0', // Display for zero dollar amounts (e.g., no volume)
+  ZERO_AMOUNT_DETAILED_DISPLAY: '$0.00', // Display for zero dollar amounts with decimals
+
+  RECENT_ACTIVITY_LIMIT: 3,
 } as const;
 
 /**
@@ -65,6 +74,29 @@ export const VALIDATION_THRESHOLDS = {
 } as const;
 
 /**
+ * Order slippage configuration
+ * Controls default slippage tolerance for different order types
+ * Conservative defaults based on HyperLiquid platform interface
+ * See: docs/perps/hyperliquid/ORDER-MATCHING-ERRORS.md
+ */
+export const ORDER_SLIPPAGE_CONFIG = {
+  // Market order slippage (basis points)
+  // 300 basis points = 3% = 0.03 decimal
+  // Conservative default for measured rollout, prevents most IOC failures
+  DEFAULT_MARKET_SLIPPAGE_BPS: 300,
+
+  // TP/SL order slippage (basis points)
+  // 1000 basis points = 10% = 0.10 decimal
+  // Aligns with HyperLiquid platform default for triggered orders
+  DEFAULT_TPSL_SLIPPAGE_BPS: 1000,
+
+  // Limit order slippage (basis points)
+  // 100 basis points = 1% = 0.01 decimal
+  // Kept conservative as limit orders rest on book (not IOC/immediate execution)
+  DEFAULT_LIMIT_SLIPPAGE_BPS: 100,
+} as const;
+
+/**
  * Performance optimization constants
  * These values control debouncing and throttling for better performance
  */
@@ -75,7 +107,7 @@ export const PERFORMANCE_CONFIG = {
 
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
-  VALIDATION_DEBOUNCE_MS: 1000,
+  VALIDATION_DEBOUNCE_MS: 300,
 
   // Liquidation price debounce delay (milliseconds)
   // Prevents excessive liquidation price calls during rapid form input changes
@@ -85,6 +117,10 @@ export const PERFORMANCE_CONFIG = {
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs
   NAVIGATION_PARAMS_DELAY_MS: 200,
+
+  // Tab control reset delay (milliseconds)
+  // Delay to reset programmatic tab control after tab switching to prevent render loops
+  TAB_CONTROL_RESET_DELAY_MS: 500,
 
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data
@@ -103,6 +139,29 @@ export const PERFORMANCE_CONFIG = {
   FEE_DISCOUNT_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
   // How long to cache points calculation parameters from rewards API
   POINTS_CALCULATION_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+
+  /**
+   * Performance logging markers for filtering logs during development and debugging
+   * These markers help isolate performance-related logs from general application logs
+   * Usage: Use in DevLogger calls to easily filter specific performance areas
+   * Impact: Development only (uses DevLogger) - zero production performance cost
+   *
+   * Examples:
+   * - Filter Sentry performance logs: `adb logcat | grep PERPSMARK_SENTRY`
+   * - Filter MetaMetrics events: `adb logcat | grep PERPSMARK_METRICS`
+   * - Filter WebSocket performance: `adb logcat | grep PERPSMARK_WS`
+   * - Filter all Perps performance: `adb logcat | grep PERPSMARK_`
+   */
+  LOGGING_MARKERS: {
+    // Sentry performance measurement logs (screen loads, bottom sheets, API timing)
+    SENTRY_PERFORMANCE: 'PERPSMARK_SENTRY',
+
+    // MetaMetrics event tracking logs (user interactions, business analytics)
+    METAMETRICS_EVENTS: 'PERPSMARK_METRICS',
+
+    // WebSocket performance logs (connection timing, data flow, reconnections)
+    WEBSOCKET_PERFORMANCE: 'PERPSMARK_SENTRY_WS',
+  } as const,
 } as const;
 
 /**
@@ -122,6 +181,33 @@ export const LEVERAGE_SLIDER_CONFIG = {
 
 export const TP_SL_CONFIG = {
   USE_POSITION_BOUND_TPSL: true,
+} as const;
+
+/**
+ * TP/SL View UI configuration
+ * Controls the Take Profit / Stop Loss screen behavior and display options
+ */
+export const TP_SL_VIEW_CONFIG = {
+  // Quick percentage button presets for Take Profit (positive RoE percentages)
+  TAKE_PROFIT_ROE_PRESETS: [10, 25, 50, 100], // +10%, +25%, +50%, +100% RoE
+
+  // Quick percentage button presets for Stop Loss (negative RoE percentages)
+  STOP_LOSS_ROE_PRESETS: [-5, -10, -25, -50], // -5%, -10%, -25%, -50% RoE
+
+  // WebSocket price update throttle delay (milliseconds)
+  // Reduces re-renders by batching price updates in the TP/SL screen
+  PRICE_THROTTLE_MS: 1000,
+
+  // Maximum number of digits allowed in price/percentage input fields
+  // Prevents overflow and maintains reasonable input constraints
+  MAX_INPUT_DIGITS: 9,
+
+  // Keypad configuration for price inputs
+  // USD_PERPS is not a real currency - it's a custom configuration
+  // that allows 5 decimal places for crypto prices, overriding the
+  // default USD configuration which only allows 2 decimal places
+  KEYPAD_CURRENCY_CODE: 'USD_PERPS' as const,
+  KEYPAD_DECIMALS: 5,
 } as const;
 
 /**
@@ -204,6 +290,21 @@ export const FUNDING_RATE_CONFIG = {
   PERCENTAGE_MULTIPLIER: 100,
 } as const;
 
+/**
+ * Decimal precision configuration
+ * Controls maximum decimal places for price and input validation
+ */
+export const DECIMAL_PRECISION_CONFIG = {
+  // Maximum decimal places for price input (matches Hyperliquid limit)
+  // Used in TP/SL forms, limit price inputs, and price validation
+  MAX_PRICE_DECIMALS: 6,
+  // Defensive fallback for size decimals when market data fails to load
+  // Real szDecimals should always come from market data API (varies by asset)
+  // Using 6 as safe maximum to prevent crashes (covers most assets)
+  // NOTE: This is NOT semantically correct - just a defensive measure
+  FALLBACK_SIZE_DECIMALS: 6,
+} as const;
+
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
@@ -223,4 +324,129 @@ export const DEVELOPMENT_CONFIG = {
   SIMULATE_REWARDS_LOADING_AMOUNT: 43,
 
   // Future: Add other development helpers as needed
+} as const;
+
+/**
+ * Home screen configuration
+ * Controls carousel limits and display settings for the main Perps home screen
+ */
+export const HOME_SCREEN_CONFIG = {
+  // Maximum number of items to show in each carousel
+  POSITIONS_CAROUSEL_LIMIT: 10,
+  ORDERS_CAROUSEL_LIMIT: 10,
+  TRENDING_MARKETS_LIMIT: 5,
+  RECENT_ACTIVITY_LIMIT: 3,
+
+  // Carousel display behavior
+  CAROUSEL_SNAP_ALIGNMENT: 'start' as const,
+  CAROUSEL_VISIBLE_ITEMS: 1.2, // Show 1 full item + 20% of next
+
+  // Icon sizes for consistent display across sections
+  DEFAULT_ICON_SIZE: 40, // Default token icon size for cards and rows
+} as const;
+
+/**
+ * Market sorting configuration
+ * Controls sorting behavior and presets for the trending markets view
+ */
+export const MARKET_SORTING_CONFIG = {
+  // Default sort settings
+  DEFAULT_SORT_OPTION_ID: 'volume' as const,
+  DEFAULT_DIRECTION: 'desc' as const,
+
+  // Available sort fields (only includes fields supported by PerpsMarketData)
+  SORT_FIELDS: {
+    VOLUME: 'volume',
+    PRICE_CHANGE: 'priceChange',
+    OPEN_INTEREST: 'openInterest',
+    FUNDING_RATE: 'fundingRate',
+  } as const,
+
+  // Sort button presets for filter chips (simplified buttons without direction)
+  SORT_BUTTON_PRESETS: [
+    { field: 'volume', labelKey: 'perps.sort.volume' },
+    { field: 'priceChange', labelKey: 'perps.sort.price_change' },
+    { field: 'fundingRate', labelKey: 'perps.sort.funding_rate' },
+  ] as const,
+
+  // Sort options for the bottom sheet
+  // Each option combines field + direction into a single selectable item
+  // Only Price Change has both directions as separate options
+  SORT_OPTIONS: [
+    {
+      id: 'volume',
+      labelKey: 'perps.sort.volume',
+      field: 'volume',
+      direction: 'desc',
+    },
+    {
+      id: 'priceChange-desc',
+      labelKey: 'perps.sort.price_change_high_to_low',
+      field: 'priceChange',
+      direction: 'desc',
+    },
+    {
+      id: 'priceChange-asc',
+      labelKey: 'perps.sort.price_change_low_to_high',
+      field: 'priceChange',
+      direction: 'asc',
+    },
+    {
+      id: 'openInterest',
+      labelKey: 'perps.sort.open_interest',
+      field: 'openInterest',
+      direction: 'desc',
+    },
+    {
+      id: 'fundingRate',
+      labelKey: 'perps.sort.funding_rate',
+      field: 'fundingRate',
+      direction: 'desc',
+    },
+  ] as const,
+} as const;
+
+/**
+ * Type for valid sort option IDs
+ * Derived from SORT_OPTIONS to ensure type safety
+ * Valid values: 'volume' | 'priceChange-desc' | 'priceChange-asc' | 'openInterest' | 'fundingRate'
+ */
+export type SortOptionId =
+  (typeof MARKET_SORTING_CONFIG.SORT_OPTIONS)[number]['id'];
+
+/**
+ * Type for sort button presets (filter chips)
+ * Derived from SORT_BUTTON_PRESETS to ensure type safety
+ */
+export type SortButtonPreset =
+  (typeof MARKET_SORTING_CONFIG.SORT_BUTTON_PRESETS)[number];
+
+/**
+ * Learn more card configuration
+ * External resources and content for Perps education
+ */
+export const LEARN_MORE_CONFIG = {
+  EXTERNAL_URL: 'https://metamask.io/perps',
+  TITLE_KEY: 'perps.tutorial.card.title',
+  DESCRIPTION_KEY: 'perps.learn_more.description',
+  CTA_KEY: 'perps.learn_more.cta',
+} as const;
+
+/**
+ * Support configuration
+ * Contact support button configuration (matches Settings behavior)
+ */
+export const SUPPORT_CONFIG = {
+  URL: 'https://support.metamask.io',
+  TITLE_KEY: 'perps.support.title',
+  DESCRIPTION_KEY: 'perps.support.description',
+} as const;
+
+/**
+ * Support article URLs
+ * Links to specific MetaMask support articles for Perps features
+ */
+export const PERPS_SUPPORT_ARTICLES_URLS = {
+  ADL_URL:
+    'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
 } as const;

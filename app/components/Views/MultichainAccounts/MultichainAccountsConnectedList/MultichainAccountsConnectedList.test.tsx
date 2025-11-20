@@ -5,7 +5,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
 import {
@@ -130,10 +129,15 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
     address: '0x1234567890123456789012345678901234567890',
     id: 'mock-account-id',
   }),
+  selectInternalAccountByAccountGroupAndScope: () => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+    id: 'mock-account-id',
+  }),
 }));
 
 jest.mock('../../../../selectors/settings', () => ({
   selectAvatarAccountType: () => 'MaskIcon',
+  selectBasicFunctionalityEnabled: () => true,
 }));
 
 jest.mock(
@@ -419,8 +423,10 @@ describe('MultichainAccountsConnectedList', () => {
   });
 
   describe('handleSelectAccount functionality', () => {
-    it('calls setSelectedAccountGroup when account is selected', () => {
-      const { getByText } = renderMultichainAccountsConnectedList();
+    it('calls setSelectedAccountGroup when account is selected (not in connection flow)', () => {
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: false,
+      });
 
       const accountCell = getByText('Account 1');
 
@@ -433,7 +439,9 @@ describe('MultichainAccountsConnectedList', () => {
     });
 
     it('calls setSelectedAccountGroup with correct account ID for different accounts', () => {
-      const { getByText } = renderMultichainAccountsConnectedList();
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: false,
+      });
 
       const account1Cell = getByText('Account 1');
       const account2Cell = getByText('Account 2');
@@ -452,38 +460,21 @@ describe('MultichainAccountsConnectedList', () => {
 
       expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(2);
     });
-  });
 
-  describe('Selected Account Visual Indicator', () => {
-    it('displays checkmark icon for the selected account', () => {
-      // Given a list of connected accounts with the first account selected
-      const selectedAccountGroupId = MOCK_ACCOUNT_GROUP_1.id;
-      const groups = [MOCK_ACCOUNT_GROUP_1, MOCK_ACCOUNT_GROUP_2];
-      const wallet = createMockWallet('test-group', 'Test Wallet', groups);
-      const internalAccounts = createMockInternalAccountsFromGroups(groups);
+    it('only calls setSelectedAccountGroup when account is selected in connection flow', () => {
+      const mockHandleEdit = jest.fn();
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: true,
+        handleEditAccountsButtonPress: mockHandleEdit,
+      });
 
-      // Create state with selected account group
-      const state = createMockState([wallet], internalAccounts);
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
-        selectedAccountGroupId;
+      const accountCell = getByText('Account 1');
+      fireEvent.press(accountCell);
 
-      const store = mockStore(state as unknown as Record<string, unknown>);
-
-      const { getByText, getByTestId } = render(
-        <Provider store={store}>
-          <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-            <MultichainAccountsConnectedList {...DEFAULT_PROPS} />
-          </ToastContext.Provider>
-        </Provider>,
-      );
-
-      // When rendering the list
-      // Then the selected account should display a checkmark
-      expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Account 2')).toBeTruthy();
-
-      // Assert that the checkmark icon is present for the selected account
-      expect(getByTestId(AccountCellIds.CHECK_ICON)).toBeTruthy();
+      // Should only call set selected account group instead of navigating
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(1);
+      expect(mockHandleEdit).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -494,8 +485,10 @@ describe('MultichainAccountsConnectedList', () => {
       mockSetSelectedAccountGroup.mockClear();
     });
 
-    it('shows toast when account is selected', () => {
-      const { getByText } = renderMultichainAccountsConnectedList();
+    it('shows toast when account is selected (not in connection flow)', () => {
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: false,
+      });
 
       const accountCell = getByText('Account 1');
       fireEvent.press(accountCell);
@@ -516,9 +509,11 @@ describe('MultichainAccountsConnectedList', () => {
       });
     });
 
-    it('navigates to browser home after showing toast', () => {
-      // Given a connected account
-      const { getByText } = renderMultichainAccountsConnectedList();
+    it('navigates to browser home after showing toast (not in connection flow)', () => {
+      // Given a connected account (not in connection flow)
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: false,
+      });
 
       // When selecting an account
       const accountCell = getByText('Account 1');
@@ -527,6 +522,21 @@ describe('MultichainAccountsConnectedList', () => {
       // Then should navigate to browser home
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME);
+    });
+
+    it('does not show toast or navigate when in connection flow', () => {
+      const mockHandleEdit = jest.fn();
+      const { getByText } = renderMultichainAccountsConnectedList({
+        isConnectionFlow: true,
+        handleEditAccountsButtonPress: mockHandleEdit,
+      });
+
+      const accountCell = getByText('Account 1');
+      fireEvent.press(accountCell);
+
+      // Should not show toast or navigate
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

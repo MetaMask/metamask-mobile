@@ -259,7 +259,7 @@ describe('networks', () => {
       it('verifies Solana base URL formats', () => {
         const solanaUrls =
           MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Mainnet];
-        expect(solanaUrls.url).toBe('https://solscan.io');
+        expect(solanaUrls.url).toBe('https://solscan.io/');
       });
     });
   });

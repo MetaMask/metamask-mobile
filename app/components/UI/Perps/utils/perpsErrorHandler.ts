@@ -2,8 +2,21 @@ import { strings } from '../../../../../locales/i18n';
 import {
   PERPS_ERROR_CODES,
   type PerpsErrorCode,
-} from '../controllers/PerpsController';
+} from '../controllers/perpsErrorCodes';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+
+/**
+ * Ensures we have a proper Error object for logging
+ * Converts unknown/string errors to proper Error instances
+ * @param error - The caught error (could be Error, string, or unknown)
+ * @returns A proper Error instance
+ */
+export function ensureError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error;
+  }
+  return new Error(String(error));
+}
 
 /**
  * Maps error codes to i18n keys
@@ -25,6 +38,8 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
     'perps.errors.orderLeverageReductionFailed',
+  [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.iocCancel',
+  [PERPS_ERROR_CODES.CONNECTION_TIMEOUT]: 'perps.errors.connectionTimeout',
 };
 
 /**

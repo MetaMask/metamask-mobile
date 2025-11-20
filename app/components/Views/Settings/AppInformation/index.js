@@ -15,6 +15,16 @@ import {
   getVersion,
   getBuildNumber,
 } from 'react-native-device-info';
+import {
+  channel,
+  runtimeVersion,
+  isEmbeddedLaunch,
+  isEnabled as isOTAUpdatesEnabled,
+  url as otaUpdateUrl,
+  updateId,
+  checkAutomatically,
+} from 'expo-updates';
+import { PROJECT_ID, getFullVersion } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -23,6 +33,10 @@ import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
 import { isQa } from '../../../../util/test/utils';
+import {
+  getFeatureFlagAppDistribution,
+  getFeatureFlagAppEnvironment,
+} from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -31,8 +45,7 @@ const createStyles = (colors) =>
       flex: 1,
     },
     wrapperContent: {
-      paddingLeft: 24,
-      paddingRight: 24,
+      paddingHorizontal: 16,
       paddingVertical: 24,
     },
     title: {
@@ -100,6 +113,7 @@ export default class AppInformation extends PureComponent {
   state = {
     appInfo: '',
     appVersion: '',
+    showEnvironmentInfo: false,
   };
 
   updateNavBar = () => {
@@ -172,9 +186,18 @@ export default class AppInformation extends PureComponent {
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
+  handleLongPressFox = () => {
+    this.setState({ showEnvironmentInfo: true });
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+
+    const otaUpdateMessage =
+      __DEV__ || isEmbeddedLaunch
+        ? 'This app is running from built-in code or in development mode'
+        : 'This app is running an update';
 
     return (
       <SafeAreaView
@@ -183,17 +206,67 @@ export default class AppInformation extends PureComponent {
       >
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
-            <Image
-              source={foxImage}
-              style={styles.image}
-              resizeMethod={'auto'}
-            />
-            <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
+            <TouchableOpacity
+              delayLongPress={10 * 1000} // 10 seconds
+              onLongPress={this.handleLongPressFox}
+              activeOpacity={1}
+            >
+              <Image
+                source={foxImage}
+                style={styles.image}
+                resizeMethod={'auto'}
+              />
+            </TouchableOpacity>
+            <Text style={styles.versionInfo}>
+              {getFullVersion(this.state.appInfo)}
+            </Text>
             {isQa ? (
               <Text style={styles.branchInfo}>
                 {`Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
+
+            {this.state.showEnvironmentInfo && (
+              <>
+                <Text style={styles.branchInfo}>
+                  {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Remote Feature Flag Env: ${getFeatureFlagAppEnvironment()}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
+                </Text>
+                {isOTAUpdatesEnabled && (
+                  <>
+                    <Text style={styles.branchInfo}>
+                      {`Expo Project ID: ${PROJECT_ID}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`Update ID: ${updateId || 'N/A'}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update Channel: ${channel}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update runtime version: ${runtimeVersion}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update URL: ${otaUpdateUrl}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`Check Automatically: ${checkAutomatically}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Update status: ${otaUpdateMessage}`}
+                    </Text>
+                  </>
+                )}
+              </>
+            )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>

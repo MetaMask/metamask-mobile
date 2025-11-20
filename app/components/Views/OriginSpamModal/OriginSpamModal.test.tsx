@@ -25,8 +25,7 @@ jest.mock('../../../core/redux/slices/originThrottling', () => ({
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () =>
-    ({ children }: { children: React.ReactElement }) =>
-      <>{children}</>,
+    ({ children }: { children: React.ReactElement }) => <>{children}</>,
 );
 
 const SCAM_ORIGIN_MOCK = 'scam.origin';

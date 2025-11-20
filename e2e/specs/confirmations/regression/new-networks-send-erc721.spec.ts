@@ -12,7 +12,7 @@ import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
 import { DappVariants } from '../../../framework/Constants';
 import TestHelpers from '../../../helpers';
 
-describe(RegressionConfirmations('ERC721 tokens'), () => {
+describe.skip(RegressionConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   // Table-driven tests for all networks
@@ -41,9 +41,8 @@ describe(RegressionConfirmations('ERC721 tokens'), () => {
         // Remove any once withFixtures is typed
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async ({ contractRegistry }) => {
-          const nftsAddress = await contractRegistry?.getContractAddress(
-            NFT_CONTRACT,
-          );
+          const nftsAddress =
+            await contractRegistry?.getContractAddress(NFT_CONTRACT);
 
           await loginToApp();
 

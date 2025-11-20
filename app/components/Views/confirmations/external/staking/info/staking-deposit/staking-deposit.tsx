@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
@@ -15,6 +14,7 @@ import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-
 import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
 import { TraceName } from '../../../../../../../util/trace';
 import { useStakingTransactionTracing } from '../../../../../../UI/Stake/hooks/useStakingTransactionTracing';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const StakingDeposit = () => {
   useNavbar(strings('stake.stake'));
@@ -63,7 +63,7 @@ const StakingDeposit = () => {
   };
 
   return (
-    <View testID={ConfirmationInfoComponentIDs.STAKING_DEPOSIT}>
+    <ScrollView testID={ConfirmationInfoComponentIDs.STAKING_DEPOSIT}>
       <HeroRow />
       <StakingDetails />
       <GasFeesDetailsRow disableUpdate />
@@ -73,7 +73,7 @@ const StakingDeposit = () => {
       >
         <StakingContractInteractionDetails />
       </InfoSectionAccordion>
-    </View>
+    </ScrollView>
   );
 };
 export default StakingDeposit;

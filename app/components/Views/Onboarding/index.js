@@ -15,15 +15,10 @@ import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  fontStyles,
-  baseStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
@@ -34,13 +29,17 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
+import { getVaultFromBackup } from '../../../core/BackupVault';
+import Logger from '../../../util/Logger';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { isE2E } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import LottieView from 'lottie-react-native';
 import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
@@ -58,7 +57,6 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import fox from '../../../animations/Searching_Fox.json';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
@@ -66,6 +64,11 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
+import FastOnboarding from './FastOnboarding';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
+import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -76,7 +79,7 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: Device.isMediumDevice() ? 16 : 30,
+      paddingVertical: 16,
     },
     loaderWrapper: {
       flex: 1,
@@ -84,6 +87,16 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       rowGap: 32,
       marginBottom: 160,
+    },
+    loaderOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 1000,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     image: {
       alignSelf: 'center',
@@ -98,7 +111,11 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       marginHorizontal: 'auto',
       padding: Device.isMediumDevice() ? 30 : 40,
-      marginTop: 16,
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      marginLeft: -(Device.isMediumDevice() ? 90 : 120),
+      marginTop: -(Device.isMediumDevice() ? 90 : 120),
     },
     foxImage: {
       width: Device.isMediumDevice() ? 110 : 145,
@@ -137,23 +154,16 @@ const createStyles = (colors) =>
       marginBottom: 40,
       marginTop: -40,
     },
-    login: {
-      fontSize: 18,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
-    buttonDescription: {
-      textAlign: 'center',
-      marginBottom: 16,
-    },
-    importWrapper: {
-      marginVertical: 16,
-    },
     createWrapper: {
       flexDirection: 'column',
       rowGap: Device.isMediumDevice() ? 12 : 16,
       marginBottom: 16,
-      width: '100%',
+      position: 'absolute',
+      top: '50%',
+      left: Device.isMediumDevice() ? 26 : 36,
+      right: Device.isMediumDevice() ? 26 : 36,
+      marginTop: 180,
+      alignItems: 'stretch',
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -173,6 +183,7 @@ const createStyles = (colors) =>
     loadingText: {
       marginTop: 30,
       textAlign: 'center',
+      color: colors.text.default,
     },
     modalTypeView: {
       position: 'absolute',
@@ -187,37 +198,11 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'flex-end',
     },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: colors.border.muted,
-    },
-    bottomSheetContainer: {
-      padding: 16,
-      flexDirection: 'column',
-      rowGap: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    socialBtn: {
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      color: colors.text.default,
-    },
     blackButton: {
-      backgroundColor: importedColors.btnBlack,
-    },
-    blackButtonText: {
-      color: importedColors.btnBlackText,
+      backgroundColor: importedColors.white,
     },
     inverseBlackButton: {
-      backgroundColor: importedColors.btnBlackInverse,
+      backgroundColor: importedColors.applePayBlack,
     },
   });
 
@@ -293,6 +278,8 @@ class Onboarding extends PureComponent {
     existingWallet: false,
     errorSheetVisible: false,
     errorToThrow: null,
+    startOnboardingAnimation: false,
+    startFoxAnimation: false,
   };
 
   seedwords = null;
@@ -301,6 +288,7 @@ class Onboarding extends PureComponent {
   incomingDataStr = '';
   dataToSync = null;
   mounted = false;
+  hasCheckedVaultBackup = false; // Prevent multiple vault backup checks
 
   warningCallback = () => true;
 
@@ -321,16 +309,10 @@ class Onboarding extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { route, navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getTransparentOnboardingNavbarOptions(
-        colors,
-        importedColors.gettingStartedPageBackgroundColor,
-        true,
-        importedColors.btnBlack,
-      ),
-    );
+    const { navigation } = this.props;
+    navigation.setOptions({
+      headerShown: false,
+    });
   };
 
   componentDidMount() {
@@ -347,14 +329,12 @@ class Onboarding extends PureComponent {
     this.props.disableNewPrivacyPolicyToast();
 
     InteractionManager.runAfterInteractions(() => {
+      this.checkForMigrationFailureAndVaultBackup();
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
-        this.props.setLoading(strings('onboarding.delete_current'));
-        setTimeout(() => {
-          this.showNotification();
-          this.props.unsetLoading();
-        }, 2000);
+        this.showNotification();
       }
+      this.setState({ startOnboardingAnimation: true });
     });
   }
 
@@ -373,6 +353,58 @@ class Onboarding extends PureComponent {
     const { existingUser } = this.props;
     if (existingUser) {
       this.setState({ existingUser: true });
+    }
+  }
+
+  /**
+   * Check for migration failure scenario and vault backup availability
+   * This detects when a migration has failed and left the user with a corrupted state
+   * but a valid vault backup still exists in the secure keychain
+   */
+  async checkForMigrationFailureAndVaultBackup() {
+    // Prevent multiple checks - only run once per instance
+    if (this.hasCheckedVaultBackup) {
+      return;
+    }
+
+    this.hasCheckedVaultBackup = true;
+
+    // Skip check in E2E test environment
+    // E2E tests start with fresh state but may have vault backups from fixtures/previous runs
+    // This would trigger false positive vault recovery redirects and break onboarding tests
+    if (isE2E) {
+      return;
+    }
+
+    // Skip check if this is an intentional wallet reset
+    // (route.params.delete is set when user explicitly resets their wallet)
+    if (this.props.route?.params?.delete) {
+      return;
+    }
+
+    try {
+      // Check for migration error flag
+      // Using FilesystemStorage (excluded from iCloud backup) for reliability
+      const migrationErrorFlag = await FilesystemStorage.getItem(
+        MIGRATION_ERROR_HAPPENED,
+      );
+
+      if (migrationErrorFlag === 'true') {
+        // Migration failed, check if vault backup exists
+        const vaultBackupResult = await getVaultFromBackup();
+
+        if (vaultBackupResult.success && vaultBackupResult.vault) {
+          // Both migration error and vault backup exist - trigger recovery
+          this.props.navigation.reset({
+            routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+          });
+        }
+      }
+    } catch (error) {
+      Logger.error(
+        error,
+        'Failed to check for migration failure and vault backup',
+      );
     }
   }
 
@@ -453,6 +485,7 @@ class Onboarding extends PureComponent {
   };
 
   handlePostSocialLogin = (result, createWallet, provider) => {
+    const isIOS = Platform.OS === 'ios';
     if (this.socialLoginTraceCtx) {
       endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
       this.socialLoginTraceCtx = null;
@@ -469,6 +502,7 @@ class Onboarding extends PureComponent {
             accountName: result.accountName,
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
+            provider,
           });
         } else {
           trace({
@@ -477,11 +511,27 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-          this.props.navigation.navigate('ChoosePassword', {
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
-          });
+
+          if (isIOS) {
+            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
+            this.props.navigation.navigate(
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+              {
+                accountName: result.accountName,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: this.onboardingTraceCtx,
+                provider,
+              },
+            );
+          } else {
+            // Direct navigation to ChoosePassword for Android
+            this.props.navigation.navigate('ChoosePassword', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+              onboardingTraceCtx: this.onboardingTraceCtx,
+              provider,
+            });
+          }
         }
       } else if (!createWallet) {
         if (result.existingUser) {
@@ -491,16 +541,26 @@ class Onboarding extends PureComponent {
             tags: getTraceTags(store.getState()),
             parentContext: this.onboardingTraceCtx,
           });
-          this.props.navigation.navigate('Rehydrate', {
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
-          });
+          isIOS
+            ? this.props.navigation.navigate(
+                Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+                {
+                  [PREVIOUS_SCREEN]: ONBOARDING,
+                  oauthLoginSuccess: true,
+                  onboardingTraceCtx: this.onboardingTraceCtx,
+                },
+              )
+            : this.props.navigation.navigate('Rehydrate', {
+                [PREVIOUS_SCREEN]: ONBOARDING,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: this.onboardingTraceCtx,
+              });
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
+            provider,
           });
         }
       }
@@ -573,6 +633,7 @@ class Onboarding extends PureComponent {
       const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
+        !createWallet,
       ).catch((error) => {
         this.props.unsetLoading();
         this.handleLoginError(error, provider);
@@ -717,26 +778,19 @@ class Onboarding extends PureComponent {
     }
   };
 
+  setStartFoxAnimation = () => {
+    this.setState({ startFoxAnimation: 'Start' });
+  };
+
   renderLoader = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     return (
       <View style={styles.loaderWrapper}>
-        <View style={styles.largeFoxWrapper}>
-          <LottieView
-            style={styles.image}
-            autoPlay
-            loop
-            source={fox}
-            resizeMode="contain"
-          />
-        </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText} color={importedColors.btnBlack}>
-            {this.props.loadingMsg}
-          </Text>
+          <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
         </View>
       </View>
     );
@@ -748,27 +802,10 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <View style={styles.titleWrapper}>
-          <View style={styles.largeFoxWrapper}>
-            <LottieView
-              style={styles.image}
-              autoPlay
-              loop
-              source={fox}
-              resizeMode="contain"
-            />
-          </View>
-
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.title}
-            testID={OnboardingSelectorIDs.SCREEN_TITLE}
-          >
-            {strings('onboarding.title')}
-          </Text>
-        </View>
-
-        <View style={styles.createWrapper}>
+        <OnboardingAnimation
+          startOnboardingAnimation={this.state.startOnboardingAnimation}
+          setStartFoxAnimation={this.setStartFoxAnimation}
+        >
           <Button
             variant={ButtonVariants.Primary}
             onPress={() => this.handleCtaActions('create')}
@@ -776,7 +813,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlackText}
+                color={importedColors.applePayBlack}
               >
                 {strings('onboarding.start_exploring_now')}
               </Text>
@@ -794,7 +831,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlack}
+                color={importedColors.white}
               >
                 {SEEDLESS_ONBOARDING_ENABLED
                   ? strings('onboarding.import_using_srp_social_login')
@@ -803,7 +840,7 @@ class Onboarding extends PureComponent {
             }
             style={styles.inverseBlackButton}
           />
-        </View>
+        </OnboardingAnimation>
       </View>
     );
   }
@@ -836,9 +873,10 @@ class Onboarding extends PureComponent {
 
   render() {
     const { loading } = this.props;
-    const { existingUser, errorToThrow } = this.state;
+    const { existingUser, errorToThrow, startFoxAnimation } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const hasFooter = existingUser && !loading;
 
     // Component that throws error if needed (to be caught by ErrorBoundary)
     const ThrowErrorIfNeeded = () => {
@@ -857,11 +895,14 @@ class Onboarding extends PureComponent {
         }
       >
         <ThrowErrorIfNeeded />
-        <View
+        <SafeAreaView
           style={[
             baseStyles.flexGrow,
             {
-              backgroundColor: importedColors.gettingStartedPageBackgroundColor,
+              backgroundColor:
+                this.context.themeAppearance === 'dark'
+                  ? importedColors.gettingStartedTextColor
+                  : importedColors.gettingStartedPageBackgroundColorLightMode,
             },
           ]}
           testID={OnboardingSelectorIDs.CONTAINER_ID}
@@ -871,7 +912,23 @@ class Onboarding extends PureComponent {
             contentContainerStyle={styles.scroll}
           >
             <View style={styles.wrapper}>
-              {loading ? this.renderLoader() : this.renderContent()}
+              {this.renderContent()}
+
+              {loading && (
+                <View
+                  style={[
+                    styles.loaderOverlay,
+                    {
+                      backgroundColor:
+                        this.context.themeAppearance === 'dark'
+                          ? importedColors.gettingStartedTextColor
+                          : importedColors.gettingStartedPageBackgroundColorLightMode,
+                    },
+                  ]}
+                >
+                  {this.renderLoader()}
+                </View>
+              )}
             </View>
 
             {existingUser && !loading && (
@@ -889,8 +946,17 @@ class Onboarding extends PureComponent {
 
           <FadeOutOverlay />
 
+          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+
           <View>{this.handleSimpleNotification()}</View>
-        </View>
+
+          <FastOnboarding
+            onPressContinueWithGoogle={this.onPressContinueWithGoogle}
+            onPressContinueWithApple={this.onPressContinueWithApple}
+            onPressImport={this.onPressImport}
+            onPressCreate={this.onPressCreate}
+          />
+        </SafeAreaView>
       </ErrorBoundary>
     );
   }

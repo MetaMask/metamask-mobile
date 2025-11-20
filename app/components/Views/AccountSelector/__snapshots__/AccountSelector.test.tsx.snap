@@ -388,7 +388,6 @@ exports[`AccountSelector should render correctly 1`] = `
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
-                                "display": "flex",
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
@@ -716,7 +715,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                 "width": 28,
                                               }
                                             }
-                                            testID="main-wallet-account-actions"
+                                            testID="multichain-account-cell-menu"
                                           >
                                             <SvgMock
                                               color="#121314"
@@ -913,7 +912,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                 "width": 28,
                                               }
                                             }
-                                            testID="main-wallet-account-actions"
+                                            testID="multichain-account-cell-menu"
                                           >
                                             <SvgMock
                                               color="#121314"

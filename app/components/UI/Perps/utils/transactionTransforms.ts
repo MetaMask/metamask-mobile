@@ -1,10 +1,41 @@
 import { BigNumber } from 'bignumber.js';
-import { Funding, Order, OrderFill } from '../controllers/types';
 import {
+  Funding,
+  Order,
+  OrderFill,
+  UserHistoryItem,
+} from '../controllers/types';
+import {
+  FillType,
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
+import { formatOrderLabel } from './orderUtils';
+import { strings } from '../../../../../locales/i18n';
+import { getPerpsDisplaySymbol } from './marketUtils';
+
+export interface WithdrawalRequest {
+  id: string;
+  timestamp: number;
+  amount: string;
+  asset: string;
+  txHash?: string;
+  status: 'pending' | 'bridging' | 'completed' | 'failed';
+  destination?: string;
+  withdrawalId?: string;
+}
+
+export interface DepositRequest {
+  id: string;
+  timestamp: number;
+  amount: string;
+  asset: string;
+  txHash?: string;
+  status: 'pending' | 'bridging' | 'completed' | 'failed';
+  source?: string;
+  depositId?: string;
+}
 
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format
@@ -25,19 +56,22 @@ export function transformFillsToTransactions(
       timestamp,
       feeToken,
       pnl,
+      liquidation,
+      detailedOrderType,
     } = fill;
-
     const [part1, part2] = direction ? direction.split(' ') : [];
     const isOpened = part1 === 'Open';
     const isClosed = part1 === 'Close';
     const isFlipped = part2 === '>';
+
+    const isAutoDeleveraging = direction === 'Auto-Deleveraging';
 
     let action = '';
     let isPositive = false;
     if (isOpened) {
       action = 'Opened';
       // Will be set based on fee calculation below
-    } else if (isClosed) {
+    } else if (isClosed || isAutoDeleveraging) {
       action = 'Closed';
       // Will be set based on PnL calculation below
     } else if (isFlipped) {
@@ -66,7 +100,7 @@ export function transformFillsToTransactions(
       amountBN = BigNumber(fill.fee || 0);
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
       isPositive = false; // Fee is always a cost
-    } else if (isClosed || isFlipped) {
+    } else if (isClosed || isFlipped || isAutoDeleveraging) {
       // For closing positions: show PnL minus fee
       const pnlValue = BigNumber(fill.pnl || 0);
       const feeValue = BigNumber(fill.fee || 0);
@@ -90,14 +124,43 @@ export function transformFillsToTransactions(
       isPositive = false; // Default to false for unknown cases
     }
 
+    const isLiquidation = Boolean(liquidation);
+    const isTakeProfit = Boolean(detailedOrderType?.includes('Take Profit'));
+    const isStopLoss = Boolean(detailedOrderType?.includes('Stop'));
+
+    let title = '';
+
+    if (isFlipped) {
+      title = `${action} ${direction?.toLowerCase() || ''}`;
+    } else if (isAutoDeleveraging) {
+      const startPositionNum = Number(fill.startPosition);
+      if (Number.isNaN(startPositionNum)) return acc;
+      const directionLabel =
+        Number(fill.startPosition) > 0
+          ? strings('perps.market.long')
+          : strings('perps.market.short');
+      title = `${action} ${directionLabel?.toLowerCase() || ''}`;
+    } else {
+      title = `${action} ${part2?.toLowerCase() || ''}`;
+    }
+
+    let fillType = FillType.Standard;
+    if (isAutoDeleveraging) {
+      fillType = FillType.AutoDeleveraging;
+    } else if (isLiquidation) {
+      fillType = FillType.Liquidation;
+    } else if (isTakeProfit) {
+      fillType = FillType.TakeProfit;
+    } else if (isStopLoss) {
+      fillType = FillType.StopLoss;
+    }
+
     acc.push({
       id: orderId || `fill-${timestamp}`,
       type: 'trade',
       category: isOpened ? 'position_open' : 'position_close',
-      title: `${action} ${symbol} ${
-        isFlipped ? direction?.toLowerCase() || '' : part2?.toLowerCase() || ''
-      }`,
-      subtitle: `${size} ${symbol}`,
+      title,
+      subtitle: `${size} ${getPerpsDisplaySymbol(symbol)}`,
       timestamp,
       asset: symbol,
       fill: {
@@ -118,6 +181,8 @@ export function transformFillsToTransactions(
         points: '0', // Points feature not activated yet
         feeToken,
         action,
+        liquidation,
+        fillType,
       },
     });
     return acc;
@@ -136,7 +201,6 @@ export function transformOrdersToTransactions(
     const {
       orderId,
       symbol,
-      side,
       orderType,
       size,
       originalSize,
@@ -151,8 +215,9 @@ export function transformOrdersToTransactions(
     const isRejected = status === 'rejected';
     const isTriggered = status === 'triggered';
 
-    const title = `${side === 'buy' ? 'Long' : 'Short'} ${orderType}`;
-    const subtitle = `${originalSize || '0'} ${symbol}`;
+    // Use centralized order label formatting
+    const title = formatOrderLabel(order);
+    const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
 
     const orderTypeSlug = orderType.toLowerCase().split(' ').join('_');
 
@@ -234,7 +299,7 @@ export function transformFundingToTransactions(
       type: 'funding',
       category: 'funding_fee',
       title: `${isPositive ? 'Received' : 'Paid'} funding fee`,
-      subtitle: symbol,
+      subtitle: getPerpsDisplaySymbol(symbol),
       timestamp,
       asset: symbol,
       fundingAmount: {
@@ -245,4 +310,140 @@ export function transformFundingToTransactions(
       },
     };
   });
+}
+
+/**
+ * Transform UserHistoryItem objects to PerpsTransaction format
+ * Only shows completed deposits/withdrawals (txHash not displayed in UI)
+ * @param userHistory - Array of UserHistoryItem objects (deposits/withdrawals)
+ * @returns Array of PerpsTransaction objects
+ */
+export function transformUserHistoryToTransactions(
+  userHistory: UserHistoryItem[],
+): PerpsTransaction[] {
+  return userHistory
+    .filter((item) => item.status === 'completed')
+    .map((item) => {
+      const { id, timestamp, type, amount, asset, txHash, status } = item;
+
+      const isDeposit = type === 'deposit';
+
+      // Format amount with appropriate sign
+      const amountBN = BigNumber(amount);
+      const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
+
+      // For completed transactions, status is always positive (green)
+      const statusText = 'Completed';
+
+      return {
+        id: `${type}-${id}`,
+        type: isDeposit ? 'deposit' : 'withdrawal',
+        category: isDeposit ? 'deposit' : 'withdrawal',
+        title: `${isDeposit ? 'Deposited' : 'Withdrew'} ${amount} ${asset}`,
+        subtitle: statusText,
+        timestamp,
+        asset,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: amountBN.toNumber(),
+          isPositive: isDeposit,
+          asset,
+          txHash: txHash || '',
+          status,
+          type: isDeposit ? 'deposit' : 'withdrawal',
+        },
+      };
+    });
+}
+
+/**
+ * Transform WithdrawalRequest objects to PerpsTransaction format
+ * Only shows completed withdrawals (txHash not displayed in UI)
+ * @param withdrawalRequests - Array of WithdrawalRequest objects
+ * @returns Array of PerpsTransaction objects
+ */
+export function transformWithdrawalRequestsToTransactions(
+  withdrawalRequests: WithdrawalRequest[],
+): PerpsTransaction[] {
+  return withdrawalRequests
+    .filter((request) => request.status === 'completed')
+    .map((request) => {
+      const { id, timestamp, amount, asset, txHash, status } = request;
+
+      // Format amount with negative sign for withdrawals
+      const amountBN = BigNumber(amount);
+      const displayAmount = `-$${amountBN.toFixed(2)}`;
+
+      // For completed withdrawals, status is always positive (green)
+      const statusText = 'Completed';
+      const isPositive = true;
+
+      return {
+        id: `withdrawal-${id}`,
+        type: 'withdrawal' as const,
+        category: 'withdrawal' as const,
+        title: `Withdrew ${amount} ${asset}`,
+        subtitle: statusText,
+        timestamp,
+        asset,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: -amountBN.toNumber(), // Negative for withdrawals
+          isPositive,
+          asset,
+          txHash: txHash || '',
+          status,
+          type: 'withdrawal' as const,
+        },
+      };
+    });
+}
+
+/**
+ * Transform DepositRequest objects to PerpsTransaction format
+ * Only shows completed deposits (txHash not displayed in UI)
+ * @param depositRequests - Array of DepositRequest objects
+ * @returns Array of PerpsTransaction objects
+ */
+export function transformDepositRequestsToTransactions(
+  depositRequests: DepositRequest[],
+): PerpsTransaction[] {
+  return depositRequests
+    .filter((request) => request.status === 'completed')
+    .map((request) => {
+      const { id, timestamp, amount, asset, txHash, status } = request;
+
+      // Format amount with positive sign for deposits
+      const amountBN = BigNumber(amount);
+      const displayAmount = `+$${amountBN.toFixed(2)}`;
+
+      // For completed deposits, status is always positive (green)
+      const statusText = 'Completed';
+      const isPositive = true;
+
+      // Create title based on whether we have the actual amount
+      const title =
+        amount === '0' || amount === '0.00'
+          ? 'Deposit'
+          : `Deposited ${amount} ${asset}`;
+
+      return {
+        id: `deposit-${id}`,
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title,
+        subtitle: statusText,
+        timestamp,
+        asset,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: amountBN.toNumber(),
+          isPositive,
+          asset,
+          txHash: txHash || '',
+          status,
+          type: 'deposit' as const,
+        },
+      };
+    });
 }

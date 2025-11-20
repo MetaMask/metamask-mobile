@@ -2,14 +2,8 @@ import React from 'react';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import AccountNetworkInfoExpanded from './account-network-info-expanded';
-import { isPortfolioViewEnabled } from '../../../../../../../util/networks';
 import { useSelectedAccountMultichainBalances } from '../../../../../../../components/hooks/useMultichainBalances';
 import { MAINNET_DISPLAY_NAME } from '../../../../../../../core/Engine/constants';
-
-jest.mock('../../../../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../../../../util/networks'),
-  isPortfolioViewEnabled: jest.fn(),
-}));
 
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
@@ -29,14 +23,12 @@ jest.mock(
 );
 
 describe('AccountNetworkInfoExpanded', () => {
-  const mockIsPortfolioViewEnabled = jest.mocked(isPortfolioViewEnabled);
   const mockUseSelectedAccountMultichainBalances = jest.mocked(
     useSelectedAccountMultichainBalances,
   );
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsPortfolioViewEnabled.mockReturnValue(false);
     mockUseSelectedAccountMultichainBalances.mockReturnValue({
       selectedAccountMultichainBalance: {
         displayBalance: '$0.00',
@@ -46,7 +38,7 @@ describe('AccountNetworkInfoExpanded', () => {
         nativeTokenUnit: 'ETH',
         tokenFiatBalancesCrossChains: [],
         shouldShowAggregatedPercentage: false,
-        isPortfolioVieEnabled: true,
+        isPortfolioViewEnabled: true,
         aggregatedBalance: {
           ethFiat: 0,
           tokenFiat: 0,
@@ -59,7 +51,6 @@ describe('AccountNetworkInfoExpanded', () => {
   });
 
   it('renders expected elements', () => {
-    mockIsPortfolioViewEnabled.mockReturnValue(true);
     const { getByText } = renderWithProvider(<AccountNetworkInfoExpanded />, {
       state: personalSignatureConfirmationState,
     });

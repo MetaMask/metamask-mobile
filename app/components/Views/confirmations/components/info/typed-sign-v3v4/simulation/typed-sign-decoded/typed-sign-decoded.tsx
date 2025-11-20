@@ -98,7 +98,7 @@ const getStateChangeLabelMap = (
     [DecodingDataChangeType.Listing]: strings(
       'confirm.simulation.label_change_type_listing',
     ),
-  }[changeType]);
+  })[changeType];
 
 const StateChangeRow = ({
   stateChangeList,

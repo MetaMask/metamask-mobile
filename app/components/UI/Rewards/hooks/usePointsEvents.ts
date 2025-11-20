@@ -7,6 +7,7 @@ import {
   selectActiveTab,
   selectPointsEvents,
 } from '../../../../reducers/rewards/selectors';
+import { strings } from '../../../../../locales/i18n';
 import { setPointsEvents as setPointsEventsAction } from '../../../../reducers/rewards';
 export interface UsePointsEventsOptions {
   seasonId: string | undefined;
@@ -20,7 +21,7 @@ export interface UsePointsEventsResult {
   hasMore: boolean;
   error: string | null;
   loadMore: () => void;
-  refresh: () => void;
+  refresh: (forceFresh?: boolean) => void;
   isRefreshing: boolean;
 }
 
@@ -92,7 +93,9 @@ export const usePointsEvents = (
         setHasMore(pointsEventsData.has_more);
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : 'Unknown error occurred';
+          err instanceof Error
+            ? err.message
+            : strings('rewards.error_messages.unknown_error');
         setError(errorMessage);
       } finally {
         isLoadingRef.current = false;
@@ -131,16 +134,23 @@ export const usePointsEvents = (
     uiStorePointsEvents,
   ]);
 
-  const refresh = useCallback(async () => {
-    setIsRefreshing(true);
-    setCursor(null);
-    setHasMore(true);
-    await fetchPointsEvents({
-      isInitial: true,
-      forceFresh: true,
-    });
-    setIsRefreshing(false);
-  }, [fetchPointsEvents]);
+  const refresh = useCallback(
+    async (forceFresh = true) => {
+      setIsRefreshing(true);
+      setCursor(null);
+      setHasMore(true);
+      await fetchPointsEvents({
+        isInitial: true,
+        forceFresh,
+      });
+      setIsRefreshing(false);
+    },
+    [fetchPointsEvents],
+  );
+
+  const refreshWithoutForceFresh = useCallback(async () => {
+    refresh(false);
+  }, [refresh]);
 
   // Listen for activeTab changes to refresh when switching to activity tab
   useEffect(() => {
@@ -151,12 +161,15 @@ export const usePointsEvents = (
 
   // Listen for reward claimed events to trigger refetch
   useInvalidateByRewardEvents(
-    [
-      'RewardsController:accountLinked',
-      'RewardsController:rewardClaimed',
-      'RewardsController:pointsEventsUpdated',
-    ],
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
     refresh,
+  );
+
+  useInvalidateByRewardEvents(
+    ['RewardsController:pointsEventsUpdated'],
+    // Don't force fresh when points events are updated; this event is only emitted when we've just fetched new points events
+    // otherwise we'll fetch the same points events again
+    refreshWithoutForceFresh,
   );
 
   return {

@@ -12,6 +12,9 @@ import {
 } from './HyperLiquidClientService';
 import { CandlePeriod } from '../constants/chartConfig';
 
+// Mock WebSocket for Jest environment (React Native provides this globally)
+(global as any).WebSocket = jest.fn();
+
 // Mock HyperLiquid SDK
 const mockExchangeClient = { initialized: true };
 const mockInfoClient = {
@@ -20,27 +23,32 @@ const mockInfoClient = {
 };
 const mockSubscriptionClient = {
   initialized: true,
-  [Symbol.asyncDispose]: jest.fn().mockResolvedValue(undefined),
 };
-const mockTransport = { url: 'ws://mock' };
+const mockWsTransport = {
+  url: 'ws://mock',
+  close: jest.fn().mockResolvedValue(undefined),
+};
+const mockHttpTransport = {
+  url: 'http://mock',
+};
 
-jest.mock('@deeeed/hyperliquid-node20', () => ({
+jest.mock('@nktkas/hyperliquid', () => ({
   ExchangeClient: jest.fn(() => mockExchangeClient),
   InfoClient: jest.fn(() => mockInfoClient),
   SubscriptionClient: jest.fn(() => mockSubscriptionClient),
-  WebSocketTransport: jest.fn(() => mockTransport),
+  WebSocketTransport: jest.fn(() => mockWsTransport),
+  HttpTransport: jest.fn(() => mockHttpTransport),
 }));
 
 // Mock configuration
 jest.mock('../constants/hyperLiquidConfig', () => ({
-  getWebSocketEndpoint: jest.fn((isTestnet: boolean) =>
-    isTestnet
-      ? 'wss://api.hyperliquid-testnet.xyz/ws'
-      : 'wss://api.hyperliquid.xyz/ws',
-  ),
   HYPERLIQUID_TRANSPORT_CONFIG: {
-    reconnectAttempts: 5,
-    reconnectInterval: 1000,
+    timeout: 10_000,
+    keepAlive: { interval: 30_000 },
+    reconnect: {
+      maxRetries: 5,
+      connectionTimeout: 10_000,
+    },
   },
 }));
 
@@ -87,7 +95,7 @@ describe('HyperLiquidClientService', () => {
   });
 
   describe('Client Initialization', () => {
-    it('should initialize clients successfully', () => {
+    it('should initialize clients successfully with dual transports', () => {
       service.initialize(mockWallet);
 
       expect(service.isInitialized()).toBe(true);
@@ -97,26 +105,44 @@ describe('HyperLiquidClientService', () => {
         InfoClient,
         SubscriptionClient,
         WebSocketTransport,
-      } = require('@deeeed/hyperliquid-node20');
+        HttpTransport,
+      } = require('@nktkas/hyperliquid');
 
-      expect(WebSocketTransport).toHaveBeenCalledWith({
-        url: 'wss://api.hyperliquid.xyz/ws',
-        reconnectAttempts: 5,
-        reconnectInterval: 1000,
+      // Verify HTTP transport uses isTestnet flag (SDK handles endpoint selection)
+      expect(HttpTransport).toHaveBeenCalledWith({
+        isTestnet: false,
+        timeout: 10_000,
       });
+
+      // Verify WebSocket transport uses isTestnet flag (SDK handles endpoint selection)
+      expect(WebSocketTransport).toHaveBeenCalledWith({
+        isTestnet: false,
+        timeout: 10_000,
+        keepAlive: { interval: 30_000 },
+        reconnect: expect.objectContaining({
+          WebSocket: expect.any(Function),
+          maxRetries: 5,
+          connectionTimeout: 10_000,
+        }),
+      });
+
+      // ExchangeClient uses HTTP transport
       expect(ExchangeClient).toHaveBeenCalledWith({
         wallet: mockWallet,
-        transport: mockTransport,
-        isTestnet: false,
+        transport: mockHttpTransport,
       });
-      expect(InfoClient).toHaveBeenCalledWith({ transport: mockTransport });
+
+      // InfoClient uses HTTP transport
+      expect(InfoClient).toHaveBeenCalledWith({ transport: mockHttpTransport });
+
+      // SubscriptionClient uses WebSocket transport
       expect(SubscriptionClient).toHaveBeenCalledWith({
-        transport: mockTransport,
+        transport: mockWsTransport,
       });
     });
 
     it('should handle initialization errors', () => {
-      const { ExchangeClient } = require('@deeeed/hyperliquid-node20');
+      const { ExchangeClient } = require('@nktkas/hyperliquid');
       ExchangeClient.mockImplementationOnce(() => {
         throw new Error('Client initialization failed');
       });
@@ -133,17 +159,28 @@ describe('HyperLiquidClientService', () => {
       const {
         ExchangeClient,
         WebSocketTransport,
-      } = require('@deeeed/hyperliquid-node20');
+        HttpTransport,
+      } = require('@nktkas/hyperliquid');
+
+      // Verify testnet flag is passed (SDK auto-selects testnet endpoints)
+      expect(HttpTransport).toHaveBeenCalledWith({
+        isTestnet: true,
+        timeout: 10_000,
+      });
 
       expect(WebSocketTransport).toHaveBeenCalledWith({
-        url: 'wss://api.hyperliquid-testnet.xyz/ws',
-        reconnectAttempts: 5,
-        reconnectInterval: 1000,
+        isTestnet: true,
+        timeout: 10_000,
+        keepAlive: { interval: 30_000 },
+        reconnect: expect.objectContaining({
+          WebSocket: expect.any(Function),
+        }),
       });
+
+      // ExchangeClient uses HTTP transport
       expect(ExchangeClient).toHaveBeenCalledWith({
         wallet: mockWallet,
-        transport: mockTransport,
-        isTestnet: true,
+        transport: mockHttpTransport,
       });
     });
   });
@@ -260,15 +297,16 @@ describe('HyperLiquidClientService', () => {
       service.initialize(mockWallet);
     });
 
-    it('should disconnect successfully', async () => {
+    it('should disconnect successfully and close only WebSocket transport', async () => {
       await service.disconnect();
 
-      expect(mockSubscriptionClient[Symbol.asyncDispose]).toHaveBeenCalled();
+      // Only WebSocket transport should be closed (HTTP is stateless)
+      expect(mockWsTransport.close).toHaveBeenCalled();
       expect(service.getSubscriptionClient()).toBeUndefined();
     });
 
     it('should handle disconnect errors gracefully', async () => {
-      mockSubscriptionClient[Symbol.asyncDispose].mockRejectedValueOnce(
+      mockWsTransport.close.mockRejectedValueOnce(
         new Error('Disconnect failed'),
       );
 
@@ -276,7 +314,7 @@ describe('HyperLiquidClientService', () => {
       await expect(service.disconnect()).resolves.not.toThrow();
 
       // Verify the error was attempted to be handled
-      expect(mockSubscriptionClient[Symbol.asyncDispose]).toHaveBeenCalled();
+      expect(mockWsTransport.close).toHaveBeenCalled();
     });
 
     it('should clear all client references after disconnect', async () => {
@@ -301,7 +339,7 @@ describe('HyperLiquidClientService', () => {
 
   describe('Error Handling', () => {
     it('should handle transport creation errors', () => {
-      const { WebSocketTransport } = require('@deeeed/hyperliquid-node20');
+      const { WebSocketTransport } = require('@nktkas/hyperliquid');
       WebSocketTransport.mockImplementationOnce(() => {
         throw new Error('Transport creation failed');
       });
@@ -315,7 +353,7 @@ describe('HyperLiquidClientService', () => {
       service.setTestnetMode(true);
 
       try {
-        const { ExchangeClient } = require('@deeeed/hyperliquid-node20');
+        const { ExchangeClient } = require('@nktkas/hyperliquid');
         ExchangeClient.mockImplementationOnce(() => {
           throw new Error('Initialization failed');
         });
@@ -341,8 +379,8 @@ describe('HyperLiquidClientService', () => {
         'HyperLiquid SDK clients initialized',
         expect.objectContaining({
           testnet: false,
-          endpoint: 'wss://api.hyperliquid.xyz/ws',
           timestamp: expect.any(String),
+          connectionState: 'connected',
         }),
       );
     });
@@ -359,7 +397,6 @@ describe('HyperLiquidClientService', () => {
         'HyperLiquid: Disconnecting SDK clients',
         expect.objectContaining({
           isTestnet: false,
-          endpoint: 'wss://api.hyperliquid.xyz/ws',
           timestamp: expect.any(String),
         }),
       );
@@ -373,9 +410,8 @@ describe('HyperLiquidClientService', () => {
       service.initialize(mockWallet);
 
       expect(DevLogger.log).toHaveBeenCalledWith(
-        'HyperLiquid: Creating WebSocket transport',
+        'HyperLiquid: Creating transports',
         expect.objectContaining({
-          endpoint: 'wss://api.hyperliquid.xyz/ws',
           isTestnet: false,
           timestamp: expect.any(String),
         }),

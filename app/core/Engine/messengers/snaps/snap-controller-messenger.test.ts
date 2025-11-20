@@ -1,25 +1,42 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import {
   getSnapControllerInitMessenger,
   getSnapControllerMessenger,
+  SnapControllerMessenger,
 } from './snap-controller-messenger';
 
-describe('getSnapControllerMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const controllerMessenger = new Messenger<never, never>();
-    const snapControllerMessenger =
-      getSnapControllerMessenger(controllerMessenger);
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<SnapControllerMessenger>,
+  MessengerEvents<SnapControllerMessenger>
+>;
 
-    expect(snapControllerMessenger).toBeInstanceOf(RestrictedMessenger);
+const getRootMessenger = (): RootMessenger =>
+  new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+
+describe('getSnapControllerMessenger', () => {
+  it('returns a messenger', () => {
+    const rootMessenger = getRootMessenger();
+    const snapControllerMessenger = getSnapControllerMessenger(rootMessenger);
+
+    expect(snapControllerMessenger).toBeInstanceOf(Messenger);
   });
 });
 
 describe('getSnapControllerInitMessenger', () => {
-  it('returns a restricted messenger', () => {
-    const controllerMessenger = new Messenger<never, never>();
-    const snapControllerMessenger =
-      getSnapControllerInitMessenger(controllerMessenger);
+  it('returns a messenger', () => {
+    const rootMessenger = getRootMessenger();
+    const snapControllerInitMessenger =
+      getSnapControllerInitMessenger(rootMessenger);
 
-    expect(snapControllerMessenger).toBeInstanceOf(RestrictedMessenger);
+    expect(snapControllerInitMessenger).toBeInstanceOf(Messenger);
   });
 });

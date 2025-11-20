@@ -31,6 +31,7 @@
 export {
   PerpsController,
   getDefaultPerpsControllerState,
+  InitializationState,
 } from './PerpsController';
 export type {
   PerpsControllerState,

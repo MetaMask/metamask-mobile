@@ -14,6 +14,8 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
+import FontLoadingGate from './FontLoadingGate';
+import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -24,7 +26,7 @@ import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
  * App component is wrapped by the provider from react-redux
  */
 const Root = ({ foxCode }: RootProps) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isStoreLoading, setIsStoreLoading] = useState(true);
 
   /**
    * Wait for store to be initialized in Detox tests
@@ -35,7 +37,7 @@ const Root = ({ foxCode }: RootProps) => {
       const intervalId = setInterval(() => {
         if (store && persistor) {
           clearInterval(intervalId);
-          setIsLoading(false);
+          setIsStoreLoading(false);
           resolve(null);
         }
       }, 100);
@@ -52,10 +54,13 @@ const Root = ({ foxCode }: RootProps) => {
     // Wait for store to be initialized in Detox tests
     if (isTest) {
       waitForStore();
+    } else {
+      setIsStoreLoading(false);
     }
   }, [foxCode]);
 
-  if (isTest && isLoading) {
+  // Only wait for store in test mode, fonts are handled inside theme context
+  if (isTest && isStoreLoading) {
     return null;
   }
 
@@ -69,18 +74,22 @@ const Root = ({ foxCode }: RootProps) => {
             <SnapsExecutionWebView />
             ///: END:ONLY_INCLUDE_IF
           }
-          <ThemeProvider>
-            <NavigationProvider>
-              <ControllersGate>
-                <ToastContextWrapper>
-                  <ErrorBoundary view="Root">
-                    <ReducedMotionConfig mode={ReduceMotion.Never} />
-                    <App />
-                  </ErrorBoundary>
-                </ToastContextWrapper>
-              </ControllersGate>
-            </NavigationProvider>
-          </ThemeProvider>
+          <FeatureFlagOverrideProvider>
+            <ThemeProvider>
+              <NavigationProvider>
+                <ControllersGate>
+                  <ToastContextWrapper>
+                    <ErrorBoundary view="Root">
+                      <FontLoadingGate>
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </FontLoadingGate>
+                    </ErrorBoundary>
+                  </ToastContextWrapper>
+                </ControllersGate>
+              </NavigationProvider>
+            </ThemeProvider>
+          </FeatureFlagOverrideProvider>
         </PersistGate>
       </Provider>
     </SafeAreaProvider>

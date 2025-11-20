@@ -1,15 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ActivityIndicator,
   Alert,
   View,
-  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   Platform,
   Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';
 import Text, {
@@ -68,8 +67,7 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
-import fox from '../../../animations/Searching_Fox.json';
-import LottieView from 'lottie-react-native';
+import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
@@ -129,7 +127,6 @@ const createStyles = (colors) =>
       width: '100%',
       flexDirection: 'column',
       rowGap: 18,
-      marginTop: 'auto',
       marginBottom: Platform.select({
         ios: 16,
         android: 24,
@@ -142,7 +139,6 @@ const createStyles = (colors) =>
       justifyContent: 'flex-start',
       gap: 8,
       marginTop: 8,
-      marginBottom: 16,
       backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 16,
@@ -306,9 +302,8 @@ class ChoosePassword extends PureComponent {
     const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
       this.setState({
         biometryType: passcodeType(authData.currentAuthType),
@@ -386,9 +381,8 @@ class ChoosePassword extends PureComponent {
 
   tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
-    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(
-      password,
-    );
+    const uint8ArrayMnemonic =
+      await KeyringController.exportSeedPhrase(password);
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
@@ -498,8 +492,10 @@ class ChoosePassword extends PureComponent {
         });
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
-        this.props.navigation.replace('AccountBackupStep1', {
+        this.props.navigation.replace('ManualBackupStep1', {
           seedPhrase,
+          backupFlow: false,
+          settingsBackup: false,
         });
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
@@ -719,45 +715,15 @@ class ChoosePassword extends PureComponent {
       canSubmit =
         passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     }
-    const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
         {loading ? (
           <View style={styles.loadingWrapper}>
-            <View style={styles.foxWrapper}>
-              <LottieView
-                style={styles.image}
-                autoPlay
-                loop
-                source={fox}
-                resizeMode="contain"
-              />
-            </View>
-            <ActivityIndicator size="large" color={colors.text.default} />
-            <View style={styles.loadingTextContainer}>
-              <Text
-                variant={TextVariant.HeadingLG}
-                color={colors.text.default}
-                adjustsFontSizeToFit
-                numberOfLines={1}
-              >
-                {strings(
-                  previousScreen === ONBOARDING
-                    ? 'create_wallet.title'
-                    : 'secure_your_wallet.creating_password',
-                )}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={colors.text.alternative}
-              >
-                {strings('create_wallet.subtitle')}
-              </Text>
-            </View>
+            <FoxRiveLoaderAnimation />
           </View>
         ) : (
           <KeyboardAwareScrollView
@@ -765,18 +731,6 @@ class ChoosePassword extends PureComponent {
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
             <View style={styles.container}>
-              {!this.getOauth2LoginSuccess() && (
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('choose_password.steps', {
-                    currentStep: 1,
-                    totalSteps: 3,
-                  })}
-                </Text>
-              )}
-
               <View
                 style={styles.passwordContainer}
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
@@ -797,18 +751,24 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
                       >
-                        {strings(
-                          'choose_password.description_social_login_update',
+                        {Platform.OS === 'ios' && this.getOauth2LoginSuccess()
+                          ? strings(
+                              'choose_password.description_social_login_update_ios',
+                            )
+                          : strings(
+                              'choose_password.description_social_login_update',
+                            )}
+                        {Platform.OS === 'android' && (
+                          <Text
+                            variant={TextVariant.BodyMD}
+                            color={TextColor.Warning}
+                          >
+                            {' '}
+                            {strings(
+                              'choose_password.description_social_login_update_bold',
+                            )}
+                          </Text>
                         )}
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Warning}
-                        >
-                          {' '}
-                          {strings(
-                            'choose_password.description_social_login_update_bold',
-                          )}
-                        </Text>
                       </Text>
                     ) : (
                       strings('choose_password.description')
@@ -825,6 +785,7 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.password')}
                   </Label>
                   <TextField
+                    autoFocus
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={this.onPasswordChange}

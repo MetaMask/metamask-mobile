@@ -1,12 +1,5 @@
 import { IconName } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../locales/i18n';
-import {
-  PointsEventDto,
-  SwapEventPayload,
-  PerpsEventPayload,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
-import { isNullOrUndefined } from '@metamask/utils';
-import { formatUnits } from 'viem';
+import I18n from '../../../../../locales/i18n';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
@@ -15,12 +8,17 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
  * @param value - The number to format.
  * @returns The formatted number as a string.
  */
-export const formatNumber = (value: number | null): string => {
+export const formatNumber = (
+  value: number | null,
+  decimals?: number,
+): string => {
   if (value === null || value === undefined) {
     return '0';
   }
   try {
-    return getIntlNumberFormatter(I18n.locale).format(value);
+    return getIntlNumberFormatter(I18n.locale, {
+      maximumFractionDigits: decimals,
+    }).format(value);
   } catch {
     return String(value);
   }
@@ -43,180 +41,71 @@ export const formatRewardsDate = (
     minute: '2-digit',
   }).format(date);
 
+/**
+ * Formats a "YYYY-MM-DD" date string into a localized format without timezone shifts.
+ * @param isoDate - The date string in "YYYY-MM-DD" format.
+ * @param locale - The locale to format for (e.g., 'en-US', 'fr-FR').
+ * @param options - Optional Intl.DateTimeFormat options.
+ * @returns The localized date string.
+ */
+export const formatUTCDate = (
+  isoDate: string,
+  locale: string = I18n.locale,
+  options: Intl.DateTimeFormatOptions = {},
+): string => {
+  // Create a date at midnight UTC
+  const date = new Date(`${isoDate}T00:00:00Z`);
+
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: 'UTC', // Ensure UTC interpretation
+  };
+
+  const finalOptions = { ...defaultOptions, ...options };
+
+  return new Intl.DateTimeFormat(locale, finalOptions).format(date);
+};
+
+/**
+ * Formats a date for mUSD deposit payload
+ * @param isoDate - The date string in "YYYY-MM-DD" format
+ * @param locale - Optional locale string, defaults to I18n.locale
+ * @returns Formatted date string specifically for mUSD deposit payload, or null if invalid
+ */
+export const formatRewardsMusdDepositPayloadDate = (
+  isoDate: string | undefined,
+  locale: string = I18n.locale,
+): string | null => {
+  if (
+    !isoDate ||
+    typeof isoDate !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)
+  ) {
+    return null;
+  }
+
+  return formatUTCDate(isoDate, locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
 export const formatTimeRemaining = (endDate: Date): string | null => {
   const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
 
   // No time remaining
-  if (hours <= 0 && minutes <= 0) {
+  if (hours <= 0 && minutes <= 0 && days <= 0) {
     return null;
   }
 
-  // Only minutes remaining
-  if (hours <= 0) {
-    return `${minutes}m`;
-  }
+  const dayString = days > 0 ? `${days}d ` : '';
+  const hourString = hours > 0 ? `${hours}h ` : '';
+  const minuteString = minutes > 0 ? `${minutes}m` : '';
 
-  // Hours and days remaining
-  return `${days}d ${hours}h`;
-};
-
-export const PerpsEventType = {
-  OPEN_POSITION: 'OPEN_POSITION',
-  CLOSE_POSITION: 'CLOSE_POSITION',
-  TAKE_PROFIT: 'TAKE_PROFIT',
-  STOP_LOSS: 'STOP_LOSS',
-} as const;
-
-export type PerpsEventType =
-  (typeof PerpsEventType)[keyof typeof PerpsEventType];
-
-const getPerpsEventDirection = (direction: string) => {
-  switch (direction) {
-    case 'LONG':
-      return 'Long';
-    case 'SHORT':
-      return 'Short';
-  }
-};
-
-const getPerpsEventTitle = (payload: PerpsEventPayload): string => {
-  switch (payload.type) {
-    case PerpsEventType.TAKE_PROFIT:
-      return strings('rewards.events.type.take_profit');
-    case PerpsEventType.CLOSE_POSITION:
-      return strings('rewards.events.type.close_position');
-    case PerpsEventType.STOP_LOSS:
-      return strings('rewards.events.type.stop_loss');
-    case PerpsEventType.OPEN_POSITION:
-      return strings('rewards.events.type.open_position');
-    default:
-      return strings('rewards.events.type.uncategorized_event');
-  }
-};
-
-const getPerpsEventDetails = (
-  payload: PerpsEventPayload,
-): string | undefined => {
-  if (
-    isNullOrUndefined(payload?.asset?.amount) ||
-    isNullOrUndefined(payload?.asset?.decimals) ||
-    isNullOrUndefined(payload?.asset?.symbol)
-  )
-    return undefined;
-
-  const { amount, decimals, symbol } = payload.asset;
-  const rawAmount = formatUnits(BigInt(amount), decimals);
-  // Limit to at most 2 decimal places without padding zeros
-  const formattedAmount = formatNumber(
-    parseFloat(Number(rawAmount).toFixed(3)),
-  );
-
-  switch (payload.type) {
-    case PerpsEventType.OPEN_POSITION:
-      if (isNullOrUndefined(payload.direction)) return undefined;
-      return `${getPerpsEventDirection(
-        payload.direction,
-      )} ${formattedAmount} ${symbol}`;
-    case PerpsEventType.CLOSE_POSITION:
-    case PerpsEventType.TAKE_PROFIT:
-    case PerpsEventType.STOP_LOSS:
-      if (payload.pnl) {
-        const pnl = Number(payload.pnl);
-        if (isNaN(pnl)) return `${symbol}`;
-        const sign = pnl > 0 ? '+' : pnl < 0 ? '-' : '';
-        const formattedAbsPnl = Math.round(Math.abs(pnl) * 100) / 100;
-        return `${symbol} ${sign}$${formattedAbsPnl}`;
-      }
-      return `${symbol}`;
-    default:
-      return undefined;
-  }
-};
-
-/**
- * Formats a swap event details
- * @param payload - The swap event payload
- * @returns The swap event details
- */
-const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
-  if (
-    isNullOrUndefined(payload.srcAsset?.amount) ||
-    isNullOrUndefined(payload.srcAsset?.decimals) ||
-    isNullOrUndefined(payload.srcAsset?.symbol)
-  )
-    return undefined;
-
-  const { amount, decimals, symbol } = payload.srcAsset;
-  const rawAmount = formatUnits(BigInt(amount), decimals);
-  // Limit to at most 2 decimal places without padding zeros
-  const formattedAmount = formatNumber(
-    parseFloat(Number(rawAmount).toFixed(3)),
-  );
-  const destSymbol = payload.destAsset?.symbol;
-
-  return `${formattedAmount} ${symbol}${
-    destSymbol ? ` ${strings('rewards.events.to')} ${destSymbol}` : ''
-  }`;
-};
-
-/**
- * Formats an event details
- * @param event - The event
- * @param accountName - Optional account name to display for bonus events
- * @returns The event details
- */
-export const getEventDetails = (
-  event: PointsEventDto,
-  accountName: string | undefined,
-): {
-  title: string;
-  details: string | undefined;
-  icon: IconName;
-} => {
-  switch (event.type) {
-    case 'SWAP':
-      return {
-        title: strings('rewards.events.type.swap'),
-        details: getSwapEventDetails(event.payload as SwapEventPayload),
-        icon: IconName.SwapVertical,
-      };
-    case 'PERPS':
-      return {
-        title: getPerpsEventTitle(event.payload as PerpsEventPayload),
-        details: getPerpsEventDetails(event.payload as PerpsEventPayload),
-        icon: IconName.Candlestick,
-      };
-    case 'REFERRAL':
-      return {
-        title: strings('rewards.events.type.referral_action'),
-        details: undefined,
-        icon: IconName.UserCircleAdd,
-      };
-    case 'SIGN_UP_BONUS':
-      return {
-        title: strings('rewards.events.type.sign_up_bonus'),
-        details: accountName,
-        icon: IconName.Edit,
-      };
-    case 'LOYALTY_BONUS':
-      return {
-        title: strings('rewards.events.type.loyalty_bonus'),
-        details: accountName,
-        icon: IconName.ThumbUp,
-      };
-    case 'ONE_TIME_BONUS':
-      return {
-        title: strings('rewards.events.type.one_time_bonus'),
-        details: undefined,
-        icon: IconName.Gift,
-      };
-    default:
-      return {
-        title: strings('rewards.events.type.uncategorized_event'),
-        details: undefined,
-        icon: IconName.Star,
-      };
-  }
+  return `${dayString}${hourString}${minuteString}`?.trim();
 };
 
 // Get icon name with fallback to Star if invalid

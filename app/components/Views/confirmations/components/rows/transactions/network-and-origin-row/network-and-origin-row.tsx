@@ -6,6 +6,7 @@ import { Hex } from '@metamask/utils';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
+import { useSDKV2Connection } from '../../../../../../hooks/useSDKV2Connection';
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import Text, {
   TextVariant,
@@ -21,6 +22,7 @@ import { MMM_ORIGIN } from '../../../../constants/confirmations';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRow from '../../../UI/info-row/info-row';
 import Address from '../../../UI/info-row/info-value/address';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './network-and-origin-row.styles';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import AlertRow from '../../../UI/info-row/alert-row';
@@ -33,11 +35,15 @@ export const NetworkAndOriginRow = () => {
   const chainId = transactionMetadata?.chainId || signatureRequest?.chainId;
   const origin =
     transactionMetadata?.origin || signatureRequest?.messageParams?.origin;
+  const sdkV2Connection = useSDKV2Connection(origin);
+  const isMMDSDKV2Origin = Boolean(sdkV2Connection?.isV2);
 
   const networkConfiguration = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId),
   );
+
   const isDappOrigin = origin !== MMM_ORIGIN;
+
   const networkImage = getNetworkImageSource({ chainId: chainId as Hex });
 
   if (!transactionMetadata && !signatureRequest) {
@@ -68,7 +74,9 @@ export const NetworkAndOriginRow = () => {
           label={strings('transactions.request_from')}
           style={styles.infoRowOverride}
         >
-          <Text variant={TextVariant.BodyMD}>{origin}</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {isMMDSDKV2Origin ? sdkV2Connection?.origin : origin}
+          </Text>
         </AlertRow>
       )}
       {signatureRequest && isSIWEMessage && (
@@ -82,3 +90,16 @@ export const NetworkAndOriginRow = () => {
     </InfoSection>
   );
 };
+
+export function NetworkAndOriginRowSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <InfoSection>
+      <View style={styles.skeletonContainer}>
+        <Skeleton width={70} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={100} height={20} style={styles.skeletonBorderRadius} />
+      </View>
+    </InfoSection>
+  );
+}

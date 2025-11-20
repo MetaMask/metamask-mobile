@@ -16,6 +16,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async () => {
         await loginToApp();
@@ -31,6 +32,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TabBarComponent.tapSettings();
@@ -38,6 +40,10 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
 
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
+
+        await SnapSettingsView.tapBackButton();
+        await SnapSettingsView.tapBackButton();
+        await SettingsView.tapCloseButton();
 
         await TabBarComponent.tapBrowser();
 
@@ -55,12 +61,18 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TabBarComponent.tapSettings();
+        await SettingsView.tapSnaps();
 
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
+
+        await SnapSettingsView.tapBackButton();
+        await SnapSettingsView.tapBackButton();
+        await SettingsView.tapCloseButton();
 
         await TabBarComponent.tapBrowser();
 
@@ -79,9 +91,11 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TabBarComponent.tapSettings();
+        await SettingsView.tapSnaps();
 
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.removeSnap();

@@ -293,8 +293,10 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -450,8 +452,10 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -543,8 +547,10 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input2-snap-ui-input"
@@ -699,8 +705,10 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -791,8 +799,10 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input2-snap-ui-input"
@@ -1939,8 +1949,10 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 20,
                           "opacity": 1,
-                          "paddingVertical": 0,
+                          "paddingVertical": 2,
+                          "textAlignVertical": "center",
                         }
                       }
                       testID="input-snap-ui-input"
@@ -2133,8 +2145,10 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 20,
                         "opacity": 1,
-                        "paddingVertical": 0,
+                        "paddingVertical": 2,
+                        "textAlignVertical": "center",
                       }
                     }
                     testID="input-snap-ui-input"
@@ -2268,7 +2282,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        onPress={[Function]}
+        onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

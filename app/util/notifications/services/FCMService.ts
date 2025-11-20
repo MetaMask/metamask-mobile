@@ -1,8 +1,8 @@
 import {
   type INotification,
   processNotification,
-  toRawOnChainNotification,
-  type UnprocessedOnChainRawNotification,
+  type UnprocessedRawNotification,
+  toRawAPINotification,
 } from '@metamask/notification-services-controller/notification-services';
 import messaging, {
   type FirebaseMessagingTypes,
@@ -11,7 +11,6 @@ import { NativeModules, Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -32,12 +31,19 @@ function analyticsTrackPushClickEvent(
   remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
 ) {
   try {
-    if (remoteMessage?.data) {
+    if (remoteMessage?.data?.data) {
+      const rawData = JSON.parse(remoteMessage.data.data?.toString() ?? null);
+      const kind = rawData?.kind ?? rawData?.data?.kind ?? rawData.type;
+
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
         )
-          .addProperties({ ...(remoteMessage.data as JsonMap) })
+          .addProperties({
+            deeplink: remoteMessage?.data?.deeplink?.toString(),
+            notification_type: kind,
+            data: rawData,
+          })
           .build(),
       );
     }
@@ -94,7 +100,7 @@ async function processAndHandleNotification(
     const payloadData = payload?.data?.data
       ? String(payload?.data?.data)
       : undefined;
-    const data: UnprocessedOnChainRawNotification | undefined = payloadData
+    const data: UnprocessedRawNotification | undefined = payloadData
       ? JSON.parse(payloadData)
       : undefined;
 
@@ -107,7 +113,7 @@ async function processAndHandleNotification(
     // Prevents duplicate notifications
     delete payload.notification;
 
-    const notificationData = toRawOnChainNotification(data);
+    const notificationData = toRawAPINotification(data);
     const notification = processNotification(notificationData);
     await handler(notification);
   } catch (error) {

@@ -2,6 +2,8 @@ import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import Logger from '../../../util/Logger';
+import { store } from '../../../store';
+import { setOnboardingReferralCode } from '../../../reducers/rewards';
 
 interface HandleRewardsUrlParams {
   rewardsPath: string;
@@ -49,6 +51,7 @@ export const handleRewardsUrl = async ({
     '[handleRewardsUrl] Starting rewards deeplink handling with path:',
     rewardsPath,
   );
+  Logger.log(`[handleRewardsUrl] Raw rewardsPath received: "${rewardsPath}"`);
 
   try {
     // Parse navigation parameters from URL
@@ -56,27 +59,12 @@ export const handleRewardsUrl = async ({
     DevLogger.log('[handleRewardsUrl] Parsed URL parameters:', urlParams);
 
     if (urlParams.referral && urlParams.referral.length > 0) {
-      Logger.log(
-        '[handleRewardsUrl] Navigating to rewards view with referral code',
-      );
-      NavigationService.navigation.navigate(Routes.REWARDS_VIEW, {
-        screen: Routes.REWARDS_VIEW,
-        params: {
-          isFromDeeplink: true,
-          referral: urlParams.referral,
-        },
-      });
+      store.dispatch(setOnboardingReferralCode(urlParams.referral));
     } else {
-      DevLogger.log(
-        '[handleRewardsUrl] No referral code parameter, defaulting to rewards view without referral code',
-      );
-      NavigationService.navigation.navigate(Routes.REWARDS_VIEW, {
-        screen: Routes.REWARDS_VIEW,
-        params: {
-          isFromDeeplink: true,
-        },
-      });
+      // Clear any existing referral code
+      store.dispatch(setOnboardingReferralCode(null));
     }
+    NavigationService.navigation.navigate(Routes.REWARDS_VIEW);
   } catch (error) {
     DevLogger.log('Failed to handle rewards deeplink:', error);
     // Fallback to wallet home on error

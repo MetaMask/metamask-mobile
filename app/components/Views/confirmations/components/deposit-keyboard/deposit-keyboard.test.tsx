@@ -12,7 +12,6 @@ function render(props: Partial<DepositKeyboardProps> = {}) {
       onDonePress={noop}
       onPercentagePress={noop}
       value="0"
-      hasInput={false}
       {...props}
     />,
     {
@@ -32,15 +31,16 @@ describe('DepositKeyboard', () => {
     expect(onChangeMock).toHaveBeenCalledWith('1');
   });
 
-  it('hides done button if hasInput is false', () => {
+  it('hides done button if input is empty', () => {
     const { queryByTestId } = render();
     expect(queryByTestId('deposit-keyboard-done-button')).toBeNull();
   });
 
-  it('shows done button if hasInput', () => {
-    const { getByTestId, getByText } = render({ hasInput: true });
-
-    fireEvent.press(getByText('1'));
+  it('shows done button if hasInput set', () => {
+    const { getByTestId } = render({
+      hasInput: true,
+      value: '1',
+    });
 
     expect(getByTestId('deposit-keyboard-done-button')).toBeDefined();
   });
@@ -49,8 +49,9 @@ describe('DepositKeyboard', () => {
     const onDonePressMock = jest.fn();
 
     const { getByTestId } = render({
-      hasInput: true,
       onDonePress: onDonePressMock,
+      hasInput: true,
+      value: '1',
     });
 
     fireEvent.press(getByTestId('deposit-keyboard-done-button'));
@@ -71,10 +72,20 @@ describe('DepositKeyboard', () => {
   it('renders alert and no percentage or done button', () => {
     const { getByText, queryByTestId, queryByText } = render({
       alertMessage: 'Test Alert',
+      value: '1',
     });
 
     expect(getByText('Test Alert')).toBeDefined();
     expect(queryByTestId('deposit-keyboard-done-button')).toBeNull();
     expect(queryByText('50%')).toBeNull();
+  });
+
+  it('renders doneLabel if specified', async () => {
+    const { getByText } = render({
+      doneLabel: 'Test Button',
+      hasInput: true,
+    });
+
+    expect(getByText('Test Button')).toBeDefined();
   });
 });

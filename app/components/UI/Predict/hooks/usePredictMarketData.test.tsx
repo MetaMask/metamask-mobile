@@ -27,10 +27,12 @@ describe('usePredictMarketData', () => {
       image: 'https://example.com/btc.png',
       status: 'open',
       recurrence: Recurrence.NONE,
-      categories: ['crypto', 'trending'],
+      category: 'crypto',
+      tags: ['trending'],
       outcomes: [
         {
           id: 'outcome-1',
+          providerId: 'polymarket',
           marketId: 'market-1',
           title: 'Yes',
           description: 'Bitcoin will reach $100k',
@@ -48,6 +50,7 @@ describe('usePredictMarketData', () => {
         },
         {
           id: 'outcome-2',
+          providerId: 'polymarket',
           marketId: 'market-1',
           title: 'No',
           description: 'Bitcoin will not reach $100k',
@@ -64,6 +67,8 @@ describe('usePredictMarketData', () => {
           groupItemTitle: 'Yes/No',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     },
     {
       id: 'market-2',
@@ -74,10 +79,12 @@ describe('usePredictMarketData', () => {
       image: 'https://example.com/eth.png',
       status: 'open',
       recurrence: Recurrence.NONE,
-      categories: ['crypto', 'trending'],
+      category: 'crypto',
+      tags: ['trending'],
       outcomes: [
         {
           id: 'outcome-3',
+          providerId: 'polymarket',
           marketId: 'market-2',
           title: 'Yes',
           description: 'Ethereum will reach $100k',
@@ -95,6 +102,7 @@ describe('usePredictMarketData', () => {
         },
         {
           id: 'outcome-4',
+          providerId: 'polymarket',
           marketId: 'market-2',
           title: 'No',
           description: 'Ethereum will not reach $100k',
@@ -111,6 +119,8 @@ describe('usePredictMarketData', () => {
           groupItemTitle: 'Yes/No',
         },
       ],
+      liquidity: 1000000,
+      volume: 1000000,
     },
   ];
 
@@ -126,7 +136,11 @@ describe('usePredictMarketData', () => {
     });
   });
 
-  it.skip('should fetch market data successfully', async () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should fetch market data successfully', async () => {
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, waitForNextUpdate } = renderHook(() =>

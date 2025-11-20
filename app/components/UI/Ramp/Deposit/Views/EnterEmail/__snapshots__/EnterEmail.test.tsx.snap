@@ -313,7 +313,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -771,8 +771,10 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
+                                        "lineHeight": 20,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -1173,7 +1175,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -1631,8 +1633,10 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
+                                        "lineHeight": 20,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value="test@example.com"
@@ -2047,7 +2051,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -2505,8 +2509,10 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
+                                        "lineHeight": 20,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value=""
@@ -2907,7 +2913,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -3365,8 +3371,10 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "fontWeight": "400",
                                         "height": 46,
                                         "letterSpacing": 0,
+                                        "lineHeight": 20,
                                         "opacity": 1,
-                                        "paddingVertical": 0,
+                                        "paddingVertical": 2,
+                                        "textAlignVertical": "center",
                                       }
                                     }
                                     value="invalid-email"

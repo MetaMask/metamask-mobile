@@ -27,12 +27,20 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-// Mock useRewardsIconAnimation hook
-jest.mock('../../hooks/useRewardsIconAnimation', () => ({
-  useRewardsIconAnimation: jest.fn(() => ({
-    riveRef: { current: { fireState: jest.fn() } },
-  })),
-}));
+jest.mock('react-native-fade-in-image', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      placeholderStyle,
+    }: {
+      children: React.ReactNode;
+      placeholderStyle?: unknown;
+    }) => React.createElement(View, { style: placeholderStyle }, children),
+  };
+});
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -74,16 +82,62 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
+}));
+
+// Mock formatChainIdToCaip for AddRewardsAccount component
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  formatChainIdToCaip: jest.fn((chainId: string) => {
+    // If already in CAIP format, return as-is
+    if (chainId.includes(':')) {
+      return chainId as `${string}:${string}`;
+    }
+    // Otherwise, convert to CAIP format
+    return `eip155:${chainId}` as `${string}:${string}`;
+  }),
+}));
+
+// Mock useLinkAccountAddress for AddRewardsAccount component
+jest.mock('../../../../UI/Rewards/hooks/useLinkAccountAddress', () => ({
+  useLinkAccountAddress: jest.fn(() => ({
+    linkAccountAddress: jest.fn(),
+    isLoading: false,
+    isError: false,
+  })),
 }));
 
 // Mock the bridge selectors
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectBridgeControllerState: () => ({
+    quotesLastFetched: Date.now(),
+    quotesLoadingStatus: null,
+    quoteFetchError: null,
+    quotesRefreshCount: 0,
+  }),
   selectBridgeFeatureFlags: () => ({
+    minimumVersion: '0.0.0',
+    refreshRate: 30000,
+    maxRefreshCount: 3,
+    support: true,
     priceImpactThreshold: {
       normal: 3.0,
       gasless: 1.5,
+    },
+    chains: {
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+        refreshRate: 30000,
+        isActiveSrc: true,
+        isActiveDest: true,
+      },
+      'eip155:1': {
+        refreshRate: 30000,
+        isActiveSrc: true,
+        isActiveDest: true,
+      },
     },
   }),
   selectIsEvmSolanaBridge: () => true,
@@ -102,6 +156,63 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     name: 'Ethereum',
   }),
   selectSourceAmount: () => '1.0',
+  selectDestAddress: () => undefined,
+  selectIsSwap: () => false,
+}));
+
+// Mock multichain account selectors
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: () => ({}),
+    selectAccountToWalletMap: () => ({}),
+    selectWalletsMap: () => ({}),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => [],
+    selectAccountTreeControllerState: () => ({}),
+    selectAccountGroupWithInternalAccounts: () => [],
+    selectSelectedAccountGroupInternalAccounts: () => [],
+  }),
+);
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => (scope: string) => {
+    // Return appropriate account based on the scope
+    if (scope.startsWith('solana:')) {
+      return {
+        id: 'solanaAccountId',
+        address: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61',
+        name: 'Solana Account',
+        type: 'snap',
+        scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+        metadata: {
+          lastSelected: 0,
+        },
+      };
+    }
+    // Default to EVM account
+    return {
+      id: 'evmAccountId',
+      address: '0x1234567890123456789012345678901234567890',
+      name: 'Account 1',
+      type: 'eip155:eoa',
+      scopes: ['eip155:1'],
+      metadata: {
+        lastSelected: 0,
+      },
+    };
+  },
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => false,
+  }),
+);
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  selectInternalAccounts: () => [],
 }));
 
 // want to make the source token solana and dest token evm
@@ -377,7 +488,7 @@ describe('QuoteDetailsCard', () => {
 
     // The key is testing the shouldShowPriceImpactWarning conditional branches
     // Verify the Price Impact section is visible (this exercises the component logic)
-    expect(getByText('Price Impact')).toBeTruthy();
+    expect(getByText('Price impact')).toBeTruthy();
 
     // Test the shouldShowPriceImpactWarning branches by checking for tooltip presence
     const hasWarningTooltip =
@@ -414,6 +525,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -444,6 +558,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -456,20 +573,20 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText, getByTestId } = renderScreen(
+      const { getByText, getByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Then the rewards row should be shown but without points value
+      // Then the rewards row should be shown with the animation component
       await waitFor(() => {
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
         expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
       });
 
-      // But no numeric value should be displayed
-      expect(queryByText(/^\d+$/)).toBeNull();
+      // RewardPointsAnimation component displays 0 when estimation fails
+      expect(getByText('0')).toBeOnTheScreen();
     });
 
     it('does not display rewards row when rewards feature is disabled', async () => {
@@ -496,30 +613,42 @@ describe('QuoteDetailsCard', () => {
       });
     });
 
-    it('does not display rewards row when user has not opted in', async () => {
+    it('displays AddRewardsAccount when user has not opted in', async () => {
       // Given rewards feature is enabled but user has not opted in
       mockEngine.controllerMessenger.call.mockImplementation(
         (method: string) => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(false);
+          }
+          if (method === 'RewardsController:isOptInSupported') {
+            return Promise.resolve(true);
           }
           return Promise.resolve(null);
         },
       );
 
       // When rendering the component
-      const { queryByText } = renderScreen(
+      const { getByText, getByTestId, queryByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Then the rewards row should not be displayed
+      // Then the rewards row should be displayed
       await waitFor(() => {
-        expect(queryByText(strings('bridge.points'))).toBeNull();
+        expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
+      });
+
+      // And AddRewardsAccount should be shown instead of RewardsAnimations
+      await waitFor(() => {
+        expect(getByTestId('bridge-add-rewards-account')).toBeOnTheScreen();
+        expect(queryByTestId('mock-rive-animation')).toBeNull();
       });
     });
 
@@ -529,6 +658,9 @@ describe('QuoteDetailsCard', () => {
         (method: string) => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
           }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
@@ -560,6 +692,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -574,19 +709,19 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText, getByTestId } = renderScreen(
+      const { getByText, getByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Then the rewards row should be shown but without points value
+      // Then the rewards row should be shown with animation component
       await waitFor(() => {
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
         expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
       });
-      // Points value should not be displayed while loading
-      expect(queryByText(/^\d+$/)).toBeNull();
+      // RewardPointsAnimation shows 0 while loading (estimatedPoints is null, defaults to 0)
+      expect(getByText('0')).toBeOnTheScreen();
     });
 
     it('displays rewards row but no points when engine returns zero', async () => {
@@ -595,6 +730,9 @@ describe('QuoteDetailsCard', () => {
         (method: string) => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
           }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
@@ -630,6 +768,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -660,6 +801,9 @@ describe('QuoteDetailsCard', () => {
         (method: string) => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
           }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
@@ -692,6 +836,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -703,19 +850,19 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText, getByTestId } = renderScreen(
+      const { getByText, getByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Then rewards row should be shown but without points value
+      // Then rewards row should be shown with animation component
       await waitFor(() => {
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
         expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
       });
-      // No numeric value should be displayed
-      expect(queryByText(/^\d+$/)).toBeNull();
+      // RewardPointsAnimation displays 0 when estimatedPoints is null (uses ?? 0 fallback)
+      expect(getByText('0')).toBeOnTheScreen();
     });
 
     it('handles quote loading state with rewards', async () => {
@@ -740,6 +887,9 @@ describe('QuoteDetailsCard', () => {
           if (method === 'RewardsController:isRewardsFeatureEnabled') {
             return Promise.resolve(true);
           }
+          if (method === 'RewardsController:getFirstSubscriptionId') {
+            return Promise.resolve('subscription-id-1');
+          }
           if (method === 'RewardsController:getHasAccountOptedIn') {
             return Promise.resolve(true);
           }
@@ -754,7 +904,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText } = renderScreen(
+      const { getByText, getByTestId } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -762,11 +912,12 @@ describe('QuoteDetailsCard', () => {
 
       // Rewards row should be shown
       await waitFor(() => {
+        expect(getByTestId('bridge-rewards-row')).toBeOnTheScreen();
         expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
       });
 
-      // But no points value should be displayed
-      expect(queryByText(/^\d+$/)).toBeNull();
+      // RewardPointsAnimation displays 0 while loading (estimatedPoints is null)
+      expect(getByText('0')).toBeOnTheScreen();
     });
   });
 });

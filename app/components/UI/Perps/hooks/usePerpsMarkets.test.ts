@@ -4,7 +4,6 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
 import type { PerpsMarketData } from '../controllers/types';
 
-// Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 
 // Mock PerpsStreamManager
@@ -21,7 +20,6 @@ jest.mock('../providers/PerpsStreamManager', () => ({
   })),
 }));
 
-// Mock data
 const mockMarketDataArray: PerpsMarketData[] = [
   {
     symbol: 'BTC',
@@ -447,7 +445,7 @@ describe('usePerpsMarkets', () => {
           price: '$1',
           change24h: '+0%',
           change24hPercent: '0',
-          volume: '—',
+          volume: '--', // FALLBACK_DATA_DISPLAY
         },
         {
           symbol: 'F',
@@ -465,7 +463,7 @@ describe('usePerpsMarkets', () => {
           price: '$1',
           change24h: '+0%',
           change24hPercent: '0',
-          volume: '—',
+          volume: '--', // FALLBACK_DATA_DISPLAY
         },
       ];
 
@@ -482,8 +480,60 @@ describe('usePerpsMarkets', () => {
       });
 
       // Assert - should be sorted by volume descending
+      // Note: F ($0), E (—), and G (—) are filtered out by default (showZeroVolume=false)
       const sortedSymbols = result.current.markets.map((m) => m.symbol);
-      expect(sortedSymbols).toEqual(['B', 'D', 'A', 'C', 'F', 'E', 'G']);
+      expect(sortedSymbols).toEqual(['B', 'D', 'A', 'C']); // Only markets with valid volume
+    });
+
+    it('includes zero volume markets when showZeroVolume is true', async () => {
+      // Arrange - markets with various volume formats
+      const unsortedMarkets: PerpsMarketData[] = [
+        {
+          symbol: 'A',
+          name: 'A',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$100K',
+        },
+        {
+          symbol: 'B',
+          name: 'B',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$1.5B',
+        },
+        {
+          symbol: 'F',
+          name: 'F',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$0',
+        },
+      ];
+
+      mockSubscribe.mockImplementation(({ callback }) => {
+        setTimeout(() => callback(unsortedMarkets), 0);
+        return jest.fn();
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsMarkets({ showZeroVolume: true }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Assert - should include F ($0) when showZeroVolume is true
+      const sortedSymbols = result.current.markets.map((m) => m.symbol);
+      expect(sortedSymbols).toEqual(['B', 'A', 'F']);
     });
   });
 

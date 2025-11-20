@@ -11,7 +11,7 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
-import type { CandleData } from '../../types';
+import type { CandleData } from '../../types/perps-types';
 import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
@@ -19,6 +19,10 @@ import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -73,6 +77,30 @@ const TradingViewChart = React.forwardRef<
       close: string;
       time: number;
     } | null>(null);
+
+    // Format OHLC values using the same formatting as the header
+    const formattedOhlcData = useMemo(() => {
+      if (!ohlcData) return null;
+
+      try {
+        return {
+          open: formatPerpsFiat(parseFloat(ohlcData.open), {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+          high: formatPerpsFiat(parseFloat(ohlcData.high), {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+          low: formatPerpsFiat(parseFloat(ohlcData.low), {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+          close: formatPerpsFiat(parseFloat(ohlcData.close), {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+        };
+      } catch {
+        return null;
+      }
+    }, [ohlcData]);
 
     // Platform-specific WebView props
     const platformSpecificProps = useMemo(() => {
@@ -404,15 +432,23 @@ const TradingViewChart = React.forwardRef<
         </Box>
 
         {/* OHLC Legend */}
-        {ohlcData && (
+        {formattedOhlcData && (
           <Box style={styles.ohlcLegend}>
             <Box style={styles.ohlcRow}>
-              <Text variant={TextVariant.BodyXs}>O: {ohlcData.open}</Text>
-              <Text variant={TextVariant.BodyXs}>C: {ohlcData.close}</Text>
+              <Text variant={TextVariant.BodyXs}>
+                O: {formattedOhlcData.open}
+              </Text>
+              <Text variant={TextVariant.BodyXs}>
+                C: {formattedOhlcData.close}
+              </Text>
             </Box>
             <Box style={styles.ohlcRow}>
-              <Text variant={TextVariant.BodyXs}>H: {ohlcData.high}</Text>
-              <Text variant={TextVariant.BodyXs}>L: {ohlcData.low}</Text>
+              <Text variant={TextVariant.BodyXs}>
+                H: {formattedOhlcData.high}
+              </Text>
+              <Text variant={TextVariant.BodyXs}>
+                L: {formattedOhlcData.low}
+              </Text>
             </Box>
           </Box>
         )}
