@@ -71,26 +71,28 @@ async function start() {
   // 2. Construct Comment Body
   const testFlightLink = 'https://testflight.apple.com/join/hBrjtFuA';
   const artifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${GITHUB_RUN_ID}`;
-
+  
+  // Use specific emojis and format to match the requested style more closely
   let rows = [];
   
   if (IOS_BUILD_SUCCESS === 'true') {
-    rows.push(`| **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
+    // :mac_apple: Release Candidate Build Number ... (access via TestFlight)
+    rows.push(`| :apple: **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
   }
 
   if (ANDROID_BUILD_SUCCESS === 'true') {
-    rows.push(`| **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
+    // :android: Release Candidate Download ...
+    rows.push(`| :robot: **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
   }
 
-  // Fallback if neither (e.g. if manual run or weird state), show both but maybe with warning?
-  // For now, if variables aren't set (legacy/local run), show both as before
+  // Fallback if neither (e.g. if manual run or weird state), show both
   if (!IOS_BUILD_SUCCESS && !ANDROID_BUILD_SUCCESS) {
-    rows.push(`| **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
-    rows.push(`| **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
+    rows.push(`| :apple: **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
+    rows.push(`| :robot: **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
   }
 
   const commentBody = `${ARTIFACTS_COMMENT_MARKER}
-### 🚀 Builds Ready for Testing
+### :rocket: Builds Ready for Testing
 
 | Platform | Link | Note |
 | :--- | :--- | :--- |
