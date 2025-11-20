@@ -2743,21 +2743,19 @@ describe('HyperLiquidSubscriptionService', () => {
   describe('aggregateAccountStates - returnOnEquity calculation', () => {
     it('calculates positive ROE when unrealizedPnl is positive', async () => {
       // Override the adapter mock
-      jest
-        .mocked(adaptAccountStateFromSDK)
-        .mockImplementation(() => ({
-          availableBalance: '100',
-          totalBalance: '1100',
-          marginUsed: '1000',
-          unrealizedPnl: '100',
-          returnOnEquity: '10.0',
-        }));
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '100',
+        totalBalance: '1100',
+        marginUsed: '1000',
+        unrealizedPnl: '100',
+        returnOnEquity: '10.0',
+      }));
 
       const mockCallback = jest.fn();
 
       // Mock webData3
       mockSubscriptionClient.webData3.mockImplementation(
-        (_params, callback) => {
+        (_params: any, callback: any) => {
           const mockData = {
             perpDexStates: [
               {
@@ -2790,21 +2788,19 @@ describe('HyperLiquidSubscriptionService', () => {
 
     it('calculates negative ROE when unrealizedPnl is negative', async () => {
       // Override the adapter mock
-      jest
-        .mocked(adaptAccountStateFromSDK)
-        .mockImplementation(() => ({
-          availableBalance: '0',
-          totalBalance: '950',
-          marginUsed: '1000',
-          unrealizedPnl: '-50',
-          returnOnEquity: '-5.0',
-        }));
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '0',
+        totalBalance: '950',
+        marginUsed: '1000',
+        unrealizedPnl: '-50',
+        returnOnEquity: '-5.0',
+      }));
 
       const mockCallback = jest.fn();
 
       // Mock webData3
       mockSubscriptionClient.webData3.mockImplementation(
-        (_params, callback) => {
+        (_params: any, callback: any) => {
           const mockData = {
             perpDexStates: [
               {
@@ -2837,21 +2833,19 @@ describe('HyperLiquidSubscriptionService', () => {
 
     it('returns zero ROE when marginUsed is zero', async () => {
       // Override the adapter mock
-      jest
-        .mocked(adaptAccountStateFromSDK)
-        .mockImplementation(() => ({
-          availableBalance: '1000',
-          totalBalance: '1000',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-        }));
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '1000',
+        totalBalance: '1000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      }));
 
       const mockCallback = jest.fn();
 
       // Mock webData3
       mockSubscriptionClient.webData3.mockImplementation(
-        (_params, callback) => {
+        (_params: any, callback: any) => {
           const mockData = {
             perpDexStates: [
               {
@@ -2884,22 +2878,20 @@ describe('HyperLiquidSubscriptionService', () => {
 
     it('calculates correct ROE with mixed profit and loss positions', async () => {
       // Override the adapter mock
-      jest
-        .mocked(adaptAccountStateFromSDK)
-        .mockImplementation(() => ({
-          availableBalance: '75',
-          totalBalance: '1575',
-          marginUsed: '1500',
-          unrealizedPnl: '75',
-          returnOnEquity: '5.0',
-        }));
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '75',
+        totalBalance: '1575',
+        marginUsed: '1500',
+        unrealizedPnl: '75',
+        returnOnEquity: '5.0',
+      }));
 
       const mockCallback = jest.fn();
 
       // Mock webData3 - simulates account with multiple positions
       // marginUsed=1500, unrealizedPnl=75 → ROE=5.0%
       mockSubscriptionClient.webData3.mockImplementation(
-        (_params, callback) => {
+        (_params: any, callback: any) => {
           const mockData = {
             perpDexStates: [
               {
@@ -2932,21 +2924,19 @@ describe('HyperLiquidSubscriptionService', () => {
 
     it('calculates high ROE with large percentage gains', async () => {
       // Override the adapter mock
-      jest
-        .mocked(adaptAccountStateFromSDK)
-        .mockImplementation(() => ({
-          availableBalance: '200',
-          totalBalance: '300',
-          marginUsed: '100',
-          unrealizedPnl: '200',
-          returnOnEquity: '200.0',
-        }));
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '200',
+        totalBalance: '300',
+        marginUsed: '100',
+        unrealizedPnl: '200',
+        returnOnEquity: '200.0',
+      }));
 
       const mockCallback = jest.fn();
 
       // Mock webData3
       mockSubscriptionClient.webData3.mockImplementation(
-        (_params, callback) => {
+        (_params: any, callback: any) => {
           const mockData = {
             perpDexStates: [
               {
@@ -2979,21 +2969,19 @@ describe('HyperLiquidSubscriptionService', () => {
 
     it('rounds ROE to one decimal place', async () => {
       // Override the adapter mock
-      jest
-        .mocked(adaptAccountStateFromSDK)
-        .mockImplementation(() => ({
-          availableBalance: '100',
-          totalBalance: '433',
-          marginUsed: '333',
-          unrealizedPnl: '100',
-          returnOnEquity: '30.0',
-        }));
+      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
+        availableBalance: '100',
+        totalBalance: '433',
+        marginUsed: '333',
+        unrealizedPnl: '100',
+        returnOnEquity: '30.0',
+      }));
 
       const mockCallback = jest.fn();
 
       // Mock webData3
       mockSubscriptionClient.webData3.mockImplementation(
-        (_params, callback) => {
+        (_params: any, callback: any) => {
           const mockData = {
             perpDexStates: [
               {
