@@ -80,18 +80,20 @@ const FoxAnimation = ({
   const [isPlaying, setIsPlaying] = useState(false);
 
   const showFoxAnimation = useCallback(async () => {
-    if (foxRef.current && trigger && isPlaying) {
+    if (foxRef.current && trigger) {
       try {
         foxRef.current?.fireState('FoxRaiseUp', trigger);
       } catch (error) {
         Logger.error(error as Error, 'Error triggering Fox Rive animation');
       }
     }
-  }, [foxRef, trigger, isPlaying]);
+  }, [foxRef, trigger]);
 
   useEffect(() => {
-    showFoxAnimation();
-  }, [showFoxAnimation]);
+    if (isPlaying) {
+      showFoxAnimation();
+    }
+  }, [showFoxAnimation, isPlaying]);
 
   return (
     <View style={[styles.foxAnimationWrapper]}>

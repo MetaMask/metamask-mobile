@@ -101,7 +101,7 @@ const OnboardingAnimation = ({
     }
 
     try {
-      if (logoRef.current && isPlaying) {
+      if (logoRef.current) {
         const isDarkMode = themeAppearance === 'dark';
         logoRef.current.setInputState('WordmarkBuildUp', 'Dark', isDarkMode);
         logoRef.current.fireState('WordmarkBuildUp', 'Start');
@@ -123,14 +123,13 @@ const OnboardingAnimation = ({
     setStartFoxAnimation,
     logoPosition,
     buttonsOpacity,
-    isPlaying,
   ]);
 
   useEffect(() => {
-    if (startOnboardingAnimation) {
+    if (startOnboardingAnimation && isPlaying) {
       startRiveAnimation();
     }
-  }, [startRiveAnimation, startOnboardingAnimation]);
+  }, [startRiveAnimation, startOnboardingAnimation, isPlaying]);
 
   return (
     <>
