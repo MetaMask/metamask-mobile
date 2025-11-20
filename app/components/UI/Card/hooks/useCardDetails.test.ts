@@ -53,7 +53,7 @@ describe('useCardDetails', () => {
   const mockCacheReturn = {
     data: null,
     isLoading: false,
-    error: false,
+    error: null,
     fetchData: mockFetchData,
   };
 
@@ -102,7 +102,7 @@ describe('useCardDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: cardDetailsResult,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -121,7 +121,7 @@ describe('useCardDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -156,20 +156,21 @@ describe('useCardDetails', () => {
   });
 
   describe('Error Handling', () => {
-    it('maps useWrapWithCache error to UNKNOWN_ERROR', () => {
+    it('returns error state from useWrapWithCache', () => {
       // Given: useWrapWithCache has error
+      const mockError = new Error('Test error');
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: true,
+        error: mockError,
         fetchData: mockFetchData,
       });
 
       // When: Hook is rendered
       const { result } = renderHook(() => useCardDetails());
 
-      // Then: Maps to UNKNOWN_ERROR
-      expect(result.current.error).toBe(CardErrorType.UNKNOWN_ERROR);
+      // Then: Returns error object
+      expect(result.current.error).toBe(mockError);
       expect(result.current.cardDetails).toBeNull();
     });
 
@@ -383,7 +384,7 @@ describe('useCardDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: cardDetailsResult,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 

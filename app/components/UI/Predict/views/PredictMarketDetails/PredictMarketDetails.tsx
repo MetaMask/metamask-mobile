@@ -297,6 +297,24 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       (outcome) => outcome.resolutionStatus === 'resolved',
     );
 
+  // Chart-specific data preparation (pending a larger refactor)
+  // Isolated from the rest of the component for now to avoid regressions
+  const chartOpenOutcomes = useMemo(
+    () =>
+      (market?.outcomes ?? [])
+        .filter((outcome) => outcome.status === 'open')
+        .slice(0, 3),
+    [market?.outcomes],
+  );
+
+  const chartOutcomeTokenIds = useMemo(
+    () =>
+      chartOpenOutcomes
+        .map((outcome) => outcome?.tokens?.[0]?.id)
+        .filter((tokenId): tokenId is string => Boolean(tokenId)),
+    [chartOpenOutcomes],
+  );
+
   const selectedFidelity = DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
   const {
     priceHistories,
@@ -304,27 +322,26 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     errors,
     refetch: refetchPriceHistory,
   } = usePredictPriceHistory({
-    marketIds: loadedOutcomeTokenIds,
+    marketIds: chartOutcomeTokenIds,
     interval: selectedTimeframe,
     providerId,
     fidelity: selectedFidelity,
-    enabled: hasAnyOutcomeToken,
+    enabled: chartOutcomeTokenIds.length > 0,
   });
 
-  // Transform data for the unified chart component
   const chartData: ChartSeries[] = useMemo(() => {
     const palette = [
       colors.primary.default,
       colors.error.default,
       colors.success.default,
     ];
-    return loadedOutcomeTokenIds.map((_tokenId, index) => ({
+    return chartOutcomeTokenIds.map((_tokenId, index) => ({
       label:
-        outcomeSlices[index]?.groupItemTitle ||
-        outcomeSlices[index]?.title ||
+        chartOpenOutcomes[index]?.groupItemTitle ||
+        chartOpenOutcomes[index]?.title ||
         `Outcome ${index + 1}`,
       color:
-        loadedOutcomeTokenIds.length === 1
+        chartOutcomeTokenIds.length === 1
           ? colors.success.default
           : (palette[index] ?? colors.success.default),
       data: (priceHistories[index] ?? []).map((point) => ({
@@ -333,8 +350,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       })),
     }));
   }, [
-    loadedOutcomeTokenIds,
-    outcomeSlices,
+    chartOutcomeTokenIds,
+    chartOpenOutcomes,
     priceHistories,
     colors.primary.default,
     colors.error.default,
@@ -1150,7 +1167,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         {/* Header content - scrollable */}
         <Box twClassName="px-3 gap-4">
           {renderMarketStatus()}
-          {!multipleOpenOutcomesPartiallyResolved && (
+          {chartOpenOutcomes.length > 0 && (
             <PredictDetailsChart
               data={chartData}
               timeframes={PRICE_HISTORY_TIMEFRAMES}

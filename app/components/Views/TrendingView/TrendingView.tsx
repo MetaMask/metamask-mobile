@@ -6,7 +6,6 @@ import { useSelector } from 'react-redux';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
   Box,
-  BoxFlexDirection,
   Text,
   TextVariant,
   ButtonIcon,
@@ -17,27 +16,32 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { appendURLParams } from '../../../util/browser';
 import { useMetrics } from '../../hooks/useMetrics';
+import { useTheme } from '../../../util/theme';
 import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
 import {
   lastTrendingScreenRef,
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
-import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
-import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
-import { PredictModalStack } from '../../UI/Predict/routes';
-import PredictionSection from './PredictionSection/PredictionSection';
-import PerpsSection from './PerpsSection/PerpsSection';
-import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  PredictMarketDetails,
+  PredictSellPreview,
+} from '../../UI/Predict';
+import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
+import QuickActions from './components/QuickActions/QuickActions';
+import SectionHeader from './components/SectionHeader/SectionHeader';
+import { HOME_SECTIONS_ARRAY } from './config/sections.config';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 
 const Stack = createStackNavigator();
 
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    marginTop: 10,
     paddingLeft: 16,
     paddingRight: 16,
   },
@@ -71,6 +75,7 @@ const TrendingFeed: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
+  const { colors } = useTheme();
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -84,6 +89,10 @@ const TrendingFeed: React.FC = () => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: { security: { dataCollectionForMarketing?: boolean } }) =>
       state.security.dataCollectionForMarketing,
+  );
+
+  const browserTabsCount = useSelector(
+    (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
 
   const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
@@ -107,34 +116,54 @@ const TrendingFeed: React.FC = () => {
 
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="flex-row justify-between items-center px-4 py-3">
+      <Box twClassName="px-4 py-3">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
-
-        <Box flexDirection={BoxFlexDirection.Row}>
-          <ButtonIcon
-            iconName={IconName.Explore}
-            size={ButtonIconSize.Lg}
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
-          />
-        </Box>
       </Box>
 
-      <ExploreSearchBar type="button" onPress={handleSearchPress} />
+      <Box twClassName="px-4 pb-3">
+        <Box twClassName="flex-row items-center gap-2">
+          <Box twClassName="flex-1">
+            <ExploreSearchBar type="button" onPress={handleSearchPress} />
+          </Box>
+
+          <Box
+            twClassName="rounded-md items-center justify-center h-8 w-8 border-4"
+            style={{
+              borderColor: colors.text.default,
+            }}
+          >
+            {browserTabsCount > 0 ? (
+              <ButtonLink
+                onPress={handleBrowserPress}
+                label={browserTabsCount}
+                testID="trending-view-browser-button"
+              />
+            ) : (
+              <ButtonIcon
+                iconName={IconName.Add}
+                size={ButtonIconSize.Md}
+                onPress={handleBrowserPress}
+                testID="trending-view-browser-button"
+              />
+            )}
+          </Box>
+        </Box>
+      </Box>
 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <PredictionSection />
-        <TrendingTokensSection />
-        <PerpsConnectionProvider>
-          <PerpsStreamProvider>
-            <PerpsSection />
-          </PerpsStreamProvider>
-        </PerpsConnectionProvider>
+        <QuickActions />
+
+        {HOME_SECTIONS_ARRAY.map((section) => (
+          <React.Fragment key={section.id}>
+            <SectionHeader sectionId={section.id} />
+            {section.renderSection()}
+          </React.Fragment>
+        ))}
       </ScrollView>
     </Box>
   );
@@ -157,6 +186,17 @@ const TrendingView: React.FC = () => {
         component={ExploreSearchScreen}
       />
       <Stack.Screen
+        name={Routes.PREDICT.ROOT}
+        component={PredictScreenStack}
+        options={{
+          headerShown: false,
+          cardStyle: {
+            backgroundColor: 'transparent',
+          },
+          animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
         name={Routes.PREDICT.MODALS.ROOT}
         component={PredictModalStack}
         options={{
@@ -165,6 +205,27 @@ const TrendingView: React.FC = () => {
             backgroundColor: 'transparent',
           },
           animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MARKET_DETAILS}
+        component={PredictMarketDetails}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.BUY_PREVIEW}
+        component={PredictBuyPreview}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.SELL_PREVIEW}
+        component={PredictSellPreview}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>
