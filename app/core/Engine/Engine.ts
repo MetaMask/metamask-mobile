@@ -168,6 +168,7 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
+import { featureFlagOverrideControllerInit } from './controllers/feature-flag-override-controller/feature-flag-override-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
@@ -287,6 +288,7 @@ export class Engine {
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
+        FeatureFlagOverrideController: featureFlagOverrideControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -370,6 +372,8 @@ export class Engine {
     const loggingController = controllersByName.LoggingController;
     const remoteFeatureFlagController =
       controllersByName.RemoteFeatureFlagController;
+    const featureFlagOverrideController =
+      controllersByName.FeatureFlagOverrideController;
     const accountsController = controllersByName.AccountsController;
     const accountTreeController = controllersByName.AccountTreeController;
     const approvalController = controllersByName.ApprovalController;
@@ -497,6 +501,7 @@ export class Engine {
       ApprovalController: approvalController,
       PermissionController: this.permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
+      FeatureFlagOverrideController: featureFlagOverrideController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
       TokenSearchDiscoveryController: tokenSearchDiscoveryController,
