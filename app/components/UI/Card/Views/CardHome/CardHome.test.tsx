@@ -43,7 +43,9 @@ import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
 import { cardDefaultNavigationOptions } from '../../routes';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -68,8 +70,9 @@ import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledFo
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockNavigationDispatch = jest.fn();
 
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, StackActions } from '@react-navigation/native';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -80,7 +83,14 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
       setOptions: mockSetNavigationOptions,
+      dispatch: mockNavigationDispatch,
     }),
+    StackActions: {
+      replace: jest.fn((routeName) => ({
+        type: 'REPLACE',
+        routeName,
+      })),
+    },
   };
 });
 
@@ -185,6 +195,11 @@ jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
 
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(),
+  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
+}));
+
 jest.mock('../../hooks/useIsSwapEnabledForPriorityToken', () => ({
   useIsSwapEnabledForPriorityToken: jest.fn(),
 }));
@@ -198,8 +213,27 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   MetaMetricsEvents: {
     CARD_ADD_FUNDS_CLICKED: 'card_add_funds_clicked',
     CARD_HOME_VIEWED: 'card_home_viewed',
+    CARD_BUTTON_CLICKED: 'card_button_clicked',
   },
 }));
+
+// Mock navigation helper functions
+jest.mock('../../components/AddFundsBottomSheet/AddFundsBottomSheet', () => ({
+  createAddFundsModalNavigationDetails: jest.fn((params) => [
+    'CardModals',
+    { screen: 'CardAddFundsModal', params },
+  ]),
+}));
+
+jest.mock(
+  '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet',
+  () => ({
+    createAssetSelectionModalNavigationDetails: jest.fn((params) => [
+      'CardModals',
+      { screen: 'CardAssetSelectionModal', params },
+    ]),
+  }),
+);
 
 // Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
@@ -233,6 +267,42 @@ jest.mock('@metamask/swaps-controller/dist/constants', () => ({
 jest.mock('../../util/getHighestFiatToken', () => ({
   getHighestFiatToken: jest.fn(() => mockPriorityToken),
 }));
+
+// Mock isSolanaChainId
+jest.mock('@metamask/bridge-controller', () => ({
+  isSolanaChainId: jest.fn(),
+}));
+
+// Mock authentication error utility
+const mockIsAuthenticationError = jest.fn();
+jest.mock('../../util/isAuthenticationError', () => ({
+  isAuthenticationError: (...args: unknown[]) =>
+    mockIsAuthenticationError(...args),
+}));
+
+// Mock card token vault
+const mockRemoveCardBaanxToken = jest.fn();
+jest.mock('../../util/cardTokenVault', () => ({
+  removeCardBaanxToken: () => mockRemoveCardBaanxToken(),
+}));
+
+// Mock Redux card actions
+const mockResetAuthenticatedData = jest.fn(() => ({
+  type: 'card/resetAuthenticatedData',
+}));
+const mockClearAllCache = jest.fn(() => ({
+  type: 'card/clearAllCache',
+}));
+jest.mock('../../../../../core/redux/slices/card', () => {
+  const actualModule = jest.requireActual(
+    '../../../../../core/redux/slices/card',
+  );
+  return {
+    ...actualModule,
+    resetAuthenticatedData: () => mockResetAuthenticatedData(),
+    clearAllCache: () => mockClearAllCache(),
+  };
+});
 
 // Mock Logger
 jest.mock('../../../../../util/Logger', () => ({
@@ -270,6 +340,7 @@ jest.mock('../../../../../core/Engine', () => ({
 // Import the Engine to get typed references to the mocked functions
 import Engine from '../../../../../core/Engine';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
@@ -291,6 +362,10 @@ const mockGetAccountByAddress = Engine.context.AccountsController
 const mockSetSelectedAccount = Engine.context.AccountsController
   .setSelectedAccount as jest.MockedFunction<
   typeof Engine.context.AccountsController.setSelectedAccount
+>;
+
+const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
+  typeof isSolanaChainId
 >;
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -469,6 +544,15 @@ describe('CardHome Component', () => {
     mockLogoutFromProvider.mockClear();
     mockSetIsAuthenticated.mockClear();
 
+    // Clear authentication error handling mocks
+    mockIsAuthenticationError.mockClear();
+    mockIsAuthenticationError.mockReturnValue(false); // Default to no auth error
+    mockRemoveCardBaanxToken.mockClear();
+    mockRemoveCardBaanxToken.mockResolvedValue(undefined);
+    mockResetAuthenticatedData.mockClear();
+    mockClearAllCache.mockClear();
+    mockNavigationDispatch.mockClear();
+
     // Setup Engine controller mocks
     mockFetchPriorityToken.mockImplementation(async () => mockPriorityToken);
     mockDispatch.mockClear();
@@ -489,6 +573,7 @@ describe('CardHome Component', () => {
       methods: [],
     });
     mockSetSelectedAccount.mockClear();
+    mockIsSolanaChainId.mockReturnValue(false);
 
     // Setup hook mocks with default values
     (useLoadCardData as jest.Mock).mockReturnValue({
@@ -531,6 +616,13 @@ describe('CardHome Component', () => {
 
     (useOpenSwaps as jest.Mock).mockReturnValue({
       openSwaps: mockOpenSwaps,
+    });
+
+    const { useRampNavigation } = jest.requireMock(
+      '../../../Ramp/hooks/useRampNavigation',
+    );
+    (useRampNavigation as jest.Mock).mockReturnValue({
+      goToBuy: jest.fn(),
     });
 
     (useMetrics as jest.Mock).mockReturnValue({
@@ -580,7 +672,7 @@ describe('CardHome Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('opens AddFundsBottomSheet when add funds button is pressed with USDC token', async () => {
+  it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
     // Given: priority token is USDC (default)
     // When: user presses add funds button
     render();
@@ -590,15 +682,23 @@ describe('CardHome Component', () => {
     );
     fireEvent.press(addFundsButton);
 
-    // Then: should open bottom sheet, not swaps
+    // Then: should navigate to add funds modal, not swaps
     await waitFor(() => {
-      expect(screen.getByTestId('add-funds-bottom-sheet')).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAddFundsModal',
+          params: expect.objectContaining({
+            priorityToken: mockPriorityToken,
+          }),
+        }),
+      );
     });
 
     expect(mockOpenSwaps).not.toHaveBeenCalled();
   });
 
-  it('opens AddFundsBottomSheet when add funds button is pressed with USDT token', async () => {
+  it('navigates to add funds modal when add funds button is pressed with USDT token', async () => {
     // Given: priority token is USDT
     const usdtToken = {
       ...mockPriorityToken,
@@ -614,9 +714,17 @@ describe('CardHome Component', () => {
     );
     fireEvent.press(addFundsButton);
 
-    // Then: should open bottom sheet for supported token
+    // Then: should navigate to add funds modal for supported token
     await waitFor(() => {
-      expect(screen.getByTestId('add-funds-bottom-sheet')).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAddFundsModal',
+          params: expect.objectContaining({
+            priorityToken: usdtToken,
+          }),
+        }),
+      );
     });
 
     expect(mockOpenSwaps).not.toHaveBeenCalled();
@@ -671,6 +779,30 @@ describe('CardHome Component', () => {
     // Then: should show balance information
     expect(screen.getByText('$1,000.00')).toBeTruthy();
     // CardAssetItem should be rendered (not a skeleton)
+    expect(
+      screen.queryByTestId(CardHomeSelectors.CARD_ASSET_ITEM_SKELETON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('passes formatted balance to CardAssetItem', () => {
+    // Given: asset balances with formatted balance
+    mockUseAssetBalances.mockReturnValue(
+      createMockAssetBalancesMap({
+        balanceFiat: '$1,000.00',
+        asset: {
+          symbol: 'USDC',
+          image: 'usdc-image-url',
+        },
+        balanceFormatted: '1000.000000 USDC',
+        rawTokenBalance: 1000,
+        rawFiatNumber: 1000,
+      }),
+    );
+
+    // When: component renders
+    render();
+
+    // Then: CardAssetItem should be rendered with formatted balance
     expect(
       screen.queryByTestId(CardHomeSelectors.CARD_ASSET_ITEM_SKELETON),
     ).not.toBeOnTheScreen();
@@ -1243,6 +1375,30 @@ describe('CardHome Component', () => {
 
       // Then: should navigate to welcome screen
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+    });
+
+    it('navigates to asset selection modal when change asset pressed and authenticated', () => {
+      // Given: user is authenticated
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      // When: user presses change asset button
+      render();
+      const changeAssetButton = screen.getByTestId(
+        CardHomeSelectors.CHANGE_ASSET_BUTTON,
+      );
+      fireEvent.press(changeAssetButton);
+
+      // Then: should navigate to asset selection modal
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'CardModals',
+        expect.objectContaining({
+          screen: 'CardAssetSelectionModal',
+          params: expect.objectContaining({
+            tokensWithAllowances: [mockPriorityToken],
+          }),
+        }),
+      );
     });
 
     it('shows manage spending limit button when Baanx login is enabled', () => {
@@ -1863,6 +2019,252 @@ describe('CardHome Component', () => {
     });
   });
 
+  describe('Unsupported Tokens for Spending Limit', () => {
+    it('hides progress bar for Solana chain', () => {
+      // Given: authenticated with Solana chain and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsSolanaChainId.mockReturnValue(true);
+      const solanaToken = {
+        ...mockPriorityToken,
+        caipChainId: 'solana:mainnet',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: solanaToken,
+        allTokens: [solanaToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('hides manage spending limit button for Solana chain', () => {
+      // Given: authenticated with Solana chain
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsSolanaChainId.mockReturnValue(true);
+      const solanaToken = {
+        ...mockPriorityToken,
+        caipChainId: 'solana:mainnet',
+        allowanceState: AllowanceState.Limited,
+      };
+      setupLoadCardDataMock({
+        priorityToken: solanaToken,
+        allTokens: [solanaToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display manage spending limit button
+      expect(
+        screen.queryByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides close spending limit warning for Solana chain', () => {
+      // Given: authenticated with Solana chain and close to limit (15% remaining)
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsSolanaChainId.mockReturnValue(true);
+      const solanaToken = {
+        ...mockPriorityToken,
+        caipChainId: 'solana:mainnet',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '150', // 15% remaining (below 20% threshold)
+      };
+      setupLoadCardDataMock({
+        priorityToken: solanaToken,
+        allTokens: [solanaToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not show close spending limit warning
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('hides progress bar for unsupported token (aUSDC)', () => {
+      // Given: authenticated with aUSDC (unsupported token) and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCToken = {
+        ...mockPriorityToken,
+        symbol: 'aUSDC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCToken,
+        allTokens: [aUSDCToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('shows progress bar for supported token (USDC)', () => {
+      // Given: authenticated with USDC (supported token) and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const usdcToken = {
+        ...mockPriorityToken,
+        symbol: 'USDC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: usdcToken,
+        allTokens: [usdcToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should display spending limit progress bar
+      expect(screen.getByText('Spending Limit')).toBeOnTheScreen();
+      expect(screen.getByText('500/1000 USDC')).toBeOnTheScreen();
+    });
+
+    it('hides progress bar when symbol is undefined', () => {
+      // Given: authenticated with undefined symbol and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const tokenWithoutSymbol = {
+        ...mockPriorityToken,
+        symbol: undefined as unknown as string,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: tokenWithoutSymbol,
+        allTokens: [tokenWithoutSymbol],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('hides close spending limit warning for unsupported token (aUSDC)', () => {
+      // Given: authenticated with aUSDC and close to limit (20% remaining)
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCToken = {
+        ...mockPriorityToken,
+        symbol: 'aUSDC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '150', // 15% remaining (below 20% threshold)
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCToken,
+        allTokens: [aUSDCToken],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not show close spending limit warning
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('hides close spending limit warning when symbol is undefined', () => {
+      // Given: authenticated with undefined symbol and close to limit
+      setupMockSelectors({ isAuthenticated: true });
+      const tokenWithoutSymbol = {
+        ...mockPriorityToken,
+        symbol: undefined as unknown as string,
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '150',
+      };
+      setupLoadCardDataMock({
+        priorityToken: tokenWithoutSymbol,
+        allTokens: [tokenWithoutSymbol],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not show close spending limit warning
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('treats lowercase unsupported token symbol case-insensitively', () => {
+      // Given: authenticated with lowercase ausdc and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCTokenLower = {
+        ...mockPriorityToken,
+        symbol: 'ausdc',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCTokenLower,
+        allTokens: [aUSDCTokenLower],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+
+    it('treats mixed case unsupported token symbol case-insensitively', () => {
+      // Given: authenticated with mixed case AuSdC and limited allowance
+      setupMockSelectors({ isAuthenticated: true });
+      const aUSDCTokenMixed = {
+        ...mockPriorityToken,
+        symbol: 'AuSdC',
+        allowanceState: AllowanceState.Limited,
+        totalAllowance: '1000',
+        allowance: '500',
+      };
+      setupLoadCardDataMock({
+        priorityToken: aUSDCTokenMixed,
+        allTokens: [aUSDCTokenMixed],
+        isAuthenticated: true,
+        warning: null,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not display spending limit progress bar
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
+    });
+  });
+
   describe('SpendingLimitProgressBar', () => {
     it('renders when authenticated and allowance is limited', () => {
       // Given: authenticated with limited allowance
@@ -2000,6 +2402,356 @@ describe('CardHome Component', () => {
 
       // Then: should display zero values as fallback
       expect(screen.getByText('0/0 USDC')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Authentication Error Handling', () => {
+    it('clears auth state and navigates to welcome when authentication error occurs', async () => {
+      // Given: authenticated user with authentication error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      setupLoadCardDataMock({
+        error: 'Authentication failed',
+        isAuthenticated: true,
+      });
+
+      // When: component renders with authentication error
+      render();
+
+      // Then: should clear token, reset auth state, and navigate to welcome
+      await waitFor(() => {
+        expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+      });
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+        );
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/clearAllCache' }),
+        );
+      });
+
+      await waitFor(() => {
+        expect(StackActions.replace).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'REPLACE',
+            routeName: Routes.CARD.WELCOME,
+          }),
+        );
+      });
+    });
+
+    it('does nothing when no error exists', async () => {
+      // Given: authenticated user without error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(false);
+      setupLoadCardDataMock({
+        error: null,
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not trigger authentication error handling
+      await new Promise((r) => setTimeout(r, 100));
+      expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
+      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
+      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'REPLACE' }),
+      );
+    });
+
+    it('does nothing when user is not authenticated', async () => {
+      // Given: non-authenticated user with error
+      setupMockSelectors({ isAuthenticated: false });
+      mockIsAuthenticationError.mockReturnValue(false);
+      setupLoadCardDataMock({
+        error: 'Some error',
+        isAuthenticated: false,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not trigger authentication error handling
+      await new Promise((r) => setTimeout(r, 100));
+      expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
+      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
+      expect(mockClearAllCache).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when error is not an authentication error', async () => {
+      // Given: authenticated user with non-authentication error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(false);
+      setupLoadCardDataMock({
+        error: 'Network error',
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should not trigger authentication error handling
+      await new Promise((r) => setTimeout(r, 100));
+      expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
+      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
+      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'REPLACE' }),
+      );
+    });
+
+    it('still navigates when token removal fails', async () => {
+      // Given: authenticated user with authentication error and token removal fails
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      mockRemoveCardBaanxToken.mockRejectedValue(
+        new Error('Failed to remove token'),
+      );
+      setupLoadCardDataMock({
+        error: 'Token expired',
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should still navigate even if token removal fails
+      await waitFor(() => {
+        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(StackActions.replace).toHaveBeenCalledWith(Routes.CARD.WELCOME);
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'REPLACE',
+            routeName: Routes.CARD.WELCOME,
+          }),
+        );
+      });
+    });
+
+    it('logs error when token removal fails', async () => {
+      // Given: authenticated user with authentication error and token removal fails
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      mockRemoveCardBaanxToken.mockRejectedValue(
+        new Error('Failed to remove token'),
+      );
+      setupLoadCardDataMock({
+        error: 'Invalid credentials',
+        isAuthenticated: true,
+      });
+
+      const Logger = jest.requireMock('../../../../../util/Logger');
+
+      // When: component renders
+      render();
+
+      // Then: should log the error
+      await waitFor(() => {
+        expect(Logger.log).toHaveBeenCalledWith(
+          'CardHome: Failed to handle authentication error',
+          expect.any(Error),
+        );
+      });
+    });
+
+    it('dispatches Redux actions after successful token removal', async () => {
+      // Given: authenticated user with authentication error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      mockRemoveCardBaanxToken.mockResolvedValue(undefined);
+      setupLoadCardDataMock({
+        error: 'Unauthorized',
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should dispatch Redux actions after token removal
+      await waitFor(() => {
+        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+        );
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'card/clearAllCache' }),
+        );
+      });
+    });
+
+    it('calls isAuthenticationError with the correct error', async () => {
+      // Given: authenticated user with error
+      setupMockSelectors({ isAuthenticated: true });
+      const testError = 'Test authentication error';
+      mockIsAuthenticationError.mockReturnValue(true);
+      setupLoadCardDataMock({
+        error: testError,
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: should call isAuthenticationError with the error
+      await waitFor(() => {
+        expect(mockIsAuthenticationError).toHaveBeenCalledWith(testError);
+      });
+    });
+
+    it('runs authentication cleanup once even when error persists across renders', async () => {
+      // Given: authenticated user with persistent authentication error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      const WrappedCardHome = withCardSDK(CardHome);
+
+      setupLoadCardDataMock({
+        error: 'First auth error',
+        isAuthenticated: true,
+        warning: null,
+        priorityToken: mockPriorityToken,
+      });
+
+      setupLoadCardDataMock({
+        error: 'First auth error',
+        isAuthenticated: true,
+        warning: null,
+        priorityToken: mockPriorityToken,
+      });
+
+      // When: component renders twice with the same authentication error
+      const { rerender } = renderWithProvider(<WrappedCardHome />, {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      });
+
+      // Then: cleanup runs once on initial render
+      await waitFor(() => {
+        expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+      });
+
+      // When: component re-renders with same error
+      rerender(<WrappedCardHome />);
+
+      // Then: cleanup does not run again for unchanged error
+      await waitFor(() => {
+        expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not dispatch Redux actions if token removal throws and component unmounts', async () => {
+      // Given: authenticated user with authentication error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      let resolveTokenRemoval!: () => void;
+      const tokenRemovalPromise = new Promise<void>((resolve) => {
+        resolveTokenRemoval = resolve;
+      });
+      mockRemoveCardBaanxToken.mockReturnValue(tokenRemovalPromise);
+      setupLoadCardDataMock({
+        error: 'Token expired',
+        isAuthenticated: true,
+      });
+
+      // When: component renders and unmounts before token removal completes
+      const { unmount } = render();
+
+      // Wait for token removal to be called
+      await waitFor(() => {
+        expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
+      });
+
+      // Unmount before resolving
+      unmount();
+
+      // Resolve the promise after unmount
+      resolveTokenRemoval();
+
+      // Wait a bit to ensure no actions are dispatched
+      await new Promise((r) => setTimeout(r, 100));
+
+      // Then: should not dispatch actions after unmount
+      // Note: This is a safety check - the component guards against this with isMounted
+      // The exact behavior depends on timing, so we just verify no errors occur
+      expect(mockRemoveCardBaanxToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs info message when authentication error is detected', async () => {
+      // Given: authenticated user with authentication error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      setupLoadCardDataMock({
+        error: 'Authentication failed',
+        isAuthenticated: true,
+      });
+
+      const Logger = jest.requireMock('../../../../../util/Logger');
+
+      // When: component renders
+      render();
+
+      // Then: should log info message about clearing auth state
+      await waitFor(() => {
+        expect(Logger.log).toHaveBeenCalledWith(
+          'CardHome: Authentication error detected, clearing auth state and redirecting',
+        );
+      });
+    });
+
+    it('executes cleanup operations in correct order', async () => {
+      // Given: authenticated user with authentication error
+      setupMockSelectors({ isAuthenticated: true });
+      mockIsAuthenticationError.mockReturnValue(true);
+      const callOrder: string[] = [];
+
+      mockRemoveCardBaanxToken.mockImplementation(async () => {
+        callOrder.push('removeToken');
+      });
+
+      mockDispatch.mockImplementation((action) => {
+        if (action.type === 'card/resetAuthenticatedData') {
+          callOrder.push('resetAuth');
+        } else if (action.type === 'card/clearAllCache') {
+          callOrder.push('clearCache');
+        }
+        return action;
+      });
+
+      mockNavigationDispatch.mockImplementation(() => {
+        callOrder.push('navigate');
+      });
+
+      setupLoadCardDataMock({
+        error: 'Token expired',
+        isAuthenticated: true,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: operations should execute in correct order
+      await waitFor(() => {
+        expect(callOrder).toEqual([
+          'removeToken',
+          'resetAuth',
+          'clearCache',
+          'navigate',
+        ]);
+      });
     });
   });
 });

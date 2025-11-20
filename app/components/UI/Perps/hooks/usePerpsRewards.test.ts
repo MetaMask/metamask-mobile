@@ -2,11 +2,6 @@ import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsRewards } from './usePerpsRewards';
 import type { OrderFeesResult } from './usePerpsOrderFees';
 
-// Mock the Redux selector
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
 // Mock the development config
 jest.mock('../constants/perpsConfig', () => ({
   DEVELOPMENT_CONFIG: {
@@ -14,9 +9,6 @@ jest.mock('../constants/perpsConfig', () => ({
     SIMULATE_REWARDS_LOADING_AMOUNT: 43,
   },
 }));
-
-import { useSelector } from 'react-redux';
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('usePerpsRewards', () => {
   // Mock fee results for testing
@@ -39,35 +31,11 @@ describe('usePerpsRewards', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: rewards enabled
-    mockUseSelector.mockReturnValue(true);
   });
 
-  describe('Feature flag scenarios', () => {
-    it('should not show rewards row when feature flag is disabled', () => {
+  describe('Rewards row visibility', () => {
+    it('should show rewards row when has valid amount', () => {
       // Arrange
-      mockUseSelector.mockReturnValue(false);
-      const feeResults = createMockFeeResults({ estimatedPoints: 100 });
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsRewards({
-          feeResults,
-          hasValidAmount: true,
-          isFeesLoading: false,
-          orderAmount: '1000',
-        }),
-      );
-
-      // Assert
-      expect(result.current.shouldShowRewardsRow).toBe(false);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasError).toBe(false);
-    });
-
-    it('should show rewards row when feature flag is enabled and has valid amount', () => {
-      // Arrange
-      mockUseSelector.mockReturnValue(true);
       const feeResults = createMockFeeResults({ estimatedPoints: 100 });
 
       // Act
@@ -87,7 +55,6 @@ describe('usePerpsRewards', () => {
 
     it('should not show rewards row when hasValidAmount is false', () => {
       // Arrange
-      mockUseSelector.mockReturnValue(true);
       const feeResults = createMockFeeResults({ estimatedPoints: 100 });
 
       // Act

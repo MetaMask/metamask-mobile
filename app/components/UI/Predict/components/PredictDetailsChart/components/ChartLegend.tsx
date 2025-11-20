@@ -14,9 +14,14 @@ import { ChartSeries } from '../PredictDetailsChart';
 interface ChartLegendProps {
   series: ChartSeries[];
   range: number;
+  activeIndex?: number; // Index of the active dragged position
 }
 
-const ChartLegend: React.FC<ChartLegendProps> = ({ series, range }) => {
+const ChartLegend: React.FC<ChartLegendProps> = ({
+  series,
+  range,
+  activeIndex,
+}) => {
   if (!series.length) return null;
 
   return (
@@ -26,9 +31,14 @@ const ChartLegend: React.FC<ChartLegendProps> = ({ series, range }) => {
       twClassName="px-4 mb-2 flex-wrap"
     >
       {series.map((seriesItem, index) => {
-        const lastPoint = seriesItem.data[seriesItem.data.length - 1];
-        const valueLabel = lastPoint
-          ? `${formatTickValue(lastPoint.value, range)}%`
+        // Show value at active index if dragging, otherwise show last value
+        const dataPoint =
+          activeIndex !== undefined && activeIndex >= 0
+            ? seriesItem.data[activeIndex]
+            : seriesItem.data[seriesItem.data.length - 1];
+
+        const valueLabel = dataPoint
+          ? `${formatTickValue(dataPoint.value, range)}%`
           : '\u2014';
 
         return (

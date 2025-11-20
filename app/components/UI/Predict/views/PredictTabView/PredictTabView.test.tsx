@@ -122,25 +122,34 @@ jest.mock(
 );
 
 // Mock Routes
-jest.mock('../../../../../constants/navigation/Routes', () => ({
-  PREDICT: {
-    ROOT: 'Predict',
-    MARKET_DETAILS: 'PredictMarketDetails',
-    MODALS: {
-      ROOT: 'PredictModals',
+jest.mock('../../../../../constants/navigation/Routes', () => {
+  const actualRoutes = jest.requireActual(
+    '../../../../../constants/navigation/Routes',
+  );
+  return {
+    ...actualRoutes.default,
+    PREDICT: {
+      ROOT: 'Predict',
+      MARKET_DETAILS: 'PredictMarketDetails',
+      MODALS: {
+        ROOT: 'PredictModals',
+      },
     },
-  },
-  FULL_SCREEN_CONFIRMATIONS: {
-    REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
-    NO_HEADER: 'NoHeader',
-  },
-}));
+    FULL_SCREEN_CONFIRMATIONS: {
+      REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
+      NO_HEADER: 'NoHeader',
+    },
+  };
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text } = jest.requireActual('react-native');
+  const IconNameProxy = new Proxy({}, { get: (_target, prop) => prop });
+
   return {
     Box: View,
     Text,
+    IconName: IconNameProxy,
     TextVariant: {
       HeadingMd: 'HeadingMd',
       BodyMd: 'BodyMd',
@@ -236,6 +245,23 @@ jest.mock('../../../../../core/Engine', () => ({
       updateTransactionGasFees: jest.fn(),
       updatePreviousGasParams: jest.fn(),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'mock-account-id',
+          type: 'eip155:eoa',
+          options: {},
+          metadata: {
+            name: 'Test Account',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1'],
+          methods: ['eth_sendTransaction'],
+        },
+      ]),
+    },
   },
 }));
 
@@ -304,6 +330,12 @@ jest.mock('@shopify/flash-list', () => {
     ),
   };
 });
+
+jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+  useConfirmNavigation: () => ({
+    navigateToConfirmation: jest.fn(),
+  }),
+}));
 
 import PredictTabView from './PredictTabView';
 import { useSelector } from 'react-redux';

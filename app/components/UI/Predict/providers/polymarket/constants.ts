@@ -15,6 +15,8 @@ export const SLIPPAGE = 0.015; // 1.5%
 
 export const ORDER_RATE_LIMIT_MS = 5000;
 
+export const MIN_COLLATERAL_BALANCE_FOR_CLAIM = 0.5;
+
 export const POLYGON_MAINNET_CHAIN_ID = 137;
 export const POLYGON_MAINNET_CAIP_CHAIN_ID =
   `eip155:${POLYGON_MAINNET_CHAIN_ID}` as const;
@@ -73,3 +75,6 @@ export const MATIC_CONTRACTS: ContractConfig = {
   collateral: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
   conditionalTokens: '0x4D97DCd97eC945f40cF65F87097ACe5EA0476045',
 };
+
+export const POLYGON_USDC_CAIP_ASSET_ID =
+  `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS.collateral}` as const;

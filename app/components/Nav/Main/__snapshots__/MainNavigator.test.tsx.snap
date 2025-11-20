@@ -50,11 +50,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="AddAsset"
-    options={
-      {
-        "headerShown": false,
-      }
-    }
+    options={[Function]}
   />
   <Screen
     component={[Function]}
@@ -62,6 +58,17 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     options={
       {
         "headerShown": true,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="SettingsView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
       }
     }
   />
@@ -131,6 +138,10 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="PaymentRequestView"
+  />
+  <Screen
+    component={[Function]}
+    name="RampTokenSelection"
   />
   <Screen
     name="RampBuy"

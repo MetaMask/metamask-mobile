@@ -1,8 +1,13 @@
-import { FEATURE_FLAG_NAME } from '../selectors/featureFlags';
+import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 
 const mockEnabledPredictLDFlag = {
-  [FEATURE_FLAG_NAME]: true,
+  enabled: true,
+  minimumVersion: '0.0.0',
 };
 
-export const mockedPredictFeatureFlagsEnabledState: Record<string, boolean> =
-  mockEnabledPredictLDFlag;
+export const mockedPredictFeatureFlagsEnabledState: Record<
+  string,
+  VersionGatedFeatureFlag
+> = {
+  predictTradingEnabled: mockEnabledPredictLDFlag,
+};

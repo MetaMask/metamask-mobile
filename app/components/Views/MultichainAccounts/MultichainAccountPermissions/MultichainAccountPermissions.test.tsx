@@ -227,7 +227,6 @@ jest.mock(
 );
 
 jest.mock('../../../../util/networks', () => ({
-  isPerDappSelectedNetworkEnabled: jest.fn(() => true),
   getNetworkImageSource: jest.fn(() => 'mock-image-source'),
 }));
 

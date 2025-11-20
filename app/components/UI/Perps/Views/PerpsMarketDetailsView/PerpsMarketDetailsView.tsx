@@ -543,50 +543,66 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   }, [market, isWatchlist, track]);
 
-  const handleLongPress = () => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
+  const handleTradeAction = useCallback(
+    (direction: 'long' | 'short') => {
+      if (!isEligible) {
+        setIsEligibilityModalVisible(true);
+        return;
+      }
 
-    // Track AB test on button press (TAT-1937)
-    if (isButtonColorTestEnabled) {
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
-        [PerpsEventProperties.ASSET]: market.symbol,
-        [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.LONG,
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      // Check for cross-margin position (MetaMask only supports isolated margin)
+      if (existingPosition?.leverage?.type === 'cross') {
+        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]:
+            'Cross margin position detected',
+        });
+
+        return;
+      }
+
+      // Track AB test on button press (TAT-1937)
+      if (isButtonColorTestEnabled) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TAP,
+          [PerpsEventProperties.ASSET]: market.symbol,
+          [PerpsEventProperties.DIRECTION]:
+            direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        });
+      }
+
+      navigateToOrder({
+        direction,
+        asset: market.symbol,
       });
-    }
+    },
+    [
+      isEligible,
+      existingPosition,
+      navigation,
+      track,
+      navigateToOrder,
+      market?.symbol,
+      isButtonColorTestEnabled,
+      buttonColorVariant,
+    ],
+  );
 
-    navigateToOrder({
-      direction: 'long',
-      asset: market.symbol,
-    });
+  const handleLongPress = () => {
+    handleTradeAction('long');
   };
 
   const handleShortPress = () => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    // Track AB test on button press (TAT-1937)
-    if (isButtonColorTestEnabled) {
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TAP,
-        [PerpsEventProperties.ASSET]: market.symbol,
-        [PerpsEventProperties.DIRECTION]: PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-      });
-    }
-
-    navigateToOrder({
-      direction: 'short',
-      asset: market.symbol,
-    });
+    handleTradeAction('short');
   };
 
   const { navigateToConfirmation } = useConfirmNavigation();

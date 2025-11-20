@@ -64,7 +64,6 @@ import {
   roundDown,
   roundUp,
   roundOrderAmount,
-  roundOrderAmounts,
   previewOrder,
   getAllowanceCalls,
 } from './utils';
@@ -739,12 +738,15 @@ describe('polymarket utils', () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
-      await expect(
-        submitClobOrder({
-          headers: mockHeaders,
-          clobOrder: mockClobOrder,
-        }),
-      ).rejects.toThrow('Network error');
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Failed to submit CLOB order: Network error',
+      });
     });
 
     it('includes feeAuthorization in request body when provided', async () => {
@@ -1934,6 +1936,7 @@ describe('polymarket utils', () => {
         ok: false,
         status: 403,
         statusText: 'Forbidden',
+        json: jest.fn().mockResolvedValue({}),
       });
 
       const result = await submitClobOrder({
@@ -1953,7 +1956,7 @@ describe('polymarket utils', () => {
         status: 400,
         statusText: 'Bad Request',
         json: jest.fn().mockResolvedValue({
-          error: 'Invalid order parameters',
+          errorMsg: 'Invalid order parameters',
         }),
       });
 
@@ -1984,6 +1987,25 @@ describe('polymarket utils', () => {
       expect(result).toEqual({
         success: false,
         error: 'Internal Server Error',
+      });
+    });
+
+    it('handle non-JSON error response (HTML body)', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 502,
+        statusText: 'Bad Gateway',
+        json: jest.fn().mockRejectedValue(new Error('Unexpected token <')),
+      });
+
+      const result = await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Bad Gateway',
       });
     });
   });
@@ -2062,13 +2084,13 @@ describe('polymarket utils', () => {
       }
     });
 
-    it('maps non-TRADE to claimWinnings entries and handles defaults', () => {
+    it('maps REDEEM with payout to claimWinnings entries', () => {
       const input = [
         {
           type: 'REDEEM' as const,
           side: '' as const,
           timestamp: 3000,
-          usdcSize: 1.23,
+          usdcSize: 1.23, // Winning claim with actual payout
           price: 0,
           conditionId: '',
           outcomeIndex: 0,
@@ -2079,6 +2101,7 @@ describe('polymarket utils', () => {
         },
       ];
       const result = parsePolymarketActivity(input);
+      expect(result).toHaveLength(1);
       expect(result[0].entry.type).toBe('claimWinnings');
       expect(result[0].entry.amount).toBe(1.23);
       expect(result[0].id).toBe('0xhash3');
@@ -2249,62 +2272,6 @@ describe('polymarket utils', () => {
     it('handles amounts that round up to exceed decimals', () => {
       expect(roundOrderAmount({ amount: 1.996, decimals: 2 })).toBe(1.99);
       expect(roundOrderAmount({ amount: 0.999999, decimals: 2 })).toBe(0.99);
-    });
-  });
-
-  describe('roundOrderAmounts', () => {
-    const mockRoundConfig = {
-      price: 4,
-      size: 2,
-      amount: 2,
-    };
-
-    it('rounds BUY order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('rounds SELL order amounts correctly', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.SELL,
-        size: 10.556,
-        price: 0.55555,
-      });
-
-      expect(result.makerAmount).toBe(10.55);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('handles price rounding down', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 100,
-        price: 0.456789,
-      });
-
-      expect(result.makerAmount).toBe(100);
-      expect(result.takerAmount).toBeGreaterThan(0);
-    });
-
-    it('applies additional rounding when necessary', () => {
-      const result = roundOrderAmounts({
-        roundConfig: mockRoundConfig,
-        side: Side.BUY,
-        size: 123.456789,
-        price: 0.123456789,
-      });
-
-      expect(result.makerAmount).toBeLessThanOrEqual(123.46);
-      expect(result.takerAmount).toBeGreaterThan(0);
     });
   });
 
