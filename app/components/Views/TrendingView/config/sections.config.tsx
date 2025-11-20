@@ -83,26 +83,45 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
     Section: () => <SectionCard sectionId="tokens" />,
     useSectionData: (searchQuery?: string) => {
+      // Trending will return tokens that have just been created which wont be picked up by search API
+      // so if you see a token on trending and search on omnisearch which uses the search endpoint...
+      // There is a chance you will get 0 results
       const { results: searchResults, isLoading: isSearchLoading } =
         useSearchRequest({
           query: searchQuery || '',
           limit: 20,
           chainIds: [],
         });
+
       const { results: trendingResults, isLoading: isTrendingLoading } =
         useTrendingRequest({});
 
-      // Apply default sorting to match full view (PriceChange, Descending)
-      // This ensures the section view shows the same order as the full view
-      const sortedResults = sortTrendingTokens(
-        trendingResults,
-        PriceChangeOption.PriceChange,
-        SortDirection.Descending,
+      if (!searchQuery) {
+        const sortedResults = sortTrendingTokens(
+          trendingResults,
+          PriceChangeOption.PriceChange,
+          SortDirection.Descending,
+        );
+        return {
+          data: sortedResults,
+          isLoading: isTrendingLoading,
+        };
+      }
+
+      const resultMap = new Map(
+        trendingResults.map((result) => [result.assetId, result]),
       );
 
+      searchResults.forEach((result) => {
+        const asset = result as TrendingAsset;
+        if (!resultMap.has(asset.assetId)) {
+          resultMap.set(asset.assetId, asset);
+        }
+      });
+
       return {
-        data: searchQuery ? searchResults : sortedResults,
-        isLoading: searchQuery ? isSearchLoading : isTrendingLoading,
+        data: Array.from(resultMap.values()),
+        isLoading: isSearchLoading,
       };
     },
   },

@@ -150,7 +150,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
               {searchQuery}
             </Text>
             <Icon
-              name={IconName.Export}
+              name={IconName.Arrow2UpRight}
               size={IconSize.Md}
               twClassName="text-primary"
             />
