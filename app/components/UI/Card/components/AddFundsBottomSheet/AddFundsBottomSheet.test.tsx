@@ -10,17 +10,14 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { CardTokenAllowance, AllowanceState } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../Ramp/hooks/useRampNavigation';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 
 // Mock hooks first - must be hoisted before imports
 const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockGoToRamps = jest.fn();
+const mockGoToDeposit = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../Ramp/hooks/useRampNavigation');
@@ -64,6 +61,18 @@ jest.mock('../../../../../util/theme', () => ({
       },
     },
   })),
+  mockTheme: {
+    colors: {
+      background: {
+        default: '#ffffff',
+      },
+      text: {
+        default: '#000000',
+        alternative: '#666666',
+      },
+    },
+    themeAppearance: 'light',
+  },
 }));
 
 jest.mock('./AddFundsBottomSheet.styles', () => ({
@@ -141,7 +150,7 @@ describe('AddFundsBottomSheet', () => {
     });
 
     (useRampNavigation as jest.Mock).mockReturnValue({
-      goToRamps: mockGoToRamps,
+      goToDeposit: mockGoToDeposit,
     });
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
@@ -301,7 +310,7 @@ describe('AddFundsBottomSheet', () => {
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockGoToRamps).toHaveBeenCalledWith({ mode: RampMode.DEPOSIT });
+    expect(mockGoToDeposit).toHaveBeenCalled();
   });
 
   it('renders component correctly', () => {

@@ -73,7 +73,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const getYesPercentage = (): string => {
     const prices = getOutcomePrices();
     if (prices.length > 0) {
-      return formatPercentage(prices[0] * 100);
+      return formatPercentage(prices[0] * 100, { truncate: true });
     }
     return '0%';
   };

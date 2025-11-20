@@ -145,15 +145,7 @@ class ApproveTransactionReview extends PureComponent {
     /**
      * Function to navigate to ramp flows
      */
-    goToRamps: PropTypes.func,
-    /**
-     * RampMode enum
-     */
-    RampMode: PropTypes.object,
-    /**
-     * AggregatorRampType enum
-     */
-    AggregatorRampType: PropTypes.object,
+    goToBuy: PropTypes.func,
     /**
      * Number of tokens
      */
@@ -1241,14 +1233,11 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   buyEth = () => {
-    const { goToRamps, RampMode, AggregatorRampType } = this.props;
+    const { goToBuy } = this.props;
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.BUY },
-      });
+      goToBuy();
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }

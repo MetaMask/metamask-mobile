@@ -80,15 +80,7 @@ class ReceiveRequest extends PureComponent {
     /**
      * Function to navigate to ramp flows
      */
-    goToRamps: PropTypes.func,
-    /**
-     * RampMode enum
-     */
-    RampMode: PropTypes.object,
-    /**
-     * AggregatorRampType enum
-     */
-    AggregatorRampType: PropTypes.object,
+    goToBuy: PropTypes.func,
     /**
      * Network provider chain id
      */
@@ -156,18 +148,14 @@ class ReceiveRequest extends PureComponent {
    * Shows an alert message with a coming soon message
    */
   onBuy = async () => {
-    const { isNetworkBuySupported, goToRamps, RampMode, AggregatorRampType } =
-      this.props;
+    const { isNetworkBuySupported, goToBuy } = this.props;
     if (!isNetworkBuySupported) {
       Alert.alert(
         strings('fiat_on_ramp.network_not_supported'),
         strings('fiat_on_ramp.switch_network'),
       );
     } else {
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.BUY },
-      });
+      goToBuy();
 
       this.props.metrics.trackEvent(
         this.props.metrics
