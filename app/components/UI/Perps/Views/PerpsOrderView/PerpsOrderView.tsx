@@ -50,6 +50,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -1166,7 +1167,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
-            rewardsState.estimatedPoints !== undefined && (
+            rewardsState.estimatedPoints !== undefined &&
+            (rewardsState.accountOptedIn ||
+              (rewardsState.accountOptedIn === false &&
+                rewardsState.account !== undefined)) && (
               <View style={styles.infoRow}>
                 <View style={styles.detailLeft}>
                   <Text
@@ -1187,18 +1191,24 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </TouchableOpacity>
                 </View>
                 <View style={styles.pointsRightContainer}>
-                  <RewardsAnimations
-                    value={rewardsState.estimatedPoints ?? 0}
-                    bonusBips={rewardsState.bonusBips}
-                    shouldShow={rewardsState.shouldShowRewardsRow}
-                    infoOnPress={() =>
-                      openTooltipModal(
-                        strings('perps.points_error'),
-                        strings('perps.points_error_content'),
-                      )
-                    }
-                    state={rewardAnimationState}
-                  />
+                  {rewardsState.accountOptedIn ? (
+                    <RewardsAnimations
+                      value={rewardsState.estimatedPoints ?? 0}
+                      bonusBips={rewardsState.bonusBips}
+                      shouldShow={rewardsState.shouldShowRewardsRow}
+                      infoOnPress={() =>
+                        openTooltipModal(
+                          strings('perps.points_error'),
+                          strings('perps.points_error_content'),
+                        )
+                      }
+                      state={rewardAnimationState}
+                    />
+                  ) : (
+                    <AddRewardsAccount
+                      account={rewardsState.account ?? undefined}
+                    />
+                  )}
                 </View>
               </View>
             )}
