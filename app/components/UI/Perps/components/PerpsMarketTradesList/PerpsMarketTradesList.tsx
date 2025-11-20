@@ -130,27 +130,30 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     [styles, handleTradePress, iconSize, renderRightContent, trades.length],
   );
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {strings('perps.market.recent_trades')}
+  // Render header section
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+        {strings('perps.market.recent_trades')}
+      </Text>
+      {!isLoading && trades.length > 0 && (
+        <TouchableOpacity onPress={handleSeeAll}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('perps.home.see_all')}
           </Text>
-        </View>
-        <PerpsRowSkeleton count={3} />
-      </View>
-    );
-  }
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
-  if (trades.length === 0) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {strings('perps.market.recent_trades')}
-          </Text>
-        </View>
+  // Render content based on state
+  const renderContent = () => {
+    if (isLoading) {
+      return <PerpsRowSkeleton count={3} />;
+    }
+
+    if (trades.length === 0) {
+      return (
         <Text
           variant={TextVariant.BodySM}
           color={TextColor.Alternative}
@@ -158,29 +161,23 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
         >
           {strings('perps.market.no_trades')}
         </Text>
-      </View>
-    );
-  }
+      );
+    }
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-          {strings('perps.market.recent_trades')}
-        </Text>
-        <TouchableOpacity onPress={handleSeeAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.home.see_all')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
+    return (
       <FlatList
         data={trades}
         renderItem={renderItem}
         keyExtractor={(item, index) => `${item.id || index}`}
         scrollEnabled={false}
       />
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {renderHeader()}
+      {renderContent()}
     </View>
   );
 };
