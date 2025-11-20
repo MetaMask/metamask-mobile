@@ -224,7 +224,6 @@ export function usePredictPositions(
 
   // Check for optimistic positions and manage auto-refresh
   useEffect(() => {
-    console.log('isUserSetAutoRefresh.current', isUserSetAutoRefresh.current);
     // Only manage auto-refresh if user hasn't set it manually
     if (isUserSetAutoRefresh.current) {
       return;
