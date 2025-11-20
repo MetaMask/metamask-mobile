@@ -78,6 +78,13 @@ export function usePredictPositions(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Track if auto-refresh was set by user or automatically
+  const isUserSetAutoRefresh = useRef(!!autoRefreshTimeout);
+  const [effectiveAutoRefreshTimeout, setEffectiveAutoRefreshTimeout] =
+    useState<number | undefined>(autoRefreshTimeout);
+  // Track if we've auto-enabled refresh (for checking in callback)
+  const isAutoEnabledRefresh = useRef(false);
+
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
 
@@ -132,6 +139,30 @@ export function usePredictPositions(
         if (!claimable) {
           // `positions` state only stores active positions
           setPositions(validPositions);
+
+          // Check for optimistic positions and manage auto-refresh
+          const hasOptimisticPosition = validPositions.some(
+            (position) => position.optimistic,
+          );
+
+          // Only manage auto-refresh if user hasn't set it manually
+          if (!isUserSetAutoRefresh.current) {
+            if (hasOptimisticPosition && !isAutoEnabledRefresh.current) {
+              // Enable auto-refresh when optimistic position is detected
+              setEffectiveAutoRefreshTimeout(2000); // 2 seconds
+              isAutoEnabledRefresh.current = true;
+              DevLogger.log(
+                'usePredictPositions: Auto-enabled refresh for optimistic position',
+              );
+            } else if (!hasOptimisticPosition && isAutoEnabledRefresh.current) {
+              // Disable auto-refresh when no optimistic positions
+              setEffectiveAutoRefreshTimeout(undefined);
+              isAutoEnabledRefresh.current = false;
+              DevLogger.log(
+                'usePredictPositions: Auto-disabled refresh (no optimistic positions)',
+              );
+            }
+          }
         }
 
         DevLogger.log('usePredictPositions: Loaded positions', {
@@ -206,20 +237,29 @@ export function usePredictPositions(
   const loadPositionsRef = useRef(loadPositions);
   loadPositionsRef.current = loadPositions;
 
+  // Update effective timeout when user-provided timeout changes
+  useEffect(() => {
+    if (autoRefreshTimeout) {
+      isUserSetAutoRefresh.current = true;
+      isAutoEnabledRefresh.current = false; // User is setting it, not auto-enabled
+      setEffectiveAutoRefreshTimeout(autoRefreshTimeout);
+    }
+  }, [autoRefreshTimeout]);
+
   // Auto-refresh functionality
   useEffect(() => {
-    if (!autoRefreshTimeout) {
+    if (!effectiveAutoRefreshTimeout) {
       return;
     }
 
     const refreshTimer = setInterval(() => {
       loadPositionsRef.current({ isRefresh: true });
-    }, autoRefreshTimeout);
+    }, effectiveAutoRefreshTimeout);
 
     return () => {
       clearInterval(refreshTimer);
     };
-  }, [autoRefreshTimeout]);
+  }, [effectiveAutoRefreshTimeout]);
 
   return {
     // Get claimable positions from controller state if claimable is true.
