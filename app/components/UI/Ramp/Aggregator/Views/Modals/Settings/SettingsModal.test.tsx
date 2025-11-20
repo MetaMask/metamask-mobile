@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
 import SettingsModal from './SettingsModal';
@@ -10,10 +10,17 @@ import {
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../../sdk';
-import { getProviderToken } from '../../../../Deposit/utils/ProviderTokenVault';
+import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
 
-jest.mock('../../../../Deposit/utils/ProviderTokenVault', () => ({
-  getProviderToken: jest.fn(),
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: null,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
 const mockNavigate = jest.fn();
@@ -66,17 +73,9 @@ function render() {
   );
 }
 
-const mockGetProviderToken = getProviderToken as jest.MockedFunction<
-  typeof getProviderToken
->;
-
 describe('SettingsModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetProviderToken.mockResolvedValue({
-      success: false,
-      error: 'No token found',
-    });
     mockDangerouslyGetParent.mockReturnValue({
       dangerouslyGetParent: jest.fn().mockReturnValue({
         goBack: jest.fn(),
@@ -182,34 +181,21 @@ describe('SettingsModal', () => {
       expect(mockDangerouslyGetParent).not.toHaveBeenCalled();
     });
 
-    it('tracks event when deposit is pressed', async () => {
+    it('tracks event when deposit is pressed', () => {
       const { getByText } = render();
-
-      await waitFor(() => {
-        expect(mockGetProviderToken).toHaveBeenCalled();
-      });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
       const newBuyExperienceButton = getByText('Use new buy experience');
+
       fireEvent.press(newBuyExperienceButton);
 
-      await waitFor(
-        () => {
-          expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
-            location: 'Buy Settings Modal',
-            ramp_type: 'DEPOSIT',
-            region: 'us',
-            ramp_routing: null,
-            is_authenticated: false,
-            preferred_provider: undefined,
-            order_count: 0,
-          });
-        },
-        { timeout: 3000 },
-      );
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
+        location: 'Buy Settings Modal',
+        ramp_type: 'DEPOSIT',
+        region: 'us',
+        ramp_routing: null,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
+      });
     });
   });
 });
