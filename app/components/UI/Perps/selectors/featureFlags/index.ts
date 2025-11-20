@@ -62,7 +62,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
  */
 export const selectPerpsButtonColorTestVariant = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): ButtonColorVariantName | null => {
+  (remoteFeatureFlags): string | null => {
     const remoteFlag = remoteFeatureFlags?.perpsAbtestButtonColor;
 
     // LaunchDarkly can return:
@@ -82,7 +82,7 @@ export const selectPerpsButtonColorTestVariant = createSelector(
           remoteFlag as ButtonColorVariantName,
         )
       ) {
-        return remoteFlag as ButtonColorVariantName;
+        return remoteFlag; // Already a string, validated against known variants
       }
       return null;
     }
@@ -104,7 +104,7 @@ export const selectPerpsButtonColorTestVariant = createSelector(
             remoteFlag.variant as ButtonColorVariantName,
           )
         ) {
-          return remoteFlag.variant as ButtonColorVariantName;
+          return remoteFlag.variant; // Already a string, validated against known variants
         }
       }
 
