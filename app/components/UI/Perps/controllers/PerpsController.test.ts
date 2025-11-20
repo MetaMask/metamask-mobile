@@ -21,6 +21,8 @@ import { FeatureFlagConfigurationService } from './services/FeatureFlagConfigura
 import { DepositService } from './services/DepositService';
 import { MarketDataService } from './services/MarketDataService';
 import { TradingService } from './services/TradingService';
+import { AccountService } from './services/AccountService';
+import { DataLakeService } from './services/DataLakeService';
 import Engine from '../../../../core/Engine';
 
 jest.mock('./providers/HyperLiquidProvider');
@@ -168,6 +170,21 @@ jest.mock('./services/TradingService', () => ({
     closePosition: jest.fn(),
     closePositions: jest.fn(),
     updatePositionTPSL: jest.fn(),
+  },
+}));
+
+// Mock AccountService
+jest.mock('./services/AccountService', () => ({
+  AccountService: {
+    withdraw: jest.fn(),
+    validateWithdrawal: jest.fn(),
+  },
+}));
+
+// Mock DataLakeService
+jest.mock('./services/DataLakeService', () => ({
+  DataLakeService: {
+    reportOrder: jest.fn(),
   },
 }));
 
@@ -1178,12 +1195,24 @@ describe('PerpsController', () => {
 
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      mockProvider.withdraw.mockResolvedValue(mockWithdrawResult);
+      jest
+        .spyOn(AccountService, 'withdraw')
+        .mockResolvedValue(mockWithdrawResult);
 
       const result = await controller.withdraw(withdrawParams);
 
       expect(result).toEqual(mockWithdrawResult);
-      expect(mockProvider.withdraw).toHaveBeenCalledWith(withdrawParams);
+      expect(AccountService.withdraw).toHaveBeenCalledWith({
+        provider: mockProvider,
+        params: withdrawParams,
+        context: expect.objectContaining({
+          tracingContext: expect.any(Object),
+          analytics: expect.any(Object),
+          errorContext: expect.objectContaining({ method: 'withdraw' }),
+          stateManager: expect.any(Object),
+        }),
+        refreshAccountState: expect.any(Function),
+      });
     });
   });
 
@@ -1784,14 +1813,17 @@ describe('PerpsController', () => {
 
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      mockProvider.validateWithdrawal.mockResolvedValue(mockValidationResult);
+      jest
+        .spyOn(AccountService, 'validateWithdrawal')
+        .mockResolvedValue(mockValidationResult);
 
       const result = await controller.validateWithdrawal(withdrawParams);
 
       expect(result).toEqual(mockValidationResult);
-      expect(mockProvider.validateWithdrawal).toHaveBeenCalledWith(
-        withdrawParams,
-      );
+      expect(AccountService.validateWithdrawal).toHaveBeenCalledWith({
+        provider: mockProvider,
+        params: withdrawParams,
+      });
     });
   });
 
@@ -1892,54 +1924,47 @@ describe('PerpsController', () => {
 
   describe('reportOrderToDataLake', () => {
     beforeEach(() => {
-      jest.spyOn(global, 'fetch').mockImplementation(jest.fn());
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
     });
 
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
+    it('delegates to DataLakeService.reportOrder', async () => {
+      const mockReportResult = {
+        success: true,
+        error: undefined,
+      };
 
-    it('skips data lake reporting for testnet', async () => {
-      const mockCallTestnet = jest.fn().mockImplementation((action: string) => {
-        if (action === 'RemoteFeatureFlagController:getState') {
-          return {
-            remoteFeatureFlags: {
-              perpsPerpTradingGeoBlockedCountriesV2: {
-                blockedRegions: [],
-              },
-            },
-          };
-        }
-        return undefined;
-      });
+      jest
+        .spyOn(DataLakeService, 'reportOrder')
+        .mockResolvedValue(mockReportResult);
 
-      const testnetController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCallTestnet }),
-        state: { ...getDefaultPerpsControllerState(), isTestnet: true },
-      });
-
-      // Initialize providers for testnet controller
-      testnetController.testSetInitialized(true);
-      testnetController.testUpdate((state) => {
-        state.initializationState = InitializationState.INITIALIZED;
-      });
-      testnetController.testSetProviders(
-        new Map([['hyperliquid', mockProvider]]),
-      );
-
-      // Clear any fetch calls from controller initialization
-      (global.fetch as jest.Mock).mockClear();
-
-      const result = await testnetController.testReportOrderToDataLake({
-        action: 'open',
+      const orderParams = {
+        action: 'open' as const,
         coin: 'BTC',
-      });
+        sl_price: 45000,
+        tp_price: 55000,
+      };
 
-      expect(result.success).toBe(true);
-      expect(result.error).toBe('Skipped for testnet');
-      expect(global.fetch).not.toHaveBeenCalled();
+      const result = await controller.testReportOrderToDataLake(orderParams);
+
+      expect(result).toEqual(mockReportResult);
+      expect(DataLakeService.reportOrder).toHaveBeenCalledWith({
+        action: orderParams.action,
+        coin: orderParams.coin,
+        sl_price: orderParams.sl_price,
+        tp_price: orderParams.tp_price,
+        isTestnet: controller.state.isTestnet,
+        context: expect.objectContaining({
+          tracingContext: expect.any(Object),
+          analytics: expect.any(Object),
+          errorContext: expect.objectContaining({
+            method: 'reportOrderToDataLake',
+          }),
+          stateManager: expect.any(Object),
+        }),
+        retryCount: undefined,
+        _traceId: undefined,
+      });
     });
   });
 
