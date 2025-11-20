@@ -5,33 +5,30 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  RefreshControl,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { Theme } from '../../../../util/theme/models';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
-import HeaderBase, {
-  HeaderBaseVariant,
-} from '../../../../component-library/components/HeaderBase';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconName,
   IconColor,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
+import { TrendingListHeader } from '../../../UI/Trending/components/TrendingListHeader';
 import TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
 import { SortTrendingBy } from '@metamask/assets-controllers';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { PopularList } from '../../../../util/networks/customNetworks';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import {
   TrendingTokenTimeBottomSheet,
   TrendingTokenNetworkBottomSheet,
@@ -55,14 +52,6 @@ const createStyles = (theme: Theme) =>
     },
     headerContainer: {
       backgroundColor: theme.colors.background.default,
-    },
-    header: {
-      paddingTop: 16,
-      paddingBottom: 0,
-      paddingHorizontal: 16,
-      alignItems: 'center',
-      gap: 8,
-      alignSelf: 'stretch',
     },
     cardContainer: {
       margin: 16,
@@ -147,10 +136,24 @@ const TrendingTokensFullView = () => {
   const [showNetworkBottomSheet, setShowNetworkBottomSheet] = useState(false);
   const [showPriceChangeBottomSheet, setShowPriceChangeBottomSheet] =
     useState(false);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleSearchToggle = useCallback(() => {
+    setIsSearchVisible((prev) => !prev);
+    if (isSearchVisible) {
+      setSearchQuery('');
+    }
+  }, [isSearchVisible]);
+
+  const handleSearchQueryChange = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -188,7 +191,11 @@ const TrendingTokensFullView = () => {
     return strings('trending.all_networks');
   }, [selectedNetwork, networkConfigurations]);
 
-  const { results: trendingTokensResults, isLoading } = useTrendingRequest({
+  const {
+    results: trendingTokensResults,
+    isLoading,
+    fetch: fetchTrendingTokens,
+  } = useTrendingRequest({
     sortBy,
     chainIds: selectedNetwork ?? undefined,
   });
@@ -200,14 +207,25 @@ const TrendingTokensFullView = () => {
       return [];
     }
 
-    // If no sort option selected, return results as-is (already sorted by API)
+    // Filter by search query first (if search is active and query exists)
+    let filteredResults = trendingTokensResults;
+    if (isSearchVisible && searchQuery.trim()) {
+      const lowerQuery = searchQuery.toLowerCase().trim();
+      filteredResults = trendingTokensResults.filter(
+        (token) =>
+          token.symbol?.toLowerCase().includes(lowerQuery) ||
+          token.name?.toLowerCase().includes(lowerQuery),
+      );
+    }
+
+    // If no sort option selected, return filtered results as-is (already sorted by API)
     if (!selectedPriceChangeOption) {
-      return trendingTokensResults.slice(0, MAX_TOKENS);
+      return filteredResults.slice(0, MAX_TOKENS);
     }
 
     // Sort using the shared utility function
     const sorted = sortTrendingTokens(
-      trendingTokensResults,
+      filteredResults,
       selectedPriceChangeOption,
       priceChangeSortDirection,
       selectedTimeOption,
@@ -219,6 +237,8 @@ const TrendingTokensFullView = () => {
     selectedPriceChangeOption,
     priceChangeSortDirection,
     selectedTimeOption,
+    isSearchVisible,
+    searchQuery,
   ]);
 
   const handlePriceChangeSelect = useCallback(
@@ -253,6 +273,20 @@ const TrendingTokensFullView = () => {
     setShowTimeBottomSheet(true);
   }, []);
 
+  // Handle pull-to-refresh
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Cancel any pending debounced calls and fetch immediately
+      fetchTrendingTokens.cancel();
+      await fetchTrendingTokens();
+    } catch (error) {
+      console.warn('Failed to refresh trending tokens:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchTrendingTokens]);
+
   // Get the button text based on selected price change option
   const priceChangeButtonText = useMemo(() => {
     switch (selectedPriceChangeOption) {
@@ -276,32 +310,15 @@ const TrendingTokensFullView = () => {
           },
         ]}
       >
-        <HeaderBase
-          variant={HeaderBaseVariant.Display}
-          startAccessory={
-            <ButtonIcon
-              size={ButtonIconSizes.Lg}
-              onPress={handleBackPress}
-              iconName={IconName.ArrowLeft}
-              testID="back-button"
-            />
-          }
-          endAccessory={
-            <ButtonIcon
-              size={ButtonIconSizes.Lg}
-              onPress={() => {
-                // TODO: Implement search functionality
-              }}
-              iconName={IconName.Search}
-              testID="search-button"
-            />
-          }
-          style={styles.header}
-        >
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('trending.trending_tokens')}
-          </Text>
-        </HeaderBase>
+        <TrendingListHeader
+          title={strings('trending.trending_tokens')}
+          isSearchVisible={isSearchVisible}
+          searchQuery={searchQuery}
+          onSearchQueryChange={handleSearchQueryChange}
+          onBack={handleBackPress}
+          onSearchToggle={handleSearchToggle}
+          testID="trending-tokens-header"
+        />
       </View>
       <View style={styles.controlBarWrapper}>
         <View style={styles.controlButtonOuterWrapper}>
@@ -369,6 +386,14 @@ const TrendingTokensFullView = () => {
           <TrendingTokensList
             trendingTokens={trendingTokens}
             selectedTimeOption={selectedTimeOption}
+            refreshControl={
+              <RefreshControl
+                colors={[theme.colors.primary.default]}
+                tintColor={theme.colors.icon.default}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
           />
         </View>
       )}
