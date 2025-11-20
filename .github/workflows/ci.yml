@@ -558,6 +558,30 @@ jobs:
 
           echo "All required jobs passed"
 
+  post-build-comment:
+    name: Post Build Comment
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'pull_request' && (needs.build-android-apks.result == 'success' || needs.build-ios-apps.result == 'success')
+    needs: [build-android-apks, build-ios-apps]
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Post Build Comment
+        run: node scripts/post-build-comment.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
   log-merge-group-failure:
     name: Log merge group failure
     # Only run this job if the merge group event fails, skip on forks
