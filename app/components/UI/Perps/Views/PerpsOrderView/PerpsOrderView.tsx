@@ -697,6 +697,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
           [PerpsEventProperties.ERROR_TYPE]:
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]: firstError,
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
         });
 
         isSubmittingRef.current = false; // Reset flag on early return
@@ -714,6 +718,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]:
             'Cross margin position detected',
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
         });
 
         isSubmittingRef.current = false;

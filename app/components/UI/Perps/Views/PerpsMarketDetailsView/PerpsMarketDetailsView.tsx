@@ -518,12 +518,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const watchlistCount = controller.getWatchlistMarkets().length;
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]: 'watchlist_toggled',
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.FAVORITE_TOGGLED,
       [PerpsEventProperties.ACTION_TYPE]: newWatchlistState
-        ? 'add_to_watchlist'
-        : 'remove_from_watchlist',
+        ? PerpsEventValues.ACTION_TYPE.FAVORITE_MARKET
+        : PerpsEventValues.ACTION_TYPE.UNFAVORITE_MARKET,
       [PerpsEventProperties.ASSET]: market.symbol,
-      [PerpsEventProperties.SOURCE]: 'asset_details',
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
       watchlist_count: watchlistCount,
     });
   }, [market, isWatchlist, track]);
@@ -546,6 +547,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             PerpsEventValues.ERROR_TYPE.VALIDATION,
           [PerpsEventProperties.ERROR_MESSAGE]:
             'Cross margin position detected',
+          [PerpsEventProperties.SCREEN_NAME]:
+            PerpsEventValues.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
         });
 
         return;

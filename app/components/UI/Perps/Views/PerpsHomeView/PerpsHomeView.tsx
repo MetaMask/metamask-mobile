@@ -21,6 +21,8 @@ import {
   usePerpsNavigation,
   usePerpsMeasurement,
 } from '../../hooks';
+import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
+import Engine from '../../../../../core/Engine';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -89,12 +91,28 @@ const PerpsHomeView = () => {
   // Track home screen viewed event
   const source =
     route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
+
+  // Get perp balance status and provider info for tracking
+  const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 5000 });
+  const livePositions = usePerpsLivePositions({ throttleMs: 5000 });
+  const hasPerpBalance =
+    livePositions.positions.length > 0 ||
+    (perpsAccount?.totalBalance && parseFloat(perpsAccount.totalBalance) > 0);
+  const provider = Engine.context.PerpsController?.getActiveProvider();
+  const perpDex =
+    provider?.protocolId === 'hyperliquid'
+      ? PerpsEventValues.PERP_DEX.HYPERLIQUID
+      : undefined;
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.MARKETS,
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.PERPS_HOME,
       [PerpsEventProperties.SOURCE]: source,
+      [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
+      ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
     },
   });
 
