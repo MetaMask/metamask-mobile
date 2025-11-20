@@ -67,7 +67,16 @@ export class HyperLiquidWalletService {
         primaryType: string;
         message: Record<string, unknown>;
       }): Promise<Hex> => {
-        // Use address from outer scope (already validated when adapter was created)
+        // Get FRESH account on every sign to handle account switches
+        // This prevents race conditions where wallet adapter was created with old account
+        const currentEvmAccount = getEvmAccountFromSelectedAccountGroup();
+
+        if (!currentEvmAccount?.address) {
+          throw new Error(strings('perps.errors.noAccountSelected'));
+        }
+
+        const currentAddress = currentEvmAccount.address as Hex;
+
         // Construct EIP-712 typed data
         const typedData = {
           domain: params.domain,
@@ -77,7 +86,7 @@ export class HyperLiquidWalletService {
         };
 
         DevLogger.log('HyperLiquidWalletService: Signing typed data', {
-          address,
+          address: currentAddress,
           primaryType: params.primaryType,
           domain: params.domain,
         });
@@ -86,7 +95,7 @@ export class HyperLiquidWalletService {
         const signature =
           await Engine.context.KeyringController.signTypedMessage(
             {
-              from: address,
+              from: currentAddress,
               data: typedData,
             },
             SignTypedDataVersion.V4,

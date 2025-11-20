@@ -18,6 +18,7 @@ import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_GEO_BLOCKED_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import PredictAddFunds from '../../pages/Predict/PredictAddFunds';
 
 //Enable the Predictions feature flag and force Polymarket geoblock
 const setupGeoBlockedBase = async (mockServer: Mockttp) => {
@@ -117,6 +118,37 @@ describe(
           );
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
+        },
+      );
+    });
+
+    it('when clicking Add funds from the Predictions balance', async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          restartDevice: true,
+          testSpecificMock: PredictionGeoBlockedFeature,
+        },
+        async () => {
+          await loginToApp();
+          await TabBarComponent.tapActions();
+          await WalletActionsBottomSheet.tapPredictButton();
+          await Assertions.expectElementToBeVisible(
+            PredictDetailsPage.balanceCard,
+            {
+              description: 'Predict balance card is visible',
+            },
+          );
+          await PredictAddFunds.tapAddFunds();
+          await PredictUnavailableView.expectVisible();
+          await PredictUnavailableView.tapGotIt();
+          await Assertions.expectElementToBeVisible(
+            PredictDetailsPage.balanceCard,
+            {
+              description:
+                'Returned to Predictions tab; Unavailable modal dismissed after clicking Add funds',
+            },
+          );
         },
       );
     });

@@ -550,7 +550,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   "paddingHorizontal": 4,
                                 }
                               }
-                              handlerTag={1}
+                              handlerTag={-1}
                               handlerType="NativeViewGestureHandler"
                               horizontal={true}
                               onGestureHandlerEvent={[Function]}
@@ -872,6 +872,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "fontWeight": "400",
                                       "height": 38,
                                       "letterSpacing": 0,
+                                      "lineHeight": 20,
                                       "opacity": 1,
                                       "paddingVertical": 2,
                                       "textAlignVertical": "center",
@@ -883,11 +884,28 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               </View>
                             </View>
                           </View>
-                          <View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
                             <RCTScrollView
-                              ListEmptyComponent={[Function]}
+                              ListEmptyComponent={
+                                {
+                                  "$$typeof": Symbol(react.memo),
+                                  "compare": null,
+                                  "type": [Function],
+                                }
+                              }
                               bounces={true}
                               collapsable={false}
+                              contentContainerStyle={
+                                {
+                                  "paddingBottom": 0,
+                                }
+                              }
                               data={
                                 [
                                   {
@@ -955,6 +973,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               stickyHeaderIndices={[]}
                               style={
                                 {
+                                  "flex": 1,
                                   "marginTop": 10,
                                 }
                               }

@@ -31,6 +31,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import Logger from '../../../util/Logger';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isE2E } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
@@ -65,8 +67,8 @@ import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import FoxAnimation from './FoxAnimation';
-import OnboardingAnimation from './OnboardingAnimation';
+import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
+import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -380,21 +382,23 @@ class Onboarding extends PureComponent {
       return;
     }
 
-    const { existingUser } = this.props;
-
     try {
-      const vaultBackupResult = await getVaultFromBackup();
+      // Check for migration error flag
+      // Using FilesystemStorage (excluded from iCloud backup) for reliability
+      const migrationErrorFlag = await FilesystemStorage.getItem(
+        MIGRATION_ERROR_HAPPENED,
+      );
 
-      // Detect migration failure scenario:
-      // - existingUser is false (Redux state was corrupted/reset)
-      // - BUT vault backup exists (user previously had a wallet)
-      const migrationFailureDetected =
-        !existingUser && vaultBackupResult.success && vaultBackupResult.vault;
+      if (migrationErrorFlag === 'true') {
+        // Migration failed, check if vault backup exists
+        const vaultBackupResult = await getVaultFromBackup();
 
-      if (migrationFailureDetected) {
-        this.props.navigation.reset({
-          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-        });
+        if (vaultBackupResult.success && vaultBackupResult.vault) {
+          // Both migration error and vault backup exist - trigger recovery
+          this.props.navigation.reset({
+            routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+          });
+        }
       }
     } catch (error) {
       Logger.error(
@@ -498,6 +502,7 @@ class Onboarding extends PureComponent {
             accountName: result.accountName,
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
+            provider,
           });
         } else {
           trace({
@@ -515,6 +520,7 @@ class Onboarding extends PureComponent {
                 accountName: result.accountName,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: this.onboardingTraceCtx,
+                provider,
               },
             );
           } else {
@@ -523,6 +529,7 @@ class Onboarding extends PureComponent {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
               onboardingTraceCtx: this.onboardingTraceCtx,
+              provider,
             });
           }
         }
@@ -553,6 +560,7 @@ class Onboarding extends PureComponent {
             accountName: result.accountName,
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
+            provider,
           });
         }
       }

@@ -1,80 +1,155 @@
 import { Dimensions } from 'react-native';
-import { formatWithThreshold } from '../../../../util/assets';
 import { PredictSeries, Recurrence } from '../types';
 
 /**
- * Formats a percentage value with sign prefix
+ * Formats a percentage value
  * @param value - Raw percentage value (e.g., 5.25 for 5.25%, not 0.0525)
- * @returns Format: "+X.XX%" or "-X.XX%" (always shows sign, 2 decimals)
- * @example formatPercentage(5.25) => "+5.25%"
+ * @param options - Optional formatting options
+ * @param options.truncate - Whether to truncate values with >99% and <1% (default: false)
+ * @returns Format depends on truncate option:
+ * - truncate=false (default): Shows actual percentage with up to 2 decimals, hides decimals for integers
+ * - truncate=true: ">99%" for values >= 99, "<1%" for values < 1, rounded integer otherwise
+ * @example formatPercentage(5.25) => "5.25%"
+ * @example formatPercentage(5.25, { truncate: true }) => "5%"
+ * @example formatPercentage(99.5) => "99.5%"
+ * @example formatPercentage(99.5, { truncate: true }) => ">99%"
+ * @example formatPercentage(0.5) => "0.5%"
+ * @example formatPercentage(0.5, { truncate: true }) => "<1%"
+ * @example formatPercentage(5) => "5%"
  * @example formatPercentage(-2.75) => "-2.75%"
- * @example formatPercentage(0) => "0%"
- * @example formatPercentage(100) => "+100%"
+ * @example formatPercentage(-2.75, { truncate: true }) => "-3%"
  */
-export const formatPercentage = (value: string | number): string => {
+export const formatPercentage = (
+  value: string | number,
+  options?: { truncate?: boolean },
+): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
+  const truncate = options?.truncate ?? false;
 
   if (isNaN(num)) {
-    return '0.00%';
+    return '0%';
   }
 
-  const sign = num >= 0 ? '+' : '';
-  const absoluteValue = Math.abs(num);
-
-  // If the number is a whole number (no decimal places), don't show .00
-  if (absoluteValue === Math.floor(absoluteValue)) {
-    if (num === 0) {
-      return '0%';
+  // Handle truncation mode (when explicitly enabled)
+  if (truncate) {
+    // Handle special cases for positive numbers only
+    if (num >= 99) {
+      return '>99%';
     }
-    return `${sign}${num}%`;
+
+    if (num > 0 && num < 1) {
+      return '<1%';
+    }
+
+    // Round to nearest integer
+    return `${Math.round(num)}%`;
   }
 
-  return `${sign}${num.toFixed(2)}%`;
+  // Non-truncated mode: show up to 2 decimals
+  // Check if the number is an integer
+  if (num === Math.floor(num)) {
+    return `${num}%`;
+  }
+
+  // Format with up to 2 decimals, removing trailing zeros
+  const formatted = num.toFixed(2).replace(/\.?0+$/, '');
+
+  // Handle edge case: toFixed can return "-0" for very small negative numbers
+  if (formatted === '-0') {
+    return '0%';
+  }
+
+  return `${formatted}%`;
 };
 
 /**
- * Formats a price value as USD currency with variable decimal places based on magnitude
+ * Formats a price value as USD currency with rounding up to nearest cent
  * @param price - Raw numeric price value
- * @param options - Optional formatting options
- * @param options.minimumDecimals - Minimum decimal places (default: 2, use 0 for whole numbers)
- * @param options.maximumDecimals - Maximum decimal places (default: 2 for prices >= $1000, 4 for prices < $1000)
- * @returns USD formatted string with variable decimals:
- * - Prices >= $1000: "$X,XXX.XX" (2 decimals by default)
- * - Prices < $1000: "$X.XXXX" (up to 4 decimals)
- * @example formatPrice(1234.5678) => "$1,234.57"
- * @example formatPrice(0.1234) => "$0.1234"
- * @example formatPrice(50000, { minimumDecimals: 0 }) => "$50,000"
+ * @param options - Optional formatting options (kept for backwards compatibility, but not used)
+ * @returns USD formatted string, hiding .00 for integer values, rounding up to nearest cent for 3+ decimals
+ * @example formatPrice(1234.5678) => "$1,234.57" (rounds up from .5678)
+ * @example formatPrice(0.1234) => "$0.13" (rounds up from .1234)
+ * @example formatPrice(50000) => "$50,000" (no .00 for integers)
+ * @example formatPrice(1234.999) => "$1,235" (rounds up to next dollar)
+ * @example formatPrice(0.991) => "$1" (rounds up from .991)
  */
 export const formatPrice = (
   price: string | number,
-  options?: { minimumDecimals?: number; maximumDecimals?: number },
+  _options?: { minimumDecimals?: number; maximumDecimals?: number },
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
-  const minDecimals = options?.minimumDecimals ?? 2;
-  const maxDecimals = options?.maximumDecimals ?? 4;
+  const maximumDecimals = _options?.maximumDecimals ?? 2;
+  const minimumDecimals = _options?.minimumDecimals;
 
   if (isNaN(num)) {
-    return minDecimals === 0 ? '$0' : '$0.00';
+    return '$0.00';
   }
 
-  // For prices >= 1000, use specified minimum decimal places
-  if (num >= 1000) {
-    return formatWithThreshold(num, 1000, 'en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: minDecimals,
-      maximumFractionDigits:
-        options?.maximumDecimals ?? Math.max(minDecimals, 2),
-    });
-  }
+  // Round to the specified maximum decimal places
+  const multiplier = Math.pow(10, maximumDecimals);
+  const rounded = Math.round(num * multiplier) / multiplier;
 
-  // For prices < 1000, use up to 4 decimal places
-  return formatWithThreshold(num, 0.0001, 'en-US', {
+  // Check if it's an integer (no decimal part)
+  const isInteger = rounded === Math.floor(rounded);
+
+  // Format with appropriate decimal places
+  // If user explicitly set minimumDecimals, use it; otherwise, show no decimals for integers
+  const minFractionDigits =
+    minimumDecimals !== undefined ? minimumDecimals : isInteger ? 0 : 2;
+
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: minDecimals,
-    maximumFractionDigits: maxDecimals,
-  });
+    minimumFractionDigits: minFractionDigits,
+    maximumFractionDigits: maximumDecimals,
+  }).format(rounded);
+};
+
+/**
+ * Calculates the net amount after deducting bridge and network fees from the total fiat amount
+ * @param params - Object containing fee and total amount information
+ * @param params.totalFiat - Total fiat amount as string
+ * @param params.bridgeFeeFiat - Bridge fee amount as string
+ * @param params.networkFeeFiat - Network fee amount as string
+ * @returns Net amount as string after deducting fees, or "0" if calculation fails
+ * @example
+ * calculateNetAmount({
+ *   totalFiat: "1.04361142938843253220839271649743403",
+ *   bridgeFeeFiat: "0.036399",
+ *   networkFeeFiat: "0.008024478270232503211154803918368"
+ * }) => "0.999187951118199"
+ */
+export const calculateNetAmount = (params: {
+  totalFiat?: string;
+  bridgeFeeFiat?: string;
+  networkFeeFiat?: string;
+}): string => {
+  const { totalFiat, bridgeFeeFiat, networkFeeFiat } = params;
+
+  // totalFiat is required - return "0" if missing or invalid
+  if (!totalFiat) {
+    return '0';
+  }
+
+  const total = parseFloat(totalFiat);
+  if (isNaN(total)) {
+    return '0';
+  }
+
+  // Treat missing fees as 0, but validate they are numbers if provided
+  const bridgeFee = bridgeFeeFiat ? parseFloat(bridgeFeeFiat) : 0;
+  const networkFee = networkFeeFiat ? parseFloat(networkFeeFiat) : 0;
+
+  // Return "0" if any provided fee is invalid
+  if (isNaN(bridgeFee) || isNaN(networkFee)) {
+    return '0';
+  }
+
+  // Calculate net amount: totalFiat - bridgeFee - networkFee
+  const netAmount = total - bridgeFee - networkFee;
+
+  // Ensure we don't return negative amounts
+  return netAmount > 0 ? netAmount.toString() : '0';
 };
 
 /**

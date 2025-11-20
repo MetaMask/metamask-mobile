@@ -45,8 +45,7 @@ import { useTheme } from '../../../util/theme';
 import TabBar from '../../Base/TabBar';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
@@ -160,16 +159,20 @@ const ActivityView = () => {
 
   const tabViewRef = useRef();
   const params = useParams();
-  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const perpsEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  );
   const isPerpsEnabled = useMemo(
     () => perpsEnabledFlag && isEvmSelected,
     [perpsEnabledFlag, isEvmSelected],
   );
   const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
+  const predictEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isPredictEnabled = useMemo(
-    () => predictEnabledFlag && isEvmSelected,
-    [predictEnabledFlag, isEvmSelected],
+    () => predictEnabledFlag,
+    [predictEnabledFlag],
   );
 
   const openAccountSelector = useCallback(() => {
@@ -234,7 +237,7 @@ const ActivityView = () => {
   // Calculate if Perps tab is currently active
   // Perps is the last tab, so its index depends on what other tabs are shown
   const perpsTabIndex = 2;
-  const predictTabIndex = 3;
+  const predictTabIndex = isPerpsEnabled ? 3 : 2;
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
   const isPredictTabActive =
     isPredictEnabled && activeTabIndex === predictTabIndex;

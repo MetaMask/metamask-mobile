@@ -48,6 +48,8 @@ interface PredictMarketOutcomeProps {
   isClosed?: boolean;
 }
 
+const MAX_LABEL_LENGTH = 6;
+
 const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   market,
   outcome,
@@ -71,7 +73,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   const getYesPercentage = (): string => {
     const prices = getOutcomePrices();
     if (prices.length > 0) {
-      return formatPercentage(prices[0] * 100);
+      return formatPercentage(prices[0] * 100, { truncate: true });
     }
     return '0%';
   };
@@ -87,17 +89,18 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
 
   const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
 
+  const isBiggerLabel =
+    outcome.tokens[0].title.length > MAX_LABEL_LENGTH ||
+    outcome.tokens[1].title.length > MAX_LABEL_LENGTH;
+
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint,
-          },
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome,
+          outcomeToken: token,
+          entryPoint,
         });
       },
       {
@@ -187,26 +190,34 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text style={tw.style('font-medium')} color={TextColor.Success}>
-                {outcome.tokens[0].title} •{' '}
+              <Text
+                style={tw.style('font-medium text-center')}
+                color={TextColor.Success}
+              >
+                {outcome.tokens[0].title}
+                {isBiggerLabel ? '\n' : ' • '}
                 {formatCents(outcome.tokens[0].price)}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
-            style={styles.buttonYes}
+            style={[styles.buttonYes, isBiggerLabel && tw.style('h-18')]}
           />
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {outcome.tokens[1].title} •{' '}
+              <Text
+                style={tw.style('font-medium text-center')}
+                color={TextColor.Error}
+              >
+                {outcome.tokens[1].title}
+                {isBiggerLabel ? '\n' : ' • '}
                 {formatCents(outcome.tokens[1].price)}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}
-            style={styles.buttonNo}
+            style={[styles.buttonNo, isBiggerLabel && tw.style('h-18')]}
           />
         </View>
       )}

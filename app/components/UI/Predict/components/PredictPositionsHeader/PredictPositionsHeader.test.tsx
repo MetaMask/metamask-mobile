@@ -1,10 +1,29 @@
-import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import MarketsWonCard from './PredictPositionsHeader';
+import React from 'react';
+import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictPositionStatus, PredictPosition } from '../../types';
+import { PredictPosition, PredictPositionStatus } from '../../types';
+import MarketsWonCard from './PredictPositionsHeader';
+
+// Mock Engine with AccountTreeController - MUST BE FIRST
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'test-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
+  },
+}));
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -513,7 +532,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$123.46 (+5.7%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$123.46 (+5.67%)')).toBeOnTheScreen();
     });
 
     it('formats negative unrealized amount correctly', () => {
@@ -543,7 +562,7 @@ describe('MarketsWonCard', () => {
         },
       );
 
-      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.00 (+0%)')).toBeOnTheScreen();
     });
 
     it('formats available balance to 2 decimal places', () => {
@@ -613,7 +632,7 @@ describe('MarketsWonCard', () => {
       expect(screen.getByText('Available Balance')).toBeOnTheScreen();
       expect(screen.getByText('$75.50')).toBeOnTheScreen();
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('+$100.00 (+10.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$100.00 (+10%)')).toBeOnTheScreen();
     });
   });
 
@@ -673,7 +692,7 @@ describe('MarketsWonCard', () => {
       );
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
-      expect(screen.getByText('+$50.00 (+5.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$50.00 (+5%)')).toBeOnTheScreen();
     });
   });
 
@@ -701,7 +720,7 @@ describe('MarketsWonCard', () => {
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       // Should show fallback values when there's an error
-      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.00 (+0%)')).toBeOnTheScreen();
     });
 
     it('handles null unrealized P&L data gracefully', () => {
@@ -720,7 +739,7 @@ describe('MarketsWonCard', () => {
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       // Should show fallback values when data is null
-      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.00 (+0%)')).toBeOnTheScreen();
     });
 
     it('displays correct unrealized P&L data from hook', () => {
@@ -844,6 +863,66 @@ describe('MarketsWonCard', () => {
     });
   });
 
+  describe('View All Navigation', () => {
+    it('navigates to market list when available balance card is pressed', () => {
+      setupMarketsWonCardTest({ availableBalance: 100.5 });
+
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        fireEvent.press(balanceTouchable);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: expect.any(String),
+        },
+      });
+    });
+
+    it('navigates when balance is present and not loading', () => {
+      setupMarketsWonCardTest({ availableBalance: 50.25, isLoading: false });
+
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        fireEvent.press(balanceTouchable);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: expect.any(String),
+        },
+      });
+    });
+
+    it('does not render touchable area when balance is undefined', () => {
+      setupMarketsWonCardTest({ availableBalance: undefined });
+
+      expect(screen.queryByTestId('markets-won-count')).not.toBeOnTheScreen();
+    });
+
+    it('navigates with correct route structure', () => {
+      setupMarketsWonCardTest({ availableBalance: 200 });
+
+      const balanceTouchable =
+        screen.getByTestId('markets-won-count').parent?.parent;
+      if (balanceTouchable) {
+        fireEvent.press(balanceTouchable);
+      }
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.stringContaining('Predict'),
+        expect.objectContaining({
+          screen: expect.any(String),
+        }),
+      );
+    });
+  });
+
   describe('User Interactions', () => {
     it('calls onClaimPress when claim button is pressed', () => {
       const mockOnClaimPress = jest.fn();
@@ -853,21 +932,6 @@ describe('MarketsWonCard', () => {
 
       // Verify the callback was passed correctly
       expect(props.onClaimPress).toBe(mockOnClaimPress);
-    });
-
-    it('navigates to predict modals when available balance is pressed', () => {
-      setupMarketsWonCardTest();
-
-      const balanceTouchable =
-        screen.getByTestId('markets-won-count').parent?.parent;
-      if (balanceTouchable) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        fireEvent.press(balanceTouchable as any);
-      }
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-      });
     });
 
     it('calls refresh method and triggers data reloading', async () => {
