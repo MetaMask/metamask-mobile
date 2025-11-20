@@ -181,15 +181,24 @@ const useGetCardExternalWalletDetails = (
     },
   );
 
-  const { data, isLoading, fetchData } = cacheResult;
+  const { data, isLoading, error, fetchData } = cacheResult;
 
   // Manually trigger fetch when all prerequisites are ready
   // This avoids the race condition where SDK isn't available on first render
   useEffect(() => {
-    if (sdk && isAuthenticated && delegationSettings && !isLoading && !data) {
+    if (
+      sdk &&
+      isAuthenticated &&
+      delegationSettings &&
+      !isLoading &&
+      !error &&
+      !data
+    ) {
       fetchData();
     }
-  }, [sdk, isAuthenticated, delegationSettings, isLoading, data, fetchData]);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sdk, isAuthenticated, delegationSettings, isLoading, error, data]);
 
   return cacheResult;
 };

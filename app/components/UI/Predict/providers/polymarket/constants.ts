@@ -75,3 +75,6 @@ export const MATIC_CONTRACTS: ContractConfig = {
   collateral: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
   conditionalTokens: '0x4D97DCd97eC945f40cF65F87097ACe5EA0476045',
 };
+
+export const POLYGON_USDC_CAIP_ASSET_ID =
+  `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS.collateral}` as const;

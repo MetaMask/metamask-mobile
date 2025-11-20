@@ -11,7 +11,7 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
+import { useFeatureFlag } from '../../../../../../../components/hooks/useFeatureFlag';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
 
@@ -58,6 +58,17 @@ jest.mock('../../../../../../hooks/useMetrics', () => ({
   },
 }));
 
+// Mock useFeatureFlag hook
+jest.mock('../../../../../../../components/hooks/useFeatureFlag', () => {
+  const actual = jest.requireActual(
+    '../../../../../../../components/hooks/useFeatureFlag',
+  );
+  return {
+    useFeatureFlag: jest.fn(),
+    FeatureFlagNames: actual.FeatureFlagNames,
+  };
+});
+
 // Mock getNativeAssetForChainId
 jest.mock('@metamask/bridge-controller', () => ({
   getNativeAssetForChainId: jest.fn(() => ({
@@ -69,6 +80,10 @@ jest.mock('@metamask/bridge-controller', () => ({
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
+>;
+
+const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
+  typeof useFeatureFlag
 >;
 
 // Mock i18n strings
@@ -207,14 +222,13 @@ describe('WaysToEarn', () => {
       if (selector === selectRewardsCardSpendFeatureFlags) {
         return mockIsCardSpendEnabled;
       }
-      if (selector === selectPredictEnabledFlag) {
-        return mockIsPredictEnabled;
-      }
       if (selector === selectRewardsMusdDepositEnabledFlag) {
         return mockIsMusdDepositEnabled;
       }
       return undefined;
     });
+    // Mock useFeatureFlag for predict flag
+    mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
   });
 
   it('renders the component title', () => {
@@ -503,6 +517,7 @@ describe('WaysToEarn', () => {
 
       // Enable flag
       mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       rerender(<WaysToEarn />);
 
       // Assert visible now
@@ -513,6 +528,7 @@ describe('WaysToEarn', () => {
     it('opens modal for predict earning way when pressed', () => {
       // Arrange
       mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       const { getByText } = render(<WaysToEarn />);
       const predictButton = getByText('Prediction markets');
 
@@ -541,6 +557,7 @@ describe('WaysToEarn', () => {
     it('navigates to predict market list when predict CTA is pressed', () => {
       // Arrange
       mockIsPredictEnabled = true;
+      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       const { getByText } = render(<WaysToEarn />);
       const predictButton = getByText('Prediction markets');
 

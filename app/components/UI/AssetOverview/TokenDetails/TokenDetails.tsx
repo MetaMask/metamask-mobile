@@ -238,9 +238,14 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     );
   }, [marketData, currentCurrency, isNonEvmAsset, conversionRate]);
 
+  const hasAddressAndDecimals =
+    tokenDetails.contractAddress && tokenDetails.tokenDecimal;
   return (
     <View style={styles.tokenDetailsContainer}>
-      {(asset.isETH || tokenMetadata || isNonEvmAsset) && (
+      {(asset.isETH ||
+        tokenMetadata ||
+        isNonEvmAsset ||
+        hasAddressAndDecimals) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
       {marketData && marketDetails && (

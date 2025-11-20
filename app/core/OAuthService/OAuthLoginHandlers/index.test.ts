@@ -147,7 +147,9 @@ describe('OAuth login handlers', () => {
           new Response(
             JSON.stringify({
               access_token: 'access-token',
+              metadata_access_token: 'metadata-access-token',
               refresh_token: 'refresh-token',
+              revoke_token: 'revoke-token',
               id_token: 'id-token',
               indexes: [1, 2, 3],
               endpoints: {
@@ -184,7 +186,7 @@ describe('OAuth login handlers', () => {
         jest.clearAllMocks();
       });
 
-      it('should throw UserCancelled error when user cancels', async () => {
+      it('throw UserCancelled error when user cancels', async () => {
         mockSignInAsync.mockRejectedValue(
           new Error('The user canceled the authorization attempt'),
         );
@@ -201,7 +203,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UnknownError for other errors', async () => {
+      it('throw UnknownError for other errors', async () => {
         mockSignInAsync.mockRejectedValue(new Error('Network error'));
 
         const handler = createLoginHandler('ios', AuthConnection.Apple);
@@ -215,7 +217,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UnknownError when no identity token is returned', async () => {
+      it('throw UnknownError when no identity token is returned', async () => {
         mockSignInAsync.mockResolvedValue({ identityToken: null });
 
         const handler = createLoginHandler('ios', AuthConnection.Apple);
@@ -229,7 +231,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should re-throw existing OAuthError instances', async () => {
+      it('re-throw existing OAuthError instances', async () => {
         const existingError = new OAuthError(
           'Test error',
           OAuthErrorType.LoginError,
@@ -247,7 +249,7 @@ describe('OAuth login handlers', () => {
         jest.clearAllMocks();
       });
 
-      it('should throw UserCancelled error when user cancels', async () => {
+      it('throw UserCancelled error when user cancels', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'cancel',
         });
@@ -264,7 +266,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UserDismissed error when user dismisses', async () => {
+      it('throw UserDismissed error when user dismisses', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'dismiss',
         });
@@ -281,7 +283,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UnknownError for other result types', async () => {
+      it('throw UnknownError for other result types', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'error',
           error: 'Some error',
@@ -298,7 +300,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw error when promptAsync throws exception', async () => {
+      it('throw error when promptAsync throws exception', async () => {
         mockExpoAuthSessionPromptAsync.mockRejectedValue(
           new Error('Network error'),
         );
@@ -314,7 +316,7 @@ describe('OAuth login handlers', () => {
         jest.clearAllMocks();
       });
 
-      it('should throw UserCancelled error when user cancels', async () => {
+      it('throw UserCancelled error when user cancels', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'cancel',
         });
@@ -331,7 +333,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UserDismissed error when user dismisses', async () => {
+      it('throw UserDismissed error when user dismisses', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'dismiss',
         });
@@ -348,7 +350,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw LoginError when error with message is returned', async () => {
+      it('throw LoginError when error with message is returned', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'error',
           error: { message: 'Authentication failed' },
@@ -366,7 +368,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UnknownError when error without message is returned', async () => {
+      it('throw UnknownError when error without message is returned', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'error',
           error: null,
@@ -383,7 +385,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UnknownError for unexpected result types', async () => {
+      it('throw UnknownError for unexpected result types', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'unknown',
         });
@@ -399,7 +401,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw error when promptAsync throws exception', async () => {
+      it('throw error when promptAsync throws exception', async () => {
         mockExpoAuthSessionPromptAsync.mockRejectedValue(
           new Error('Network error'),
         );
@@ -415,7 +417,7 @@ describe('OAuth login handlers', () => {
         jest.clearAllMocks();
       });
 
-      it('should throw UserCancelled error when user cancels', async () => {
+      it('throw UserCancelled error when user cancels', async () => {
         mockSignInWithGoogle.mockRejectedValue(new Error('User cancelled'));
 
         const handler = createLoginHandler('android', AuthConnection.Google);
@@ -430,7 +432,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UnknownError for other errors', async () => {
+      it('throw UnknownError for other errors', async () => {
         mockSignInWithGoogle.mockRejectedValue(new Error('Network error'));
 
         const handler = createLoginHandler('android', AuthConnection.Google);
@@ -445,7 +447,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UnknownError when result type is not google-signin', async () => {
+      it('throw UnknownError when result type is not google-signin', async () => {
         mockSignInWithGoogle.mockResolvedValue({
           type: 'unknown',
         });
@@ -463,7 +465,7 @@ describe('OAuth login handlers', () => {
       });
 
       // no credentials
-      it('should throw GoogleLoginNoCredential when no credentials are found', async () => {
+      it('throw GoogleLoginNoCredential when no credentials are found', async () => {
         const message = 'e1 error Mo.m: No credential available';
         mockSignInWithGoogle.mockRejectedValue(new Error(message));
 
@@ -498,7 +500,7 @@ describe('OAuth login handlers', () => {
         expect(mockSignInAsync).toHaveBeenCalledTimes(0);
       });
 
-      it('should throw GoogleLoginNoMatchingCredential when no matching credential is found', async () => {
+      it('throw GoogleLoginNoMatchingCredential when no matching credential is found', async () => {
         const message =
           'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error';
         mockSignInWithGoogle.mockRejectedValue(new Error(message));
@@ -535,7 +537,7 @@ describe('OAuth login handlers', () => {
         expect(mockSignInAsync).toHaveBeenCalledTimes(0);
       });
 
-      it('should re-throw existing OAuthError instances', async () => {
+      it('re-throw existing OAuthError instances', async () => {
         const existingError = new OAuthError(
           'Test error',
           OAuthErrorType.LoginError,

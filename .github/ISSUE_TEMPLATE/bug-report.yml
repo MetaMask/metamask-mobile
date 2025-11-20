@@ -66,8 +66,16 @@ body:
    id: version
    attributes:
      label: Version
-     description: What version of MetaMask are you running? You can find the version in "Settings" > "About"
+     description: What version of MetaMask are you running? You can find the version in "Settings" > "About MetaMask"
      placeholder: "7.50.0"
+   validations:
+     required: true
+ - type: input
+   id: build-number
+   attributes:
+     label: Build number
+     description: What build number of MetaMask are you running? You can find the build number in "Settings" > "About MetaMask"
+     placeholder: "3055"
    validations:
      required: true
  - type: dropdown

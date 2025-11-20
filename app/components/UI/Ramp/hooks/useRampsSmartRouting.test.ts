@@ -593,6 +593,59 @@ describe('useRampsSmartRouting', () => {
         }),
       );
     });
+
+    it('routes to DEPOSIT when last completed order is from Deposit provider', async () => {
+      mockApiResponse({
+        deposit: true,
+        aggregator: true,
+        global: true,
+      });
+      mockOrders = [
+        createMockOrder(
+          FIAT_ORDER_PROVIDERS.DEPOSIT,
+          FIAT_ORDER_STATES.COMPLETED,
+          5000,
+        ),
+        createMockOrder(
+          FIAT_ORDER_PROVIDERS.AGGREGATOR,
+          FIAT_ORDER_STATES.COMPLETED,
+          3000,
+        ),
+      ];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
+          payload: UnifiedRampRoutingType.DEPOSIT,
+        }),
+      );
+    });
+
+    it('routes to DEPOSIT when only completed order is from Deposit provider', async () => {
+      mockApiResponse({
+        deposit: true,
+        aggregator: true,
+        global: true,
+      });
+      mockOrders = [
+        createMockOrder(
+          FIAT_ORDER_PROVIDERS.DEPOSIT,
+          FIAT_ORDER_STATES.COMPLETED,
+          1000,
+        ),
+      ];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
+          payload: UnifiedRampRoutingType.DEPOSIT,
+        }),
+      );
+    });
   });
 
   describe('Provider-based routing without Transak', () => {
@@ -658,30 +711,6 @@ describe('useRampsSmartRouting', () => {
       mockOrders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.WYRE,
-          FIAT_ORDER_STATES.COMPLETED,
-          3000,
-        ),
-      ];
-
-      renderHook(() => useRampsSmartRouting());
-
-      await waitFor(() =>
-        expect(mockDispatch).toHaveBeenCalledWith({
-          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: UnifiedRampRoutingType.AGGREGATOR,
-        }),
-      );
-    });
-
-    it('routes to AGGREGATOR when last completed order is from Deposit provider', async () => {
-      mockApiResponse({
-        deposit: true,
-        aggregator: false,
-        global: true,
-      });
-      mockOrders = [
-        createMockOrder(
-          FIAT_ORDER_PROVIDERS.DEPOSIT,
           FIAT_ORDER_STATES.COMPLETED,
           3000,
         ),

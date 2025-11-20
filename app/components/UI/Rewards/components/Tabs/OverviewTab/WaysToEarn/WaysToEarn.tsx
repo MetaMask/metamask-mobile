@@ -31,7 +31,10 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../../hooks/useFeatureFlag';
 import { PredictEventValues } from '../../../../../Predict/constants/eventNames';
 import {
   MetaMetricsEvents,
@@ -231,7 +234,9 @@ export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
 

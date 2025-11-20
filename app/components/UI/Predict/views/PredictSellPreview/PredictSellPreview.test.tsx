@@ -130,11 +130,18 @@ jest.mock('react-native-safe-area-context', () => ({
 // Mock format utilities
 const mockFormatPrice = jest.fn();
 const mockFormatPercentage = jest.fn();
+const mockFormatPositionSize = jest.fn();
+const mockFormatCents = jest.fn();
 
 jest.mock('../../utils/format', () => ({
   formatPrice: (value: number, options?: { maximumDecimals?: number }) =>
     mockFormatPrice(value, options),
   formatPercentage: (value: number) => mockFormatPercentage(value),
+  formatPositionSize: (
+    value: number,
+    options?: { minimumDecimals?: number; maximumDecimals?: number },
+  ) => mockFormatPositionSize(value, options),
+  formatCents: (value: number) => mockFormatCents(value),
 }));
 
 // Mock BottomSheetHeader to avoid Icon component issues
@@ -361,6 +368,14 @@ describe('PredictSellPreview', () => {
       return `$${value}`;
     });
     mockFormatPercentage.mockImplementation((value) => `${value}% return`);
+    mockFormatPositionSize.mockImplementation((value, options) => {
+      const decimals = options?.maximumDecimals ?? 2;
+      return value.toFixed(decimals);
+    });
+    mockFormatCents.mockImplementation((value) => {
+      const cents = value * 100;
+      return `${cents.toFixed(0)}¢`;
+    });
   });
 
   afterEach(() => {
@@ -378,7 +393,7 @@ describe('PredictSellPreview', () => {
 
       expect(getAllByText('Cash out').length).toBeGreaterThan(0);
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
-      expect(getByText('$50.00 on Yes at 50¢')).toBeOnTheScreen();
+      expect(getByText('Selling 50.00 shares at 50¢')).toBeOnTheScreen();
 
       expect(
         queryByText('Funds will be added to your available balance'),
@@ -441,14 +456,14 @@ describe('PredictSellPreview', () => {
       expect(mockFormatPercentage).toHaveBeenCalledWith(-20);
     });
 
-    it('uses position price when preview sharePrice is undefined', () => {
+    it('uses zero when preview sharePrice is zero', () => {
       mockPreview = {
         marketId: 'market-1',
         outcomeId: 'outcome-456',
         outcomeTokenId: 'outcome-token-789',
         timestamp: Date.now(),
         side: 'SELL',
-        sharePrice: undefined as unknown as number,
+        sharePrice: 0,
         maxAmountSpent: 100,
         minAmountReceived: 60,
         slippage: 0.005,
@@ -461,7 +476,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(getByText('At price: 50¢ per share')).toBeOnTheScreen();
+      expect(getByText('Selling 50.00 shares at 0¢')).toBeOnTheScreen();
     });
 
     it('renders position icon with correct source', () => {

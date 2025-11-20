@@ -6,12 +6,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PredictPosition as PredictPositionType } from '../../types';
-import {
-  formatCents,
-  formatPercentage,
-  formatPositionSize,
-  formatPrice,
-} from '../../utils/format';
+import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,7 +27,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     initialValue,
     percentPnl,
     outcome,
-    avgPrice,
     currentValue,
     size,
     optimistic,
@@ -53,23 +47,15 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           {title}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {strings(
-            size !== 1
-              ? 'predict.position_info_plural'
-              : 'predict.position_info_singular',
-            {
-              amount: formatPrice(initialValue, {
-                minimumDecimals: 0,
-                maximumDecimals: 2,
-              }),
-              outcome,
-              shares: formatPositionSize(size, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
-              }),
-              priceCents: formatCents(avgPrice),
-            },
-          )}
+          {strings('predict.position_info', {
+            initialValue: formatPrice(initialValue, {
+              maximumDecimals: 2,
+            }),
+            outcome,
+            shares: formatPrice(size, {
+              maximumDecimals: 2,
+            }),
+          })}
         </Text>
       </View>
       <View style={styles.positionPnl}>

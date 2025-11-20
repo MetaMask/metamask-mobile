@@ -38,22 +38,30 @@ export function useTransactionCustomAmountAlerts({
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
 
-  const filteredConfirmationAlerts = useMemo(
-    () =>
-      confirmationAlerts.filter(
-        (a) =>
-          a.isBlocking &&
-          !PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys) &&
-          (!isKeyboardVisible ||
-            KEYBOARD_ALERTS.includes(a.key as AlertKeys)) &&
-          (isInputChanged || !ON_CHANGE_ALERTS.includes(a.key as AlertKeys)),
-      ),
-    [confirmationAlerts, isInputChanged, isKeyboardVisible],
-  );
+  const filteredAlerts = useMemo(() => {
+    const blockingAlerts = confirmationAlerts.filter((a) => a.isBlocking);
+
+    return blockingAlerts.filter((a) => {
+      const isIgnoredAsNoInput =
+        !isInputChanged && ON_CHANGE_ALERTS.includes(a.key as AlertKeys);
+
+      const isIgnoredAsKeyboardVisible =
+        isKeyboardVisible && !KEYBOARD_ALERTS.includes(a.key as AlertKeys);
+
+      const isIgnoredAsPending =
+        isKeyboardVisible && PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys);
+
+      return (
+        !isIgnoredAsNoInput &&
+        !isIgnoredAsKeyboardVisible &&
+        !isIgnoredAsPending
+      );
+    });
+  }, [confirmationAlerts, isInputChanged, isKeyboardVisible]);
 
   const alerts = useMemo(
-    () => [...pendingTokenAlerts, ...filteredConfirmationAlerts],
-    [filteredConfirmationAlerts, pendingTokenAlerts],
+    () => [...pendingTokenAlerts, ...filteredAlerts],
+    [filteredAlerts, pendingTokenAlerts],
   );
 
   const firstAlert = alerts?.[0];

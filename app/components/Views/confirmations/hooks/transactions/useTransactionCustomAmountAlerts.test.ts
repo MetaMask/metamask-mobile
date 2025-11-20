@@ -116,7 +116,21 @@ describe('useTransactionCustomAmountAlerts', () => {
     expect(result.current.alertMessage).toBeUndefined();
   });
 
-  it('does not return alert message if on change alert and input not changed', () => {
+  it('returns pending alert', () => {
+    const PENDING_ALERT_MOCK = {
+      ...ALERT_MOCK,
+      key: AlertKeys.SignedOrSubmitted,
+    };
+
+    usePendingAmountAlertsMock.mockReturnValue([PENDING_ALERT_MOCK]);
+
+    const { result } = runHook();
+
+    expect(result.current.alertTitle).toBe(PENDING_ALERT_MOCK.title);
+    expect(result.current.alertMessage).toBe(PENDING_ALERT_MOCK.message);
+  });
+
+  it('does not return alert if on change alert and input not changed', () => {
     useAlertsMock.mockReturnValue({
       alerts: [
         {
@@ -131,7 +145,7 @@ describe('useTransactionCustomAmountAlerts', () => {
     expect(result.current.alertMessage).toBeUndefined();
   });
 
-  it('does not return non-keyboard alert if keyboard visible', () => {
+  it('does not return alert if keyboard visible and not keyboard alert', () => {
     useAlertsMock.mockReturnValue({
       alerts: [
         {
@@ -157,6 +171,24 @@ describe('useTransactionCustomAmountAlerts', () => {
     } as AlertsContextParams);
 
     const { result } = runHook();
+
+    expect(result.current.alertMessage).toBeUndefined();
+  });
+
+  it('does not return alert if keyboard visible and pending alert', () => {
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          ...ALERT_MOCK,
+          key: AlertKeys.InsufficientPayTokenBalance,
+        },
+      ],
+    } as AlertsContextParams);
+
+    const { result } = runHook({
+      isInputChanged: true,
+      isKeyboardVisible: true,
+    });
 
     expect(result.current.alertMessage).toBeUndefined();
   });

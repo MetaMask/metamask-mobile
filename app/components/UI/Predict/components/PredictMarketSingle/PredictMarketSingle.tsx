@@ -126,17 +126,19 @@ interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  isCarousel?: boolean;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  isCarousel = false,
 }) => {
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({

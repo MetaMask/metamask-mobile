@@ -126,16 +126,16 @@ export const usePredictToasts = ({
           },
         ],
         iconName: IconName.CheckBold,
-        iconColor: theme.colors.success.default,
-        backgroundColor: theme.colors.accent04.normal,
+        iconColor: theme.colors.accent03.dark,
+        backgroundColor: theme.colors.accent03.normal,
         hasNoTimeout: false,
       });
     },
     [
       confirmedToastConfig.description,
       confirmedToastConfig.title,
-      theme.colors.accent04.normal,
-      theme.colors.success.default,
+      theme.colors.accent03.dark,
+      theme.colors.accent03.normal,
       toastRef,
     ],
   );

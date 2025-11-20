@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EligibilityFailedModal renders the modal with the correct title and description 1`] = `
+exports[`EligibilityFailedModal renders modal with title and description 1`] = `
 <View
   style={
     {

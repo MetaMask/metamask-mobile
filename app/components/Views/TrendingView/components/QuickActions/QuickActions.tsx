@@ -21,7 +21,7 @@ const QuickActions: React.FC = () => {
             <ButtonFilter
               key={section.id}
               isActive={false}
-              onPress={() => section.navigationAction(navigation)}
+              onPress={() => section.viewAllAction(navigation)}
               testID={`quick-action-${section.id}`}
               textProps={{ variant: TextVariant.BodySm }}
             >

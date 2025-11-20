@@ -667,7 +667,7 @@ describe('usePredictToasts', () => {
       // Assert
       await waitFor(() => {
         const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
-        expect(toastCall.iconColor).toBe('#457a39'); // success.default
+        expect(toastCall.iconColor).toBe('#013330'); // accent03.dark
       });
     });
 

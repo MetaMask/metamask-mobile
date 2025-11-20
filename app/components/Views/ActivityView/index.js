@@ -52,8 +52,7 @@ import { useTheme } from '../../../util/theme';
 import TabBar from '../../Base/TabBar';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
@@ -176,13 +175,17 @@ const ActivityView = () => {
 
   const tabViewRef = useRef();
   const params = useParams();
-  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const perpsEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  );
   const isPerpsEnabled = useMemo(
     () => perpsEnabledFlag && isEvmSelected,
     [perpsEnabledFlag, isEvmSelected],
   );
   const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
+  const predictEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],

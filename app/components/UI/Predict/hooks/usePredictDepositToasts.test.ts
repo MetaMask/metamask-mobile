@@ -13,11 +13,17 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
   })),
+  createNavigatorFactory: () => ({}),
 }));
 
 // Mock @react-navigation/stack
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: jest.fn(),
+}));
+
+// Mock @react-navigation/compat
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
 }));
 
 // Mock useConfirmNavigation

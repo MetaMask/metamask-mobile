@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -27,6 +28,7 @@ import InfoRow from '../../../UI/info-row';
 import InfoSection from '../../../UI/info-row/info-section';
 import NestedTransactionData from '../../../nested-transaction-data/nested-transaction-data';
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './advanced-details-row.styles';
 
 const MAX_DATA_LENGTH_FOR_SCROLL = 200;
@@ -160,5 +162,20 @@ const AdvancedDetailsRow = () => {
     </>
   );
 };
+
+export function AdvancedDetailsRowSkeleton() {
+  const { styles } = useStyles(styleSheet, {
+    isNonceChangeDisabled: false,
+  });
+
+  return (
+    <InfoSection>
+      <View style={styles.skeletonContainer}>
+        <Skeleton width={130} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={16} height={16} style={styles.skeletonBorderRadius} />
+      </View>
+    </InfoSection>
+  );
+}
 
 export default AdvancedDetailsRow;

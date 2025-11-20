@@ -73,6 +73,7 @@ describe('useSendActions', () => {
     result.current.handleSubmitPress();
     expect(mockNavigate).toHaveBeenCalledWith('RedesignedConfirmations', {
       params: { maxValueMode: undefined },
+      loader: 'transfer',
     });
   });
 

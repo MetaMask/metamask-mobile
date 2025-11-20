@@ -30,6 +30,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
+import { isHexAddress } from '@metamask/utils';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -65,7 +66,6 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   selectSwapsTransactions,
   selectTransactions,
@@ -216,9 +216,9 @@ class Asset extends PureComponent {
   filter = undefined;
   navSymbol = undefined;
   navAddress = undefined;
-  selectedAddress = toChecksumHexAddress(
-    this.props.selectedInternalAccount?.address,
-  );
+  selectedAddress = isHexAddress(this.props.selectedInternalAccount?.address)
+    ? safeToChecksumAddress(this.props.selectedInternalAccount?.address)
+    : this.props.selectedInternalAccount?.address;
 
   updateNavBar = (contentOffset = 0) => {
     const {
@@ -292,10 +292,6 @@ class Asset extends PureComponent {
       this.checkLiveness(tokenChainId);
     }
 
-    InteractionManager.runAfterInteractions(() => {
-      this.normalizeTransactions();
-      this.mounted = true;
-    });
     this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
     this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
 
@@ -304,6 +300,9 @@ class Asset extends PureComponent {
     } else {
       this.filter = this.ethFilter;
     }
+
+    this.normalizeTransactions();
+    this.mounted = true;
   }
 
   componentDidUpdate(prevProps) {

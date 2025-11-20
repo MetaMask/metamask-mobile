@@ -15,7 +15,6 @@ import { useSelector } from 'react-redux';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { hasTransactionType } from '../../utils/transaction';
-import { useTransactionPayFiat } from '../pay/useTransactionPayFiat';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
 
@@ -161,22 +160,24 @@ function useMaxPercentage() {
   }, [chainId, featureFlags, payToken, requiredTokens]);
 }
 
-function useTokenBalance(tokenFiatRate: number) {
+function useTokenBalance(tokenUsdRate: number) {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const { convertFiat } = useTransactionPayFiat();
 
   const { payToken } = useTransactionPayToken();
-  const payTokenBalance = convertFiat(payToken?.balanceUsd ?? 0);
+
+  const payTokenBalanceUsd = new BigNumber(
+    payToken?.balanceUsd ?? 0,
+  ).toNumber();
 
   const { balance: predictBalanceHuman } = usePredictBalance({
     loadOnMount: true,
   });
 
   const predictBalanceUsd = new BigNumber(predictBalanceHuman ?? '0')
-    .multipliedBy(tokenFiatRate)
+    .multipliedBy(tokenUsdRate)
     .toNumber();
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
     ? predictBalanceUsd
-    : payTokenBalance;
+    : payTokenBalanceUsd;
 }

@@ -800,6 +800,7 @@ export class PolymarketProvider implements PredictProvider {
 
       const queryParams = new URLSearchParams({
         user: predictAddress,
+        excludeLostRedeems: 'true',
       });
 
       const response = await fetch(

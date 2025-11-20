@@ -2094,7 +2094,7 @@ describe('PerpsClosePositionView', () => {
         slippage: {
           usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
           priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
-          maxSlippageBps: 100, // maxSlippageBps: 1% slippage tolerance (100 basis points)
+          maxSlippageBps: 300, // maxSlippageBps: 3% slippage tolerance (300 basis points) - conservative default
         },
       });
     });
@@ -3032,6 +3032,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: 250,
         feeDiscountPercentage: 15,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act
@@ -3058,6 +3060,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: null,
+        account: null,
       });
 
       // Act
@@ -3083,6 +3087,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act
@@ -3108,6 +3114,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act
@@ -3133,6 +3141,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: 500,
         feeDiscountPercentage: 25,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act

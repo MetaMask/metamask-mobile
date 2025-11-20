@@ -32,11 +32,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import {
-  RampMode,
-  useRampNavigation,
-} from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { RampType } from '../../../../../../reducers/fiatOrders/types';
+import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
@@ -46,6 +42,7 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import Button, {
+  ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
@@ -68,7 +65,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const availableTokens = useTransactionPayAvailableTokens();
     const hasTokens = availableTokens.length > 0;
-    const buttonLabel = useButtonLabel();
 
     const isResultReady = useIsResultReady({
       isKeyboardVisible,
@@ -102,7 +98,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     return (
       <Box style={styles.container}>
-        <Box>
+        <Box style={styles.inputContainer}>
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
@@ -128,7 +124,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
               alertMessage={alertTitle}
-              doneLabel={buttonLabel}
               value={amountFiat}
               onChange={updatePendingAmount}
               onDonePress={handleDone}
@@ -149,7 +144,7 @@ export function CustomAmountInfoSkeleton() {
 
   return (
     <Box style={styles.container}>
-      <Box>
+      <Box style={styles.inputContainer}>
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
         <PayWithRowSkeleton />
@@ -182,17 +177,11 @@ function BuySection() {
     asset?.assetId ?? '0x0',
   );
 
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const handleBuyPress = useCallback(() => {
-    goToRamps({
-      mode: RampMode.AGGREGATOR,
-      params: {
-        rampType: RampType.BUY,
-        intent: { assetId },
-      },
-    });
-  }, [assetId, goToRamps]);
+    goToBuy({ assetId });
+  }, [assetId, goToBuy]);
 
   let message: string | undefined;
 
@@ -216,6 +205,7 @@ function BuySection() {
         variant={ButtonVariants.Primary}
         onPress={handleBuyPress}
         width={ButtonWidthTypes.Full}
+        size={ButtonSize.Lg}
       />
     </Box>
   );
@@ -234,6 +224,7 @@ function ConfirmButton({
   return (
     <Button
       style={[disabled && styles.disabledButton]}
+      size={ButtonSize.Lg}
       label={alertTitle ?? buttonLabel}
       variant={ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
@@ -250,11 +241,20 @@ function useIsResultReady({
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
+  const requiredTokens = useTransactionPayRequiredTokens();
   const sourceAmounts = useTransactionPaySourceAmounts();
+
+  const hasSourceAmount = sourceAmounts?.some((a) =>
+    requiredTokens.some(
+      (rt) =>
+        rt.address.toLowerCase() === a.targetTokenAddress.toLowerCase() &&
+        !rt.skipIfBalance,
+    ),
+  );
 
   return (
     !isKeyboardVisible &&
-    (isQuotesLoading || Boolean(quotes?.length) || !sourceAmounts?.length)
+    (isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount)
   );
 }
 

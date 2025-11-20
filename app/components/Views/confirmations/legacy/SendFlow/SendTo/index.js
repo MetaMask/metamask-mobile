@@ -59,7 +59,7 @@ import {
 } from '../../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../../UI/AddToAddressBookWrapper';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
+import { withRampNavigation } from '../../../../../UI/Ramp/hooks/withRampNavigation';
 import {
   getDetectedGeolocation,
   getRampNetworks,
@@ -101,6 +101,18 @@ class SendFlow extends PureComponent {
      * Selected address as string
      */
     selectedAddress: PropTypes.string,
+    /**
+     * Function to navigate to ramp flows
+     */
+    goToBuy: PropTypes.func,
+    /**
+     * RampMode enum
+     */
+    RampMode: PropTypes.object,
+    /**
+     * AggregatorRampType enum
+     */
+    AggregatorRampType: PropTypes.object,
     /**
      * List of accounts from the AccountsController
      */
@@ -335,7 +347,7 @@ class SendFlow extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate(...createBuyNavigationDetails());
+    this.props.goToBuy();
 
     this.props.metrics.trackEvent(
       this.props.metrics
@@ -799,4 +811,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withMetricsAwareness(SendFlow));
+)(withRampNavigation(withMetricsAwareness(SendFlow)));

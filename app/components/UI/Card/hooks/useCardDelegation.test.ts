@@ -36,6 +36,8 @@ jest.mock('../../../hooks/useMetrics', () => ({
     CARD_DELEGATION_PROCESS_STARTED: 'CARD_DELEGATION_PROCESS_STARTED',
     CARD_DELEGATION_PROCESS_COMPLETED: 'CARD_DELEGATION_PROCESS_COMPLETED',
     CARD_DELEGATION_PROCESS_FAILED: 'CARD_DELEGATION_PROCESS_FAILED',
+    CARD_DELEGATION_PROCESS_USER_CANCELED:
+      'CARD_DELEGATION_PROCESS_USER_CANCELED',
   },
 }));
 
@@ -831,6 +833,32 @@ describe('useCardDelegation', () => {
           delegation_amount: 0,
         }),
       );
+    });
+
+    it('does not track failed event when user cancels transaction', async () => {
+      const error = new Error('User denied transaction signature');
+      Engine.context.TransactionController.addTransaction = jest
+        .fn()
+        .mockRejectedValue(error);
+
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() => useCardDelegation(mockToken));
+
+      await act(async () => {
+        await expect(result.current.submitDelegation(params)).rejects.toThrow(
+          UserCancelledError,
+        );
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_DELEGATION_PROCESS_USER_CANCELED,
+      );
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED,
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 

@@ -7,8 +7,8 @@ const styleSheet = (params: { theme: Theme }) =>
       borderRadius: 9999,
       backgroundColor: params.theme.colors.background.default,
       paddingVertical: 8,
-      paddingHorizontal: 14,
-      margin: 'auto',
+      paddingLeft: 9,
+      paddingRight: 16,
     },
 
     spinner: {
@@ -31,7 +31,6 @@ const styleSheet = (params: { theme: Theme }) =>
 
     skeletonCircle: {
       marginLeft: -1,
-      marginTop: 6,
       borderRadius: 99,
     },
   });
