@@ -22,6 +22,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { isHardwareAccount } from '../../../../../../util/address';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
@@ -74,7 +75,7 @@ export const PayWithRow: React.FC<PayWithRowProps> = ({
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.center}
-        gap={8}
+        gap={12}
         style={styles.container}
       >
         <TokenIcon address={payToken.address} chainId={payToken.chainId} />
@@ -82,13 +83,14 @@ export const PayWithRow: React.FC<PayWithRowProps> = ({
           {`${strings('confirm.label.pay_with')} ${payToken.symbol}`}
         </Text>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
-          •
-        </Text>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
           {balanceUsdFormatted}
         </Text>
         {canEdit && from && (
-          <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
         )}
       </Box>
     </TouchableOpacity>

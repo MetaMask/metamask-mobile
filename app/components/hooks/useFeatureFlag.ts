@@ -15,6 +15,7 @@ export enum FeatureFlagNames {
   perpsPerpTradingEnabled = 'perpsPerpTradingEnabled',
   confirmationsPay = 'confirmations_pay', //remote config
   carouselBanners = 'carouselBanners',
+  fullPageAccountList = 'fullPageAccountList',
 }
 
 export const useFeatureFlag = (key: FeatureFlagNames) => {
