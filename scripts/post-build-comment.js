@@ -83,6 +83,11 @@ async function start() {
     rows.push(`| :robot: **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
   }
 
+  if (rows.length === 0) {
+    console.log('No successful builds to report');
+    process.exit(0);
+  }
+
   const commentBody = `${ARTIFACTS_COMMENT_MARKER}
 ### 🚀 Builds Ready for Testing
 
