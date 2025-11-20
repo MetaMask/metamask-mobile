@@ -280,19 +280,24 @@ describe('PerpsChartFullscreenModal', () => {
     });
 
     it('handles orientation lock errors gracefully', async () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       mockUnlockAsync.mockRejectedValueOnce(new Error('Lock failed'));
 
-      render(<PerpsChartFullscreenModal {...defaultProps} isVisible />);
+      const { getByTestId } = render(
+        <PerpsChartFullscreenModal {...defaultProps} isVisible />,
+      );
 
+      // Verify modal still renders and is functional despite orientation lock error
       await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          'Failed to change orientation lock:',
-          expect.any(Error),
-        );
+        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
       });
 
-      consoleWarnSpy.mockRestore();
+      // Verify modal can still be closed
+      const closeButton = getByTestId('perps-chart-fullscreen-close-button');
+      fireEvent.press(closeButton);
+
+      await waitFor(() => {
+        expect(defaultProps.onClose).toHaveBeenCalled();
+      });
     });
 
     it('calls onClose even when orientation lock fails on close', async () => {

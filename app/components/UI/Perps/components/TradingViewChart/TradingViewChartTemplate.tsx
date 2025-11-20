@@ -1050,22 +1050,6 @@ export const createTradingViewChartTemplate = (
                 }
             }
 
-            // Recreate current price line from stored data
-            if (window.originalPriceLineData.currentPrice) {
-                try {
-                    window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
-                        price: window.originalPriceLineData.currentPrice.price,
-                        color: '${theme.colors.text.default}',
-                        lineWidth: 1,
-                        lineStyle: 2,
-                        axisLabelVisible: true,
-                        title: ''
-                    });
-                } catch (error) {
-                    // Silent error handling
-                }
-            }
-            
             // Clear stored data
             window.originalPriceLineData = null;
         };
