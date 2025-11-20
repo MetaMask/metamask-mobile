@@ -76,12 +76,10 @@ async function start() {
   const rows = [];
 
   if (IOS_BUILD_SUCCESS === 'true') {
-    // :apple: Release Candidate Build Number ... (access via TestFlight)
     rows.push(`| :apple: **iOS** | [Install via TestFlight](${testFlightLink}) | Build: \`${iosBuildNumber}\` |`);
   }
 
   if (ANDROID_BUILD_SUCCESS === 'true') {
-    // :robot: Release Candidate Download ...
     rows.push(`| :robot: **Android** | [Download Artifacts](${artifactsUrl}) | Check "Artifacts" section |`);
   }
 
