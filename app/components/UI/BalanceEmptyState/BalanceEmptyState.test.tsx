@@ -6,10 +6,9 @@ import BalanceEmptyState from './BalanceEmptyState';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 
 // Mock useRampNavigation hook
-const mockGoToRamps = jest.fn();
+const mockGoToBuy = jest.fn();
 jest.mock('../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
+  useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
 }));
 
 describe('BalanceEmptyState', () => {
@@ -49,9 +48,6 @@ describe('BalanceEmptyState', () => {
 
     fireEvent.press(actionButton);
 
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: 'AGGREGATOR',
-      params: { rampType: expect.anything() },
-    });
+    expect(mockGoToBuy).toHaveBeenCalled();
   });
 });
