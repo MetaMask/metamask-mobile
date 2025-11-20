@@ -97,16 +97,18 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       return (
         <Pressable
           key={chain.chainId}
-          style={({ pressed }) =>
-            tw.style(
-              'rounded-lg border border-border-muted px-3 py-1.5',
-              isSelected ? 'bg-background-muted' : 'bg-background-default',
-              pressed && 'opacity-70',
-            )
-          }
+          style={tw.style(
+            'rounded-lg border border-border-muted px-3 py-1.5',
+            isSelected ? 'bg-icon-default' : 'bg-background-default',
+          )}
           onPress={() => handleChainPress(chain.chainId)}
         >
-          <Text variant={TextVariant.BodySm}>{chain.name}</Text>
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName={isSelected ? 'text-icon-inverse' : undefined}
+          >
+            {chain.name}
+          </Text>
         </Pressable>
       );
     });
@@ -122,16 +124,18 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
     >
       {/* All CTA - First pill */}
       <Pressable
-        style={({ pressed }) =>
-          tw.style(
-            'rounded-lg border border-border-muted px-3 py-1.5',
-            !selectedChainId ? 'bg-background-muted' : 'bg-background-default',
-            pressed && 'opacity-70',
-          )
-        }
+        style={tw.style(
+          'rounded-lg border border-border-muted px-3 py-1.5',
+          !selectedChainId ? 'bg-icon-default' : 'bg-background-default',
+        )}
         onPress={handleAllPress}
       >
-        <Text variant={TextVariant.BodySm}>{strings('bridge.all')}</Text>
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName={!selectedChainId ? 'text-icon-inverse' : undefined}
+        >
+          {strings('bridge.all')}
+        </Text>
       </Pressable>
       {renderChainPills()}
     </ScrollView>
