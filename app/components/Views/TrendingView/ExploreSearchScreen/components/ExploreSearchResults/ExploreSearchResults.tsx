@@ -166,22 +166,28 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           }
         >
           <Box twClassName="flex-1 flex-row items-center">
-            <Text variant={TextVariant.BodyMd} twClassName="text-primary">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-primary shrink-0"
+            >
               Search for {'"'}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="flex-1 text-primary"
+              twClassName="text-primary shrink"
               numberOfLines={1}
             >
               {searchQuery}
             </Text>
-            <Text variant={TextVariant.BodyMd} twClassName="text-primary mr-2">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-primary mr-2 shrink-0"
+            >
               {'"'} on Google
             </Text>
           </Box>
           <Icon
-            name={IconName.Export}
+            name={IconName.Arrow2UpRight}
             size={IconSize.Md}
             twClassName="text-primary"
           />
