@@ -20,8 +20,7 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
-import { useRampNavigation, RampMode } from '../Ramp/hooks/useRampNavigation';
-import { RampType } from '../Ramp/Aggregator/types';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
@@ -38,13 +37,10 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const chainId = useSelector(selectChainId);
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const handleAction = () => {
-    goToRamps({
-      mode: RampMode.AGGREGATOR,
-      params: { rampType: RampType.BUY },
-    });
+    goToBuy();
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED).build(),
