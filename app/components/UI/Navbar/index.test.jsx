@@ -72,7 +72,6 @@ jest.mock('../../../util/notifications', () => ({
 }));
 
 jest.mock('../../../util/networks', () => ({
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
   getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
 }));
 
@@ -633,28 +632,44 @@ describe('getSettingsNavigationOptions', () => {
   };
 
   describe('Basic Functionality', () => {
-    it('should return navigation options object', () => {
-      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+    it('returns navigation options object', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+      );
 
       expect(options).toBeDefined();
       expect(typeof options).toBe('object');
     });
 
-    it('should set headerLeft to null', () => {
-      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+    it('sets headerLeft to null', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+      );
 
       expect(options.headerLeft).toBeNull();
     });
 
-    it('should return headerTitle as a function', () => {
-      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+    it('returns headerTitle as a function', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+      );
 
       expect(options.headerTitle).toBeDefined();
       expect(typeof options.headerTitle).toBe('function');
     });
 
-    it('should include headerStyle with correct background color', () => {
-      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+    it('includes headerStyle with correct background color', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+      );
 
       expect(options.headerStyle).toBeDefined();
       expect(options.headerStyle.backgroundColor).toBe(
@@ -662,44 +677,35 @@ describe('getSettingsNavigationOptions', () => {
       );
     });
 
-    it('should set transparent shadow and elevation', () => {
-      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+    it('sets transparent shadow and elevation', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+      );
 
       expect(options.headerStyle.shadowColor).toBe('transparent');
       expect(options.headerStyle.elevation).toBe(0);
     });
   });
 
-  describe('Rewards Enabled Functionality', () => {
-    it('should show close button when rewards are enabled', () => {
+  describe('Close Button Functionality', () => {
+    it('shows close button in headerRight', () => {
       const options = getSettingsNavigationOptions(
         mockTitle,
         mockThemeColors,
         mockNavigation,
-        true,
       );
 
       expect(options.headerRight).toBeDefined();
       expect(typeof options.headerRight).toBe('function');
     });
 
-    it('should not show close button when rewards are disabled', () => {
+    it('calls navigation.goBack when close button is pressed', () => {
       const options = getSettingsNavigationOptions(
         mockTitle,
         mockThemeColors,
         mockNavigation,
-        false,
-      );
-
-      expect(options.headerRight()).toBeNull();
-    });
-
-    it('should call navigation.goBack when close button is pressed', () => {
-      const options = getSettingsNavigationOptions(
-        mockTitle,
-        mockThemeColors,
-        mockNavigation,
-        true,
       );
 
       const HeaderRightComponent = options.headerRight;
@@ -713,24 +719,22 @@ describe('getSettingsNavigationOptions', () => {
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle missing navigation object gracefully', () => {
+    it('handles missing navigation object gracefully', () => {
       const options = getSettingsNavigationOptions(
         mockTitle,
         mockThemeColors,
         null,
-        true,
       );
 
       expect(options.headerRight).toBeDefined();
       expect(typeof options.headerRight).toBe('function');
     });
 
-    it('should handle undefined navigation object when rewards enabled', () => {
+    it('handles undefined navigation object gracefully', () => {
       const options = getSettingsNavigationOptions(
         mockTitle,
         mockThemeColors,
         undefined,
-        true,
       );
 
       expect(options.headerRight).toBeDefined();
@@ -739,8 +743,12 @@ describe('getSettingsNavigationOptions', () => {
   });
 
   describe('HeaderTitle Component', () => {
-    it('should render MorphText component with correct props', () => {
-      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+    it('renders MorphText component with correct props', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+      );
       const HeaderTitleComponent = options.headerTitle;
 
       const { getByText, getByTestId } = renderWithProvider(
@@ -751,11 +759,12 @@ describe('getSettingsNavigationOptions', () => {
       expect(getByText(mockTitle)).toBeDefined();
     });
 
-    it('should display the provided title text', () => {
+    it('displays the provided title text', () => {
       const customTitle = 'Custom Settings Title';
       const options = getSettingsNavigationOptions(
         customTitle,
         mockThemeColors,
+        mockNavigation,
       );
       const HeaderTitleComponent = options.headerTitle;
 
@@ -768,19 +777,23 @@ describe('getSettingsNavigationOptions', () => {
   });
 
   describe('Parameter Validation', () => {
-    it('should handle different title types', () => {
+    it('handles different title types', () => {
       const titles = ['Settings', 'Privacy & Security', 'Networks', ''];
 
       titles.forEach((title) => {
         expect(() => {
-          const options = getSettingsNavigationOptions(title, mockThemeColors);
+          const options = getSettingsNavigationOptions(
+            title,
+            mockThemeColors,
+            mockNavigation,
+          );
           expect(options).toBeDefined();
           expect(options.headerTitle).toBeDefined();
         }).not.toThrow();
       });
     });
 
-    it('should handle different theme colors', () => {
+    it('handles different theme colors', () => {
       const themeVariations = [
         { background: { default: '#000000' } },
         { background: { default: '#FFFFFF' } },
@@ -789,7 +802,11 @@ describe('getSettingsNavigationOptions', () => {
 
       themeVariations.forEach((theme) => {
         expect(() => {
-          const options = getSettingsNavigationOptions(mockTitle, theme);
+          const options = getSettingsNavigationOptions(
+            mockTitle,
+            theme,
+            mockNavigation,
+          );
           expect(options).toBeDefined();
           expect(options.headerStyle.backgroundColor).toBe(
             theme.background.default,
@@ -798,55 +815,53 @@ describe('getSettingsNavigationOptions', () => {
       });
     });
 
-    it('should handle undefined or null parameters gracefully', () => {
+    it('handles undefined or null parameters gracefully', () => {
       // Test with undefined title
       expect(() => {
         const options = getSettingsNavigationOptions(
           undefined,
           mockThemeColors,
+          mockNavigation,
         );
         expect(options).toBeDefined();
       }).not.toThrow();
 
       // Test with null title
       expect(() => {
-        const options = getSettingsNavigationOptions(null, mockThemeColors);
+        const options = getSettingsNavigationOptions(
+          null,
+          mockThemeColors,
+          mockNavigation,
+        );
         expect(options).toBeDefined();
       }).not.toThrow();
     });
 
-    it('should handle new navigation and isRewardsEnabled parameters', () => {
+    it('handles navigation parameter', () => {
       expect(() => {
         const options = getSettingsNavigationOptions(
           mockTitle,
           mockThemeColors,
           mockNavigation,
-          true,
         );
         expect(options).toBeDefined();
         expect(options.headerRight).toBeDefined();
-      }).not.toThrow();
-
-      expect(() => {
-        const options = getSettingsNavigationOptions(
-          mockTitle,
-          mockThemeColors,
-          mockNavigation,
-          false,
-        );
-        expect(options).toBeDefined();
-        expect(options.headerRight()).toBeNull();
       }).not.toThrow();
     });
   });
 
   describe('Return Value Structure', () => {
-    it('should return object with expected properties', () => {
-      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+    it('returns object with expected properties', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+      );
 
       expect(options).toMatchObject({
         headerLeft: null,
         headerTitle: expect.any(Function),
+        headerRight: expect.any(Function),
         headerStyle: expect.objectContaining({
           backgroundColor: expect.any(String),
           shadowColor: 'transparent',
@@ -855,11 +870,19 @@ describe('getSettingsNavigationOptions', () => {
       });
     });
 
-    it('should maintain consistent structure across different inputs', () => {
-      const options1 = getSettingsNavigationOptions('Title 1', mockThemeColors);
-      const options2 = getSettingsNavigationOptions('Title 2', {
-        background: { default: '#000000' },
-      });
+    it('maintains consistent structure across different inputs', () => {
+      const options1 = getSettingsNavigationOptions(
+        'Title 1',
+        mockThemeColors,
+        mockNavigation,
+      );
+      const options2 = getSettingsNavigationOptions(
+        'Title 2',
+        {
+          background: { default: '#000000' },
+        },
+        mockNavigation,
+      );
 
       expect(Object.keys(options1)).toEqual(Object.keys(options2));
       expect(typeof options1.headerTitle).toBe(typeof options2.headerTitle);
@@ -868,9 +891,13 @@ describe('getSettingsNavigationOptions', () => {
   });
 
   describe('Integration', () => {
-    it('should work with React Navigation stack', () => {
+    it('works with React Navigation stack', () => {
       const Stack = createStackNavigator();
-      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+      );
 
       expect(() => {
         renderWithProvider(

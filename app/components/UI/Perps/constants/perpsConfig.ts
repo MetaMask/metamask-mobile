@@ -29,6 +29,8 @@ export const PERPS_CONSTANTS = {
   FALLBACK_DATA_DISPLAY: '--', // Display when non-price data is unavailable
   ZERO_AMOUNT_DISPLAY: '$0', // Display for zero dollar amounts (e.g., no volume)
   ZERO_AMOUNT_DETAILED_DISPLAY: '$0.00', // Display for zero dollar amounts with decimals
+
+  RECENT_ACTIVITY_LIMIT: 3,
 } as const;
 
 /**
