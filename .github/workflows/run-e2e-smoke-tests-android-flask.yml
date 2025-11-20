@@ -1,4 +1,4 @@
-name: Android Flask E2E Smoke Tests
+name: Flask E2E Smoke Tests
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ jobs:
     # - schedule: always run
     # - merge_group: never run
     # - pull_request: run only if PR has 'run-android-flask-e2e-smoke' label
-    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') && github.event.pull_request.merged == false)) }}
+    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-flask-e2e-smoke') && github.event.pull_request.merged == false)) }}
     uses: ./.github/workflows/needs-e2e-build.yml
 
   build-android-flask-apps:
@@ -28,7 +28,7 @@ jobs:
     # - schedule: always run
     # - merge_group: never run
     # - pull_request: run only if PR has 'run-android-flask-e2e-smoke' label AND android_changed == 'true'
-    if: ${{ github.event_name != 'merge_group' && ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && needs.needs_e2e_build.outputs.android_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'run-android-flask-e2e-smoke') ) ) }}
+    if: ${{ github.event_name != 'merge_group' && ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && needs.needs_e2e_build.outputs.android_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'run-flask-e2e-smoke') ) ) }}
     permissions:
       contents: read
       id-token: write
@@ -38,6 +38,20 @@ jobs:
       build_type: 'flask'
       metamask_environment: 'e2e'
       keystore_target: 'flask'
+    secrets: inherit
+
+  build-ios-flask-apps:
+    name: 'Build iOS Flask Apps'
+    if: ${{ github.event_name != 'merge_group' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && needs.needs_e2e_build.outputs.ios_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'run-flask-e2e-smoke') ) ) }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      build_type: 'flask'
+      metamask_environment: 'e2e'
+      target: 'flask'
     secrets: inherit
 
   flask-android-smoke:
@@ -56,6 +70,94 @@ jobs:
       build_type: 'flask'
       metamask_environment: 'e2e'
     secrets: inherit
+
+  flask-ios-smoke:
+      strategy:
+        matrix:
+          split: [1, 2, 3]
+        fail-fast: false
+      needs: [build-ios-flask-apps]
+      uses: ./.github/workflows/run-e2e-workflow.yml
+      with:
+        test-suite-name: flask-ios-smoke-${{ matrix.split }}
+        platform: ios
+        test_suite_tag: 'FlaskBuildTests'
+        split_number: ${{ matrix.split }}
+        total_splits: 3
+        build_type: 'flask'
+        metamask_environment: 'e2e'
+      secrets: inherit
+  
+  report-ios-smoke-tests:
+    name: Report iOS Smoke Tests
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && needs.flask-ios-smoke.result != 'skipped'  }}
+    needs:
+      - flask-ios-smoke
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download shards test artifacts (XMLs + Screenshots)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: '*-ios-*-test-*'
+
+      - name: Post Test Report
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: 'iOS E2E Smoke Test Results'
+          path: 'all-test-artifacts/**/junit.xml'
+          reporter: 'jest-junit'
+          fail-on-error: false
+          list-suites: 'failed'
+          list-tests: 'failed'
+
+      - name: Upload all test artifacts (XMLs + Screenshots)
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-smoke-ios-all-test-artifacts
+          path: all-test-artifacts/
+
+      - name: Create mobile JSON test report
+        id: create-json-report
+        continue-on-error: true
+        run: |
+          # Create a temporary directory for xml2js to avoid conflicts
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y
+          npm install xml2js@0.5.0 --no-audit --no-fund
+
+          # Copy node_modules to workspace
+          cp -r node_modules ${{ github.workspace }}/
+
+          # Run the mobile test report generator
+          cd ${{ github.workspace }}
+          TEST_RESULTS_PATH=all-test-artifacts \
+          TEST_RUNS_PATH=test/test-results/json-test-report.json \
+          RUN_ID=${{ github.run_id }} \
+          PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+          node .github/scripts/e2e-create-json-test-report.mjs
+
+          # Clean up temporary node_modules
+          rm -rf node_modules
+
+      - name: Upload JSON test report
+        if: steps.create-json-report.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-ios-json-report
+          path: test/test-results/json-test-report.json
+    
 
   report-android-smoke-tests:
     name: Report Android Smoke Tests
@@ -83,7 +185,7 @@ jobs:
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
-          name: 'Android Flask E2E Smoke Test Results'
+          name: 'Android E2E Smoke Test Results'
           path: 'all-test-artifacts/**/junit.xml'
           reporter: 'jest-junit'
           fail-on-error: false
@@ -95,3 +197,34 @@ jobs:
         with:
           name: e2e-smoke-android-all-test-artifacts
           path: all-test-artifacts/
+
+      - name: Create mobile JSON test report
+        id: create-json-report
+        continue-on-error: true
+        run: |
+          # Create a temporary directory for xml2js to avoid conflicts
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y
+          npm install xml2js@0.5.0 --no-audit --no-fund
+
+          # Copy node_modules to workspace
+          cp -r node_modules ${{ github.workspace }}/
+
+          # Run the mobile test report generator
+          cd ${{ github.workspace }}
+          TEST_RESULTS_PATH=all-test-artifacts \
+          TEST_RUNS_PATH=test/test-results/json-test-report \
+          RUN_ID=${{ github.run_id }} \
+          PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+          node .github/scripts/e2e-create-json-test-report.mjs
+
+          # Clean up temporary node_modules
+          rm -rf node_modules
+
+      - name: Upload JSON test report
+        if: steps.create-json-report.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-android-json-report
+          path: test/test-results/json-test-report
