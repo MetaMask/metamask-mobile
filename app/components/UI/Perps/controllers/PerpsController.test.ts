@@ -188,6 +188,71 @@ jest.mock('./services/DataLakeService', () => ({
   },
 }));
 
+// Mock FeatureFlagConfigurationService
+jest.mock('./services/FeatureFlagConfigurationService', () => ({
+  FeatureFlagConfigurationService: {
+    refreshEligibility: jest.fn((options) => {
+      // Simulate the service's behavior: extract blocked regions from remote flags
+      const remoteFlags =
+        options.remoteFeatureFlagControllerState.remoteFeatureFlags;
+      const perpsGeoBlockedRegionsFeatureFlag =
+        remoteFlags?.perpsPerpTradingGeoBlockedCountriesV2;
+      const remoteBlockedRegions =
+        perpsGeoBlockedRegionsFeatureFlag?.blockedRegions;
+
+      if (
+        Array.isArray(remoteBlockedRegions) &&
+        options.context.setBlockedRegionList
+      ) {
+        const currentList = options.context.getBlockedRegionList?.();
+        // Never downgrade from remote to fallback
+        if (!currentList || currentList.source !== 'remote') {
+          options.context.setBlockedRegionList(remoteBlockedRegions, 'remote');
+        }
+      }
+
+      // Call refreshEligibility callback if available
+      if (options.context.refreshEligibility) {
+        options.context.refreshEligibility().catch(() => {
+          // Ignore errors in mock
+        });
+      }
+
+      // Also call refreshHip3Config if available
+      if (remoteFlags) {
+        const mockRefreshHip3Config = jest.requireMock(
+          './services/FeatureFlagConfigurationService',
+        ).FeatureFlagConfigurationService.refreshHip3Config;
+        if (typeof mockRefreshHip3Config === 'function') {
+          mockRefreshHip3Config(options);
+        }
+      }
+    }),
+    refreshHip3Config: jest.fn(),
+    setBlockedRegions: jest.fn((options) => {
+      // Simulate setBlockedRegions behavior
+      const { list, source, context } = options;
+      if (context.setBlockedRegionList && context.getBlockedRegionList) {
+        const currentList = context.getBlockedRegionList();
+        // Never downgrade from remote to fallback
+        if (source === 'fallback' && currentList.source === 'remote') {
+          return;
+        }
+        if (Array.isArray(list)) {
+          context.setBlockedRegionList(list, source);
+        }
+      }
+
+      // Call refreshEligibility callback if available
+      if (context.refreshEligibility) {
+        context.refreshEligibility().catch(() => {
+          // Ignore errors in mock
+        });
+      }
+    }),
+  },
+}));
+
 /**
  * Testable version of PerpsController that exposes protected methods for testing.
  * This follows the pattern used in RewardsController.test.ts
@@ -584,10 +649,6 @@ describe('PerpsController', () => {
 
   describe('HIP-3 Configuration Integration', () => {
     it('delegates HIP-3 config updates to FeatureFlagConfigurationService', () => {
-      const spy = jest.spyOn(
-        FeatureFlagConfigurationService,
-        'refreshEligibility',
-      );
       const remoteFlags = {
         remoteFeatureFlags: {
           perpsHip3AllowlistMarkets: 'BTC-USD,ETH-USD',
@@ -597,7 +658,9 @@ describe('PerpsController', () => {
 
       controller.testRefreshEligibilityOnFeatureFlagChange(remoteFlags);
 
-      expect(spy).toHaveBeenCalledWith({
+      expect(
+        FeatureFlagConfigurationService.refreshEligibility,
+      ).toHaveBeenCalledWith({
         remoteFeatureFlagControllerState: remoteFlags,
         context: expect.objectContaining({
           getHip3Config: expect.any(Function),
@@ -605,8 +668,6 @@ describe('PerpsController', () => {
           incrementHip3ConfigVersion: expect.any(Function),
         }),
       });
-
-      spy.mockRestore();
     });
 
     it('does not crash on malformed remote flags', () => {
