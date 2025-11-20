@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const path = require('path');
 const { Octokit } = require('@octokit/rest');
@@ -19,6 +21,7 @@ async function start() {
 
   const [owner, repo] = GITHUB_REPOSITORY.split('/');
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
+  const prNumber = parseInt(PR_NUMBER, 10);
 
   // 1. Extract iOS Build Number
   let iosBuildNumber = 'Unknown';
@@ -65,7 +68,7 @@ async function start() {
     const { data: comments } = await octokit.rest.issues.listComments({
       owner,
       repo,
-      issue_number: PR_NUMBER,
+      issue_number: prNumber,
     });
 
     const existingComment = comments.find((comment) =>
@@ -85,7 +88,7 @@ async function start() {
       await octokit.rest.issues.createComment({
         owner,
         repo,
-        issue_number: PR_NUMBER,
+        issue_number: prNumber,
         body: commentBody,
       });
     }
