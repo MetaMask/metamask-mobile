@@ -59,12 +59,12 @@ describe(`migration #${migrationVersion}`, () => {
     expect(mockedStorageWrapper.getItem).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged if AnalyticsController already exists', async () => {
+  it('returns state unchanged if AnalyticsController state already exists', async () => {
     const state = {
       engine: {
         backgroundState: {
           AnalyticsController: {
-            analyticsId: 'existing-id',
+            analyticsId: 'f2673eb8-db32-40bb-88a5-97cf5107d31d',
             optedInForRegularAccount: true,
             optedInForSocialAccount: false,
           },
@@ -80,19 +80,7 @@ describe(`migration #${migrationVersion}`, () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged when analytics ID is null', async () => {
-    const state = createValidState();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue(null);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toStrictEqual(state);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('returns state unchanged when analytics ID is not valid UUIDv4', async () => {
+  it('returns state unchanged when legacy storage has invalid METAMETRICS_ID', async () => {
     const state = createValidState();
     mockedEnsureValidState.mockReturnValue(true);
     mockedStorageWrapper.getItem.mockResolvedValue('invalid-id');
@@ -104,27 +92,7 @@ describe(`migration #${migrationVersion}`, () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged when both METAMETRICS_ID and MIXPANEL_METAMETRICS_ID are invalid', async () => {
-    const state = createValidState();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve('invalid-uuid');
-      }
-      if (key === MIXPANEL_METAMETRICS_ID) {
-        return Promise.resolve('also-invalid');
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toStrictEqual(state);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles storage read error and returns state unchanged', async () => {
+  it('returns state unchanged and captures exception when storage read fails', async () => {
     const state = createValidState();
     mockedEnsureValidState.mockReturnValue(true);
     const storageError = new Error('Storage read failed');
@@ -143,190 +111,143 @@ describe(`migration #${migrationVersion}`, () => {
     expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
   });
 
-  it('migrates analytics data when all opt-in values are AGREED', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(AGREED);
-      }
-      if (key === METRICS_OPT_IN_SOCIAL_LOGIN) {
-        return Promise.resolve(AGREED);
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          AnalyticsController: {
-            analyticsId,
-            optedInForRegularAccount: true,
-            optedInForSocialAccount: true,
-          },
-        },
-      },
-    });
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      METAMETRICS_ID,
-    );
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      MIXPANEL_METAMETRICS_ID,
-    );
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      METRICS_OPT_IN,
-    );
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
-      METRICS_OPT_IN_SOCIAL_LOGIN,
-    );
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('migrates analytics data when all opt-in values are DENIED', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(DENIED);
-      }
-      if (key === METRICS_OPT_IN_SOCIAL_LOGIN) {
-        return Promise.resolve(DENIED);
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          AnalyticsController: {
-            analyticsId,
-            optedInForRegularAccount: false,
-            optedInForSocialAccount: false,
-          },
-        },
-      },
-    });
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('migrates analytics data with default false when opt-in values are null', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          AnalyticsController: {
-            analyticsId,
-            optedInForRegularAccount: false,
-            optedInForSocialAccount: false,
-          },
-        },
-      },
-    });
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('migrates analytics data with default false when opt-in values are invalid', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve('invalid-value');
-      }
-      if (key === METRICS_OPT_IN_SOCIAL_LOGIN) {
-        return Promise.resolve('invalid-value');
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          AnalyticsController: {
-            analyticsId,
-            optedInForRegularAccount: false,
-            optedInForSocialAccount: false,
-          },
-        },
-      },
-    });
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('falls back to MIXPANEL_METAMETRICS_ID when METAMETRICS_ID is not found', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
+  it.each([
+    {
+      metricsOptIn: AGREED,
+      metricsOptInSocialLogin: AGREED,
+      expectedOptedInForRegularAccount: true,
+      expectedOptedInForSocialAccount: true,
+      description: 'when all opt-in values are AGREED',
+    },
+    {
+      metricsOptIn: DENIED,
+      metricsOptInSocialLogin: DENIED,
+      expectedOptedInForRegularAccount: false,
+      expectedOptedInForSocialAccount: false,
+      description: 'when all opt-in values are DENIED',
+    },
+    {
+      metricsOptIn: AGREED,
+      metricsOptInSocialLogin: DENIED,
+      expectedOptedInForRegularAccount: true,
+      expectedOptedInForSocialAccount: false,
+      description: 'with regular account AGREED and social account DENIED',
+    },
+    {
+      metricsOptIn: DENIED,
+      metricsOptInSocialLogin: AGREED,
+      expectedOptedInForRegularAccount: false,
+      expectedOptedInForSocialAccount: true,
+      description: 'with regular account DENIED and social account AGREED',
+    },
+  ])(
+    'migrates analytics data from MMKV to state $description',
+    async ({
+      metricsOptIn,
+      metricsOptInSocialLogin,
+      expectedOptedInForRegularAccount,
+      expectedOptedInForSocialAccount,
+    }) => {
+      const state = createValidState();
+      const analyticsId = createValidUUIDv4();
+      mockedEnsureValidState.mockReturnValue(true);
+      mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+        if (key === METAMETRICS_ID) {
+          return Promise.resolve(analyticsId);
+        }
+        if (key === METRICS_OPT_IN) {
+          return Promise.resolve(metricsOptIn);
+        }
+        if (key === METRICS_OPT_IN_SOCIAL_LOGIN) {
+          return Promise.resolve(metricsOptInSocialLogin);
+        }
         return Promise.resolve(null);
-      }
-      if (key === MIXPANEL_METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(AGREED);
-      }
-      if (key === METRICS_OPT_IN_SOCIAL_LOGIN) {
-        return Promise.resolve(AGREED);
-      }
-      return Promise.resolve(null);
-    });
+      });
 
-    const migratedState = await migrate(state);
+      const migratedState = await migrate(state);
 
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          AnalyticsController: {
-            analyticsId,
-            optedInForRegularAccount: true,
-            optedInForSocialAccount: true,
+      expect(migratedState).toEqual({
+        engine: {
+          backgroundState: {
+            AnalyticsController: {
+              analyticsId,
+              optedInForRegularAccount: expectedOptedInForRegularAccount,
+              optedInForSocialAccount: expectedOptedInForSocialAccount,
+            },
           },
         },
-      },
-    });
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(METAMETRICS_ID);
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
-      MIXPANEL_METAMETRICS_ID,
-    );
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
+      });
+      expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
+      expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+        METAMETRICS_ID,
+      );
+      expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+        MIXPANEL_METAMETRICS_ID,
+      );
+      expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+        METRICS_OPT_IN,
+      );
+      expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+      );
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    },
+  );
 
-  it('prefers METAMETRICS_ID over MIXPANEL_METAMETRICS_ID when both exist', async () => {
+  it.each([
+    {
+      metricsOptIn: null,
+      metricsOptInSocialLogin: null,
+      description: 'when opt-in values are null',
+    },
+    {
+      metricsOptIn: 'invalid-value',
+      metricsOptInSocialLogin: 'invalid-value',
+      description: 'when opt-in values are invalid',
+    },
+    {
+      metricsOptIn: '',
+      metricsOptInSocialLogin: '',
+      description: 'when opt-in values are empty string',
+    },
+  ])(
+    'migrates analytics data from MMKV to state with default false opt-ins $description',
+    async ({ metricsOptIn, metricsOptInSocialLogin }) => {
+      const state = createValidState();
+      const analyticsId = createValidUUIDv4();
+      mockedEnsureValidState.mockReturnValue(true);
+      mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+        if (key === METAMETRICS_ID) {
+          return Promise.resolve(analyticsId);
+        }
+        if (key === METRICS_OPT_IN) {
+          return Promise.resolve(metricsOptIn);
+        }
+        if (key === METRICS_OPT_IN_SOCIAL_LOGIN) {
+          return Promise.resolve(metricsOptInSocialLogin);
+        }
+        return Promise.resolve(null);
+      });
+
+      const migratedState = await migrate(state);
+
+      expect(migratedState).toEqual({
+        engine: {
+          backgroundState: {
+            AnalyticsController: {
+              analyticsId,
+              optedInForRegularAccount: false,
+              optedInForSocialAccount: false,
+            },
+          },
+        },
+      });
+      expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    },
+  );
+
+  it('migrates from MMKV using METAMETRICS_ID when present', async () => {
     const state = createValidState();
     const metametricsId = createValidUUIDv4();
     const mixpanelId = 'a1b2c3d4-e5f6-4789-a012-3456789abcde';
@@ -361,41 +282,60 @@ describe(`migration #${migrationVersion}`, () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('migrates analytics data with mixed opt-in preferences', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(AGREED);
-      }
-      if (key === METRICS_OPT_IN_SOCIAL_LOGIN) {
-        return Promise.resolve(DENIED);
-      }
-      return Promise.resolve(null);
-    });
+  it.each([
+    {
+      metametricsId: null,
+      description: 'when METAMETRICS_ID is null',
+    },
+    {
+      metametricsId: '',
+      description: 'when METAMETRICS_ID is empty string',
+    },
+  ])(
+    'migrates from MMKV using MIXPANEL_METAMETRICS_ID as fallback $description',
+    async ({ metametricsId }) => {
+      const state = createValidState();
+      const analyticsId = createValidUUIDv4();
+      mockedEnsureValidState.mockReturnValue(true);
+      mockedStorageWrapper.getItem.mockImplementation((key: string) => {
+        if (key === METAMETRICS_ID) {
+          return Promise.resolve(metametricsId);
+        }
+        if (key === MIXPANEL_METAMETRICS_ID) {
+          return Promise.resolve(analyticsId);
+        }
+        if (key === METRICS_OPT_IN) {
+          return Promise.resolve(AGREED);
+        }
+        if (key === METRICS_OPT_IN_SOCIAL_LOGIN) {
+          return Promise.resolve(AGREED);
+        }
+        return Promise.resolve(null);
+      });
 
-    const migratedState = await migrate(state);
+      const migratedState = await migrate(state);
 
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          AnalyticsController: {
-            analyticsId,
-            optedInForRegularAccount: true,
-            optedInForSocialAccount: false,
+      expect(migratedState).toEqual({
+        engine: {
+          backgroundState: {
+            AnalyticsController: {
+              analyticsId,
+              optedInForRegularAccount: true,
+              optedInForSocialAccount: true,
+            },
           },
         },
-      },
-    });
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
+      });
+      expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(METAMETRICS_ID);
+      expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
+        MIXPANEL_METAMETRICS_ID,
+      );
+      expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    },
+  );
 
-  it('handles cleanup errors and returns migrated state', async () => {
+  it('returns migrated state when cleanup fails', async () => {
     const state = createValidState();
     const analyticsId = createValidUUIDv4();
     mockedEnsureValidState.mockReturnValue(true);
@@ -473,102 +413,6 @@ describe(`migration #${migrationVersion}`, () => {
         },
       },
     });
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles empty string for opt-in values as false', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve('');
-      }
-      if (key === METRICS_OPT_IN_SOCIAL_LOGIN) {
-        return Promise.resolve('');
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          AnalyticsController: {
-            analyticsId,
-            optedInForRegularAccount: false,
-            optedInForSocialAccount: false,
-          },
-        },
-      },
-    });
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('falls back to MIXPANEL_METAMETRICS_ID when METAMETRICS_ID is empty string', async () => {
-    const state = createValidState();
-    const analyticsId = createValidUUIDv4();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve('');
-      }
-      if (key === MIXPANEL_METAMETRICS_ID) {
-        return Promise.resolve(analyticsId);
-      }
-      if (key === METRICS_OPT_IN) {
-        return Promise.resolve(AGREED);
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          AnalyticsController: {
-            analyticsId,
-            optedInForRegularAccount: true,
-            optedInForSocialAccount: false,
-          },
-        },
-      },
-    });
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(METAMETRICS_ID);
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
-      MIXPANEL_METAMETRICS_ID,
-    );
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(4);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('returns state unchanged when no METAMETRICS_ID and MIXPANEL_METAMETRICS_ID', async () => {
-    const state = createValidState();
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockImplementation((key: string) => {
-      if (key === METAMETRICS_ID) {
-        return Promise.resolve('');
-      }
-      if (key === MIXPANEL_METAMETRICS_ID) {
-        return Promise.resolve(null);
-      }
-      return Promise.resolve(null);
-    });
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toStrictEqual(state);
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(METAMETRICS_ID);
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
-      MIXPANEL_METAMETRICS_ID,
-    );
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });
