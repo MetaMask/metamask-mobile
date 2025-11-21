@@ -162,6 +162,40 @@ export const POLYMARKET_CURRENT_POSITIONS_RESPONSE = [
     negativeRisk: true,
   },
 ];
+
+export const POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE = [
+  {
+    proxyWallet: PROXY_WALLET_ADDRESS,
+    asset:
+      '51851880223290407825872150827934296608070009371891114025629582819868766043137',
+    conditionId:
+      '0x81daa857b8fa34cd3627c8cdbe5d92ea98756bcbe1e5cfcfffb94754e4d5ed86',
+    size: 11.904758,
+    avgPrice: 0.84,
+    initialValue: 9.999996,
+    currentValue: 9.999996,
+    cashPnl: 0,
+    percentPnl: 0,
+    totalBought: 11.904758,
+    realizedPnl: 0,
+    percentRealizedPnl: 0,
+    curPrice: 0.84,
+    redeemable: false,
+    mergeable: false,
+    title: 'Celtics vs. Nets',
+    slug: 'nba-bos-bkn-2025-11-18',
+    icon: 'https://polymarket-upload.s3.us-east-2.amazonaws.com/super+cool+basketball+in+red+and+blue+wow.png',
+    eventId: '79682',
+    eventSlug: 'nba-bos-bkn-2025-11-18',
+    outcome: 'Celtics',
+    outcomeIndex: 0,
+    oppositeOutcome: 'Nets',
+    oppositeAsset:
+      '51090123154876409384652748958994213129207000557350215937559106819875795938227',
+    endDate: '2025-11-19',
+    negativeRisk: false,
+  },
+];
 /*
 *endpoint: /positions?user&redeemable=true
 This contains all lost positions in resolved markets (no winning positions)
