@@ -299,10 +299,64 @@ export const createTradingViewChartTemplate = (
         window.lastLogicalRange = null;
         window.panVelocity = 0;
         window.panningDisableTime = 300; // ms to disable zoom restrictions after panning stops
-        
+
         // Reset prevention variables
         window.hasUserInteracted = false; // Track if user has ever interacted with the chart
         window.lastDataLength = 0; // Track actual data changes vs rerenders
+
+        // Edge detection variables for historical data loading
+        window.lastHistoryFetchTime = 0;
+        window.HISTORY_FETCH_COOLDOWN = 2000; // 2 seconds cooldown between fetches
+        window.EDGE_THRESHOLD = 5; // Consider "at edge" if within 5 candles from start
+        // Set up edge detection for loading more historical data
+        window.setupEdgeDetection = function() {
+            if (!window.chart) {
+                console.log('📊 TradingView: Cannot set up edge detection - chart not ready');
+                return;
+            }
+
+            try {
+                // Subscribe to visible logical range changes
+                window.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+                    if (!range || !window.allCandleData || window.allCandleData.length === 0) {
+                        return;
+                    }
+
+                    // Check if we're near the left edge (oldest data)
+                    const isAtLeftEdge = range.from <= window.EDGE_THRESHOLD;
+
+                    if (isAtLeftEdge) {
+                        const now = Date.now();
+                        const timeSinceLastFetch = now - window.lastHistoryFetchTime;
+
+                        // Throttle to avoid spam requests
+                        if (timeSinceLastFetch < window.HISTORY_FETCH_COOLDOWN) {
+                            return;
+                        }
+
+                        // Update last fetch time
+                        window.lastHistoryFetchTime = now;
+
+                        console.log('📊 TradingView: Reached left edge - requesting more history');
+
+                        // Send message to React Native to fetch more historical data
+                        if (window.ReactNativeWebView) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                type: 'NEED_MORE_HISTORY',
+                                timestamp: new Date().toISOString(),
+                                currentDataLength: window.allCandleData.length,
+                                visibleRange: { from: range.from, to: range.to }
+                            }));
+                        }
+                    }
+                });
+
+                console.log('📊 TradingView: Edge detection set up successfully');
+            } catch (error) {
+                console.error('📊 TradingView: Error setting up edge detection:', error);
+            }
+        };
+
         // Step 2: Create chart
         function createChart() {
             if (!window.LightweightCharts) {
@@ -519,7 +573,10 @@ export const createTradingViewChartTemplate = (
                         type: 'CHART_READY',
                         timestamp: new Date().toISOString()
                     }));
-                } 
+                }
+
+                // Set up edge detection for loading more historical data
+                window.setupEdgeDetection();
             } catch (error) {
                 console.error('TradingView: Error creating chart:', error);
             }
@@ -912,18 +969,17 @@ export const createTradingViewChartTemplate = (
         // Helper functions to hide/show all price lines during panning
         window.hideAllPriceLines = function() {
             if (!window.candlestickSeries) return;
-            
-            // Store current price line data for restoration
+
+            // Store price line data for restoration (exclude currentPrice as it's managed separately)
             window.originalPriceLineData = {
                 entryPrice: window.priceLines.entryPrice,
                 liquidationPrice: window.priceLines.liquidationPrice,
                 takeProfitPrice: window.priceLines.takeProfitPrice,
-                stopLossPrice: window.priceLines.stopLossPrice,
-                currentPrice: window.priceLines.currentPrice
+                stopLossPrice: window.priceLines.stopLossPrice
             };
-            
-            // Remove all price lines
-            Object.keys(window.priceLines).forEach(key => {
+
+            // Remove price lines (exclude currentPrice as it's managed by updateCurrentPriceLine)
+            ['entryPrice', 'liquidationPrice', 'takeProfitPrice', 'stopLossPrice'].forEach(key => {
                 if (window.priceLines[key]) {
                     try {
                         window.candlestickSeries.removePriceLine(window.priceLines[key]);
@@ -995,24 +1051,9 @@ export const createTradingViewChartTemplate = (
                     // Silent error handling
                 }
             }
-            
-            // Recreate current price line from stored data
-            if (window.originalPriceLineData.currentPrice) {
-                try {
-                    window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
-                        price: window.originalPriceLineData.currentPrice.price,
-                        color: '${theme.colors.background.muted}',
-                        lineWidth: 2,
-                        lineStyle: 2,
-                        axisLabelVisible: true,
-                        title: ''
-                    });
-                } catch (error) {
-                    // Silent error handling
-                }
-            }
 
             // Clear stored data
+            // Note: currentPrice is NOT recreated here as it's managed separately by updateCurrentPriceLine
             window.originalPriceLineData = null;
         };
         // Simple zoom function without complex interaction tracking
@@ -1255,6 +1296,14 @@ export const createTradingViewChartTemplate = (
                                     }
                                 }
                             }
+                        }
+                        break;
+                    case 'CLEAR_DATA':
+                        // Clear chart data (e.g., during market switch)
+                        if (window.candlestickSeries) {
+                            window.candlestickSeries.setData([]);
+                            window.allCandleData = [];
+                            console.log('📊 TradingView: Cleared chart data');
                         }
                         break;
                     case 'ADD_AUXILIARY_LINES':

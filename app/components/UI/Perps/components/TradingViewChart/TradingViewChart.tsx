@@ -56,11 +56,13 @@ interface TradingViewChartProps {
   height?: number;
   tpslLines?: TPSLLines;
   onChartReady?: () => void;
+  onNeedMoreHistory?: () => void; // Callback when user scrolls to left edge and needs more historical data
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
   showVolume?: boolean; // Control volume bars visibility
   showOverlay?: boolean; // Control chart overlay visibility (OHLC legend)
   coloredVolume?: boolean; // Control volume bar coloring (true = green/red by direction, false = single color)
   onOhlcDataChange?: (data: OhlcData | null) => void; // Callback when OHLC data changes
+  symbol?: string; // Expected symbol for validation (prevents stale data from previous market)
   testID?: string;
 }
 
@@ -77,11 +79,13 @@ const TradingViewChart = React.forwardRef<
       height = 350,
       tpslLines,
       onChartReady,
+      onNeedMoreHistory,
       visibleCandleCount = 45, // Default to 45 visible candles
       showVolume = true, // Default to showing volume
       showOverlay = false, // Default to hiding overlay
       coloredVolume = true, // Default to colored volume bars
       onOhlcDataChange,
+      symbol,
       testID,
     },
     ref,
@@ -91,6 +95,11 @@ const TradingViewChart = React.forwardRef<
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
     const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
+    // Buffer for candle data that arrives before WebView is ready (Android fix)
+    const pendingCandleDataRef = useRef<{
+      data: CandleData;
+      timestamp: number;
+    } | null>(null);
 
     // Format OHLC values using the same formatting as the header
     const formattedOhlcData = useMemo(() => {
@@ -263,6 +272,17 @@ const TradingViewChart = React.forwardRef<
               }
               setOhlcData(message.data);
               break;
+            case 'NEED_MORE_HISTORY':
+              // User scrolled to left edge - request more historical data
+              DevLogger.log(
+                'TradingViewChart: Received NEED_MORE_HISTORY from WebView',
+                {
+                  currentDataLength: message.currentDataLength,
+                  visibleRange: message.visibleRange,
+                },
+              );
+              onNeedMoreHistory?.();
+              break;
             default:
               break;
           }
@@ -273,7 +293,7 @@ const TradingViewChart = React.forwardRef<
           );
         }
       },
-      [onChartReady, ohlcData],
+      [onChartReady, onNeedMoreHistory, ohlcData],
     );
 
     // Convert CandleData to format expected by TradingView Lightweight Charts
@@ -341,14 +361,56 @@ const TradingViewChart = React.forwardRef<
 
     // Send real candle data to chart
     useEffect(() => {
-      if (!isChartReady || !webViewRef.current) return;
+      // If chart is not ready, buffer the data for later
+      if (!isChartReady) {
+        if (candleData?.candles && candleData.candles.length > 0) {
+          // Validate before buffering
+          if (!symbol || candleData.coin === symbol) {
+            pendingCandleDataRef.current = {
+              data: candleData,
+              timestamp: Date.now(),
+            };
+          }
+        }
+        return;
+      }
+
+      // Chart is ready - send data
+      if (!webViewRef.current) return;
 
       let dataToSend = null;
       let dataSource = 'none';
+      let dataToUse: CandleData | null = null;
 
-      // Prioritize real data over sample data
-      if (candleData?.candles && candleData.candles.length > 0) {
-        dataToSend = formatCandleData(candleData);
+      // Check for pending buffered data first (Android case)
+      if (pendingCandleDataRef.current) {
+        dataToUse = pendingCandleDataRef.current.data;
+        pendingCandleDataRef.current = null; // Clear buffer
+      } else if (candleData?.candles && candleData.candles.length > 0) {
+        dataToUse = candleData;
+      }
+
+      // If no data available, clear the chart to prevent stale data display
+      if (!dataToUse?.candles?.length) {
+        webViewRef.current.postMessage(
+          JSON.stringify({
+            type: 'CLEAR_DATA',
+          }),
+        );
+        return;
+      }
+
+      if (dataToUse?.candles && dataToUse.candles.length > 0) {
+        // DEFENSIVE: Validate candle data matches expected symbol
+        if (symbol && dataToUse.coin !== symbol) {
+          DevLogger.log(
+            'TradingViewChart: Ignoring mismatched candleData',
+            `Expected: ${symbol}, Got: ${dataToUse.coin}`,
+          );
+          return;
+        }
+
+        dataToSend = formatCandleData(dataToUse);
         dataSource = 'real';
       }
 
@@ -367,6 +429,7 @@ const TradingViewChart = React.forwardRef<
       formatCandleData,
       candleData,
       visibleCandleCount,
+      symbol,
     ]);
 
     // Update auxiliary lines when they change
@@ -484,22 +547,23 @@ const TradingViewChart = React.forwardRef<
           twClassName="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
-          {/* Show skeleton while chart is loading */}
-          {!isChartReady && (
-            <Skeleton
-              height={height}
-              width="100%"
-              // eslint-disable-next-line react-native/no-inline-styles
-              style={{
-                position: 'absolute',
-                zIndex: 10,
-                backgroundColor: theme.colors.background.default,
-              }} // eslint-disable-line react-native/no-inline-styles
-              testID={`${
-                testID || TradingViewChartSelectorsIDs.CONTAINER
-              }-skeleton`}
-            />
-          )}
+          {/* Show skeleton when chart is loading AND (no data OR data doesn't match symbol) */}
+          {!isChartReady &&
+            (!candleData || (symbol && candleData.coin !== symbol)) && (
+              <Skeleton
+                height={height}
+                width="100%"
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{
+                  position: 'absolute',
+                  zIndex: 10,
+                  backgroundColor: theme.colors.background.default,
+                }} // eslint-disable-line react-native/no-inline-styles
+                testID={`${
+                  testID || TradingViewChartSelectorsIDs.CONTAINER
+                }-skeleton`}
+              />
+            )}
           {Platform.OS === 'android' ? (
             <GestureDetector gesture={Gesture.Pinch()}>
               {webViewElement}

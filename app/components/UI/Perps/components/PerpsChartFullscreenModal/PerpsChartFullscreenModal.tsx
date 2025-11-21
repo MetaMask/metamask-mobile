@@ -167,8 +167,8 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
           style={[styles.chartContainer, { paddingBottom: insets.bottom }]}
           onLayout={(event) => {
             const { height } = event.nativeEvent.layout;
-            // Subtract bottom inset from measured height for actual chart height
-            const newHeight = height - insets.bottom;
+            // Use measured height directly - padding is already accounted for in layout
+            const newHeight = height;
 
             // Debounce: only update if height change is significant OR it's the first real measurement
             // Prevents unnecessary re-renders during animations or minor layout shifts

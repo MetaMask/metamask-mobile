@@ -1422,6 +1422,8 @@
       "position": "Position",
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
+      "recent_trades": "Recent activity",
+      "no_trades": "No recent activity",
       "trading_24_7": "This asset may be traded 24/7",
       "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
@@ -1947,10 +1949,10 @@
       "order_failed_generic": "Transaction failed. Please try again."
     },
     "withdraw": {
-      "withdrawing": "Withdrawing {{amount}} USDC",
-      "withdrawing_subtitle": "Est. {{time}} seconds",
-      "withdraw_completed": "Withdrawal completed",
-      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "withdrawing": "Withdrawal in progress",
+      "withdrawing_subtitle": "Available in about 1 minute",
+      "withdraw_completed": "Withdrawal complete",
+      "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
