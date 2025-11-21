@@ -65,6 +65,12 @@ export const useRampNavigation = () => {
           return;
         }
 
+        // If routing decision hasn't been determined yet, route to TokenSelection
+        if (rampRoutingDecision === null) {
+          navigation.navigate(...createTokenSelectionNavDetails());
+          return;
+        }
+
         // If assetId is provided, route based on rampRoutingDecision
         if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
           navigation.navigate(...createDepositNavigationDetails(intent));

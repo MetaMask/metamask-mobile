@@ -22,9 +22,7 @@ export interface RampsButtonClickData {
 export function useRampsButtonClickData(): RampsButtonClickData {
   const orders = useSelector(getOrders);
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(
-    undefined,
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -79,7 +77,7 @@ export function useRampsButtonClickData(): RampsButtonClickData {
     }
 
     return {
-      ramp_routing: rampRoutingDecision || undefined,
+      ramp_routing: rampRoutingDecision ?? undefined,
       is_authenticated: isAuthenticated,
       preferred_provider: preferredProvider,
       order_count: orderCount,

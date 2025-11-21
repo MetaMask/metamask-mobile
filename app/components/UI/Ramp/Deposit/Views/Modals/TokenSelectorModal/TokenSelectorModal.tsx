@@ -95,7 +95,7 @@ function TokenSelectorModal() {
           is_authenticated: isAuthenticated,
           token_caip19: selectedToken.assetId,
           token_symbol: selectedToken.symbol,
-          ramp_routing: rampRoutingDecision || undefined,
+          ramp_routing: rampRoutingDecision ?? undefined,
         });
         setSelectedCryptoCurrency(selectedToken);
       }

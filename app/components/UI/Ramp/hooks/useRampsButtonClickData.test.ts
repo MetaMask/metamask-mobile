@@ -302,6 +302,30 @@ describe('useRampsButtonClickData', () => {
   });
 
   describe('is_authenticated', () => {
+    it('returns false immediately before async check completes', () => {
+      mockGetProviderToken.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve({
+                success: true,
+                token: {
+                  accessToken: 'test-token',
+                  ttl: 3600,
+                  created: new Date('2024-01-01'),
+                },
+              });
+            }, 100);
+          }),
+      );
+
+      const { result } = renderHookWithProvider(() =>
+        useRampsButtonClickData(),
+      );
+
+      expect(result.current.is_authenticated).toBe(false);
+    });
+
     it('returns true when provider token exists and is valid', async () => {
       mockGetProviderToken.mockResolvedValue({
         success: true,

@@ -248,7 +248,7 @@ describe('AddFundsBottomSheet', () => {
         location: 'CardHome',
         chain_id_destination: '59144',
         ramp_type: 'DEPOSIT',
-        ramp_routing: null,
+        ramp_routing: undefined,
         is_authenticated: false,
         preferred_provider: undefined,
         order_count: 0,

@@ -90,7 +90,7 @@ function TokenSelection() {
           is_authenticated: false,
           token_caip19: selectedToken.assetId,
           token_symbol: selectedToken.symbol,
-          ramp_routing: rampRoutingDecision || undefined,
+          ramp_routing: rampRoutingDecision ?? undefined,
         });
       }
       navigation.dangerouslyGetParent()?.goBack();
