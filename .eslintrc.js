@@ -96,7 +96,6 @@ module.exports = {
     {
       files: [
         'scripts/**/*.js',
-        'scripts/**/*.mjs',
         'e2e/tools/**/*.{js,ts}',
         'app.config.js',
       ],

@@ -11,15 +11,8 @@ const __dirname = path.dirname(__filename);
 const ARTIFACTS_COMMENT_MARKER = '<!-- metamask-bot-build-announce -->';
 
 /**
- * Fetches artifact URLs from GitHub Actions API for a given workflow run
- * @param {Octokit} octokit - Octokit instance
- * @param {string} owner - Repository owner
- * @param {string} repo - Repository name
- * @param {number} runId - Workflow run ID
- * @returns {Promise<{ios: string | null, android: string | null}>} Object with artifact URLs
- */
-/**
  * Fetches job IDs from GitHub Actions API for a given workflow run
+ * Uses pagination to ensure all jobs are retrieved, even if there are more than 30 jobs
  * @param {Octokit} octokit - Octokit instance
  * @param {string} owner - Repository owner
  * @param {string} repo - Repository name
@@ -29,13 +22,13 @@ const ARTIFACTS_COMMENT_MARKER = '<!-- metamask-bot-build-announce -->';
 async function fetchJobIds(octokit, owner, repo, runId) {
   try {
     console.log(`Fetching jobs for workflow run: ${runId}`);
-    const { data: jobsResponse } = await octokit.rest.actions.listJobsForWorkflowRun({
+    // Use paginate to handle workflows with more than 30 jobs
+    const allJobs = await octokit.paginate(octokit.rest.actions.listJobsForWorkflowRun, {
       owner,
       repo,
       run_id: parseInt(runId, 10),
     });
 
-    const allJobs = jobsResponse.jobs || [];
     console.log(`Found ${allJobs.length} jobs in workflow run ${runId}`);
 
     // Find jobs by name (these are the job names from ci.yml)
@@ -70,13 +63,13 @@ async function fetchJobIds(octokit, owner, repo, runId) {
 async function fetchArtifactUrls(octokit, owner, repo, runId) {
   try {
     console.log(`Fetching artifacts for workflow run: ${runId}`);
-    const { data: artifactsResponse } = await octokit.rest.actions.listWorkflowRunArtifacts({
+    // Use paginate to handle workflows with more than 30 artifacts
+    const allArtifacts = await octokit.paginate(octokit.rest.actions.listWorkflowRunArtifacts, {
       owner,
       repo,
       run_id: parseInt(runId, 10),
     });
 
-    const allArtifacts = artifactsResponse.artifacts || [];
     console.log(`Found ${allArtifacts.length} total artifacts in workflow run ${runId}`);
     console.log('Available artifact names:', allArtifacts.map((a) => a.name).join(', '));
 
@@ -99,16 +92,16 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
     const androidArtifacts = allArtifacts.filter(
       (artifact) =>
         artifact.name.includes('-release.apk') ||
-        artifact.name.includes('-release.aab') ||
-        artifact.name === 'flask-e2e-release.apk',
+        artifact.name.includes('-release.aab'),
     );
 
     console.log(`Found ${androidArtifacts.length} potential Android artifacts:`, androidArtifacts.map((a) => a.name).join(', '));
 
     // Find main Android artifact (main-e2e-release.apk)
+    // Priority: exact match > APK (excluding test/flask) > AAB (excluding flask)
     const androidArtifact = androidArtifacts.find((a) => a.name === 'main-e2e-release.apk') ||
       androidArtifacts.find((a) => a.name.includes('-release.apk') && !a.name.includes('androidTest') && !a.name.includes('flask')) ||
-      androidArtifacts.find((a) => a.name.includes('-release.aab') && !a.name.includes('flask'));
+      androidArtifacts.find((a) => a.name.includes('-release.aab') && !a.name.includes('flask') && !a.name.includes('androidTest'));
 
     if (androidArtifact) {
       androidArtifactId = androidArtifact.id;
@@ -166,9 +159,11 @@ async function start() {
     ANDROID_FLASK_BUILD_SUCCESS,
   } = process.env;
 
-  if (!GITHUB_TOKEN || !GITHUB_REPOSITORY || !PR_NUMBER || !GITHUB_RUN_ID) {
+  // Validate required environment variables
+  // Check for both undefined and empty string values
+  if (!GITHUB_TOKEN?.trim() || !GITHUB_REPOSITORY?.trim() || !PR_NUMBER?.trim() || !GITHUB_RUN_ID?.trim()) {
     console.error(
-      'Missing required environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, GITHUB_RUN_ID',
+      'Missing or empty required environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, GITHUB_RUN_ID',
     );
     process.exit(1);
   }
@@ -283,15 +278,15 @@ async function start() {
   const rows = [];
 
   if (IOS_BUILD_SUCCESS === 'true') {
-    rows.push(`| :apple: **iOS** | [Download Artifacts](${iosUrl}) | Build: \`${iosBuildNumber}\` |`);
+    rows.push(`| **iOS** | [Download Artifacts](${iosUrl}) | Build: \`${iosBuildNumber}\` |`);
   }
 
   if (ANDROID_BUILD_SUCCESS === 'true') {
-    rows.push(`| :robot: **Android** | [Download Artifacts](${androidUrl}) | Build: \`${androidVersionCode}\` |`);
+    rows.push(`| **Android** | [Download Artifacts](${androidUrl}) | Build: \`${androidVersionCode}\` |`);
   }
 
   if (ANDROID_FLASK_BUILD_SUCCESS === 'true') {
-    rows.push(`| :flask: **Android Flask** | [Download Artifacts](${androidFlaskUrl}) | Build: \`${androidVersionCode}\` |`);
+    rows.push(`| **Android Flask** | [Download Artifacts](${androidFlaskUrl}) | Build: \`${androidVersionCode}\` |`);
   }
 
   if (rows.length === 0) {
@@ -307,7 +302,7 @@ async function start() {
 ${rows.join('\n')}
 
 <details>
-<summary>Debug Info</summary>
+<summary>More Info</summary>
 
 *   **Workflow Run**: [\`${GITHUB_RUN_ID}\`](${workflowRunUrl})
 *   **iOS Build Number**: \`${iosBuildNumber}\`
@@ -318,7 +313,7 @@ ${rows.join('\n')}
 </details>
 `;
 
-  // 4. Post or Update Comment
+  // 5. Post or Update Comment
   // This ensures that if new artifacts are created in the same PR (e.g., after a new commit),
   // the comment will be updated with the latest artifact URLs
   try {
