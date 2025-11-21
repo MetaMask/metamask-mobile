@@ -25,7 +25,11 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { FlashListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectMusdConversionPaymentTokensAllowlist,
+  selectIsMusdConversionFlowEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -37,6 +41,7 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
+import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -76,6 +81,31 @@ export const TokenListItemBip44 = React.memo(
     // Earn feature flags
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
+    );
+
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const musdConversionPaymentTokensAllowlist = useSelector(
+      selectMusdConversionPaymentTokensAllowlist,
+    );
+
+    const isConvertibleStablecoin = useMemo(
+      () =>
+        isMusdConversionFlowEnabled &&
+        asset?.chainId &&
+        asset?.address &&
+        isMusdConversionPaymentToken(
+          asset.address,
+          asset.chainId,
+          musdConversionPaymentTokensAllowlist,
+        ),
+      [
+        isMusdConversionFlowEnabled,
+        asset?.chainId,
+        asset?.address,
+        musdConversionPaymentTokensAllowlist,
+      ],
     );
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
@@ -144,11 +174,23 @@ export const TokenListItemBip44 = React.memo(
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
+      const shouldShowMusdConvertCta = isConvertibleStablecoin;
+
+      if (
+        shouldShowStakeCta ||
+        shouldShowStablecoinLendingCta ||
+        shouldShowMusdConvertCta
+      ) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [asset, earnToken, isStablecoinLendingEnabled, isStakeable]);
+    }, [
+      asset,
+      earnToken,
+      isConvertibleStablecoin,
+      isStablecoinLendingEnabled,
+      isStakeable,
+    ]);
 
     if (!asset || !chainId) {
       return null;
