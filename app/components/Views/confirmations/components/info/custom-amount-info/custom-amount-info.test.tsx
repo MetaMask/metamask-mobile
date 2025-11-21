@@ -17,7 +17,10 @@ import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/us
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { AssetType } from '../../../types/token';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import {
+  useTransactionPayRequiredTokens,
+  useIsTransactionPayLoading,
+} from '../../../hooks/pay/useTransactionPayData';
 import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
@@ -28,8 +31,10 @@ import { useRewardsAccountOptedIn } from '../../../../../UI/Rewards/hooks/useRew
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
 import { REWARDS_TAG_SELECTOR } from '../../../../../UI/Rewards/components/RewardsTag';
+import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmount');
@@ -113,6 +118,10 @@ describe('CustomAmountInfo', () => {
     useTransactionPayAvailableTokens,
   );
 
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
+  );
+
   const useTransactionCustomAmountAlertsMock = jest.mocked(
     useTransactionCustomAmountAlerts,
   );
@@ -126,6 +135,8 @@ describe('CustomAmountInfo', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+
+  const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -174,6 +185,8 @@ describe('CustomAmountInfo', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue([{}] as AssetType[]);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
     useTransactionConfirmMock.mockReturnValue({} as never);
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTokenFiatRatesMock.mockReturnValue([1, 1]);
     useRewardsAccountOptedInMock.mockReturnValue({
       accountOptedIn: false,
     });
@@ -255,7 +268,12 @@ describe('CustomAmountInfo', () => {
   });
 
   it('renders alternate confirm label if predict withdraw', async () => {
-    const { getByText } = render({
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByText, findByText } = render({
       transactionType: TransactionType.predictWithdraw,
     });
 
@@ -264,7 +282,7 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(
-      getByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
+      await findByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
     ).toBeDefined();
   });
 
