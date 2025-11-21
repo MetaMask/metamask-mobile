@@ -871,10 +871,10 @@ describe('fiatOrderReducer', () => {
   it('sets the ramp routing decision', () => {
     const stateWithRoutingDecision = fiatOrderReducer(
       initialState,
-      setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR_BUY),
+      setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR),
     );
     expect(stateWithRoutingDecision.rampRoutingDecision).toBe(
-      UnifiedRampRoutingType.AGGREGATOR_BUY,
+      UnifiedRampRoutingType.AGGREGATOR,
     );
 
     const stateWithDifferentDecision = fiatOrderReducer(
@@ -890,7 +890,7 @@ describe('fiatOrderReducer', () => {
     const stateWithRoutingDecision = fiatOrderReducer(
       {
         ...initialState,
-        rampRoutingDecision: UnifiedRampRoutingType.AGGREGATOR_BUY,
+        rampRoutingDecision: UnifiedRampRoutingType.AGGREGATOR,
       },
       setRampRoutingDecision(null),
     );
@@ -2608,11 +2608,11 @@ describe('selectors', () => {
     it('returns the ramp routing decision', () => {
       const state = merge({}, initialRootState, {
         fiatOrders: {
-          rampRoutingDecision: UnifiedRampRoutingType.AGGREGATOR_BUY,
+          rampRoutingDecision: UnifiedRampRoutingType.AGGREGATOR,
         },
       });
       expect(getRampRoutingDecision(state)).toBe(
-        UnifiedRampRoutingType.AGGREGATOR_BUY,
+        UnifiedRampRoutingType.AGGREGATOR,
       );
     });
 

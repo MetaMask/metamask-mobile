@@ -97,8 +97,7 @@ export function useRampTokens(): UseRampTokensResult {
 
       // Map routing decision to action parameter
       const action =
-        rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR_BUY ||
-        rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR_SELL
+        rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR
           ? 'buy'
           : 'deposit';
 

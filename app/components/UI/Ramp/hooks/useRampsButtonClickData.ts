@@ -13,7 +13,7 @@ import {
 import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
 
 export interface RampsButtonClickData {
-  ramp_routing?: UnifiedRampRoutingType | null;
+  ramp_routing?: UnifiedRampRoutingType;
   is_authenticated?: boolean;
   preferred_provider?: string;
   order_count: number;
@@ -79,7 +79,7 @@ export function useRampsButtonClickData(): RampsButtonClickData {
     }
 
     return {
-      ramp_routing: rampRoutingDecision,
+      ramp_routing: rampRoutingDecision || undefined,
       is_authenticated: isAuthenticated,
       preferred_provider: preferredProvider,
       order_count: orderCount,

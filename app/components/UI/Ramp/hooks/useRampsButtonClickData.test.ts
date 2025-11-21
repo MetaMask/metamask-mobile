@@ -263,28 +263,15 @@ describe('useRampsButtonClickData', () => {
       });
     });
 
-    it('returns AGGREGATOR BUY when routing decision is AGGREGATOR_BUY', async () => {
+    it('returns AGGREGATOR when routing decision is AGGREGATOR', async () => {
       const { result } = renderHookWithProvider(
         () => useRampsButtonClickData(),
-        { state: createMockState([], UnifiedRampRoutingType.AGGREGATOR_BUY) },
+        { state: createMockState([], UnifiedRampRoutingType.AGGREGATOR) },
       );
 
       await waitFor(() => {
         expect(result.current.ramp_routing).toBe(
-          UnifiedRampRoutingType.AGGREGATOR_BUY,
-        );
-      });
-    });
-
-    it('returns AGGREGATOR SELL when routing decision is AGGREGATOR_SELL', async () => {
-      const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData(),
-        { state: createMockState([], UnifiedRampRoutingType.AGGREGATOR_SELL) },
-      );
-
-      await waitFor(() => {
-        expect(result.current.ramp_routing).toBe(
-          UnifiedRampRoutingType.AGGREGATOR_SELL,
+          UnifiedRampRoutingType.AGGREGATOR,
         );
       });
     });
