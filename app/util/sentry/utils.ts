@@ -256,6 +256,7 @@ export const sentryStateMask = {
     protectWalletModalVisible: true,
     seedphraseBackedUp: true,
     userLoggedIn: true,
+    existingUser: true,
   },
 } as Record<string, MaskValue>;
 
