@@ -161,50 +161,57 @@ export const useMusdConversion = () => {
           },
         });
 
-        const ZERO_HEX_VALUE = '0x0';
+        try {
+          const ZERO_HEX_VALUE = '0x0';
 
-        /**
-         * Create minimal transfer data with amount = 0
-         * The actual amount will be set by the user on the confirmation screen
-         */
-        const transferData = generateTransferData('transfer', {
-          toAddress: selectedAddress,
-          amount: ZERO_HEX_VALUE,
-        });
+          /**
+           * Create minimal transfer data with amount = 0
+           * The actual amount will be set by the user on the confirmation screen
+           */
+          const transferData = generateTransferData('transfer', {
+            toAddress: selectedAddress,
+            amount: ZERO_HEX_VALUE,
+          });
 
-        const { TransactionController } = Engine.context;
+          const { TransactionController } = Engine.context;
 
-        const { transactionMeta } = await TransactionController.addTransaction(
-          {
-            to: outputToken.address,
-            from: selectedAddress,
-            data: transferData,
-            value: ZERO_HEX_VALUE,
-            chainId: outputToken.chainId,
-          },
-          {
-            /**
-             * Calculate gas estimate asynchronously.
-             * Enabling this reduces our first paint time on the mUSD conversion screen by ~500ms.
-             */
-            skipInitialGasEstimate: true,
-            networkClientId,
-            origin: MMM_ORIGIN,
-            type: TransactionType.musdConversion,
-            // Important: Nested transaction is required for Relay to work. This will be fixed in a future iteration.
-            nestedTransactions: [
+          const { transactionMeta } =
+            await TransactionController.addTransaction(
               {
                 to: outputToken.address,
-                data: transferData as Hex,
+                from: selectedAddress,
+                data: transferData,
                 value: ZERO_HEX_VALUE,
+                chainId: outputToken.chainId,
               },
-            ],
-          },
-        );
+              {
+                /**
+                 * Calculate gas estimate asynchronously.
+                 * Enabling this reduces our first paint time on the mUSD conversion screen by ~500ms.
+                 */
+                skipInitialGasEstimate: true,
+                networkClientId,
+                origin: MMM_ORIGIN,
+                type: TransactionType.musdConversion,
+                // Important: Nested transaction is required for Relay to work. This will be fixed in a future iteration.
+                nestedTransactions: [
+                  {
+                    to: outputToken.address,
+                    data: transferData as Hex,
+                    value: ZERO_HEX_VALUE,
+                  },
+                ],
+              },
+            );
 
-        const newTransactionId = transactionMeta.id;
+          const newTransactionId = transactionMeta.id;
 
-        return newTransactionId;
+          return newTransactionId;
+        } catch (err) {
+          // Prevent the user from being stuck on the confirmation screen without a transaction.
+          navigation.goBack();
+          throw err;
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error
@@ -217,9 +224,6 @@ export const useMusdConversion = () => {
         );
 
         setError(errorMessage);
-
-        // Prevent user from being stuck on confirmation screen without a transaction.
-        navigation.goBack();
 
         throw err;
       }
