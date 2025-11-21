@@ -45,13 +45,6 @@ export function useSendNonEvmAsset({
           location,
           true,
           asset.address ? (asset as TokenI) : undefined,
-          {
-            address: '0x1231231231231231231231231231231231231231',
-            isEvm: true,
-            // isSolana: true,
-            // isTron: true,
-            // isBitcoin: true,
-          },
         );
         return true;
       }

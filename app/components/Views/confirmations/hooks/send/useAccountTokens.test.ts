@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 
 import { useAccountTokens } from './useAccountTokens';
-import { useSendScope } from './useSendScope';
+import { useSendType } from './useSendType';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { TokenStandard } from '../../types/token';
@@ -14,8 +14,8 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('./useSendScope', () => ({
-  useSendScope: jest.fn(),
+jest.mock('./useSendType', () => ({
+  useSendType: jest.fn(),
 }));
 
 jest.mock('../../utils/network', () => ({
@@ -44,7 +44,7 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseSendScope = jest.mocked(useSendScope);
+const mockUseSendType = jest.mocked(useSendType);
 const mockGetNetworkBadgeSource = jest.mocked(getNetworkBadgeSource);
 const mockGetIntlNumberFormatter = jest.mocked(getIntlNumberFormatter);
 const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
@@ -103,9 +103,14 @@ describe('useAccountTokens', () => {
       return undefined;
     });
 
-    mockUseSendScope.mockReturnValue({
-      isEvmOnly: false,
-      isSolanaOnly: false,
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: undefined,
+      isEvmNativeSendType: undefined,
+      isNonEvmSendType: undefined,
+      isNonEvmNativeSendType: undefined,
+      isSolanaSendType: undefined,
+      isBitcoinSendType: undefined,
+      isTronSendType: undefined,
     });
     mockGetNetworkBadgeSource.mockReturnValue('network-badge-source');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,9 +138,14 @@ describe('useAccountTokens', () => {
 
   describe('when EVM only scope is applied', () => {
     beforeEach(() => {
-      mockUseSendScope.mockReturnValue({
-        isEvmOnly: true,
-        isSolanaOnly: false,
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: true,
+        isEvmNativeSendType: undefined,
+        isNonEvmSendType: undefined,
+        isNonEvmNativeSendType: undefined,
+        isSolanaSendType: undefined,
+        isBitcoinSendType: undefined,
+        isTronSendType: undefined,
       });
     });
 
@@ -150,9 +160,14 @@ describe('useAccountTokens', () => {
 
   describe('when Solana only scope is applied', () => {
     beforeEach(() => {
-      mockUseSendScope.mockReturnValue({
-        isEvmOnly: false,
-        isSolanaOnly: true,
+      mockUseSendType.mockReturnValue({
+        isEvmSendType: undefined,
+        isEvmNativeSendType: undefined,
+        isNonEvmSendType: true,
+        isNonEvmNativeSendType: undefined,
+        isSolanaSendType: true,
+        isBitcoinSendType: undefined,
+        isTronSendType: undefined,
       });
     });
 
