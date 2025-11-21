@@ -139,8 +139,13 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
   }, [navigation, trackEvent, createEventBuilder]);
 
   const handleViewAllNfts = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.VIEW_ALL_ASSETS_CLICKED)
+        .addProperties({ asset_type: 'NFT' })
+        .build(),
+    );
     navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
-  }, [navigation]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const nftRowList =
     !isFullView && isHomepageRedesignV1Enabled ? (
