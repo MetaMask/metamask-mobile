@@ -263,7 +263,11 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 
   return (
     <>
-      <Box testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}>
+      <Box
+        testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
+        twClassName={isBalanceEmpty ? 'mx-4 mt-4 mb-4 rounded-xl' : ''}
+        style={isBalanceEmpty ? tw.style('bg-background-section') : undefined}
+      >
         <PerpsProgressBar
           progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
           height={4}
