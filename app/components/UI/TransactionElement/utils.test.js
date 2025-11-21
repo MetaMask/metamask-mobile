@@ -661,5 +661,45 @@ describe('Transaction Element Utils', () => {
       );
       expect(transactionElement.value).toContain('456'); // Should use tokenId from transferInformation
     });
+
+    it('displays token ID 0 correctly', async () => {
+      const selectedAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const contractAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+      const args = {
+        tx: {
+          txParams: {
+            to: contractAddress,
+            from: selectedAddress,
+            data: '0x23b872dd',
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '0',
+            contractAddress,
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [
+          {
+            address: contractAddress,
+            name: 'TestNFT',
+            symbol: 'TNFT',
+          },
+        ],
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      expect(transactionElement.value).toContain('#0');
+      expect(transactionElement.fiatValue).toBe('TNFT');
+    });
   });
 });

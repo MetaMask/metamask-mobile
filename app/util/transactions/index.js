@@ -688,26 +688,28 @@ export function isTransactionIncomplete(status) {
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
   const actionKey = await getTransactionActionKey(tx, chainId);
 
-  // Handle collectible/NFT transfers with direction logic
-  // TRANSFER_FROM_ACTION_KEY is returned for tokenMethodTransferFrom (ERC721) and tokenMethodSafeTransferFrom (ERC1155)
+  // Handle transferFrom - need to distinguish between NFT and ERC20
+  // Both return 'transferfrom' but have different transaction types
   if (actionKey === TRANSFER_FROM_ACTION_KEY) {
-    const fromAddress = safeToChecksumAddress(tx.txParams.from)?.toLowerCase();
-    const selectedAddr = selectedAddress?.toLowerCase();
-    const sentByUser = fromAddress === selectedAddr;
-
-    if (sentByUser) {
-      return strings('transactions.sent_collectible');
-    }
-    return strings('transactions.received_collectible');
-  }
-
-  // Handle ERC20 transferFrom - check TOKEN_METHOD_TRANSFER_FROM which is returned by getMethodData
-  // for the 0x23b872dd signature when it's an ERC20 token
-  if (actionKey === TOKEN_METHOD_TRANSFER_FROM) {
     const fromAddress = safeToChecksumAddress(tx.txParams.from)?.toLowerCase();
     const toAddress = safeToChecksumAddress(tx.txParams.to)?.toLowerCase();
     const selectedAddr = selectedAddress?.toLowerCase();
     const sentByUser = fromAddress === selectedAddr;
+
+    // Check if it's an NFT/collectible transfer (ERC721/ERC1155)
+    const isNFTTransfer =
+      tx.type === TransactionType.tokenMethodTransferFrom ||
+      tx.type === TransactionType.tokenMethodSafeTransferFrom;
+
+    if (isNFTTransfer) {
+      // NFT transfers - show collectible messages
+      if (sentByUser) {
+        return strings('transactions.sent_collectible');
+      }
+      return strings('transactions.received_collectible');
+    }
+
+    // ERC20 transferFrom - show token messages
     const incoming = !sentByUser;
     const selfSent = fromAddress === selectedAddr && toAddress === selectedAddr;
 
