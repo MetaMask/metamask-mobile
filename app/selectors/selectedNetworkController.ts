@@ -18,10 +18,6 @@ import {
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { isNonEvmChainId } from '../core/Multichain/utils';
-import {
-  selectIsEvmNetworkSelected,
-  selectSelectedNonEvmNetworkChainId,
-} from './multichainNetworkController';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.SelectedNetworkController;
@@ -308,12 +304,6 @@ export const useNetworkInfo = (hostname?: string) => {
     [],
   );
 
-  const selectedNonEvmNetworkChainId = useSelector(
-    selectSelectedNonEvmNetworkChainId,
-  );
-
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-
   const networkName = useSelector((state: RootState) =>
     selectNetworkName(state, hostname),
   );
@@ -333,12 +323,6 @@ export const useNetworkInfo = (hostname?: string) => {
     selectDomainIsConnectedDapp(state, hostname),
   );
 
-  const nonEvmNetworkImageSource = useMemo(() => {
-    if (!isEvmSelected && selectedNonEvmNetworkChainId) {
-      return getNetworkImageSource({ chainId: selectedNonEvmNetworkChainId });
-    }
-  }, [isEvmSelected, selectedNonEvmNetworkChainId]);
-
   return {
     networkName,
     networkImageSource,
@@ -346,7 +330,6 @@ export const useNetworkInfo = (hostname?: string) => {
     chainId,
     rpcUrl,
     domainIsConnectedDapp,
-    nonEvmNetworkImageSource,
   };
 };
 

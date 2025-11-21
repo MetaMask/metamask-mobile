@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import {
   TouchableOpacity,
@@ -16,7 +22,10 @@ import Avatar, {
   AvatarVariant,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  getNetworkImageSource,
+} from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
@@ -153,8 +162,13 @@ const AccountRightButton = ({
     hostname = new UrlParser(currentUrl)?.origin;
   }
 
-  const { networkName, networkImageSource, nonEvmNetworkImageSource } =
-    useNetworkInfo(hostname);
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
+
+  const nonEvmNetworkImageSource = useMemo(() => {
+    if (!isEvmSelected && selectedNonEvmNetworkChainId) {
+      return getNetworkImageSource({ chainId: selectedNonEvmNetworkChainId });
+    }
+  }, [isEvmSelected, selectedNonEvmNetworkChainId]);
 
   const renderAvatarAccount = () => (
     <AvatarAccount type={avatarAccountType} accountAddress={selectedAddress} />
