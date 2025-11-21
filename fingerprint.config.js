@@ -16,6 +16,16 @@ const config = {
       reasons: ['Detect yarn patch changes.'],
     },
     {
+      type: 'dir',
+      filePath: '.github/workflows',
+      reasons: ['Detect Github workflow changes.'],
+    },
+    {
+      type: 'dir',
+      filePath: '.github/scripts',
+      reasons: ['Detect Github workflow script changes.'],
+    },
+    {
       type: 'file',
       filePath: 'react-native.config.js',
       reasons: ['Detect react-native.config.js changes.'],
