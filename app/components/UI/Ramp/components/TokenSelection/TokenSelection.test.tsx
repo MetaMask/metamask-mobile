@@ -345,9 +345,9 @@ describe('TokenSelection Component', () => {
   });
 
   it('tracks RAMPS_TOKEN_PAGE_ACTION with chain_selected action when network filter is set', () => {
-    const { getByText } = renderWithProvider(TokenSelection);
+    const { getByTestId } = renderWithProvider(TokenSelection);
 
-    const ethereumButton = getByText('Ethereum');
+    const ethereumButton = getByTestId('token-network-filter-bar-eip155:1');
     fireEvent.press(ethereumButton);
 
     expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_PAGE_ACTION', {

@@ -90,6 +90,7 @@ function TokenNetworkFilterBar({
         const displayName = depositNetworkName ?? networkName;
         return (
           <Button
+            testID={`token-network-filter-bar-${chainId}`}
             key={chainId}
             variant={
               isSelected ? ButtonVariants.Primary : ButtonVariants.Secondary

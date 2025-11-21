@@ -76,6 +76,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:1"
     >
       <View
         style={
@@ -141,6 +142,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:10"
     >
       <View
         style={
@@ -206,6 +208,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:137"
     >
       <View
         style={
@@ -329,6 +332,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:1"
     >
       <View
         style={
@@ -394,6 +398,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:10"
     >
       <View
         style={
@@ -459,6 +464,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:137"
     >
       <View
         style={
@@ -582,6 +588,7 @@ exports[`TokenNetworkFilterBar renders correctly with partial networks selected 
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:1"
     >
       <View
         style={
@@ -645,6 +652,7 @@ exports[`TokenNetworkFilterBar renders correctly with partial networks selected 
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:10"
     >
       <View
         style={
@@ -710,6 +718,7 @@ exports[`TokenNetworkFilterBar renders correctly with partial networks selected 
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:137"
     >
       <View
         style={
@@ -833,6 +842,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:1"
     >
       <View
         style={
@@ -898,6 +908,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:10"
     >
       <View
         style={
@@ -963,6 +974,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
           "paddingHorizontal": 16,
         }
       }
+      testID="token-network-filter-bar-eip155:137"
     >
       <View
         style={

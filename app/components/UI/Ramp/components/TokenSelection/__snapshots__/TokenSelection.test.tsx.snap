@@ -435,6 +435,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="token-network-filter-bar-eip155:1"
                                 >
                                   <View
                                     style={
@@ -453,7 +454,11 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     <Image
                                       onError={[Function]}
                                       resizeMode="contain"
-                                      source={1}
+                                      source={
+                                        {
+                                          "uri": "https://example.com/network.png",
+                                        }
+                                      }
                                       style={
                                         {
                                           "height": 16,
@@ -500,6 +505,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="token-network-filter-bar-bip122:000000000019d6689c085ae165831e93"
                                 >
                                   <View
                                     style={
@@ -518,7 +524,11 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     <Image
                                       onError={[Function]}
                                       resizeMode="contain"
-                                      source={1}
+                                      source={
+                                        {
+                                          "uri": "https://example.com/network.png",
+                                        }
+                                      }
                                       style={
                                         {
                                           "height": 16,
@@ -540,7 +550,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       }
                                     }
                                   >
-                                    Bitcoin
+                                    Ethereum
                                   </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
@@ -565,6 +575,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="token-network-filter-bar-solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
                                 >
                                   <View
                                     style={
@@ -583,7 +594,11 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     <Image
                                       onError={[Function]}
                                       resizeMode="contain"
-                                      source={1}
+                                      source={
+                                        {
+                                          "uri": "https://example.com/network.png",
+                                        }
+                                      }
                                       style={
                                         {
                                           "height": 16,
@@ -605,7 +620,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       }
                                     }
                                   >
-                                    Solana
+                                    Ethereum
                                   </Text>
                                 </TouchableOpacity>
                               </View>
@@ -1295,6 +1310,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="token-network-filter-bar-eip155:1"
                                 >
                                   <View
                                     style={
@@ -1313,7 +1329,11 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                     <Image
                                       onError={[Function]}
                                       resizeMode="contain"
-                                      source={1}
+                                      source={
+                                        {
+                                          "uri": "https://example.com/network.png",
+                                        }
+                                      }
                                       style={
                                         {
                                           "height": 16,
@@ -1360,6 +1380,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="token-network-filter-bar-bip122:000000000019d6689c085ae165831e93"
                                 >
                                   <View
                                     style={
@@ -1378,7 +1399,11 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                     <Image
                                       onError={[Function]}
                                       resizeMode="contain"
-                                      source={1}
+                                      source={
+                                        {
+                                          "uri": "https://example.com/network.png",
+                                        }
+                                      }
                                       style={
                                         {
                                           "height": 16,
@@ -1400,7 +1425,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Bitcoin
+                                    Ethereum
                                   </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
@@ -1425,6 +1450,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="token-network-filter-bar-solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
                                 >
                                   <View
                                     style={
@@ -1443,7 +1469,11 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                     <Image
                                       onError={[Function]}
                                       resizeMode="contain"
-                                      source={1}
+                                      source={
+                                        {
+                                          "uri": "https://example.com/network.png",
+                                        }
+                                      }
                                       style={
                                         {
                                           "height": 16,
@@ -1465,7 +1495,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Solana
+                                    Ethereum
                                   </Text>
                                 </TouchableOpacity>
                               </View>
@@ -1812,7 +1842,11 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                                 <Image
                                                   onError={[Function]}
                                                   resizeMode="contain"
-                                                  source={1}
+                                                  source={
+                                                    {
+                                                      "uri": "https://example.com/network.png",
+                                                    }
+                                                  }
                                                   style={
                                                     {
                                                       "height": 32,
@@ -2123,7 +2157,11 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                                 <Image
                                                   onError={[Function]}
                                                   resizeMode="contain"
-                                                  source={1}
+                                                  source={
+                                                    {
+                                                      "uri": "https://example.com/network.png",
+                                                    }
+                                                  }
                                                   style={
                                                     {
                                                       "height": 32,
@@ -2434,7 +2472,11 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                                 <Image
                                                   onError={[Function]}
                                                   resizeMode="contain"
-                                                  source={1}
+                                                  source={
+                                                    {
+                                                      "uri": "https://example.com/network.png",
+                                                    }
+                                                  }
                                                   style={
                                                     {
                                                       "height": 32,
@@ -2745,7 +2787,11 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                                 <Image
                                                   onError={[Function]}
                                                   resizeMode="contain"
-                                                  source={1}
+                                                  source={
+                                                    {
+                                                      "uri": "https://example.com/network.png",
+                                                    }
+                                                  }
                                                   style={
                                                     {
                                                       "height": 32,
@@ -3056,7 +3102,11 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                                 <Image
                                                   onError={[Function]}
                                                   resizeMode="contain"
-                                                  source={1}
+                                                  source={
+                                                    {
+                                                      "uri": "https://example.com/network.png",
+                                                    }
+                                                  }
                                                   style={
                                                     {
                                                       "height": 32,
