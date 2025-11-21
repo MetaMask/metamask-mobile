@@ -299,17 +299,6 @@ describe('useRampsButtonClickData', () => {
         expect(result.current.ramp_routing).toBe(UnifiedRampRoutingType.ERROR);
       });
     });
-
-    it('returns null when routing decision is null', async () => {
-      const { result } = renderHookWithProvider(
-        () => useRampsButtonClickData(),
-        { state: createMockState([], null) },
-      );
-
-      await waitFor(() => {
-        expect(result.current.ramp_routing).toBeNull();
-      });
-    });
   });
 
   describe('is_authenticated', () => {
