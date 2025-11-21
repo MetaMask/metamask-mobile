@@ -76,6 +76,9 @@ export const sentryStateMask = {
       AddressBookController: {
         [AllProperties]: false,
       },
+      AppMetadataController: {
+        [AllProperties]: true,
+      },
       ApprovalController: {
         [AllProperties]: false,
       },
