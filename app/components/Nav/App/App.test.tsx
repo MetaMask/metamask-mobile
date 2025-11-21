@@ -57,7 +57,7 @@ jest.mock('expo-sensors', () => ({
   },
 }));
 
-jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+jest.mock('../../../core/DeeplinkManager/entry/SharedDeeplinkManager', () => ({
   init: jest.fn(),
   parse: jest.fn(),
 }));

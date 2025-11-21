@@ -8,7 +8,7 @@ jest.mock('../store', () => ({
   },
 }));
 
-jest.mock('./DeeplinkManager/ParseManager/extractURLParams', () => ({
+jest.mock('./DeeplinkManager/utils/extractURLParams', () => ({
   __esModule: true,
   default: jest.fn(),
 }));

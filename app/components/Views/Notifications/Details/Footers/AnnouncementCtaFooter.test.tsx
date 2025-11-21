@@ -13,9 +13,12 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
 }));
 
-jest.mock('../../../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  parse: jest.fn(),
-}));
+jest.mock(
+  '../../../../../core/DeeplinkManager/entry/SharedDeeplinkManager',
+  () => ({
+    parse: jest.fn(),
+  }),
+);
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
