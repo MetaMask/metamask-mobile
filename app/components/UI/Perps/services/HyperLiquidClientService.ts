@@ -374,6 +374,7 @@ export class HyperLiquidClientService {
    * @param interval - The interval (e.g., "1m", "5m", "15m", etc.)
    * @param duration - Optional time duration for calculating initial fetch size
    * @param callback - Function called with updated candle data
+   * @param onError - Optional function called if subscription initialization fails
    * @returns Cleanup function to unsubscribe
    */
   public subscribeToCandles({
@@ -381,6 +382,7 @@ export class HyperLiquidClientService {
     interval,
     duration,
     callback,
+    onError,
   }: SubscribeCandlesParams): () => void {
     this.ensureInitialized();
 
@@ -494,7 +496,8 @@ export class HyperLiquidClientService {
               },
             });
 
-            // Don't throw - would create unhandled rejection since function already returned
+            // Notify caller of error
+            onError?.(errorInstance);
           });
       })
       .catch((error) => {
@@ -519,7 +522,8 @@ export class HyperLiquidClientService {
           },
         });
 
-        // Don't throw - would create unhandled rejection since function already returned
+        // Notify caller of error
+        onError?.(errorInstance);
       });
 
     // Return cleanup function

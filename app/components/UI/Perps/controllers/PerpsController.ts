@@ -24,7 +24,7 @@ import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import { MetaMetrics } from '../../../../core/Analytics';
 import { ensureError } from '../utils/perpsErrorHandler';
 import type { CandleData } from '../types/perps-types';
-import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
+import { CandlePeriod } from '../constants/chartConfig';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
@@ -76,6 +76,7 @@ import type {
   PerpsControllerConfig,
   Position,
   SubscribeAccountParams,
+  SubscribeCandlesParams,
   SubscribeOICapsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
@@ -1927,12 +1928,7 @@ export class PerpsController extends BaseController<
   /**
    * Subscribe to live candle updates
    */
-  subscribeToCandles(params: {
-    coin: string;
-    interval: CandlePeriod;
-    duration?: TimeDuration;
-    callback: (data: CandleData) => void;
-  }): () => void {
+  subscribeToCandles(params: SubscribeCandlesParams): () => void {
     try {
       const provider = this.getActiveProvider();
       return provider.subscribeToCandles(params);

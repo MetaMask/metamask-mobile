@@ -618,6 +618,7 @@ export interface SubscribeCandlesParams {
   interval: CandlePeriod;
   duration?: TimeDuration;
   callback: (data: CandleData) => void;
+  onError?: (error: Error) => void;
 }
 
 export interface LiquidationPriceParams {

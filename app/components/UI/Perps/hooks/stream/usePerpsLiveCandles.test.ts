@@ -57,6 +57,7 @@ describe('usePerpsLiveCandles', () => {
       duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
       throttleMs: 1000,
+      onError: expect.any(Function),
     });
   });
 
@@ -107,6 +108,7 @@ describe('usePerpsLiveCandles', () => {
       duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
       throttleMs: 1000,
+      onError: expect.any(Function),
     });
   });
 
@@ -140,6 +142,7 @@ describe('usePerpsLiveCandles', () => {
       duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
       throttleMs: 1000,
+      onError: expect.any(Function),
     });
   });
 
@@ -275,6 +278,7 @@ describe('usePerpsLiveCandles', () => {
       duration: TimeDuration.ONE_DAY,
       callback: expect.any(Function),
       throttleMs: 1000,
+      onError: expect.any(Function),
     });
   });
 

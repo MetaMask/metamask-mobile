@@ -19,6 +19,7 @@ interface StreamSubscription<T> {
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
   hasReceivedFirstUpdate?: boolean;
+  onError?: (error: Error) => void;
 }
 
 // Base class for stream channel (simplified version)
@@ -120,8 +121,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     duration: TimeDuration;
     callback: (data: CandleData) => void;
     throttleMs?: number;
+    onError?: (error: Error) => void;
   }): () => void {
-    const { coin, interval, duration, callback, throttleMs } = params;
+    const { coin, interval, duration, callback, throttleMs, onError } = params;
     const cacheKey = this.getCacheKey(coin, interval);
     const id = Math.random().toString(36);
 
@@ -131,6 +133,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       callback,
       throttleMs,
       hasReceivedFirstUpdate: false,
+      onError,
     };
     this.subscribers.set(id, subscription);
 
@@ -212,6 +215,29 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
         // Notify all subscribers
         this.notifySubscribers(cacheKey, candleData);
+      },
+      onError: (error: Error) => {
+        // Log initialization failure
+        DevLogger.log(
+          'CandleStreamChannel: Subscription initialization failed',
+          {
+            coin,
+            interval,
+            cacheKey,
+            error: error.message,
+          },
+        );
+
+        // Notify all subscribers for this cacheKey of the error
+        const matchingSubscribers = Array.from(
+          this.subscribers.values(),
+        ).filter((sub) => sub.cacheKey === cacheKey);
+        matchingSubscribers.forEach((subscriber) => {
+          subscriber.onError?.(error);
+        });
+
+        // Clean up failed subscription
+        this.wsSubscriptions.delete(cacheKey);
       },
     });
 

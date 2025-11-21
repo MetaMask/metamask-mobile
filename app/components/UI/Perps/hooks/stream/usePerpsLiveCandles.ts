@@ -123,6 +123,28 @@ export function usePerpsLiveCandles(
           setCandleData(newCandleData);
         },
         throttleMs,
+        onError: (err: Error) => {
+          const errorInstance = ensureError(err);
+
+          // Log to Sentry: async subscription initialization failure
+          Logger.error(errorInstance, {
+            tags: {
+              feature: PERPS_CONSTANTS.FEATURE_NAME,
+              component: 'usePerpsLiveCandles',
+            },
+            context: {
+              name: 'candle_subscription_async',
+              data: {
+                operation: 'subscribe_async_error',
+                coin,
+                interval,
+              },
+            },
+          });
+
+          setError(errorInstance);
+          setIsLoading(false);
+        },
       });
 
       return () => {
