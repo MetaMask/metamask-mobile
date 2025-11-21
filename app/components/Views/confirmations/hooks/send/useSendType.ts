@@ -5,7 +5,7 @@ import {
   /// END:ONLY_INCLUDE_IF
   isSolanaChainId,
 } from '@metamask/bridge-controller';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useSendContext } from '../../context/send-context';
 import {
@@ -35,10 +35,8 @@ export const useSendType = () => {
     isTron: isPredefinedTron,
   } = predefinedRecipient || {};
 
-  const isPredefinedNonEvm = useMemo(
-    () => isPredefinedSolana || isPredefinedBitcoin || isPredefinedTron,
-    [isPredefinedSolana, isPredefinedBitcoin, isPredefinedTron],
-  );
+  const isPredefinedNonEvm =
+    isPredefinedSolana || isPredefinedBitcoin || isPredefinedTron;
 
   const isEvmSendType = useMemo(
     () =>
@@ -46,6 +44,7 @@ export const useSendType = () => {
       (asset?.address ? isEvmAddress(asset.address) : undefined),
     [asset?.address, isPredefinedEvm],
   );
+
   const isNonEvmSendType = useMemo(
     () =>
       isPredefinedNonEvm ||
@@ -53,28 +52,32 @@ export const useSendType = () => {
     [asset?.chainId, isPredefinedNonEvm],
   );
 
+  const createChainTypeCheck = useCallback(
+    (
+      isPredefined: boolean | undefined,
+      chainChecker: (chainId: string) => boolean,
+    ) =>
+      isPredefined ||
+      (asset?.chainId ? chainChecker(asset.chainId) : undefined),
+    [asset?.chainId],
+  );
+
   const isSolanaSendType = useMemo(
-    () =>
-      isPredefinedSolana ||
-      (asset?.chainId ? isSolanaChainId(asset.chainId) : undefined),
-    [asset?.chainId, isPredefinedSolana],
+    () => createChainTypeCheck(isPredefinedSolana, isSolanaChainId),
+    [createChainTypeCheck, isPredefinedSolana],
   );
 
   /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const isBitcoinSendType = useMemo(
-    () =>
-      isPredefinedBitcoin ||
-      (asset?.chainId ? isBitcoinChainId(asset.chainId) : undefined),
-    [asset?.chainId, isPredefinedBitcoin],
+    () => createChainTypeCheck(isPredefinedBitcoin, isBitcoinChainId),
+    [createChainTypeCheck, isPredefinedBitcoin],
   );
   /// END:ONLY_INCLUDE_IF
 
   /// BEGIN:ONLY_INCLUDE_IF(tron)
   const isTronSendType = useMemo(
-    () =>
-      isPredefinedTron ||
-      (asset?.chainId ? isTronChainId(asset.chainId) : undefined),
-    [asset?.chainId, isPredefinedTron],
+    () => createChainTypeCheck(isPredefinedTron, isTronChainId),
+    [createChainTypeCheck, isPredefinedTron],
   );
   /// END:ONLY_INCLUDE_IF
 
