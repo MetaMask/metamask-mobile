@@ -1,9 +1,9 @@
-import NavigationService from '../../../NavigationService';
-import { setContentPreviewToken } from '../../../../actions/notification/helpers';
-import { navigateToHomeUrl } from './handleHomeUrl';
-import Routes from '../../../../constants/navigation/Routes';
+import NavigationService from '../../../../NavigationService';
+import { setContentPreviewToken } from '../../../../../actions/notification/helpers';
+import { navigateToHomeUrl } from '../handleHomeUrl';
+import Routes from '../../../../../constants/navigation/Routes';
 
-jest.mock('../../../NavigationService');
+jest.mock('../../../../NavigationService');
 jest.mock('../../../../actions/notification/helpers');
 
 describe('navigateToHomeUrl', () => {

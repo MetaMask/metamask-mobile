@@ -1,4 +1,4 @@
-import { CoreLinkNormalizer } from '../core/CoreLinkNormalizer';
+import { CoreLinkNormalizer } from './CoreLinkNormalizer';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
 import AppConstants from '../../AppConstants';
 

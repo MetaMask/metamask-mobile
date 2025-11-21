@@ -1,10 +1,10 @@
-import { handleDeeplink } from './entry/handleDeeplink';
+import { handleDeeplink } from './handleDeeplink';
 import { checkForDeeplink } from '../../actions/user';
 import ReduxService from '../redux';
 import Logger from '../../util/Logger';
 import { AppStateEventProcessor } from '../AppStateEventListener';
 
-jest.mock('../../../actions/user', () => ({
+jest.mock('../../actions/user', () => ({
   checkForDeeplink: jest.fn(() => ({ type: 'CHECK_FOR_DEEPLINK' })),
 }));
 

@@ -1,5 +1,5 @@
-import handleBrowserUrl from './handleBrowserUrl';
-import DeeplinkManager from '../../DeeplinkManager';
+import handleBrowserUrl from '../handleBrowserUrl';
+import DeeplinkManager from '../../../DeeplinkManager';
 import { InteractionManager } from 'react-native';
 
 jest.mock('react-native', () => ({

@@ -1,16 +1,16 @@
 import { Platform } from 'react-native';
-import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
-import Routes from '../../../../constants/navigation/Routes';
-import Device from '../../../../util/device';
-import AppConstants from '../../../AppConstants';
-import handleDeeplink from '../../../SDKConnect/handlers/handleDeeplink';
-import SDKConnect from '../../../SDKConnect/SDKConnect';
-import WC2Manager from '../../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../../DeeplinkManager';
-import extractURLParams from '../../utils/extractURLParams';
-import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
-import handleRampUrl from './handleRampUrl';
-import handleDepositCashUrl from './handleDepositCashUrl';
+import { ACTIONS, PREFIXES } from '../../../../../constants/deeplinks';
+import Routes from '../../../../../constants/navigation/Routes';
+import Device from '../../../../../util/device';
+import AppConstants from '../../../../AppConstants';
+import handleDeeplink from '../../../../SDKConnect/handlers/handleDeeplink';
+import SDKConnect from '../../../../SDKConnect/SDKConnect';
+import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
+import DeeplinkManager from '../../../DeeplinkManager';
+import extractURLParams from '../../../utils/extractURLParams';
+import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+import handleRampUrl from '../handleRampUrl';
+import handleDepositCashUrl from '../handleDepositCashUrl';
 
 jest.mock('../../../AppConstants');
 jest.mock('../../../SDKConnect/handlers/handleDeeplink');

@@ -1,9 +1,9 @@
-import { NavigationHandler } from './NavigationHandler';
-import { ACTIONS } from '../../../../constants/deeplinks';
-import Routes from '../../../../constants/navigation/Routes';
-import { createMockContext, createMockLink } from '../../utils/testUtils';
+import { NavigationHandler } from '../NavigationHandler';
+import { ACTIONS } from '../../../../../constants/deeplinks';
+import Routes from '../../../../../constants/navigation/Routes';
+import { createMockContext, createMockLink } from '../../../utils/testUtils';
 
-jest.mock('../../../../util/Logger');
+jest.mock('../../../../../util/Logger');
 
 describe('NavigationHandler', () => {
   let handler: NavigationHandler;

@@ -3,7 +3,7 @@ import DeeplinkManager from './DeeplinkManager';
 import { store } from '../../store';
 import { RootState } from '../../reducers';
 
-jest.mock('../../../store', () => ({
+jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
   },

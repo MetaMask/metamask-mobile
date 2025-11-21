@@ -1,11 +1,11 @@
-import { SendHandler } from './SendHandler';
-import { ACTIONS } from '../../../../constants/deeplinks';
-import Routes from '../../../../constants/navigation/Routes';
-import { createMockContext, createMockLink } from '../../utils/testUtils';
-import Engine from '../../../Engine';
+import { SendHandler } from '../SendHandler';
+import { ACTIONS } from '../../../../../constants/deeplinks';
+import Routes from '../../../../../constants/navigation/Routes';
+import { createMockContext, createMockLink } from '../../../utils/testUtils';
+import Engine from '../../../../Engine';
 import type { KeyringControllerState } from '@metamask/keyring-controller';
 
-jest.mock('../../../../util/Logger');
+jest.mock('../../../../../util/Logger');
 jest.mock('../../../Engine', () => ({
   context: {
     KeyringController: {

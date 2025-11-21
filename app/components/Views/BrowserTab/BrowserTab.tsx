@@ -53,8 +53,8 @@ import {
   sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
-import { isInternalDeepLink } from '../../../util/deeplinks';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager.js';
+import { isInternalDeepLink } from '../../../util/deeplinks'; //
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager.ts';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,

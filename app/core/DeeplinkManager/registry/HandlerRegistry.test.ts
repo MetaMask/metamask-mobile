@@ -1,4 +1,4 @@
-import { HandlerRegistry } from '../router/HandlerRegistry';
+import { HandlerRegistry } from './HandlerRegistry';
 import {
   UniversalLinkHandler,
   HandlerContext,

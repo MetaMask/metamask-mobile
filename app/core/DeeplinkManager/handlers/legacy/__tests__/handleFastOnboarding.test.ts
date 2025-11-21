@@ -1,7 +1,7 @@
-import handleFastOnboarding from './handleFastOnboarding';
-import NavigationService from '../../../NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
-import ReduxService, { ReduxStore } from '../../../redux';
+import handleFastOnboarding from '../handleFastOnboarding';
+import NavigationService from '../../../../NavigationService';
+import Routes from '../../../../../constants/navigation/Routes';
+import ReduxService, { ReduxStore } from '../../../../redux';
 import { NavigationContainerRef } from '@react-navigation/native';
 
 describe('handleFastOnboarding', () => {

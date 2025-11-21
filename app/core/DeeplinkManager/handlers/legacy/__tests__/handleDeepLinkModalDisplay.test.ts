@@ -1,10 +1,10 @@
-import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
+import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import { waitFor } from '@testing-library/react-native';
-import NavigationService from '../../../NavigationService';
-import { store } from '../../../../store';
-import { RootState } from '../../../../reducers';
+import NavigationService from '../../../../NavigationService';
+import { store } from '../../../../../store';
+import { RootState } from '../../../../../reducers';
 
-jest.mock('../../../NavigationService', () => ({
+jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },

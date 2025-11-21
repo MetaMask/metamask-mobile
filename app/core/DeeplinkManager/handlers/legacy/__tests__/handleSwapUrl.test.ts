@@ -1,9 +1,9 @@
-import { handleSwapUrl } from './handleSwapUrl';
-import NavigationService from '../../../NavigationService';
-import { BridgeViewMode } from '../../../../components/UI/Bridge/types';
-import { fetchAssetMetadata } from '../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
+import { handleSwapUrl } from '../handleSwapUrl';
+import NavigationService from '../../../../NavigationService';
+import { BridgeViewMode } from '../../../../../components/UI/Bridge/types';
+import { fetchAssetMetadata } from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 
-jest.mock('../../../NavigationService', () => ({
+jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },

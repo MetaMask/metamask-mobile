@@ -1,12 +1,12 @@
-import { handleEnableCardButton } from './handleEnableCardButton';
-import { store } from '../../../../store';
-import { setAlwaysShowCardButton } from '../../../redux/slices/card';
-import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagController/card';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
+import { handleEnableCardButton } from '../handleEnableCardButton';
+import { store } from '../../../../../store';
+import { setAlwaysShowCardButton } from '../../../../redux/slices/card';
+import { selectCardExperimentalSwitch } from '../../../../../selectors/featureFlagController/card';
+import DevLogger from '../../../../SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../store');
-jest.mock('../../../../core/redux/slices/card');
+jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../selectors/featureFlagController/card');
 jest.mock('../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');

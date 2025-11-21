@@ -1,4 +1,4 @@
-import { UniversalRouter } from './UniversalRouter';
+import { UniversalRouter } from '../router/UniversalRouter';
 import { HandlerRegistry } from '../registry/HandlerRegistry';
 import { CoreLinkNormalizer } from '../normalization/CoreLinkNormalizer';
 import { LegacyLinkAdapter } from '../normalization/LegacyLinkAdapter';

@@ -8,7 +8,7 @@ import switchNetwork from './handlers/legacy/switchNetwork';
 import parseDeeplink from './parseDeeplink';
 import approveTransaction from './utils/approveTransaction';
 
-jest.mock('./transactions/approveTransaction');
+jest.mock('./utils/approveTransaction');
 jest.mock('./handlers/handleEthereumUrl');
 jest.mock('./handlers/handleBrowserUrl');
 jest.mock('./handlers/handleRampUrl');

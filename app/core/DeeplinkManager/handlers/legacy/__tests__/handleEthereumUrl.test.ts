@@ -1,16 +1,16 @@
 import { parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
-import { ETH_ACTIONS } from '../../../../constants/deeplinks';
-import { NetworkSwitchErrorType } from '../../../../constants/error';
-import DeeplinkManager from '../../DeeplinkManager';
-import handleEthereumUrl from './handleEthereumUrl';
-import { getDecimalChainId } from '../../../../util/networks';
-import Engine from '../../../Engine';
-import { MAINNET } from '../../../../constants/network';
+import { ETH_ACTIONS } from '../../../../../constants/deeplinks';
+import { NetworkSwitchErrorType } from '../../../../../constants/error';
+import DeeplinkManager from '../../../DeeplinkManager';
+import handleEthereumUrl from '../handleEthereumUrl';
+import { getDecimalChainId } from '../../../../../util/networks';
+import Engine from '../../../../Engine';
+import { MAINNET } from '../../../../../constants/network';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
-} from '../../../../components/Views/confirmations/utils/deeplink';
+} from '../../../../../components/Views/confirmations/utils/deeplink';
 
 jest.mock('react-native');
 
@@ -18,7 +18,7 @@ jest.mock('eth-url-parser', () => ({
   parse: jest.fn(),
 }));
 
-jest.mock('../../../../util/networks', () => ({
+jest.mock('../../../../../util/networks', () => ({
   getDecimalChainId: jest.fn(),
 }));
 
@@ -26,7 +26,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-jest.mock('../../../Engine', () => ({
+jest.mock('../../../../Engine', () => ({
   context: {
     MultichainNetworkController: {
       state: {

@@ -1,14 +1,14 @@
-import { BaseHandler } from './BaseHandler';
-import { CoreUniversalLink } from '../../types/CoreUniversalLink';
+import { BaseHandler } from '../BaseHandler';
+import { CoreUniversalLink } from '../../../types/CoreUniversalLink';
 import {
   HandlerContext,
   HandlerResult,
-} from '../../types/UniversalLinkHandler';
-import { createMockContext, createMockLink } from '../../utils/testUtils';
-import Engine from '../../../Engine';
+} from '../../../types/UniversalLinkHandler';
+import { createMockContext, createMockLink } from '../../../utils/testUtils';
+import Engine from '../../../../Engine';
 import type { KeyringControllerState } from '@metamask/keyring-controller';
 
-jest.mock('../../../../util/Logger');
+jest.mock('../../../../../util/Logger');
 jest.mock('../../../Engine', () => ({
   context: {
     KeyringController: {

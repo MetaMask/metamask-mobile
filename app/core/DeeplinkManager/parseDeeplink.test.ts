@@ -8,7 +8,7 @@ import handleEthereumUrl from './handlers/legacy/handleEthereumUrl';
 
 jest.mock('../../../../constants/deeplinks');
 jest.mock('../../../../util/Logger');
-jest.mock('../DeeplinkManager');
+jest.mock('./DeeplinkManager');
 jest.mock('../../../SDKConnect/utils/DevLogger');
 jest.mock('./handleDappUrl');
 jest.mock('./handleUniversalLink');
