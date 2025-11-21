@@ -343,15 +343,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     </View>
   );
 
-  const filterTabs: FilterTab[] = useMemo(
-    () => [
-      strings('perps.transactions.tabs.trades'),
-      strings('perps.transactions.tabs.orders'),
-      strings('perps.transactions.tabs.funding'),
-      strings('perps.transactions.tabs.deposits'),
-    ],
-    [],
-  );
+  const filterTabs: FilterTab[] = ['Trades', 'Orders', 'Funding', 'Deposits'];
 
   const filterTabDescription = useMemo(() => {
     if (activeFilter === 'Funding') {
