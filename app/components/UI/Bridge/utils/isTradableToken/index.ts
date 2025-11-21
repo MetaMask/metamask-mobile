@@ -1,21 +1,15 @@
-import { CaipChainId, TrxScope } from '@metamask/keyring-api';
+import { TrxScope } from '@metamask/keyring-api';
 import { BridgeToken } from '../../types';
-import { Hex } from '@metamask/utils';
-
-const nonTradableTokenNames: Record<Hex | CaipChainId, string[]> = {
-  [TrxScope.Mainnet]: [
-    'energy',
-    'bandwidth',
-    'max bandwidth',
-    'staked for energy',
-    'staked for bandwidth',
-    'max energy',
-  ],
-};
+import {
+  TRON_RESOURCE_SYMBOLS,
+  TronResourceSymbol,
+} from '../../../../../core/Multichain/constants';
 
 export const isTradableToken = (token: BridgeToken) => {
-  const isNonTradableToken = nonTradableTokenNames[token.chainId]?.includes(
-    token.name?.toLowerCase() ?? '',
-  );
-  return !isNonTradableToken;
+  if (token.chainId === TrxScope.Mainnet) {
+    return !TRON_RESOURCE_SYMBOLS.includes(
+      token.symbol?.toLowerCase() as TronResourceSymbol,
+    );
+  }
+  return true;
 };
