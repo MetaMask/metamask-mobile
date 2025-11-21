@@ -50,6 +50,7 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
+  TransactionType.lendingDeposit,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,
