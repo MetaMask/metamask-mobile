@@ -40,17 +40,18 @@ export function useSendNonEvmAsset({
   const sendNonEvmAsset = useCallback(
     async (location: string): Promise<boolean> => {
       if (isSendRedesignEnabled) {
-        console.log('OGP - 44444');
         handleSendPageNavigation(
           navigation.navigate,
           location,
           true,
           asset.address ? (asset as TokenI) : undefined,
-          // {
-          //   address: '0x12345',
-          //   // isEvm: true,
-          //   isSolana: true,
-          // },
+          {
+            address: '0x1231231231231231231231231231231231231231',
+            isEvm: true,
+            // isSolana: true,
+            // isTron: true,
+            // isBitcoin: true,
+          },
         );
         return true;
       }

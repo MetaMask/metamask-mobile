@@ -17,25 +17,29 @@ export function useAccountTokens({
   includeNoBalance = false,
 } = {}): AssetType[] {
   const assets = useSelector(selectFilteredAssetsBySelectedAccountGroup);
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { isEvmSendType, isSolanaSendType, isTronSendType, isBitcoinSendType } =
+    useSendType();
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
 
-    let filteredAssets;
+    const accountTypeMap: Record<string, boolean> = {
+      eip155: !!isEvmSendType,
+      solana: !!isSolanaSendType,
+      tron: !!isTronSendType,
+      bip122: !!isBitcoinSendType,
+    };
 
-    if (isEvmSendType) {
-      filteredAssets = flatAssets.filter((asset) =>
-        asset.accountType.includes('eip155'),
-      );
-    } else if (isSolanaSendType) {
-      filteredAssets = flatAssets.filter((asset) =>
-        asset.accountType.includes('solana'),
-      );
-    } else {
-      filteredAssets = flatAssets;
-    }
+    const matchedAccountType = Object.entries(accountTypeMap).find(
+      ([, isType]) => isType,
+    )?.[0];
+
+    const filteredAssets = matchedAccountType
+      ? flatAssets.filter((asset) =>
+          asset.accountType.includes(matchedAccountType),
+        )
+      : flatAssets;
 
     const assetsWithBalance = filteredAssets.filter((asset) => {
       if (includeNoBalance) {
@@ -90,6 +94,8 @@ export function useAccountTokens({
     includeNoBalance,
     isEvmSendType,
     isSolanaSendType,
+    isTronSendType,
+    isBitcoinSendType,
     fiatCurrency,
   ]) as unknown as AssetType[];
 }

@@ -36,17 +36,8 @@ export const useSendType = () => {
   } = predefinedRecipient || {};
 
   const isPredefinedNonEvm = useMemo(
-    () =>
-      isPredefinedEvm ||
-      isPredefinedSolana ||
-      isPredefinedBitcoin ||
-      isPredefinedTron,
-    [
-      isPredefinedEvm,
-      isPredefinedSolana,
-      isPredefinedBitcoin,
-      isPredefinedTron,
-    ],
+    () => isPredefinedSolana || isPredefinedBitcoin || isPredefinedTron,
+    [isPredefinedSolana, isPredefinedBitcoin, isPredefinedTron],
   );
 
   const isEvmSendType = useMemo(

@@ -7,6 +7,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
+import { useParams } from '../../../../../../../util/navigation/navUtils.ts';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { AssetType, TokenStandard } from '../../../../types/token';
 import { getFractionLength } from '../../../../utils/send.ts';
@@ -17,6 +18,7 @@ import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount'
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useSendContext } from '../../../../context/send-context';
 import { useSendScreenNavigation } from '../../../../hooks/send/useSendScreenNavigation';
+import { useSendActions } from '../../../../hooks/send/useSendActions';
 import { EditAmountKeyboard } from '../../../edit-amount-keyboard';
 import { styleSheet } from './amount-keyboard.styles';
 
@@ -44,7 +46,8 @@ export const AmountKeyboard = ({
   const { gotToSendScreen } = useSendScreenNavigation();
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
   const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
-  const { asset, updateValue } = useSendContext();
+  const { asset, updateValue, updateTo } = useSendContext();
+  const { handleSubmitPress } = useSendActions();
   const { isNonEvmSendType } = useSendType();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
   const { styles } = useStyles(styleSheet, {
@@ -53,6 +56,12 @@ export const AmountKeyboard = ({
   });
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
+
+  const { predefinedRecipient } = useParams<{
+    predefinedRecipient: {
+      address: string;
+    };
+  }>();
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
@@ -100,12 +109,21 @@ export const AmountKeyboard = ({
       }
     }
     captureAmountSelected();
+    // Skip the recipient screen if a predefined recipient is provided
+    if (predefinedRecipient) {
+      updateTo(predefinedRecipient.address);
+      handleSubmitPress(predefinedRecipient.address);
+      return;
+    }
     gotToSendScreen(Routes.SEND.RECIPIENT);
   }, [
     captureAmountSelected,
     gotToSendScreen,
     isNonEvmSendType,
     validateNonEvmAmountAsync,
+    handleSubmitPress,
+    updateTo,
+    predefinedRecipient,
   ]);
 
   return (
