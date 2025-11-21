@@ -86,6 +86,15 @@ jest.mock('../../hooks', () => ({
   useBalanceComparison: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsNetworkManagement: jest.fn(),
+  usePerpsHomeActions: jest.fn(() => ({
+    handleAddFunds: jest.fn(),
+    handleWithdraw: jest.fn(),
+    isEligibilityModalVisible: false,
+    closeEligibilityModal: jest.fn(),
+    isEligible: true,
+    isProcessing: false,
+    error: null,
+  })),
 }));
 
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
@@ -351,7 +360,7 @@ describe('PerpsMarketBalanceActions', () => {
       );
 
       // Assert
-      expect(getByText('perps.available_balance')).toBeOnTheScreen();
+      expect(getByText(/perps\.available/)).toBeOnTheScreen();
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
       ).toBeOnTheScreen();
@@ -400,7 +409,7 @@ describe('PerpsMarketBalanceActions', () => {
       );
 
       // Assert - Check that the component renders (badge is complex to test directly)
-      expect(getByText('perps.available_balance')).toBeOnTheScreen();
+      expect(getByText(/perps\.available/)).toBeOnTheScreen();
     });
 
     it('returns null when no perps account is available', () => {
@@ -571,7 +580,7 @@ describe('PerpsMarketBalanceActions', () => {
   });
 
   describe('Edge Cases', () => {
-    it('handles zero balance formatting correctly', () => {
+    it('shows empty state when balance is zero', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
@@ -585,17 +594,18 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { getByTestId } = renderWithProvider(
+      const { getByText, queryByTestId } = renderWithProvider(
         <PerpsMarketBalanceActions />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
-      const balanceElement = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
-      );
 
-      // Assert
-      expect(balanceElement.props.children).toBe('$0.00');
+      // Assert - Should show empty state UI instead of balance display
+      expect(getByText('perps.trade_perps')).toBeOnTheScreen();
+      expect(getByText('perps.add_funds')).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
+      ).toBeNull();
     });
   });
 
