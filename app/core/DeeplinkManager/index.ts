@@ -12,14 +12,14 @@
  */
 
 // Main entry points
-export { default as SharedDeeplinkManager } from './entry/SharedDeeplinkManager';
-export { handleDeeplink } from './entry/handleDeeplink';
+export { default as SharedDeeplinkManager } from './SharedDeeplinkManager';
+export { handleDeeplink } from './handleDeeplink';
 
 // Core system (new handler-based routing)
-export { UniversalRouter } from './core/UniversalRouter';
-export { CoreLinkNormalizer } from './core/CoreLinkNormalizer';
-export { HandlerRegistry } from './core/HandlerRegistry';
-export { UniversalRouterIntegration } from './core/UniversalRouterIntegration';
+export { UniversalRouter } from './router/UniversalRouter';
+export { CoreLinkNormalizer } from './normalization/CoreLinkNormalizer';
+export { HandlerRegistry } from './registry/HandlerRegistry';
+export { UniversalRouterIntegration } from './router/UniversalRouterIntegration';
 
 // Core handlers
 export {
@@ -27,14 +27,14 @@ export {
   NavigationHandler,
   SwapHandler,
   SendHandler,
-} from './core/handlers';
+} from './handlers/v2';
 
 // Core interfaces
 export type {
   UniversalLinkHandler,
   HandlerContext,
   HandlerResult,
-} from './core/interfaces/UniversalLinkHandler';
+} from './types/UniversalLinkHandler';
 
 // Types
 export type {
@@ -43,8 +43,8 @@ export type {
 } from './types/CoreUniversalLink';
 
 // Legacy system (for backward compatibility - will be removed in future)
-export { default as DeeplinkManager } from './legacy/DeeplinkManager';
-export { LegacyLinkAdapter } from './legacy/LegacyLinkAdapter';
+export { default as DeeplinkManager } from './DeeplinkManager';
+export { LegacyLinkAdapter } from './normalization/LegacyLinkAdapter';
 
 // Utilities
 export { default as extractURLParams } from './utils/extractURLParams';

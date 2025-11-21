@@ -3,7 +3,7 @@ import { userEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import NotificationCta from './Cta';
-import SharedDeeplinkManager from '../../../../core/DeeplinkManager/entry/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { Linking } from 'react-native';
 
 describe('NotificationCta', () => {

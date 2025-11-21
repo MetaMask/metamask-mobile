@@ -26,7 +26,7 @@ import {
   MM_WALLETCONNECT_DEEPLINK,
 } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/entry/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
 import { selectChainId } from '../../../selectors/networkController';

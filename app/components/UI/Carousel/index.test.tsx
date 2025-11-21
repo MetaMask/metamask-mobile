@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Linking } from 'react-native';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/entry/SharedDeeplinkManager';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import Carousel, { useFetchCarouselSlides } from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
