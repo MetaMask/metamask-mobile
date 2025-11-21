@@ -24,6 +24,10 @@ import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controlle
 import { fireEvent } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useRewardsAccountOptedIn } from '../../../../../UI/Rewards/hooks/useRewardsAccountOptedIn';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
+import { REWARDS_TAG_SELECTOR } from '../../../../../UI/Rewards/components/RewardsTag';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
@@ -37,6 +41,8 @@ jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/transactions/useTransactionConfirm');
+jest.mock('../../../../../UI/Rewards/hooks/useRewardsAccountOptedIn');
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 
 const mockGoToBuy = jest.fn();
 
@@ -44,6 +50,15 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
+
+jest.mock('react-native-safe-area-context', () => {
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  return {
+    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+    useSafeAreaInsets: () => inset,
+    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
+  };
+});
 
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   ...jest.requireActual('../../../../../UI/Ramp/hooks/useRampNavigation'),
@@ -106,6 +121,12 @@ describe('CustomAmountInfo', () => {
     useTransactionCustomAmount,
   );
 
+  const useRewardsAccountOptedInMock = jest.mocked(useRewardsAccountOptedIn);
+
+  const useTransactionMetadataRequestMock = jest.mocked(
+    useTransactionMetadataRequest,
+  );
+
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -153,6 +174,13 @@ describe('CustomAmountInfo', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue([{}] as AssetType[]);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
     useTransactionConfirmMock.mockReturnValue({} as never);
+    useRewardsAccountOptedInMock.mockReturnValue({
+      accountOptedIn: false,
+    });
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.contractInteraction,
+      txParams: { from: '0x123' },
+    } as never);
   });
 
   it('renders amount', () => {
@@ -238,5 +266,132 @@ describe('CustomAmountInfo', () => {
     expect(
       getByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
     ).toBeDefined();
+  });
+
+  describe('Rewards', () => {
+    it('renders RewardsTag for mUSD conversion', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByTestId } = render();
+
+      expect(getByTestId(REWARDS_TAG_SELECTOR)).toBeDefined();
+    });
+
+    it('does not render RewardsTag for non-mUSD transactions', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.perpsDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { queryByTestId } = render();
+
+      expect(queryByTestId(REWARDS_TAG_SELECTOR)).toBeNull();
+    });
+
+    it('calculates points correctly for $100', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '100',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        hasInput: true,
+        isInputChanged: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: noop,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('5 points')).toBeDefined();
+    });
+
+    it('calculates points correctly for $199', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '199',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        hasInput: true,
+        isInputChanged: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: noop,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('5 points')).toBeDefined();
+    });
+
+    it('calculates points correctly for $300', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '300',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        hasInput: true,
+        isInputChanged: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: noop,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('15 points')).toBeDefined();
+    });
+
+    it('renders 0 points when amount is empty', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        hasInput: false,
+        isInputChanged: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: noop,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('0 points')).toBeDefined();
+    });
+
+    it('opens rewards tooltip when RewardsTag is pressed', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: MUSD_CONVERSION_TRANSACTION_TYPE,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByTestId, queryByTestId } = render();
+
+      // Tooltip should not be visible initially
+      expect(queryByTestId('rewards-tooltip-bottom-sheet')).toBeNull();
+
+      fireEvent.press(getByTestId(REWARDS_TAG_SELECTOR));
+
+      // Tooltip should now be visible
+      // Note: Modal content isn't testable in React Native tests,
+      // but RewardsTooltipBottomSheet has its own comprehensive test coverage
+      expect(getByTestId('rewards-tooltip-bottom-sheet')).toBeDefined();
+    });
   });
 });
