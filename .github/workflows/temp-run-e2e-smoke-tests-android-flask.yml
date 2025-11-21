@@ -50,8 +50,15 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
-      - name: Setup project
-        run: yarn setup
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            yarn setup:github-ci --no-build-ios
 
       # Download artifacts from the previous job in THIS workflow
       - name: Download Main App APK
@@ -72,7 +79,6 @@ jobs:
           PLATFORM: android
           METAMASK_BUILD_TYPE: flask
           SOURCE_APK: android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          KEYSTORE_TYPE: flask
 
       - name: Prepare Flask Artifacts
         run: |
