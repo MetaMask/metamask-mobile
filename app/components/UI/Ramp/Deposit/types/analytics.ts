@@ -6,7 +6,7 @@ interface RampsButtonClicked {
   user_id?: string;
   region: string;
   location: string;
-  ramp_routing?: UnifiedRampRoutingType | null;
+  ramp_routing?: UnifiedRampRoutingType;
   is_authenticated?: boolean;
   preferred_provider?: string;
   order_count?: number;
@@ -43,7 +43,7 @@ interface RampsTokenSelected {
   is_authenticated: boolean;
   token_caip19?: string;
   token_symbol?: string;
-  ramp_routing?: UnifiedRampRoutingType | null;
+  ramp_routing?: UnifiedRampRoutingType;
 }
 
 interface RampsRegionSelected {

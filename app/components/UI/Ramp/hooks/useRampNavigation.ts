@@ -68,17 +68,9 @@ export const useRampNavigation = () => {
         // If assetId is provided, route based on rampRoutingDecision
         if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
           navigation.navigate(...createDepositNavigationDetails(intent));
-        } else if (
-          rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR_BUY
-        ) {
+        } else if (rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR) {
           navigation.navigate(
             ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
-          );
-        } else if (
-          rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR_SELL
-        ) {
-          navigation.navigate(
-            ...createRampNavigationDetails(AggregatorRampType.SELL, intent),
           );
         }
         return;

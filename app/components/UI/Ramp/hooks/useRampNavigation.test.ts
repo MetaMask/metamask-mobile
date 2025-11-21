@@ -262,7 +262,7 @@ describe('useRampNavigation', () => {
 
         it('navigates to aggregator when routing decision is AGGREGATOR', () => {
           mockGetRampRoutingDecision.mockReturnValue(
-            UnifiedRampRoutingType.AGGREGATOR_BUY,
+            UnifiedRampRoutingType.AGGREGATOR,
           );
           const mockNavDetails = [Routes.RAMP.BUY] as const;
           mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
@@ -361,7 +361,7 @@ describe('useRampNavigation', () => {
     it('navigates to deposit flow (overrides unified routing)', () => {
       mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
       mockGetRampRoutingDecision.mockReturnValue(
-        UnifiedRampRoutingType.AGGREGATOR_BUY,
+        UnifiedRampRoutingType.AGGREGATOR,
       );
       const mockNavDetails = [Routes.DEPOSIT.ID] as const;
       mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);

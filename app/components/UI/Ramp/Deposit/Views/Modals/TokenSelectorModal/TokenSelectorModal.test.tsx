@@ -131,10 +131,10 @@ describe('TokenSelectorModal Component', () => {
     });
   });
 
-  it('tracks RAMPS_TOKEN_SELECTED event with AGGREGATOR BUY routing when routing decision is AGGREGATOR_BUY', () => {
+  it('tracks RAMPS_TOKEN_SELECTED event with AGGREGATOR BUY routing when routing decision is AGGREGATOR', () => {
     const { getAllByText } = renderWithProvider(
       TokenSelectorModal,
-      UnifiedRampRoutingType.AGGREGATOR_BUY,
+      UnifiedRampRoutingType.AGGREGATOR,
     );
 
     const tokenElements = getAllByText('USDC');
@@ -151,7 +151,7 @@ describe('TokenSelectorModal Component', () => {
       is_authenticated: false,
       token_caip19: MOCK_CRYPTOCURRENCIES[0].assetId,
       token_symbol: MOCK_CRYPTOCURRENCIES[0].symbol,
-      ramp_routing: UnifiedRampRoutingType.AGGREGATOR_BUY,
+      ramp_routing: UnifiedRampRoutingType.AGGREGATOR,
     });
   });
 
