@@ -148,20 +148,26 @@ const useLoadCardData = () => {
 
   // Combined error state
   const error = useMemo(() => {
-    const baseError =
-      priorityTokenError || cardDetailsError || delegationSettingsError;
+    const baseError = priorityTokenError;
 
     if (isAuthenticated) {
-      return baseError || externalWalletDetailsError || kycStatusError;
+      return (
+        baseError ||
+        externalWalletDetailsError ||
+        kycStatusError ||
+        delegationSettingsError ||
+        cardDetailsError
+      );
     }
-    return baseError;
+    // In unauthenticated mode, still check for delegation settings and card details errors
+    return baseError || delegationSettingsError || cardDetailsError;
   }, [
     priorityTokenError,
-    cardDetailsError,
     delegationSettingsError,
     externalWalletDetailsError,
     kycStatusError,
     isAuthenticated,
+    cardDetailsError,
   ]);
 
   // Combined warning (only from priority token and card details)

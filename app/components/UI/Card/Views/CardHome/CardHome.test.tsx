@@ -396,6 +396,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.kyc_status.rejected.title': 'Verification Not Approved',
       'card.card_home.kyc_status.rejected.description':
         'We were unable to verify your identity. Please contact support for assistance.',
+      'card.card_home.kyc_status.rejected.support_description':
+        "We were unable to verify your identity at this time. Please contact our support team for assistance and we'll help you resolve this issue.",
       'card.card_home.kyc_status.unverified.title': 'Verification Required',
       'card.card_home.kyc_status.unverified.description':
         'You need to complete identity verification before enabling your card. Please complete the onboarding process.',
@@ -2971,7 +2973,7 @@ describe('CardHome Component', () => {
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
             'Verification Not Approved',
-            'We were unable to verify your identity. Please contact support for assistance.',
+            "We were unable to verify your identity at this time. Please contact our support team for assistance and we'll help you resolve this issue.",
             [{ text: 'OK', style: 'default' }],
           );
         });
@@ -3207,7 +3209,7 @@ describe('CardHome Component', () => {
         await waitFor(() => {
           expect(Alert.alert).toHaveBeenCalledWith(
             expect.stringContaining('Not Approved'),
-            expect.stringContaining('unable to verify'),
+            expect.stringContaining('contact our support team'),
             expect.any(Array),
           );
         });

@@ -6447,11 +6447,12 @@
         },
         "rejected": {
           "title": "Verification Not Approved",
-          "description": "We were unable to verify your identity. Please contact support for assistance."
+          "description": "We were unable to verify your identity. Please contact support for assistance.",
+          "support_description": "We were unable to verify your identity at this time. Please contact our support team at {{email}} for assistance and we'll help you resolve this issue."
         },
         "unverified": {
           "title": "Verification Required",
-          "description": "You need to complete identity verification before enabling your card. Please complete the onboarding process."
+          "description": "You need to complete identity verification before enabling your card. Please contact support team at {{email}} for assistance."
         },
         "error": {
           "title": "Verification Status Unavailable",

@@ -68,7 +68,7 @@ const useCardDetails = () => {
     fetchCardDetailsInternal,
     {
       cacheDuration: AUTHENTICATED_CACHE_DURATION, // 30 seconds cache
-      fetchOnMount: false, // Disable auto-fetch, we'll manually control it below
+      fetchOnMount: false,
     },
   );
 

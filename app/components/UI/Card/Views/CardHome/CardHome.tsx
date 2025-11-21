@@ -59,6 +59,7 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import {
+  CARD_SUPPORT_EMAIL,
   DEPOSIT_SUPPORTED_TOKENS,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../constants';
@@ -108,6 +109,8 @@ const CardHome = () => {
   const hasLoadedCardHomeView = useRef(false);
   const hasHandledAuthErrorRef = useRef(false);
   const isComponentUnmountedRef = useRef(false);
+  const hasShownKYCAlertRef = useRef(false);
+  const hasShownKYCErrorAlertRef = useRef(false);
   const [
     isCloseSpendingLimitWarningShown,
     setIsCloseSpendingLimitWarningShown,
@@ -379,7 +382,6 @@ const CardHome = () => {
     return kycStatus.verificationState === 'VERIFIED';
   }, [isAuthenticated, isBaanxLoginEnabled, kycStatus, isLoading]);
 
-  // Get KYC status message for display
   const getKYCStatusMessage = useCallback(
     (verificationState: CardVerificationState | null | undefined) => {
       switch (verificationState) {
@@ -388,13 +390,7 @@ const CardHome = () => {
             title: strings('card.card_home.kyc_status.pending.title'),
             description: strings(
               'card.card_home.kyc_status.pending.description',
-            ),
-          };
-        case 'REJECTED':
-          return {
-            title: strings('card.card_home.kyc_status.rejected.title'),
-            description: strings(
-              'card.card_home.kyc_status.rejected.description',
+              { email: CARD_SUPPORT_EMAIL },
             ),
           };
         case 'UNVERIFIED':
@@ -402,6 +398,7 @@ const CardHome = () => {
             title: strings('card.card_home.kyc_status.unverified.title'),
             description: strings(
               'card.card_home.kyc_status.unverified.description',
+              { email: CARD_SUPPORT_EMAIL },
             ),
           };
         default:
@@ -633,14 +630,39 @@ const CardHome = () => {
       return;
     }
 
+    // Prevent showing the alert multiple times
+    if (hasShownKYCAlertRef.current) {
+      return;
+    }
+
     const verificationState = kycStatus.verificationState;
 
+    // Handle REJECTED separately with support message
+    if (verificationState === 'REJECTED') {
+      hasShownKYCAlertRef.current = true;
+      Alert.alert(
+        strings('card.card_home.kyc_status.rejected.title'),
+        strings('card.card_home.kyc_status.rejected.support_description', {
+          email: CARD_SUPPORT_EMAIL,
+        }),
+        [
+          {
+            text: strings('card.card_home.kyc_status.ok_button'),
+            style: 'default',
+          },
+        ],
+      );
+      return;
+    }
+
+    // Handle PENDING and UNVERIFIED
     if (
       verificationState &&
-      ['PENDING', 'REJECTED', 'UNVERIFIED'].includes(verificationState)
+      ['PENDING', 'UNVERIFIED'].includes(verificationState)
     ) {
       const message = getKYCStatusMessage(verificationState);
       if (message) {
+        hasShownKYCAlertRef.current = true;
         Alert.alert(message.title, message.description, [
           {
             text: strings('card.card_home.kyc_status.ok_button'),
@@ -668,7 +690,13 @@ const CardHome = () => {
       kycStatus === null &&
       !isLoading
     ) {
+      // Prevent showing the error alert multiple times
+      if (hasShownKYCErrorAlertRef.current) {
+        return;
+      }
+
       // KYC status fetch failed
+      hasShownKYCErrorAlertRef.current = true;
       Alert.alert(
         strings('card.card_home.kyc_status.error.title'),
         strings('card.card_home.kyc_status.error.description'),
