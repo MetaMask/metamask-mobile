@@ -78,7 +78,7 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 
 const mockButtonClickData: RampsButtonClickData = {
-  ramp_routing: null,
+  ramp_routing: undefined,
   is_authenticated: false,
   preferred_provider: undefined,
   order_count: 0,

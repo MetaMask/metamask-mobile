@@ -405,13 +405,13 @@ describe('useRampsButtonClickData', () => {
       const { result } = renderHookWithProvider(
         () => useRampsButtonClickData(),
         {
-          state: createMockState(orders, UnifiedRampRoutingType.AGGREGATOR_BUY),
+          state: createMockState(orders, UnifiedRampRoutingType.AGGREGATOR),
         },
       );
 
       await waitFor(() => {
         expect(result.current).toEqual({
-          ramp_routing: UnifiedRampRoutingType.AGGREGATOR_BUY,
+          ramp_routing: UnifiedRampRoutingType.AGGREGATOR,
           is_authenticated: true,
           preferred_provider: 'test-provider',
           order_count: 2,
