@@ -14,7 +14,7 @@ import { RampSDK } from '../../../sdk';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
-const mockGoToRamps = jest.fn();
+const mockGoToDeposit = jest.fn();
 const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -33,8 +33,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
+  useRampNavigation: jest.fn(() => ({ goToDeposit: mockGoToDeposit })),
 }));
 
 const mockUseRampSDKValues: DeepPartial<RampSDK> = {
@@ -117,10 +116,7 @@ describe('SettingsModal', () => {
     fireEvent.press(newBuyExperienceButton);
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: 'DEPOSIT',
-      overrideUnifiedBuyFlag: true,
-    });
+    expect(mockGoToDeposit).toHaveBeenCalled();
   });
 
   it('navigates back through parent navigation when deposit is pressed', () => {

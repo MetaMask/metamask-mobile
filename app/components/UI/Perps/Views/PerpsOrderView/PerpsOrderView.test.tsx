@@ -237,6 +237,8 @@ jest.mock('../../hooks', () => ({
     feeDiscountPercentage: undefined,
     hasError: false,
     isRefresh: false,
+    accountOptedIn: null,
+    account: undefined,
   })),
   usePerpsToasts: jest.fn(() => ({
     showToast: jest.fn(),
@@ -440,6 +442,26 @@ jest.mock('../../components/PerpsOrderTypeBottomSheet', () =>
 );
 jest.mock('../../components/PerpsBottomSheetTooltip', () =>
   createBottomSheetMock('perps-order-view-bottom-sheet-tooltip'),
+);
+
+// Mock AddRewardsAccount component
+jest.mock(
+  '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount',
+  () => {
+    const React = jest.requireActual('react');
+    const { View, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ account }: { account?: unknown }) =>
+        account
+          ? React.createElement(
+              View,
+              { testID: 'add-rewards-account' },
+              React.createElement(Text, {}, 'Add Rewards Account'),
+            )
+          : null,
+    };
+  },
 );
 
 // Test setup
@@ -1914,6 +1936,8 @@ describe('PerpsOrderView', () => {
         bonusBips: 250,
         feeDiscountPercentage: 15,
         isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       // Act
@@ -1935,6 +1959,8 @@ describe('PerpsOrderView', () => {
         bonusBips: 500,
         feeDiscountPercentage: 20,
         isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       // Act
@@ -1958,6 +1984,8 @@ describe('PerpsOrderView', () => {
         bonusBips: 250,
         feeDiscountPercentage: 15,
         isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       // Act
@@ -1981,6 +2009,8 @@ describe('PerpsOrderView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       // Act
@@ -2002,6 +2032,8 @@ describe('PerpsOrderView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       // Act
@@ -2024,6 +2056,8 @@ describe('PerpsOrderView', () => {
         bonusBips: 500, // 5% bonus
         feeDiscountPercentage: 25,
         isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       // Act
@@ -2033,6 +2067,95 @@ describe('PerpsOrderView', () => {
       await waitFor(() => {
         expect(screen.getByText('perps.estimated_points')).toBeTruthy();
         expect(screen.getByText('2,500')).toBeTruthy();
+      });
+    });
+
+    it('renders AddRewardsAccount when accountOptedIn is false and account is defined', async () => {
+      // Arrange - Account not opted in but account exists
+      const mockAccount = {
+        id: 'test-account-id',
+        address: '0x1234567890123456789012345678901234567890',
+        type: 'eip155:eoa' as const,
+        scopes: ['eip155:1'],
+        options: {},
+        methods: [],
+        metadata: {
+          name: 'Test Account',
+          importTime: Date.now(),
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      };
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 100,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 250,
+        feeDiscountPercentage: 15,
+        isRefresh: false,
+        accountOptedIn: false,
+        account: mockAccount,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify AddRewardsAccount component is rendered
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+        expect(screen.getByTestId('add-rewards-account')).toBeTruthy();
+        expect(screen.getByText('Add Rewards Account')).toBeTruthy();
+      });
+    });
+
+    it('renders RewardsAnimations when accountOptedIn is true', async () => {
+      // Arrange - Account opted in
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 100,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 250,
+        feeDiscountPercentage: 15,
+        isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify RewardsAnimations is rendered, not AddRewardsAccount
+      await waitFor(() => {
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
+        expect(screen.queryByTestId('add-rewards-account')).toBeNull();
+      });
+    });
+
+    it('does not render rewards row when accountOptedIn is null', async () => {
+      // Arrange - Account opt-in status unknown
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: false,
+        estimatedPoints: undefined,
+        isLoading: false,
+        hasError: false,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+        accountOptedIn: null,
+        account: undefined,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - Verify rewards row is not rendered
+      await waitFor(() => {
+        expect(screen.queryByText('perps.estimated_points')).toBeNull();
+        expect(screen.queryByTestId('add-rewards-account')).toBeNull();
       });
     });
   });
@@ -2177,6 +2300,8 @@ describe('PerpsOrderView', () => {
         feeDiscountPercentage: 15, // 15% discount
         hasError: false,
         isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -2199,6 +2324,8 @@ describe('PerpsOrderView', () => {
         feeDiscountPercentage: undefined, // No discount
         hasError: false,
         isRefresh: false,
+        accountOptedIn: null,
+        account: undefined,
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -2222,6 +2349,8 @@ describe('PerpsOrderView', () => {
         feeDiscountPercentage: 20,
         hasError: false,
         isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       // Act
@@ -2408,6 +2537,8 @@ describe('PerpsOrderView', () => {
         feeDiscountPercentage: 12, // 12% fee discount
         hasError: false,
         isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       // Mock valid order form
@@ -2730,12 +2861,15 @@ describe('PerpsOrderView', () => {
     it('should show points tooltip when points info icon is pressed', async () => {
       // Arrange - Mock rewards to be enabled and showing
       (usePerpsRewards as jest.Mock).mockReturnValue({
-        rewardsState: {
-          isEnabled: true,
-          shouldShow: true,
-          estimatedPoints: 25,
-          feeDiscountPercentage: 10,
-        },
+        shouldShowRewardsRow: true,
+        isLoading: false,
+        estimatedPoints: 25,
+        bonusBips: undefined,
+        feeDiscountPercentage: 10,
+        hasError: false,
+        isRefresh: false,
+        accountOptedIn: true,
+        account: undefined,
       });
 
       const { queryByTestId } = render(
