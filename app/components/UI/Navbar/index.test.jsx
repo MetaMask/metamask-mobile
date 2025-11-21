@@ -72,7 +72,6 @@ jest.mock('../../../util/notifications', () => ({
 }));
 
 jest.mock('../../../util/networks', () => ({
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
   getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
 }));
 

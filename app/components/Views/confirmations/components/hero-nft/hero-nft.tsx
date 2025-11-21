@@ -8,9 +8,7 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import CollectibleMedia from '../../../../UI/CollectibleMedia';
 import { useNft } from '../../hooks/nft/useNft';
@@ -38,6 +36,10 @@ const NftImageAndNetworkBadge = ({
   const showPlaceholder = !nft || !chainId?.length || (!image && !imageUrl);
 
   const onPress = useCallback(() => {
+    if (!nft) {
+      return;
+    }
+
     navigation.navigate('NftDetailsFullImage', {
       collectible: nft,
     });
@@ -51,8 +53,7 @@ const NftImageAndNetworkBadge = ({
         testID="hero-nft-placeholder"
       >
         <View style={styles.noImagePlaceholder}>
-          <Text>{`#${tokenId}`}</Text>
-          <Text color={TextColor.Primary}>Show</Text>
+          {tokenId && <Text>{`#${tokenId}`}</Text>}
         </View>
       </TouchableOpacity>
     );

@@ -10,7 +10,7 @@ import {
   ChannelId,
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
-import NotificationService from './NotificationService';
+import NotificationService, { getPushPermission } from './NotificationService';
 import { store } from '../../../store';
 
 jest.mock('@notifee/react-native', () => ({
@@ -121,6 +121,28 @@ describe('NotificationsService - getBlockedNotifications', () => {
 
     const result = await NotificationService.getBlockedNotifications();
     expect(result.size).toBe(0);
+  });
+});
+
+describe('getPushPermission', () => {
+  const arrangeMocks = () => {
+    const mockGetAllPermissions = jest.spyOn(
+      NotificationService,
+      'getAllPermissions',
+    );
+    return { mockGetAllPermissions };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns the push permission from getAllPermissions', async () => {
+    const mocks = arrangeMocks();
+    mocks.mockGetAllPermissions.mockResolvedValue({ permission: 'authorized' });
+    expect(await getPushPermission()).toBe('authorized');
+    mocks.mockGetAllPermissions.mockResolvedValue({ permission: 'denied' });
+    expect(await getPushPermission()).toBe('denied');
   });
 });
 

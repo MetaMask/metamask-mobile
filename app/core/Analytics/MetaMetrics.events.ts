@@ -552,6 +552,7 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_STARTED = 'Card Delegation Process Started',
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
+  CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -1454,6 +1455,9 @@ const events = {
   ),
   CARD_DELEGATION_PROCESS_FAILED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_FAILED,
+  ),
+  CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(

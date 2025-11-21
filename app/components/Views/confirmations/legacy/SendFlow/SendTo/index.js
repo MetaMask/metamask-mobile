@@ -104,7 +104,7 @@ class SendFlow extends PureComponent {
     /**
      * Function to navigate to ramp flows
      */
-    goToRamps: PropTypes.func,
+    goToBuy: PropTypes.func,
     /**
      * RampMode enum
      */
@@ -347,10 +347,7 @@ class SendFlow extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.goToRamps({
-      mode: this.props.RampMode.AGGREGATOR,
-      params: { rampType: this.props.AggregatorRampType.BUY },
-    });
+    this.props.goToBuy();
 
     this.props.metrics.trackEvent(
       this.props.metrics
