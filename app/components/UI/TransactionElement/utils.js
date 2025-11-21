@@ -522,18 +522,18 @@ function decodeTransferFromTx(args) {
   let renderCollectible;
   if (collectible?.symbol) {
     renderCollectible =
-      tokenId != null && !isNaN(tokenId)
+      tokenId != null && !isNaN(Number(tokenId))
         ? `${strings('unit.token_id')}${tokenId} ${collectible.symbol}`
         : collectible.symbol;
   } else if (collectible?.name) {
     renderCollectible =
-      tokenId != null && !isNaN(tokenId)
+      tokenId != null && !isNaN(Number(tokenId))
         ? `${strings('unit.token_id')}${tokenId} ${collectible.name}`
         : collectible.name;
   } else {
     // Fallback: show just the contract address or generic label
     renderCollectible =
-      tokenId != null && !isNaN(tokenId)
+      tokenId != null && !isNaN(Number(tokenId))
         ? `${strings('unit.token_id')}${tokenId}`
         : strings('wallet.collectible');
   }
@@ -591,7 +591,7 @@ function decodeTransferFromTx(args) {
   let displayValue;
   let displayFiatValue;
 
-  if (tokenId != null && !isNaN(tokenId)) {
+  if (tokenId != null && !isNaN(Number(tokenId))) {
     // We have a valid tokenId - show it
     displayValue = `${strings('unit.token_id')}${tokenId}`;
     displayFiatValue = collectible ? collectible.symbol : undefined;
