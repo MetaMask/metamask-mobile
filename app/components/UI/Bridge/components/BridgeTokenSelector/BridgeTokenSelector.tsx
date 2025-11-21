@@ -104,6 +104,8 @@ export const BridgeTokenSelector: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const [searchString, setSearchString] = useState<string>('');
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const flatListRef = useRef<FlatList>(null);
+  const [flatListHeight, setFlatListHeight] = useState<number>(0);
 
   // Check if search string meets minimum length requirement
   const isValidSearch = useMemo(
@@ -284,6 +286,37 @@ export const BridgeTokenSelector: React.FC = () => {
     }
   }, [chainIdsToFetch, searchString, searchTokens, isValidSearch]);
 
+  // Auto-load second page if initial search results don't fill the view
+  useEffect(() => {
+    if (
+      isValidSearch &&
+      searchResults.length > 0 &&
+      !isSearchLoading &&
+      !isLoadingMore &&
+      searchCursor &&
+      flatListHeight > 0
+    ) {
+      // Estimate item height (approximate height of TokenSelectorItem)
+      const ESTIMATED_ITEM_HEIGHT = 72;
+      const estimatedContentHeight =
+        searchResults.length * ESTIMATED_ITEM_HEIGHT;
+
+      // If estimated content doesn't fill the view, load more
+      if (estimatedContentHeight < flatListHeight) {
+        searchTokens(searchString, searchCursor);
+      }
+    }
+  }, [
+    isValidSearch,
+    searchResults.length,
+    isSearchLoading,
+    isLoadingMore,
+    searchCursor,
+    flatListHeight,
+    searchTokens,
+    searchString,
+  ]);
+
   const handleChainSelect = (chainId?: CaipChainId) => {
     setSelectedChainId(chainId);
 
@@ -449,6 +482,14 @@ export const BridgeTokenSelector: React.FC = () => {
     return <SkeletonItem />;
   }, [isLoadingMore]);
 
+  // Capture FlatList height for auto-load logic
+  const handleFlatListLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      setFlatListHeight(event.nativeEvent.layout.height);
+    },
+    [],
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Box style={styles.buttonContainer}>
@@ -467,6 +508,7 @@ export const BridgeTokenSelector: React.FC = () => {
       </Box>
 
       <FlatList
+        ref={flatListRef}
         key={selectedChainId || 'all'}
         style={styles.tokensList}
         contentContainerStyle={styles.tokensListContainer}
@@ -482,6 +524,7 @@ export const BridgeTokenSelector: React.FC = () => {
         maxToRenderPerBatch={20}
         windowSize={10}
         initialNumToRender={20}
+        onLayout={handleFlatListLayout}
       />
     </SafeAreaView>
   );
