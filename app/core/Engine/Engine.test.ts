@@ -21,8 +21,6 @@ import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-import { AccountWalletType } from '@metamask/account-api';
-import { AccountWalletObject } from '@metamask/account-tree-controller';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -283,37 +281,15 @@ describe('Engine', () => {
     );
   });
 
-  it('setSelectedAccount successfully updates selected account when address exists and is in an account group', () => {
+  it('setSelectedAccount successfully updates selected account when address exists', () => {
     const engine = Engine.init(backgroundState);
-    const mockAccountGroupId = 'wallet1/group1';
-    const mockWallet = {
-      id: 'wallet1',
-      type: AccountWalletType.Keyring,
-      status: 'active',
-      metadata: {
-        name: 'Test Wallet',
-        keyring: {
-          type: 'HD Key Tree',
-        },
-      },
-      groups: {
-        [mockAccountGroupId]: {
-          id: mockAccountGroupId,
-          accounts: [mockAccount.id],
-        },
-      },
-    } as unknown as AccountWalletObject;
 
     const getAccountByAddressSpy = jest
       .spyOn(engine.context.AccountsController, 'getAccountByAddress')
       .mockReturnValue(mockAccount);
 
-    const getAccountWalletObjectsSpy = jest
-      .spyOn(engine.context.AccountTreeController, 'getAccountWalletObjects')
-      .mockReturnValue([mockWallet]);
-
-    const setSelectedAccountGroupSpy = jest
-      .spyOn(engine.context.AccountTreeController, 'setSelectedAccountGroup')
+    const setSelectedAccountSpy = jest
+      .spyOn(engine.context.AccountsController, 'setSelectedAccount')
       .mockImplementation();
 
     const setSelectedAddressSpy = jest
@@ -323,46 +299,8 @@ describe('Engine', () => {
     engine.setSelectedAccount(validAddress);
 
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
-    expect(getAccountWalletObjectsSpy).toHaveBeenCalled();
-    expect(setSelectedAccountGroupSpy).toHaveBeenCalledWith(mockAccountGroupId);
+    expect(setSelectedAccountSpy).toHaveBeenCalledWith(mockAccount.id);
     expect(setSelectedAddressSpy).toHaveBeenCalledWith(validAddress);
-    // Note: AccountTreeController.setSelectedAccountGroup is responsible for calling AccountsController.setSelectedAccount
-  });
-
-  it('setSelectedAccount throws an error when account exists but is not in any account group', () => {
-    const engine = Engine.init(backgroundState);
-    const mockWallet = {
-      id: 'wallet1',
-      type: AccountWalletType.Keyring,
-      status: 'active',
-      metadata: {
-        name: 'Test Wallet',
-        keyring: {
-          type: 'HD Key Tree',
-        },
-      },
-      groups: {
-        'wallet1/group1': {
-          id: 'wallet1/group1',
-          accounts: ['other-account-id'], // Different account ID
-        },
-      },
-    } as unknown as AccountWalletObject;
-
-    const getAccountByAddressSpy = jest
-      .spyOn(engine.context.AccountsController, 'getAccountByAddress')
-      .mockReturnValue(mockAccount);
-
-    const getAccountWalletObjectsSpy = jest
-      .spyOn(engine.context.AccountTreeController, 'getAccountWalletObjects')
-      .mockReturnValue([mockWallet]);
-
-    expect(() => engine.setSelectedAccount(validAddress)).toThrow(
-      `No account found for address: ${validAddress}`,
-    );
-
-    expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
-    expect(getAccountWalletObjectsSpy).toHaveBeenCalled();
   });
 
   it('setAccountLabel successfully updates account label when address exists', () => {
