@@ -19,6 +19,8 @@ const mockUseRampsUnifiedV1Enabled = jest.fn();
 
 global.fetch = mockFetch as jest.Mock;
 
+const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
@@ -60,6 +62,7 @@ const mockApiResponse = ({
   global,
 }: RampEligibilityAPIResponse) => {
   mockFetch.mockImplementation(async () => ({
+    ok: true,
     json: async () => ({ deposit, aggregator, global }),
   }));
 };
@@ -68,7 +71,8 @@ describe('useRampsSmartRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOrders = [];
-    mockDetectedGeolocation = 'US';
+    mockDetectedGeolocation = 'us-ca';
+    process.env.METAMASK_ENVIRONMENT = 'dev';
     mockApiResponse({
       deposit: true,
       aggregator: false,
@@ -85,6 +89,10 @@ describe('useRampsSmartRouting', () => {
       };
       return selector(state);
     });
+  });
+
+  afterAll(() => {
+    process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
   });
 
   describe('Feature flag check', () => {
@@ -124,6 +132,106 @@ describe('useRampsSmartRouting', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('API endpoint selection', () => {
+    it('calls production URL for production environment', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      mockDetectedGeolocation = 'us-ca';
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://on-ramp-content.api.cx.metamask.io/regions/countries/us-ca',
+        );
+      });
+    });
+
+    it('calls production URL for beta environment', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'beta';
+      mockDetectedGeolocation = 'us-ca';
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://on-ramp-content.api.cx.metamask.io/regions/countries/us-ca',
+        );
+      });
+    });
+
+    it('calls production URL for rc environment', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc';
+      mockDetectedGeolocation = 'us-ca';
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://on-ramp-content.api.cx.metamask.io/regions/countries/us-ca',
+        );
+      });
+    });
+
+    it('calls staging URL for dev environment', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      mockDetectedGeolocation = 'us-ca';
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/countries/us-ca',
+        );
+      });
+    });
+
+    it('calls staging URL for exp environment', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'exp';
+      mockDetectedGeolocation = 'us-ca';
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/countries/us-ca',
+        );
+      });
+    });
+
+    it('calls staging URL for test environment', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'test';
+      mockDetectedGeolocation = 'us-ca';
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/countries/us-ca',
+        );
+      });
+    });
+
+    it('calls staging URL for e2e environment', async () => {
+      process.env.METAMASK_ENVIRONMENT = 'e2e';
+      mockDetectedGeolocation = 'us-ca';
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/countries/us-ca',
+        );
+      });
+    });
   });
 
   describe('Region support check', () => {
@@ -247,6 +355,42 @@ describe('useRampsSmartRouting', () => {
 
     it('routes to ERROR when API fetch fails', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
+          payload: UnifiedRampRoutingType.ERROR,
+        }),
+      );
+    });
+
+    it('routes to ERROR when API returns 404', async () => {
+      mockFetch.mockImplementation(async () => ({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      }));
+      mockOrders = [];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
+          payload: UnifiedRampRoutingType.ERROR,
+        }),
+      );
+    });
+
+    it('routes to ERROR when API returns 500', async () => {
+      mockFetch.mockImplementation(async () => ({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      }));
       mockOrders = [];
 
       renderHook(() => useRampsSmartRouting());
@@ -449,6 +593,59 @@ describe('useRampsSmartRouting', () => {
         }),
       );
     });
+
+    it('routes to DEPOSIT when last completed order is from Deposit provider', async () => {
+      mockApiResponse({
+        deposit: true,
+        aggregator: true,
+        global: true,
+      });
+      mockOrders = [
+        createMockOrder(
+          FIAT_ORDER_PROVIDERS.DEPOSIT,
+          FIAT_ORDER_STATES.COMPLETED,
+          5000,
+        ),
+        createMockOrder(
+          FIAT_ORDER_PROVIDERS.AGGREGATOR,
+          FIAT_ORDER_STATES.COMPLETED,
+          3000,
+        ),
+      ];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
+          payload: UnifiedRampRoutingType.DEPOSIT,
+        }),
+      );
+    });
+
+    it('routes to DEPOSIT when only completed order is from Deposit provider', async () => {
+      mockApiResponse({
+        deposit: true,
+        aggregator: true,
+        global: true,
+      });
+      mockOrders = [
+        createMockOrder(
+          FIAT_ORDER_PROVIDERS.DEPOSIT,
+          FIAT_ORDER_STATES.COMPLETED,
+          1000,
+        ),
+      ];
+
+      renderHook(() => useRampsSmartRouting());
+
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
+          payload: UnifiedRampRoutingType.DEPOSIT,
+        }),
+      );
+    });
   });
 
   describe('Provider-based routing without Transak', () => {
@@ -514,30 +711,6 @@ describe('useRampsSmartRouting', () => {
       mockOrders = [
         createMockOrder(
           FIAT_ORDER_PROVIDERS.WYRE,
-          FIAT_ORDER_STATES.COMPLETED,
-          3000,
-        ),
-      ];
-
-      renderHook(() => useRampsSmartRouting());
-
-      await waitFor(() =>
-        expect(mockDispatch).toHaveBeenCalledWith({
-          type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: UnifiedRampRoutingType.AGGREGATOR,
-        }),
-      );
-    });
-
-    it('routes to AGGREGATOR when last completed order is from Deposit provider', async () => {
-      mockApiResponse({
-        deposit: true,
-        aggregator: false,
-        global: true,
-      });
-      mockOrders = [
-        createMockOrder(
-          FIAT_ORDER_PROVIDERS.DEPOSIT,
           FIAT_ORDER_STATES.COMPLETED,
           3000,
         ),

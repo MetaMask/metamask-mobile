@@ -15,41 +15,50 @@ const styles = StyleSheet.create({
   },
 });
 
-export const ConfirmedText = ({ testID, ...props }) => (
-  <Text testID={testID} bold green style={styles.status} {...props} />
+export const ConfirmedText = ({ testID, style: styleProp, ...props }) => (
+  <Text
+    testID={testID}
+    bold
+    green
+    style={[styles.status, styleProp]}
+    {...props}
+  />
 );
 ConfirmedText.propTypes = {
   testID: PropTypes.string,
+  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
-export const PendingText = ({ testID, ...props }) => {
+export const PendingText = ({ testID, style: styleProp, ...props }) => {
   const { colors } = useTheme();
   return (
     <Text
       testID={testID}
       bold
-      style={[styles.status, { color: colors.warning.default }]}
+      style={[styles.status, { color: colors.warning.default }, styleProp]}
       {...props}
     />
   );
 };
 PendingText.propTypes = {
   testID: PropTypes.string,
+  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
-export const FailedText = ({ testID, ...props }) => {
+export const FailedText = ({ testID, style: styleProp, ...props }) => {
   const { colors } = useTheme();
   return (
     <Text
       testID={testID}
       bold
-      style={[styles.status, { color: colors.error.default }]}
+      style={[styles.status, { color: colors.error.default }, styleProp]}
       {...props}
     />
   );
 };
 FailedText.propTypes = {
   testID: PropTypes.string,
+  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 function StatusText({ status, context, testID, ...props }) {
@@ -65,6 +74,8 @@ function StatusText({ status, context, testID, ...props }) {
     case 'pending':
     case 'Submitted':
     case 'submitted':
+    case 'Unconfirmed':
+    case 'unconfirmed':
     case TransactionStatus.signed:
       return (
         <PendingText testID={testID} {...props}>

@@ -8,7 +8,7 @@ import { useSendType } from './useSendType';
 
 export const useContacts = () => {
   const addressBook = useSelector(selectAddressBook);
-  const { isEvmSendType } = useSendType();
+  const { isEvmSendType, isNonEvmSendType } = useSendType();
 
   const contacts = useMemo(() => {
     const flattenedContacts: RecipientType[] = [];
@@ -37,6 +37,10 @@ export const useContacts = () => {
       return true;
     });
   }, [addressBook, isEvmSendType]);
+
+  if (isNonEvmSendType) {
+    return [];
+  }
 
   return contacts;
 };

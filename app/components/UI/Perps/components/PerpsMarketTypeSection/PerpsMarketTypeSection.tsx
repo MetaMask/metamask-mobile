@@ -23,7 +23,13 @@ export interface PerpsMarketTypeSectionProps {
   /** Markets to display */
   markets: PerpsMarketData[];
   /** Market type for filtering when "See All" is pressed */
-  marketType: 'crypto' | 'equity' | 'commodity' | 'forex' | 'all';
+  marketType:
+    | 'crypto'
+    | 'equity'
+    | 'commodity'
+    | 'forex'
+    | 'all'
+    | 'stocks_and_commodities';
   /** Sort field for market list */
   sortBy?: SortField;
   /** Whether markets are loading */
@@ -58,7 +64,7 @@ export interface PerpsMarketTypeSectionProps {
 const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   title,
   markets,
-  marketType: _marketType, // Unused but kept for API compatibility
+  marketType,
   sortBy = 'volume',
   isLoading,
   testID,
@@ -67,14 +73,14 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   const handleViewAll = useCallback(() => {
-    // Always navigate to "All" tab when "See all" is pressed
+    // Navigate to the specific market type tab when "See all" is pressed
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
-        defaultMarketTypeFilter: 'all',
+        defaultMarketTypeFilter: marketType,
       },
     });
-  }, [navigation]);
+  }, [navigation, marketType]);
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {

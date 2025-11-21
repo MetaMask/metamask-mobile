@@ -52,7 +52,7 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
-import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import { getDepositNavbarOptions } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -70,7 +70,7 @@ import { createFiatSelectorModalNavigationDetails } from '../../components/FiatS
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
 import { createRegionSelectorModalNavigationDetails } from '../../components/RegionSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../../components/PaymentMethodSelectorModal';
-import { QuickAmount, ScreenLocation } from '../../types';
+import { QuickAmount, RampIntent, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import {
@@ -100,12 +100,13 @@ import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { createUnsupportedRegionModalNavigationDetails } from '../../components/UnsupportedRegionModal';
 import { regex } from '../../../../../../util/regex';
+import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/SettingsModal';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-interface BuildQuoteParams {
+interface BuildQuoteParams extends RampIntent {
   showBack?: boolean;
 }
 
@@ -115,10 +116,16 @@ export const createBuildQuoteNavDetails =
 const BuildQuote = () => {
   const navigation = useNavigation();
   const params = useParams<BuildQuoteParams>();
-  const {
-    styles,
-    theme: { colors, themeAppearance },
-  } = useStyles(styleSheet, {});
+  const { showBack } = params;
+
+  // Memoize the intent object to prevent unnecessary re-renders
+  const intent = useMemo(() => {
+    const { showBack: _, ...intentParams } = params;
+    return intentParams;
+  }, [params]);
+
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { colors, themeAppearance } = theme;
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
@@ -126,6 +133,7 @@ const BuildQuote = () => {
   const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
+  const [intentHandled, setIntentHandled] = useState(false);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const nativeSymbol = useSelector(selectTicker);
@@ -141,14 +149,21 @@ const BuildQuote = () => {
     selectedRegion,
     selectedAsset,
     selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId,
     selectedAddress,
     selectedNetworkName,
     sdkError,
     rampType,
     isBuy,
     isSell,
+    setIntent,
   } = useRampSDK();
+
+  useEffect(() => {
+    if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
+      setIntent(intent);
+      setIntentHandled(true);
+    }
+  }, [intent, setIntent, intentHandled]);
 
   const screenLocation: ScreenLocation = isBuy
     ? 'Amount to Buy Screen'
@@ -185,7 +200,6 @@ const BuildQuote = () => {
   }, [paymentMethods, themeAppearance]);
 
   const {
-    defaultFiatCurrency,
     queryDefaultFiatCurrency,
     fiatCurrencies,
     queryGetFiatCurrencies,
@@ -246,31 +260,6 @@ const BuildQuote = () => {
       }
     }, [shouldShowUnsupportedModal, navigation, regions, selectedRegion]),
   );
-
-  useEffect(() => {
-    const handleRegionChange = async () => {
-      if (
-        selectedRegion &&
-        selectedFiatCurrencyId === defaultFiatCurrency?.id
-      ) {
-        const newRegionCurrency = await queryDefaultFiatCurrency(
-          selectedRegion.id,
-        );
-        if (newRegionCurrency?.id) {
-          setSelectedFiatCurrencyId(newRegionCurrency.id);
-        }
-      }
-    };
-
-    handleRegionChange();
-  }, [
-    selectedRegion,
-    selectedFiatCurrencyId,
-    defaultFiatCurrency?.id,
-    queryDefaultFiatCurrency,
-    selectedPaymentMethodId,
-    setSelectedFiatCurrencyId,
-  ]);
 
   const gasLimitEstimation = useERC20GasLimitEstimation({
     tokenAddress: selectedAsset?.address,
@@ -446,22 +435,34 @@ const BuildQuote = () => {
     }
   }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
+  const handleConfigurationPress = useCallback(() => {
+    navigation.navigate(...createBuySettingsModalNavigationDetails());
+  }, [navigation]);
+
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(
+      getDepositNavbarOptions(
         navigation,
         {
           title: isBuy
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
-          showBack: params.showBack,
-          showNetwork: false,
+          showBack: showBack ?? false,
+          showConfiguration: isBuy,
+          onConfigurationPress: handleConfigurationPress,
         },
-        colors,
+        theme,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, params.showBack, isBuy]);
+  }, [
+    navigation,
+    theme,
+    handleCancelPress,
+    showBack,
+    isBuy,
+    handleConfigurationPress,
+  ]);
 
   /**
    * * Keypad style, handlers and effects

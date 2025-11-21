@@ -7,6 +7,7 @@ interface CloseAmountFromPercentageParams {
   percentage: number;
   positionSize: number;
   currentPrice: number;
+  szDecimals: number;
 }
 
 interface CloseAmountLimitsParams {
@@ -28,13 +29,22 @@ interface CloseValueParams {
 
 /**
  * Calculate close amounts from percentage for both USD and token modes
- * @param params - Percentage, position size, and current price
+ * Uses USD as source of truth with precision validation (matches order placement logic)
+ * @param params - Percentage, position size, current price, and asset-specific decimal precision
  * @returns Object with token amount and USD value
  */
 export function calculateCloseAmountFromPercentage(
   params: CloseAmountFromPercentageParams,
 ): { tokenAmount: number; usdValue: number } {
-  const { percentage, positionSize, currentPrice } = params;
+  const { percentage, positionSize, currentPrice, szDecimals } = params;
+
+  // Validate required parameters
+  if (szDecimals === undefined || szDecimals === null) {
+    throw new Error('szDecimals is required for close position calculation');
+  }
+  if (szDecimals < 0) {
+    throw new Error(`szDecimals must be >= 0, got: ${szDecimals}`);
+  }
 
   if (
     isNaN(percentage) ||
@@ -46,13 +56,24 @@ export function calculateCloseAmountFromPercentage(
     return { tokenAmount: 0, usdValue: 0 };
   }
 
-  const tokenAmount = (percentage / 100) * Math.abs(positionSize);
+  // Calculate initial token amount and USD value
+  let tokenAmount = (percentage / 100) * Math.abs(positionSize);
   const usdValue = tokenAmount * currentPrice;
 
+  // Apply asset-specific decimal precision rounding
+  const multiplier = Math.pow(10, szDecimals);
+  tokenAmount = Math.round(tokenAmount * multiplier) / multiplier;
+
+  // Ensure rounded size meets requested USD value (fix validation gap)
+  // This matches the logic in calculatePositionSize for consistency
+  const actualUsd = tokenAmount * currentPrice;
+  if (actualUsd < usdValue) {
+    // Add 1 minimum increment to meet requested USD
+    tokenAmount += 1 / multiplier;
+  }
+
   return {
-    tokenAmount: Number(
-      tokenAmount.toFixed(CLOSE_POSITION_CONFIG.AMOUNT_CALCULATION_PRECISION),
-    ),
+    tokenAmount: Number(tokenAmount.toFixed(szDecimals)),
     usdValue: Number(
       usdValue.toFixed(CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES),
     ),

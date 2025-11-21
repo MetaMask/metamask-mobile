@@ -236,6 +236,48 @@ describe('PerpsRecentActivityList', () => {
       expect(screen.getByText('2.0 ETH')).toBeOnTheScreen();
     });
 
+    it('strips hip3 prefix from transaction subtitle', () => {
+      const hip3Transactions = [
+        {
+          ...mockTransactions[0],
+          subtitle: 'hip3:BTC',
+          asset: 'hip3:BTC',
+        },
+      ];
+
+      render(<PerpsRecentActivityList transactions={hip3Transactions} />);
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
+
+    it('strips DEX prefix from transaction subtitle', () => {
+      const dexTransactions = [
+        {
+          ...mockTransactions[0],
+          subtitle: 'xyz:TSLA',
+          asset: 'xyz:TSLA',
+        },
+      ];
+
+      render(<PerpsRecentActivityList transactions={dexTransactions} />);
+
+      expect(screen.getByText('TSLA')).toBeOnTheScreen();
+    });
+
+    it('keeps regular symbols unchanged in subtitle', () => {
+      const solTransactions = [
+        {
+          ...mockTransactions[0],
+          subtitle: 'SOL',
+          asset: 'SOL',
+        },
+      ];
+
+      render(<PerpsRecentActivityList transactions={solTransactions} />);
+
+      expect(screen.getByText('SOL')).toBeOnTheScreen();
+    });
+
     it('renders token logos for each transaction', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 

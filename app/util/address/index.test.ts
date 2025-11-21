@@ -23,6 +23,7 @@ import {
   getTokenDetails,
   areAddressesEqual,
   toChecksumAddress,
+  renderShortAccountName,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -629,6 +630,24 @@ describe('getTokenDetails,', () => {
       standard: 'ERC20',
       balance: 100000,
     });
+  });
+});
+
+describe('renderShortAccountName', () => {
+  it('returns the short account name', () => {
+    expect(renderShortAccountName('Account 12345678')).toBe('Account 12345678');
+  });
+
+  it('returns the short account name with the default number of characters', () => {
+    expect(renderShortAccountName('Account 12345678901234567890')).toBe(
+      'Account 123456789012...',
+    );
+  });
+
+  it('returns the short account name with the specified number of characters', () => {
+    expect(renderShortAccountName('Account 12345678', 13)).toBe(
+      'Account 12345...',
+    );
   });
 });
 

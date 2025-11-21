@@ -40,8 +40,6 @@ import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isHardwareAccount } from '../../../../util/address';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
-import { store } from '../../../../store';
 import {
   CaipAccountId,
   parseCaipChainId,
@@ -54,6 +52,7 @@ import {
   AuthorizationFailedError,
   InvalidTimestampError,
   AccountAlreadyRegisteredError,
+  SeasonNotFoundError,
 } from './services/rewards-data-service';
 import { sortAccounts } from './utils/sortAccounts';
 
@@ -668,6 +667,15 @@ export class RewardsController extends BaseController<
       } else {
         const sortedAccounts = sortAccounts(accounts);
 
+        try {
+          // Prefer to get opt in status in bulk for sorted accounts.
+          await this.getOptInStatus({
+            addresses: sortedAccounts.map((account) => account.address),
+          });
+        } catch {
+          // Failed to get opt in status in bulk for sorted accounts, let silent auth do it individually
+        }
+
         // Try silent auth on each account until one succeeds
         let successAccount: InternalAccount | null = null;
         for (const account of sortedAccounts) {
@@ -717,10 +725,10 @@ export class RewardsController extends BaseController<
   /**
    * Check if silent authentication should be skipped
    */
-  shouldSkipSilentAuth(
+  async shouldSkipSilentAuth(
     account: CaipAccountId,
     internalAccount: InternalAccount,
-  ): boolean {
+  ): Promise<boolean> {
     // Skip if opt-in is not supported (e.g., hardware wallets, unsupported account types)
     if (!this.isOptInSupported(internalAccount)) return true;
 
@@ -736,7 +744,13 @@ export class RewardsController extends BaseController<
           NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS
         );
       }
-      return true;
+      return (
+        Boolean(accountState.subscriptionId) &&
+        Boolean(
+          (await getSubscriptionToken(accountState.subscriptionId as string))
+            ?.token,
+        )
+      );
     }
 
     return false;
@@ -816,7 +830,7 @@ export class RewardsController extends BaseController<
       this.convertInternalAccountToCaipAccountId(internalAccount);
 
     const shouldSkip = account
-      ? this.shouldSkipSilentAuth(account, internalAccount)
+      ? await this.shouldSkipSilentAuth(account, internalAccount)
       : false;
 
     if (shouldSkip && respectSkipSilentAuth) {
@@ -1586,13 +1600,13 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Check if the rewards feature is enabled via feature flag
+   * Check if the rewards feature is enabled
    * @returns boolean - True if rewards feature is enabled, false otherwise
    */
   isRewardsFeatureEnabled(): boolean {
     const isDisabled = this.#isDisabled();
     if (isDisabled) return false;
-    return selectRewardsEnabledFlag(store.getState());
+    return true;
   }
 
   /**
@@ -1804,6 +1818,11 @@ export class RewardsController extends BaseController<
               await this.invalidateAccountsAndSubscriptions();
               throw error;
             }
+          } else if (error instanceof SeasonNotFoundError) {
+            this.update((state: RewardsControllerState) => {
+              state.seasons = {};
+            });
+            throw error;
           }
           Logger.log(
             'RewardsController: Failed to get season status:',
@@ -1906,9 +1925,13 @@ export class RewardsController extends BaseController<
 
   /**
    * Perform the complete opt-in process for rewards
+   * @param accounts - Array of internal accounts to opt in
    * @param referralCode - Optional referral code
    */
-  async optIn(referralCode?: string): Promise<string | null> {
+  async optIn(
+    accounts: InternalAccount[],
+    referralCode?: string,
+  ): Promise<string | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log(
@@ -1917,14 +1940,8 @@ export class RewardsController extends BaseController<
       return null;
     }
 
-    const accounts = await this.messenger.call(
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
-    );
-
     if (!accounts || accounts.length === 0) {
-      Logger.log(
-        'RewardsController: No accounts found in selected account group, skipping optin',
-      );
+      Logger.log('RewardsController: No accounts provided, skipping optin');
       return null;
     }
 

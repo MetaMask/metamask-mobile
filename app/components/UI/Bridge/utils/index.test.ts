@@ -15,6 +15,10 @@ import {
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
+import {
+  formatAddressToAssetId,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 
 jest.mock('../../../../core/AppConstants', () => ({
   __esModule: true,
@@ -128,9 +132,16 @@ describe('Bridge Utils', () => {
     it('should return token icon URL for native token on Ethereum', () => {
       // Arrange
       const nativeTokenAddress = '0x0000000000000000000000000000000000000000';
+      const nativeTokenAssetId = formatAddressToAssetId(
+        nativeTokenAddress,
+        ETH_CHAIN_ID,
+      );
 
       // Act
-      const result = getTokenIconUrl(nativeTokenAddress, ETH_CHAIN_ID);
+      const result = getTokenIconUrl(
+        nativeTokenAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
 
       // Assert
       expect(result).toBe(
@@ -141,9 +152,13 @@ describe('Bridge Utils', () => {
     it('should return token icon URL for ERC20 token on Ethereum', () => {
       // Arrange
       const usdcAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const usdcAssetId = formatAddressToAssetId(usdcAddress, ETH_CHAIN_ID);
 
       // Act
-      const result = getTokenIconUrl(usdcAddress, ETH_CHAIN_ID);
+      const result = getTokenIconUrl(
+        usdcAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
 
       // Assert
       expect(result).toBe(
@@ -154,9 +169,15 @@ describe('Bridge Utils', () => {
     it('should return token icon URL for Solana native token', () => {
       // Arrange
       const solNativeAddress = '0x0000000000000000000000000000000000000000';
-
+      const solNativeAssetId = formatAddressToAssetId(
+        solNativeAddress,
+        SolScope.Mainnet,
+      );
       // Act
-      const result = getTokenIconUrl(solNativeAddress, SolScope.Mainnet);
+      const result = getTokenIconUrl(
+        solNativeAssetId,
+        isNonEvmChainId(SolScope.Mainnet),
+      );
 
       // Assert
       expect(result).toBe(
@@ -167,9 +188,16 @@ describe('Bridge Utils', () => {
     it('should return token icon URL for Solana SPL token', () => {
       // Arrange
       const usdcSolanaAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+      const usdcSolanaAssetId = formatAddressToAssetId(
+        usdcSolanaAddress,
+        SolScope.Mainnet,
+      );
 
       // Act
-      const result = getTokenIconUrl(usdcSolanaAddress, SolScope.Mainnet);
+      const result = getTokenIconUrl(
+        usdcSolanaAssetId,
+        isNonEvmChainId(SolScope.Mainnet),
+      );
 
       // Assert
       expect(result).toBe(
@@ -180,9 +208,16 @@ describe('Bridge Utils', () => {
     it('should return undefined for invalid address', () => {
       // Arrange
       const invalidAddress = 'invalid';
+      const invalidAssetId = formatAddressToAssetId(
+        invalidAddress,
+        ETH_CHAIN_ID,
+      );
 
       // Act
-      const result = getTokenIconUrl(invalidAddress, ETH_CHAIN_ID);
+      const result = getTokenIconUrl(
+        invalidAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
 
       // Assert
       expect(result).toBeUndefined();
@@ -191,9 +226,12 @@ describe('Bridge Utils', () => {
     it('should return native token icon URL for empty address', () => {
       // Arrange
       const emptyAddress = '';
-
+      const emptyAssetId = formatAddressToAssetId(emptyAddress, ETH_CHAIN_ID);
       // Act
-      const result = getTokenIconUrl(emptyAddress, ETH_CHAIN_ID);
+      const result = getTokenIconUrl(
+        emptyAssetId,
+        isNonEvmChainId(ETH_CHAIN_ID),
+      );
 
       // Assert
       expect(result).toBe(

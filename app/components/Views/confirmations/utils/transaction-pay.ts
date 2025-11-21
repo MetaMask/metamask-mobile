@@ -2,10 +2,17 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { hasTransactionType } from './transaction';
 import { Hex } from '@metamask/utils';
+import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
+import { AssetType, TokenStandard } from '../types/token';
+import {
+  TransactionPayRequiredToken,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
+import { BigNumber } from 'bignumber.js';
+import { isTestNet } from '../../../../util/networks';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 
@@ -70,4 +77,56 @@ export function getTokenAddress(
   }
 
   return transactionMeta?.txParams?.to as Hex;
+}
+
+export function getAvailableTokens({
+  payToken,
+  requiredTokens,
+  tokens,
+}: {
+  payToken?: TransactionPaymentToken;
+  requiredTokens?: TransactionPayRequiredToken[];
+  tokens: AssetType[];
+}): AssetType[] {
+  return tokens
+    .filter((token) => {
+      if (
+        token.standard !== TokenStandard.ERC20 ||
+        !token.accountType?.includes('eip155') ||
+        (token.chainId && isTestNet(token.chainId))
+      ) {
+        return false;
+      }
+
+      const isSelected =
+        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+        payToken?.chainId === token.chainId;
+
+      if (isSelected) {
+        return true;
+      }
+
+      const isRequiredToken = (requiredTokens ?? []).some(
+        (t) =>
+          t.address.toLowerCase() === token.address.toLowerCase() &&
+          t.chainId === token.chainId &&
+          !t.skipIfBalance,
+      );
+
+      if (isRequiredToken) {
+        return true;
+      }
+
+      return new BigNumber(token.balance).gt(0);
+    })
+    .map((token) => {
+      const isSelected =
+        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+        payToken?.chainId === token.chainId;
+
+      return {
+        ...token,
+        isSelected,
+      };
+    });
 }
