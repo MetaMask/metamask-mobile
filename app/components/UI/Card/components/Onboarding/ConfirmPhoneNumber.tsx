@@ -136,7 +136,10 @@ const ConfirmPhoneNumber = () => {
       });
       if (user) {
         setUser(user);
-        navigation.navigate(Routes.CARD.ONBOARDING.VERIFY_IDENTITY);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
+        });
       }
     } catch (error) {
       if (

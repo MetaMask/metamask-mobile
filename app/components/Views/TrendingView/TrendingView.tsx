@@ -1,16 +1,17 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
   TextVariant,
-  ButtonIcon,
-  ButtonIconSize,
   IconName,
+  Icon,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -26,7 +27,6 @@ import {
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import {
-  PredictScreenStack,
   PredictModalStack,
   PredictMarketDetails,
   PredictSellPreview,
@@ -35,17 +35,8 @@ import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictB
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 
 const Stack = createStackNavigator();
-
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-    paddingLeft: 16,
-    paddingRight: 16,
-  },
-});
 
 // Wrapper component to intercept navigation
 const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
@@ -72,6 +63,7 @@ const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
 };
 
 const TrendingFeed: React.FC = () => {
+  const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
@@ -122,38 +114,38 @@ const TrendingFeed: React.FC = () => {
         </Text>
       </Box>
 
-      <Box twClassName="px-4 pb-3">
-        <Box twClassName="flex-row items-center gap-2">
-          <Box twClassName="flex-1">
-            <ExploreSearchBar type="button" onPress={handleSearchPress} />
-          </Box>
-
-          <Box
-            twClassName="rounded-md items-center justify-center h-8 w-8 border-4"
-            style={{
-              borderColor: colors.text.default,
-            }}
-          >
-            {browserTabsCount > 0 ? (
-              <ButtonLink
-                onPress={handleBrowserPress}
-                label={browserTabsCount}
-                testID="trending-view-browser-button"
-              />
-            ) : (
-              <ButtonIcon
-                iconName={IconName.Add}
-                size={ButtonIconSize.Md}
-                onPress={handleBrowserPress}
-                testID="trending-view-browser-button"
-              />
-            )}
-          </Box>
+      <Box twClassName="flex-row items-center gap-2 px-4 pb-3">
+        <Box twClassName="flex-1">
+          <ExploreSearchBar type="button" onPress={handleSearchPress} />
         </Box>
+
+        <TouchableOpacity onPress={handleBrowserPress}>
+          {browserTabsCount > 0 ? (
+            <Box
+              twClassName="rounded-md items-center justify-center h-8 w-8 border-2"
+              style={{
+                borderColor: colors.text.default,
+              }}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                testID="trending-view-browser-button"
+              >
+                {browserTabsCount}
+              </Text>
+            </Box>
+          ) : (
+            <Icon
+              name={IconName.Explore}
+              size={IconSize.Xl}
+              testID="trending-view-browser-button"
+            />
+          )}
+        </TouchableOpacity>
       </Box>
 
       <ScrollView
-        style={styles.scrollView}
+        style={tw.style('flex-1 px-4')}
         showsVerticalScrollIndicator={false}
       >
         <QuickActions />
@@ -161,7 +153,7 @@ const TrendingFeed: React.FC = () => {
         {HOME_SECTIONS_ARRAY.map((section) => (
           <React.Fragment key={section.id}>
             <SectionHeader sectionId={section.id} />
-            {section.renderSection()}
+            <section.Section />
           </React.Fragment>
         ))}
       </ScrollView>
@@ -184,17 +176,6 @@ const TrendingView: React.FC = () => {
       <Stack.Screen
         name={Routes.EXPLORE_SEARCH}
         component={ExploreSearchScreen}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.ROOT}
-        component={PredictScreenStack}
-        options={{
-          headerShown: false,
-          cardStyle: {
-            backgroundColor: 'transparent',
-          },
-          animationEnabled: false,
-        }}
       />
       <Stack.Screen
         name={Routes.PREDICT.MODALS.ROOT}
