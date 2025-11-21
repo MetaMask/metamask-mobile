@@ -44,7 +44,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 describe(SmokePredictions('Predictions'), () => {
-  it.skip('should cash out on open position: Spurs vs. Pelicans', async () => {
+  it('should cash out on open position: Spurs vs. Pelicans', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
