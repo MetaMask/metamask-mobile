@@ -1214,7 +1214,7 @@ jest.mock('../../core/Engine', () => ({
     AccountsController: {
       internalAccounts: mockInternalAccounts,
     } as unknown as Partial<AccountsControllerState>,
-  } as EngineState,
+  } as unknown as EngineState,
 }));
 
 describe('re-renders', () => {
