@@ -363,7 +363,7 @@ export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
     const seenNonEvm = new Set<string>();
     for (const account of selectedGroupAccounts) {
       const nonEvmTokensForAccount =
-        selectMultichainTokenListForAccountAnyChain(state, account) || [];
+        selectMultichainTokenListForAccountsAnyChain(state, [account]) || [];
 
       for (const token of nonEvmTokensForAccount) {
         if (
