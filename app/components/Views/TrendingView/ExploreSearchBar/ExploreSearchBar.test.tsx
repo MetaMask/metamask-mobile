@@ -185,7 +185,7 @@ describe('ExploreSearchBar', () => {
       expect(mockOnCancel).toHaveBeenCalledTimes(1);
     });
 
-    it('sets autoFocus on TextInput based on  prop', () => {
+    it('sets autoFocus on TextInput based on type prop', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 

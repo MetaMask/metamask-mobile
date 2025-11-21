@@ -141,6 +141,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           <TouchableOpacity
             style={tw.style('flex-row items-center justify-center py-4 px-4')}
             onPress={() => handlePressFooterLink(searchQuery)}
+            testID="trending-search-footer-url-link"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -161,9 +162,10 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           style={tw.style('flex-row items-center justify-center py-4 px-4')}
           onPress={() =>
             handlePressFooterLink(
-              `https://www.google.com/search?q=${searchQuery}`,
+              `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`,
             )
           }
+          testID="trending-search-footer-google-link"
         >
           <Box twClassName="flex-1 flex-row items-center">
             <Text
