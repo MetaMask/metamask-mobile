@@ -94,7 +94,12 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.js', 'scripts/**/*.mjs', 'e2e/tools/**/*.{js,ts}', 'app.config.js'],
+      files: [
+        'scripts/**/*.js',
+        'scripts/**/*.mjs',
+        'e2e/tools/**/*.{js,ts}',
+        'app.config.js',
+      ],
       rules: {
         'no-console': 0,
         'import/no-commonjs': 0,
