@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle } from 'react';
+import React, { forwardRef, useImperativeHandle, useEffect } from 'react';
 import { View, ViewProps } from 'react-native';
 
 export interface RiveRef {
@@ -27,6 +27,7 @@ type MockRiveProps = ViewProps & {
   alignment?: string;
   autoplay?: boolean;
   stateMachineName?: string;
+  onPlay?: () => void;
 };
 
 const DEFAULT_TEST_ID = 'mock-rive-animation';
@@ -48,11 +49,18 @@ const updateLastMockedMethods = (methods: RiveRef) => {
 };
 
 const RiveMock = forwardRef<RiveRef, MockRiveProps>(
-  ({ testID = DEFAULT_TEST_ID, mockedMethods, ...viewProps }, ref) => {
+  ({ testID = DEFAULT_TEST_ID, mockedMethods, onPlay, ...viewProps }, ref) => {
     const methods = createMockedMethods(mockedMethods);
     updateLastMockedMethods(methods);
 
     useImperativeHandle(ref, () => methods, [methods]);
+
+    useEffect(() => {
+      if (onPlay) {
+        onPlay();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return <View testID={testID} {...viewProps} />;
   },
