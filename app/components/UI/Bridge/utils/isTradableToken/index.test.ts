@@ -176,7 +176,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron Energy token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        name: 'Energy',
+        symbol: 'energy',
       });
 
       const result = isTradableToken(token);
@@ -187,7 +187,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron Bandwidth token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        name: 'Bandwidth',
+        symbol: 'bandwidth',
       });
 
       const result = isTradableToken(token);
@@ -198,7 +198,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron Max Bandwidth token', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        name: 'Max Bandwidth',
+        symbol: 'max-bandwidth',
       });
 
       const result = isTradableToken(token);
@@ -209,7 +209,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron energy token with lowercase', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        name: 'energy',
+        symbol: 'energy',
       });
 
       const result = isTradableToken(token);
@@ -220,7 +220,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron bandwidth token with uppercase', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        name: 'BANDWIDTH',
+        symbol: 'BANDWIDTH',
       });
 
       const result = isTradableToken(token);
@@ -231,7 +231,7 @@ describe('isTradableToken', () => {
     it('returns false for Tron max bandwidth token with mixed case', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
-        name: 'mAx BaNdWiDtH',
+        symbol: 'MaX-BaNdWiDtH',
       });
 
       const result = isTradableToken(token);
