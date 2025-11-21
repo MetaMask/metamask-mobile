@@ -16,22 +16,6 @@ jobs:
     name: 'Detect Mobile Build Changes'
     uses: ./.github/workflows/needs-e2e-build.yml
 
-  # Build Main app first
-  build-android-main-apps:
-    name: 'Build Android Main Apps'
-    if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build]
-    uses: ./.github/workflows/build-android-e2e.yml
-    with:
-      build_type: 'main'
-      metamask_environment: 'e2e'
-      keystore_target: 'qa'
-    secrets: inherit
-
-  # Repack Main to Flask
   repack-android-flask-apps:
     name: 'Repack Android Flask Apps'
     if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
