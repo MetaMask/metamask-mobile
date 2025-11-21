@@ -7,36 +7,29 @@ import {
   parseTypedDataMessage,
   extractSpenderFromApprovalData,
   extractSpenderFromPermitMessage,
-  resemblesAddress,
+  hasValidTransactionParams,
+  hasValidTypedDataParams,
+  isEthSendTransaction,
+  isEthSignTypedData,
+  scanAddress,
+  scanUrl,
 } from '../../lib/address-scanning/address-scan-util';
 
 /**
- * JSON-RPC request with networkClientId
+ * JSON-RPC request with networkClientId and origin
  */
-interface AddressScanRequest extends JsonRpcRequest {
+interface TrustSignalsRequest extends JsonRpcRequest {
   networkClientId?: string;
   params?: Json[];
+  origin?: string;
 }
 
 /**
- * Configuration for the address scan middleware
+ * Configuration for the trust signals middleware
  */
-interface AddressScanMiddlewareConfig {
+interface TrustSignalsMiddlewareConfig {
   phishingController: PhishingController;
   networkController: NetworkController;
-}
-
-/**
- * Normalize chainId to lowercase hex with 0x prefix
- *
- * @param chainId - The chainId to normalize
- * @returns Normalized chainId
- */
-function normalizeChainId(chainId: string): string {
-  if (!chainId.startsWith('0x')) {
-    return `0x${parseInt(chainId, 10).toString(16)}`;
-  }
-  return chainId.toLowerCase();
 }
 
 /**
@@ -47,7 +40,7 @@ function normalizeChainId(chainId: string): string {
  * @returns The chainId or undefined if not available
  */
 function getChainIdForRequest(
-  req: AddressScanRequest,
+  req: TrustSignalsRequest,
   networkController: NetworkController,
 ): string | undefined {
   try {
@@ -67,38 +60,13 @@ function getChainIdForRequest(
       return undefined;
     }
 
-    return normalizeChainId(networkConfig.chainId);
+    return networkConfig.chainId.toLowerCase();
   } catch (error) {
-    Logger.log('[AddressScanMiddleware] Failed to get chainId:', error);
     return undefined;
   }
 }
 
-/**
- * Scan an address using the phishing controller
- *
- * @param phishingController - The phishing controller
- * @param chainId - The chainId
- * @param address - The address to scan
- */
-async function scanAddress(
-  phishingController: PhishingController,
-  chainId: string,
-  address: string,
-): Promise<void> {
-  if (!resemblesAddress(address)) {
-    return;
-  }
-
-  try {
-    await phishingController.scanAddress(chainId, address);
-  } catch (error) {
-    Logger.log(
-      `[AddressScanMiddleware] Failed to scan address ${address}:`,
-      error,
-    );
-  }
-}
+// All validation and scanning utilities moved to address-scan-util.ts
 
 /**
  * Handle eth_sendTransaction address scanning
@@ -108,20 +76,17 @@ async function scanAddress(
  * @param chainId - The chainId
  */
 async function handleEthSendTransaction(
-  req: AddressScanRequest,
+  req: TrustSignalsRequest,
   phishingController: PhishingController,
   chainId: string,
 ): Promise<void> {
-  if (!Array.isArray(req.params) || req.params.length === 0) {
+  if (!hasValidTransactionParams(req)) {
+    Logger.log('[TrustSignalsMiddleware] Invalid transaction parameters');
     return;
   }
 
-  const txParams = req.params[0];
-  if (typeof txParams !== 'object' || txParams === null) {
-    return;
-  }
-
-  const { to, data } = txParams as { to?: string; data?: string };
+  const txParams = req.params[0] as { to?: string; data?: string };
+  const { to, data } = txParams;
 
   if (to) {
     await scanAddress(phishingController, chainId, to);
@@ -145,18 +110,17 @@ async function handleEthSendTransaction(
  * @param chainId - The chainId
  */
 async function handleEthSignTypedData(
-  req: AddressScanRequest,
+  req: TrustSignalsRequest,
   phishingController: PhishingController,
   chainId: string,
 ): Promise<void> {
-  if (!Array.isArray(req.params) || req.params.length < 2) {
+  if (!hasValidTypedDataParams(req)) {
+    Logger.log('[TrustSignalsMiddleware] Invalid typed data parameters');
     return;
   }
 
-  const typedData = req.params[1];
-  const typedDataMessage = parseTypedDataMessage(
-    typedData as unknown as string | object,
-  );
+  const typedData = req.params[1] as unknown as string | object;
+  const typedDataMessage = parseTypedDataMessage(typedData);
 
   if (!typedDataMessage) {
     return;
@@ -184,27 +148,28 @@ async function handleEthSignTypedData(
 export function createTrustSignalsMiddleware({
   phishingController,
   networkController,
-}: AddressScanMiddlewareConfig) {
-  return createAsyncMiddleware(async (req: AddressScanRequest, _res, next) => {
+}: TrustSignalsMiddlewareConfig) {
+  return createAsyncMiddleware(async (req: TrustSignalsRequest, _res, next) => {
     try {
       const chainId = getChainIdForRequest(req, networkController);
       if (!chainId) {
-        Logger.log('[AddressScanMiddleware] Could not get chainId for request');
+        Logger.log(
+          '[TrustSignalsMiddleware] Could not get chainId for request',
+        );
         return;
       }
 
-      if (req.method === 'eth_sendTransaction') {
-        handleEthSendTransaction(req, phishingController, chainId);
-      } else if (
-        req.method === 'eth_signTypedData' ||
-        req.method === 'eth_signTypedData_v1' ||
-        req.method === 'eth_signTypedData_v3' ||
-        req.method === 'eth_signTypedData_v4'
-      ) {
-        handleEthSignTypedData(req, phishingController, chainId);
+      if (isEthSendTransaction(req)) {
+        await handleEthSendTransaction(req, phishingController, chainId);
+      } else if (isEthSignTypedData(req)) {
+        await handleEthSignTypedData(req, phishingController, chainId);
+      }
+
+      if (req.origin) {
+        await scanUrl(phishingController, req.origin);
       }
     } catch (error) {
-      Logger.log('[AddressScanMiddleware] Unexpected error:', error);
+      Logger.log('[TrustSignalsMiddleware] Unexpected error:', error);
     } finally {
       next();
     }

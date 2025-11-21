@@ -1,6 +1,8 @@
-import { Hex } from '@metamask/utils';
+import { Hex, Json, JsonRpcRequest } from '@metamask/utils';
+import type { PhishingController } from '@metamask/phishing-controller';
 import { parseStandardTokenTransactionData } from '../../components/Views/confirmations/utils/transaction';
 import { APPROVAL_TYPES } from '../../components/Views/confirmations/constants/approvals';
+import Logger from '../../util/Logger';
 
 /**
  * Known Permit EIP-712 primary types
@@ -131,14 +133,101 @@ export function extractSpenderFromPermitMessage(
 }
 
 /**
- * Check if a string resembles an Ethereum address
- *
- * @param str - The string to check
- * @returns True if the string looks like an Ethereum address
+ * RPC request validation utilities
  */
-export function resemblesAddress(str?: string): boolean {
-  if (!str) {
-    return false;
+
+/**
+ * Basic JSON-RPC request interface for validation
+ */
+export interface BasicJsonRpcRequest extends JsonRpcRequest {
+  params?: Json[];
+}
+
+/**
+ * Check if request has valid transaction parameters
+ */
+export function hasValidTransactionParams(
+  req: BasicJsonRpcRequest,
+): req is BasicJsonRpcRequest & { params: [object, ...Json[]] } {
+  return (
+    Array.isArray(req.params) &&
+    req.params.length > 0 &&
+    typeof req.params[0] === 'object' &&
+    req.params[0] !== null
+  );
+}
+
+/**
+ * Check if request has valid typed data parameters
+ */
+export function hasValidTypedDataParams(
+  req: BasicJsonRpcRequest,
+): req is BasicJsonRpcRequest & { params: [Json, Json, ...Json[]] } {
+  return Array.isArray(req.params) && req.params.length >= 2;
+}
+
+/**
+ * Check if request is eth_sendTransaction
+ */
+export function isEthSendTransaction(req: BasicJsonRpcRequest): boolean {
+  return req.method === 'eth_sendTransaction';
+}
+
+/**
+ * Check if request is any eth_signTypedData variant
+ */
+export function isEthSignTypedData(req: BasicJsonRpcRequest): boolean {
+  return [
+    'eth_signTypedData',
+    'eth_signTypedData_v1',
+    'eth_signTypedData_v3',
+    'eth_signTypedData_v4',
+  ].includes(req.method);
+}
+
+/**
+ * Security scanning utilities
+ */
+
+/**
+ * Scan an address using the phishing controller
+ *
+ * @param phishingController - The phishing controller
+ * @param chainId - The chainId
+ * @param address - The address to scan
+ */
+export async function scanAddress(
+  phishingController: PhishingController,
+  chainId: string,
+  address: string,
+): Promise<void> {
+  try {
+    await phishingController.scanAddress(chainId, address);
+    Logger.log(
+      `[scanAddress] Cache: ${JSON.stringify(phishingController.state.addressScanCache)}`,
+    );
+  } catch (error) {
+    Logger.log(`[scanAddress] Failed to scan address ${address}:`, error);
   }
-  return /^0x[0-9a-fA-F]{40}$/u.test(str);
+}
+
+/**
+ * Scan a URL/origin using the phishing controller
+ *
+ * @param phishingController - The phishing controller
+ * @param origin - The origin URL to scan
+ */
+export async function scanUrl(
+  phishingController: PhishingController,
+  origin: string,
+): Promise<void> {
+  try {
+    await phishingController.scanUrl(origin);
+    // log the cache
+    Logger.log(
+      `[scanUrl] Cache: ${JSON.stringify(phishingController.state.urlScanCache)}`,
+    );
+  } catch (error) {
+    Logger.log(`[scanUrl] Failed to scan URL ${origin}:`, error);
+  }
 }
