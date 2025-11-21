@@ -75,6 +75,8 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -91,7 +93,6 @@ const EarnInputView = () => {
     setIsSubmittingStakeDepositTransaction,
   ] = useState(false);
 
-  const isStakingDepositRedesignedEnabled = true;
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
@@ -443,7 +444,8 @@ const EarnInputView = () => {
       });
     };
 
-    const isRedesignedStablecoinLendingScreenEnabled = true;
+    const isRedesignedStablecoinLendingScreenEnabled =
+      getIsRedesignedStablecoinLendingScreenEnabled();
     if (isRedesignedStablecoinLendingScreenEnabled) {
       createRedesignedLendingDepositConfirmation(earnToken, selectedAccount);
     } else {
@@ -471,6 +473,13 @@ const EarnInputView = () => {
     annualRewardsFiat,
     annualRewardRate,
   ]);
+
+  const confirmationRedesignFlags = useSelector(
+    selectConfirmationRedesignFlags,
+  );
+
+  const isStakingDepositRedesignedEnabled =
+    confirmationRedesignFlags?.staking_confirmations;
 
   const handlePooledStakingFlow = useCallback(async () => {
     if (isHighGasCostImpact()) {
