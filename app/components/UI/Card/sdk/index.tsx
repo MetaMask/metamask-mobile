@@ -25,6 +25,7 @@ import {
   setContactVerificationId,
 } from '../../../../core/redux/slices/card';
 import { UserResponse } from '../types';
+import { getErrorMessage } from '../util/getErrorMessage';
 
 // Types
 export interface ICardSDK {
@@ -95,8 +96,11 @@ export const CardSDKProvider = ({
       }
 
       setUser(userData);
-    } catch {
-      // Assume user is not registered
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      if (errorMessage?.includes('Invalid onboarding ID')) {
+        dispatch(resetOnboardingState());
+      }
     } finally {
       setIsLoading(false);
     }
