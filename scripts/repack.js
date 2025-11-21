@@ -33,11 +33,10 @@ function getKeystoreConfig() {
   const keyPassword = useFlaskKeystore ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
 
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
-    logger.error(
-      'Missing required Android keystore environment variables in CI. ' +
-      'Please check that setup-e2e-env action has configure-keystores: true'
+    logger.warn(
+      'Missing Android keystore environment variables in CI. ' +
+      'Falling back to debug keystore.'
     );
-    process.exit(1);
   }
 
   const config = {
@@ -89,7 +88,7 @@ async function repackAndroid() {
       outputPath: repackedApk,
       workingDirectory: workingDir,
       verbose: true,
-      // androidSigningOptions: getKeystoreConfig(),
+      androidSigningOptions: getKeystoreConfig(),
       exportEmbedOptions: {
         sourcemapOutput: sourcemapPath,
       },
