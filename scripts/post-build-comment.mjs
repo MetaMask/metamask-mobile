@@ -41,7 +41,7 @@ async function fetchJobIds(octokit, owner, repo, runId) {
     const androidJob =
       allJobs.find((job) => job.name === 'Build Android APKs') ||
       allJobs.find((job) => job.name.includes('Build Android APKs') && job.name.includes('Build Android E2E APKs') && !job.name.includes('Flask')) ||
-      allJobs.find((job) => job.name === 'Build Android E2E APKs' && !job.name.includes('Flask')) ||
+      allJobs.find((job) => job.name === 'Build Android E2E APKs') ||
       allJobs.find((job) => job.name.includes('Android') && job.name.includes('E2E') && job.name.includes('APK') && !job.name.includes('Flask'));
 
     const iosJob =
@@ -282,8 +282,7 @@ async function start() {
   // Note: GITHUB_RUN_ID refers to the main CI workflow run, which includes
   // artifacts from reusable workflows (build-android-e2e.yml and build-ios-e2e.yml)
   console.log(`\n=== Fetching jobs and artifacts for PR #${prNumber}, Workflow Run: ${runIdInt} ===`);
-  const defaultArtifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${runIdInt}`;
-  const workflowRunUrl = defaultArtifactsUrl;
+  const workflowRunUrl = `https://github.com/${owner}/${repo}/actions/runs/${runIdInt}`;
 
   const [jobIds, artifactUrls] = await Promise.all([
     fetchJobIds(octokit, owner, repo, runIdInt),
@@ -302,9 +301,9 @@ async function start() {
     : null;
 
   // Use fetched URLs or fallback to run page (artifacts section)
-  const iosUrl = artifactUrls.ios || defaultArtifactsUrl;
-  const androidUrl = artifactUrls.android || defaultArtifactsUrl;
-  const androidFlaskUrl = artifactUrls.androidFlask || defaultArtifactsUrl;
+  const iosUrl = artifactUrls.ios || workflowRunUrl;
+  const androidUrl = artifactUrls.android || workflowRunUrl;
+  const androidFlaskUrl = artifactUrls.androidFlask || workflowRunUrl;
 
   console.log(`\n=== Artifact URLs ===`);
   console.log(`iOS: ${iosUrl}`);
@@ -342,10 +341,10 @@ async function start() {
 | :--- | :--- | :--- |
 ${rows.join('\n')}
 
-        <details>
-        <summary>More Info</summary>
+<details>
+<summary>More Info</summary>
 
-        *   **Workflow Run**: [\`${runIdInt}\`](${workflowRunUrl})
+*   **Workflow Run**: [\`${runIdInt}\`](${workflowRunUrl})
 *   **iOS Build Number**: \`${iosBuildNumber}\`
 *   **Android Version Code**: \`${androidVersionCode}\`
 *   **iOS Build Job**: ${iosJobUrl ? `[View Job](${iosJobUrl})` : 'Not found'}
