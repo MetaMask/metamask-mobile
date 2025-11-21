@@ -1857,7 +1857,6 @@ describe('NetworkSettings', () => {
 
       const instance = wrapper.instance();
 
-      // Mock the methods that need to pass for enableNetwork to be reached
       jest.spyOn(instance, 'disabledByChainId').mockReturnValue(false);
       jest.spyOn(instance, 'disabledBySymbol').mockReturnValue(false);
       jest

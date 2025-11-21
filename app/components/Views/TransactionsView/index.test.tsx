@@ -85,11 +85,7 @@ jest.mock('../../../selectors/multichain', () => ({
   })),
 }));
 
-const mockSelectIsPopularNetwork = jest.fn(() => false);
-
 jest.mock('../../../selectors/networkController', () => ({
-  selectChainId: jest.fn(() => '0x1'),
-  selectIsPopularNetwork: jest.fn(() => false),
   selectProviderType: jest.fn(() => 'mainnet'),
   selectSelectedNetworkClientId: jest.fn(() => 'selectedNetworkClientId'),
 }));
@@ -154,13 +150,6 @@ jest.mock('@metamask/keyring-api', () => ({
     Devnet: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
   },
   isEvmAccountType: jest.fn(() => true),
-}));
-
-jest.mock('../../../util/networks/customNetworks', () => ({
-  PopularList: [
-    { chainId: '0x89' }, // Polygon
-    { chainId: '0xa4b1' }, // Arbitrum
-  ],
 }));
 
 jest.mock('../../UI/Transactions', () => jest.fn());
@@ -493,34 +482,6 @@ describe('TransactionsView', () => {
       expect(filterByAddressAndNetwork).toHaveBeenCalledTimes(2);
     });
 
-    it('filters transactions by popular networks when enabled', async () => {
-      const mockTransactions = [
-        createMockTransaction({ id: 'tx-1', chainId: '0x1' }), // Mainnet
-        createMockTransaction({ id: 'tx-2', chainId: '0xe708' }), // Linea
-        createMockTransaction({ id: 'tx-3', chainId: '0x89' }), // Polygon
-        createMockTransaction({ id: 'tx-4', chainId: '0x999' }), // Unknown chain
-      ];
-
-      (
-        selectSortedTransactions as jest.MockedFunction<
-          typeof selectSortedTransactions
-        >
-      ).mockReturnValue(mockTransactions);
-      (
-        selectSelectedInternalAccount as jest.MockedFunction<
-          typeof selectSelectedInternalAccount
-        >
-      ).mockReturnValue(createMockAccount());
-
-      renderTransactionsView();
-
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
-    });
-
     it('handles submitted transactions filtering', async () => {
       const mockTransactions = [
         createMockTransaction({
@@ -823,7 +784,7 @@ describe('TransactionsView', () => {
     });
   });
 
-  describe('Network Manager Integration', () => {
+  describe('Network Filtering', () => {
     // Common test configurations
     const createMockTransactions = (
       transactions: { id: string; chainId: string }[],
@@ -891,7 +852,6 @@ describe('TransactionsView', () => {
 
     it('should have proper selector setup', () => {
       expect(mockSelectEnabledNetworksByNamespace).toBeDefined();
-      expect(mockSelectIsPopularNetwork).toBeDefined();
     });
   });
 });

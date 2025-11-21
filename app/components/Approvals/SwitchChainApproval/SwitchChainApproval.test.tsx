@@ -161,7 +161,7 @@ describe('SwitchChainApproval', () => {
     });
   });
 
-  it('calls selectNetwork when portfolio view is enabled', () => {
+  it('calls selectNetwork when confirm is pressed', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
       requestData: mockApprovalRequestData,

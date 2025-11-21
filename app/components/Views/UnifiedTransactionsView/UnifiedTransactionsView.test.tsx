@@ -92,8 +92,6 @@ jest.mock(
   }),
 );
 jest.mock('../../../selectors/networkController', () => ({
-  selectChainId: jest.fn(),
-  selectIsPopularNetwork: jest.fn(),
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
   selectNetworkConfigurations: jest.fn(),
   selectProviderType: jest.fn(),
@@ -301,8 +299,6 @@ const { selectTokens } = jest.requireMock(
   '../../../selectors/tokensController',
 );
 const {
-  selectChainId,
-  selectIsPopularNetwork,
   selectEvmNetworkConfigurationsByChainId,
   selectNetworkConfigurations,
   selectProviderType,
@@ -356,8 +352,6 @@ describe('UnifiedTransactionsView', () => {
           },
         ];
       if (selector === selectTokens) return [];
-      if (selector === selectChainId) return '0x1';
-      if (selector === selectIsPopularNetwork) return false;
       if (selector === selectEvmNetworkConfigurationsByChainId)
         return {
           '0x1': {
@@ -415,8 +409,6 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectSelectedInternalAccount)
         return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectTokens) return [];
-      if (selector === selectChainId) return '0x1';
-      if (selector === selectIsPopularNetwork) return false;
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
@@ -459,8 +451,6 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectSelectedInternalAccount)
         return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectTokens) return [];
-      if (selector === selectChainId) return '0x1';
-      if (selector === selectIsPopularNetwork) return false;
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
@@ -488,8 +478,6 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectSelectedInternalAccount)
         return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectTokens) return [];
-      if (selector === selectChainId) return '0x1';
-      if (selector === selectIsPopularNetwork) return false;
       if (selector === selectEvmNetworkConfigurationsByChainId)
         return {
           '0x1': {
@@ -532,8 +520,6 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectSelectedInternalAccount)
           return { address: '0xabc', metadata: { importTime: 0 } };
         if (selector === selectTokens) return [];
-        if (selector === selectChainId) return '0x1';
-        if (selector === selectIsPopularNetwork) return false;
         if (selector === selectEvmNetworkConfigurationsByChainId)
           return {
             '0x5': {
@@ -582,8 +568,6 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectSelectedInternalAccount)
           return { address: '0xabc', metadata: { importTime: 0 } };
         if (selector === selectTokens) return [];
-        if (selector === selectChainId) return '0x1';
-        if (selector === selectIsPopularNetwork) return false;
         if (selector === selectEvmNetworkConfigurationsByChainId)
           return {
             '0x1': {
@@ -643,8 +627,6 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectSelectedInternalAccount)
         return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectTokens) return [];
-      if (selector === selectChainId) return '0x1';
-      if (selector === selectIsPopularNetwork) return false;
       if (selector === selectNetworkConfigurations) return {};
       if (selector === selectProviderType) return 'rpc';
       if (selector === selectRpcUrl) return 'https://rpc.example';
@@ -691,9 +673,6 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectSelectedInternalAccount)
         return { address: 'bc1abcd', metadata: { importTime: 0 } };
       if (selector === selectTokens) return [];
-      if (selector === selectChainId)
-        return 'bip122:000000000019d6689c085ae165831e93';
-      if (selector === selectIsPopularNetwork) return false;
       if (selector === selectNetworkConfigurations) return {};
       if (selector === selectProviderType) return 'rpc';
       if (selector === selectRpcUrl) return 'https://rpc.example';
@@ -735,8 +714,6 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectSelectedInternalAccount)
           return { address: '0xabc', metadata: { importTime: 0 } };
         if (selector === selectTokens) return [];
-        if (selector === selectChainId) return '0x1';
-        if (selector === selectIsPopularNetwork) return false;
         if (selector === selectProviderConfig)
           return { type: 'rpc', rpcUrl: 'https://rpc.example' };
         if (selector === selectEVMEnabledNetworks) return [];
@@ -771,8 +748,6 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectSelectedInternalAccount)
           return { address: '0xabc', metadata: { importTime: 0 } };
         if (selector === selectTokens) return [];
-        if (selector === selectChainId) return '0x1';
-        if (selector === selectIsPopularNetwork) return false;
         if (selector === selectProviderConfig)
           return { type: 'rpc', rpcUrl: 'https://rpc.example' };
         if (selector === selectEVMEnabledNetworks) return [];
@@ -818,8 +793,6 @@ describe('UnifiedTransactionsView', () => {
           if (selector === selectSelectedInternalAccount)
             return { address: '0xabc', metadata: { importTime: 0 } };
           if (selector === selectTokens) return [];
-          if (selector === selectChainId) return '0x1';
-          if (selector === selectIsPopularNetwork) return false;
           if (selector === selectEVMEnabledNetworks) return ['0x1'];
           if (selector === selectNonEVMEnabledNetworks)
             return ['solana:mainnet'];
@@ -855,8 +828,6 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectSelectedInternalAccount)
           return { address: '0xabc', metadata: { importTime: 0 } };
         if (selector === selectTokens) return [];
-        if (selector === selectChainId) return '0x1';
-        if (selector === selectIsPopularNetwork) return false;
         if (selector === selectEVMEnabledNetworks) return ['0x1'];
         if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
         if (selector === selectCurrentCurrency) return 'USD';
@@ -890,8 +861,6 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectSelectedInternalAccount)
         return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectTokens) return [];
-      if (selector === selectChainId) return '0x1';
-      if (selector === selectIsPopularNetwork) return false;
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';

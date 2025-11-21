@@ -220,11 +220,11 @@ const UnifiedTransactionsView = ({
       return isReceivedOrSentTransaction;
     }) as TransactionMetaWithImport[];
 
+    // Network filtering for confirmed EVM txs
     const allConfirmedFiltered: TransactionMetaWithImport[] =
       allConfirmed.filter((tx) =>
         isTransactionOnChains(tx, enabledEVMChainIds, allConfirmed),
       );
-
     // Deduplicate submitted by (address + chain + nonce) and drop if already confirmed
     const seenSubmittedNonces = new Set<string>();
     const submittedTxsFiltered = submittedTxs.filter(
@@ -341,7 +341,6 @@ const UnifiedTransactionsView = ({
     if (!enabledEVMChainIds?.length || enabledEVMChainIds.length !== 1) {
       return undefined;
     }
-
     const selectedChainId = enabledEVMChainIds[0];
     const config = evmNetworkConfigurationsByChainId?.[selectedChainId];
     if (!config) return undefined;

@@ -20,11 +20,7 @@ import {
 } from '../../../util/activity';
 import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import {
-  selectChainId,
-  selectProviderType,
-  selectSelectedNetworkClientId,
-} from '../../../selectors/networkController';
+import { selectProviderType } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -65,7 +61,6 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
   const enabledNetworksByNamespace = useSelector(
@@ -132,6 +127,7 @@ const TransactionsView = ({
       return filter;
     });
 
+    // TODO: Make sure to come back and check on how Solana transactions are handled
     const allTransactionsFiltered = allTransactions.filter((tx) => {
       const enabledChainIds = Object.entries(
         enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155] ?? {},
@@ -197,11 +193,8 @@ const TransactionsView = ({
 
   useEffect(() => {
     setLoading(true);
-
-    if (selectedNetworkClientId) {
-      filterTransactions();
-    }
-  }, [filterTransactions, selectedNetworkClientId]);
+    filterTransactions();
+  }, [filterTransactions]);
 
   return (
     <View style={styles.wrapper}>
@@ -256,7 +249,6 @@ TransactionsView.propTypes = {
 };
 
 const mapStateToProps = (state) => {
-  const chainId = selectChainId(state);
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectSortedTransactions(state);
 
@@ -282,7 +274,6 @@ const mapStateToProps = (state) => {
     selectedInternalAccount,
     transactions: allTransactions,
     networkType: selectProviderType(state),
-    chainId,
     tokenNetworkFilter: selectEVMEnabledNetworks(state).reduce(
       (acc, network) => ({ ...acc, [network]: true }),
       {},
