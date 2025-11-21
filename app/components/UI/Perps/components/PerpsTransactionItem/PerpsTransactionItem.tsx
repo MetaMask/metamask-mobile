@@ -70,11 +70,12 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
   const { track } = usePerpsEventTracking();
 
   const fillTag = useMemo(() => {
-    const { fill } = item;
-
-    if (!fill) {
+    // Type guard: Only trade transactions have fill property
+    if (item.type !== 'trade') {
       return null;
     }
+
+    const { fill } = item;
 
     if (fill.fillType === FillType.Standard) {
       return null;

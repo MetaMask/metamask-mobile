@@ -326,31 +326,45 @@ export function transformUserHistoryToTransactions(
     .map((item) => {
       const { id, timestamp, type, amount, asset, txHash, status } = item;
 
-      const isDeposit = type === 'deposit';
-
       // Format amount with appropriate sign
       const amountBN = BigNumber(amount);
-      const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
 
       // For completed transactions, status is always positive (green)
       const statusText = 'Completed';
 
+      if (type === 'deposit') {
+        return {
+          id: `deposit-${id}`,
+          type: 'deposit' as const,
+          title: `Deposited ${amount} ${asset}`,
+          subtitle: statusText,
+          timestamp,
+          asset,
+          depositWithdrawal: {
+            amount: `+$${amountBN.toFixed(2)}`,
+            amountNumber: amountBN.toNumber(),
+            isPositive: true,
+            asset,
+            txHash: txHash || '',
+            status,
+          },
+        };
+      }
+
       return {
-        id: `${type}-${id}`,
-        type: isDeposit ? 'deposit' : 'withdrawal',
-        category: isDeposit ? 'deposit' : 'withdrawal',
-        title: `${isDeposit ? 'Deposited' : 'Withdrew'} ${amount} ${asset}`,
+        id: `withdrawal-${id}`,
+        type: 'withdrawal' as const,
+        title: `Withdrew ${amount} ${asset}`,
         subtitle: statusText,
         timestamp,
         asset,
         depositWithdrawal: {
-          amount: displayAmount,
+          amount: `-$${amountBN.toFixed(2)}`,
           amountNumber: amountBN.toNumber(),
-          isPositive: isDeposit,
+          isPositive: false,
           asset,
           txHash: txHash || '',
           status,
-          type: isDeposit ? 'deposit' : 'withdrawal',
         },
       };
     });
@@ -381,7 +395,6 @@ export function transformWithdrawalRequestsToTransactions(
       return {
         id: `withdrawal-${id}`,
         type: 'withdrawal' as const,
-        category: 'withdrawal' as const,
         title: `Withdrew ${amount} ${asset}`,
         subtitle: statusText,
         timestamp,
@@ -393,7 +406,6 @@ export function transformWithdrawalRequestsToTransactions(
           asset,
           txHash: txHash || '',
           status,
-          type: 'withdrawal' as const,
         },
       };
     });
@@ -430,7 +442,6 @@ export function transformDepositRequestsToTransactions(
       return {
         id: `deposit-${id}`,
         type: 'deposit' as const,
-        category: 'deposit' as const,
         title,
         subtitle: statusText,
         timestamp,
@@ -442,7 +453,6 @@ export function transformDepositRequestsToTransactions(
           asset,
           txHash: txHash || '',
           status,
-          type: 'deposit' as const,
         },
       };
     });

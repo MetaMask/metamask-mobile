@@ -24,22 +24,25 @@ export enum FillType {
   AutoDeleveraging = 'auto_deleveraging',
 }
 
-export interface PerpsTransaction {
+/**
+ * Base transaction fields shared by all transaction types
+ */
+interface BasePerpsTransaction {
   id: string;
-  type: 'trade' | 'order' | 'funding' | 'deposit' | 'withdrawal';
-  category:
-    | 'position_open'
-    | 'position_close'
-    | 'limit_order'
-    | 'funding_fee'
-    | 'deposit'
-    | 'withdrawal';
   title: string;
-  subtitle: string; // Asset amount (e.g., "2.01 ETH")
+  subtitle: string; // Asset amount (e.g., "2.01 ETH") or status
   timestamp: number;
   asset: string;
-  // For trades: fill info
-  fill?: {
+}
+
+/**
+ * Trade transaction (position open/close)
+ * Uses category to distinguish between opening and closing positions
+ */
+interface TradeTransaction extends BasePerpsTransaction {
+  type: 'trade';
+  category: 'position_open' | 'position_close';
+  fill: {
     shortTitle: string; // e.g., "Opened long" or "Closed long"
     amount: string; // e.g., "+$43.99" or "-$400"
     amountNumber: number; // e.g., 43.99 or 400
@@ -52,14 +55,22 @@ export interface PerpsTransaction {
     action: string;
     feeToken: string;
     liquidation?: {
-      liquidatedUser: string; // Address of the liquidated user. liquidatedUser isn't always the current user. It can also mean the fill filled another user's liquidation.
+      liquidatedUser: string; // Address of the liquidated user
       markPx: string; // Mark price at liquidation
       method: string; // Liquidation method (e.g., 'market')
     };
     fillType: FillType;
   };
-  // For orders: order info
-  order?: {
+}
+
+/**
+ * Order transaction (limit orders)
+ * No category needed - all orders use the same category
+ */
+interface OrderTransaction extends BasePerpsTransaction {
+  type: 'order';
+  category: 'limit_order';
+  order: {
     text: PerpsOrderTransactionStatus;
     statusType: PerpsOrderTransactionStatusType;
     type: 'limit' | 'market';
@@ -67,24 +78,67 @@ export interface PerpsTransaction {
     limitPrice: string;
     filled: string;
   };
-  // For funding: funding info
-  fundingAmount?: {
+}
+
+/**
+ * Funding fee transaction
+ * No category needed - all funding uses the same category
+ */
+interface FundingTransaction extends BasePerpsTransaction {
+  type: 'funding';
+  category: 'funding_fee';
+  fundingAmount: {
     isPositive: boolean;
     fee: string;
     feeNumber: number;
     rate: string;
   };
-  // For deposits/withdrawals: deposit/withdrawal info
-  depositWithdrawal?: {
+}
+
+/**
+ * Deposit transaction
+ * No category field - type is sufficient
+ * No depositWithdrawal.type field - redundant with main type
+ */
+interface DepositTransaction extends BasePerpsTransaction {
+  type: 'deposit';
+  depositWithdrawal: {
     amount: string;
     amountNumber: number;
     isPositive: boolean;
     asset: string;
     txHash: string;
     status: 'completed' | 'failed' | 'pending' | 'bridging';
-    type: 'deposit' | 'withdrawal';
   };
 }
+
+/**
+ * Withdrawal transaction
+ * No category field - type is sufficient
+ * No depositWithdrawal.type field - redundant with main type
+ */
+interface WithdrawalTransaction extends BasePerpsTransaction {
+  type: 'withdrawal';
+  depositWithdrawal: {
+    amount: string;
+    amountNumber: number;
+    isPositive: boolean;
+    asset: string;
+    txHash: string;
+    status: 'completed' | 'failed' | 'pending' | 'bridging';
+  };
+}
+
+/**
+ * Discriminated union of all transaction types
+ * TypeScript can now narrow the type based on the 'type' field
+ */
+export type PerpsTransaction =
+  | TradeTransaction
+  | OrderTransaction
+  | FundingTransaction
+  | DepositTransaction
+  | WithdrawalTransaction;
 
 // Helper interface for date-grouped data
 export interface TransactionSection {

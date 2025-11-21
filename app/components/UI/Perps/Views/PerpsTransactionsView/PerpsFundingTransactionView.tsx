@@ -49,8 +49,8 @@ const PerpsFundingTransactionView: React.FC = () => {
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
 
-  // Check if transaction exists before proceeding
-  if (!transaction) {
+  // Type guard: Ensure this is a funding transaction
+  if (!transaction || transaction.type !== 'funding') {
     return (
       <ScreenView>
         <View style={styles.content}>

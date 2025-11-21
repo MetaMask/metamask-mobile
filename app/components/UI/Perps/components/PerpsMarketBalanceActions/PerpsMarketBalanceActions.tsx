@@ -38,7 +38,7 @@ import {
   usePerpsNetworkManagement,
 } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
-import { formatPerpsFiat } from '../../utils/formatUtils';
+import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -51,7 +51,6 @@ import {
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
-import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
 import styleSheet from './PerpsMarketBalanceActions.styles';
 import HyperLiquidLogo from '../../../../../images/hl_icon.png';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -315,9 +314,21 @@ const PerpsMarketBalanceActions: React.FC<
                   color={TextColor.Default}
                 >
                   {isOnlyDepositInProgress && transactionAmountWei
-                    ? convertPerpsAmountToUSD(transactionAmountWei)
+                    ? formatPerpsFiat(
+                        Math.floor(
+                          transactionAmountWei.startsWith('$')
+                            ? parseCurrencyString(transactionAmountWei)
+                            : parseFloat(transactionAmountWei),
+                        ),
+                      )
                     : isOnlyWithdrawalInProgress && withdrawalAmount
-                      ? convertPerpsAmountToUSD(withdrawalAmount)
+                      ? formatPerpsFiat(
+                          Math.floor(
+                            withdrawalAmount.startsWith('$')
+                              ? parseCurrencyString(withdrawalAmount)
+                              : parseFloat(withdrawalAmount),
+                          ),
+                        )
                       : null}
                 </Text>
               )}
