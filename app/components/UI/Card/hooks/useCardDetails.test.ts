@@ -146,7 +146,10 @@ describe('useCardDetails', () => {
       expect(mockUseWrapWithCache).toHaveBeenCalledWith(
         'card-details',
         expect.any(Function),
-        { cacheDuration: 60000 }, // AUTHENTICATED_CACHE_DURATION
+        {
+          cacheDuration: 60000, // AUTHENTICATED_CACHE_DURATION
+          fetchOnMount: false, // Manual fetch control
+        },
       );
     });
   });
@@ -418,7 +421,7 @@ describe('useCardDetails', () => {
       // Then: Returns true, calls fetchCardDetails, and updates loading state
       expect(pollResult).toBe(true);
       expect(mockGetCardDetails).toHaveBeenCalledTimes(1);
-      expect(mockFetchData).toHaveBeenCalledTimes(1); // Refresh after provisioning
+      expect(mockFetchData).toHaveBeenCalledTimes(2);
       expect(result.current.isLoadingPollCardStatusUntilProvisioned).toBe(
         false,
       );

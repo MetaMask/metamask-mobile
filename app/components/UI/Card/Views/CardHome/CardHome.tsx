@@ -39,7 +39,13 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import { AllowanceState, CardStatus, CardType, CardWarning } from '../../types';
+import {
+  AllowanceState,
+  CardStatus,
+  CardType,
+  CardVerificationState,
+  CardWarning,
+} from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
@@ -132,6 +138,7 @@ const CardHome = () => {
     allTokens,
     delegationSettings,
     externalWalletDetailsData,
+    kycStatus,
   } = useLoadCardData();
 
   const assetBalancesMap = useAssetBalances(
@@ -359,6 +366,51 @@ const CardHome = () => {
     [priorityTokenWarning],
   );
 
+  // Determine if card can be enabled based on KYC status
+  const canEnableCard = useMemo(() => {
+    if (!isAuthenticated || !isBaanxLoginEnabled) {
+      return true; // No KYC check for unauthenticated users
+    }
+
+    if (!kycStatus || isLoading) {
+      return false; // Wait for KYC status to load
+    }
+
+    return kycStatus.verificationState === 'VERIFIED';
+  }, [isAuthenticated, isBaanxLoginEnabled, kycStatus, isLoading]);
+
+  // Get KYC status message for display
+  const getKYCStatusMessage = useCallback(
+    (verificationState: CardVerificationState | null | undefined) => {
+      switch (verificationState) {
+        case 'PENDING':
+          return {
+            title: strings('card.card_home.kyc_status.pending.title'),
+            description: strings(
+              'card.card_home.kyc_status.pending.description',
+            ),
+          };
+        case 'REJECTED':
+          return {
+            title: strings('card.card_home.kyc_status.rejected.title'),
+            description: strings(
+              'card.card_home.kyc_status.rejected.description',
+            ),
+          };
+        case 'UNVERIFIED':
+          return {
+            title: strings('card.card_home.kyc_status.unverified.title'),
+            description: strings(
+              'card.card_home.kyc_status.unverified.description',
+            ),
+          };
+        default:
+          return null;
+      }
+    },
+    [],
+  );
+
   const enableCardAction = useCallback(async () => {
     try {
       await provisionCard();
@@ -413,7 +465,8 @@ const CardHome = () => {
             disabled={
               isLoading ||
               isLoadingPollCardStatusUntilProvisioned ||
-              isLoadingProvisionCard
+              isLoadingProvisionCard ||
+              !canEnableCard
             }
             loading={
               isLoading ||
@@ -495,6 +548,7 @@ const CardHome = () => {
     needToEnableAssets,
     needToEnableCard,
     styles,
+    canEnableCard,
   ]);
 
   useEffect(
@@ -566,6 +620,74 @@ const CardHome = () => {
       loadCardData();
     }
   }, [fetchAllData, isAuthenticated]);
+
+  // Show KYC status alert if needed
+  useEffect(() => {
+    if (
+      !isAuthenticated ||
+      !isBaanxLoginEnabled ||
+      !needToEnableCard ||
+      !kycStatus ||
+      isLoading
+    ) {
+      return;
+    }
+
+    const verificationState = kycStatus.verificationState;
+
+    if (
+      verificationState &&
+      ['PENDING', 'REJECTED', 'UNVERIFIED'].includes(verificationState)
+    ) {
+      const message = getKYCStatusMessage(verificationState);
+      if (message) {
+        Alert.alert(message.title, message.description, [
+          {
+            text: strings('card.card_home.kyc_status.ok_button'),
+            style: 'default',
+          },
+        ]);
+      }
+    }
+  }, [
+    kycStatus,
+    isAuthenticated,
+    isBaanxLoginEnabled,
+    needToEnableCard,
+    getKYCStatusMessage,
+    isLoading,
+  ]);
+
+  // Handle KYC error separately
+  useEffect(() => {
+    if (
+      isAuthenticated &&
+      isBaanxLoginEnabled &&
+      needToEnableCard &&
+      cardError &&
+      kycStatus === null &&
+      !isLoading
+    ) {
+      // KYC status fetch failed
+      Alert.alert(
+        strings('card.card_home.kyc_status.error.title'),
+        strings('card.card_home.kyc_status.error.description'),
+        [
+          {
+            text: strings('card.card_home.kyc_status.ok_button'),
+            style: 'default',
+          },
+        ],
+      );
+    }
+  }, [
+    isAuthenticated,
+    isBaanxLoginEnabled,
+    needToEnableCard,
+    cardError,
+    kycStatus,
+    isLoading,
+  ]);
 
   /**
    * Check if the current token supports the spending limit progress bar feature.

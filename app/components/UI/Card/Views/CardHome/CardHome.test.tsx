@@ -390,6 +390,20 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Are you sure you want to logout?',
       'card.card_home.logout_confirmation_cancel': 'Cancel',
       'card.card_home.logout_confirmation_confirm': 'Logout',
+      'card.card_home.kyc_status.pending.title': 'Verification in Progress',
+      'card.card_home.kyc_status.pending.description':
+        'Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card.',
+      'card.card_home.kyc_status.rejected.title': 'Verification Not Approved',
+      'card.card_home.kyc_status.rejected.description':
+        'We were unable to verify your identity. Please contact support for assistance.',
+      'card.card_home.kyc_status.unverified.title': 'Verification Required',
+      'card.card_home.kyc_status.unverified.description':
+        'You need to complete identity verification before enabling your card. Please complete the onboarding process.',
+      'card.card_home.kyc_status.error.title':
+        'Verification Status Unavailable',
+      'card.card_home.kyc_status.error.description':
+        "We couldn't check your verification status. Please try again later or contact support if the issue persists.",
+      'card.card_home.kyc_status.ok_button': 'OK',
     };
     return strings[key] || key;
   },
@@ -483,6 +497,15 @@ function setupLoadCardDataMock(
     isAuthenticated: boolean;
     isBaanxLoginEnabled: boolean;
     isCardholder: boolean;
+    kycStatus: {
+      verificationState:
+        | 'VERIFIED'
+        | 'PENDING'
+        | 'REJECTED'
+        | 'UNVERIFIED'
+        | null;
+      userId: string;
+    } | null;
   }>,
 ) {
   const defaults = {
@@ -495,6 +518,7 @@ function setupLoadCardDataMock(
     isAuthenticated: false,
     isBaanxLoginEnabled: true,
     isCardholder: true,
+    kycStatus: { verificationState: 'VERIFIED' as const, userId: 'user-123' },
   };
 
   const config = { ...defaults, ...overrides };
@@ -2751,6 +2775,503 @@ describe('CardHome Component', () => {
           'clearCache',
           'navigate',
         ]);
+      });
+    });
+  });
+
+  describe('KYC Status Verification', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+    });
+
+    describe('canEnableCard Logic', () => {
+      it('enables card button when user is verified and authenticated', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        const enableButton = screen.getByTestId(
+          CardHomeSelectors.ENABLE_CARD_BUTTON,
+        );
+        expect(enableButton.props.disabled).toBe(false);
+      });
+
+      it('disables card button when user KYC is pending', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        const enableButton = screen.getByTestId(
+          CardHomeSelectors.ENABLE_CARD_BUTTON,
+        );
+        expect(enableButton.props.disabled).toBe(true);
+      });
+
+      it('disables card button when user KYC is rejected', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        const enableButton = screen.getByTestId(
+          CardHomeSelectors.ENABLE_CARD_BUTTON,
+        );
+        expect(enableButton.props.disabled).toBe(true);
+      });
+
+      it('disables card button when user KYC is unverified', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        const enableButton = screen.getByTestId(
+          CardHomeSelectors.ENABLE_CARD_BUTTON,
+        );
+        expect(enableButton.props.disabled).toBe(true);
+      });
+
+      it('disables card button when KYC status is loading', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: true,
+        });
+
+        render();
+
+        // When loading, the button skeleton is shown instead
+        expect(
+          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+        ).toBeTruthy();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+        ).toBeNull();
+      });
+
+      it('disables card button when KYC status is null', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: null,
+          isLoading: false,
+        });
+
+        render();
+
+        const enableButton = screen.getByTestId(
+          CardHomeSelectors.ENABLE_CARD_BUTTON,
+        );
+        expect(enableButton.props.disabled).toBe(true);
+      });
+
+      it('enables card button for unauthenticated users regardless of KYC', () => {
+        setupMockSelectors({ isAuthenticated: false });
+        setupLoadCardDataMock({
+          isAuthenticated: false,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: null,
+          isLoading: false,
+        });
+
+        render();
+
+        const enableButton = screen.getByTestId(
+          CardHomeSelectors.ENABLE_CARD_BUTTON,
+        );
+        expect(enableButton.props.disabled).toBe(false);
+      });
+
+      it('enables card button when Baanx login is disabled', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: false,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        // When Baanx login is disabled, should show add funds button instead
+        expect(
+          screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+        ).toBeTruthy();
+      });
+    });
+
+    describe('KYC Status Alerts', () => {
+      it('displays alert when KYC status is pending', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).toHaveBeenCalledWith(
+            'Verification in Progress',
+            'Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card.',
+            [{ text: 'OK', style: 'default' }],
+          );
+        });
+      });
+
+      it('displays alert when KYC status is rejected', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).toHaveBeenCalledWith(
+            'Verification Not Approved',
+            'We were unable to verify your identity. Please contact support for assistance.',
+            [{ text: 'OK', style: 'default' }],
+          );
+        });
+      });
+
+      it('displays alert when KYC status is unverified', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).toHaveBeenCalledWith(
+            'Verification Required',
+            'You need to complete identity verification before enabling your card. Please complete the onboarding process.',
+            [{ text: 'OK', style: 'default' }],
+          );
+        });
+      });
+
+      it('does not display alert when KYC status is verified', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).not.toHaveBeenCalled();
+        });
+      });
+
+      it('does not display alert when user is unauthenticated', async () => {
+        setupMockSelectors({ isAuthenticated: false });
+        setupLoadCardDataMock({
+          isAuthenticated: false,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: null,
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).not.toHaveBeenCalled();
+        });
+      });
+
+      it('does not display alert when Baanx login is disabled', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: false,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).not.toHaveBeenCalled();
+        });
+      });
+
+      it('does not display alert when warning is not NoCard', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NeedDelegation,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).not.toHaveBeenCalled();
+        });
+      });
+
+      it('does not display alert when data is loading', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: true,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('KYC Error Handling', () => {
+      it('displays error alert when KYC fetch fails', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: null,
+          error: 'KYC fetch failed',
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).toHaveBeenCalledWith(
+            'Verification Status Unavailable',
+            "We couldn't check your verification status. Please try again later or contact support if the issue persists.",
+            [{ text: 'OK', style: 'default' }],
+          );
+        });
+      });
+
+      it('does not display error alert when KYC status exists', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          error: 'Some other error',
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).not.toHaveBeenCalledWith(
+            'Verification Status Unavailable',
+            expect.any(String),
+            expect.any(Array),
+          );
+        });
+      });
+
+      it('does not display error alert when user is unauthenticated', async () => {
+        setupMockSelectors({ isAuthenticated: false });
+        setupLoadCardDataMock({
+          isAuthenticated: false,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: null,
+          error: 'KYC fetch failed',
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).not.toHaveBeenCalledWith(
+            'Verification Status Unavailable',
+            expect.any(String),
+            expect.any(Array),
+          );
+        });
+      });
+
+      it('does not display error alert when data is loading', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: null,
+          error: 'KYC fetch failed',
+          isLoading: true,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('getKYCStatusMessage Function', () => {
+      it('returns correct message for PENDING state', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).toHaveBeenCalledWith(
+            expect.stringContaining('Progress'),
+            expect.stringContaining('being processed'),
+            expect.any(Array),
+          );
+        });
+      });
+
+      it('returns correct message for REJECTED state', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).toHaveBeenCalledWith(
+            expect.stringContaining('Not Approved'),
+            expect.stringContaining('unable to verify'),
+            expect.any(Array),
+          );
+        });
+      });
+
+      it('returns correct message for UNVERIFIED state', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'UNVERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).toHaveBeenCalledWith(
+            expect.stringContaining('Required'),
+            expect.stringContaining('complete identity verification'),
+            expect.any(Array),
+          );
+        });
+      });
+
+      it('returns null for VERIFIED state', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          expect(Alert.alert).not.toHaveBeenCalled();
+        });
+      });
+
+      it('returns null for null verification state', async () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          isBaanxLoginEnabled: true,
+          warning: CardWarning.NoCard,
+          kycStatus: { verificationState: null, userId: 'user-123' },
+          isLoading: false,
+        });
+
+        render();
+
+        await waitFor(() => {
+          const statusAlerts = (Alert.alert as jest.Mock).mock.calls.filter(
+            (call) =>
+              call[0].includes('Progress') ||
+              call[0].includes('Not Approved') ||
+              call[0].includes('Required'),
+          );
+          expect(statusAlerts).toHaveLength(0);
+        });
       });
     });
   });

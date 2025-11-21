@@ -7,6 +7,7 @@ import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
+import useGetUserKYCStatus from './useGetUserKYCStatus';
 import { CardTokenAllowance, CardWarning } from '../types';
 
 /**
@@ -78,6 +79,14 @@ const useLoadCardData = () => {
     isAuthenticated ? priorityToken : null,
   );
 
+  // Get user KYC status (authenticated mode only)
+  const {
+    kycStatus,
+    isLoading: isLoadingKYCStatus,
+    error: kycStatusError,
+    fetchKYCStatus,
+  } = useGetUserKYCStatus(isAuthenticated);
+
   // Update priority token with latest allowance if available
   const priorityTokenWithLatestAllowance = useMemo(() => {
     if (!priorityToken || !isAuthenticated) {
@@ -122,7 +131,8 @@ const useLoadCardData = () => {
       return (
         baseLoading ||
         isLoadingExternalWalletDetails ||
-        isLoadingLatestAllowance
+        isLoadingLatestAllowance ||
+        isLoadingKYCStatus
       );
     }
     return baseLoading;
@@ -132,6 +142,7 @@ const useLoadCardData = () => {
     isLoadingDelegationSettings,
     isLoadingExternalWalletDetails,
     isLoadingLatestAllowance,
+    isLoadingKYCStatus,
     isAuthenticated,
   ]);
 
@@ -141,7 +152,7 @@ const useLoadCardData = () => {
       priorityTokenError || cardDetailsError || delegationSettingsError;
 
     if (isAuthenticated) {
-      return baseError || externalWalletDetailsError;
+      return baseError || externalWalletDetailsError || kycStatusError;
     }
     return baseError;
   }, [
@@ -149,6 +160,7 @@ const useLoadCardData = () => {
     cardDetailsError,
     delegationSettingsError,
     externalWalletDetailsError,
+    kycStatusError,
     isAuthenticated,
   ]);
 
@@ -169,6 +181,7 @@ const useLoadCardData = () => {
           fetchPriorityToken(),
           fetchCardDetails(),
           fetchExternalWalletDetails(),
+          fetchKYCStatus(),
         ]);
       } else {
         await Promise.all([fetchPriorityToken()]);
@@ -179,6 +192,7 @@ const useLoadCardData = () => {
       fetchCardDetails,
       isAuthenticated,
       fetchExternalWalletDetails,
+      fetchKYCStatus,
     ],
   );
 
@@ -191,6 +205,7 @@ const useLoadCardData = () => {
           fetchExternalWalletDetails(),
           fetchCardDetails(),
           fetchPriorityToken(),
+          fetchKYCStatus(),
         ]);
       } else {
         await Promise.all([fetchPriorityToken()]);
@@ -202,6 +217,7 @@ const useLoadCardData = () => {
       fetchExternalWalletDetails,
       fetchCardDetails,
       fetchPriorityToken,
+      fetchKYCStatus,
     ],
   );
 
@@ -216,6 +232,8 @@ const useLoadCardData = () => {
     externalWalletDetailsData: isAuthenticated
       ? externalWalletDetailsData
       : null,
+    // KYC status (authenticated mode only)
+    kycStatus: isAuthenticated ? kycStatus : null,
     // State flags
     isLoading,
     error,

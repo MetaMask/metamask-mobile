@@ -261,12 +261,83 @@ describe('OnboardingNavigator', () => {
       });
 
       describe('when user verification state is PENDING', () => {
-        it('returns VALIDATING_KYC route', () => {
+        it('returns VERIFY_IDENTITY route when firstName is missing', () => {
           mockUseSelector.mockReturnValue('onboarding-123');
           mockUseCardSDK.mockReturnValue({
             user: {
               id: 'user-123',
               verificationState: 'PENDING',
+              countryOfNationality: 'US',
+              // firstName is undefined
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          expect(queryByTestId('activity-indicator')).toBeNull();
+        });
+
+        it('returns VERIFY_IDENTITY route when countryOfNationality is missing', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'PENDING',
+              firstName: 'John',
+              // countryOfNationality is undefined
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          expect(queryByTestId('activity-indicator')).toBeNull();
+        });
+
+        it('returns VERIFY_IDENTITY route when both firstName and countryOfNationality are missing', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'PENDING',
+              // firstName is undefined
+              // countryOfNationality is undefined
+            },
+            isLoading: false,
+            sdk: null,
+            setUser: jest.fn(),
+            logoutFromProvider: jest.fn(),
+            fetchUserData: jest.fn(),
+          });
+
+          const { queryByTestId } = renderWithNavigation(
+            <OnboardingNavigator />,
+          );
+
+          expect(queryByTestId('activity-indicator')).toBeNull();
+        });
+
+        it('returns VALIDATING_KYC route when firstName and countryOfNationality exist', () => {
+          mockUseSelector.mockReturnValue('onboarding-123');
+          mockUseCardSDK.mockReturnValue({
+            user: {
+              id: 'user-123',
+              verificationState: 'PENDING',
+              firstName: 'John',
+              countryOfNationality: 'US',
             },
             isLoading: false,
             sdk: null,

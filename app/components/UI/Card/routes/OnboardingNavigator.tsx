@@ -165,6 +165,10 @@ const OnboardingNavigator: React.FC = () => {
       }
 
       if (user.verificationState === 'PENDING') {
+        if (!user.firstName || !user.countryOfNationality) {
+          return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+        }
+
         return Routes.CARD.ONBOARDING.VALIDATING_KYC;
       }
 
