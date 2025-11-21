@@ -356,6 +356,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const {
     candleData,
     isLoading: isLoadingHistory,
+    hasHistoricalData,
     fetchMoreHistory,
   } = usePerpsLiveCandles({
     coin: market?.symbol || '',

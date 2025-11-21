@@ -612,11 +612,12 @@ export const createTradingViewChartTemplate = (
                 crosshairMarkerRadius: 0, // Minimize crosshair impact
             }, 0); // Pane index 0 (default/top pane for candlesticks)
 
-            // Apply scale margins to the candlestick price scale (75% top, 25% bottom for volume)
+            // Apply minimal scale margins to the candlestick price scale
+            // Note: Volume is in a separate pane, so no bottom margin needed
             window.candlestickSeries.priceScale().applyOptions({
                 scaleMargins: {
                     top: 0.05,    // 5% padding at top
-                    bottom: 0.30, // Reserve 30% at bottom (25% volume + 5% gap)
+                    bottom: 0.05, // Minimal bottom padding - pane heights control layout
                 },
             });
 
