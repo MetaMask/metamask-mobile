@@ -197,7 +197,8 @@ describe('Amount', () => {
 
   it('calls updateTo and handleSubmitPress when predefinedRecipient is provided', () => {
     const mockUpdateTo = jest.fn();
-    const predefinedRecipientAddress = '0x1234567890123456789012345678901234567890';
+    const predefinedRecipientAddress =
+      '0x1234567890123456789012345678901234567890';
 
     mockUseParams.mockReturnValue({
       predefinedRecipient: {

@@ -66,7 +66,47 @@ export function isValidPositiveNumericString(str: string) {
     return false;
   }
 }
-
+/**
+ * Navigates to the appropriate send flow screen based on the redesign flag and asset type.
+ *
+ * This function handles navigation for both the legacy and redesigned send flows. In the redesigned flow,
+ * it intelligently determines the starting screen based on whether an asset is provided:
+ * - No asset: starts at asset selection screen
+ * - ERC721 NFT: starts at recipient screen (since NFTs are non-divisible)
+ * - Other assets: starts at amount screen
+ *
+ * @param navigate - Navigation function that accepts a screen name and optional params object
+ * @param location - Analytics identifier for where the send flow was initiated (e.g., 'wallet', 'token_details')
+ * @param isSendRedesignEnabled - Feature flag indicating whether to use the new send flow or legacy SendFlowView
+ * @param asset - Optional preselected asset (token or NFT) to send. When provided, skips the asset selection screen.
+ * @param predefinedRecipient - Optional recipient with chain information. Should be an object containing:
+ * - `address`: The recipient's address string
+ * - Exactly ONE of the following chain type flags set to `true`: `isEvm`, `isSolana`, `isBitcoin`, or `isTron`
+ *
+ * Example usage:
+ * ```typescript
+ * const recipient = {
+ *   address: '0x1234...',
+ *   isEvm: true,
+ * };
+ * handleSendPageNavigation(navigate, 'QRCode', true, undefined, recipient);
+ * ```
+ *
+ * @remarks
+ * The predefinedRecipient is passed through navigation params and can be used by downstream screens
+ * to pre-populate the recipient field and determine the appropriate chain context for the transaction.
+ *
+ * @example
+ * ```typescript
+ * handleSendPageNavigation(
+ *   navigation.navigate,
+ *   'QRCode',
+ *   true,
+ *   undefined,
+ *   { address: '7W54AwGDYRF7X...', isSolana: true }
+ * );
+ * ```
+ */
 export const handleSendPageNavigation = (
   navigate: <RouteName extends string>(
     screenName: RouteName,
