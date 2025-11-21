@@ -872,10 +872,10 @@ describe('CandleStreamChannel', () => {
       );
 
       expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
-        expect.objectContaining({
-          coin: 'BTC',
-          interval: CandlePeriod.ONE_HOUR,
-        }),
+        'BTC',
+        CandlePeriod.ONE_HOUR,
+        50,
+        expect.any(Number),
       );
 
       expect(subscriber).toHaveBeenCalledWith(
