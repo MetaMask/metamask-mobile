@@ -544,7 +544,7 @@
     "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards",
-    "trending": "Trending"
+    "trending": "Explore"
   },
   "drawer": {
     "send_button": "Send",
@@ -6909,7 +6909,7 @@
     "check_network_connectivity_or": "Check your network connectivity or"
   },
   "trending": {
-    "title": "Trending",
+    "title": "Explore",
     "view_all": "View all",
     "tokens": "Tokens",
     "trending_tokens": "Trending Tokens",

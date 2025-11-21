@@ -120,27 +120,27 @@ const TrendingFeed: React.FC = () => {
         </Box>
 
         <TouchableOpacity onPress={handleBrowserPress}>
-          <Box
-            twClassName="rounded-md items-center justify-center h-8 w-8 border-4"
-            style={{
-              borderColor: colors.text.default,
-            }}
-          >
-            {browserTabsCount > 0 ? (
+          {browserTabsCount > 0 ? (
+            <Box
+              twClassName="rounded-md items-center justify-center h-8 w-8 border-2"
+              style={{
+                borderColor: colors.text.default,
+              }}
+            >
               <Text
                 variant={TextVariant.BodyMd}
                 testID="trending-view-browser-button"
               >
                 {browserTabsCount}
               </Text>
-            ) : (
-              <Icon
-                name={IconName.Add}
-                size={IconSize.Md}
-                testID="trending-view-browser-button"
-              />
-            )}
-          </Box>
+            </Box>
+          ) : (
+            <Icon
+              name={IconName.Explore}
+              size={IconSize.Xl}
+              testID="trending-view-browser-button"
+            />
+          )}
         </TouchableOpacity>
       </Box>
 

@@ -66,7 +66,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const renderSectionHeader = useCallback(
     (title: string) => (
       <Box twClassName="py-2 bg-default">
-        <Text variant={TextVariant.HeadingSm} twClassName="text-muted">
+        <Text variant={TextVariant.HeadingSm} twClassName="text-alternative">
           {title}
         </Text>
       </Box>

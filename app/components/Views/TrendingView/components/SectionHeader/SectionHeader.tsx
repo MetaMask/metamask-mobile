@@ -10,11 +10,10 @@ import {
   IconName,
   IconSize,
   IconColor,
-} from '@metamask/design-system-react-native';
-import Text, {
-  TextColor,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
 import { useNavigation } from '@react-navigation/native';
@@ -40,16 +39,14 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
       alignItems={BoxAlignItems.Center}
-      twClassName="px-1 mb-2"
+      twClassName="mb-2"
     >
-      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-        {sectionConfig.title}
-      </Text>
+      <Text variant={TextVariant.HeadingSm}>{sectionConfig.title}</Text>
       <TouchableOpacity
         onPress={() => sectionConfig.viewAllAction(navigation)}
-        style={tw.style('flex-row items-center justify-center')}
+        style={tw.style('flex-row items-center justify-center gap-1')}
       >
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('trending.view_all')}
         </Text>
         <Icon

@@ -1,6 +1,6 @@
 import { Box, BoxBorderColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useRef } from 'react';
+import React, { useRef } from 'react';
 import { Dimensions } from 'react-native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
@@ -26,40 +26,30 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({ sectionId }) => {
   const skeletonCount = 3;
   const skeletonData = Array.from({ length: skeletonCount });
 
-  const renderSkeletonItem = useCallback(
-    () => (
-      <Box style={tw.style({ width: CARD_WIDTH, height: CARD_HEIGHT })}>
-        <Box
-          borderColor={BoxBorderColor.BorderDefault}
-          twClassName="rounded-2xl px-2 overflow-hidden"
-        >
-          <section.Skeleton />
-        </Box>
-      </Box>
-    ),
-    [tw, section],
-  );
-
-  const renderDataItem = useCallback(
-    ({ item }: { item: unknown }) => (
-      <Box style={tw.style({ width: CARD_WIDTH, height: CARD_HEIGHT })}>
-        <Box
-          borderColor={BoxBorderColor.BorderDefault}
-          twClassName="rounded-2xl px-2 overflow-hidden"
-        >
-          <section.RowItem item={item} navigation={navigation} />
-        </Box>
-      </Box>
-    ),
-    [tw, section, navigation],
-  );
+  const displayData = isLoading ? skeletonData : data;
 
   return (
     <Box twClassName="mb-6">
       <FlashList
         ref={flashListRef}
-        data={isLoading ? skeletonData : data}
-        renderItem={isLoading ? renderSkeletonItem : renderDataItem}
+        data={displayData}
+        renderItem={({ item, index }) => {
+          const isLastItem = index === displayData.length - 1;
+          return (
+            <Box style={tw.style({ width: CARD_WIDTH, height: CARD_HEIGHT })}>
+              <Box
+                borderColor={BoxBorderColor.BorderDefault}
+                twClassName={`rounded-2xl overflow-hidden ${!isLastItem ? 'pr-4' : ''}`}
+              >
+                {isLoading ? (
+                  <section.Skeleton />
+                ) : (
+                  <section.RowItem item={item} navigation={navigation} />
+                )}
+              </Box>
+            </Box>
+          );
+        }}
         keyExtractor={
           isLoading
             ? (_, index) => `skeleton-${index}`

@@ -6,13 +6,13 @@ import {
   BoxAlignItems,
   Text,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../component-library/components/Icons/Icon';
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 
@@ -57,17 +57,17 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="bg-muted rounded-lg px-3"
+      twClassName="bg-subsection rounded-lg px-3"
       style={tw.style('min-h-[44px]')}
     >
       <Icon
         name={IconName.Search}
         size={IconSize.Md}
-        color={IconColor.Muted}
+        color={IconColor.IconMuted}
         style={tw.style('mr-2')}
       />
       {isButtonMode ? (
-        <Text variant={TextVariant.BodyMd} style={tw.style('text-muted')}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('trending.search_placeholder')}
         </Text>
       ) : (
@@ -76,7 +76,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             value={props.searchQuery}
             onChangeText={props.onSearchChange}
             placeholder={strings('trending.search_placeholder')}
-            placeholderTextColor={colors.text.muted}
+            placeholderTextColor={colors.text.alternative}
             style={tw.style('flex-1 text-base text-default py-2.5')}
             testID="explore-view-search-input"
             autoFocus={props.type === 'interactive'}
@@ -95,7 +95,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             <Icon
               name={IconName.CircleX}
               size={IconSize.Md}
-              color={IconColor.Muted}
+              color={IconColor.IconMuted}
             />
           </TouchableOpacity>
         </>

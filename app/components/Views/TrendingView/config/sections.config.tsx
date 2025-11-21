@@ -25,6 +25,7 @@ import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 import { useSearchRequest } from '../../../UI/Trending/hooks/useSearchRequest';
+import { IconName } from '@metamask/design-system-react-native';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps';
 
@@ -36,6 +37,7 @@ interface SectionData {
 interface SectionConfig {
   id: SectionId;
   title: string;
+  icon: IconName;
   viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
   RowItem: React.ComponentType<{
     item: unknown;
@@ -71,6 +73,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
     title: strings('trending.tokens'),
+    icon: IconName.Ethereum,
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
@@ -128,6 +131,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   perps: {
     id: 'perps',
     title: strings('trending.perps'),
+    icon: IconName.Candlestick,
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
@@ -171,6 +175,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   predictions: {
     id: 'predictions',
     title: strings('wallet.predict'),
+    icon: IconName.Speedometer,
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
