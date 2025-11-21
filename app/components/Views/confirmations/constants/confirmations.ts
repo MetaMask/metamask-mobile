@@ -54,6 +54,7 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
 
 export const FULL_SCREEN_CONFIRMATIONS = [
   MUSD_CONVERSION_TRANSACTION_TYPE,
+  TransactionType.lendingDeposit,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,

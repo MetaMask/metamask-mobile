@@ -74,8 +74,10 @@ export const useConfirmActions = () => {
       return;
     }
 
+    const waitForResult = approvalType !== ApprovalType.TransactionBatch;
+
     await onRequestConfirm({
-      waitForResult: true,
+      waitForResult,
       deleteAfterResult: true,
       handleErrors: false,
     });
@@ -97,6 +99,7 @@ export const useConfirmActions = () => {
     setScannerVisible,
     onTransactionConfirm,
     captureSignatureMetrics,
+    approvalType,
   ]);
 
   return { onConfirm, onReject };
