@@ -128,7 +128,6 @@ export function validatePositiveNumericString(
   value: string,
 ): string | undefined {
   if (!isValidPositiveNumericString(value)) {
-    console.log('OGP - value', value);
     return strings('send.invalid_value');
   }
   return undefined;
