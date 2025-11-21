@@ -48,6 +48,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -263,6 +264,10 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
+  }
+
+  if (hasTransactionType(transaction, [MUSD_CONVERSION_TRANSACTION_TYPE])) {
+    return strings('earn.musd_conversion.confirmation_button');
   }
 
   return strings('confirm.deposit_edit_amount_done');

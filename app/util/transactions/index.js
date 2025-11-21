@@ -69,6 +69,7 @@ import { handleMethodData } from '../../util/transaction-controller';
 import EthQuery from '@metamask/eth-query';
 import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
 import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../components/UI/Earn/constants/musd';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -163,6 +164,9 @@ const reviewActionKeys = {
   [TransactionType.lendingWithdraw]: strings(
     'transactions.tx_review_lending_withdraw',
   ),
+  [MUSD_CONVERSION_TRANSACTION_TYPE]: strings(
+    'transactions.tx_review_musd_conversion',
+  ),
 };
 
 /**
@@ -214,6 +218,9 @@ const actionKeys = {
   ),
   [TransactionType.predictWithdraw]: strings(
     'transactions.tx_review_predict_withdraw',
+  ),
+  [MUSD_CONVERSION_TRANSACTION_TYPE]: strings(
+    'transactions.tx_review_musd_conversion',
   ),
 };
 
@@ -544,6 +551,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
       TransactionType.perpsDeposit,
+      MUSD_CONVERSION_TRANSACTION_TYPE,
     ].includes(type)
   ) {
     return type;
@@ -739,6 +747,7 @@ export async function getTransactionReviewActionKey(transaction, chainId) {
   if (transactionReviewActionKey) {
     return transactionReviewActionKey;
   }
+
   return actionKey;
 }
 

@@ -2166,6 +2166,7 @@ describe('PerpsController', () => {
         networkClientId: mockNetworkClientId,
         origin: 'metamask',
         type: 'perpsDeposit',
+        skipInitialGasEstimate: true,
       });
     });
 
