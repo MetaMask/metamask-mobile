@@ -56,76 +56,94 @@ describe('middlewares', () => {
   });
 
   describe('containsUserRejectedError', () => {
-    describe('returns true', () => {
-      it('when error message contains "user rejected"', () => {
-        expect(containsUserRejectedError('User rejected the transaction')).toBe(
-          true,
-        );
-      });
+    it('returns true for error message containing "user rejected"', () => {
+      const result = containsUserRejectedError('User rejected the transaction');
 
-      it('when error message contains "user denied"', () => {
-        expect(
-          containsUserRejectedError(
-            'MetaMask Message Signature: User denied message signature.',
-          ),
-        ).toBe(true);
-      });
-
-      it('when error message contains "user cancelled"', () => {
-        expect(
-          containsUserRejectedError('User cancelled the transaction'),
-        ).toBe(true);
-      });
-
-      it('when error message is case insensitive', () => {
-        expect(containsUserRejectedError('USER REJECTED')).toBe(true);
-        expect(containsUserRejectedError('UsEr DeNiEd')).toBe(true);
-      });
-
-      it('when error code is 4001', () => {
-        expect(containsUserRejectedError('Some error', 4001)).toBe(true);
-      });
-
-      it('when both message and code indicate user rejection', () => {
-        expect(containsUserRejectedError('User rejected', 4001)).toBe(true);
-      });
+      expect(result).toBe(true);
     });
 
-    describe('returns false', () => {
-      it('when error message is null', () => {
-        expect(containsUserRejectedError(null)).toBe(false);
-      });
+    it('returns true for error message containing "user denied"', () => {
+      const result = containsUserRejectedError(
+        'MetaMask Message Signature: User denied message signature.',
+      );
 
-      it('when error message is undefined', () => {
-        expect(containsUserRejectedError(undefined)).toBe(false);
-      });
+      expect(result).toBe(true);
+    });
 
-      it('when error message is not a string', () => {
-        expect(containsUserRejectedError(123)).toBe(false);
-        expect(containsUserRejectedError({})).toBe(false);
-        expect(containsUserRejectedError([])).toBe(false);
-      });
+    it('returns true for error message containing "user cancelled"', () => {
+      const result = containsUserRejectedError(
+        'User cancelled the transaction',
+      );
 
-      it('when error message does not contain user rejection phrases', () => {
-        expect(containsUserRejectedError('Internal JSON-RPC error')).toBe(
-          false,
-        );
-      });
+      expect(result).toBe(true);
+    });
 
-      it('when error code is not 4001', () => {
-        expect(containsUserRejectedError('Some error', 4000)).toBe(false);
-        expect(containsUserRejectedError('Some error', 4002)).toBe(false);
-      });
+    it('returns true for case insensitive user rejection messages', () => {
+      const upperCaseResult = containsUserRejectedError('USER REJECTED');
+      const mixedCaseResult = containsUserRejectedError('UsEr DeNiEd');
 
-      it('when an exception occurs during checking', () => {
-        // Pass an object that will cause toLowerCase to throw
-        const errorMessage = {
-          toLowerCase: () => {
-            throw new Error('Test error');
-          },
-        };
-        expect(containsUserRejectedError(errorMessage)).toBe(false);
-      });
+      expect(upperCaseResult).toBe(true);
+      expect(mixedCaseResult).toBe(true);
+    });
+
+    it('returns true for error code 4001', () => {
+      const result = containsUserRejectedError('Some error', 4001);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when both message and code indicate user rejection', () => {
+      const result = containsUserRejectedError('User rejected', 4001);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for null error message', () => {
+      const result = containsUserRejectedError(null);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for undefined error message', () => {
+      const result = containsUserRejectedError(undefined);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for non-string error message', () => {
+      const numberResult = containsUserRejectedError(123);
+      const objectResult = containsUserRejectedError({});
+      const arrayResult = containsUserRejectedError([]);
+
+      expect(numberResult).toBe(false);
+      expect(objectResult).toBe(false);
+      expect(arrayResult).toBe(false);
+    });
+
+    it('returns false for error message without user rejection phrases', () => {
+      const result = containsUserRejectedError('Internal JSON-RPC error');
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for error codes other than 4001', () => {
+      const result4000 = containsUserRejectedError('Some error', 4000);
+      const result4002 = containsUserRejectedError('Some error', 4002);
+
+      expect(result4000).toBe(false);
+      expect(result4002).toBe(false);
+    });
+
+    it('returns false when exception occurs during checking', () => {
+      const errorMessage = {
+        toLowerCase: () => {
+          throw new Error('Test error');
+        },
+      };
+
+      const result = containsUserRejectedError(errorMessage);
+
+      expect(result).toBe(false);
     });
   });
 
