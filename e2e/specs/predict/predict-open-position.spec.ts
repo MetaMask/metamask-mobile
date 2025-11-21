@@ -56,10 +56,10 @@ describe(SmokePredictions('Predictions'), () => {
 
         await PredictMarketList.tapMarketCard('sports', 1);
         await PredictDetailsPage.tapOpenPositionValue();
+        await device.disableSynchronization();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
         await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
-        await device.disableSynchronization();
 
         await PredictDetailsPage.tapPositionAmount('10');
 
