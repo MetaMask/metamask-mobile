@@ -93,7 +93,7 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../core/DeeplinkManager/entry/SharedDeeplinkManager', () => ({
+jest.mock('../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
   __esModule: true,
   default: {
     init: jest.fn(),
@@ -118,7 +118,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
-jest.mock('../../core/DeeplinkManager/entry/handleDeeplink', () => ({
+jest.mock('../../core/DeeplinkManager/handleDeeplink', () => ({
   handleDeeplink: jest.fn(),
 }));
 

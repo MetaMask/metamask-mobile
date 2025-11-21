@@ -67,7 +67,7 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock('../../../core/DeeplinkManager/entry/SharedDeeplinkManager', () => ({
+jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
   parse: jest.fn(() => Promise.resolve()),
 }));
 
