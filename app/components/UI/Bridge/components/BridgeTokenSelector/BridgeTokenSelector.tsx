@@ -8,29 +8,20 @@ import React, {
 import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getBridgeTokenSelectorNavbar } from '../../../Navbar';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
-import { CaipChainId, parseCaipAssetType } from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
-import { constants } from 'ethers';
-import {
-  selectBridgeFeatureFlags,
-  selectSourceToken,
-  selectDestToken,
-  setSourceToken,
-  setDestToken,
-} from '../../../../../core/redux/slices/bridge';
+import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
-  isNonEvmChainId,
-  formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import {
   Box,
@@ -43,13 +34,11 @@ import { SkeletonItem } from '../BridgeTokenSelectorBase';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { BridgeToken } from '../../types';
-import {
-  usePopularTokens,
-  PopularToken,
-  IncludeAsset,
-} from '../../hooks/usePopularTokens';
+import { usePopularTokens, IncludeAsset } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
+import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
+import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { getNetworkName } from '../BridgeDestTokenSelector';
@@ -62,43 +51,8 @@ export interface BridgeTokenSelectorRouteParams {
 
 const MIN_SEARCH_LENGTH = 3;
 
-const convertAPITokensToBridgeTokens = (
-  apiTokens: PopularToken[],
-): (BridgeToken & { assetId?: string })[] =>
-  apiTokens.map((token) => {
-    const { assetReference, chainId, assetNamespace } = parseCaipAssetType(
-      token.assetId,
-    );
-    const isNonEvm = isNonEvmChainId(chainId);
-    const isNative = assetNamespace === 'slip44';
-
-    // For non-EVM chains, keep the full assetId as the address to properly match balances
-    // For EVM native tokens, use the zero address (required by useLatestBalance)
-    // For EVM ERC20 tokens, use the asset reference (the actual contract address)
-    let address: string;
-    if (isNonEvm) {
-      address = token.assetId;
-    } else if (isNative) {
-      address = constants.AddressZero;
-    } else {
-      address = assetReference;
-    }
-
-    // For EVM chains, convert chainId to Hex format for useLatestBalance to work correctly
-    // For non-EVM chains, keep CAIP format
-    const formattedChainId = isNonEvm ? chainId : formatChainIdToHex(chainId);
-
-    return {
-      ...token,
-      assetId: token.assetId,
-      address,
-      chainId: formattedChainId,
-    };
-  });
-
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const { styles } = useStyles(createStyles, {});
@@ -122,11 +76,12 @@ export const BridgeTokenSelector: React.FC = () => {
     navigation.setOptions(getBridgeTokenSelectorNavbar(navigation));
   }, [navigation]);
 
+  // Use custom hook for token selection
+  const { handleTokenPress, selectedToken } = useTokenSelection(
+    route.params?.type,
+  );
+
   // Initialize selectedChainId with the chain id of the selected token
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
-  const selectedToken =
-    route.params?.type === 'source' ? sourceToken : destToken;
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
   >(
@@ -217,6 +172,16 @@ export const BridgeTokenSelector: React.FC = () => {
     includeAssets,
   });
 
+  // Use custom hook for merging balances
+  const popularTokensWithBalance = useTokensWithBalances(
+    popularTokens,
+    balancesByAssetId,
+  );
+  const searchResultsWithBalance = useTokensWithBalances(
+    searchResults,
+    balancesByAssetId,
+  );
+
   const displayData = useMemo(() => {
     const isLoading = isPopularTokensLoading || isSearchLoading;
     if (isLoading) {
@@ -224,56 +189,14 @@ export const BridgeTokenSelector: React.FC = () => {
       return Array(8).fill(null);
     }
 
-    let tokensToDisplay: BridgeToken[] = [];
-    // Only show search results when query meets minimum length requirement
-    if (isValidSearch) {
-      // If we have a search query, show search results merged with balances
-      const convertedSearchResults =
-        convertAPITokensToBridgeTokens(searchResults);
-      // Merge balances from the selector into search results
-      const searchResultsWithBalance = convertedSearchResults.map((token) => {
-        const balanceData = balancesByAssetId[token.assetId ?? ''];
-        if (balanceData) {
-          return {
-            ...token,
-            balance: balanceData.balance,
-            balanceFiat: balanceData.balanceFiat,
-            tokenFiatAmount: balanceData.tokenFiatAmount,
-            currencyExchangeRate: balanceData.currencyExchangeRate,
-          };
-        }
-        return token;
-      });
-      tokensToDisplay = searchResultsWithBalance;
-    } else {
-      // Default: show popular tokens merged with balances
-      const convertedPopularTokens =
-        convertAPITokensToBridgeTokens(popularTokens);
-      // Merge balances from the selector into popular tokens
-      const popularTokensWithBalance = convertedPopularTokens.map((token) => {
-        const balanceData = balancesByAssetId[token.assetId ?? ''];
-        if (balanceData) {
-          return {
-            ...token,
-            balance: balanceData.balance,
-            balanceFiat: balanceData.balanceFiat,
-            tokenFiatAmount: balanceData.tokenFiatAmount,
-            currencyExchangeRate: balanceData.currencyExchangeRate,
-          };
-        }
-        return token;
-      });
-      tokensToDisplay = popularTokensWithBalance;
-    }
-
-    return tokensToDisplay;
+    // Show search results when query meets minimum length, otherwise show popular tokens
+    return isValidSearch ? searchResultsWithBalance : popularTokensWithBalance;
   }, [
     isPopularTokensLoading,
     isSearchLoading,
     isValidSearch,
-    searchResults,
-    popularTokens,
-    balancesByAssetId,
+    searchResultsWithBalance,
+    popularTokensWithBalance,
   ]);
 
   // Re-trigger search when chain IDs change if there's an active search
@@ -335,31 +258,6 @@ export const BridgeTokenSelector: React.FC = () => {
     setSearchString(text);
     debouncedSearch(text);
   };
-
-  const handleTokenPress = useCallback(
-    (token: BridgeToken) => {
-      const isSourcePicker = route.params?.type === 'source';
-      const otherToken = isSourcePicker ? destToken : sourceToken;
-
-      // Check if the selected token matches the "other" token (dest when selecting source, source when selecting dest)
-      const isSelectingOtherToken =
-        otherToken &&
-        token.address === otherToken.address &&
-        token.chainId === otherToken.chainId;
-
-      if (isSelectingOtherToken && sourceToken && destToken) {
-        // Swap the tokens: old source becomes dest, old dest becomes source
-        dispatch(setSourceToken(destToken));
-        dispatch(setDestToken(sourceToken));
-      } else {
-        // Normal selection: just update the current token
-        dispatch(isSourcePicker ? setSourceToken(token) : setDestToken(token));
-      }
-
-      navigation.goBack();
-    },
-    [navigation, dispatch, route.params?.type, sourceToken, destToken],
-  );
 
   const handleInfoButtonPress = useCallback(
     (item: BridgeToken) => {
@@ -440,11 +338,6 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Load more results when user scrolls to the bottom
   const handleLoadMore = useCallback(() => {
-    // Only load more if:
-    // 1. We have a valid search query (meets minimum length)
-    // 2. We're not currently loading
-    // 3. We have a cursor for pagination
-    // 4. We have already searched once
     if (isValidSearch && !isSearchLoading && !isLoadingMore && searchCursor) {
       searchTokens(searchString, searchCursor);
     }
