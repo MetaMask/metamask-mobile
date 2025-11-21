@@ -19,9 +19,10 @@ import { PredefinedRecipient } from '../../utils/send';
 
 export const useSendType = () => {
   const { asset } = useSendContext();
-  const { predefinedRecipient } = useParams<{
-    predefinedRecipient: PredefinedRecipient;
-  }>();
+  const { predefinedRecipient } =
+    useParams<{
+      predefinedRecipient: PredefinedRecipient;
+    }>() || {};
 
   const {
     isEvm: isPredefinedEvm,
