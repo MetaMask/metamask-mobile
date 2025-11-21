@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, Keyboard, FlatList, Pressable, StyleSheet } from 'react-native';
+import { View, Keyboard, FlatList, Pressable } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
 import Text, {
@@ -34,28 +34,6 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
 }
-
-const suggestionBarStyles = StyleSheet.create({
-  container: {
-    paddingVertical: 1,
-  },
-  listContent: {
-    alignItems: 'center',
-  },
-  suggestionButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    marginRight: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    minWidth: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
 
 /**
  * SrpInputGrid Component
@@ -534,7 +512,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         {suggestions.length > 0 && (
           <View
             style={[
-              suggestionBarStyles.container,
+              styles.suggestionContainer,
               {
                 backgroundColor: colors.background.default,
               },
@@ -546,12 +524,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
               renderItem={({ item }) => (
                 <Pressable
                   style={({ pressed }) => [
-                    suggestionBarStyles.suggestionButton,
+                    styles.suggestionButton,
                     {
                       backgroundColor: colors.background.alternative,
                       borderColor: colors.border.default,
                     },
-                    pressed && suggestionBarStyles.pressed,
+                    pressed && styles.suggestionPressed,
                   ]}
                   onPress={() => handleSuggestionSelect(item)}
                 >
@@ -562,7 +540,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
               )}
               keyExtractor={(item) => item}
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={suggestionBarStyles.listContent}
+              contentContainerStyle={styles.suggestionListContent}
               keyboardShouldPersistTaps="always"
             />
           </View>
