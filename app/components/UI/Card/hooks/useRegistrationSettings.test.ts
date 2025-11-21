@@ -44,11 +44,8 @@ describe('useRegistrationSettings', () => {
 
     // Default mocks
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
     });
 
     mockUseWrapWithCache.mockReturnValue(mockCacheReturn);
@@ -93,11 +90,8 @@ describe('useRegistrationSettings', () => {
 
     it('should throw error when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       renderHook(() => useRegistrationSettings());
@@ -188,11 +182,8 @@ describe('useRegistrationSettings', () => {
   describe('edge cases', () => {
     it('should handle undefined SDK gracefully', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       renderHook(() => useRegistrationSettings());

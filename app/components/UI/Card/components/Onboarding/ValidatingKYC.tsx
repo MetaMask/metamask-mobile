@@ -12,7 +12,8 @@ const ValidatingKYC = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const { verificationState } = useUserRegistrationStatus();
+  const { verificationState, startPolling, stopPolling } =
+    useUserRegistrationStatus();
 
   useEffect(() => {
     trackEvent(
@@ -23,6 +24,13 @@ const ValidatingKYC = () => {
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
+
+  useEffect(() => {
+    startPolling();
+    return () => {
+      stopPolling();
+    };
+  }, [startPolling, stopPolling]);
 
   useEffect(() => {
     if (verificationState === 'VERIFIED') {

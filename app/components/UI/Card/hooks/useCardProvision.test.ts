@@ -18,7 +18,6 @@ const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 describe('useCardProvision', () => {
   const mockProvisionCard = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
 
   const mockSDK = {
     provisionCard: mockProvisionCard,
@@ -34,11 +33,8 @@ describe('useCardProvision', () => {
 
     // Default mock - SDK is available
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
   });
 
@@ -194,11 +190,8 @@ describe('useCardProvision', () => {
   describe('No SDK Available', () => {
     it('returns early when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => useCardProvision());
@@ -216,11 +209,8 @@ describe('useCardProvision', () => {
 
     it('does not set loading state when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => useCardProvision());
@@ -276,11 +266,8 @@ describe('useCardProvision', () => {
       } as unknown as CardSDK;
 
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: newMockSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       rerender();

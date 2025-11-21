@@ -17,8 +17,10 @@ interface UseUserRegistrationStatusReturn {
 
 /**
  * Hook for polling user registration status
- * Automatically polls the registration status using getRegistrationStatus from CardSDK
- * at regular intervals when verificationState is PENDING
+ * Polls the registration status using getRegistrationStatus from CardSDK.
+ * Polling must be started manually via startPolling() and automatically stops
+ * when verification reaches a terminal state (VERIFIED, REJECTED, or UNVERIFIED).
+ * Only PENDING state continues polling.
  */
 export const useUserRegistrationStatus =
   (): UseUserRegistrationStatusReturn => {
@@ -93,19 +95,14 @@ export const useUserRegistrationStatus =
       }
     }, []);
 
-    // Auto-manage polling based on verification state
     useEffect(() => {
-      if (
-        verificationState === 'PENDING' ||
-        verificationState === 'UNVERIFIED'
-      ) {
-        startPolling();
-      } else if (intervalRef.current) {
+      // Auto-stop polling when verification reaches terminal state (not PENDING)
+      if (verificationState !== 'PENDING' && intervalRef.current) {
         stopPolling();
       }
 
       return stopPolling;
-    }, [verificationState, stopPolling, startPolling]);
+    }, [verificationState, stopPolling]);
 
     return {
       verificationState,
