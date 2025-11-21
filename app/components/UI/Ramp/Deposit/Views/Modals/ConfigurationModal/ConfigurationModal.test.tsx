@@ -160,7 +160,7 @@ describe('ConfigurationModal', () => {
       location: 'Deposit Settings Modal',
       ramp_type: 'BUY',
       region: 'us',
-      ramp_routing: null,
+      ramp_routing: undefined,
       is_authenticated: false,
       preferred_provider: undefined,
       order_count: 0,
