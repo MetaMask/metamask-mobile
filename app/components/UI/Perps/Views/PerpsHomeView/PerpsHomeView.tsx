@@ -33,11 +33,7 @@ import {
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { BigNumber } from 'bignumber.js';
-import {
-  UI_SPACING_CONFIG,
-  LEARN_MORE_CONFIG,
-  SUPPORT_CONFIG,
-} from '../../constants/perpsConfig';
+import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -209,16 +205,16 @@ const PerpsHomeView = () => {
     setShowCancelAllSheet(false);
   }, []);
 
+  // Calculate actual footer dimensions
+  // Footer: paddingTop(16) + button(48) + paddingBottom(16 + insets.bottom)
+  const footerHeight = 80 + insets.bottom;
+
   const bottomSpacerStyle = useMemo(
-    () => [
-      styles.bottomSpacer,
-      {
-        height: isBalanceEmpty
-          ? UI_SPACING_CONFIG.BOTTOM_SPACER_HEIGHT_EMPTY_STATE
-          : UI_SPACING_CONFIG.BOTTOM_SPACER_HEIGHT_FUNDED_STATE,
-      },
-    ],
-    [styles.bottomSpacer, isBalanceEmpty],
+    () => ({
+      // When footer is visible, add space for it. Otherwise minimal spacing for tab bar.
+      height: isBalanceEmpty ? 16 : footerHeight + 16,
+    }),
+    [isBalanceEmpty, footerHeight],
   );
 
   // Add safe area inset to footer for Android navigation bar

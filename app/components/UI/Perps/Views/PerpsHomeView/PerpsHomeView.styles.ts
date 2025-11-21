@@ -91,9 +91,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       marginRight: 12,
     },
-    bottomSpacer: {
-      height: 100, // Space for fixed footer + tab bar + safe area (dynamically adjusted in component)
-    },
     fixedFooter: {
       position: 'absolute',
       bottom: 0,

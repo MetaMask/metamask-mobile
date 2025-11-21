@@ -433,16 +433,6 @@ export const LEARN_MORE_CONFIG = {
 } as const;
 
 /**
- * UI spacing configuration
- * Controls spacing and layout constants across Perps UI components
- */
-export const UI_SPACING_CONFIG = {
-  // Bottom spacer heights for home screen (adjusts for fixed footer and tab bar)
-  BOTTOM_SPACER_HEIGHT_EMPTY_STATE: 60, // Space when no balance (no fixed footer visible)
-  BOTTOM_SPACER_HEIGHT_FUNDED_STATE: 100, // Space when balance exists (fixed footer visible)
-} as const;
-
-/**
  * Support configuration
  * Contact support button configuration (matches Settings behavior)
  */
