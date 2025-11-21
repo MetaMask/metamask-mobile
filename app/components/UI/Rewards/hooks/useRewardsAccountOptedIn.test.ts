@@ -25,22 +25,30 @@ describe('useRewardsAccountOptedIn', () => {
   const mockAccount = {
     id: 'account-1',
     address: '0x123',
-    type: 'eip155:eoa',
+    type: 'eip155:eoa' as const,
+    options: {},
+    metadata: {
+      name: 'Account 1',
+      importTime: Date.now(),
+      keyring: {
+        type: 'HD Key Tree',
+      },
+    },
+    scopes: ['eip155:1' as const],
+    methods: [],
   };
   const mockAddress = '0x123';
   const mockCaipAccount = 'eip155:1:0x123';
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (
-      selectSelectedInternalAccountByScope as jest.Mock
-    ).mockReturnValue(() => mockAccount);
-    (
-      getFormattedAddressFromInternalAccount as jest.Mock
-    ).mockReturnValue(mockAddress);
-    (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
-      mockCaipAccount,
-    );
+    jest
+      .mocked(selectSelectedInternalAccountByScope)
+      .mockReturnValue(() => mockAccount);
+    jest
+      .mocked(getFormattedAddressFromInternalAccount)
+      .mockReturnValue(mockAddress);
+    jest.mocked(formatAccountToCaipAccountId).mockReturnValue(mockCaipAccount);
   });
 
   it('returns null when rewards feature is not enabled', async () => {
@@ -107,9 +115,9 @@ describe('useRewardsAccountOptedIn', () => {
   });
 
   it('returns null when selected account is not available', async () => {
-    (
-      selectSelectedInternalAccountByScope as jest.Mock
-    ).mockReturnValue(() => null);
+    jest
+      .mocked(selectSelectedInternalAccountByScope)
+      .mockReturnValue(() => undefined);
 
     const { result } = renderHook(() => useRewardsAccountOptedIn());
 
@@ -119,9 +127,7 @@ describe('useRewardsAccountOptedIn', () => {
   });
 
   it('returns null when CAIP account formatting fails', async () => {
-    (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
-      null,
-    );
+    jest.mocked(formatAccountToCaipAccountId).mockReturnValue(null);
     (Engine.controllerMessenger.call as jest.Mock)
       .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
       .mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId

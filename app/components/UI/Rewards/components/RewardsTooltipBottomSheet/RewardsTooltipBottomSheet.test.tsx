@@ -37,11 +37,7 @@ describe('RewardsTooltipBottomSheet', () => {
 
   it('renders correctly when opted in and visible', () => {
     const { getByTestId, getByText } = render(
-      <RewardsTooltipBottomSheet
-        isOptedIn
-        isVisible
-        onClose={mockOnClose}
-      />,
+      <RewardsTooltipBottomSheet isOptedIn isVisible onClose={mockOnClose} />,
     );
 
     expect(getByTestId(REWARDS_TOOLTIP_BOTTOM_SHEET_SELECTOR)).toBeDefined();
@@ -79,11 +75,7 @@ describe('RewardsTooltipBottomSheet', () => {
 
   it('renders with hardcoded 5 points and per $100 suffix', () => {
     const { getByText } = render(
-      <RewardsTooltipBottomSheet
-        isOptedIn
-        isVisible
-        onClose={mockOnClose}
-      />,
+      <RewardsTooltipBottomSheet isOptedIn isVisible onClose={mockOnClose} />,
     );
 
     expect(
@@ -93,11 +85,7 @@ describe('RewardsTooltipBottomSheet', () => {
 
   it('renders custom header layout with close button', () => {
     const { getByTestId } = render(
-      <RewardsTooltipBottomSheet
-        isOptedIn
-        isVisible
-        onClose={mockOnClose}
-      />,
+      <RewardsTooltipBottomSheet isOptedIn isVisible onClose={mockOnClose} />,
     );
 
     expect(getByTestId(REWARDS_TOOLTIP_BOTTOM_SHEET_SELECTOR)).toBeDefined();
@@ -106,11 +94,7 @@ describe('RewardsTooltipBottomSheet', () => {
 
   it('calls onClose when close button is pressed', () => {
     const { getByText } = render(
-      <RewardsTooltipBottomSheet
-        isOptedIn
-        isVisible
-        onClose={mockOnClose}
-      />,
+      <RewardsTooltipBottomSheet isOptedIn isVisible onClose={mockOnClose} />,
     );
 
     const closeButton = getByText('earn.rewards.tooltip_close');
