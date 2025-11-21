@@ -86,6 +86,9 @@
       "message": "Add less than {{amount}} or use a different token.",
       "title": "Insufficient funds"
     },
+    "insufficient_pay_token_balance_fees_no_target": {
+      "message": "Add less or use a different token."
+    },
     "insufficient_pay_token_native": {
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
       "title": "Insufficient funds"
@@ -1942,10 +1945,10 @@
       "order_failed_generic": "Transaction failed. Please try again."
     },
     "withdraw": {
-      "withdrawing": "Withdrawing {{amount}} USDC",
-      "withdrawing_subtitle": "Est. {{time}} seconds",
-      "withdraw_completed": "Withdrawal completed",
-      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "withdrawing": "Withdrawal in progress",
+      "withdrawing_subtitle": "Available in about 1 minute",
+      "withdraw_completed": "Withdrawal complete",
+      "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
