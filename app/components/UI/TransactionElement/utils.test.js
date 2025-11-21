@@ -447,5 +447,115 @@ describe('Transaction Element Utils', () => {
         txChainId: '0x89',
       });
     });
+
+    it('sets SENT_COLLECTIBLE type when user is sender', async () => {
+      const selectedAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const args = {
+        tx: {
+          txParams: {
+            to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+            from: selectedAddress,
+            data: '0x23b872dd',
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '123',
+            contractAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
+
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+      expect(transactionDetails.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+    });
+
+    it('sets RECEIVED_COLLECTIBLE type when user is receiver', async () => {
+      const selectedAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+      const args = {
+        tx: {
+          txParams: {
+            to: selectedAddress,
+            from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
+            data: '0x23b872dd',
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '456',
+            contractAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Received Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement, transactionDetails] =
+        await decodeTransaction(args);
+
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.RECEIVED_COLLECTIBLE,
+      );
+      expect(transactionDetails.transactionType).toBe(
+        TRANSACTION_TYPES.RECEIVED_COLLECTIBLE,
+      );
+    });
+
+    it('sets SENT_COLLECTIBLE type with case-insensitive address comparison', async () => {
+      const selectedAddress = '0xABCDEF1234567890ABcdef1234567890abcdef12';
+      const args = {
+        tx: {
+          txParams: {
+            to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+            from: '0xabcdef1234567890abcdef1234567890abcdef12',
+            data: '0x23b872dd',
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '789',
+            contractAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+    });
   });
 });

@@ -467,6 +467,7 @@ function decodeTransferFromTx(args) {
       txParams,
       txParams: { gas, data, to },
       hash,
+      transferInformation,
     },
     txChainId,
     collectibleContracts,
@@ -476,10 +477,27 @@ function decodeTransferFromTx(args) {
     selectedAddress,
     ticker,
   } = args;
-  const [addressFrom, addressTo, tokenId] = decodeTransferData(
-    'transferFrom',
-    data,
-  );
+
+  // For transferFrom transactions, use transferInformation if available
+  // since the data may only contain the function signature
+  let addressFrom, addressTo, tokenId;
+
+  if (transferInformation) {
+    // Use parsed transfer information and txParams for addresses
+    tokenId =
+      transferInformation.tokenId ||
+      transferInformation.tokenAmount ||
+      transferInformation.value;
+    // Use txParams.from for the actual sender (most reliable for direction)
+    addressFrom = txParams.from;
+    addressTo = txParams.to;
+  } else {
+    // Fallback to decoding from data
+    [addressFrom, addressTo, tokenId] = decodeTransferData(
+      'transferFrom',
+      data,
+    );
+  }
   const collectible = collectibleContracts?.find((collectible) =>
     areAddressesEqual(collectible.address, to),
   );
@@ -515,7 +533,9 @@ function decodeTransferFromTx(args) {
 
   const { SENT_COLLECTIBLE, RECEIVED_COLLECTIBLE } = TRANSACTION_TYPES;
   const transactionType =
-    renderFrom === selectedAddress ? SENT_COLLECTIBLE : RECEIVED_COLLECTIBLE;
+    renderFrom?.toLowerCase() === selectedAddress?.toLowerCase()
+      ? SENT_COLLECTIBLE
+      : RECEIVED_COLLECTIBLE;
 
   let transactionDetails = {
     renderFrom,
