@@ -571,8 +571,6 @@ generateAndroidBinary() {
 	# Define Test build type arg
 	local testBuildTypeArg=""
 
-	cp gradle.properties.github gradle.properties
-
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
 		# Configuration is not recognized
@@ -602,7 +600,9 @@ generateAndroidBinary() {
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg --build-cache --parallel
+	# Kill any remaining daemon
+	./gradlew --stop || true
+	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg --build-cache --no-parallel --max-workers=2
 
 	if [ "$configuration" = "Release" ] ; then		
 		# Generate AAB bundle (not needed for E2E)
