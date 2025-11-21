@@ -527,29 +527,6 @@ generateIosBinary() {
 
 }
 
-buildAndroidReleaseE2E(){
-	local flavor="${1:-Prod}"
-	local lowerFlavor=$(echo "$flavor" | tr '[:upper:]' '[:lower:]')
-
-	prebuild_android
-	# Use GitHub CI gradle properties for E2E builds (x86_64 only, optimized memory settings)
-	cp android/gradle.properties.github android/gradle.properties
-	# E2E builds only need x86_64 for emulator testing, reducing build time and memory usage
-	echo "Building E2E APKs for $flavor flavor..."
-	cd android
-
-	# Try building with optimized settings
-	if ! ./gradlew assemble${flavor}Release app:assemble${flavor}ReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release; then
-		echo "⚠️  Build failed, retrying with reduced parallelism..."
-		# Kill any remaining daemon
-		./gradlew --stop || true
-		# Retry with no parallel builds to reduce memory pressure
-		./gradlew assemble${flavor}Release app:assemble${flavor}ReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release --no-parallel --max-workers=2
-	fi
-
-	cd ..
-}
-
 # Generates the Android binary for the given scheme and configuration
 generateAndroidBinary() {
 	# Prod, Flask, or QA (Deprecated - Do not use)
@@ -600,8 +577,8 @@ generateAndroidBinary() {
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	# Kill any remaining daemon
-	./gradlew --stop || true
+	# Disable parallel builds and set max workers for E2E builds to reduce memory pressure in CI
+	# Note: Memory error usually appears as with error (Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed))
 	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg --build-cache --no-parallel --max-workers=2
 
 	if [ "$configuration" = "Release" ] ; then		
@@ -652,8 +629,6 @@ buildAndroid() {
 	if [ "$METAMASK_BUILD_TYPE" == "release" ] || [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
 			buildAndroidMainLocal
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ] ; then
-			buildAndroidReleaseE2E
 		else
 			# Prepare Android dependencies
 			prebuild_android
