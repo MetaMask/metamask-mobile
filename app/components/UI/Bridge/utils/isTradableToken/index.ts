@@ -9,6 +9,7 @@ const nonTradableTokenNames: Record<Hex | CaipChainId, string[]> = {
     'max bandwidth',
     'staked for energy',
     'staked for bandwidth',
+    'max energy',
   ],
 };
 
