@@ -47,6 +47,7 @@ describe(SmokePredictions('Predictions'), () => {
         await TabBarComponent.tapActions();
 
         await WalletActionsBottomSheet.tapPredictButton();
+        await device.disableSynchronization();
 
         await Assertions.expectElementToBeVisible(PredictMarketList.container, {
           description: 'Predict market list container should be visible',
@@ -56,7 +57,6 @@ describe(SmokePredictions('Predictions'), () => {
 
         await PredictMarketList.tapMarketCard('sports', 1);
         await PredictDetailsPage.tapOpenPositionValue();
-        await device.disableSynchronization();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
         await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
