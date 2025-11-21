@@ -52,7 +52,6 @@ export interface MusdConversionConfig {
  *     address: USDC_ADDRESS_ARBITRUM,
  *     chainId: CHAIN_IDS.MAINNET,
  *   },
- *   allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
  *   navigationStack: Routes.EARN.ROOT,
  * });
  */
