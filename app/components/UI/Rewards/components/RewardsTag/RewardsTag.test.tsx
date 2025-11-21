@@ -4,6 +4,7 @@ import RewardsTag, {
   REWARDS_TAG_SELECTOR,
   RewardsTagBackgroundVariant,
 } from './RewardsTag';
+import Icon from '../../../../../component-library/components/Icons/Icon';
 
 describe('RewardsTag', () => {
   it('renders correctly with 0 points', () => {
@@ -33,18 +34,18 @@ describe('RewardsTag', () => {
     expect(queryByText('per $100')).toBeNull();
   });
 
-  it('renders with info icon when showInfoIcon is true', () => {
+  it('renders info icon when showInfoIcon is true', () => {
     const { UNSAFE_getByType } = render(
       <RewardsTag points={100} showInfoIcon />,
     );
-    // Icon component should be rendered as endAccessory
-    expect(UNSAFE_getByType).toBeDefined();
+
+    expect(UNSAFE_getByType(Icon)).toBeDefined();
   });
 
   it('does not render info icon by default', () => {
-    const { queryByTestId } = render(<RewardsTag points={100} />);
-    // No info icon should be present
-    expect(queryByTestId('icon-info')).toBeNull();
+    const { UNSAFE_queryByType } = render(<RewardsTag points={100} />);
+
+    expect(UNSAFE_queryByType(Icon)).toBeNull();
   });
 
   it('applies subsection background variant by default', () => {
