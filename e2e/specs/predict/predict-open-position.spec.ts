@@ -51,12 +51,12 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToBeVisible(PredictMarketList.container, {
           description: 'Predict market list container should be visible',
         });
+        await device.disableSynchronization();
+
         await PredictMarketList.tapCategoryTab('sports');
 
         await PredictMarketList.tapMarketCard('sports', 1);
         await PredictDetailsPage.tapOpenPositionValue();
-
-        await device.disableSynchronization();
 
         await PredictDetailsPage.tapPositionAmount('10');
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
