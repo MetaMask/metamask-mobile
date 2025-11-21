@@ -1814,6 +1814,26 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
   };
 }
 
+export function getBridgeTokenSelectorNavbar(navigation) {
+  const leftAction = () => navigation.goBack();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={strings('bridge.select_token')}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
+  };
+}
+
 export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
     perpsTransactionsTitle: {
