@@ -108,7 +108,10 @@ jest.mock('../TradingViewChart', () => {
       }: { testID: string; onOhlcDataChange?: (data: unknown) => void },
       ref: unknown,
     ) => {
-      ReactMock.useImperativeHandle(ref, () => ({}));
+      ReactMock.useImperativeHandle(ref, () => ({
+        zoomToLatestCandle: jest.fn(),
+        resetToDefault: jest.fn(),
+      }));
       return <View testID={testID} />;
     },
   );

@@ -49,6 +49,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const chartRef = React.useRef<TradingViewChartRef>(null);
+  const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
   // Initialize with screen height to avoid flash of incorrect size
   const [chartHeight, setChartHeight] = useState<number>(
@@ -94,6 +95,26 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       setOhlcvHeight(0);
     }
   }, [ohlcData]);
+
+  // Auto-zoom to latest candle when interval changes and new data arrives
+  // This ensures the chart shows the most recent data after interval change
+  useEffect(() => {
+    // Check if the interval has actually changed
+    const hasIntervalChanged = previousIntervalRef.current !== selectedInterval;
+
+    // Only zoom when:
+    // 1. The interval has changed (user pressed button)
+    // 2. New data exists and matches the selected period
+    if (
+      hasIntervalChanged &&
+      candleData &&
+      candleData.interval === selectedInterval
+    ) {
+      chartRef.current?.zoomToLatestCandle(visibleCandleCount);
+      // Update the ref to track this interval change
+      previousIntervalRef.current = selectedInterval;
+    }
+  }, [candleData, selectedInterval, visibleCandleCount]);
 
   const handleClose = useCallback(async () => {
     try {
