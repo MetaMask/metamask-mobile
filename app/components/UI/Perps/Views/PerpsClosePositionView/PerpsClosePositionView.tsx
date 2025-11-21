@@ -79,6 +79,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -399,7 +400,10 @@ const PerpsClosePositionView: React.FC = () => {
       slippage: {
         usdAmount: isFullClose ? undefined : closingValueString,
         priceAtCalculation: effectivePrice,
-        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS,
+        maxSlippageBps:
+          orderType === 'limit'
+            ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
+            : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
       },
     });
   };
@@ -546,6 +550,8 @@ const PerpsClosePositionView: React.FC = () => {
       isLoadingFees={feeResults.isLoadingMetamaskFee}
       isLoadingRewards={rewardsState.isLoading}
       hasRewardsError={rewardsState.hasError}
+      accountOptedIn={rewardsState.accountOptedIn}
+      rewardsAccount={rewardsState.account}
       isInputFocused={isInputFocused}
       testIDs={{
         feesTooltip: PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
@@ -593,7 +599,7 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${position.coin}`}
+            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.coin)}`}
           </Text>
         </View>
 

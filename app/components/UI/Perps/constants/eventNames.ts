@@ -104,6 +104,12 @@ export const PerpsEventProperties = {
   // PnL Hero Card properties
   IMAGE_SELECTED: 'image_selected',
   TAB_NUMBER: 'tab_number',
+
+  // A/B testing properties (flat per test for multiple concurrent tests)
+  // Only include AB test properties when test is enabled (event not sent when disabled)
+  // Button color test (TAT-1937)
+  AB_TEST_BUTTON_COLOR: 'ab_test_button_color',
+  // Future tests: add as AB_TEST_{TEST_NAME} (no _ENABLED property needed)
 } as const;
 
 /**
@@ -235,5 +241,13 @@ export const PerpsEventValues = {
     ORDERS: 'orders',
     FUNDING: 'funding',
     DEPOSITS: 'deposits',
+  },
+  // A/B testing values
+  AB_TEST: {
+    // Test IDs
+    BUTTON_COLOR_TEST: 'button_color_test',
+    // Button color test variants
+    CONTROL: 'control',
+    MONOCHROME: 'monochrome',
   },
 } as const;

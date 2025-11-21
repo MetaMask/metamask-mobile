@@ -4,7 +4,6 @@ import {
 } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
@@ -23,6 +22,7 @@ import useBalanceChanges from '../../../../../../UI/SimulationDetails/useBalance
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { useFeeCalculationsTransactionBatch } from '../../../../hooks/gas/useFeeCalculationsTransactionBatch';
 import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
+import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupported';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
@@ -34,6 +34,7 @@ import { GasFeeModal } from '../../../modals/gas-fee-modal';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
+import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './gas-fee-details-row.styles';
 
 const PaidByMetaMask = () => (
@@ -42,16 +43,13 @@ const PaidByMetaMask = () => (
   </Text>
 );
 
-const SkeletonEstimationInfo = () => (
-  <SkeletonPlaceholder>
-    <SkeletonPlaceholder.Item
-      width={120}
-      height={24}
-      borderRadius={8}
-      marginTop={2}
-    />
-  </SkeletonPlaceholder>
-);
+const SkeletonEstimationInfo = () => {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
+  );
+};
 
 const EstimationInfo = ({
   hideFiatForTestnet,
@@ -228,14 +226,20 @@ const GasFeesDetailsRow = ({
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const gasFeeToken = useSelectedGasFeeToken();
   const metamaskFeeFiat = gasFeeToken?.metamaskFeeFiat;
+  const {
+    userFeeLevel: isUserFeeLevelExists,
+    isGasFeeSponsored: doesSentinelAllowSponsorship,
+  } = transactionMetadata ?? {};
 
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
   );
   const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
 
-  const isUserFeeLevelExists = transactionMetadata?.userFeeLevel;
-  const isGasFeeSponsored = transactionMetadata?.isGasFeeSponsored;
+  // This prevents the gas fee row from showing as sponsored if stx is disabled
+  // by the user and 7702 is not supported in the chain.
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const isGasFeeSponsored = isGaslessSupported && doesSentinelAllowSponsorship;
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({
@@ -323,5 +327,22 @@ const GasFeesDetailsRow = ({
     </>
   );
 };
+
+export function GasFeesDetailsRowSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <InfoSection>
+      <View style={styles.skeletonRowContainer}>
+        <Skeleton width={105} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
+      </View>
+      <View style={styles.skeletonRowContainer}>
+        <Skeleton width={50} height={20} style={styles.skeletonBorderRadius} />
+        <Skeleton width={140} height={20} style={styles.skeletonBorderRadius} />
+      </View>
+    </InfoSection>
+  );
+}
 
 export default GasFeesDetailsRow;

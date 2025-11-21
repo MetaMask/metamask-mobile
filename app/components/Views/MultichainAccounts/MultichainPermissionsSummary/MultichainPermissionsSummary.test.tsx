@@ -158,7 +158,6 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
 
 jest.mock('../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-image.png' })),
-  isPerDappSelectedNetworkEnabled: jest.fn(() => true),
 }));
 
 jest.mock('../../../../selectors/selectedNetworkController', () => ({
@@ -450,7 +449,7 @@ describe('MultichainPermissionsSummary', () => {
       params: expect.objectContaining({
         hostInfo: expect.objectContaining({
           metadata: expect.objectContaining({
-            origin: 'mock-dapp.example.com',
+            origin: 'https://mock-dapp.example.com',
           }),
         }),
         onRevokeAll: expect.any(Function),
@@ -476,7 +475,7 @@ describe('MultichainPermissionsSummary', () => {
       params: expect.objectContaining({
         hostInfo: expect.objectContaining({
           metadata: expect.objectContaining({
-            origin: 'mock-dapp.example.com',
+            origin: 'https://mock-dapp.example.com',
           }),
         }),
         onRevokeAll: expect.any(Function),

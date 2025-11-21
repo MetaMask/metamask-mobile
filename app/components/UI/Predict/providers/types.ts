@@ -1,6 +1,8 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import {
   GetPriceHistoryParams,
+  GetPriceParams,
+  GetPriceResponse,
   PredictActivity,
   PredictCategory,
   PredictMarket,
@@ -72,6 +74,11 @@ export interface PredictFees {
   totalFee: number;
 }
 
+export interface GeoBlockResponse {
+  isEligible: boolean;
+  country?: string;
+}
+
 /**
  * @example
  * side = BUY;
@@ -135,6 +142,7 @@ export interface GetPositionsParams {
   address?: string;
   claimable?: boolean;
   marketId?: string;
+  outcomeId?: string;
   limit?: number;
   offset?: number;
 }
@@ -210,6 +218,9 @@ export interface PredictProvider {
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;
+  getPrices(
+    params: Omit<GetPriceParams, 'providerId'>,
+  ): Promise<GetPriceResponse>;
 
   // User information
   getPositions(
@@ -233,7 +244,7 @@ export interface PredictProvider {
   confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 
   // Eligibility (Geo-Blocking)
-  isEligible(): Promise<boolean>;
+  isEligible(): Promise<GeoBlockResponse>;
 
   // Predict wallet management
   prepareDeposit(

@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
-import { createDepositNavigationDetails } from '../../../Deposit/routes/utils';
+import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import OrderListItem from '../../components/OrderListItem';
 import Row from '../../components/Row';
 import createStyles from './OrdersList.styles';
@@ -54,6 +54,7 @@ function OrdersList() {
   const navigation = useNavigation();
   const allOrders = useSelector(getOrders);
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
+  const { goToDeposit } = useRampNavigation();
   const orders = allOrders.filter((order) => {
     if (currentFilter === 'PURCHASE') {
       return (
@@ -83,7 +84,7 @@ function OrdersList() {
       const order = orders.find((o) => o.id === orderId);
 
       if (order?.state === FIAT_ORDER_STATES.CREATED) {
-        navigation.navigate(...createDepositNavigationDetails());
+        goToDeposit();
       } else {
         navigation.navigate(
           ...createDepositOrderDetailsNavDetails({
@@ -92,7 +93,7 @@ function OrdersList() {
         );
       }
     },
-    [navigation, orders],
+    [navigation, orders, goToDeposit],
   );
 
   const renderItem = ({ item }: { item: FiatOrder }) => (

@@ -229,7 +229,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
 
     // Assert Navbar was updated
     expect(getStakingNavbarSpy).toHaveBeenCalledWith(
-      strings('earn.withdraw'),
+      `${strings('earn.withdraw')} ${mockLineaAUsdc.symbol}`,
       expect.any(Object), // navigation object
       expect.any(Object), // theme.colors
       {

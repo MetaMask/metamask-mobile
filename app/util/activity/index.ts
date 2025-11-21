@@ -7,6 +7,7 @@ import {
 import { uniq } from 'lodash';
 import { Hex } from '@metamask/utils';
 import { hasTransactionType } from '../../components/Views/confirmations/utils/transaction';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 
 export const PAY_TYPES = [
   TransactionType.perpsDeposit,
@@ -89,7 +90,8 @@ export const filterByAddressAndNetwork = (
   tokens: any[],
   selectedAddress: string,
   tokenNetworkFilter: { [key: string]: boolean },
-  allTransactions?: TransactionMeta[],
+  allTransactions: TransactionMeta[],
+  bridgeHistory: Record<string, BridgeHistoryItem>,
 ): boolean => {
   const {
     isTransfer,
@@ -97,7 +99,7 @@ export const filterByAddressAndNetwork = (
     txParams: { from, to },
   } = tx;
 
-  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [])) {
+  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [], bridgeHistory)) {
     return false;
   }
 
@@ -131,7 +133,8 @@ export const filterByAddress = (
   tx: TransactionMeta,
   tokens: { address: string }[],
   selectedAddress: string,
-  allTransactions?: TransactionMeta[],
+  allTransactions: TransactionMeta[],
+  bridgeHistory: Record<string, BridgeHistoryItem>,
 ): boolean => {
   const {
     isTransfer,
@@ -139,7 +142,7 @@ export const filterByAddress = (
     txParams: { from, to },
   } = tx;
 
-  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [])) {
+  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [], bridgeHistory)) {
     return false;
   }
 
@@ -183,8 +186,13 @@ export function isTransactionOnChains(
 function isFilteredByMetaMaskPay(
   tx: TransactionMeta,
   allTransactions: TransactionMeta[],
+  bridgeHistory: Record<string, BridgeHistoryItem>,
 ): boolean {
-  const { batchId, id: transactionId } = tx;
+  const { batchId, id: transactionId, isIntentComplete } = tx;
+
+  if (isIntentComplete) {
+    return false;
+  }
 
   const requiredTransactionIds = allTransactions
     ?.map((t) => t.requiredTransactionIds ?? [])
@@ -193,6 +201,19 @@ function isFilteredByMetaMaskPay(
   const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
 
   if (isRequiredTransaction) {
+    return true;
+  }
+
+  const isBridgeReceive =
+    tx.hash &&
+    Object.values(bridgeHistory).some(
+      (item) =>
+        item.status.destChain?.txHash?.toLowerCase() ===
+          tx.hash?.toLowerCase() &&
+        requiredTransactionIds.includes(item.txMetaId),
+    );
+
+  if (isBridgeReceive) {
     return true;
   }
 

@@ -50,6 +50,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -160,6 +161,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
     [styles.fixedBottomContainer, insets.bottom],
   );
 
+  // Deferred loading: Load non-critical data after UI renders
+  const [isDataReady, setIsDataReady] = useState(false);
+  useEffect(() => {
+    // Defer data loading to next frame for faster initial render
+    requestAnimationFrame(() => {
+      setIsDataReady(true);
+    });
+  }, []);
+
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
@@ -216,9 +226,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
    * updating leverage after positions load to prevent protocol violations.
    */
 
-  // Market data hook with automatic error toast handling
+  // Market data hook with automatic error toast handling (deferred)
   const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
-    asset: orderForm.asset,
+    asset: isDataReady ? orderForm.asset : '', // Defer until UI renders
     showErrorToast: true,
   });
 
@@ -274,23 +284,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
     },
   });
 
-  // Get real-time price data using new stream architecture
+  // Get real-time price data using new stream architecture (deferred)
   // Uses single WebSocket subscription with component-level debouncing
   const prices = usePerpsLivePrices({
-    symbols: [orderForm.asset],
+    symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
     throttleMs: 1000,
   });
   const currentPrice = prices[orderForm.asset];
 
-  // Get top of book data for maker/taker fee determination
+  // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
-    symbol: orderForm.asset,
+    symbol: isDataReady ? orderForm.asset : '', // Defer subscription
   });
 
-  // Track screen load with unified hook
+  // Track screen load with unified hook (measure data loading, not initial render)
   usePerpsMeasurement({
     traceName: TraceName.PerpsOrderView,
-    conditions: [!!currentPrice, !!account],
+    conditions: [isDataReady, !!currentPrice, !!account],
   });
 
   const assetData = useMemo(() => {
@@ -693,6 +703,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
         return;
       }
 
+      // Check for cross-margin position (MetaMask only supports isolated margin)
+      if (existingPosition?.leverage?.type === 'cross') {
+        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]:
+            'Cross margin position detected',
+        });
+
+        isSubmittingRef.current = false;
+        return;
+      }
+
       // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
       // Always monitor both orders and positions because:
       // - Market orders: Usually create positions immediately
@@ -740,7 +767,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
         // USD as source of truth (hybrid approach)
         usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
         priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
-        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS, // Slippage tolerance in basis points (100 = 1%)
+        maxSlippageBps:
+          orderForm.type === 'limit'
+            ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
+            : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
         // Only add TP/SL/Limit if they are truthy and/or not empty strings
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }
@@ -895,6 +925,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           tokenAmount={positionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={availableBalance > 0 && !!filteredErrors.length}
+          isLoading={isLoadingAccount}
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -1124,53 +1155,63 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <PerpsFeesDisplay
               feeDiscountPercentage={rewardsState.feeDiscountPercentage}
               formatFeeText={
-                hasValidAmount
-                  ? formatPerpsFiat(estimatedFees, {
+                !hasValidAmount || feeResults.isLoadingMetamaskFee
+                  ? PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+                  : formatPerpsFiat(estimatedFees, {
                       ranges: PRICE_RANGES_MINIMAL_VIEW,
                     })
-                  : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
               }
               variant={TextVariant.BodySM}
             />
           </View>
 
           {/* Rewards Points Estimation */}
-          {rewardsState.shouldShowRewardsRow && (
-            <View style={styles.infoRow}>
-              <View style={styles.detailLeft}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.estimated_points')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => handleTooltipPress('points')}
-                  style={styles.infoIcon}
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.Alternative}
-                  />
-                </TouchableOpacity>
+          {rewardsState.shouldShowRewardsRow &&
+            rewardsState.estimatedPoints !== undefined &&
+            (rewardsState.accountOptedIn ||
+              (rewardsState.accountOptedIn === false &&
+                rewardsState.account !== undefined)) && (
+              <View style={styles.infoRow}>
+                <View style={styles.detailLeft}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.estimated_points')}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleTooltipPress('points')}
+                    style={styles.infoIcon}
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Sm}
+                      color={IconColor.Alternative}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.pointsRightContainer}>
+                  {rewardsState.accountOptedIn ? (
+                    <RewardsAnimations
+                      value={rewardsState.estimatedPoints ?? 0}
+                      bonusBips={rewardsState.bonusBips}
+                      shouldShow={rewardsState.shouldShowRewardsRow}
+                      infoOnPress={() =>
+                        openTooltipModal(
+                          strings('perps.points_error'),
+                          strings('perps.points_error_content'),
+                        )
+                      }
+                      state={rewardAnimationState}
+                    />
+                  ) : (
+                    <AddRewardsAccount
+                      account={rewardsState.account ?? undefined}
+                    />
+                  )}
+                </View>
               </View>
-              <View style={styles.pointsRightContainer}>
-                <RewardsAnimations
-                  value={rewardsState.estimatedPoints ?? 0}
-                  bonusBips={rewardsState.bonusBips}
-                  shouldShow={rewardsState.shouldShowRewardsRow}
-                  infoOnPress={() =>
-                    openTooltipModal(
-                      strings('perps.points_error'),
-                      strings('perps.points_error_content'),
-                    )
-                  }
-                  state={rewardAnimationState}
-                />
-              </View>
-            </View>
-          )}
+            )}
         </View>
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}

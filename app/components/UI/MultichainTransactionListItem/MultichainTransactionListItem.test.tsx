@@ -106,7 +106,7 @@ describe('MultichainTransactionListItem', () => {
       />,
     );
 
-    expect(getByText('transactions.sent')).toBeTruthy();
+    expect(getByText('transactions.sent SOL')).toBeTruthy();
     expect(getByText('transaction.confirmed')).toBeTruthy();
     expect(getByText('-1.5 SOL')).toBeTruthy();
     expect(getByText('Mar 15, 2025')).toBeTruthy();
@@ -126,7 +126,7 @@ describe('MultichainTransactionListItem', () => {
       />,
     );
 
-    expect(getByText('transactions.received')).toBeTruthy();
+    expect(getByText('transactions.received SOL')).toBeTruthy();
     expect(getByText('transaction.confirmed')).toBeTruthy();
     expect(getByText('1.5 SOL')).toBeTruthy();
   });
