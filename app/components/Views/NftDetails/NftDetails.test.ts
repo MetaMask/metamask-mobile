@@ -175,7 +175,7 @@ const TEST_COLLECTIBLE = {
       { bps: 750, recipient: '0x5f19463dda395e08b78b99a99c52413ed941edf7' },
     ],
   },
-  logo: 'https://img.reservoir.tools/images/v2/mainnet/m8Rol%2FE80oMmjzi7K7IQ0u6HzXVyHUh6MaSEPbYQy1GRP1ztTkhG1VSzAwMMXv97QfX8ZgwGwpR8nf9yb12HQqI%2BXfaLY%2BhMdAJk7UThICr6sEjrTDK%2BhfdaXGiZnjM%2BawmNp3vHAw1Ev5N5b97XEQ%3D%3D?width=250',
+  logo: 'https://img.reservoir.tools/images/v2/mainnet/m8Rol%2FE80oMmjzi7K7IQ0u6HzXVyHUh6MaSEPbYQy1GRP1ztTkhG1VSzAwMMXv97QfX8ZgwGwpR8nf9yb12HQqI%2BXfaLY%2BhMdAJk7UThICr3VpXqP8R9a7UJJWaudViqrlaZXcB%2B9WiV9avzgRprPEfJ1chTNYa3%2B36V9Areb6V%2BqwbskYYLZjPXCrV525seJSJnfQqrVwl64p9PV9sCkw%3D%3D?width=250',
 };
 
 let mockUseParamsValues: {
