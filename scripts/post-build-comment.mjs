@@ -2,8 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-const { Octokit } = await import('@octokit/rest');
+import { Octokit } from '@octokit/rest';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,11 +29,32 @@ async function fetchJobIds(octokit, owner, repo, runId) {
     });
 
     console.log(`Found ${allJobs.length} jobs in workflow run ${runId}`);
+    console.log('All job names:', allJobs.map((job) => `"${job.name}"`).join(', '));
 
-    // Find jobs by name (these are the job names from ci.yml)
-    const androidJob = allJobs.find((job) => job.name === 'Build Android APKs');
-    const iosJob = allJobs.find((job) => job.name === 'Build iOS Apps');
-    const androidFlaskJob = allJobs.find((job) => job.name === 'Build Android Flask APKs');
+    // Find jobs by name - reusable workflows may have composite names like:
+    // "Build Android APKs / Build Android E2E APKs" or just "Build Android E2E APKs"
+    // When reusable workflows are called, job names can be:
+    // 1. Exact match: "Build Android APKs" (caller job name)
+    // 2. Composite: "Build Android APKs / Build Android E2E APKs" (caller / reusable)
+    // 3. Reusable only: "Build Android E2E APKs" (from reusable workflow)
+    // Try multiple patterns for robustness
+    const androidJob =
+      allJobs.find((job) => job.name === 'Build Android APKs') ||
+      allJobs.find((job) => job.name.includes('Build Android APKs') && job.name.includes('Build Android E2E APKs') && !job.name.includes('Flask')) ||
+      allJobs.find((job) => job.name === 'Build Android E2E APKs' && !job.name.includes('Flask')) ||
+      allJobs.find((job) => job.name.includes('Android') && job.name.includes('E2E') && job.name.includes('APK') && !job.name.includes('Flask'));
+
+    const iosJob =
+      allJobs.find((job) => job.name === 'Build iOS Apps') ||
+      allJobs.find((job) => job.name.includes('Build iOS Apps') && job.name.includes('Build iOS E2E Apps')) ||
+      allJobs.find((job) => job.name === 'Build iOS E2E Apps') ||
+      allJobs.find((job) => job.name.includes('iOS') && job.name.includes('E2E') && job.name.includes('Apps'));
+
+    const androidFlaskJob =
+      allJobs.find((job) => job.name === 'Build Android Flask APKs') ||
+      allJobs.find((job) => job.name.includes('Build Android Flask APKs') && job.name.includes('Build Android E2E APKs')) ||
+      allJobs.find((job) => job.name.includes('Flask') && job.name.includes('Build Android E2E APKs')) ||
+      allJobs.find((job) => job.name.includes('Android') && job.name.includes('Flask') && job.name.includes('E2E'));
 
     const result = {
       androidJobId: androidJob ? String(androidJob.id) : null,
@@ -43,6 +63,9 @@ async function fetchJobIds(octokit, owner, repo, runId) {
     };
 
     console.log('Job IDs:', JSON.stringify(result, null, 2));
+    if (androidJob) console.log(`✓ Found Android job: "${androidJob.name}" (ID: ${androidJob.id})`);
+    if (iosJob) console.log(`✓ Found iOS job: "${iosJob.name}" (ID: ${iosJob.id})`);
+    if (androidFlaskJob) console.log(`✓ Found Android Flask job: "${androidFlaskJob.name}" (ID: ${androidFlaskJob.id})`);
     return result;
   } catch (error) {
     console.error('Error fetching jobs from GitHub API:', error);
@@ -174,13 +197,14 @@ async function start() {
     process.exit(1);
   }
 
-  const octokit = new Octokit({ auth: GITHUB_TOKEN });
+  // Validate PR_NUMBER before creating API client
   const prNumber = parseInt(PR_NUMBER, 10);
-
   if (isNaN(prNumber) || prNumber <= 0) {
     console.error('PR_NUMBER must be a positive integer');
     process.exit(1);
   }
+
+  const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
   // 1. Extract iOS Build Number
   let iosBuildNumber = 'Unknown';
