@@ -28,7 +28,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
 };
 describe(SmokePredictions('Predictions'), () => {
-  it('should open predict tab and view market details', async () => {
+  it('Opens predict position: Celtics vs. Nets', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -64,8 +64,8 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapDoneButton();
 
         await PredictDetailsPage.tapOpenPosition();
-        await device.enableSynchronization();
         await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+        await device.enableSynchronization();
         await PredictDetailsPage.tapBackButton();
         await Assertions.expectTextDisplayed('$17.76');
 

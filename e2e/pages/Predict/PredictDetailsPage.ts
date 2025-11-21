@@ -100,7 +100,9 @@ class PredictDetailsPage {
       'Done',
     )) as unknown as DetoxElement;
 
-    await Gestures.waitAndTap(continueButton);
+    await Gestures.waitAndTap(continueButton, {
+      elemDescription: 'Done button',
+    });
   }
 
   async tapContinueButton(): Promise<void> {
@@ -108,7 +110,9 @@ class PredictDetailsPage {
       'Continue',
     )) as unknown as DetoxElement;
 
-    await Gestures.waitAndTap(continueButton);
+    await Gestures.waitAndTap(continueButton, {
+      elemDescription: 'Continue button',
+    });
   }
 
   async tapOpenPosition(): Promise<void> {
