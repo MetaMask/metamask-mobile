@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { View, ScrollView, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
@@ -26,14 +25,16 @@ import {
   usePerpsHomeData,
   usePerpsNavigation,
   usePerpsMeasurement,
-  usePerpsTrading,
-  usePerpsNetworkManagement,
+  usePerpsHomeActions,
 } from '../../hooks';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { BigNumber } from 'bignumber.js';
+import {
+  UI_SPACING_CONFIG,
+  LEARN_MORE_CONFIG,
+  SUPPORT_CONFIG,
+} from '../../constants/perpsConfig';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -42,7 +43,6 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsHomeHeader from '../../components/PerpsHomeHeader';
-import { LEARN_MORE_CONFIG, SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import styleSheet from './PerpsHomeView.styles';
@@ -76,13 +76,13 @@ const PerpsHomeView = () => {
   const closeAllSheetRef = useRef<BottomSheetRef>(null);
   const cancelAllSheetRef = useRef<BottomSheetRef>(null);
 
-  // Eligibility and trading hooks
-  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
-    useState(false);
-  const isEligible = useSelector(selectPerpsEligibility);
-  const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
-  const { navigateToConfirmation } = useConfirmNavigation();
+  // Use hook for eligibility checks and action handlers
+  const {
+    handleAddFunds,
+    handleWithdraw,
+    isEligibilityModalVisible,
+    closeEligibilityModal,
+  } = usePerpsHomeActions();
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -153,47 +153,6 @@ const PerpsHomeView = () => {
     );
   }, [createEventBuilder, navigation, trackEvent]);
 
-  // Add funds handler
-  const handleAddFunds = useCallback(async () => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    try {
-      await ensureArbitrumNetworkExists();
-      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-      depositWithConfirmation().catch((error) => {
-        console.error('Failed to initialize deposit:', error);
-      });
-    } catch (error) {
-      console.error('Failed to proceed with deposit:', error);
-    }
-  }, [
-    isEligible,
-    ensureArbitrumNetworkExists,
-    navigateToConfirmation,
-    depositWithConfirmation,
-  ]);
-
-  // Withdraw handler
-  const handleWithdraw = useCallback(async () => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    try {
-      await ensureArbitrumNetworkExists();
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.WITHDRAW,
-      });
-    } catch (error) {
-      console.error('Failed to proceed with withdraw:', error);
-    }
-  }, [navigation, isEligible, ensureArbitrumNetworkExists]);
-
-  // Define navigation items for the card
   const navigationItems: NavigationItem[] = useMemo(() => {
     const items: NavigationItem[] = [
       {
@@ -203,8 +162,7 @@ const PerpsHomeView = () => {
       },
     ];
 
-    // Only show "Learn the basics" when balance is NOT empty
-    // (empty state already shows this button in PerpsMarketBalanceActions)
+    // Avoid duplicate "Learn more" button (shown in empty state card)
     if (!isBalanceEmpty) {
       items.push({
         label: strings(LEARN_MORE_CONFIG.TITLE_KEY),
@@ -247,14 +205,19 @@ const PerpsHomeView = () => {
     setShowCancelAllSheet(false);
   }, []);
 
-  // Dynamic bottom spacer height based on balance state
   const bottomSpacerStyle = useMemo(
-    () => [styles.bottomSpacer, { height: isBalanceEmpty ? 60 : 100 }],
+    () => [
+      styles.bottomSpacer,
+      {
+        height: isBalanceEmpty
+          ? UI_SPACING_CONFIG.BOTTOM_SPACER_HEIGHT_EMPTY_STATE
+          : UI_SPACING_CONFIG.BOTTOM_SPACER_HEIGHT_FUNDED_STATE,
+      },
+    ],
     [styles.bottomSpacer, isBalanceEmpty],
   );
 
-  // Back button handler - always navigate to wallet home to avoid loops
-  // (e.g., when coming from tutorial/onboarding flow)
+  // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
@@ -418,7 +381,7 @@ const PerpsHomeView = () => {
         <Modal visible transparent animationType="none" statusBarTranslucent>
           <PerpsBottomSheetTooltip
             isVisible
-            onClose={() => setIsEligibilityModalVisible(false)}
+            onClose={closeEligibilityModal}
             contentKey={'geo_block'}
             testID={'perps-home-geo-block-tooltip'}
           />

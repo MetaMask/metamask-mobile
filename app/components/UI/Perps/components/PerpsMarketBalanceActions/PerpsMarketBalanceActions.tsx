@@ -26,11 +26,8 @@ import { LEARN_MORE_CONFIG } from '../../constants/perpsConfig';
 import {
   useColorPulseAnimation,
   useBalanceComparison,
-  usePerpsTrading,
-  usePerpsNetworkManagement,
+  usePerpsHomeActions,
 } from '../../hooks';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
@@ -98,15 +95,13 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     string | null
   >(null);
 
-  // State for eligibility modal
-  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
-    useState(false);
-
-  // Eligibility and trading hooks
-  const isEligible = useSelector(selectPerpsEligibility);
-  const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
-  const { navigateToConfirmation } = useConfirmNavigation();
+  // Use hook for eligibility checks and action handlers
+  const {
+    handleAddFunds,
+    handleWithdraw,
+    isEligibilityModalVisible,
+    closeEligibilityModal,
+  } = usePerpsHomeActions();
 
   // Extract all transaction state logic
   const {
@@ -210,46 +205,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
       source: 'homescreen',
     });
   }, [navigation]);
-
-  // Add funds handler
-  const handleAddFunds = useCallback(async () => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    try {
-      await ensureArbitrumNetworkExists();
-      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-      depositWithConfirmation().catch((error) => {
-        console.error('Failed to initialize deposit:', error);
-      });
-    } catch (error) {
-      console.error('Failed to proceed with deposit:', error);
-    }
-  }, [
-    isEligible,
-    ensureArbitrumNetworkExists,
-    navigateToConfirmation,
-    depositWithConfirmation,
-  ]);
-
-  // Withdraw handler
-  const handleWithdraw = useCallback(async () => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    try {
-      await ensureArbitrumNetworkExists();
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.WITHDRAW,
-      });
-    } catch (error) {
-      console.error('Failed to proceed with withdraw:', error);
-    }
-  }, [navigation, isEligible, ensureArbitrumNetworkExists]);
 
   // Show skeleton while loading initial account data
   if (isInitialLoading) {
@@ -414,7 +369,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         <Modal visible transparent animationType="none" statusBarTranslucent>
           <PerpsBottomSheetTooltip
             isVisible
-            onClose={() => setIsEligibilityModalVisible(false)}
+            onClose={closeEligibilityModal}
             contentKey={'geo_block'}
             testID={
               PerpsMarketBalanceActionsSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
