@@ -557,5 +557,93 @@ describe('Transaction Element Utils', () => {
         TRANSACTION_TYPES.SENT_COLLECTIBLE,
       );
     });
+
+    it('decodes recipient from complete data instead of using contract address', async () => {
+      const selectedAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const recipientAddress = '0x99999999999999999999999999999999999999aa';
+      const contractAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+
+      // Complete transferFrom data with actual addresses encoded
+      const completeData =
+        '0x23b872dd' + // transferFrom signature
+        '000000000000000000000000' +
+        selectedAddress.slice(2) + // from
+        '000000000000000000000000' +
+        recipientAddress.slice(2) + // to (actual recipient)
+        '0000000000000000000000000000000000000000000000000000000000000123'; // tokenId
+
+      const args = {
+        tx: {
+          txParams: {
+            to: contractAddress, // This is the contract, not the recipient
+            from: selectedAddress,
+            data: completeData,
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '291',
+            contractAddress,
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      // Should decode recipient from data, not use txParams.to (contract address)
+      expect(transactionElement.renderTo).toContain('9999'); // Should show recipient, not contract
+      expect(transactionElement.renderTo).not.toContain('7764'); // Should NOT show contract address
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+    });
+
+    it('uses transferInformation as fallback when data is truncated', async () => {
+      const selectedAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const contractAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+
+      const args = {
+        tx: {
+          txParams: {
+            to: contractAddress,
+            from: selectedAddress,
+            data: '0x23b872dd', // Only function signature - truncated data
+            gas: '0x5208',
+          },
+          transferInformation: {
+            tokenId: '456',
+            contractAddress,
+          },
+          hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        },
+        currentCurrency: 'usd',
+        conversionRate: 1,
+        totalGas: '0x5208',
+        actionKey: 'Sent Collectible',
+        primaryCurrency: 'ETH',
+        selectedAddress,
+        ticker: 'ETH',
+        txChainId: '0x1',
+        collectibleContracts: [],
+      };
+
+      const [transactionElement] = await decodeTransaction(args);
+
+      // With truncated data, we fall back to transferInformation
+      // Transaction type should still be determined correctly based on txParams.from
+      expect(transactionElement.transactionType).toBe(
+        TRANSACTION_TYPES.SENT_COLLECTIBLE,
+      );
+      expect(transactionElement.value).toContain('456'); // Should use tokenId from transferInformation
+    });
   });
 });

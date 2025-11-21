@@ -478,21 +478,31 @@ function decodeTransferFromTx(args) {
     ticker,
   } = args;
 
-  // For transferFrom transactions, use transferInformation if available
-  // since the data may only contain the function signature
+  // For transferFrom transactions, prioritize decoding from data when available
+  // transferInformation is used as fallback since the data may only contain the function signature
   let addressFrom, addressTo, tokenId;
 
-  if (transferInformation) {
-    // Use parsed transfer information and txParams for addresses
+  // Try to decode from data first if it's complete (4 bytes selector + 3×32 bytes params = 202 chars)
+  if (data && data.length >= 202) {
+    // Data is complete, decode the actual addresses from it
+    [addressFrom, addressTo, tokenId] = decodeTransferData(
+      'transferFrom',
+      data,
+    );
+  } else if (transferInformation) {
+    // Data is truncated, use transferInformation
     tokenId =
       transferInformation.tokenId ||
       transferInformation.tokenAmount ||
       transferInformation.value;
-    // Use txParams.from for the actual sender (most reliable for direction)
+    // For direction, use txParams.from as the sender
+    // Note: txParams.to is the contract, not the recipient, so we can't reliably set addressTo
     addressFrom = txParams.from;
+    // We can't determine the actual recipient from truncated data
+    // Use txParams for direction logic, but this won't show the correct recipient in UI
     addressTo = txParams.to;
   } else {
-    // Fallback to decoding from data
+    // No transferInformation and no complete data - fallback to decoding attempt
     [addressFrom, addressTo, tokenId] = decodeTransferData(
       'transferFrom',
       data,
