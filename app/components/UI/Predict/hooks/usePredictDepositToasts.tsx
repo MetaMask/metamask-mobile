@@ -7,6 +7,10 @@ import { usePredictBalance } from './usePredictBalance';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import { formatPrice, calculateNetAmount } from '../utils/format';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { useSelector } from 'react-redux';
+import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
 
 interface UsePredictDepositToastsParams {
   providerId?: string;
@@ -19,11 +23,23 @@ export const usePredictDepositToasts = ({
   const { deposit } = usePredictDeposit();
   const navigation = useNavigation();
 
+  const selectedInternalAccountAddress =
+    getEvmAccountFromSelectedAccountGroup();
+
+  const depositBatchId = useSelector(
+    selectPredictPendingDepositByAddress({
+      providerId,
+      address: selectedInternalAccountAddress?.address ?? '',
+    }),
+  );
+
   usePredictToasts({
     onConfirmed: () => {
       loadBalance({ isRefresh: true });
     },
     transactionType: TransactionType.predictDeposit,
+    transactionBatchId:
+      depositBatchId !== 'pending' ? depositBatchId : undefined,
     pendingToastConfig: {
       title: strings('predict.deposit.adding_funds'),
       description: strings('predict.deposit.in_progress_description'),
@@ -36,8 +52,18 @@ export const usePredictDepositToasts = ({
       description: strings('predict.deposit.account_ready_description', {
         amount: '{amount}',
       }),
-      getAmount: (transactionMeta) =>
-        transactionMeta.metamaskPay?.totalFiat ?? 'Balance',
+      getAmount: (transactionMeta) => {
+        const netAmount = calculateNetAmount({
+          totalFiat: transactionMeta.metamaskPay?.totalFiat,
+          bridgeFeeFiat: transactionMeta.metamaskPay?.bridgeFeeFiat,
+          networkFeeFiat: transactionMeta.metamaskPay?.networkFeeFiat,
+        });
+        return (
+          formatPrice(netAmount, {
+            maximumDecimals: 2,
+          }) ?? 'Balance'
+        );
+      },
     },
     errorToastConfig: {
       title: strings('predict.deposit.error_title'),

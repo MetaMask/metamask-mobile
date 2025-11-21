@@ -37,6 +37,7 @@ import type { CaipAccountId } from '@metamask/utils';
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../utils/perpsErrorHandler';
 import { processL2BookData } from '../utils/hyperLiquidOrderBookProcessor';
+import { calculateOpenInterestUSD } from '../utils/marketDataTransform';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions
@@ -158,6 +159,7 @@ export class HyperLiquidSubscriptionService {
     this.walletService = walletService;
     this.hip3Enabled = hip3Enabled ?? false;
     this.enabledDexs = enabledDexs ?? [];
+    this.discoveredDexNames = enabledDexs ?? [];
     this.allowlistMarkets = allowlistMarkets ?? [];
     this.blocklistMarkets = blocklistMarkets ?? [];
   }
@@ -493,6 +495,14 @@ export class HyperLiquidSubscriptionService {
     const firstDexAccount =
       this.dexAccountCache.values().next().value || ({} as AccountState);
 
+    // Calculate returnOnEquity across all DEXs (same formula as HyperLiquidProvider.getAccountState)
+    let returnOnEquity = '0';
+    if (totalMarginUsed > 0) {
+      returnOnEquity = ((totalUnrealizedPnl / totalMarginUsed) * 100).toFixed(
+        1,
+      );
+    }
+
     return {
       ...firstDexAccount,
       availableBalance: totalAvailableBalance.toString(),
@@ -500,6 +510,7 @@ export class HyperLiquidSubscriptionService {
       marginUsed: totalMarginUsed.toString(),
       unrealizedPnl: totalUnrealizedPnl.toString(),
       subAccountBreakdown,
+      returnOnEquity,
     };
   }
 
@@ -1511,6 +1522,10 @@ export class HyperLiquidSubscriptionService {
 
             // Cache market data for consolidation with price updates
             const ctxPrice = ctx.midPx || ctx.markPx;
+            const openInterestUSD =
+              isPerpsContext(data) && ctxPrice
+                ? calculateOpenInterestUSD(data.ctx.openInterest, ctxPrice)
+                : NaN;
             const marketData = {
               prevDayPx: ctx.prevDayPx
                 ? parseFloat(ctx.prevDayPx.toString())
@@ -1520,13 +1535,9 @@ export class HyperLiquidSubscriptionService {
               funding: isPerpsContext(data)
                 ? parseFloat(data.ctx.funding.toString())
                 : undefined,
-              // Convert openInterest from token units to USD by multiplying by current price
-              // Note: openInterest from API is in token units (e.g., BTC), while volume is already in USD
-              openInterest:
-                isPerpsContext(data) && ctxPrice
-                  ? parseFloat(data.ctx.openInterest.toString()) *
-                    parseFloat(ctxPrice.toString())
-                  : undefined,
+              openInterest: !isNaN(openInterestUSD)
+                ? openInterestUSD
+                : undefined,
               volume24h: ctx.dayNtlVlm
                 ? parseFloat(ctx.dayNtlVlm.toString())
                 : undefined,
@@ -1675,14 +1686,17 @@ export class HyperLiquidSubscriptionService {
             if (ctx && 'funding' in ctx) {
               // This is a perps context
               const ctxPrice = ctx.midPx || ctx.markPx;
+              const openInterestUSD = calculateOpenInterestUSD(
+                ctx.openInterest,
+                ctxPrice,
+              );
               const marketData = {
                 prevDayPx: ctx.prevDayPx
                   ? parseFloat(ctx.prevDayPx.toString())
                   : undefined,
                 funding: parseFloat(ctx.funding.toString()),
-                openInterest: ctxPrice
-                  ? parseFloat(ctx.openInterest.toString()) *
-                    parseFloat(ctxPrice.toString())
+                openInterest: !isNaN(openInterestUSD)
+                  ? openInterestUSD
                   : undefined,
                 volume24h: ctx.dayNtlVlm
                   ? parseFloat(ctx.dayNtlVlm.toString())

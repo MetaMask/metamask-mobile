@@ -13,6 +13,8 @@ export * from '../../types/navigation';
 
 // Import adapter types
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
+import type { CandleData } from '../../types/perps-types';
+import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -92,17 +94,23 @@ export interface TPSLTrackingData {
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
   isBuy: boolean; // true = BUY order, false = SELL order
-  size: string; // Order size as string
+  size: string; // Order size as string (derived for validation, provider recalculates from usdAmount)
   orderType: OrderType; // Order type
   price?: string; // Limit price (required for limit orders)
   reduceOnly?: boolean; // Reduce-only flag
+  isFullClose?: boolean; // Indicates closing 100% of position (skips $10 minimum validation)
   timeInForce?: 'GTC' | 'IOC' | 'ALO'; // Time in force
+
+  // USD as source of truth (hybrid approach)
+  usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
+  priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
+  maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
 
   // Advanced order features
   takeProfitPrice?: string; // Take profit price
   stopLossPrice?: string; // Stop loss price
   clientOrderId?: string; // Optional client-provided order ID
-  slippage?: number; // Slippage tolerance for market orders (e.g., 0.01 = 1%)
+  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000 = 3%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
@@ -181,6 +189,12 @@ export type ClosePositionParams = {
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
   currentPrice?: number; // Current market price for validation
+
+  // USD as source of truth (hybrid approach - same as OrderParams)
+  usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
+  priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
+  maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
+
   // Optional tracking data for MetaMetrics events
   trackingData?: TrackingData;
 };
@@ -599,6 +613,14 @@ export interface SubscribeOICapsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
 
+export interface SubscribeCandlesParams {
+  coin: string;
+  interval: CandlePeriod;
+  duration?: TimeDuration;
+  callback: (data: CandleData) => void;
+  onError?: (error: Error) => void;
+}
+
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -786,6 +808,7 @@ export interface IPerpsProvider {
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
   subscribeToOICaps(params: SubscribeOICapsParams): () => void;
+  subscribeToCandles(params: SubscribeCandlesParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

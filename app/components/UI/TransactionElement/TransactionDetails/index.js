@@ -13,7 +13,6 @@ import {
   getBlockExplorerTxUrl,
   findBlockExplorerForNonEvmChainId,
   isLineaMainnetChainId,
-  isPerDappSelectedNetworkEnabled,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -33,7 +32,6 @@ import decodeTransaction from '../../TransactionElement/utils';
 import {
   selectChainId,
   selectNetworkConfigurations,
-  selectEvmTicker,
   selectProviderConfig,
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
@@ -240,9 +238,7 @@ class TransactionDetails extends PureComponent {
       transactions,
     } = this.props;
 
-    const chainId = isPerDappSelectedNetworkEnabled()
-      ? transactionObject.chainId
-      : this.props.chainId;
+    const chainId = transactionObject.chainId;
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
     const transactionHash = transactionDetails?.hash;
     if (
@@ -382,9 +378,7 @@ class TransactionDetails extends PureComponent {
       transactionObject: { status, time, txParams, chainId: txChainId },
       shouldUseSmartTransaction,
     } = this.props;
-    const chainId = isPerDappSelectedNetworkEnabled()
-      ? txChainId
-      : this.props.chainId;
+    const chainId = txChainId;
     const hasNestedTransactions = Boolean(
       transactionObject?.nestedTransactions?.length,
     );
@@ -552,15 +546,11 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = (state, ownProps) => ({
   chainId: selectChainId(state),
-  providerConfig: isPerDappSelectedNetworkEnabled()
-    ? selectProviderConfig(state)
-    : undefined,
+  providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
-  ticker: isPerDappSelectedNetworkEnabled()
-    ? selectTickerByChainId(state, ownProps.transactionObject.chainId)
-    : selectEvmTicker(state),
+  ticker: selectTickerByChainId(state, ownProps.transactionObject.chainId),
   tokens: selectTokensByChainIdAndAddress(
     state,
     ownProps.transactionObject.chainId,

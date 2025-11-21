@@ -39,18 +39,20 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
-  PredictEventType,
+  PredictTradeStatus,
   PredictEventValues,
 } from '../../constants/eventNames';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
+import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -60,15 +62,14 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import PredictConsentSheet, {
-  type PredictConsentSheetRef,
-} from '../../components/PredictConsentSheet';
-import { usePredictAgreement } from '../../hooks/usePredictAgreement';
+import { usePredictRewards } from '../../hooks/usePredictRewards';
+import { TraceName } from '../../../../../util/trace';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
-  const consentSheetRef = useRef<PredictConsentSheetRef>(null);
+  const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const { goBack, dispatch } =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
@@ -116,15 +117,18 @@ const PredictBuyPreview = () => {
     providerId: outcome.providerId,
   });
 
-  const { isAgreementAccepted } = usePredictAgreement({
-    providerId: outcome.providerId,
-  });
-
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(true);
+  const [isUserInputChange, setIsUserInputChange] = useState(false);
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+  const previousValueRef = useRef(0);
 
-  const { preview, error: previewError } = usePredictOrderPreview({
+  const {
+    preview,
+    error: previewError,
+    isCalculating,
+  } = usePredictOrderPreview({
     providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
@@ -134,18 +138,51 @@ const PredictBuyPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
+  // Track screen load performance (balance + initial preview)
+  usePredictMeasurement({
+    traceName: TraceName.PredictBuyPreviewView,
+    conditions: [!isBalanceLoading, balance !== undefined, !!market],
+    debugContext: {
+      marketId: market?.id,
+      hasBalance: balance !== undefined,
+      isBalanceLoading,
+    },
+  });
+
+  // Track when user changes input to show skeleton only during user input changes
+  useEffect(() => {
+    if (!isCalculating) {
+      setIsUserInputChange(false);
+      if (currentValue === 0) {
+        previousValueRef.current = 0;
+      }
+      return;
+    }
+
+    if (
+      currentValue > 0 &&
+      currentValue !== previousValueRef.current &&
+      isCalculating
+    ) {
+      setIsUserInputChange(true);
+    }
+
+    previousValueRef.current = currentValue;
+  }, [currentValue, isCalculating]);
+
   const errorMessage = previewError ?? placeOrderError;
 
-  // Track Predict Action Initiated when screen mounts
+  // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
 
     controller.trackPredictOrderEvent({
-      eventType: PredictEventType.INITIATED,
+      status: PredictTradeStatus.INITIATED,
       analyticsProperties,
       providerId: outcome.providerId,
       sharePrice: outcomeToken?.price,
     });
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -168,10 +205,27 @@ const PredictBuyPreview = () => {
     !isBalanceLoading &&
     !isRateLimited;
 
+  const {
+    enabled: isRewardsEnabled,
+    isLoading: isRewardsLoading,
+    accountOptedIn: isAccountOptedIntoRewards,
+    estimatedPoints: estimatedRewardsPoints,
+    hasError: isRewardsError,
+  } = usePredictRewards(
+    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
+  );
+
+  // Show rewards row if we have a valid amount
+  // && either active account address is opted in or not opted in but opt-in is supported
+  const shouldShowRewardsRow =
+    isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
+
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
     ? outcome.groupItemTitle
     : '';
+
+  const maxBetAmount = balance - (providerFee + metamaskFee);
 
   const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
@@ -187,12 +241,6 @@ const PredictBuyPreview = () => {
   const onPlaceBet = useCallback(async () => {
     if (!preview || hasInsufficientFunds || isBelowMinimum) return;
 
-    // Check if user has accepted the agreement
-    if (!isAgreementAccepted) {
-      consentSheetRef.current?.onOpenBottomSheet();
-      return;
-    }
-
     await placeOrder({
       providerId: outcome.providerId,
       analyticsProperties,
@@ -202,11 +250,24 @@ const PredictBuyPreview = () => {
     preview,
     hasInsufficientFunds,
     isBelowMinimum,
-    isAgreementAccepted,
     placeOrder,
     outcome.providerId,
     analyticsProperties,
   ]);
+
+  const handleFeesInfoPress = useCallback(() => {
+    setIsFeeBreakdownVisible(true);
+  }, []);
+
+  const handleFeeBreakdownClose = useCallback(() => {
+    setIsFeeBreakdownVisible(false);
+  }, []);
+
+  useEffect(() => {
+    if (isFeeBreakdownVisible) {
+      feeBreakdownSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isFeeBreakdownVisible]);
 
   const renderHeader = () => (
     <Box
@@ -304,14 +365,25 @@ const PredictBuyPreview = () => {
             </Text>
           )}
         </Box>
-        <Box twClassName="text-center mt-2">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="mt-2"
+        >
           <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
             {`${strings('predict.order.to_win')} `}
-            {formatPrice(toWin, {
-              minimumDecimals: 2,
-              maximumDecimals: 2,
-            })}
           </Text>
+          {isCalculating && isUserInputChange ? (
+            <Skeleton width={80} height={24} style={tw.style('rounded-md')} />
+          ) : (
+            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Success}>
+              {formatPrice(toWin, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
+            </Text>
+          )}
         </Box>
       </Box>
     </ScrollView>
@@ -328,7 +400,12 @@ const PredictBuyPreview = () => {
             color={TextColor.Error}
             style={tw.style('text-center')}
           >
-            {strings('predict.order.prediction_insufficient_funds')}
+            {strings('predict.order.prediction_insufficient_funds', {
+              amount: formatPrice(maxBetAmount, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              }),
+            })}
           </Text>
         </Box>
       );
@@ -402,7 +479,8 @@ const PredictBuyPreview = () => {
         style={tw.style('w-full')}
       >
         <Text variant={TextVariant.BodyMDMedium} style={tw.style('text-white')}>
-          {outcomeToken?.title} · {formatCents(outcomeToken?.price ?? 0)}
+          {outcomeToken?.title} ·{' '}
+          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
         </Text>
       </ButtonHero>
     );
@@ -457,6 +535,14 @@ const PredictBuyPreview = () => {
         total={total}
         metamaskFee={metamaskFee}
         providerFee={providerFee}
+        shouldShowRewardsRow={shouldShowRewardsRow}
+        accountOptedIn={isAccountOptedIntoRewards}
+        estimatedPoints={estimatedRewardsPoints}
+        isLoadingRewards={
+          (isCalculating && isUserInputChange) || isRewardsLoading
+        }
+        hasRewardsError={isRewardsError}
+        onFeesInfoPress={handleFeesInfoPress}
       />
       {renderErrorMessage()}
       <PredictKeypad
@@ -471,11 +557,14 @@ const PredictBuyPreview = () => {
         onAddFunds={deposit}
       />
       {renderBottomContent()}
-      <PredictConsentSheet
-        ref={consentSheetRef}
-        providerId={outcome.providerId}
-        onAgree={onPlaceBet}
-      />
+      {isFeeBreakdownVisible && (
+        <PredictFeeBreakdownSheet
+          ref={feeBreakdownSheetRef}
+          providerFee={providerFee}
+          metamaskFee={metamaskFee}
+          onClose={handleFeeBreakdownClose}
+        />
+      )}
     </SafeAreaView>
   );
 };

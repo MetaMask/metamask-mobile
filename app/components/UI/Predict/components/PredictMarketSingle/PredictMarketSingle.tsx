@@ -126,17 +126,19 @@ interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  isCarousel?: boolean;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  isCarousel = false,
 }) => {
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({
@@ -149,10 +151,17 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const getYesPercentage = (): number => {
     const prices = getOutcomePrices();
-    if (prices.length > 0) {
-      return Math.round(prices[0] * 100);
+    if (prices.length === 0) {
+      return 0;
     }
-    return 0;
+
+    const yesPrice = Number(prices[0]);
+
+    if (!Number.isFinite(yesPrice)) {
+      return 0;
+    }
+
+    return Math.round(yesPrice * 100);
   };
 
   const getTitle = (): string => outcome.title ?? 'Unknown Market';
@@ -166,17 +175,17 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint,
-          },
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome,
+          outcomeToken: token,
+          entryPoint,
         });
       },
-      { checkBalance: true },
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
     );
   };
 
@@ -184,14 +193,11 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MARKET_DETAILS,
-          params: {
-            marketId: market.id,
-            entryPoint,
-            title: market.title,
-            image: getImageUrl(),
-          },
+        navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
+          marketId: market.id,
+          entryPoint,
+          title: market.title,
+          image: getImageUrl(),
         });
       }}
     >
@@ -233,7 +239,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Success}>
-                {strings('predict.buy_yes')}
+                {outcome.tokens[0].title}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
@@ -245,7 +251,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text style={tw.style('font-medium')} color={TextColor.Error}>
-                {strings('predict.buy_no')}
+                {outcome.tokens[1].title}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}

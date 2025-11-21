@@ -30,10 +30,7 @@ const MyComponent = () => {
   const [filter, setFilter] = useState('all');
 
   return (
-    <ButtonFilter
-      isActive={filter === 'all'}
-      onPress={() => setFilter('all')}
-    >
+    <ButtonFilter isActive={filter === 'all'} onPress={() => setFilter('all')}>
       All
     </ButtonFilter>
   );
@@ -69,4 +66,3 @@ The component uses Tailwind CSS via the `useTailwind` hook and follows the MetaM
   />
 </Box>
 ```
-

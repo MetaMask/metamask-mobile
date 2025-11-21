@@ -133,6 +133,17 @@ export interface EstimatePerpsContextDto {
   coin: string;
 }
 
+export interface EstimatePredictContextDto {
+  /**
+   * Fee asset information, in caip19 format
+   * @example {
+   *   id: 'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+   *   amount: '1000000'
+   * }
+   */
+  feeAsset: EstimateAssetDto;
+}
+
 export interface EstimatePointsContextDto {
   /**
    * Swap context data, must be present for SWAP activity
@@ -147,6 +158,11 @@ export interface EstimatePointsContextDto {
    * @example Batch positions: [{ type: 'CLOSE_POSITION', coin: 'USDC', usdFeeValue: '1.00' }, ...]
    */
   perpsContext?: EstimatePerpsContextDto | EstimatePerpsContextDto[];
+
+  /**
+   * Predict context data, must be present for PREDICT activity
+   */
+  predictContext?: EstimatePredictContextDto;
 }
 
 /**
@@ -156,6 +172,7 @@ export interface EstimatePointsContextDto {
 export type PointsEventEarnType =
   | 'SWAP'
   | 'PERPS'
+  | 'PREDICT'
   | 'REFERRAL'
   | 'SIGN_UP_BONUS'
   | 'LOYALTY_BONUS'
@@ -283,6 +300,17 @@ export interface CardEventPayload {
 }
 
 /**
+ * mUSD deposit event payload
+ */
+export interface MusdDepositEventPayload {
+  /**
+   * Date of the deposit
+   * @example '2025-11-11'
+   */
+  date: string;
+}
+
+/**
  * Base points event interface
  */
 interface BasePointsEventDto {
@@ -343,6 +371,14 @@ export type PointsEventDto = BasePointsEventDto &
     | {
         type: 'CARD';
         payload: CardEventPayload | null;
+      }
+    | {
+        type: 'PREDICT';
+        payload: null;
+      }
+    | {
+        type: 'MUSD_DEPOSIT';
+        payload: MusdDepositEventPayload | null;
       }
     | {
         type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
@@ -717,7 +753,10 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (referralCode?: string) => Promise<string | null>;
+  handler: (
+    accounts: InternalAccount[],
+    referralCode?: string,
+  ) => Promise<string | null>;
 }
 
 /**

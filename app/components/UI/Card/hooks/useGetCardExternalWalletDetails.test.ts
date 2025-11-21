@@ -293,13 +293,11 @@ describe('mapCardExternalWalletDetailToCardTokenAllowance', () => {
 
 describe('useGetCardExternalWalletDetails', () => {
   const mockGetCardExternalWalletDetails = jest.fn();
-  const mockGetTotalAllowance = jest.fn();
   const mockLogoutFromProvider = jest.fn();
   const mockFetchData = jest.fn();
 
   const mockSDK = {
     getCardExternalWalletDetails: mockGetCardExternalWalletDetails,
-    getTotalAllowance: mockGetTotalAllowance,
     lineaChainId: 'eip155:59144' as CaipChainId,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
@@ -357,7 +355,7 @@ describe('useGetCardExternalWalletDetails', () => {
   const mockCacheReturn = {
     data: null,
     isLoading: false,
-    error: false,
+    error: null,
     fetchData: mockFetchData,
   };
 
@@ -381,10 +379,6 @@ describe('useGetCardExternalWalletDetails', () => {
       (mockCacheReturn as any).actualFetchFn = fetchFn;
       return mockCacheReturn;
     });
-
-    mockGetTotalAllowance.mockResolvedValue([
-      { address: '0xtoken1', allowance: '1000' },
-    ]);
   });
 
   afterEach(() => {
@@ -400,7 +394,7 @@ describe('useGetCardExternalWalletDetails', () => {
 
       expect(result.current.data).toBeNull();
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBe(false);
+      expect(result.current.error).toBeNull();
       expect(result.current.fetchData).toBe(mockFetchData);
     });
 
@@ -541,11 +535,6 @@ describe('useGetCardExternalWalletDetails', () => {
         walletDetailWithBalance,
       ]);
 
-      mockGetTotalAllowance.mockResolvedValue([
-        { address: '0xtoken1', allowance: '1000' },
-        { address: '0xtoken2', allowance: '2000' },
-      ]);
-
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -560,11 +549,6 @@ describe('useGetCardExternalWalletDetails', () => {
       const wallet2 = { ...mockWalletDetail2, balance: '0' };
 
       mockGetCardExternalWalletDetails.mockResolvedValue([wallet1, wallet2]);
-
-      mockGetTotalAllowance.mockResolvedValue([
-        { address: '0xtoken1', allowance: '1000' },
-        { address: '0xtoken2', allowance: '2000' },
-      ]);
 
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
@@ -581,11 +565,6 @@ describe('useGetCardExternalWalletDetails', () => {
 
       mockGetCardExternalWalletDetails.mockResolvedValue([wallet1, wallet2]);
 
-      mockGetTotalAllowance.mockResolvedValue([
-        { address: '0xtoken1', allowance: '1000' },
-        { address: '0xtoken2', allowance: '2000' },
-      ]);
-
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -601,11 +580,6 @@ describe('useGetCardExternalWalletDetails', () => {
 
       mockGetCardExternalWalletDetails.mockResolvedValue([wallet1, wallet2]);
 
-      mockGetTotalAllowance.mockResolvedValue([
-        { address: '0xtoken1', allowance: '1000' },
-        { address: '0xtoken2', allowance: '2000' },
-      ]);
-
       renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -613,119 +587,6 @@ describe('useGetCardExternalWalletDetails', () => {
       const result = await fetchFn();
 
       expect(result?.priorityWalletDetail?.address).toBe('0xtoken2');
-    });
-  });
-
-  describe('Total Allowance Fetching', () => {
-    it('fetches total allowance only for Linea EVM tokens', async () => {
-      const lineaToken = { ...mockWalletDetail1 };
-      const solanaToken = {
-        ...mockWalletDetail2,
-        caipChainId: 'solana:mainnet' as CaipChainId,
-        network: 'solana' as const,
-      };
-
-      mockGetCardExternalWalletDetails.mockResolvedValue([
-        lineaToken,
-        solanaToken,
-      ]);
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      await fetchFn();
-
-      expect(mockGetTotalAllowance).toHaveBeenCalledWith([lineaToken]);
-    });
-
-    it('excludes tokens without address from total allowance check', async () => {
-      const tokenWithAddress = { ...mockWalletDetail1 };
-      const tokenWithoutAddress = {
-        ...mockWalletDetail2,
-        tokenDetails: {
-          ...mockWalletDetail2.tokenDetails,
-          address: null,
-        },
-      };
-
-      mockGetCardExternalWalletDetails.mockResolvedValue([
-        tokenWithAddress,
-        tokenWithoutAddress,
-      ]);
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      await fetchFn();
-
-      expect(mockGetTotalAllowance).toHaveBeenCalledWith([tokenWithAddress]);
-    });
-
-    it('handles getTotalAllowance timeout gracefully', async () => {
-      mockGetCardExternalWalletDetails.mockResolvedValue([mockWalletDetail1]);
-
-      // Create a promise that will be pending indefinitely
-      let timeoutReject: (error: Error) => void;
-      const timeoutPromise = new Promise<
-        { address: string; allowance: string | undefined }[]
-      >((_, reject) => {
-        timeoutReject = reject;
-      });
-
-      mockGetTotalAllowance.mockReturnValue(timeoutPromise);
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const resultPromise = fetchFn();
-
-      // Fast forward past the 10 second timeout
-      jest.advanceTimersByTime(10000);
-
-      // Manually trigger the timeout rejection
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      timeoutReject!(new Error('getTotalAllowance timeout'));
-
-      const result = await resultPromise;
-
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'fetchCardExternalWalletDetails: getTotalAllowance failed or timed out, using empty array',
-      );
-      expect(result?.mappedWalletDetails).toHaveLength(1);
-    });
-
-    it('handles getTotalAllowance error gracefully', async () => {
-      mockGetCardExternalWalletDetails.mockResolvedValue([mockWalletDetail1]);
-      mockGetTotalAllowance.mockRejectedValue(new Error('Network error'));
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
-
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'fetchCardExternalWalletDetails: getTotalAllowance failed or timed out, using empty array',
-      );
-      expect(result?.mappedWalletDetails).toHaveLength(1);
-    });
-
-    it('uses empty array for total allowances when getTotalAllowance fails', async () => {
-      mockGetCardExternalWalletDetails.mockResolvedValue([mockWalletDetail1]);
-      mockGetTotalAllowance.mockRejectedValue(new Error('API error'));
-
-      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchFn = (mockCacheReturn as any).actualFetchFn;
-      const result = await fetchFn();
-
-      expect(result?.mappedWalletDetails[0]?.totalAllowance).toBeUndefined();
     });
   });
 
@@ -767,7 +628,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -788,7 +649,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -803,7 +664,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -816,7 +677,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -829,7 +690,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 
@@ -846,7 +707,21 @@ describe('useGetCardExternalWalletDetails', () => {
           priorityWalletDetail: null,
         },
         isLoading: false,
-        error: false,
+        error: null,
+        fetchData: mockFetchData,
+      });
+
+      renderHook(() => useGetCardExternalWalletDetails(mockDelegationSettings));
+
+      expect(mockFetchData).not.toHaveBeenCalled();
+    });
+
+    it('does not trigger fetch when error exists', () => {
+      const mockError = new Error('Previous fetch failed');
+      mockUseWrapWithCache.mockReturnValue({
+        data: null,
+        isLoading: false,
+        error: mockError,
         fetchData: mockFetchData,
       });
 
@@ -859,7 +734,7 @@ describe('useGetCardExternalWalletDetails', () => {
       mockUseWrapWithCache.mockReturnValue({
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       });
 

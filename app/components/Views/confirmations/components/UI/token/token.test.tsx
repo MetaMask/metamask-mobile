@@ -4,6 +4,7 @@ import { BtcAccountType } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { AssetType } from '../../../types/token';
 import { Token } from './token';
+import { act, fireEvent } from '@testing-library/react-native';
 
 describe('Token', () => {
   const createMockToken = (overrides: Partial<AssetType> = {}): AssetType => ({
@@ -128,5 +129,49 @@ describe('Token', () => {
     );
 
     expect(getByText('Native SegWit')).toBeOnTheScreen();
+  });
+
+  it('renders disabled message when token is disabled', () => {
+    const mockToken = createMockToken({
+      disabled: true,
+      disabledMessage: 'Disabled Test',
+    });
+
+    const { getByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    expect(getByText('Disabled Test')).toBeOnTheScreen();
+  });
+
+  it('calls onPress when token is pressed', async () => {
+    const mockToken = createMockToken();
+
+    const { getByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    await act(() => {
+      fireEvent.press(getByText('ETH'));
+    });
+
+    expect(mockOnPress).toHaveBeenCalledTimes(1);
+    expect(mockOnPress).toHaveBeenCalledWith(mockToken);
+  });
+
+  it('does not call onPress when token is disabled and pressed', async () => {
+    const mockToken = createMockToken({
+      disabled: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    await act(() => {
+      fireEvent.press(getByText('ETH'));
+    });
+
+    expect(mockOnPress).not.toHaveBeenCalled();
   });
 });
