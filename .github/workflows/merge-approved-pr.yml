@@ -1,0 +1,17 @@
+name: Merge Approved PR
+
+on:
+  # Trigger the workflow when a comment is created on an issue or pull request
+  issue_comment:
+    types: [created]
+
+jobs:
+  merge-pr:
+    # Only run if the comment is on a PR and the comment body matches exactly "Merge my PR"
+    if: github.event.issue.pull_request && github.event.comment.body == 'Merge my PR'
+    permissions:
+      pull-requests: write # Required to merge PRs
+      contents: write      # Required to update the repository content
+    uses: MetaMask/github-tools/.github/workflows/merge-approved-pr.yml@INFRA-2925-AddMergingGithubAction
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
