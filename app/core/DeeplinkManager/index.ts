@@ -4,11 +4,18 @@
  * This file provides the public API for the DeeplinkManager module.
  *
  * ## Structure:
- * - `entry/` - Main entry points and singleton management
- * - `core/` - Modern handler-based routing system (new)
- * - `legacy/` - Current production system (being phased out)
- * - `utils/` - Shared utilities
- * - `types/` - Type definitions
+ * - `handlers/legacy/` - Current production deeplink handlers
+ * - `handlers/v2/` - Modern handler-based routing system (new architecture)
+ * - `router/` - UniversalRouter and routing integration
+ * - `registry/` - Handler registry for v2 system
+ * - `normalization/` - Link normalization and legacy adapter
+ * - `utils/` - Shared utilities (URL parsing, signatures, transactions)
+ * - `types/` - TypeScript type definitions
+ *
+ * ## Main Entry Points:
+ * - `handleDeeplink.ts` - Primary deeplink entry point
+ * - `DeeplinkManager.ts` - Legacy manager class
+ * - `SharedDeeplinkManager.ts` - Shared singleton instance
  */
 
 // Main entry points

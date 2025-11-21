@@ -18,7 +18,7 @@ jest.mock('./handlers/legacy/handleSwapUrl');
 jest.mock('./handlers/legacy/handleCreateAccountUrl');
 jest.mock('./handlers/legacy/handlePerpsUrl');
 jest.mock('./handlers/legacy/handleRewardsUrl');
-jest.mock('../SDKConnect/handlers/handleDeeplink');
+jest.mock('./handleDeeplink');
 jest.mock('./handlers/legacy/handleFastOnboarding');
 jest.mock('../../util/notifications/services/FCMService');
 
