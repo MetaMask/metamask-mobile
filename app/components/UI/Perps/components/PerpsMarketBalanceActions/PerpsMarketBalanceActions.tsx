@@ -270,6 +270,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 variant={TextVariant.HeadingMD}
                 color={TextColor.Default}
                 style={tw.style('mb-2 text-center')}
+                testID={PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_TITLE}
               >
                 {strings('perps.trade_perps')}
               </Text>
@@ -277,6 +278,9 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 variant={TextVariant.BodyMD}
                 color={TextColor.Alternative}
                 style={tw.style('text-center')}
+                testID={
+                  PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_DESCRIPTION
+                }
               >
                 {strings('perps.trade_perps_description')}
               </Text>
@@ -313,7 +317,13 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               </Text>
             </Animated.View>
             <Box twClassName="flex-row items-center mt-2">
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                testID={
+                  PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                }
+              >
                 {formatPerpsFiat(availableBalance)} {strings('perps.available')}
               </Text>
               {hasPositions && !BigNumber(unrealizedPnl).isZero() && (
@@ -324,7 +334,11 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   >
                     {' · P&L '}
                   </Text>
-                  <Text variant={TextVariant.BodyMD} color={pnlColor}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={pnlColor}
+                    testID={PerpsMarketBalanceActionsSelectorsIDs.PNL_VALUE}
+                  >
                     {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
                   </Text>
                 </>

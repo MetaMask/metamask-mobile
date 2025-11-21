@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { captureException } from '@sentry/react-native';
+import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsEligibility } from '../selectors/perpsController';
@@ -9,6 +9,8 @@ import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import type { PerpsNavigationParamList } from '../controllers/types';
+import { ensureError } from '../utils/perpsErrorHandler';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -84,55 +86,23 @@ export const usePerpsHomeActions = (
       await ensureArbitrumNetworkExists();
       navigateToConfirmation({ stack: Routes.PERPS.ROOT });
 
-      depositWithConfirmation().catch((depositError) => {
-        const errorObj =
-          depositError instanceof Error
-            ? depositError
-            : new Error(String(depositError));
+      // Wait for deposit confirmation to complete before calling success callback
+      await depositWithConfirmation();
 
-        DevLogger.log('[usePerpsHomeActions] Deposit initialization failed', {
-          error: errorObj.message,
-        });
-
-        captureException(errorObj, {
-          tags: {
-            component: 'usePerpsHomeActions',
-            action: 'deposit',
-            operation: 'add_funds',
-          },
-          extra: {
-            context: 'user initiated deposit from home screen',
-          },
-        });
-
-        setError(errorObj);
-
-        if (onError) {
-          onError(errorObj, 'deposit');
-        }
-      });
-
-      DevLogger.log('[usePerpsHomeActions] Add funds flow initiated');
+      DevLogger.log(
+        '[usePerpsHomeActions] Add funds flow completed successfully',
+      );
 
       if (onAddFundsSuccess) {
         onAddFundsSuccess();
       }
     } catch (err) {
-      const errorObj = err instanceof Error ? err : new Error(String(err));
+      const errorObj = ensureError(err);
       setError(errorObj);
 
-      DevLogger.log('[usePerpsHomeActions] Add funds failed', {
-        error: errorObj.message,
-      });
-
-      captureException(errorObj, {
+      Logger.error(errorObj, {
         tags: {
-          component: 'usePerpsHomeActions',
-          action: 'deposit',
-          operation: 'network_or_navigation',
-        },
-        extra: {
-          context: 'failed during network check or navigation',
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
         },
       });
 
@@ -175,22 +145,12 @@ export const usePerpsHomeActions = (
         onWithdrawSuccess();
       }
     } catch (err) {
-      const errorObj = err instanceof Error ? err : new Error(String(err));
+      const errorObj = ensureError(err);
       setError(errorObj);
 
-      DevLogger.log('[usePerpsHomeActions] Withdraw failed', {
-        error: errorObj.message,
-      });
-
-      captureException(errorObj, {
+      Logger.error(errorObj, {
         tags: {
-          component: 'usePerpsHomeActions',
-          action: 'withdraw',
-          operation: 'network_or_navigation',
-        },
-        extra: {
-          context:
-            'failed during network check or navigation to withdraw screen',
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
         },
       });
 

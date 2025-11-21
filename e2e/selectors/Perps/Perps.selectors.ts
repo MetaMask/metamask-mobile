@@ -382,10 +382,14 @@ export const PerpsChartGridLinesSelectorsIDs = {
 export const PerpsMarketBalanceActionsSelectorsIDs = {
   CONTAINER: 'perps-market-balance-actions',
   BALANCE_VALUE: 'perps-market-balance-value',
+  AVAILABLE_BALANCE_TEXT: 'perps-market-available-balance-text',
+  PNL_VALUE: 'perps-market-pnl-value',
   ADD_FUNDS_BUTTON: 'perps-market-add-funds-button',
   WITHDRAW_BUTTON: 'perps-market-withdraw-button',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP: 'perps-market-balance-geo-block-tooltip',
   LEARN_MORE_BUTTON: 'perps-market-balance-learn-more-button',
+  EMPTY_STATE_TITLE: 'perps-market-empty-state-title',
+  EMPTY_STATE_DESCRIPTION: 'perps-market-empty-state-description',
 };
 
 export const PerpsChartAuxiliaryLinesSelectorsIDs = {
