@@ -4,7 +4,7 @@ import TokenSelectorModal from './TokenSelectorModal';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import initialRootState from '../../../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../../testUtils';
 import { UnifiedRampRoutingType } from '../../../../../../../reducers/fiatOrders';
 
@@ -28,24 +28,9 @@ function renderWithProvider(
     },
     {
       state: {
-        engine: {
-          backgroundState,
-        },
+        ...initialRootState,
         fiatOrders: {
-          orders: [],
-          customOrderIds: [],
-          networks: [],
-          selectedRegionAgg: null,
-          selectedRegionDeposit: null,
-          selectedCryptoCurrencyDeposit: null,
-          selectedPaymentMethodDeposit: null,
-          selectedPaymentMethodAgg: null,
-          getStartedAgg: false,
-          getStartedSell: false,
-          getStartedDeposit: false,
-          authenticationUrls: [],
-          activationKeys: [],
-          detectedGeolocation: undefined,
+          ...initialRootState.fiatOrders,
           rampRoutingDecision,
         },
       },
