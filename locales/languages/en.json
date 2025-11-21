@@ -86,6 +86,9 @@
       "message": "Add less than {{amount}} or use a different token.",
       "title": "Insufficient funds"
     },
+    "insufficient_pay_token_balance_fees_no_target": {
+      "message": "Add less or use a different token."
+    },
     "insufficient_pay_token_native": {
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
       "title": "Insufficient funds"
