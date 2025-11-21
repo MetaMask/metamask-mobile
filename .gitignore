@@ -158,7 +158,7 @@ dist/
 web-build/
 expo-env.d.ts
 
-# CICD
+# CICD artifacts and tools
 github-tools/
 
 
