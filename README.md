@@ -1,4 +1,4 @@
-![MetaMask logo](logo.png?raw=true)
+<img alt="MetaMask logo" src="logo.png?raw=true" width="50" />
 
 # MetaMask
 
