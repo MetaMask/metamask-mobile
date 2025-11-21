@@ -188,8 +188,9 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
           style={[styles.chartContainer, { paddingBottom: insets.bottom }]}
           onLayout={(event) => {
             const { height } = event.nativeEvent.layout;
-            // Use measured height directly - padding is already accounted for in layout
-            const newHeight = height;
+            // Subtract bottom inset to prevent WebView from extending into safe area
+            // This ensures x-axis labels are visible above Android navigation button
+            const newHeight = height - insets.bottom;
 
             // Debounce: only update if height change is significant OR it's the first real measurement
             // Prevents unnecessary re-renders during animations or minor layout shifts
