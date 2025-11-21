@@ -15,17 +15,12 @@ import {
   /// END:ONLY_INCLUDE_IF
 } from '../../../../../core/Multichain/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { PredefinedRecipient } from '../../utils/send';
 
 export const useSendType = () => {
   const { asset } = useSendContext();
   const { predefinedRecipient } = useParams<{
-    predefinedRecipient: {
-      address: string;
-      isEvm: boolean;
-      isBitcoin: boolean;
-      isSolana: boolean;
-      isTron: boolean;
-    };
+    predefinedRecipient: PredefinedRecipient;
   }>();
 
   const {

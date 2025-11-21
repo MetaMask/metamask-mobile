@@ -17,6 +17,7 @@ import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConver
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useSendContext } from '../../../../context/send-context';
+import { type PredefinedRecipient } from '../../../../utils/send';
 import { useSendScreenNavigation } from '../../../../hooks/send/useSendScreenNavigation';
 import { useSendActions } from '../../../../hooks/send/useSendActions';
 import { EditAmountKeyboard } from '../../../edit-amount-keyboard';
@@ -58,9 +59,7 @@ export const AmountKeyboard = ({
     useAmountSelectionMetrics();
 
   const { predefinedRecipient } = useParams<{
-    predefinedRecipient: {
-      address: string;
-    };
+    predefinedRecipient: PredefinedRecipient;
   }>();
 
   const updateToPercentageAmount = useCallback(
