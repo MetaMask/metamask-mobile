@@ -7,10 +7,10 @@ import { store } from '../../../../../store';
 import { selectIsFirstTimePerpsUser } from '../../../../../components/UI/Perps/selectors/perpsController';
 
 // Mock dependencies
-jest.mock('../../../NavigationService');
-jest.mock('../../../SDKConnect/utils/DevLogger');
-jest.mock('../../../../store');
-jest.mock('../../../../components/UI/Perps/selectors/perpsController');
+jest.mock('../../../../NavigationService');
+jest.mock('../../../../SDKConnect/utils/DevLogger');
+jest.mock('../../../../../store');
+jest.mock('../../../../../components/UI/Perps/selectors/perpsController');
 
 describe('handlePerpsUrl', () => {
   let mockNavigate: jest.Mock;

@@ -10,7 +10,7 @@ jest.mock('../../../../NavigationService', () => ({
   },
 }));
 
-jest.mock('../../../../store', () => ({
+jest.mock('../../../../../store', () => ({
   store: {
     getState: jest.fn(),
   },
@@ -22,7 +22,7 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
-jest.mock('../../../../components/UI/DeepLinkModal/constant', () => ({
+jest.mock('../../../../../components/UI/DeepLinkModal', () => ({
   createDeepLinkModalNavDetails: jest.fn(() => ['DeepLinkModal', {}]),
 }));
 

@@ -6,7 +6,7 @@ import Engine from '../../../../Engine';
 import type { KeyringControllerState } from '@metamask/keyring-controller';
 
 jest.mock('../../../../../util/Logger');
-jest.mock('../../../Engine', () => ({
+jest.mock('../../../../Engine', () => ({
   context: {
     KeyringController: {
       state: {

@@ -6,15 +6,15 @@ import connectWithWC from './handlers/legacy/connectWithWC';
 import parseDeeplink from './parseDeeplink';
 import handleEthereumUrl from './handlers/legacy/handleEthereumUrl';
 
-jest.mock('../../../../constants/deeplinks');
-jest.mock('../../../../util/Logger');
+jest.mock('../../constants/deeplinks');
+jest.mock('../../util/Logger');
 jest.mock('./DeeplinkManager');
-jest.mock('../../../SDKConnect/utils/DevLogger');
-jest.mock('./handleDappUrl');
-jest.mock('./handleUniversalLink');
-jest.mock('./connectWithWC');
-jest.mock('../handlers/handleEthereumUrl');
-jest.mock('../../../../../locales/i18n', () => ({
+jest.mock('../SDKConnect/utils/DevLogger');
+jest.mock('./handlers/legacy/handleDappUrl');
+jest.mock('./handlers/legacy/handleUniversalLink');
+jest.mock('./handlers/legacy/connectWithWC');
+jest.mock('./handlers/legacy/handleEthereumUrl');
+jest.mock('../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 

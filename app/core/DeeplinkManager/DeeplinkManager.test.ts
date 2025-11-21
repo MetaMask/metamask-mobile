@@ -9,18 +9,18 @@ import parseDeeplink from './parseDeeplink';
 import approveTransaction from './utils/approveTransaction';
 
 jest.mock('./utils/approveTransaction');
-jest.mock('./handlers/handleEthereumUrl');
-jest.mock('./handlers/handleBrowserUrl');
-jest.mock('./handlers/handleRampUrl');
-jest.mock('./routing/parseDeeplink');
-jest.mock('./handlers/switchNetwork');
-jest.mock('./handlers/handleSwapUrl');
-jest.mock('./handlers/handleCreateAccountUrl');
-jest.mock('./handlers/handlePerpsUrl');
-jest.mock('./handlers/handleRewardsUrl');
-jest.mock('../entry/handleDeeplink');
-jest.mock('./handlers/handleFastOnboarding');
-jest.mock('../../../util/notifications/services/FCMService');
+jest.mock('./handlers/legacy/handleEthereumUrl');
+jest.mock('./handlers/legacy/handleBrowserUrl');
+jest.mock('./handlers/legacy/handleRampUrl');
+jest.mock('./parseDeeplink');
+jest.mock('./handlers/legacy/switchNetwork');
+jest.mock('./handlers/legacy/handleSwapUrl');
+jest.mock('./handlers/legacy/handleCreateAccountUrl');
+jest.mock('./handlers/legacy/handlePerpsUrl');
+jest.mock('./handlers/legacy/handleRewardsUrl');
+jest.mock('../SDKConnect/handlers/handleDeeplink');
+jest.mock('./handlers/legacy/handleFastOnboarding');
+jest.mock('../../util/notifications/services/FCMService');
 
 const mockNavigation = {
   navigate: jest.fn(),

@@ -12,13 +12,13 @@ import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import handleRampUrl from '../handleRampUrl';
 import handleDepositCashUrl from '../handleDepositCashUrl';
 
-jest.mock('../../../AppConstants');
-jest.mock('../../../SDKConnect/handlers/handleDeeplink');
-jest.mock('../../../SDKConnect/SDKConnect');
-jest.mock('../../../WalletConnect/WalletConnectV2');
-jest.mock('../handlers/handleRampUrl');
-jest.mock('../handlers/handleDepositCashUrl');
-jest.mock('../../../NativeModules', () => ({
+jest.mock('../../../../AppConstants');
+jest.mock('../../../../SDKConnect/handlers/handleDeeplink');
+jest.mock('../../../../SDKConnect/SDKConnect');
+jest.mock('../../../../WalletConnect/WalletConnectV2');
+jest.mock('../handleRampUrl');
+jest.mock('../handleDepositCashUrl');
+jest.mock('../../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },

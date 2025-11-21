@@ -12,8 +12,8 @@ import { ACTIONS } from '../../../constants/deeplinks';
 import ReduxService from '../../redux';
 
 // Mock dependencies
-jest.mock('./CoreLinkNormalizer');
-jest.mock('../legacy/LegacyLinkAdapter');
+jest.mock('../normalization/CoreLinkNormalizer');
+jest.mock('../normalization/LegacyLinkAdapter');
 jest.mock('../../../util/Logger');
 jest.mock('../../Analytics', () => ({
   MetaMetrics: {

@@ -8,7 +8,7 @@ jest.mock('../../../../../util/networks/handleNetworkSwitch', () => ({
   handleNetworkSwitch: jest.fn(),
 }));
 
-jest.mock('../../../../actions/alert', () => ({
+jest.mock('../../../../../actions/alert', () => ({
   showAlert: jest.fn(),
 }));
 

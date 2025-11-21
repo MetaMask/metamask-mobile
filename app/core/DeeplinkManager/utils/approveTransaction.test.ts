@@ -18,10 +18,10 @@ const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
   'Account 1',
 );
 
-jest.mock('../../../../util/networks');
-jest.mock('../../../../util/transactions');
-jest.mock('../../../../util/address');
-jest.mock('../../../Engine', () => ({
+jest.mock('../../../util/networks');
+jest.mock('../../../util/transactions');
+jest.mock('../../../util/address');
+jest.mock('../../Engine', () => ({
   context: {
     NetworkController: {
       setProviderType: jest.fn(),
@@ -39,15 +39,15 @@ jest.mock('../../../Engine', () => ({
     },
   },
 }));
-jest.mock('../../../NotificationManager');
-jest.mock('../../../../../locales/i18n', () => ({
+jest.mock('../../NotificationManager');
+jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
 }));
-jest.mock('../../../../util/transaction-controller', () => ({
+jest.mock('../../../util/transaction-controller', () => ({
   __esModule: true,
   addTransaction: jest.fn(),
 }));
-jest.mock('../../../../components/Views/confirmations/utils/deeplink');
+jest.mock('../../../components/Views/confirmations/utils/deeplink');
 
 const mockEthUrl = {
   parameters: { uint256: '123', address: '0xMockAddress' },

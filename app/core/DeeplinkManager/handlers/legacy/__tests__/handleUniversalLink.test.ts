@@ -16,28 +16,28 @@ import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 
-jest.mock('./handleMetaMaskDeeplink');
-jest.mock('../../../SDKConnect/handlers/handleDeeplink');
-jest.mock('../../../AppConstants');
-jest.mock('../../../SDKConnect/SDKConnect');
-jest.mock('../../../WalletConnect/WalletConnectV2');
-jest.mock('../../../NativeModules', () => ({
+jest.mock('../handleMetaMaskDeeplink');
+jest.mock('../../../../SDKConnect/handlers/handleDeeplink');
+jest.mock('../../../../AppConstants');
+jest.mock('../../../../SDKConnect/SDKConnect');
+jest.mock('../../../../WalletConnect/WalletConnectV2');
+jest.mock('../../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },
 }));
-jest.mock('../handlers/handleDeepLinkModalDisplay');
-jest.mock('../handlers/handleRampUrl');
-jest.mock('../handlers/handleDepositCashUrl');
-jest.mock('../handlers/handleHomeUrl');
-jest.mock('../handlers/handleSwapUrl');
-jest.mock('../handlers/handleBrowserUrl');
-jest.mock('../handlers/handleCreateAccountUrl');
-jest.mock('../handlers/handlePerpsUrl');
-jest.mock('../handlers/handleRewardsUrl');
-jest.mock('../handlers/handlePredictUrl');
-jest.mock('../handlers/handleFastOnboarding');
-jest.mock('../handlers/handleEnableCardButton');
+jest.mock('../handleDeepLinkModalDisplay');
+jest.mock('../handleRampUrl');
+jest.mock('../handleDepositCashUrl');
+jest.mock('../handleHomeUrl');
+jest.mock('../handleSwapUrl');
+jest.mock('../handleBrowserUrl');
+jest.mock('../handleCreateAccountUrl');
+jest.mock('../handlePerpsUrl');
+jest.mock('../handleRewardsUrl');
+jest.mock('../handlePredictUrl');
+jest.mock('../handleFastOnboarding');
+jest.mock('../handleEnableCardButton');
 jest.mock('react-native-quick-crypto', () => ({
   webcrypto: {
     subtle: {

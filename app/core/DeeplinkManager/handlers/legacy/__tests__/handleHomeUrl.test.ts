@@ -4,7 +4,7 @@ import { navigateToHomeUrl } from '../handleHomeUrl';
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../../../NavigationService');
-jest.mock('../../../../actions/notification/helpers');
+jest.mock('../../../../../actions/notification/helpers');
 
 describe('navigateToHomeUrl', () => {
   beforeEach(() => jest.clearAllMocks());

@@ -9,8 +9,8 @@ jest.mock('../../../DeeplinkManager', () =>
   jest.fn().mockImplementation(() => ({})),
 );
 
-jest.mock('../../utils/extractURLParams');
-jest.mock('../handlers/handleBrowserUrl');
+jest.mock('../../../utils/extractURLParams');
+jest.mock('../handleBrowserUrl');
 
 describe('handleDappProtocol', () => {
   let instance = {} as unknown as DeeplinkManager;
