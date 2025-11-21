@@ -57,7 +57,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="bg-subsection rounded-lg px-3"
+      twClassName="bg-muted rounded-lg px-3"
       style={tw.style('min-h-[44px]')}
     >
       <Icon
@@ -95,7 +95,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             <Icon
               name={IconName.CircleX}
               size={IconSize.Md}
-              color={IconColor.IconMuted}
+              color={IconColor.IconAlternative}
             />
           </TouchableOpacity>
         </>
