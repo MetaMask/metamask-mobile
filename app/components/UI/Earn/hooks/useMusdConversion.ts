@@ -4,13 +4,13 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { TransactionType } from '@metamask/transaction-controller';
 
 /**
  * Type guard to validate allowedPaymentTokens structure.
@@ -190,7 +190,7 @@ export const useMusdConversion = () => {
             skipInitialGasEstimate: true,
             networkClientId,
             origin: MMM_ORIGIN,
-            type: MUSD_CONVERSION_TRANSACTION_TYPE,
+            type: TransactionType.musdConversion,
             // Important: Nested transaction is required for Relay to work. This will be fixed in a future iteration.
             nestedTransactions: [
               {
