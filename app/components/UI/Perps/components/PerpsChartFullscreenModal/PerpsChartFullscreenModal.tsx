@@ -72,7 +72,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
           await lockAsync(OrientationLock.PORTRAIT_UP);
         }
       } catch (error) {
-        console.warn('Failed to change orientation lock:', error);
+        // Silent error handling - orientation lock failures are non-critical
       }
     };
 
@@ -82,8 +82,8 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     // No need to lock again on visibility change as it's handled above
     return () => {
       if (isVisible) {
-        lockAsync(OrientationLock.PORTRAIT_UP).catch((error) => {
-          console.warn('Failed to lock orientation on cleanup:', error);
+        lockAsync(OrientationLock.PORTRAIT_UP).catch(() => {
+          // Silent error handling
         });
       }
     };
@@ -121,7 +121,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       // Lock orientation back to portrait before closing
       await lockAsync(OrientationLock.PORTRAIT_UP);
     } catch (error) {
-      console.warn('Failed to lock orientation on close:', error);
+      // Silent error handling - orientation lock failures are non-critical
     } finally {
       // Always call onClose even if orientation lock fails
       onClose();
@@ -134,7 +134,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       // Restore orientation lock on error to prevent getting stuck
       await lockAsync(OrientationLock.PORTRAIT_UP);
     } catch (error) {
-      console.warn('Failed to lock orientation after chart error:', error);
+      // Silent error handling - orientation lock failures are non-critical
     } finally {
       // Close modal even if orientation lock fails
       onClose();

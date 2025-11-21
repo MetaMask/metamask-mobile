@@ -311,7 +311,6 @@ export const createTradingViewChartTemplate = (
         // Set up edge detection for loading more historical data
         window.setupEdgeDetection = function() {
             if (!window.chart) {
-                console.log('📊 TradingView: Cannot set up edge detection - chart not ready');
                 return;
             }
 
@@ -337,8 +336,6 @@ export const createTradingViewChartTemplate = (
                         // Update last fetch time
                         window.lastHistoryFetchTime = now;
 
-                        console.log('📊 TradingView: Reached left edge - requesting more history');
-
                         // Send message to React Native to fetch more historical data
                         if (window.ReactNativeWebView) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -350,8 +347,6 @@ export const createTradingViewChartTemplate = (
                         }
                     }
                 });
-
-                console.log('📊 TradingView: Edge detection set up successfully');
             } catch (error) {
                 console.error('📊 TradingView: Error setting up edge detection:', error);
             }
@@ -1253,21 +1248,24 @@ export const createTradingViewChartTemplate = (
                                     }
                                 }
 
-                                // Update volume series with volume data
+                                // Defer volume series update to next frame for better performance
+                                // This allows candlesticks to render first, preventing blank screen on Android
                                 if (window.volumeSeries) {
-                                    try {
-                                        const volumeData = message.data.map(candle => ({
-                                            time: candle.time,
-                                            value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
-                                            color: window.coloredVolume
-                                                ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
-                                                : '${theme.colors.border.muted}'
-                                        }));
+                                    requestAnimationFrame(() => {
+                                        try {
+                                            const volumeData = message.data.map(candle => ({
+                                                time: candle.time,
+                                                value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
+                                                color: window.coloredVolume
+                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
+                                                    : '${theme.colors.border.muted}'
+                                            }));
 
-                                        window.volumeSeries.setData(volumeData);
-                                    } catch (error) {
-                                        // Silent error handling
-                                    }
+                                            window.volumeSeries.setData(volumeData);
+                                        } catch (error) {
+                                            // Silent error handling
+                                        }
+                                    });
                                 }
                                 
                                 // Update visible candle count if provided
@@ -1304,7 +1302,6 @@ export const createTradingViewChartTemplate = (
                         if (window.candlestickSeries) {
                             window.candlestickSeries.setData([]);
                             window.allCandleData = [];
-                            console.log('📊 TradingView: Cleared chart data');
                         }
                         break;
                     case 'ADD_AUXILIARY_LINES':
