@@ -24,7 +24,6 @@ export { usePerpsConnection } from './usePerpsConnection';
 export { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 
 // Live data hooks (WebSocket subscriptions)
-export { usePerpsPositionData } from './usePerpsPositionData';
 export { usePerpsPrices } from './usePerpsPrices';
 
 // Asset metadata hooks

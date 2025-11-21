@@ -38,7 +38,7 @@ import type {
   PerpsMarketData,
   PerpsNavigationParamList,
 } from '../../controllers/types';
-import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
+import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
@@ -97,7 +97,6 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 import Engine from '../../../../../core/Engine';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -337,12 +336,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  const { candleData, isLoadingHistory, refreshCandleData, hasHistoricalData } =
-    usePerpsPositionData({
-      coin: market?.symbol || '',
-      selectedDuration: TimeDuration.YEAR_TO_DATE,
-      selectedInterval: selectedCandlePeriod,
-    });
+  const {
+    candleData,
+    isLoading: isLoadingHistory,
+    fetchMoreHistory,
+  } = usePerpsLiveCandles({
+    coin: market?.symbol || '',
+    interval: selectedCandlePeriod,
+    duration: TimeDuration.YEAR_TO_DATE,
+    throttleMs: 1000,
+  });
 
   // Check if user has an existing position for this market
   const { isLoading: isLoadingPosition, existingPosition } =
@@ -450,15 +453,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Reset chart view to default position
       chartRef.current?.resetToDefault();
 
-      if (candleData) {
-        await refreshCandleData();
-      }
+      // WebSocket streaming provides real-time data - no manual refresh needed
+      // Just reset the UI state and the chart will update automatically
     } catch (error) {
-      console.error('Failed to refresh candle data:', error);
+      console.error('Failed to refresh chart state:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [candleData, refreshCandleData]);
+  }, []);
 
   // Handle order selection for chart integration
   const handleOrderSelect = useCallback(
@@ -729,22 +731,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            {hasHistoricalData ? (
-              <TradingViewChart
-                ref={chartRef}
-                candleData={candleData}
-                height={350}
-                visibleCandleCount={visibleCandleCount}
-                tpslLines={tpslLines}
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-              />
-            ) : (
-              <Skeleton
-                height={350}
-                width="100%"
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
-              />
-            )}
+            {/* Always render chart to avoid WebView remount on interval changes */}
+            <TradingViewChart
+              ref={chartRef}
+              candleData={candleData}
+              height={350}
+              visibleCandleCount={visibleCandleCount}
+              tpslLines={tpslLines}
+              symbol={market?.symbol}
+              onNeedMoreHistory={fetchMoreHistory}
+              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+            />
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector
