@@ -25,7 +25,7 @@ async function fetchJobIds(octokit, owner, repo, runId) {
     const allJobs = await octokit.paginate(octokit.rest.actions.listJobsForWorkflowRun, {
       owner,
       repo,
-      run_id: parseInt(runId, 10),
+      run_id: runId,
     });
 
     console.log(`Found ${allJobs.length} jobs in workflow run ${runId}`);
@@ -90,7 +90,7 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
     const allArtifacts = await octokit.paginate(octokit.rest.actions.listWorkflowRunArtifacts, {
       owner,
       repo,
-      run_id: parseInt(runId, 10),
+      run_id: runId,
     });
 
     console.log(`Found ${allArtifacts.length} total artifacts in workflow run ${runId}`);
@@ -122,9 +122,16 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
 
     // Find main Android artifact (main-e2e-release.apk)
     // Priority: exact match > APK (excluding test/flask) > AAB (excluding flask)
+    // Use case-insensitive matching for exclusions
     const androidArtifact = androidArtifacts.find((a) => a.name === 'main-e2e-release.apk') ||
-      androidArtifacts.find((a) => a.name.includes('-release.apk') && !a.name.includes('androidTest') && !a.name.includes('flask')) ||
-      androidArtifacts.find((a) => a.name.includes('-release.aab') && !a.name.includes('flask') && !a.name.includes('androidTest'));
+      androidArtifacts.find((a) => {
+        const nameLower = a.name.toLowerCase();
+        return a.name.includes('-release.apk') && !nameLower.includes('androidtest') && !nameLower.includes('flask');
+      }) ||
+      androidArtifacts.find((a) => {
+        const nameLower = a.name.toLowerCase();
+        return a.name.includes('-release.aab') && !nameLower.includes('flask') && !nameLower.includes('androidtest');
+      });
 
     if (androidArtifact) {
       androidArtifactId = androidArtifact.id;
@@ -135,7 +142,10 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
 
     // Find Android Flask artifact (flask-e2e-release.apk)
     const androidFlaskArtifact = androidArtifacts.find((a) => a.name === 'flask-e2e-release.apk') ||
-      androidArtifacts.find((a) => a.name.includes('flask') && a.name.includes('-release.apk'));
+      androidArtifacts.find((a) => {
+        const nameLower = a.name.toLowerCase();
+        return nameLower.includes('flask') && a.name.includes('-release.apk');
+      });
 
     if (androidFlaskArtifact) {
       androidFlaskArtifactId = androidFlaskArtifact.id;
@@ -193,14 +203,21 @@ async function start() {
 
   const [owner, repo] = GITHUB_REPOSITORY.split('/');
   if (!owner || !repo) {
-    console.error('GITHUB_REPOSITORY must be in format owner/repo');
+    console.error(`GITHUB_REPOSITORY must be in format owner/repo, got: ${GITHUB_REPOSITORY}`);
+    process.exit(1);
+  }
+
+  // Validate GITHUB_RUN_ID is a valid integer
+  const runIdInt = parseInt(GITHUB_RUN_ID, 10);
+  if (isNaN(runIdInt) || runIdInt <= 0) {
+    console.error(`GITHUB_RUN_ID must be a valid positive integer, got: ${GITHUB_RUN_ID}`);
     process.exit(1);
   }
 
   // Validate PR_NUMBER before creating API client
   const prNumber = parseInt(PR_NUMBER, 10);
   if (isNaN(prNumber) || prNumber <= 0) {
-    console.error('PR_NUMBER must be a positive integer');
+    console.error(`PR_NUMBER must be a positive integer, got: ${PR_NUMBER}`);
     process.exit(1);
   }
 
@@ -264,13 +281,13 @@ async function start() {
   // 3. Fetch job IDs and artifact URLs from GitHub API for the current workflow run
   // Note: GITHUB_RUN_ID refers to the main CI workflow run, which includes
   // artifacts from reusable workflows (build-android-e2e.yml and build-ios-e2e.yml)
-  console.log(`\n=== Fetching jobs and artifacts for PR #${prNumber}, Workflow Run: ${GITHUB_RUN_ID} ===`);
-  const defaultArtifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${GITHUB_RUN_ID}`;
+  console.log(`\n=== Fetching jobs and artifacts for PR #${prNumber}, Workflow Run: ${runIdInt} ===`);
+  const defaultArtifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${runIdInt}`;
   const workflowRunUrl = defaultArtifactsUrl;
 
   const [jobIds, artifactUrls] = await Promise.all([
-    fetchJobIds(octokit, owner, repo, GITHUB_RUN_ID),
-    fetchArtifactUrls(octokit, owner, repo, GITHUB_RUN_ID),
+    fetchJobIds(octokit, owner, repo, runIdInt),
+    fetchArtifactUrls(octokit, owner, repo, runIdInt),
   ]);
 
   // Construct job URLs
@@ -325,10 +342,10 @@ async function start() {
 | :--- | :--- | :--- |
 ${rows.join('\n')}
 
-<details>
-<summary>More Info</summary>
+        <details>
+        <summary>More Info</summary>
 
-*   **Workflow Run**: [\`${GITHUB_RUN_ID}\`](${workflowRunUrl})
+        *   **Workflow Run**: [\`${runIdInt}\`](${workflowRunUrl})
 *   **iOS Build Number**: \`${iosBuildNumber}\`
 *   **Android Version Code**: \`${androidVersionCode}\`
 *   **iOS Build Job**: ${iosJobUrl ? `[View Job](${iosJobUrl})` : 'Not found'}
