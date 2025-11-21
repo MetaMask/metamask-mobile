@@ -1,7 +1,7 @@
 import { AnyAction } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, Persistor } from 'redux-persist';
-import createSagaMiddleware from 'redux-saga';
+import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
 import ReadOnlyNetworkStore from '../util/test/network-store';
@@ -23,7 +23,7 @@ const pReducer = persistReducer<RootState, AnyAction>(
 );
 
 // eslint-disable-next-line import/no-mutable-exports
-let store: ReduxStore, persistor: Persistor;
+let store: ReduxStore, persistor: Persistor, runSaga: SagaMiddleware['run'];
 const createStoreAndPersistor = async () => {
   trace({
     name: TraceName.StoreInit,
@@ -57,6 +57,8 @@ const createStoreAndPersistor = async () => {
 
   sagaMiddleware.run(rootSaga);
 
+  runSaga = sagaMiddleware.run.bind(sagaMiddleware);
+
   /**
    * Initialize services after persist is completed
    */
@@ -84,4 +86,4 @@ const createStoreAndPersistor = async () => {
   }
 })();
 
-export { store, persistor };
+export { store, persistor, runSaga };

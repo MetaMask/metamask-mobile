@@ -234,6 +234,8 @@ export const createMockSDKReturn = (overrides = {}): DepositSDK => ({
   setSelectedPaymentMethod: jest.fn(),
   selectedCryptoCurrency: MOCK_USDC_TOKEN,
   setSelectedCryptoCurrency: jest.fn(),
+  intent: undefined,
+  setIntent: jest.fn(),
   ...overrides,
 });
 
