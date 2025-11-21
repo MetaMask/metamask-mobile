@@ -11,6 +11,7 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { TransactionType } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 
 /**
  * Type guard to validate allowedPaymentTokens structure.
@@ -40,15 +41,9 @@ export const areValidAllowedPaymentTokens = (
  */
 export interface MusdConversionConfig {
   /**
-   * The mUSD token to convert to
+   * The chain ID of the mUSD token to convert to.
    */
-  outputToken: {
-    address: Hex;
-    chainId: Hex;
-    symbol: string;
-    name: string;
-    decimals: number;
-  };
+  outputChainId: Hex;
   /**
    * The payment token to prefill in the confirmation screen
    */
@@ -73,7 +68,7 @@ export interface MusdConversionConfig {
  *
  * **EVM-Only**: This hook only supports EVM-compatible chains. It uses ERC-20
  * transfer encoding and MetaMask Pay's Relay integration, which are specific to
- * EVM networks. For non-EVM chains (Bitcoin, Solana, Tron), use alternative flows.
+ * EVM networks.
  *
  * This hook handles both transaction creation and navigation to the confirmation screen.
  *
@@ -81,17 +76,13 @@ export interface MusdConversionConfig {
  * const { initiateConversion } = useMusdConversion();
  *
  * await initiateConversion({
- *   outputToken: {
- *     address: MUSD_ADDRESS_ETHEREUM,
- *     chainId: ETHEREUM_MAINNET_CHAIN_ID,
- *     symbol: 'mUSD',
- *     name: 'mUSD',
- *     decimals: 6,
- *   },
+ *   outputChainId: ETHEREUM_MAINNET_CHAIN_ID,
  *   preferredPaymentToken: {
  *     address: USDC_ADDRESS_ARBITRUM,
- *     chainId: NETWORKS_CHAIN_ID.ARBITRUM,
+ *     chainId: ETHEREUM_MAINNET_CHAIN_ID,
  *   },
+ *   allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
+ *   navigationStack: Routes.EARN.ROOT,
  * });
  */
 export const useMusdConversion = () => {
@@ -111,7 +102,7 @@ export const useMusdConversion = () => {
   const initiateConversion = useCallback(
     async (config: MusdConversionConfig): Promise<string> => {
       const {
-        outputToken,
+        outputChainId,
         preferredPaymentToken,
         navigationStack = Routes.EARN.ROOT,
       } = config;
@@ -119,9 +110,9 @@ export const useMusdConversion = () => {
       try {
         setError(null);
 
-        if (!outputToken || !preferredPaymentToken) {
+        if (!outputChainId || !preferredPaymentToken) {
           throw new Error(
-            'Output token and preferred payment token are required',
+            'Output chain ID and preferred payment token are required',
           );
         }
 
@@ -130,13 +121,12 @@ export const useMusdConversion = () => {
         }
 
         const { NetworkController } = Engine.context;
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          outputToken.chainId,
-        );
+        const networkClientId =
+          NetworkController.findNetworkClientIdByChainId(outputChainId);
 
         if (!networkClientId) {
           throw new Error(
-            `Network client not found for chain ID: ${outputToken.chainId}`,
+            `Network client not found for chain ID: ${outputChainId}`,
           );
         }
 
@@ -150,13 +140,7 @@ export const useMusdConversion = () => {
           params: {
             loader: ConfirmationLoader.CustomAmount,
             preferredPaymentToken,
-            outputToken: {
-              address: outputToken.address,
-              chainId: outputToken.chainId,
-              symbol: outputToken.symbol,
-              name: outputToken.name,
-              decimals: outputToken.decimals,
-            },
+            outputChainId,
             allowedPaymentTokens: config.allowedPaymentTokens,
           },
         });
@@ -175,14 +159,22 @@ export const useMusdConversion = () => {
 
           const { TransactionController } = Engine.context;
 
+          const mUSDTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[outputChainId];
+
+          if (!mUSDTokenAddress) {
+            throw new Error(
+              `mUSD token address not found for chain ID: ${outputChainId}`,
+            );
+          }
+
           const { transactionMeta } =
             await TransactionController.addTransaction(
               {
-                to: outputToken.address,
+                to: mUSDTokenAddress,
                 from: selectedAddress,
                 data: transferData,
                 value: ZERO_HEX_VALUE,
-                chainId: outputToken.chainId,
+                chainId: outputChainId,
               },
               {
                 /**
@@ -196,7 +188,7 @@ export const useMusdConversion = () => {
                 // Important: Nested transaction is required for Relay to work. This will be fixed in a future iteration.
                 nestedTransactions: [
                   {
-                    to: outputToken.address,
+                    to: mUSDTokenAddress,
                     data: transferData as Hex,
                     value: ZERO_HEX_VALUE,
                   },

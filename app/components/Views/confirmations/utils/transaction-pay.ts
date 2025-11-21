@@ -6,7 +6,7 @@ import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { hasTransactionType } from './transaction';
 import { Hex } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
-import { AssetType, TokenStandard } from '../types/token';
+import { AllowedPaymentTokens, AssetType, TokenStandard } from '../types/token';
 import {
   TransactionPayRequiredToken,
   TransactionPaymentToken,
@@ -83,10 +83,12 @@ export function getAvailableTokens({
   payToken,
   requiredTokens,
   tokens,
+  allowedPaymentTokens,
 }: {
+  tokens: AssetType[];
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
-  tokens: AssetType[];
+  allowedPaymentTokens?: AllowedPaymentTokens;
 }): AssetType[] {
   return tokens
     .filter((token) => {
@@ -96,6 +98,18 @@ export function getAvailableTokens({
         (token.chainId && isTestNet(token.chainId))
       ) {
         return false;
+      }
+
+      if (allowedPaymentTokens) {
+        const allowedAddresses =
+          allowedPaymentTokens[token.chainId as string] || [];
+        const isAllowedToken = allowedAddresses.some(
+          (address) => address.toLowerCase() === token.address.toLowerCase(),
+        );
+
+        if (!isAllowedToken) {
+          return false;
+        }
       }
 
       const isSelected =

@@ -6,19 +6,17 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 
-export const MUSD_TOKEN_MAINNET = {
-  address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+export const MUSD_TOKEN = {
   symbol: 'MUSD',
   name: 'MUSD',
   decimals: 6,
-  chainId: CHAIN_IDS.MAINNET,
 } as const;
 
-export const MUSD_CURRENCY = 'MUSD';
+export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
+  [CHAIN_IDS.MAINNET]: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+};
 
-// mUSD token address on Ethereum mainnet (6 decimals)
-export const MUSD_ADDRESS_ETHEREUM =
-  '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+export const MUSD_CURRENCY = 'MUSD';
 
 // Ethereum mainnet chain ID
 export const ETHEREUM_MAINNET_CHAIN_ID = '0x1';

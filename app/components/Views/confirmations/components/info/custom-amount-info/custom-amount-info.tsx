@@ -48,15 +48,17 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { AllowedPaymentTokens } from '../../../types/token';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
+  allowedPaymentTokens?: AllowedPaymentTokens;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay }) => {
+  ({ children, currency, disablePay, allowedPaymentTokens }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({ disable: disablePay });
     useTransactionPayMetrics();
@@ -110,7 +112,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
           )}
           {children}
-          {disablePay !== true && hasTokens && <PayWithRow />}
+          {disablePay !== true && hasTokens && (
+            <PayWithRow allowedPaymentTokens={allowedPaymentTokens} />
+          )}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />

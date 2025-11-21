@@ -43,10 +43,7 @@ import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 ///: END:ONLY_INCLUDE_IF
-import {
-  ETHEREUM_MAINNET_CHAIN_ID,
-  MUSD_TOKEN_MAINNET,
-} from '../../../Earn/constants/musd';
+import { ETHEREUM_MAINNET_CHAIN_ID } from '../../../Earn/constants/musd';
 import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
@@ -243,14 +240,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       }
 
       await initiateConversion({
-        outputToken: {
-          address: MUSD_TOKEN_MAINNET.address,
-          // We want to convert to mUSD on Ethereum Mainnet only for now.
-          chainId: ETHEREUM_MAINNET_CHAIN_ID,
-          symbol: MUSD_TOKEN_MAINNET.symbol,
-          name: MUSD_TOKEN_MAINNET.name,
-          decimals: MUSD_TOKEN_MAINNET.decimals,
-        },
+        outputChainId: ETHEREUM_MAINNET_CHAIN_ID,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),

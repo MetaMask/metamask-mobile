@@ -7,14 +7,22 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { AssetType } from '../../../types/token';
+import { AllowedPaymentTokens, AssetType } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { RouteProp, useRoute } from '@react-navigation/native';
+
+interface PayWithModalRouteParams {
+  allowedPaymentTokens?: AllowedPaymentTokens;
+}
 
 export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const route =
+    useRoute<RouteProp<Record<string, PayWithModalRouteParams>, string>>();
+  const allowedPaymentTokens = route.params?.allowedPaymentTokens;
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -38,8 +46,9 @@ export function PayWithModal() {
         payToken,
         requiredTokens,
         tokens,
+        allowedPaymentTokens,
       }),
-    [payToken, requiredTokens],
+    [payToken, requiredTokens, allowedPaymentTokens],
   );
 
   return (
