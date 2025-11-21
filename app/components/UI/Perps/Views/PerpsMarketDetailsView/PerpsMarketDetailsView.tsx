@@ -65,6 +65,9 @@ import {
 } from '../../hooks/usePerpsDataMonitor';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
+import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
@@ -179,6 +182,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const { account } = usePerpsLiveAccount();
+
+  // A/B Testing: Button color test (TAT-1937)
+  const {
+    variantName: buttonColorVariant,
+    isEnabled: isButtonColorTestEnabled,
+  } = usePerpsABTest({
+    test: BUTTON_COLOR_TEST,
+    featureFlagSelector: selectPerpsButtonColorTestVariant,
+  });
 
   // TP/SL order selection state - track TP and SL separately
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
@@ -394,6 +406,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PerpsEventProperties.SOURCE]:
         source || PerpsEventValues.SOURCE.PERP_MARKETS,
       [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
+      // A/B Test context (TAT-1937) - for baseline exposure tracking
+      ...(isButtonColorTestEnabled && {
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      }),
     },
   });
 
@@ -551,6 +567,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         return;
       }
 
+      // Track AB test on button press (TAT-1937)
+      if (isButtonColorTestEnabled) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TAP,
+          [PerpsEventProperties.ASSET]: market.symbol,
+          [PerpsEventProperties.DIRECTION]:
+            direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        });
+      }
+
       navigateToOrder({
         direction,
         asset: market.symbol,
@@ -563,6 +593,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       track,
       navigateToOrder,
       market?.symbol,
+      isButtonColorTestEnabled,
+      buttonColorVariant,
     ],
   );
 
@@ -806,29 +838,53 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {hasLongShortButtons && !isAtOICap && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Success}
-                  onPress={handleLongPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isDisabled={isAtOICap}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </ButtonSemantic>
+                {buttonColorVariant === 'monochrome' ? (
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    label={strings('perps.market.long')}
+                    onPress={handleLongPress}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                  />
+                ) : (
+                  <ButtonSemantic
+                    severity={ButtonSemanticSeverity.Success}
+                    onPress={handleLongPress}
+                    isFullWidth
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                  >
+                    {strings('perps.market.long')}
+                  </ButtonSemantic>
+                )}
               </View>
 
               <View style={styles.actionButtonWrapper}>
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Danger}
-                  onPress={handleShortPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isDisabled={isAtOICap}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                >
-                  {strings('perps.market.short')}
-                </ButtonSemantic>
+                {buttonColorVariant === 'monochrome' ? (
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    label={strings('perps.market.short')}
+                    onPress={handleShortPress}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                  />
+                ) : (
+                  <ButtonSemantic
+                    severity={ButtonSemanticSeverity.Danger}
+                    onPress={handleShortPress}
+                    isFullWidth
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                  >
+                    {strings('perps.market.short')}
+                  </ButtonSemantic>
+                )}
               </View>
             </View>
           )}
