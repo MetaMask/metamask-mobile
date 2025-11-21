@@ -6,7 +6,10 @@ import React, {
   useMemo,
 } from 'react';
 import { View, ScrollView, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -62,6 +65,7 @@ import PerpsNavigationCard, {
 
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
@@ -217,6 +221,12 @@ const PerpsHomeView = () => {
     [styles.bottomSpacer, isBalanceEmpty],
   );
 
+  // Add safe area inset to footer for Android navigation bar
+  const fixedFooterStyle = useMemo(
+    () => [styles.fixedFooter, { paddingBottom: 16 + insets.bottom }],
+    [styles.fixedFooter, insets.bottom],
+  );
+
   // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
 
@@ -348,7 +358,7 @@ const PerpsHomeView = () => {
 
       {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
       {!isBalanceEmpty && !showCloseAllSheet && !showCancelAllSheet && (
-        <View style={styles.fixedFooter}>
+        <View style={fixedFooterStyle}>
           <View style={styles.footerButtonsContainer}>
             <View style={styles.footerButton}>
               <Button

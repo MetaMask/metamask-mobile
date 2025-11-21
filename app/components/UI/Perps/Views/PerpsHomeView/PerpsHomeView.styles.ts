@@ -104,7 +104,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopColor: colors.border.muted,
       paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: 32,
+      // paddingBottom is calculated dynamically in component with safe area insets
     },
     footerButtonsContainer: {
       flexDirection: 'row',
