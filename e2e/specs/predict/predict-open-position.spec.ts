@@ -51,7 +51,6 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToBeVisible(PredictMarketList.container, {
           description: 'Predict market list container should be visible',
         });
-        await device.disableSynchronization();
 
         await PredictMarketList.tapCategoryTab('sports');
 
@@ -60,12 +59,15 @@ describe(SmokePredictions('Predictions'), () => {
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
         await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+        await device.disableSynchronization();
+
         await PredictDetailsPage.tapPositionAmount('10');
 
         await PredictDetailsPage.tapDoneButton();
 
         await PredictDetailsPage.tapOpenPosition();
         await device.enableSynchronization();
+
         await PredictDetailsPage.tapBackButton();
         await Assertions.expectTextDisplayed('$17.76');
 
