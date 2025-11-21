@@ -543,7 +543,8 @@ function decodeTransferFromTx(args) {
 
   const { SENT_COLLECTIBLE, RECEIVED_COLLECTIBLE } = TRANSACTION_TYPES;
   const transactionType =
-    renderFrom?.toLowerCase() === selectedAddress?.toLowerCase()
+    (addressFrom?.toLowerCase() ?? txParams.from?.toLowerCase()) ===
+    selectedAddress?.toLowerCase()
       ? SENT_COLLECTIBLE
       : RECEIVED_COLLECTIBLE;
 
