@@ -14,7 +14,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
 import { useNavigation } from '@react-navigation/native';
 
-interface SectionHeaderProps {
+export interface SectionHeaderProps {
   sectionId: SectionId;
 }
 
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
  * This component is part of the centralized section management system that ensures
  * consistency between QuickActions buttons and section "View All" buttons.
  */
-const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
+const SectionHeader = ({ sectionId }: SectionHeaderProps) => {
   const navigation = useNavigation();
   const sectionConfig = SECTIONS_CONFIG[sectionId];
 

@@ -2,8 +2,8 @@ import React, { useCallback, useMemo, useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Text,
@@ -14,8 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import { appendURLParams } from '../../../util/browser';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import { useTheme } from '../../../util/theme';
 import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
@@ -74,7 +73,7 @@ const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
 const TrendingFeed: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { isEnabled } = useMetrics();
+  const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const { colors } = useTheme();
 
   // Update state when returning to TrendingFeed
@@ -86,21 +85,11 @@ const TrendingFeed: React.FC = () => {
     return unsubscribe;
   }, [navigation]);
 
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: { security: { dataCollectionForMarketing?: boolean } }) =>
-      state.security.dataCollectionForMarketing,
-  );
+  const portfolioUrl = buildPortfolioUrlWithMetrics(AppConstants.PORTFOLIO.URL);
 
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
-
-  const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
-    metamaskEntry: 'mobile',
-    metricsEnabled: isEnabled(),
-    marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-  });
-
   const handleBrowserPress = useCallback(() => {
     updateLastTrendingScreen('TrendingBrowser');
     navigation.navigate('TrendingBrowser', {
