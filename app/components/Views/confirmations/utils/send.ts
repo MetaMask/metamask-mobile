@@ -30,6 +30,21 @@ import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
 
+type OneOf<T, Keys extends keyof T = keyof T> = Keys extends keyof T
+  ? { [K in Keys]: T[K] } & { [K in Exclude<keyof T, Keys>]?: never }
+  : never;
+
+interface ChainType {
+  isEvm: true;
+  isSolana: true;
+  isBitcoin: true;
+  isTron: true;
+}
+
+export type PredefinedRecipient = {
+  address: string;
+} & OneOf<ChainType>;
+
 const captureSendStartedEvent = (location: string) => {
   const { trackEvent } = MetaMetrics.getInstance();
   trackEvent(
@@ -60,13 +75,7 @@ export const handleSendPageNavigation = (
   location: string,
   isSendRedesignEnabled: boolean,
   asset?: AssetType | Nft,
-  predefinedRecipient?: {
-    address: string;
-    isEvm?: boolean;
-    isSolana?: boolean;
-    isBitcoin?: boolean;
-    isTron?: boolean;
-  },
+  predefinedRecipient?: PredefinedRecipient,
 ) => {
   if (isSendRedesignEnabled) {
     captureSendStartedEvent(location);
