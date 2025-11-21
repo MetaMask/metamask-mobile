@@ -566,6 +566,7 @@ jobs:
     permissions:
       pull-requests: write
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -575,7 +576,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
       - name: Post Build Comment
-        run: node scripts/post-build-comment.js
+        run: node scripts/post-build-comment.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -583,9 +584,6 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           ANDROID_BUILD_SUCCESS: ${{ needs.build-android-apks.result == 'success' }}
           IOS_BUILD_SUCCESS: ${{ needs.build-ios-apps.result == 'success' }}
-      # iOS Artifacts URL is passed from build-ios-apps job
-          IOS_ARTIFACTS_URL: ${{ needs.build-ios-apps.outputs.artifacts-url }}
-          ANDROID_ARTIFACTS_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   log-merge-group-failure:
     name: Log merge group failure

@@ -223,4 +223,3 @@ HUSKY=0 git commit -m "your commit message"
 ```
 
 **Note:** While these methods allow you to bypass the pre-commit hooks, remember that the CI/CD pipeline will still run linting checks. It's recommended to fix linting issues before pushing your changes to avoid build failures.
-

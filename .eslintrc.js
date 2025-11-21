@@ -77,7 +77,24 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.js', 'e2e/tools/**/*.{js,ts}', 'app.config.js'],
+      files: ['*.mjs'],
+      parser: '@babel/eslint-parser',
+      parserOptions: {
+        requireConfigFile: false,
+        babelOptions: {
+          presets: ['@babel/preset-env'],
+        },
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+      rules: {
+        'no-console': 0,
+        'import/no-commonjs': 0,
+        'import/no-nodejs-modules': 0,
+      },
+    },
+    {
+      files: ['scripts/**/*.js', 'scripts/**/*.mjs', 'e2e/tools/**/*.{js,ts}', 'app.config.js'],
       rules: {
         'no-console': 0,
         'import/no-commonjs': 0,
