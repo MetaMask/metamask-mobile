@@ -76,6 +76,7 @@ import type {
   PerpsControllerConfig,
   Position,
   SubscribeAccountParams,
+  SubscribeCandlesParams,
   SubscribeOICapsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
@@ -1278,6 +1279,7 @@ export class PerpsController extends BaseController<
           networkClientId,
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
+          skipInitialGasEstimate: true,
         });
 
       // Store the transaction ID and try to get amount from transaction
@@ -1637,6 +1639,7 @@ export class PerpsController extends BaseController<
     coin: string,
     interval: CandlePeriod,
     limit: number = 100,
+    endTime?: number,
   ): Promise<CandleData> {
     const provider = this.getActiveProvider();
     return MarketDataService.fetchHistoricalCandles({
@@ -1644,6 +1647,7 @@ export class PerpsController extends BaseController<
       coin,
       interval,
       limit,
+      endTime,
       context: this.createServiceContext('fetchHistoricalCandles'),
     });
   }
@@ -1913,6 +1917,29 @@ export class PerpsController extends BaseController<
         ensureError(error),
         this.getErrorContext('subscribeToAccount', {
           accountId: params.accountId,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
+   * Subscribe to live candle updates
+   */
+  subscribeToCandles(params: SubscribeCandlesParams): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToCandles(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToCandles', {
+          coin: params.coin,
+          interval: params.interval,
+          duration: params.duration,
         }),
       );
       // Return a no-op unsubscribe function

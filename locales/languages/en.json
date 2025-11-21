@@ -86,6 +86,9 @@
       "message": "Add less than {{amount}} or use a different token.",
       "title": "Insufficient funds"
     },
+    "insufficient_pay_token_balance_fees_no_target": {
+      "message": "Add less or use a different token."
+    },
     "insufficient_pay_token_native": {
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
       "title": "Insufficient funds"
@@ -544,7 +547,7 @@
     "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards",
-    "trending": "Trending"
+    "trending": "Explore"
   },
   "drawer": {
     "send_button": "Send",
@@ -628,7 +631,7 @@
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms.",
-      "title": "Deposit",
+      "title": "Buy",
       "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
       "limitError": "Failed to check your deposit limits. Please try again later."
     },
@@ -1942,10 +1945,10 @@
       "order_failed_generic": "Transaction failed. Please try again."
     },
     "withdraw": {
-      "withdrawing": "Withdrawing {{amount}} USDC",
-      "withdrawing_subtitle": "Est. {{time}} seconds",
-      "withdraw_completed": "Withdrawal completed",
-      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "withdrawing": "Withdrawal in progress",
+      "withdrawing_subtitle": "Available in about 1 minute",
+      "withdraw_completed": "Withdrawal complete",
+      "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
@@ -3025,14 +3028,14 @@
     "buy_description": "Good for buying a specific token",
     "buy_unified": "Buy",
     "buy_unified_description": "Buy crypto with cash",
-    "sell": "Withdraw",
+    "sell": "Sell",
     "sell_description": "Sell crypto for cash"
   },
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
     "token_marketplace": "Token marketplace",
-    "sell_button": "Withdraw",
+    "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
     "deposit_button": "Deposit",
@@ -4541,8 +4544,8 @@
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
     "terms_of_service": "Terms of Service",
-    "amount_to_buy": "Amount to buy",
-    "amount_to_sell": "Amount to sell",
+    "amount_to_buy": "Buy",
+    "amount_to_sell": "Sell",
     "want_to_buy": "You want to buy",
     "want_to_sell": "You want to sell",
     "current_balance": "Current balance",
@@ -6933,7 +6936,7 @@
     "check_network_connectivity_or": "Check your network connectivity or"
   },
   "trending": {
-    "title": "Trending",
+    "title": "Explore",
     "view_all": "View all",
     "tokens": "Tokens",
     "trending_tokens": "Trending Tokens",
