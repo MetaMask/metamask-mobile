@@ -169,6 +169,22 @@ export const createTradingViewChartTemplate = (
             return formatter.format(formattedValue);
         };
         
+        // Helper function to get date string in user's timezone (YYYY-MM-DD)
+        window.getDateString = function(date, userTimezone) {
+            const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
+            const month = date.toLocaleString('en-US', { month: '2-digit', timeZone: userTimezone });
+            const day = date.toLocaleString('en-US', { day: '2-digit', timeZone: userTimezone });
+            return year + '-' + month + '-' + day;
+        };
+        
+        // Helper function to check if a date is today in user's timezone
+        window.isToday = function(date, userTimezone) {
+            const now = new Date();
+            const todayString = window.getDateString(now, userTimezone);
+            const dateString = window.getDateString(date, userTimezone);
+            return todayString === dateString;
+        };
+        
         // Smart timestamp formatter using TradingView's native tickMarkType with fallback
         window.formatTimestamp = function(time, tickMarkType, isCrosshair = false) {
             const date = new Date(time * 1000);
@@ -185,9 +201,6 @@ export const createTradingViewChartTemplate = (
                     timeZone: userTimezone
                 });
             } else {
-                // Debug logging to see what tickMarkType we're getting
-                console.log('📊 TradingView: tickMarkType =', tickMarkType, 'for time =', time);
-                
                 // Use TradingView's native tickMarkType if available
                 if (tickMarkType) {
                     switch (tickMarkType) {
@@ -199,25 +212,46 @@ export const createTradingViewChartTemplate = (
                                 timeZone: userTimezone
                             });
                         case 'DayOfMonth':
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
+                            // Always show day + month for DayOfMonth tick type (e.g., 1D candles)
+                            // Format: "17 Nov" (day before month)
+                            const day = date.toLocaleString('en-US', { 
                                 day: 'numeric',
                                 timeZone: userTimezone
                             });
+                            const month = date.toLocaleString('en-US', { 
+                                month: 'short',
+                                timeZone: userTimezone
+                            });
+                            return day + ' ' + month;
                         case 'Hour':
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
                         case 'Minute':
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
+                            // Show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "17 Nov 00:15"
+                                const day = date.toLocaleString('en-US', { 
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const month = date.toLocaleString('en-US', { 
+                                    month: 'short',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return day + ' ' + month + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         case 'Second':
                             return date.toLocaleString('en-US', { 
                                 hour: '2-digit', 
@@ -239,53 +273,95 @@ export const createTradingViewChartTemplate = (
                         // Calculate the time span in hours
                         const timeSpanHours = (visibleRange.to - visibleRange.from) / 3600;
                         
-                        console.log('📊 TradingView: Fallback logic - timeSpanHours =', timeSpanHours, 'from', startDate.toISOString(), 'to', endDate.toISOString());
-                        
                         if (timeSpanHours <= 24) {
-                            // Less than 24 hours: show time only
-                            console.log('📊 TradingView: Using time format (≤24h)');
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
+                            // Less than 24 hours: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "17 Nov 00:15"
+                                const day = date.toLocaleString('en-US', { 
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const month = date.toLocaleString('en-US', { 
+                                    month: 'short',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return day + ' ' + month + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         } else if (timeSpanHours <= 24 * 7) {
-                            // Less than a week: show date only
-                            console.log('📊 TradingView: Using date format (≤1 week)');
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                timeZone: userTimezone
-                            });
-                        } else if (timeSpanHours <= 24 * 30) {
-                            // Less than a month: show date only
-                            console.log('📊 TradingView: Using date format (≤1 month)');
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                timeZone: userTimezone
-                            });
+                            // Less than a week: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "17 Nov 00:15"
+                                const day = date.toLocaleString('en-US', { 
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const month = date.toLocaleString('en-US', { 
+                                    month: 'short',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return day + ' ' + month + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         } else {
-                            // More than a month: show month only
-                            console.log('📊 TradingView: Using month format (>1 month)');
-                            return date.toLocaleString('en-US', { 
+                            // Longer ranges: always show day + month (e.g., "17 Nov")
+                            // This is especially important for 1D candles
+                            const day = date.toLocaleString('en-US', { 
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                            const month = date.toLocaleString('en-US', { 
                                 month: 'short',
                                 timeZone: userTimezone
                             });
+                            return day + ' ' + month;
                         }
                     }
                 }
                 
                 // Final fallback: show date and time
-                return date.toLocaleString('en-US', { 
-                    month: 'short',
+                // Format: "17 Nov 00:15"
+                const day = date.toLocaleString('en-US', { 
                     day: 'numeric',
+                    timeZone: userTimezone
+                });
+                const month = date.toLocaleString('en-US', { 
+                    month: 'short',
+                    timeZone: userTimezone
+                });
+                const timeStr = date.toLocaleString('en-US', { 
                     hour: '2-digit', 
                     minute: '2-digit',
                     hour12: false,
                     timeZone: userTimezone
                 });
+                return day + ' ' + month + ' ' + timeStr;
             }
         };
         
