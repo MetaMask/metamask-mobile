@@ -77,7 +77,7 @@ module.exports = {
       },
     },
     {
-      files: ['*.mjs'],
+      files: ['scripts/**/*.mjs'],
       parser: '@babel/eslint-parser',
       parserOptions: {
         requireConfigFile: false,
