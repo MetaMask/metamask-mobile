@@ -2675,6 +2675,7 @@ export class PerpsController extends BaseController<
           networkClientId,
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
+          skipInitialGasEstimate: true,
         });
 
       // Store the transaction ID and try to get amount from transaction

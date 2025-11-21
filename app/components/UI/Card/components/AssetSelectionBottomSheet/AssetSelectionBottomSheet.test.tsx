@@ -48,7 +48,15 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockSdk = {
-  getSupportedTokensByChainId: jest.fn(() => []),
+  getSupportedTokensByChainId: jest.fn<
+    {
+      address: string;
+      symbol: string;
+      name: string;
+      decimals: number;
+    }[],
+    [string?]
+  >(() => []),
   updateWalletPriority: jest.fn(),
   lineaChainId: 'eip155:59144',
 };
@@ -882,6 +890,78 @@ describe('AssetSelectionBottomSheet', () => {
     });
   });
 
+  describe('navigation-based selection', () => {
+    it('navigates back to caller route with selected token', () => {
+      const token = createMockToken({
+        symbol: 'EURe',
+        address: '0xeure',
+      });
+      const delegationSettings = createMockDelegationSettings();
+      const callerParams = { someParam: 'value' };
+
+      // Mock SDK to return EURe with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xeure',
+          symbol: 'EURe',
+          name: 'Euro Coin',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        selectionOnly: true,
+        callerRoute: Routes.CARD.SPENDING_LIMIT,
+        callerParams,
+      });
+
+      fireEvent.press(getByText(/EURe on/));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.SPENDING_LIMIT,
+        expect.objectContaining({
+          ...callerParams,
+          returnedSelectedToken: expect.objectContaining({
+            address: token.address,
+            symbol: 'EURe',
+          }),
+        }),
+      );
+    });
+
+    it('goes back when no caller route is provided in navigation mode', () => {
+      const token = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      // Mock SDK to return mUSD with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xmusd',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        selectionOnly: true,
+        callerRoute: undefined,
+        callerParams: undefined,
+      });
+
+      fireEvent.press(getByText(/mUSD on/));
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
   describe('Solana not supported footer', () => {
     it('displays Solana not supported button when hideSolanaAssets is true', () => {
       const token = createMockToken();
@@ -925,6 +1005,197 @@ describe('AssetSelectionBottomSheet', () => {
       expect(
         queryByText('card.asset_selection.solana_not_supported_button_title'),
       ).toBeNull();
+    });
+  });
+
+  describe('wallet address display', () => {
+    it('displays truncated wallet address when available', () => {
+      const token = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      // Mock SDK to return mUSD with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xmusd',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
+
+      expect(getByText(/0x1234.../)).toBeOnTheScreen();
+    });
+
+    it('does not display wallet address when not available', () => {
+      const token = createMockToken({
+        symbol: 'EURe',
+        address: '0xeure',
+        walletAddress: undefined,
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      // Mock SDK to return EURe with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xeure',
+          symbol: 'EURe',
+          name: 'Euro Coin',
+          decimals: 6,
+        },
+      ]);
+
+      const { queryByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
+
+      expect(queryByText(/0x/)).toBeNull();
+    });
+  });
+
+  describe('token merging from delegation settings', () => {
+    it('adds supported tokens from delegation settings not in user wallet', () => {
+      const userToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0x123',
+      });
+      const delegationSettings: DelegationSettingsResponse = {
+        networks: [
+          {
+            network: 'linea',
+            environment: 'production',
+            chainId: '59144',
+            delegationContract: '0xdelegation',
+            tokens: {
+              mUSD: {
+                symbol: 'mUSD',
+                decimals: 6,
+                address: '0x123',
+              },
+              EURe: {
+                symbol: 'EURe',
+                decimals: 6,
+                address: '0x456',
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '/api' },
+      };
+
+      // Mock SDK to return both tokens with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0x123',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+        {
+          address: '0x456',
+          symbol: 'EURe',
+          name: 'Euro Coin',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [userToken],
+        delegationSettings,
+      });
+
+      expect(getByText(/mUSD on/)).toBeOnTheScreen();
+      expect(getByText(/EURe on/)).toBeOnTheScreen();
+    });
+
+    it('does not duplicate tokens already in user wallet', () => {
+      const userToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0x123',
+      });
+      const delegationSettings: DelegationSettingsResponse = {
+        networks: [
+          {
+            network: 'linea',
+            environment: 'production',
+            chainId: '59144',
+            delegationContract: '0xdelegation',
+            tokens: {
+              mUSD: {
+                symbol: 'mUSD',
+                decimals: 6,
+                address: '0x123',
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '/api' },
+      };
+
+      // Mock SDK to return mUSD with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0x123',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+      ]);
+
+      const { getAllByText } = setupComponent({
+        tokensWithAllowances: [userToken],
+        delegationSettings,
+      });
+
+      const musdElements = getAllByText(/mUSD on/);
+      expect(musdElements.length).toBe(1);
+    });
+  });
+
+  describe('priority token highlighting', () => {
+    it('highlights priority token with border', () => {
+      const token = createMockToken({
+        symbol: 'EURe',
+        address: '0xeure',
+      });
+      const delegationSettings = createMockDelegationSettings();
+      const cardExternalWalletDetails = {
+        walletDetails: [],
+        mappedWalletDetails: [],
+        priorityWalletDetail: token,
+      };
+
+      // Mock SDK to return EURe with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xeure',
+          symbol: 'EURe',
+          name: 'Euro Coin',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByTestId } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        cardExternalWalletDetails,
+      });
+
+      const tokenItem = getByTestId(
+        `asset-select-item-EURe-${token.caipChainId}`,
+      );
+      expect(tokenItem).toBeTruthy();
     });
   });
 });

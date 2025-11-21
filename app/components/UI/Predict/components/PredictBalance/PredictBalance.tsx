@@ -35,6 +35,7 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
+import { PredictEventValues } from '../../constants/eventNames';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
@@ -68,9 +69,12 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [isDepositPending, loadBalance]);
 
   const handleAddFunds = useCallback(() => {
-    executeGuardedAction(() => {
-      deposit();
-    });
+    executeGuardedAction(
+      () => {
+        deposit();
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
+    );
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
@@ -159,7 +163,6 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
                 variant={BadgeVariant.Network}
                 imageSource={images.POL}
                 name="Polygon"
-                style={tw.style('rounded-2xl')}
               />
             }
           >

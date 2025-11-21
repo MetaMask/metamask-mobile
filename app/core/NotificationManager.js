@@ -519,6 +519,7 @@ class NotificationManager {
 
   #shouldSkipNotification(transactionMeta) {
     const { TransactionController } = Engine.context;
+    const { transactions } = TransactionController.state;
 
     if (
       hasTransactionType(transactionMeta, SKIP_NOTIFICATION_TRANSACTION_TYPES)
@@ -526,13 +527,32 @@ class NotificationManager {
       return true;
     }
 
-    const isSkippedInProgress = TransactionController.state.transactions.some(
+    const isSkippedInProgress = transactions.some(
       (tx) =>
         hasTransactionType(tx, SKIP_NOTIFICATION_TRANSACTION_TYPES) &&
         IN_PROGRESS_SKIP_STATUS.includes(tx.status),
     );
 
-    return isSkippedInProgress;
+    if (isSkippedInProgress) {
+      return true;
+    }
+
+    const isRequired = transactions.some((tx) =>
+      tx.requiredTransactionIds?.includes(transactionMeta?.id),
+    );
+
+    if (isRequired) {
+      return true;
+    }
+
+    const isSameBatch = transactions.some(
+      (tx) =>
+        hasTransactionType(tx, SKIP_NOTIFICATION_TRANSACTION_TYPES) &&
+        tx.batchId &&
+        tx.batchId === transactionMeta?.batchId,
+    );
+
+    return isSameBatch;
   }
 }
 

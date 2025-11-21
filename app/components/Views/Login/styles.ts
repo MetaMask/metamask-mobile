@@ -1,4 +1,4 @@
-import { Theme } from '@metamask/design-tokens';
+import { Theme } from '../../../util/theme/models';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
@@ -16,12 +16,10 @@ const styleSheet = (params: { theme: Theme }) => {
         android: StatusBar.currentHeight ?? 0,
         default: 0,
       }),
-      backgroundColor: colors.background.default,
       flex: 1,
     },
     wrapper: {
       flex: 1,
-      paddingHorizontal: 16,
     },
     container: {
       flex: 1,
@@ -29,6 +27,18 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       flexDirection: 'column',
       width: '100%',
+      paddingHorizontal: 24,
+      paddingTop: 80,
+    },
+    scrollContentContainer: {
+      flex: 1,
+    },
+    foxAnimationWrapper: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 200,
     },
     foxWrapper: {
       justifyContent: 'center',
@@ -47,28 +57,36 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 24,
     },
     field: {
-      marginBottom: Device.isAndroid() ? 0 : 10,
       flexDirection: 'column',
       width: '100%',
       rowGap: 8,
+      marginTop: 80,
       justifyContent: 'flex-start',
-    },
-    label: {
-      marginBottom: -4,
+      marginBottom: 8,
     },
     ctaWrapper: {
       width: '100%',
       flexDirection: 'column',
       alignItems: 'center',
-      rowGap: 24,
-      marginTop: 24,
     },
+
     footer: {
-      marginVertical: 40,
+      marginTop: 32,
       alignItems: 'center',
     },
+    unlockButton: {
+      marginTop: 16,
+    },
+    metamaskName: {
+      width: 160,
+      height: 80,
+      alignSelf: 'center',
+      marginBottom: 80,
+      marginTop: 40,
+      tintColor: colors.icon.default,
+    },
     goBack: {
-      marginVertical: 14,
+      marginVertical: 0,
       alignSelf: 'center',
     },
     biometrics: {
@@ -136,11 +154,13 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 10,
       color: colors.error.default,
     },
-    metamaskName: {
-      width: 80,
-      height: 40,
-      marginTop: 10,
-      tintColor: colors.icon.default,
+    oauthContentWrapper: {
+      width: '100%',
+      alignItems: 'center',
+      marginTop: Platform.select({
+        ios: -200,
+        android: -180,
+      }),
     },
     input: {
       width: '100%',

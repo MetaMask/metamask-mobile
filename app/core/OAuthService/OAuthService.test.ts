@@ -131,7 +131,10 @@ describe('OAuth login service', () => {
 
   it('return a type success', async () => {
     const loginHandler = mockCreateLoginHandler();
-    const result = (await OAuthLoginService.handleOAuthLogin(loginHandler)) as {
+    const result = (await OAuthLoginService.handleOAuthLogin(
+      loginHandler,
+      false,
+    )) as {
       type: string;
       existingUser: boolean;
     };
@@ -154,7 +157,10 @@ describe('OAuth login service', () => {
       .spyOn(Engine.context.SeedlessOnboardingController, 'authenticate')
       .mockImplementation(mockAuthenticate);
 
-    const result = await OAuthLoginService.handleOAuthLogin(loginHandler);
+    const result = await OAuthLoginService.handleOAuthLogin(
+      loginHandler,
+      false,
+    );
     expect(result).toBeDefined();
 
     expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
@@ -172,7 +178,7 @@ describe('OAuth login service', () => {
       .mockImplementation(mockAuthenticate);
 
     await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(loginHandler),
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
       OAuthErrorType.LoginError,
     );
 
@@ -188,7 +194,7 @@ describe('OAuth login service', () => {
     const loginHandler = mockCreateLoginHandler();
 
     await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(loginHandler),
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
       OAuthErrorType.AuthServerError,
     );
 
@@ -209,7 +215,7 @@ describe('OAuth login service', () => {
     });
 
     await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(loginHandler),
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
       OAuthErrorType.UserDismissed,
     );
 
@@ -225,7 +231,7 @@ describe('OAuth login service', () => {
     });
 
     await expectOAuthError(
-      OAuthLoginService.handleOAuthLogin(loginHandler),
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
       OAuthErrorType.LoginError,
     );
 

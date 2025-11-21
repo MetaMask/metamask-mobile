@@ -114,7 +114,7 @@ describe('StakingDeposit', () => {
     expect(getByText('Est. annual reward')).toBeDefined();
     expect(getByText('Reward frequency')).toBeDefined();
     expect(getByText('Withdrawal time')).toBeDefined();
-    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Network fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
 
     expect(mockGetNavbar).toHaveBeenCalled();

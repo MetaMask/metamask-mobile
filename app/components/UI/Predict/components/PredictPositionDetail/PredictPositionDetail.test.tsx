@@ -17,7 +17,7 @@ declare global {
 }
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, _vars?: Record<string, string | number>) => {
+  strings: (key: string, vars?: Record<string, string | number>) => {
     switch (key) {
       case 'predict.market_details.won':
         return 'Won';
@@ -25,6 +25,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         return 'Lost';
       case 'predict.cash_out':
         return 'Cash out';
+      case 'predict.position_info':
+        return `${vars?.initialValue} on ${vars?.outcome} to win ${vars?.shares}`;
       default:
         return key;
     }
@@ -187,18 +189,18 @@ describe('PredictPositionDetail', () => {
 
     expect(screen.getByText('Group')).toBeOnTheScreen();
     expect(
-      screen.getByText('$123.45 on Yes • 34¢', { exact: false }),
+      screen.getByText('$123.45 on Yes to win $10', { exact: false }),
     ).toBeOnTheScreen();
 
     expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-    expect(screen.getByText('+5.25%')).toBeOnTheScreen();
+    expect(screen.getByText('5.25%')).toBeOnTheScreen();
     expect(screen.getByText('Cash out')).toBeOnTheScreen();
   });
 
   it.each([
-    { value: -3.5, expected: '-3.50%' },
+    { value: -3.5, expected: '-3.5%' },
     { value: 0, expected: '0%' },
-    { value: 7.5, expected: '+7.50%' },
+    { value: 7.5, expected: '7.5%' },
   ])('formats percentPnl %p as %p for open market', ({ value, expected }) => {
     renderComponent({ percentPnl: value });
 
@@ -210,7 +212,7 @@ describe('PredictPositionDetail', () => {
 
     expect(screen.getByText('Group')).toBeOnTheScreen();
     expect(
-      screen.getByText('$50.00 on No • 70¢', { exact: false }),
+      screen.getByText('$50 on No to win $10', { exact: false }),
     ).toBeOnTheScreen();
   });
 
@@ -221,7 +223,7 @@ describe('PredictPositionDetail', () => {
       PredictMarketStatus.CLOSED,
     );
 
-    expect(screen.getByText('Won $500.00')).toBeOnTheScreen();
+    expect(screen.getByText('Won $500')).toBeOnTheScreen();
     expect(screen.queryByText('+12.34%')).toBeNull();
     expect(screen.queryByText('Cash out')).toBeNull();
   });
@@ -242,12 +244,34 @@ describe('PredictPositionDetail', () => {
 
     fireEvent.press(screen.getByText('Cash out'));
 
-    expect(global.__mockNavigate).toHaveBeenCalledWith('PREDICT_MODALS_ROOT', {
-      screen: 'PREDICT_SELL_PREVIEW',
-      params: expect.objectContaining({
+    expect(global.__mockNavigate).toHaveBeenCalledWith(
+      'PREDICT_SELL_PREVIEW',
+      expect.objectContaining({
         position: expect.objectContaining({ id: 'pos-1' }),
         outcome: expect.objectContaining({ id: 'outcome-1' }),
       }),
+    );
+  });
+
+  describe('optimistic updates UI', () => {
+    it('hides current value when position is optimistic and market is open', () => {
+      renderComponent({ optimistic: true, currentValue: 500 });
+
+      expect(screen.queryByText('$500.00')).toBeNull();
+    });
+
+    it('hides percent PnL when position is optimistic and market is open', () => {
+      renderComponent({ optimistic: true, percentPnl: 12.34 });
+
+      expect(screen.queryByText('+12.34%')).toBeNull();
+    });
+
+    it('shows initial value and outcome when position is optimistic', () => {
+      renderComponent({ optimistic: true, initialValue: 123.45 });
+
+      expect(
+        screen.getByText('$123.45 on Yes to win $10', { exact: false }),
+      ).toBeOnTheScreen();
     });
   });
 });

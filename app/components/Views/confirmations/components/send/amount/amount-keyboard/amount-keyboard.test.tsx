@@ -10,10 +10,14 @@ import {
   ETHEREUM_ADDRESS,
   evmSendStateMock,
   MOCK_NFT1155,
+  SOLANA_ASSET,
 } from '../../../../__mocks__/send.mock';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendContext } from '../../../../context/send-context';
 import { useRouteParams } from '../../../../hooks/send/useRouteParams';
+import { useSendType } from '../../../../hooks/send/useSendType';
+// eslint-disable-next-line import/no-namespace
+import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
 import { getBackgroundColor } from './amount-keyboard.styles';
 import { AmountKeyboard } from './amount-keyboard';
 
@@ -43,6 +47,10 @@ jest.mock('../../../../context/send-context', () => ({
 
 jest.mock('../../../../hooks/send/usePercentageAmount', () => ({
   usePercentageAmount: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/send/useSendType', () => ({
+  useSendType: jest.fn(),
 }));
 
 const mockGoBack = jest.fn();
@@ -104,7 +112,11 @@ const renderComponent = (
 };
 
 describe('Amount', () => {
+  const mockUseSendType = jest.mocked(useSendType);
   beforeEach(() => {
+    mockUseSendType.mockReturnValue({
+      isNonEvmSendType: false,
+    } as unknown as ReturnType<typeof useSendType>);
     mockUsePercentageAmount.mockReturnValue({
       getPercentageAmount: () => 10,
       isMaxAmountSupported: true,
@@ -144,6 +156,23 @@ describe('Amount', () => {
     const { getByRole } = renderComponent(undefined, '');
     fireEvent.press(getByRole('button', { name: 'Max' }));
     expect(mockUpdateValue).toHaveBeenCalledWith(10, true);
+  });
+
+  it('call validateNonEvmAmountAsync when continue button is pressed', () => {
+    const mockValidateNonEvmAmountAsync = jest.fn();
+    mockUseSendType.mockReturnValue({
+      isNonEvmSendType: true,
+    } as unknown as ReturnType<typeof useSendType>);
+    mockUseSendContext.mockReturnValue({
+      asset: SOLANA_ASSET,
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+    jest.spyOn(AmountValidation, 'useAmountValidation').mockReturnValue({
+      validateNonEvmAmountAsync: mockValidateNonEvmAmountAsync,
+    } as unknown as ReturnType<typeof AmountValidation.useAmountValidation>);
+    const { getByText } = renderComponent();
+    fireEvent.press(getByText('Continue'));
+    expect(mockValidateNonEvmAmountAsync).toHaveBeenCalled();
   });
 });
 

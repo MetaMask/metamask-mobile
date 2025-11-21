@@ -17,8 +17,14 @@ import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
-import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../utils/transaction';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
+
+const IGNORE_TYPES = [TransactionType.predictWithdraw];
 
 const HEX_ZERO = '0x0';
 
@@ -36,10 +42,26 @@ export const useInsufficientBalanceAlert = ({
   );
   const { isTransactionValueUpdating } = useConfirmationContext();
   const { onReject } = useConfirmActions();
+  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
   const { payToken } = useTransactionPayToken();
+  const requiredTokens = useTransactionPayRequiredTokens();
+
+  const primaryRequiredToken = (requiredTokens ?? []).find(
+    (token) => !token.skipIfBalance,
+  );
+
+  const isPayTokenTarget =
+    payToken &&
+    payToken.chainId === primaryRequiredToken?.chainId &&
+    payToken.address.toLowerCase() ===
+      primaryRequiredToken?.address.toLowerCase();
 
   return useMemo(() => {
-    if (!transactionMetadata || isTransactionValueUpdating) {
+    if (
+      !transactionMetadata ||
+      isTransactionValueUpdating ||
+      (payToken && !isPayTokenTarget)
+    ) {
       return [];
     }
 
@@ -65,11 +87,13 @@ export const useInsufficientBalanceAlert = ({
       totalTransactionValueBN,
     );
 
+    const isSponsoredTransaction = isGasFeeSponsored && isGaslessSupported;
+
     const showAlert =
       hasInsufficientBalance &&
       (ignoreGasFeeToken || !selectedGasFeeToken) &&
-      !payToken &&
-      !isGasFeeSponsored;
+      !hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
+      !isSponsoredTransaction;
 
     if (!showAlert) {
       return [];
@@ -100,6 +124,8 @@ export const useInsufficientBalanceAlert = ({
   }, [
     balanceWeiInHex,
     ignoreGasFeeToken,
+    isGaslessSupported,
+    isPayTokenTarget,
     isTransactionValueUpdating,
     navigation,
     networkConfigurations,

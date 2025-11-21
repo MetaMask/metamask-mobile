@@ -2712,7 +2712,7 @@ describe('CardSDK', () => {
   describe('createOnboardingConsent', () => {
     it('creates onboarding consent successfully', async () => {
       const mockRequest: Omit<CreateOnboardingConsentRequest, 'tenantId'> = {
-        policyType: 'US',
+        policyType: 'us',
         onboardingId: 'onboarding123',
         consents: [],
         metadata: {
@@ -2749,7 +2749,7 @@ describe('CardSDK', () => {
 
     it('handles create onboarding consent error', async () => {
       const mockRequest: Omit<CreateOnboardingConsentRequest, 'tenantId'> = {
-        policyType: 'US',
+        policyType: 'us',
         onboardingId: 'onboarding123',
         consents: [],
         metadata: {
@@ -2789,7 +2789,7 @@ describe('CardSDK', () => {
             accepted: true,
           },
         ],
-        policyType: 'US',
+        policyType: 'us',
       };
 
       (global.fetch as jest.Mock).mockResolvedValue({

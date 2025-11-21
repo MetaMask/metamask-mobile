@@ -32,7 +32,7 @@ import { ERC20_DEFAULT_DECIMALS, fetchErc20Decimals } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataOrThrow } from './transactions/useTransactionMetadataRequest';
 import useNetworkInfo from './useNetworkInfo';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
 import { getTokenTransferData } from '../utils/transaction-pay';
@@ -130,7 +130,11 @@ export const useTokenAmount = ({
     networkClientId,
   );
 
-  const transactionData = parseStandardTokenTransactionData(tokenData?.data);
+  const transactionData = useMemo(
+    () => parseStandardTokenTransactionData(tokenData?.data),
+    [tokenData?.data],
+  );
+
   const recipient = transactionData?.args?._to;
 
   const updateTokenAmount = useCallback(

@@ -70,12 +70,49 @@ jest.mock('react-native-quick-crypto', () => ({
   ),
 }));
 
+// Create a persistent mock function that survives Jest teardown
+const mockBatchedUpdates = jest.fn((fn) => {
+  if (typeof fn === 'function') {
+    return fn();
+  }
+  return fn;
+});
+
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
 
   // Set the Platform.OS property to the desired value
   originalModule.Platform.OS = 'ios'; // or 'android', depending on what you want to test
 
+  // Mock deprecated prop types for third-party packages that haven't been updated
+  originalModule.Text.propTypes = {
+    allowFontScaling: true,
+    style: true,
+  };
+
+  originalModule.ViewPropTypes = {
+    style: true,
+  };
+
+  // Mock unstable_batchedUpdates directly in the react-native module
+  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
+
+  return originalModule;
+});
+
+// Mock unstable_batchedUpdates more reliably
+const ReactNative = require('react-native');
+if (ReactNative.unstable_batchedUpdates) {
+  ReactNative.unstable_batchedUpdates = mockBatchedUpdates;
+}
+
+// Also mock it globally as a fallback
+global.unstable_batchedUpdates = mockBatchedUpdates;
+
+// Mock the specific module path that might be causing issues
+jest.mock('react-native/index.js', () => {
+  const originalModule = jest.requireActual('react-native');
+  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
   return originalModule;
 });
 

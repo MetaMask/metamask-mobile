@@ -11,7 +11,6 @@ const styleSheet = (params: { theme: Theme }) =>
       flexDirection: 'column',
       alignItems: 'stretch',
       gap: 12,
-      marginBottom: 42,
       padding: 12,
     },
 

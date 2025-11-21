@@ -45,6 +45,8 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
 }));
 
 jest.mock('../../../Stake/hooks/useStakingChain', () => ({
+  __esModule: true,
+  default: () => ({ isStakingSupportedChain: false }),
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
 
@@ -64,18 +66,30 @@ jest.mock('../../../../../util/assets', () => ({
   formatWithThreshold: jest.fn((value) => `${value} TEST`),
 }));
 
-jest.mock('../../../../../util/networks', () => ({
-  getDefaultNetworkByChainId: jest.fn(),
-  getTestNetImageByChainId: jest.fn(() => 'testnet.png'),
-  isTestNet: jest.fn(),
-}));
+jest.mock('../../../../../util/networks', () => {
+  const actual = jest.requireActual('../../../../../util/networks');
 
-jest.mock('../../../../../util/networks/customNetworks', () => ({
-  CustomNetworkImgMapping: {},
-  PopularList: [],
-  UnpopularNetworkList: [],
-  getNonEvmNetworkImageSourceByChainId: jest.fn(),
-}));
+  return {
+    ...actual,
+    getDefaultNetworkByChainId: jest.fn(),
+    getTestNetImageByChainId: jest.fn(() => 'testnet.png'),
+    isTestNet: jest.fn(),
+  };
+});
+
+jest.mock('../../../../../util/networks/customNetworks', () => {
+  const actual = jest.requireActual(
+    '../../../../../util/networks/customNetworks',
+  );
+
+  return {
+    ...actual,
+    CustomNetworkImgMapping: {},
+    PopularList: [],
+    UnpopularNetworkList: [],
+    getNonEvmNetworkImageSourceByChainId: jest.fn(),
+  };
+});
 
 jest.mock('../../../../../constants/network', () => ({
   NETWORKS_CHAIN_ID: {

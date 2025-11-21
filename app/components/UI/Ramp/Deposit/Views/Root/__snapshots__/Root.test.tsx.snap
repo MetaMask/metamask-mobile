@@ -313,7 +313,7 @@ exports[`Root Component render matches snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
