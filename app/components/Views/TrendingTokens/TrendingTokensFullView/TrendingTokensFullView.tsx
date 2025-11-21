@@ -38,6 +38,7 @@ import {
   TimeOption,
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
+import { SECTIONS_CONFIG } from '../../TrendingView/config/sections.config';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -200,23 +201,40 @@ const TrendingTokensFullView = () => {
     chainIds: selectedNetwork ?? undefined,
   });
 
+  // Reuse tokens section data logic (search + trending merge) at the hook level
+  const { data: tokensSectionData } = SECTIONS_CONFIG.tokens.useSectionData(
+    searchQuery || undefined,
+  );
+
+  const searchResults = useMemo(() => {
+    // When search is not active, fall back to the raw trending tokens results
+    if (!isSearchVisible) {
+      return trendingTokensResults;
+    }
+
+    const searchTerm = searchQuery.toLowerCase().trim();
+
+    // If search box is empty, keep showing the base trending results
+    if (!searchTerm) {
+      return trendingTokensResults;
+    }
+
+    const tokensSectionConfig = SECTIONS_CONFIG.tokens;
+
+    // Filter the merged tokensSectionData (trending + search results)
+    return (tokensSectionData as unknown[]).filter((item) =>
+      tokensSectionConfig.getSearchableText(item).includes(searchTerm),
+    ) as typeof trendingTokensResults;
+  }, [isSearchVisible, searchQuery, tokensSectionData, trendingTokensResults]);
+
   // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {
     // Early return if no results
-    if (trendingTokensResults.length === 0) {
+    if (searchResults.length === 0) {
       return [];
     }
 
-    // Filter by search query first (if search is active and query exists)
-    let filteredResults = trendingTokensResults;
-    if (isSearchVisible && searchQuery.trim()) {
-      const lowerQuery = searchQuery.toLowerCase().trim();
-      filteredResults = trendingTokensResults.filter(
-        (token) =>
-          token.symbol?.toLowerCase().includes(lowerQuery) ||
-          token.name?.toLowerCase().includes(lowerQuery),
-      );
-    }
+    const filteredResults = searchResults;
 
     // If no sort option selected, return filtered results as-is (already sorted by API)
     if (!selectedPriceChangeOption) {
@@ -233,12 +251,10 @@ const TrendingTokensFullView = () => {
 
     return sorted.slice(0, MAX_TOKENS);
   }, [
-    trendingTokensResults,
+    searchResults,
     selectedPriceChangeOption,
     priceChangeSortDirection,
     selectedTimeOption,
-    isSearchVisible,
-    searchQuery,
   ]);
 
   const handlePriceChangeSelect = useCallback(
