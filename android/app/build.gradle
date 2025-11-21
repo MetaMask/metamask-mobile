@@ -176,6 +176,21 @@ def ndkPath() {
 
 
 android {
+      // Configure ABI splits: only x86_64 for E2E, all for others
+    splits {
+      abi {
+        enable true
+        reset()
+        def isE2EInCI = System.getenv('METAMASK_ENVIRONMENT') == 'e2e' && System.getenv('CI') == 'true'
+        if (isE2EInCI) {
+          include 'x86_64'
+        } else {
+          include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+        universalApk true
+      }
+    }
+
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
