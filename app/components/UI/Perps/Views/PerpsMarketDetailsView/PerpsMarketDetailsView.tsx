@@ -191,6 +191,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
+  const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
@@ -365,6 +366,27 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     throttleMs: 1000,
   });
 
+  // Auto-zoom to latest candle when interval changes and new data arrives
+  // This ensures the chart shows the most recent data after interval change
+  useEffect(() => {
+    // Check if the interval has actually changed
+    const hasIntervalChanged =
+      previousIntervalRef.current !== selectedCandlePeriod;
+
+    // Only zoom when:
+    // 1. The interval has changed (user pressed button)
+    // 2. New data exists and matches the selected period
+    if (
+      hasIntervalChanged &&
+      candleData &&
+      candleData.interval === selectedCandlePeriod
+    ) {
+      chartRef.current?.zoomToLatestCandle(visibleCandleCount);
+      // Update the ref to track this interval change
+      previousIntervalRef.current = selectedCandlePeriod;
+    }
+  }, [candleData, selectedCandlePeriod, visibleCandleCount]);
+
   // Check if user has an existing position for this market
   const { isLoading: isLoadingPosition, existingPosition } =
     useHasExistingPosition({
@@ -447,10 +469,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
 
-      // Zoom to latest candle when period changes
-      chartRef.current?.zoomToLatestCandle(visibleCandleCount);
+      // Note: Chart will auto-zoom to latest candle when new data arrives (see useEffect below)
     },
-    [market, track, visibleCandleCount, dispatch],
+    [market, track, dispatch],
   );
 
   const handleMorePress = useCallback(() => {
