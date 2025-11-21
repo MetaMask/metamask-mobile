@@ -3,6 +3,7 @@ import {
   CONTRACT_CREATION_SIGNATURE,
   TRANSACTION_TYPES,
 } from '../../../util/transactions';
+import { TransactionType } from '@metamask/transaction-controller';
 import decodeTransaction from './utils';
 import { strings } from '../../../../locales/i18n';
 
@@ -456,6 +457,7 @@ describe('Transaction Element Utils', () => {
       const selectedAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
       const args = {
         tx: {
+          type: TransactionType.tokenMethodTransferFrom,
           txParams: {
             to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
             from: selectedAddress,
@@ -506,6 +508,7 @@ describe('Transaction Element Utils', () => {
 
       const args = {
         tx: {
+          type: TransactionType.tokenMethodTransferFrom,
           txParams: {
             to: contractAddress, // Contract address, not recipient
             from: senderAddress,
@@ -544,6 +547,7 @@ describe('Transaction Element Utils', () => {
       const selectedAddress = '0xABCDEF1234567890ABcdef1234567890abcdef12';
       const args = {
         tx: {
+          type: TransactionType.tokenMethodTransferFrom,
           txParams: {
             to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
             from: '0xabcdef1234567890abcdef1234567890abcdef12',
@@ -590,6 +594,7 @@ describe('Transaction Element Utils', () => {
 
       const args = {
         tx: {
+          type: TransactionType.tokenMethodTransferFrom,
           txParams: {
             to: contractAddress, // This is the contract, not the recipient
             from: selectedAddress,
@@ -629,6 +634,7 @@ describe('Transaction Element Utils', () => {
 
       const args = {
         tx: {
+          type: TransactionType.tokenMethodTransferFrom,
           txParams: {
             to: contractAddress,
             from: selectedAddress,
@@ -667,6 +673,7 @@ describe('Transaction Element Utils', () => {
       const contractAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
       const args = {
         tx: {
+          type: TransactionType.tokenMethodTransferFrom,
           txParams: {
             to: contractAddress,
             from: selectedAddress,
