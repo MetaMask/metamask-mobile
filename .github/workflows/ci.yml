@@ -561,8 +561,8 @@ jobs:
   post-build-comment:
     name: Post Build Comment
     runs-on: ubuntu-latest
-    if: always() && github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.build-android-apks.result == 'success' || needs.build-ios-apps.result == 'success')
-    needs: [build-android-apks, build-ios-apps]
+    if: always() && github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.build-android-apks.result == 'success' || needs.build-ios-apps.result == 'success' || needs.build-android-flask-apks.result == 'success')
+    needs: [build-android-apks, build-ios-apps, build-android-flask-apks]
     permissions:
       pull-requests: write
       contents: read
@@ -584,6 +584,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           ANDROID_BUILD_SUCCESS: ${{ needs.build-android-apks.result == 'success' }}
           IOS_BUILD_SUCCESS: ${{ needs.build-ios-apps.result == 'success' }}
+          ANDROID_FLASK_BUILD_SUCCESS: ${{ needs.build-android-flask-apks.result == 'success' }}
 
   log-merge-group-failure:
     name: Log merge group failure

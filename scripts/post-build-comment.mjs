@@ -19,6 +19,45 @@ const ARTIFACTS_COMMENT_MARKER = '<!-- metamask-bot-build-announce -->';
  * @returns {Promise<{ios: string | null, android: string | null}>} Object with artifact URLs
  */
 /**
+ * Fetches job IDs from GitHub Actions API for a given workflow run
+ * @param {Octokit} octokit - Octokit instance
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} runId - Workflow run ID
+ * @returns {Promise<{androidJobId: string | null, iosJobId: string | null, androidFlaskJobId: string | null}>} Object with job IDs
+ */
+async function fetchJobIds(octokit, owner, repo, runId) {
+  try {
+    console.log(`Fetching jobs for workflow run: ${runId}`);
+    const { data: jobsResponse } = await octokit.rest.actions.listJobsForWorkflowRun({
+      owner,
+      repo,
+      run_id: parseInt(runId, 10),
+    });
+
+    const allJobs = jobsResponse.jobs || [];
+    console.log(`Found ${allJobs.length} jobs in workflow run ${runId}`);
+
+    // Find jobs by name (these are the job names from ci.yml)
+    const androidJob = allJobs.find((job) => job.name === 'Build Android APKs');
+    const iosJob = allJobs.find((job) => job.name === 'Build iOS Apps');
+    const androidFlaskJob = allJobs.find((job) => job.name === 'Build Android Flask APKs');
+
+    const result = {
+      androidJobId: androidJob ? String(androidJob.id) : null,
+      iosJobId: iosJob ? String(iosJob.id) : null,
+      androidFlaskJobId: androidFlaskJob ? String(androidFlaskJob.id) : null,
+    };
+
+    console.log('Job IDs:', JSON.stringify(result, null, 2));
+    return result;
+  } catch (error) {
+    console.error('Error fetching jobs from GitHub API:', error);
+    return { androidJobId: null, iosJobId: null, androidFlaskJobId: null };
+  }
+}
+
+/**
  * Fetches artifact URLs from GitHub Actions API for a given workflow run
  * This function retrieves artifacts from the current workflow run, which includes
  * artifacts uploaded by reusable workflows (build-android-e2e.yml and build-ios-e2e.yml)
@@ -26,7 +65,7 @@ const ARTIFACTS_COMMENT_MARKER = '<!-- metamask-bot-build-announce -->';
  * @param {string} owner - Repository owner
  * @param {string} repo - Repository name
  * @param {number} runId - Workflow run ID (from github.run_id)
- * @returns {Promise<{ios: string | null, android: string | null}>} Object with artifact URLs
+ * @returns {Promise<{ios: string | null, android: string | null, androidFlask: string | null}>} Object with artifact URLs
  */
 async function fetchArtifactUrls(octokit, owner, repo, runId) {
   try {
@@ -43,6 +82,7 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
 
     let iosArtifactId = null;
     let androidArtifactId = null;
+    let androidFlaskArtifactId = null;
 
     // Find iOS artifact (MetaMask.app) - exact match required
     const iosArtifact = allArtifacts.find((artifact) => artifact.name === 'MetaMask.app');
@@ -65,16 +105,10 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
 
     console.log(`Found ${androidArtifacts.length} potential Android artifacts:`, androidArtifacts.map((a) => a.name).join(', '));
 
-    // Selection priority:
-    // 1. main-e2e-release.apk (primary build)
-    // 2. Any -release.apk (excluding test APKs)
-    // 3. Any -release.aab
-    // 4. First matching artifact as fallback
-    const androidArtifact =
-      androidArtifacts.find((a) => a.name === 'main-e2e-release.apk') ||
-      androidArtifacts.find((a) => a.name.includes('-release.apk') && !a.name.includes('androidTest')) ||
-      androidArtifacts.find((a) => a.name.includes('-release.aab')) ||
-      androidArtifacts[0];
+    // Find main Android artifact (main-e2e-release.apk)
+    const androidArtifact = androidArtifacts.find((a) => a.name === 'main-e2e-release.apk') ||
+      androidArtifacts.find((a) => a.name.includes('-release.apk') && !a.name.includes('androidTest') && !a.name.includes('flask')) ||
+      androidArtifacts.find((a) => a.name.includes('-release.aab') && !a.name.includes('flask'));
 
     if (androidArtifact) {
       androidArtifactId = androidArtifact.id;
@@ -83,10 +117,22 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
       console.log('✗ No Android artifact found matching expected patterns');
     }
 
+    // Find Android Flask artifact (flask-e2e-release.apk)
+    const androidFlaskArtifact = androidArtifacts.find((a) => a.name === 'flask-e2e-release.apk') ||
+      androidArtifacts.find((a) => a.name.includes('flask') && a.name.includes('-release.apk'));
+
+    if (androidFlaskArtifact) {
+      androidFlaskArtifactId = androidFlaskArtifact.id;
+      console.log(`✓ Found Android Flask artifact: "${androidFlaskArtifact.name}" (ID: ${androidFlaskArtifactId}, Size: ${androidFlaskArtifact.size_in_bytes} bytes)`);
+    } else {
+      console.log('✗ No Android Flask artifact found');
+    }
+
     const baseUrl = `https://github.com/${owner}/${repo}/actions/runs/${runId}`;
     const result = {
       ios: iosArtifactId ? `${baseUrl}/artifacts/${iosArtifactId}` : null,
       android: androidArtifactId ? `${baseUrl}/artifacts/${androidArtifactId}` : null,
+      androidFlask: androidFlaskArtifactId ? `${baseUrl}/artifacts/${androidFlaskArtifactId}` : null,
     };
 
     console.log('Artifact URLs:', JSON.stringify(result, null, 2));
@@ -98,14 +144,14 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
     } else if (error.status === 403) {
       console.error('Permission denied. Ensure the GITHUB_TOKEN has "actions: read" permission.');
     }
-    return { ios: null, android: null };
+    return { ios: null, android: null, androidFlask: null };
   }
 }
 
 /**
  * Posts or updates a PR comment with build artifacts links.
  * Requires environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, GITHUB_RUN_ID,
- * ANDROID_BUILD_SUCCESS, IOS_BUILD_SUCCESS
+ * ANDROID_BUILD_SUCCESS, IOS_BUILD_SUCCESS, ANDROID_FLASK_BUILD_SUCCESS
  *
  * @returns {Promise<void>}
  */
@@ -117,6 +163,7 @@ async function start() {
     GITHUB_RUN_ID,
     ANDROID_BUILD_SUCCESS,
     IOS_BUILD_SUCCESS,
+    ANDROID_FLASK_BUILD_SUCCESS,
   } = process.env;
 
   if (!GITHUB_TOKEN || !GITHUB_REPOSITORY || !PR_NUMBER || !GITHUB_RUN_ID) {
@@ -170,22 +217,69 @@ async function start() {
     console.error('Error reading iOS build number:', error);
   }
 
-  // 2. Fetch artifact URLs from GitHub API for the current workflow run
+  // 2. Extract Android Version Code
+  let androidVersionCode = 'Unknown';
+  try {
+    const buildGradlePath = path.resolve(__dirname, '../android/app/build.gradle');
+
+    if (fs.existsSync(buildGradlePath)) {
+      const buildGradleContent = fs.readFileSync(buildGradlePath, 'utf8');
+
+      // Extract versionCode from defaultConfig block
+      // Pattern: versionCode 2993 (can be on same line or separate)
+      const versionCodeMatch = buildGradleContent.match(/versionCode\s+(\d+)/);
+
+      if (versionCodeMatch) {
+        androidVersionCode = versionCodeMatch[1];
+        console.log(`Found Android versionCode: ${androidVersionCode}`);
+      } else {
+        console.warn('No versionCode found in build.gradle');
+      }
+    } else {
+      console.warn(`Android build.gradle file not found at ${buildGradlePath}`);
+    }
+  } catch (error) {
+    console.error('Error reading Android version code:', error);
+  }
+
+  // 3. Fetch job IDs and artifact URLs from GitHub API for the current workflow run
   // Note: GITHUB_RUN_ID refers to the main CI workflow run, which includes
   // artifacts from reusable workflows (build-android-e2e.yml and build-ios-e2e.yml)
-  console.log(`\n=== Fetching artifacts for PR #${prNumber}, Workflow Run: ${GITHUB_RUN_ID} ===`);
+  console.log(`\n=== Fetching jobs and artifacts for PR #${prNumber}, Workflow Run: ${GITHUB_RUN_ID} ===`);
   const defaultArtifactsUrl = `https://github.com/${owner}/${repo}/actions/runs/${GITHUB_RUN_ID}`;
-  const artifactUrls = await fetchArtifactUrls(octokit, owner, repo, GITHUB_RUN_ID);
+  const workflowRunUrl = defaultArtifactsUrl;
+
+  const [jobIds, artifactUrls] = await Promise.all([
+    fetchJobIds(octokit, owner, repo, GITHUB_RUN_ID),
+    fetchArtifactUrls(octokit, owner, repo, GITHUB_RUN_ID),
+  ]);
+
+  // Construct job URLs
+  const androidJobUrl = jobIds.androidJobId
+    ? `${workflowRunUrl}/job/${jobIds.androidJobId}`
+    : null;
+  const iosJobUrl = jobIds.iosJobId
+    ? `${workflowRunUrl}/job/${jobIds.iosJobId}`
+    : null;
+  const androidFlaskJobUrl = jobIds.androidFlaskJobId
+    ? `${workflowRunUrl}/job/${jobIds.androidFlaskJobId}`
+    : null;
 
   // Use fetched URLs or fallback to run page (artifacts section)
   const iosUrl = artifactUrls.ios || defaultArtifactsUrl;
   const androidUrl = artifactUrls.android || defaultArtifactsUrl;
+  const androidFlaskUrl = artifactUrls.androidFlask || defaultArtifactsUrl;
 
   console.log(`\n=== Artifact URLs ===`);
   console.log(`iOS: ${iosUrl}`);
   console.log(`Android: ${androidUrl}`);
+  console.log(`Android Flask: ${androidFlaskUrl}`);
+  console.log(`\n=== Job URLs ===`);
+  console.log(`Android Job: ${androidJobUrl || 'Not found'}`);
+  console.log(`iOS Job: ${iosJobUrl || 'Not found'}`);
+  console.log(`Android Flask Job: ${androidFlaskJobUrl || 'Not found'}`);
 
-  // 3. Construct Comment Body
+  // 4. Construct Comment Body
   const rows = [];
 
   if (IOS_BUILD_SUCCESS === 'true') {
@@ -193,7 +287,11 @@ async function start() {
   }
 
   if (ANDROID_BUILD_SUCCESS === 'true') {
-    rows.push(`| :robot: **Android** | [Download Artifacts](${androidUrl}) | Check "Artifacts" section |`);
+    rows.push(`| :robot: **Android** | [Download Artifacts](${androidUrl}) | Build: \`${androidVersionCode}\` |`);
+  }
+
+  if (ANDROID_FLASK_BUILD_SUCCESS === 'true') {
+    rows.push(`| :flask: **Android Flask** | [Download Artifacts](${androidFlaskUrl}) | Build: \`${androidVersionCode}\` |`);
   }
 
   if (rows.length === 0) {
@@ -211,8 +309,12 @@ ${rows.join('\n')}
 <details>
 <summary>Debug Info</summary>
 
-*   Run ID: \`${GITHUB_RUN_ID}\`
-*   iOS Build Number: \`${iosBuildNumber}\`
+*   **Workflow Run**: [\`${GITHUB_RUN_ID}\`](${workflowRunUrl})
+*   **iOS Build Number**: \`${iosBuildNumber}\`
+*   **Android Version Code**: \`${androidVersionCode}\`
+*   **iOS Build Job**: ${iosJobUrl ? `[View Job](${iosJobUrl})` : 'Not found'}
+*   **Android Build Job**: ${androidJobUrl ? `[View Job](${androidJobUrl})` : 'Not found'}
+*   **Android Flask Build Job**: ${androidFlaskJobUrl ? `[View Job](${androidFlaskJobUrl})` : 'Not found'}
 </details>
 `;
 
