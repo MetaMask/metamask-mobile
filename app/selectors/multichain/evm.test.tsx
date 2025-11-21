@@ -130,6 +130,14 @@ describe('Multichain Selectors', () => {
           isEvmSelected: true,
           selectedMultichainNetworkChainId: SolScope.Mainnet,
         },
+        NetworkEnablementController: {
+          enabledNetworkMap: {
+            eip155: {
+              '0x1': true,
+              '0x89': true,
+            },
+          },
+        },
         PreferencesController: {
           tokenNetworkFilter: {
             '0x1': true,
@@ -552,7 +560,7 @@ describe('Multichain Selectors', () => {
       expect(result.length).toBe(0); // All tokens have zero balance, so none should be returned
     });
 
-    it('when on current network, should filter out zero balance tokens except native and staking tokens when hideZeroBalanceTokens is true', () => {
+    it('when filtering to a single network, should filter out all zero balance tokens when hideZeroBalanceTokens is true', () => {
       const testState = {
         ...mockState,
         settings: { ...mockState.settings, hideZeroBalanceTokens: true },
@@ -560,6 +568,23 @@ describe('Multichain Selectors', () => {
           ...mockState.engine,
           backgroundState: {
             ...mockState.engine.backgroundState,
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true, // user is filtering to only Ethereum Mainnet
+                },
+              },
+            },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  name: 'Ethereum Mainnet',
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [{ networkClientId: '0x1' }],
+                },
+              },
+            },
             AccountTrackerController: {
               accountsByChainId: {
                 '0x1': {
@@ -579,21 +604,21 @@ describe('Multichain Selectors', () => {
                 },
               },
             },
-            PreferencesController: {
-              tokenNetworkFilter: {
-                '0x1': true, // user is on "current network" filter, since NetworkController has multiple networks, and we are only filtering to one chain here
-              },
-            },
           },
         },
       } as unknown as RootState;
 
       const result = selectEvmTokens(testState);
       expect(result).toBeDefined();
-      expect(result.length).toBe(2); // All tokens have zero balance, so none should be returned, however on current network view, we still want to show native token and staked token, even if zero
+      // After refactor: filtering by enabled networks no longer has special "current network only" mode
+      // that would keep native/staked tokens with zero balance. Now it simply filters by enabled networks.
+      // The old behavior of keeping native/staked tokens depended on selectIsTokenNetworkFilterEqualCurrentNetwork
+      // which uses the deprecated tokenNetworkFilter system.
+      expect(result.length).toBe(1); // Only staked token with non-zero balance should be returned
+      expect(result[0].isStaked).toBe(true);
     });
 
-    it('should return tokens only for the selected network if not on all networks', () => {
+    it('should return tokens only for enabled networks', () => {
       const testState = {
         ...mockState,
         settings: { ...mockState.settings, hideZeroBalanceTokens: true },
@@ -601,6 +626,13 @@ describe('Multichain Selectors', () => {
           ...mockState.engine,
           backgroundState: {
             ...mockState.engine.backgroundState,
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {
+                  '0x89': true, // user only wants to see tokens on Polygon
+                },
+              },
+            },
             NetworkController: {
               networkConfigurationsByChainId: {
                 '0x1': {
@@ -617,11 +649,6 @@ describe('Multichain Selectors', () => {
                 },
               },
               selectedNetworkClientId: '0x89',
-            },
-            PreferencesController: {
-              tokenNetworkFilter: {
-                '0x89': true, // user only wants to see tokens on Polygon
-              },
             },
           },
         },
