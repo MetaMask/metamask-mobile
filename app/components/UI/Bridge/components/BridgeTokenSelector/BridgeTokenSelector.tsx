@@ -93,6 +93,18 @@ export const BridgeTokenSelector: React.FC = () => {
   // Ref to track if we need to re-search after chain change
   const shouldResearchAfterChainChange = useRef(false);
 
+  // Track the last chain ID to detect changes
+  const lastChainIdRef = useRef(selectedChainId);
+  const [listKey, setListKey] = useState(0);
+
+  // Update list key when network actually changes
+  useEffect(() => {
+    if (lastChainIdRef.current !== selectedChainId) {
+      lastChainIdRef.current = selectedChainId;
+      setListKey((prev) => prev + 1);
+    }
+  }, [selectedChainId]);
+
   // Chain IDs to fetch tokens for
   const chainIdsToFetch = useMemo(() => {
     if (!bridgeFeatureFlags.chainRanking) {
@@ -402,7 +414,7 @@ export const BridgeTokenSelector: React.FC = () => {
 
       <FlatList
         ref={flatListRef}
-        key={selectedChainId || 'all'}
+        key={listKey}
         style={styles.tokensList}
         contentContainerStyle={styles.tokensListContainer}
         data={displayData}
@@ -414,9 +426,6 @@ export const BridgeTokenSelector: React.FC = () => {
         onScroll={handleScroll}
         scrollEventThrottle={400}
         ListFooterComponent={renderFooter}
-        maxToRenderPerBatch={20}
-        windowSize={10}
-        initialNumToRender={20}
         onLayout={handleFlatListLayout}
       />
     </SafeAreaView>
