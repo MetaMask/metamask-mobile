@@ -38,8 +38,8 @@ export class SwapHandler extends BaseHandler {
         link.params;
 
       // Navigate to swap screen with parameters
-      this.navigate(context, Routes.SWAPS, {
-        screen: Routes.SWAPS_AMOUNT_VIEW,
+      this.navigate(context, Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BRIDGE_VIEW,
         params: {
           sourceToken,
           destinationToken,
