@@ -68,7 +68,6 @@ jobs:
 
       - name: Repack Main to Flask
         run: node scripts/repack.js
-        timeout-minutes: 10  # Metro bundler needs time to bundle JS
         env:
           PLATFORM: android
           METAMASK_BUILD_TYPE: flask
