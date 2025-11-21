@@ -7,7 +7,10 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     tradeInfoContainer: {
-      paddingBottom: 12,
+      paddingBottom: 20,
+    },
+    emptyStateContainer: {
+      paddingBottom: 20,
     },
     wrapper: {
       flex: 1,
