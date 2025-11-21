@@ -196,17 +196,19 @@ describe('Transaction Element Utils', () => {
 
     it('if incoming transfer', async () => {
       // Arrange
+      const selectedAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+      const contractAddress = '0xdac17f958d2ee523a2206206994597c13d831ec7';
       const args = {
         tx: {
           txParams: {
-            to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+            to: contractAddress, // Token contract address (not recipient)
             from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
             value: '52daf0',
           },
           transferInformation: {
             symbol: 'USDT',
             decimals: 6,
-            contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+            contractAddress,
           },
           hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
           isTransfer: true,
@@ -217,7 +219,7 @@ describe('Transaction Element Utils', () => {
         totalGas: '0x64',
         actionKey: 'key',
         primaryCurrency: 'ETH',
-        selectedAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+        selectedAddress,
         ticker: 'ETH',
         txChainId: '0x1',
       };
@@ -254,17 +256,19 @@ describe('Transaction Element Utils', () => {
 
     it('if large value', async () => {
       // Arrange
+      const selectedAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+      const contractAddress = '0xdac17f958d2ee523a2206206994597c13d831ec7';
       const args = {
         tx: {
           txParams: {
-            to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+            to: contractAddress, // Token contract address (not recipient)
             from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
             value: '3B9ACA00', // 1000000000 in decimal
           },
           transferInformation: {
             symbol: 'USDT',
             decimals: 6,
-            contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+            contractAddress,
           },
           hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
           isTransfer: true,
@@ -275,7 +279,7 @@ describe('Transaction Element Utils', () => {
         totalGas: '0x64',
         actionKey: 'key',
         primaryCurrency: 'ETH',
-        selectedAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+        selectedAddress,
         ticker: 'ETH',
         txChainId: '0x1',
       };
@@ -488,17 +492,29 @@ describe('Transaction Element Utils', () => {
 
     it('sets RECEIVED_COLLECTIBLE type when user is receiver', async () => {
       const selectedAddress = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
+      const senderAddress = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
+      const contractAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
+
+      // Complete transferFrom data with actual addresses encoded
+      const completeData =
+        '0x23b872dd' + // transferFrom signature
+        '000000000000000000000000' +
+        senderAddress.slice(2) + // from (sender)
+        '000000000000000000000000' +
+        selectedAddress.slice(2) + // to (recipient - the selected address)
+        '0000000000000000000000000000000000000000000000000000000000000456'; // tokenId (456 in hex)
+
       const args = {
         tx: {
           txParams: {
-            to: selectedAddress,
-            from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
-            data: '0x23b872dd',
+            to: contractAddress, // Contract address, not recipient
+            from: senderAddress,
+            data: completeData, // Complete data with recipient encoded
             gas: '0x5208',
           },
           transferInformation: {
             tokenId: '456',
-            contractAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
+            contractAddress,
           },
           hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
         },
