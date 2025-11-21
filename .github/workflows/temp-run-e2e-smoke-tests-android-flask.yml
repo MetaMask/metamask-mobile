@@ -39,7 +39,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [build-android-main-apps]
+    needs: [needs_e2e_build]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,28 +50,35 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
-      - name: Setup project dependencies with retry
+      - name: Install dependencies
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: |
-            echo "🚀 Setting up project..."
-            yarn setup:github-ci --no-build-ios
+          command: yarn install --immutable
 
-      # Download artifacts from the previous job in THIS workflow
-      - name: Download Main App APK
-        uses: actions/download-artifact@v4
-        with:
-          name: main-e2e-release.apk
-          path: android/app/build/outputs/apk/prod/release/
+      - name: Setup project
+        run: yarn setup:github-ci --no-build-ios
 
-      - name: Download Main Test APK
-        uses: actions/download-artifact@v4
-        with:
-          name: main-e2e-release-androidTest.apk
-          path: android/app/build/outputs/apk/androidTest/prod/release/
+      # Download APK from GitHub release instead of building
+      - name: Download APK from GitHub Release
+        run: |
+          mkdir -p android/app/build/outputs/apk/prod/release/
+          curl -L -o release-apk.zip https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/repack/release-apk.zip
+          unzip -q release-apk.zip -d android/app/build/outputs/apk/prod/release/
+          # Ensure the APK is named correctly
+          if [ ! -f android/app/build/outputs/apk/prod/release/app-prod-release.apk ]; then
+            # If the zip contains a different structure, find and move the APK
+            find android/app/build/outputs/apk/prod/release/ -name "*.apk" -type f | head -1 | xargs -I {} mv {} android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          fi
+          rm release-apk.zip
+
+      - name: Download Main Test APK (placeholder)
+        run: |
+          mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
+          # Create a placeholder test APK if needed, or skip if not required for repacking
+          touch android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk || true
 
       - name: Repack Main to Flask
         run: node scripts/repack.js
