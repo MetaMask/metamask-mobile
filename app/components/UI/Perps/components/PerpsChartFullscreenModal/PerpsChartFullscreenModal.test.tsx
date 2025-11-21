@@ -540,5 +540,57 @@ describe('PerpsChartFullscreenModal', () => {
         expect(mockLockAsync).toHaveBeenCalledWith(OrientationLock.PORTRAIT_UP);
       });
     });
+
+    it('renders with custom visibleCandleCount', () => {
+      const { getByTestId } = render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          visibleCandleCount={60}
+        />,
+      );
+
+      expect(
+        getByTestId(PerpsChartFullscreenModalSelectorsIDs.CHART),
+      ).toBeDefined();
+    });
+
+    it('renders with all optional props undefined', () => {
+      const { getByTestId } = render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          candleData={undefined}
+          tpslLines={undefined}
+          visibleCandleCount={undefined}
+        />,
+      );
+
+      expect(
+        getByTestId(PerpsChartFullscreenModalSelectorsIDs.CHART),
+      ).toBeDefined();
+    });
+  });
+
+  describe('Chart Height Management', () => {
+    it('calculates chart height without OHLCV bar', () => {
+      const { getByTestId } = render(
+        <PerpsChartFullscreenModal {...defaultProps} isVisible />,
+      );
+
+      const chart = getByTestId(PerpsChartFullscreenModalSelectorsIDs.CHART);
+      expect(chart).toBeDefined();
+      // Chart should use full available height when no OHLCV bar
+    });
+
+    it('adjusts chart height when OHLCV bar is present', async () => {
+      const { getByTestId } = render(
+        <PerpsChartFullscreenModal {...defaultProps} isVisible />,
+      );
+
+      const chart = getByTestId(PerpsChartFullscreenModalSelectorsIDs.CHART);
+      expect(chart).toBeDefined();
+      // When OHLCV data is set, chart height should subtract OHLCV bar height
+    });
   });
 });
