@@ -1,0 +1,36 @@
+/**
+ * Personal Jest Ignore Patterns Configuration
+ *
+ * This file is gitignored and automatically loaded by jest.config.js if it exists.
+ * Use this file ONLY to add personal ignore patterns (e.g., IDE history folders,
+ * personal test directories) without committing them to the repository.
+ *
+ * IMPORTANT: This file is ONLY for ignore patterns. Other Jest configuration
+ * customizations should not be added here.
+ *
+ * To use:
+ * 1. Copy this file to `jest.config.personal-ignore.js` (remove the .example extension)
+ * 2. Add your personal ignore patterns below
+ * 3. The patterns will be automatically merged with the base config
+ *
+ * Supported properties:
+ * - coveragePathIgnorePatterns: Patterns to ignore when collecting coverage
+ * - testPathIgnorePatterns: Patterns to ignore when discovering test files
+ *
+ * Note: These patterns are regular expressions (not glob patterns). Use:
+ * - `.*` to match any characters (instead of `**` for glob)
+ * - `\\.` to match a literal dot (instead of `.` in glob)
+ * - Example: `.*\\.my-custom-global-git-ignored-folder/` matches `.my-custom-global-git-ignored-folder` folders at any depth
+ */
+
+module.exports = {
+  coveragePathIgnorePatterns: [
+    '<rootDir>/.history/',
+    '.*\\.my-custom-global-git-ignored-folder/',
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/.history/',
+    '.*\\.my-custom-global-git-ignored-folder/',
+  ],
+};
+
