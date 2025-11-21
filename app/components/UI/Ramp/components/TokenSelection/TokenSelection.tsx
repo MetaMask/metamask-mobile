@@ -10,6 +10,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { useDebouncedValue } from '../../../../../components/hooks/useDebouncedValue';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import TokenNetworkFilterBar from '../TokenNetworkFilterBar';
@@ -70,6 +71,8 @@ function TokenSelection() {
     networkFilter,
     searchString,
   });
+
+  const debouncedSearchString = useDebouncedValue(searchString, 300);
 
   const { goToBuy } = useRampNavigation();
 
@@ -178,6 +181,37 @@ function TokenSelection() {
     );
   }, [navigation, theme]);
 
+  useEffect(() => {
+    if (debouncedSearchString.trim()) {
+      trackEvent('RAMPS_TOKEN_PAGE_ACTION', {
+        action_type: 'token_search',
+        search_value: debouncedSearchString,
+        search_results_count: searchTokenResults.length,
+      });
+    }
+  }, [debouncedSearchString, searchTokenResults.length, trackEvent]);
+
+  const setNetworkFilterCallback = useCallback(
+    (
+      value:
+        | CaipChainId[]
+        | null
+        | ((prev: CaipChainId[] | null) => CaipChainId[] | null),
+    ) => {
+      setNetworkFilter((prev) => {
+        const newValue = typeof value === 'function' ? value(prev) : value;
+        if (newValue !== null && newValue.length > 0) {
+          trackEvent('RAMPS_TOKEN_PAGE_ACTION', {
+            action_type: 'chain_selected',
+            chain_id: newValue[0],
+          });
+        }
+        return newValue;
+      });
+    },
+    [trackEvent],
+  );
+
   if (isLoading) {
     return (
       <ScreenLayout>
@@ -216,7 +250,7 @@ function TokenSelection() {
           <TokenNetworkFilterBar
             networks={uniqueNetworks}
             networkFilter={networkFilter}
-            setNetworkFilter={setNetworkFilter}
+            setNetworkFilter={setNetworkFilterCallback}
           />
         </Box>
         <Box twClassName="px-4 py-3">

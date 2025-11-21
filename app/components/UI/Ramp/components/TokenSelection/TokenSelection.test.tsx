@@ -77,6 +77,11 @@ jest.mock('../../Deposit/hooks/useDepositCryptoCurrencyNetworkName', () => ({
   useDepositCryptoCurrencyNetworkName: () => mockGetNetworkName,
 }));
 
+const mockGetTokenNetworkInfo = jest.fn();
+jest.mock('../../hooks/useTokenNetworkInfo', () => ({
+  useTokenNetworkInfo: () => mockGetTokenNetworkInfo,
+}));
+
 const mockTokens = MOCK_CRYPTOCURRENCIES;
 const mockUseRampTokens = useRampTokens as jest.MockedFunction<
   typeof useRampTokens
@@ -94,6 +99,11 @@ describe('TokenSelection Component', () => {
     jest.clearAllMocks();
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
     mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
+    mockGetTokenNetworkInfo.mockReturnValue({
+      networkName: 'Ethereum Mainnet',
+      depositNetworkName: 'Ethereum',
+      networkImageSource: { uri: 'https://example.com/network.png' },
+    });
 
     const rampsTokens = convertToRampsTokens(mockTokens);
     mockUseRampTokens.mockReturnValue({
@@ -287,7 +297,7 @@ describe('TokenSelection Component', () => {
   it('tracks RAMPS_TOKEN_SELECTED event with undefined ramp_routing when routing decision is null', () => {
     const { getByTestId } = renderWithProvider(TokenSelection, {
       fiatOrders: {
-        rampRoutingDecision: null,
+        rampRoutingDecision: undefined,
       },
     });
 
@@ -306,6 +316,43 @@ describe('TokenSelection Component', () => {
       token_caip19: mockTokens[0].assetId,
       token_symbol: mockTokens[0].symbol,
       ramp_routing: undefined,
+    });
+  });
+
+  it('tracks RAMPS_TOKEN_PAGE_ACTION with token_search action when user searches', async () => {
+    jest.useFakeTimers();
+    const searchResults = [mockTokens[0]];
+    (useSearchTokenResults as jest.Mock).mockReturnValue(searchResults);
+
+    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
+
+    const searchInput = getByPlaceholderText('Search token by name or address');
+    fireEvent.changeText(searchInput, 'USDC');
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(300);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_PAGE_ACTION', {
+        action_type: 'token_search',
+        search_value: 'USDC',
+        search_results_count: 1,
+      });
+    });
+
+    jest.useRealTimers();
+  });
+
+  it('tracks RAMPS_TOKEN_PAGE_ACTION with chain_selected action when network filter is set', () => {
+    const { getByText } = renderWithProvider(TokenSelection);
+
+    const ethereumButton = getByText('Ethereum');
+    fireEvent.press(ethereumButton);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_PAGE_ACTION', {
+      action_type: 'chain_selected',
+      chain_id: 'eip155:1',
     });
   });
 });

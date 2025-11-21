@@ -286,6 +286,7 @@ enum EVENT_NAME {
   RAMPS_KYC_APPLICATION_APPROVED = 'Ramps KYC Application Approved',
   RAMPS_PAYMENT_METHOD_ADDED = 'Ramps Payment Method Added',
   RAMPS_USER_DETAILS_FETCHED = 'Ramps User Details Fetched',
+  RAMPS_TOKEN_PAGE_ACTION = 'Ramps Token Page Action',
 
   ACCOUNTS = 'Accounts',
   DAPP_VIEW = 'Dapp View',

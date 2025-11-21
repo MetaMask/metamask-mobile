@@ -257,6 +257,13 @@ interface RampsUserDetailsFetched {
   location: string;
 }
 
+interface RampsTokenPageAction {
+  action_type: 'token_search' | 'chain_selected' | 'page_closed';
+  chain_id?: string;
+  search_value?: string;
+  search_results_count?: number;
+}
+
 export interface AnalyticsEvents {
   RAMPS_BUTTON_CLICKED: RampsButtonClicked;
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED: RampsDepositCashButtonClicked;
@@ -281,4 +288,5 @@ export interface AnalyticsEvents {
   RAMPS_KYC_APPLICATION_FAILED: RampsKycApplicationFailed;
   RAMPS_KYC_APPLICATION_APPROVED: RampsKycApplicationApproved;
   RAMPS_USER_DETAILS_FETCHED: RampsUserDetailsFetched;
+  RAMPS_TOKEN_PAGE_ACTION: RampsTokenPageAction;
 }
