@@ -50,8 +50,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - name: Setup project
+        run: yarn setup
 
       # Download artifacts from the previous job in THIS workflow
       - name: Download Main App APK
@@ -68,6 +68,7 @@ jobs:
 
       - name: Repack Main to Flask
         run: node scripts/repack.js
+        timeout-minutes: 10  # Metro bundler needs time to bundle JS
         env:
           PLATFORM: android
           METAMASK_BUILD_TYPE: flask
