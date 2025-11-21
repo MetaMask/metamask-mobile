@@ -42,7 +42,7 @@ export class SwapHandler extends BaseHandler {
         screen: Routes.BRIDGE.BRIDGE_VIEW,
         params: {
           sourceToken,
-          destinationToken,
+          destToken: destinationToken,
           sourceAmount,
           chainId: chain,
         },

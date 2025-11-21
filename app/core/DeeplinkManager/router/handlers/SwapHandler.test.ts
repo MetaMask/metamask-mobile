@@ -41,7 +41,7 @@ describe('SwapHandler', () => {
         screen: Routes.BRIDGE.BRIDGE_VIEW,
         params: {
           sourceToken: 'ETH',
-          destinationToken: 'USDC',
+          destToken: 'USDC',
           sourceAmount: '1',
           chainId: undefined,
         },
