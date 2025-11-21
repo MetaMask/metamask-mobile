@@ -1,4 +1,4 @@
-import { DEBOUNCE_WAIT, useTrendingRequest, clearCache } from '.';
+import { DEBOUNCE_WAIT, useTrendingRequest } from '.';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
@@ -53,8 +53,6 @@ describe('useTrendingRequest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    // Clear cache between tests to ensure test isolation
-    clearCache();
     // Set up default mocks for network hooks
     mockUseNetworksByNamespace.mockReturnValue({
       networks: mockDefaultNetworks,
@@ -79,7 +77,6 @@ describe('useTrendingRequest', () => {
 
   afterEach(() => {
     jest.useRealTimers();
-    clearCache();
   });
 
   it('returns an object with results, isLoading, error, and fetch function', () => {
@@ -392,8 +389,6 @@ describe('useTrendingRequest', () => {
       await Promise.resolve();
     });
 
-    // Clear cache so subsequent fetch calls will actually trigger API calls
-    clearCache();
     spyGetTrendingTokens.mockClear();
 
     await act(async () => {

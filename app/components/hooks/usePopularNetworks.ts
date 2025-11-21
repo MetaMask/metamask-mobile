@@ -7,6 +7,10 @@ import { PopularList } from '../../util/networks/customNetworks';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { ProcessedNetwork } from './useNetworksByNamespace/useNetworksByNamespace';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
 
 /**
  * Hook to get popular networks, combining networks from Redux state and PopularList.
@@ -20,7 +24,6 @@ export const usePopularNetworks = (): ProcessedNetwork[] => {
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-
   return useMemo(() => {
     const processedNetworks: ProcessedNetwork[] = [];
     const addedCaipChainIds = new Set<CaipChainId>();
@@ -56,8 +59,17 @@ export const usePopularNetworks = (): ProcessedNetwork[] => {
 
     // First, add all networks from networkConfigurations (excluding testnets)
     for (const [caipChainId, config] of Object.entries(networkConfigurations)) {
-      // Skip testnets using isTestnet helper
-      if (isTestnetCaipChainId(caipChainId as CaipChainId)) {
+      // Skip testnets using isTestnet helper and custom networks based of rpcEndpoints[defaultRpcEndpointIndex].type
+      const isEvmCustomChain =
+        config.caipChainId.startsWith('eip155') &&
+        (config as NetworkConfiguration).rpcEndpoints?.[
+          (config as NetworkConfiguration).defaultRpcEndpointIndex
+        ]?.type === RpcEndpointType.Custom;
+
+      if (
+        isTestnetCaipChainId(caipChainId as CaipChainId) ||
+        isEvmCustomChain
+      ) {
         continue;
       }
 

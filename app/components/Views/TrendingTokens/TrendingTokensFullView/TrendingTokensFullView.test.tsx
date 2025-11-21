@@ -301,9 +301,8 @@ describe('TrendingTokensFullView', () => {
       false, // Exclude NavigationContainer since we're mocking navigation
     );
 
-    expect(getByText('Trending Tokens')).toBeTruthy();
-    expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('search-button')).toBeTruthy();
+    expect(getByText('Trending Tokens')).toBeOnTheScreen();
+    expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 
   it('renders control buttons', () => {
@@ -313,12 +312,12 @@ describe('TrendingTokensFullView', () => {
       false,
     );
 
-    expect(getByTestId('price-change-button')).toBeTruthy();
-    expect(getByTestId('all-networks-button')).toBeTruthy();
-    expect(getByTestId('24h-button')).toBeTruthy();
-    expect(getByText('Price change')).toBeTruthy();
-    expect(getByText('All networks')).toBeTruthy();
-    expect(getByText('24h')).toBeTruthy();
+    expect(getByTestId('price-change-button')).toBeOnTheScreen();
+    expect(getByTestId('all-networks-button')).toBeOnTheScreen();
+    expect(getByTestId('24h-button')).toBeOnTheScreen();
+    expect(getByText('Price change')).toBeOnTheScreen();
+    expect(getByText('All networks')).toBeOnTheScreen();
+    expect(getByText('24h')).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', () => {
@@ -328,7 +327,7 @@ describe('TrendingTokensFullView', () => {
       false,
     );
 
-    const backButton = getByTestId('back-button');
+    const backButton = getByTestId('trending-tokens-header-back-button');
     fireEvent.press(backButton);
 
     expect(mockGoBack).toHaveBeenCalled();
@@ -344,7 +343,7 @@ describe('TrendingTokensFullView', () => {
     const button24h = getByTestId('24h-button');
     fireEvent.press(button24h);
 
-    expect(getByTestId('trending-token-time-bottom-sheet')).toBeTruthy();
+    expect(getByTestId('trending-token-time-bottom-sheet')).toBeOnTheScreen();
   });
 
   it('opens network bottom sheet when all networks button is pressed', () => {
@@ -357,7 +356,9 @@ describe('TrendingTokensFullView', () => {
     const allNetworksButton = getByTestId('all-networks-button');
     fireEvent.press(allNetworksButton);
 
-    expect(getByTestId('trending-token-network-bottom-sheet')).toBeTruthy();
+    expect(
+      getByTestId('trending-token-network-bottom-sheet'),
+    ).toBeOnTheScreen();
   });
 
   it('opens price change bottom sheet when price change button is pressed', () => {
@@ -389,7 +390,7 @@ describe('TrendingTokensFullView', () => {
       false,
     );
 
-    expect(getByTestId('trending-tokens-skeleton')).toBeTruthy();
+    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
   });
 
   it('displays skeleton loader when results are empty', () => {
@@ -406,7 +407,7 @@ describe('TrendingTokensFullView', () => {
       false,
     );
 
-    expect(getByTestId('trending-tokens-skeleton')).toBeTruthy();
+    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
   });
 
   it('displays trending tokens list when data is loaded', () => {
@@ -428,9 +429,9 @@ describe('TrendingTokensFullView', () => {
       false,
     );
 
-    expect(getByTestId('trending-tokens-list')).toBeTruthy();
-    expect(getByText('Token 1')).toBeTruthy();
-    expect(getByText('Token 2')).toBeTruthy();
+    expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
+    expect(getByText('Token 1')).toBeOnTheScreen();
+    expect(getByText('Token 2')).toBeOnTheScreen();
   });
 
   it('calls useTrendingRequest with correct initial parameters', () => {

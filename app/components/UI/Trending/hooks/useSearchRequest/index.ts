@@ -3,7 +3,7 @@ import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import { searchTokens } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
-export const DEBOUNCE_WAIT = 500;
+export const DEBOUNCE_WAIT = 0;
 
 /**
  * Hook for handling search tokens request
@@ -18,7 +18,7 @@ export const useSearchRequest = (options: {
   const [results, setResults] = useState<Awaited<
     ReturnType<typeof searchTokens>
   > | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   // Track the current request ID to prevent stale results from overwriting current ones
@@ -87,6 +87,8 @@ export const useSearchRequest = (options: {
   useEffect(() => {
     // Cancel any pending debounced calls from previous render
     debouncedSearchTokensRequest.cancel();
+
+    setIsLoading(true);
 
     // If query is empty, don't trigger search
     if (!memoizedOptions.query) {

@@ -72,7 +72,7 @@ describe('TrendingTokensList', () => {
       />,
     );
 
-    expect(getByTestId('trending-tokens-list')).toBeTruthy();
+    expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
   });
 
   it('renders multiple tokens', () => {
@@ -101,7 +101,7 @@ describe('TrendingTokensList', () => {
       />,
     );
 
-    expect(getByTestId('trending-tokens-list')).toBeTruthy();
+    expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
     expect(getAllByTestId(/trending-token-row-item-/)).toHaveLength(3);
   });
 });

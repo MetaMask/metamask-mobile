@@ -142,6 +142,47 @@ describe('usePopularNetworks', () => {
     });
   });
 
+  describe('custom network filtering', () => {
+    it('filters EVM custom networks from networkConfigurations', () => {
+      const mockNetworkConfigurations = {
+        'eip155:1': {
+          caipChainId: 'eip155:1' as CaipChainId,
+          name: 'Ethereum Mainnet',
+        },
+        'eip155:81457': {
+          caipChainId: 'eip155:81457' as CaipChainId,
+          chainId: '0x13e31',
+          name: 'blast',
+          rpcEndpoints: [
+            {
+              url: 'https://blast-rpc.publicnode.com',
+              name: '',
+              // Match RpcEndpointType.Custom value used in the hook
+              type: 'custom',
+              networkClientId: '0c8dd6d9-a167-4656-9057-b5daf33dbbde',
+            },
+          ],
+          nativeCurrency: 'ETH',
+          defaultRpcEndpointIndex: 0,
+          lastUpdatedAt: 1763644775633,
+        },
+      };
+
+      mockUseSelector.mockReturnValue(mockNetworkConfigurations);
+
+      const { result } = renderHook(() => usePopularNetworks());
+
+      expect(
+        result.current.some(
+          (network) => network.caipChainId === 'eip155:81457',
+        ),
+      ).toBe(false);
+      expect(
+        result.current.some((network) => network.caipChainId === 'eip155:1'),
+      ).toBe(true);
+    });
+  });
+
   describe('sorting', () => {
     it('sorts Ethereum Mainnet first', () => {
       const mockNetworkConfigurations = {

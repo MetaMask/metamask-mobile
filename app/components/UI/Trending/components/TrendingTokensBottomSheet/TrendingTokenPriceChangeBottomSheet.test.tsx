@@ -111,9 +111,9 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
       <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByText('Sort by')).toBeTruthy();
-    expect(getByText('Price change')).toBeTruthy();
-    expect(getByText('High to low')).toBeTruthy();
+    expect(getByText('Sort by')).toBeOnTheScreen();
+    expect(getByText('Price change')).toBeOnTheScreen();
+    expect(getByText('High to low')).toBeOnTheScreen();
   });
 
   it('renders all sort options', () => {
@@ -121,9 +121,9 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
       <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByText('Price change')).toBeTruthy();
-    expect(getByText('Volume')).toBeTruthy();
-    expect(getByText('Market cap')).toBeTruthy();
+    expect(getByText('Price change')).toBeOnTheScreen();
+    expect(getByText('Volume')).toBeOnTheScreen();
+    expect(getByText('Market cap')).toBeOnTheScreen();
   });
 
   it('renders Apply button', () => {
@@ -131,8 +131,8 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
       <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByTestId('apply-button')).toBeTruthy();
-    expect(getByText('Apply')).toBeTruthy();
+    expect(getByTestId('apply-button')).toBeOnTheScreen();
+    expect(getByText('Apply')).toBeOnTheScreen();
   });
 
   it('displays "High to low" and down arrow for descending sort', () => {
@@ -140,7 +140,7 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
       <TrendingTokenPriceChangeBottomSheet isVisible onClose={mockOnClose} />,
     );
 
-    expect(getByText('High to low')).toBeTruthy();
+    expect(getByText('High to low')).toBeOnTheScreen();
   });
 
   it('toggles sort direction when same option is pressed', () => {
@@ -149,13 +149,13 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     );
 
     const priceChangeOption = getByText('Price change');
-    expect(getByText('High to low')).toBeTruthy();
+    expect(getByText('High to low')).toBeOnTheScreen();
 
     const parent = priceChangeOption.parent;
     if (!parent) throw new Error('Parent element not found');
     fireEvent.press(parent);
 
-    expect(getByText('Low to high')).toBeTruthy();
+    expect(getByText('Low to high')).toBeOnTheScreen();
     expect(queryByText('High to low')).toBeNull();
   });
 
@@ -169,8 +169,8 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     if (!parent) throw new Error('Parent element not found');
     fireEvent.press(parent);
 
-    expect(getByText('Volume')).toBeTruthy();
-    expect(getByText('High to low')).toBeTruthy();
+    expect(getByText('Volume')).toBeOnTheScreen();
+    expect(getByText('High to low')).toBeOnTheScreen();
   });
 
   it('calls onPriceChangeSelect with correct values when Apply is pressed', () => {
@@ -281,8 +281,8 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
       />,
     );
 
-    expect(getByText('Volume')).toBeTruthy();
-    expect(getByText('Low to high')).toBeTruthy();
+    expect(getByText('Volume')).toBeOnTheScreen();
+    expect(getByText('Low to high')).toBeOnTheScreen();
   });
 
   it('calls onOpenBottomSheet when isVisible becomes true', () => {
@@ -309,7 +309,7 @@ describe('TrendingTokenPriceChangeBottomSheet', () => {
     const parent = marketCapOption.parent;
     if (!parent) throw new Error('Parent element not found');
     fireEvent.press(parent);
-    expect(getByText('Market cap')).toBeTruthy();
-    expect(getByText('High to low')).toBeTruthy();
+    expect(getByText('Market cap')).toBeOnTheScreen();
+    expect(getByText('High to low')).toBeOnTheScreen();
   });
 });

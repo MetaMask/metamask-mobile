@@ -32,6 +32,7 @@ const EXCLUDED_NETWORKS: CaipChainId[] = [
   'eip155:11297108109', // Palm
   'eip155:999', // Hyper EVM
   'eip155:143', // Monad
+  'bip122:000000000019d6689c085ae165831e93', // btc mainnet
 ];
 
 export interface TrendingTokenNetworkBottomSheetProps {
