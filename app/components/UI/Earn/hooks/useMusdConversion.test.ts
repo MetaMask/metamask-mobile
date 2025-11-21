@@ -160,6 +160,7 @@ describe('useMusdConversion', () => {
         {
           networkClientId: 'mainnet',
           origin: MMM_ORIGIN,
+          skipInitialGasEstimate: true,
           type: MUSD_CONVERSION_TRANSACTION_TYPE,
           nestedTransactions: [
             {

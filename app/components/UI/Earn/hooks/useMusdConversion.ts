@@ -183,6 +183,11 @@ export const useMusdConversion = () => {
             chainId: outputToken.chainId,
           },
           {
+            /**
+             * Calculate gas estimate asynchronously.
+             * Enabling this reduces our first paint time on the mUSD conversion screen by ~500ms.
+             */
+            skipInitialGasEstimate: true,
             networkClientId,
             origin: MMM_ORIGIN,
             type: MUSD_CONVERSION_TRANSACTION_TYPE,
