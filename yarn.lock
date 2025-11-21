@@ -9227,9 +9227,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:62.0.0":
-  version: 62.0.0
-  resolution: "@metamask/transaction-controller@npm:62.0.0"
+"@metamask/transaction-controller@npm:62.1.0":
+  version: 62.1.0
+  resolution: "@metamask/transaction-controller@npm:62.1.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -9261,7 +9261,7 @@ __metadata:
     "@metamask/gas-fee-controller": ^26.0.0
     "@metamask/network-controller": ^26.0.0
     "@metamask/remote-feature-flag-controller": ^2.0.0
-  checksum: 10/885217c920c29e953aec06c5d9e21ecd58847d5593e9e1f60a3e8e52f7de7869a087797cdf60c5022f12f0c87822b19c860c4ec7a9df1b2a0f140c7dfdaa25e3
+  checksum: 10/2de5d4f36e2b5ddf5cee14a17484d0694fc7dd81bb568a51c712fde9eb0ab8395cae49efa66d5a9daefa86a2429e09561445e6dddc0281e9e645364a9aeeffed
   languageName: node
   linkType: hard
 
@@ -9303,9 +9303,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A62.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch":
-  version: 62.0.0
-  resolution: "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A62.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch::version=62.0.0&hash=1a3342"
+"@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A62.1.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch":
+  version: 62.1.0
+  resolution: "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A62.1.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch::version=62.1.0&hash=1a3342"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -9337,7 +9337,7 @@ __metadata:
     "@metamask/gas-fee-controller": ^26.0.0
     "@metamask/network-controller": ^26.0.0
     "@metamask/remote-feature-flag-controller": ^2.0.0
-  checksum: 10/9caf3dfa6d88dded658f7902e42c8c20b6916c21804a8c7f593cf37b88764732738e6379443a1faefed81ea0d58f4fbac269c85fc240fa98a61f7551ec7465c9
+  checksum: 10/f21f02550da1230a7e0f51ebd5a828d7cbbdfbb5d5d036ecb3e5f7d903b8dff15fb5627b675fd477f158a52722ab1daa23a103bef47be08f4a96391a7fa4dcda
   languageName: node
   linkType: hard
 
@@ -9368,10 +9368,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.9.1":
-  version: 1.9.1
-  resolution: "@metamask/tron-wallet-snap@npm:1.9.1"
-  checksum: 10/9880fce865211ed2d58b162f1ba0e41a7aa43c0180319d008b0a8a247a678284009592aeef50c25c8d4eb6393fdc9663d48a2261d7d03658e0850366052d6719
+"@metamask/tron-wallet-snap@npm:^1.10.0":
+  version: 1.10.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.10.0"
+  checksum: 10/c9b2f9cae0a2f9dcfd43934bd4321ed029e395122b61f1f3a8c3780dd4b44ac8669139b382da8b9230123639bf7a7554206223e3127d3e3317dfb802190cda46
   languageName: node
   linkType: hard
 
@@ -35392,9 +35392,9 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/token-search-discovery-controller": "npm:^4.0.0"
-    "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.0.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
+    "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.1.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
     "@metamask/transaction-pay-controller": "npm:^10.0.0"
-    "@metamask/tron-wallet-snap": "npm:^1.9.1"
+    "@metamask/tron-wallet-snap": "npm:^1.10.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.25.9"
