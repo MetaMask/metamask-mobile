@@ -68,7 +68,7 @@ describe('CollectibleModal', () => {
   afterEach(() => {
     (useSelector as jest.Mock).mockClear();
   });
-  it('should render correctly', async () => {
+  it('renders correctly', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSendRedesignFlags) return { enabled: false };
     });
@@ -79,7 +79,7 @@ describe('CollectibleModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render the correct token name and ID', async () => {
+  it('renders the correct token name and ID', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === collectiblesSelector) return collectibles;
       if (selector === selectIsIpfsGatewayEnabled) return true;
@@ -93,5 +93,65 @@ describe('CollectibleModal', () => {
 
     expect(await findAllByText('#6904')).toBeDefined();
     expect(await findAllByText('Leopard')).toBeDefined();
+  });
+
+  it('tracks NFT Details Opened event with mobile-nft-list source when provided', () => {
+    const mockTrackEvent = jest.fn();
+    const mockCreateEventBuilder = jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest
+        .fn()
+        .mockReturnValue({
+          properties: { chain_id: 1, source: 'mobile-nft-list' },
+        }),
+    }));
+
+    jest.doMock('../../hooks/useMetrics', () => ({
+      useMetrics: () => ({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    }));
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSendRedesignFlags) return { enabled: false };
+      return {};
+    });
+
+    renderWithProvider(<CollectibleModal />, {
+      state: mockInitialState,
+    });
+
+    expect(mockCreateEventBuilder).toHaveBeenCalled();
+  });
+
+  it('tracks NFT Details Opened event with mobile-nft-list-page source when provided', () => {
+    const mockTrackEvent = jest.fn();
+    const mockCreateEventBuilder = jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest
+        .fn()
+        .mockReturnValue({
+          properties: { chain_id: 1, source: 'mobile-nft-list-page' },
+        }),
+    }));
+
+    jest.doMock('../../hooks/useMetrics', () => ({
+      useMetrics: () => ({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    }));
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSendRedesignFlags) return { enabled: false };
+      return {};
+    });
+
+    renderWithProvider(<CollectibleModal />, {
+      state: mockInitialState,
+    });
+
+    expect(mockCreateEventBuilder).toHaveBeenCalled();
   });
 });
