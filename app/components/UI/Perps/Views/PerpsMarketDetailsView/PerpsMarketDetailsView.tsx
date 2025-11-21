@@ -38,7 +38,7 @@ import type {
   PerpsMarketData,
   PerpsNavigationParamList,
 } from '../../controllers/types';
-import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
+import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
@@ -65,6 +65,9 @@ import {
 } from '../../hooks/usePerpsDataMonitor';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
+import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
@@ -72,6 +75,7 @@ import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip'
 import PerpsNavigationCard, {
   type NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import TradingViewChart, {
   type TradingViewChartRef,
@@ -93,7 +97,6 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 import Engine from '../../../../../core/Engine';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -178,6 +181,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const { account } = usePerpsLiveAccount();
+
+  // A/B Testing: Button color test (TAT-1937)
+  const {
+    variantName: buttonColorVariant,
+    isEnabled: isButtonColorTestEnabled,
+  } = usePerpsABTest({
+    test: BUTTON_COLOR_TEST,
+    featureFlagSelector: selectPerpsButtonColorTestVariant,
+  });
 
   // TP/SL order selection state - track TP and SL separately
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
@@ -324,12 +336,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  const { candleData, isLoadingHistory, refreshCandleData, hasHistoricalData } =
-    usePerpsPositionData({
-      coin: market?.symbol || '',
-      selectedDuration: TimeDuration.YEAR_TO_DATE,
-      selectedInterval: selectedCandlePeriod,
-    });
+  const {
+    candleData,
+    isLoading: isLoadingHistory,
+    fetchMoreHistory,
+  } = usePerpsLiveCandles({
+    coin: market?.symbol || '',
+    interval: selectedCandlePeriod,
+    duration: TimeDuration.YEAR_TO_DATE,
+    throttleMs: 1000,
+  });
 
   // Check if user has an existing position for this market
   const { isLoading: isLoadingPosition, existingPosition } =
@@ -393,6 +409,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PerpsEventProperties.SOURCE]:
         source || PerpsEventValues.SOURCE.PERP_MARKETS,
       [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
+      // A/B Test context (TAT-1937) - for baseline exposure tracking
+      ...(isButtonColorTestEnabled && {
+        [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      }),
     },
   });
 
@@ -433,15 +453,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Reset chart view to default position
       chartRef.current?.resetToDefault();
 
-      if (candleData) {
-        await refreshCandleData();
-      }
+      // WebSocket streaming provides real-time data - no manual refresh needed
+      // Just reset the UI state and the chart will update automatically
     } catch (error) {
-      console.error('Failed to refresh candle data:', error);
+      console.error('Failed to refresh chart state:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [candleData, refreshCandleData]);
+  }, []);
 
   // Handle order selection for chart integration
   const handleOrderSelect = useCallback(
@@ -550,6 +569,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         return;
       }
 
+      // Track AB test on button press (TAT-1937)
+      if (isButtonColorTestEnabled) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.TAP,
+          [PerpsEventProperties.ASSET]: market.symbol,
+          [PerpsEventProperties.DIRECTION]:
+            direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+        });
+      }
+
       navigateToOrder({
         direction,
         asset: market.symbol,
@@ -562,6 +595,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       track,
       navigateToOrder,
       market?.symbol,
+      isButtonColorTestEnabled,
+      buttonColorVariant,
     ],
   );
 
@@ -696,22 +731,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            {hasHistoricalData ? (
-              <TradingViewChart
-                ref={chartRef}
-                candleData={candleData}
-                height={350}
-                visibleCandleCount={visibleCandleCount}
-                tpslLines={tpslLines}
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-              />
-            ) : (
-              <Skeleton
-                height={350}
-                width="100%"
-                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
-              />
-            )}
+            {/* Always render chart to avoid WebView remount on interval changes */}
+            <TradingViewChart
+              ref={chartRef}
+              candleData={candleData}
+              height={350}
+              visibleCandleCount={visibleCandleCount}
+              tpslLines={tpslLines}
+              symbol={market?.symbol}
+              onNeedMoreHistory={fetchMoreHistory}
+              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+            />
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector
@@ -751,10 +781,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           </View>
 
-          {/* Navigation Card Section */}
-          <View style={styles.section}>
-            <PerpsNavigationCard items={navigationItems} />
-          </View>
+          {/* Recent Trades Section */}
+          {market?.symbol && (
+            <View style={styles.section}>
+              <PerpsMarketTradesList symbol={market.symbol} />
+            </View>
+          )}
 
           {/* Risk Disclaimer Section */}
           <View style={styles.section}>
@@ -772,6 +804,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 TradingView.
               </Text>
             </Text>
+          </View>
+
+          {/* Navigation Card Section */}
+          <View style={styles.section}>
+            <PerpsNavigationCard items={navigationItems} />
           </View>
         </ScrollView>
       </View>
@@ -798,29 +835,53 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {hasLongShortButtons && !isAtOICap && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Success}
-                  onPress={handleLongPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isDisabled={isAtOICap}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </ButtonSemantic>
+                {buttonColorVariant === 'monochrome' ? (
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    label={strings('perps.market.long')}
+                    onPress={handleLongPress}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                  />
+                ) : (
+                  <ButtonSemantic
+                    severity={ButtonSemanticSeverity.Success}
+                    onPress={handleLongPress}
+                    isFullWidth
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                  >
+                    {strings('perps.market.long')}
+                  </ButtonSemantic>
+                )}
               </View>
 
               <View style={styles.actionButtonWrapper}>
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Danger}
-                  onPress={handleShortPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isDisabled={isAtOICap}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                >
-                  {strings('perps.market.short')}
-                </ButtonSemantic>
+                {buttonColorVariant === 'monochrome' ? (
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    label={strings('perps.market.short')}
+                    onPress={handleShortPress}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                  />
+                ) : (
+                  <ButtonSemantic
+                    severity={ButtonSemanticSeverity.Danger}
+                    onPress={handleShortPress}
+                    isFullWidth
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isDisabled={isAtOICap}
+                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                  >
+                    {strings('perps.market.short')}
+                  </ButtonSemantic>
+                )}
               </View>
             </View>
           )}

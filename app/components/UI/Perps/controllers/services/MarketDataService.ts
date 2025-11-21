@@ -647,9 +647,10 @@ export class MarketDataService {
     coin: string;
     interval: CandlePeriod;
     limit?: number;
+    endTime?: number;
     context: ServiceContext;
   }): Promise<CandleData> {
-    const { provider, coin, interval, limit = 100, context } = options;
+    const { provider, coin, interval, limit = 100, endTime, context } = options;
     const traceId = uuidv4();
     let traceData: { success: boolean; error?: string } | undefined;
 
@@ -673,6 +674,7 @@ export class MarketDataService {
             coin: string,
             interval: CandlePeriod,
             limit: number,
+            endTime?: number,
           ) => Promise<CandleData>;
         };
       };
@@ -685,6 +687,7 @@ export class MarketDataService {
           coin,
           interval,
           limit,
+          endTime,
         );
 
       traceData = { success: true };
@@ -708,6 +711,7 @@ export class MarketDataService {
             coin,
             interval,
             limit,
+            endTime,
           },
         },
       });

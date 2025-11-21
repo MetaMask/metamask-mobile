@@ -27,6 +27,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const totals = useTransactionPayTotals();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
+  const isSourceGasFeeToken = totals?.fees.isSourceGasFeeToken ?? false;
 
   const sourceChainId = payToken?.chainId ?? '0x0';
 
@@ -64,20 +65,20 @@ export function useInsufficientPayTokenBalanceAlert({
     }
 
     return new BigNumber(totals?.sourceAmount.raw ?? '0').plus(
-      isPayTokenNative
+      isPayTokenNative || isSourceGasFeeToken
         ? new BigNumber(totals?.fees.sourceNetwork.max.raw ?? '0')
         : '0',
     );
-  }, [isLoading, isPayTokenNative, totals]);
+  }, [isLoading, isPayTokenNative, isSourceGasFeeToken, totals]);
 
   const totalSourceAmountUsd = useMemo(
     () =>
       new BigNumber(totals?.sourceAmount.usd ?? '0').plus(
-        isPayTokenNative
+        isPayTokenNative || isSourceGasFeeToken
           ? new BigNumber(totals?.fees.sourceNetwork.max.usd ?? '0')
           : '0',
       ),
-    [isPayTokenNative, totals],
+    [isPayTokenNative, isSourceGasFeeToken, totals],
   );
 
   const targetAmountUsd = useMemo(() => {
@@ -104,9 +105,11 @@ export function useInsufficientPayTokenBalanceAlert({
     () =>
       payToken &&
       !isPayTokenNative &&
+      !isSourceGasFeeToken &&
       totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
     [
       isPayTokenNative,
+      isSourceGasFeeToken,
       nativeToken?.balanceRaw,
       payToken,
       totalSourceNetworkFeeRaw,

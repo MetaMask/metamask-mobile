@@ -107,6 +107,7 @@ import type {
   Position,
   ReadyToTradeResult,
   SubscribeAccountParams,
+  SubscribeCandlesParams,
   SubscribeOICapsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
@@ -4697,6 +4698,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   subscribeToOICaps(params: SubscribeOICapsParams): () => void {
     return this.subscriptionService.subscribeToOICaps(params);
+  }
+
+  /**
+   * Subscribe to live candle updates
+   */
+  subscribeToCandles(params: SubscribeCandlesParams): () => void {
+    return this.clientService.subscribeToCandles(params);
   }
 
   /**

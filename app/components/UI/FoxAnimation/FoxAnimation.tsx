@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Platform, View } from 'react-native';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 import { useSafeAreaInsets, EdgeInsets } from 'react-native-safe-area-context';
@@ -77,6 +77,8 @@ const FoxAnimation = ({
   const insets = useSafeAreaInsets();
   const styles = createStyles(hasFooter, insets);
 
+  const [isPlaying, setIsPlaying] = useState(false);
+
   const showFoxAnimation = useCallback(async () => {
     if (foxRef.current && trigger) {
       try {
@@ -88,8 +90,10 @@ const FoxAnimation = ({
   }, [foxRef, trigger]);
 
   useEffect(() => {
-    showFoxAnimation();
-  }, [showFoxAnimation]);
+    if (isPlaying) {
+      showFoxAnimation();
+    }
+  }, [showFoxAnimation, isPlaying]);
 
   return (
     <View style={[styles.foxAnimationWrapper]}>
@@ -99,9 +103,11 @@ const FoxAnimation = ({
         source={FoxAnimationRive}
         fit={Fit.Contain}
         alignment={Alignment.Center}
-        autoplay={false}
         stateMachineName="FoxRaiseUp"
         testID="fox-animation"
+        onPlay={() => {
+          setIsPlaying(true);
+        }}
       />
     </View>
   );

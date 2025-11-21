@@ -23,10 +23,8 @@ import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
@@ -603,14 +601,8 @@ export function getSendFlowTitle({
       <NavbarTitle
         title={titleToRender}
         disableNetwork={disableNetwork}
-        showSelectedNetwork={
-          isRemoveGlobalNetworkSelectorEnabled()
-            ? showSelectedNetwork
-            : undefined
-        }
-        networkName={
-          isRemoveGlobalNetworkSelectorEnabled() ? globalChainId : undefined
-        }
+        showSelectedNetwork={showSelectedNetwork}
+        networkName={globalChainId}
       />
     ),
     headerRight: () => (
@@ -1059,8 +1051,6 @@ export function getWalletNavbarOptions(
     }
   }
 
-  const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
-
   const handleHamburgerPress = () => {
     trackEvent(
       MetricsEventBuilder.createEventBuilder(
@@ -1085,21 +1075,6 @@ export function getWalletNavbarOptions(
         style={innerStyles.headerContainer}
         includesTopInset
         variant={HeaderBaseVariant.Display}
-        startAccessory={
-          !isFeatureFlagEnabled && (
-            <View style={innerStyles.startAccessoryContainer}>
-              <PickerNetwork
-                onPress={onPressTitle}
-                label={networkName}
-                imageSource={networkImageSource}
-                testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-                hideNetworkName
-                hitSlop={innerStyles.touchAreaSlop}
-                style={innerStyles.networkPickerStyle}
-              />
-            </View>
-          )
-        }
         endAccessory={
           <View style={innerStyles.endAccessoryContainer}>
             {
@@ -1638,7 +1613,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
         title={title}
         disableNetwork
         translate={false}
-        showSelectedNetwork={!isRemoveGlobalNetworkSelectorEnabled()}
+        showSelectedNetwork={false}
       />
     ),
     headerLeft: () => <View />,

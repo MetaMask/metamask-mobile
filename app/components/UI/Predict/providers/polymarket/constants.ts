@@ -11,7 +11,8 @@ export const FEE_COLLECTOR_ADDRESS =
 /**
  * Default slippage for market orders.
  */
-export const SLIPPAGE = 0.015; // 1.5%
+export const SLIPPAGE_BUY = 0.015; // 1.5%
+export const SLIPPAGE_SELL = 0.03; // 3%
 
 export const ORDER_RATE_LIMIT_MS = 5000;
 

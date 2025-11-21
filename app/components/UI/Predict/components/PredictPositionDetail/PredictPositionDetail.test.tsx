@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import PredictPositionDetail from './PredictPositionDetail';
@@ -10,6 +10,9 @@ import {
   PredictPositionStatus,
   Recurrence,
 } from '../../types';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import Routes from '../../../../../constants/navigation/Routes';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -44,30 +47,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../../constants/navigation/Routes', () => ({
-  __esModule: true,
-  default: {
-    PREDICT: {
-      MODALS: {
-        ROOT: 'PREDICT_MODALS_ROOT',
-        SELL_PREVIEW: 'PREDICT_SELL_PREVIEW',
-      },
-    },
-  },
-}));
-
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const mockTw = Object.assign(
-    jest.fn(() => ({})),
-    {
-      style: jest.fn(() => ({})),
-    },
-  );
-  return {
-    useTailwind: () => mockTw,
-  };
-});
-
 const mockExecuteGuardedAction = jest.fn(async (action) => await action());
 jest.mock('../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
@@ -75,6 +54,17 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
     isEligible: true,
     hasNoBalance: false,
   }),
+}));
+
+const mockLoadPositions = jest.fn();
+jest.mock('../../hooks/usePredictPositions', () => ({
+  usePredictPositions: jest.fn(() => ({
+    positions: [],
+    loadPositions: mockLoadPositions,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+  })),
 }));
 
 const basePosition: PredictPositionType = {
@@ -172,16 +162,30 @@ const renderComponent = (
 };
 
 describe('PredictPositionDetail', () => {
+  const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
+    typeof usePredictPositions
+  >;
+
   beforeEach(() => {
+    jest.useFakeTimers();
     global.__mockNavigate.mockClear();
     mockExecuteGuardedAction.mockClear();
+    mockLoadPositions.mockClear();
     mockExecuteGuardedAction.mockImplementation(
       async (action) => await action(),
     );
+    mockUsePredictPositions.mockReturnValue({
+      positions: [],
+      loadPositions: mockLoadPositions,
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+    });
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
   });
 
   it('renders open position with current value, percent change and cash out', () => {
@@ -245,7 +249,7 @@ describe('PredictPositionDetail', () => {
     fireEvent.press(screen.getByText('Cash out'));
 
     expect(global.__mockNavigate).toHaveBeenCalledWith(
-      'PREDICT_SELL_PREVIEW',
+      Routes.PREDICT.MODALS.SELL_PREVIEW,
       expect.objectContaining({
         position: expect.objectContaining({ id: 'pos-1' }),
         outcome: expect.objectContaining({ id: 'outcome-1' }),
@@ -272,6 +276,178 @@ describe('PredictPositionDetail', () => {
       expect(
         screen.getByText('$123.45 on Yes to win $10', { exact: false }),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('optimistic position auto-refresh', () => {
+    it('starts auto-refresh immediately when position is optimistic', async () => {
+      mockLoadPositions.mockResolvedValue(undefined);
+      renderComponent({ optimistic: true });
+
+      await waitFor(() => {
+        expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
+      });
+    });
+
+    it('does not start auto-refresh when position is not optimistic', async () => {
+      renderComponent({ optimistic: false });
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(mockLoadPositions).not.toHaveBeenCalled();
+    });
+
+    it('continues auto-refresh at 2-second intervals after each load completes', async () => {
+      mockLoadPositions.mockResolvedValue(undefined);
+      renderComponent({ optimistic: true });
+
+      // First load happens immediately
+      await waitFor(() => {
+        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
+      });
+
+      // Second load happens 2 seconds after first completes
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(mockLoadPositions).toHaveBeenCalledTimes(2);
+
+      // Third load happens 2 seconds after second completes
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(mockLoadPositions).toHaveBeenCalledTimes(3);
+    });
+
+    it('stops auto-refresh when position becomes non-optimistic', async () => {
+      const optimisticPosition = { ...basePosition, optimistic: true };
+      const resolvedPosition = { ...basePosition, optimistic: false };
+
+      mockLoadPositions.mockResolvedValue(undefined);
+      mockUsePredictPositions.mockReturnValue({
+        positions: [optimisticPosition],
+        loadPositions: mockLoadPositions,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+      });
+
+      const { rerender } = renderComponent({ optimistic: true });
+
+      // First load happens immediately
+      await waitFor(() => {
+        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
+      });
+
+      mockLoadPositions.mockClear();
+
+      mockUsePredictPositions.mockReturnValue({
+        positions: [resolvedPosition],
+        loadPositions: mockLoadPositions,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+      });
+
+      rerender(
+        <PredictPositionDetail
+          position={resolvedPosition}
+          market={baseMarket}
+          marketStatus={PredictMarketStatus.OPEN}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(mockLoadPositions).not.toHaveBeenCalled();
+    });
+
+    it('cleans up auto-refresh on unmount', async () => {
+      mockLoadPositions.mockResolvedValue(undefined);
+      const { unmount } = renderComponent({ optimistic: true });
+
+      // First load happens immediately
+      await waitFor(() => {
+        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
+      });
+
+      mockLoadPositions.mockClear();
+
+      unmount();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(mockLoadPositions).not.toHaveBeenCalled();
+    });
+
+    it('updates displayed position when positions hook returns new data', async () => {
+      const optimisticPosition = {
+        ...basePosition,
+        optimistic: true,
+        currentValue: 100,
+        percentPnl: 0,
+      };
+      const resolvedPosition = {
+        ...basePosition,
+        optimistic: false,
+        currentValue: 2500,
+        percentPnl: 10.5,
+      };
+
+      mockUsePredictPositions.mockReturnValue({
+        positions: [optimisticPosition],
+        loadPositions: mockLoadPositions,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+      });
+
+      const { rerender } = renderComponent({ optimistic: true });
+
+      expect(screen.queryByText('$2,500')).toBeNull();
+
+      mockUsePredictPositions.mockReturnValue({
+        positions: [resolvedPosition],
+        loadPositions: mockLoadPositions,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+      });
+
+      rerender(
+        <PredictPositionDetail
+          position={optimisticPosition}
+          market={baseMarket}
+          marketStatus={PredictMarketStatus.OPEN}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('$2,500')).toBeOnTheScreen();
+        expect(screen.getByText('10.5%')).toBeOnTheScreen();
+      });
+    });
+
+    it('disables cash out button when position is optimistic', () => {
+      renderComponent({ optimistic: true });
+
+      const cashOutButton = screen.getByTestId(
+        PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
+      );
+
+      expect(cashOutButton).toHaveProp('disabled', true);
     });
   });
 });

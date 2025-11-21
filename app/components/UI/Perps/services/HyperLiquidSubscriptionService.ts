@@ -31,6 +31,7 @@ import {
   adaptAccountStateFromSDK,
   parseAssetName,
 } from '../utils/hyperLiquidAdapter';
+import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
@@ -476,6 +477,12 @@ export class HyperLiquidSubscriptionService {
     let totalMarginUsed = 0;
     let totalUnrealizedPnl = 0;
 
+    // Collect account states for weighted ROE calculation
+    const accountStatesForROE: {
+      unrealizedPnl: string;
+      returnOnEquity: string;
+    }[] = [];
+
     // Aggregate all cached account states
     Array.from(this.dexAccountCache.entries()).forEach(
       ([currentDex, state]) => {
@@ -488,6 +495,12 @@ export class HyperLiquidSubscriptionService {
         totalBalance += parseFloat(state.totalBalance);
         totalMarginUsed += parseFloat(state.marginUsed);
         totalUnrealizedPnl += parseFloat(state.unrealizedPnl);
+
+        // Collect data for weighted ROE calculation
+        accountStatesForROE.push({
+          unrealizedPnl: state.unrealizedPnl,
+          returnOnEquity: state.returnOnEquity,
+        });
       },
     );
 
@@ -495,13 +508,8 @@ export class HyperLiquidSubscriptionService {
     const firstDexAccount =
       this.dexAccountCache.values().next().value || ({} as AccountState);
 
-    // Calculate returnOnEquity across all DEXs (same formula as HyperLiquidProvider.getAccountState)
-    let returnOnEquity = '0';
-    if (totalMarginUsed > 0) {
-      returnOnEquity = ((totalUnrealizedPnl / totalMarginUsed) * 100).toFixed(
-        1,
-      );
-    }
+    // Calculate weighted returnOnEquity across all DEXs
+    const returnOnEquity = calculateWeightedReturnOnEquity(accountStatesForROE);
 
     return {
       ...firstDexAccount,

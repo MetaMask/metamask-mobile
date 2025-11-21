@@ -12,16 +12,13 @@ import { selectTokenNetworkFilter } from '../../../../selectors/preferencesContr
 import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
 import { Hex } from '@metamask/utils';
 import { enableAllNetworksFilter } from '../util/enableAllNetworksFilter';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 import {
   NetworkConfiguration,
   RpcEndpointType,
 } from '@metamask/network-controller';
 
-// Mock the feature flag
 jest.mock('../../../../util/networks', () => ({
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
   getNetworkImageSource: jest.fn(() => 'https://mock-image-url.com'),
 }));
 
@@ -134,11 +131,6 @@ jest.mock('../../../hooks/useNetworkSelection/useNetworkSelection', () => ({
 }));
 
 describe('TokenFilterBottomSheet', () => {
-  const mockIsRemoveGlobalNetworkSelectorEnabled =
-    isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
-      typeof isRemoveGlobalNetworkSelectorEnabled
-    >;
-
   beforeEach(() => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectChainId) {
@@ -152,7 +144,6 @@ describe('TokenFilterBottomSheet', () => {
       }
       return null;
     });
-    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -211,101 +202,59 @@ describe('TokenFilterBottomSheet', () => {
     expect(queryByText('Current network')).toBeTruthy();
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    describe('when feature flag is enabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+  it('updates Network Manager when Popular Networks option is pressed', async () => {
+    const { getByText } = render(<TokenFilterBottomSheet />);
+
+    fireEvent.press(getByText('Popular networks'));
+
+    await waitFor(() => {
+      expect(
+        Engine.context.PreferencesController.setTokenNetworkFilter,
+      ).toHaveBeenCalledWith(enableAllNetworksFilter(mockNetworks));
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+    });
+  });
+
+  it('updates Network Manager when Current Network option is pressed', async () => {
+    const { getByText } = render(<TokenFilterBottomSheet />);
+
+    fireEvent.press(getByText('Current network'));
+
+    await waitFor(() => {
+      expect(
+        Engine.context.PreferencesController.setTokenNetworkFilter,
+      ).toHaveBeenCalledWith({
+        '0x1': true,
       });
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+    });
+  });
 
-      it('calls selectNetwork when Popular Networks option is pressed', async () => {
-        const { getByText } = render(<TokenFilterBottomSheet />);
-
-        fireEvent.press(getByText('Popular networks'));
-
-        await waitFor(() => {
-          expect(
-            Engine.context.PreferencesController.setTokenNetworkFilter,
-          ).toHaveBeenCalledWith(enableAllNetworksFilter(mockNetworks));
-          expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
-        });
-      });
-
-      it('calls selectNetwork when Current Network option is pressed', async () => {
-        const { getByText } = render(<TokenFilterBottomSheet />);
-
-        fireEvent.press(getByText('Current network'));
-
-        await waitFor(() => {
-          expect(
-            Engine.context.PreferencesController.setTokenNetworkFilter,
-          ).toHaveBeenCalledWith({
-            '0x1': true,
-          });
-          expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
-        });
-      });
-
-      it('calls selectNetwork with correct chainId for different network', async () => {
-        (useSelector as jest.Mock).mockImplementation((selector) => {
-          if (selector === selectChainId) {
-            return '0x89'; // Polygon chain ID
-          } else if (selector === selectTokenNetworkFilter) {
-            return {};
-          } else if (selector === selectNetworkConfigurations) {
-            return mockNetworks;
-          } else if (selector === selectAllPopularNetworkConfigurations) {
-            return mockNetworks;
-          }
-          return null;
-        });
-
-        const { getByText } = render(<TokenFilterBottomSheet />);
-
-        fireEvent.press(getByText('Current network'));
-
-        await waitFor(() => {
-          expect(
-            Engine.context.PreferencesController.setTokenNetworkFilter,
-          ).toHaveBeenCalledWith({
-            '0x89': true,
-          });
-          expect(mockSelectNetwork).toHaveBeenCalledWith('0x89');
-        });
-      });
+  it('updates Network Manager with correct chainId for Polygon network', async () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectChainId) {
+        return '0x89'; // Polygon chain ID
+      } else if (selector === selectTokenNetworkFilter) {
+        return {};
+      } else if (selector === selectNetworkConfigurations) {
+        return mockNetworks;
+      } else if (selector === selectAllPopularNetworkConfigurations) {
+        return mockNetworks;
+      }
+      return null;
     });
 
-    describe('when feature flag is disabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+    const { getByText } = render(<TokenFilterBottomSheet />);
+
+    fireEvent.press(getByText('Current network'));
+
+    await waitFor(() => {
+      expect(
+        Engine.context.PreferencesController.setTokenNetworkFilter,
+      ).toHaveBeenCalledWith({
+        '0x89': true,
       });
-
-      it('does not call selectNetwork when Popular Networks option is pressed', async () => {
-        const { getByText } = render(<TokenFilterBottomSheet />);
-
-        fireEvent.press(getByText('Popular networks'));
-
-        await waitFor(() => {
-          expect(
-            Engine.context.PreferencesController.setTokenNetworkFilter,
-          ).toHaveBeenCalledWith(enableAllNetworksFilter(mockNetworks));
-          expect(mockSelectNetwork).not.toHaveBeenCalled();
-        });
-      });
-
-      it('does not call selectNetwork when Current Network option is pressed', async () => {
-        const { getByText } = render(<TokenFilterBottomSheet />);
-
-        fireEvent.press(getByText('Current network'));
-
-        await waitFor(() => {
-          expect(
-            Engine.context.PreferencesController.setTokenNetworkFilter,
-          ).toHaveBeenCalledWith({
-            '0x1': true,
-          });
-          expect(mockSelectNetwork).not.toHaveBeenCalled();
-        });
-      });
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x89');
     });
   });
 });
