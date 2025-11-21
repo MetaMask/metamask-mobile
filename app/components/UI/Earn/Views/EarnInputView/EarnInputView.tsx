@@ -30,10 +30,9 @@ import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import {
   selectNetworkConfigurationByChainId,
-  selectNetworkClientId,
+  selectDefaultEndpointByChainId,
 } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -69,7 +68,6 @@ import {
   EarnInputViewProps,
 } from './EarnInputView.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { doesTokenRequireAllowanceReset } from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -93,12 +91,7 @@ const EarnInputView = () => {
     setIsSubmittingStakeDepositTransaction,
   ] = useState(false);
 
-  const confirmationRedesignFlags = useSelector(
-    selectConfirmationRedesignFlags,
-  );
-
-  const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_confirmations;
+  const isStakingDepositRedesignedEnabled = true;
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
@@ -164,7 +157,12 @@ const EarnInputView = () => {
     ///: END:ONLY_INCLUDE_IF
   ]);
 
-  const networkClientId = useSelector(selectNetworkClientId);
+  const endpoint = useSelector((state: RootState) =>
+    selectDefaultEndpointByChainId(state, earnToken?.chainId as Hex),
+  );
+
+  const networkClientId = endpoint.networkClientId;
+
   const {
     isFiat,
     currentCurrency,
@@ -414,9 +412,6 @@ const EarnInputView = () => {
         networkClientId,
         origin: ORIGIN_METAMASK,
         transactions: [approveTx, lendingDepositTx],
-        disable7702: true,
-        disableHook: true,
-        disableSequential: false,
         requireApproval: true,
       });
 
@@ -448,8 +443,7 @@ const EarnInputView = () => {
       });
     };
 
-    const isRedesignedStablecoinLendingScreenEnabled =
-      getIsRedesignedStablecoinLendingScreenEnabled();
+    const isRedesignedStablecoinLendingScreenEnabled = true;
     if (isRedesignedStablecoinLendingScreenEnabled) {
       createRedesignedLendingDepositConfirmation(earnToken, selectedAccount);
     } else {
