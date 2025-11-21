@@ -9,6 +9,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
@@ -46,12 +47,16 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
       </Text>
       <TouchableOpacity
         onPress={() => sectionConfig.viewAllAction(navigation)}
-        style={tw.style('flex-row items-center justify-center gap-1')}
+        style={tw.style('flex-row items-center justify-center')}
       >
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
           {strings('trending.view_all')}
         </Text>
-        <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
       </TouchableOpacity>
     </Box>
   );
