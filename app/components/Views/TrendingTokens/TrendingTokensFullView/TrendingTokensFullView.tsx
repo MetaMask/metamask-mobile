@@ -24,8 +24,10 @@ import { strings } from '../../../../../locales/i18n';
 import { TrendingListHeader } from '../../../UI/Trending/components/TrendingListHeader';
 import TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
-import { SortTrendingBy } from '@metamask/assets-controllers';
+import {
+  SortTrendingBy,
+  type TrendingAsset,
+} from '@metamask/assets-controllers';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import Text from '../../../../component-library/components/Texts/Text';
@@ -192,40 +194,39 @@ const TrendingTokensFullView = () => {
     return strings('trending.all_networks');
   }, [selectedNetwork, networkConfigurations]);
 
+  // Use tokens section data as the single source of truth:
+  // - When no search query: returns trending results from useTrendingRequest
+  // - When search query exists: returns merged trending + search results
   const {
-    results: trendingTokensResults,
+    data: tokensSectionData,
     isLoading,
-    fetch: fetchTrendingTokens,
-  } = useTrendingRequest({
+    refetch: refetchTokensSection,
+  } = SECTIONS_CONFIG.tokens.useSectionData({
+    searchQuery: searchQuery || undefined,
     sortBy,
-    chainIds: selectedNetwork ?? undefined,
+    chainIds: selectedNetwork,
   });
 
-  // Reuse tokens section data logic (search + trending merge) at the hook level
-  const { data: tokensSectionData } = SECTIONS_CONFIG.tokens.useSectionData(
-    searchQuery || undefined,
-  );
-
   const searchResults = useMemo(() => {
-    // When search is not active, fall back to the raw trending tokens results
+    // When search is not active, use the full section data
     if (!isSearchVisible) {
-      return trendingTokensResults;
+      return tokensSectionData as TrendingAsset[];
     }
 
     const searchTerm = searchQuery.toLowerCase().trim();
 
-    // If search box is empty, keep showing the base trending results
+    // If search box is empty, still use full section data
     if (!searchTerm) {
-      return trendingTokensResults;
+      return tokensSectionData as TrendingAsset[];
     }
 
     const tokensSectionConfig = SECTIONS_CONFIG.tokens;
 
-    // Filter the merged tokensSectionData (trending + search results)
+    // Filter section data based on searchable text (symbol + name)
     return (tokensSectionData as unknown[]).filter((item) =>
       tokensSectionConfig.getSearchableText(item).includes(searchTerm),
-    ) as typeof trendingTokensResults;
-  }, [isSearchVisible, searchQuery, tokensSectionData, trendingTokensResults]);
+    ) as TrendingAsset[];
+  }, [isSearchVisible, searchQuery, tokensSectionData]);
 
   // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {
@@ -293,15 +294,13 @@ const TrendingTokensFullView = () => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      // Cancel any pending debounced calls and fetch immediately
-      fetchTrendingTokens.cancel();
-      await fetchTrendingTokens();
+      refetchTokensSection?.();
     } catch (error) {
       console.warn('Failed to refresh trending tokens:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [fetchTrendingTokens]);
+  }, [refetchTokensSection]);
 
   // Get the button text based on selected price change option
   const priceChangeButtonText = useMemo(() => {
@@ -336,64 +335,67 @@ const TrendingTokensFullView = () => {
           testID="trending-tokens-header"
         />
       </View>
-      <View style={styles.controlBarWrapper}>
-        <View style={styles.controlButtonOuterWrapper}>
-          <TouchableOpacity
-            testID="price-change-button"
-            onPress={handlePriceChangePress}
-            style={styles.controlButton}
-            activeOpacity={0.2}
-          >
-            <View style={styles.controlButtonContent}>
-              <Text style={styles.controlButtonText}>
-                {priceChangeButtonText}
-              </Text>
-              <Icon
-                name={IconName.ArrowDown}
-                color={IconColor.Alternative}
-                size={IconSize.Xs}
-              />
+      {!isSearchVisible ? (
+        <View style={styles.controlBarWrapper}>
+          <View style={styles.controlButtonOuterWrapper}>
+            <TouchableOpacity
+              testID="price-change-button"
+              onPress={handlePriceChangePress}
+              style={styles.controlButton}
+              activeOpacity={0.2}
+            >
+              <View style={styles.controlButtonContent}>
+                <Text style={styles.controlButtonText}>
+                  {priceChangeButtonText}
+                </Text>
+                <Icon
+                  name={IconName.ArrowDown}
+                  color={IconColor.Alternative}
+                  size={IconSize.Xs}
+                />
+              </View>
+            </TouchableOpacity>
+            <View style={styles.controlButtonInnerWrapper}>
+              <TouchableOpacity
+                testID="all-networks-button"
+                onPress={handleAllNetworksPress}
+                style={styles.controlButtonRight}
+                activeOpacity={0.2}
+              >
+                <View style={styles.controlButtonContent}>
+                  <Text style={styles.controlButtonText}>
+                    {selectedNetworkName}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowDown}
+                    color={IconColor.Alternative}
+                    size={IconSize.Xs}
+                  />
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="24h-button"
+                onPress={handle24hPress}
+                style={styles.controlButtonRight}
+                activeOpacity={0.2}
+              >
+                <View style={styles.controlButtonContent}>
+                  <Text style={styles.controlButtonText}>
+                    {selectedTimeOption}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowDown}
+                    color={IconColor.Alternative}
+                    size={IconSize.Xs}
+                  />
+                </View>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-          <View style={styles.controlButtonInnerWrapper}>
-            <TouchableOpacity
-              testID="all-networks-button"
-              onPress={handleAllNetworksPress}
-              style={styles.controlButtonRight}
-              activeOpacity={0.2}
-            >
-              <View style={styles.controlButtonContent}>
-                <Text style={styles.controlButtonText}>
-                  {selectedNetworkName}
-                </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  color={IconColor.Alternative}
-                  size={IconSize.Xs}
-                />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="24h-button"
-              onPress={handle24hPress}
-              style={styles.controlButtonRight}
-              activeOpacity={0.2}
-            >
-              <View style={styles.controlButtonContent}>
-                <Text style={styles.controlButtonText}>
-                  {selectedTimeOption}
-                </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  color={IconColor.Alternative}
-                  size={IconSize.Xs}
-                />
-              </View>
-            </TouchableOpacity>
           </View>
         </View>
-      </View>
-      {isLoading || trendingTokensResults.length === 0 ? (
+      ) : null}
+
+      {isLoading || (searchResults as TrendingAsset[]).length === 0 ? (
         <View style={styles.listContainer}>
           <TrendingTokensSkeleton count={10} />
         </View>
