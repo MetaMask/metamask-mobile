@@ -1,0 +1,51 @@
+diff --git a/dist/constants.cjs b/dist/constants.cjs
+index 8877e12aaa2200065d2103233dfe414698d99950..ca82c83e3cda7d7abde43e0788a1a5678e5563a7 100644
+--- a/dist/constants.cjs
++++ b/dist/constants.cjs
+@@ -1,10 +1,10 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.SmartTransactionsTraceName = exports.MetaMetricsEventCategory = exports.MetaMetricsEventName = exports.SENTINEL_API_BASE_URL_MAP = exports.API_BASE_URL = void 0;
+-exports.API_BASE_URL = 'https://transaction.api.cx.metamask.io';
++exports.API_BASE_URL = 'https://transaction.dev-api.cx.metamask.io';
+ // The map with types applied
+ exports.SENTINEL_API_BASE_URL_MAP = {
+-    1: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
++    1: 'https://tx-sentinel-ethereum-mainnet.dev-api.cx.metamask.io',
+     56: 'https://tx-sentinel-bsc-mainnet.api.cx.metamask.io',
+     137: 'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io',
+     8453: 'https://tx-sentinel-base-mainnet.api.cx.metamask.io',
+diff --git a/dist/constants.d.cts b/dist/constants.d.cts
+index a5ab0b11a9d4befc663a89a79444981e953b591b..d03374aa6fb84ac6b431c1fb7a20f96935bd11a9 100644
+--- a/dist/constants.d.cts
++++ b/dist/constants.d.cts
+@@ -1,4 +1,4 @@
+-export declare const API_BASE_URL = "https://transaction.api.cx.metamask.io";
++export declare const API_BASE_URL = "https://transaction.dev-api.cx.metamask.io";
+ declare type SentinelApiBaseUrlMap = {
+     [key: number]: string;
+ };
+diff --git a/dist/constants.d.mts b/dist/constants.d.mts
+index e7e91a3ea1f57f6d163272e587bdb782bf769129..392375f61e9eddace666df8b5d3c83488403ac2a 100644
+--- a/dist/constants.d.mts
++++ b/dist/constants.d.mts
+@@ -1,4 +1,4 @@
+-export declare const API_BASE_URL = "https://transaction.api.cx.metamask.io";
++export declare const API_BASE_URL = "https://transaction.dev-api.cx.metamask.io";
+ declare type SentinelApiBaseUrlMap = {
+     [key: number]: string;
+ };
+diff --git a/dist/constants.mjs b/dist/constants.mjs
+index e592339535dadd61aef017f36124fd1c025a3777..ffe167b333273414148b0f9adfdfbb6b545579c2 100644
+--- a/dist/constants.mjs
++++ b/dist/constants.mjs
+@@ -1,7 +1,7 @@
+-export const API_BASE_URL = 'https://transaction.api.cx.metamask.io';
++export const API_BASE_URL = 'https://transaction.dev-api.cx.metamask.io';
+ // The map with types applied
+ export const SENTINEL_API_BASE_URL_MAP = {
+-    1: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
++    1: 'https://tx-sentinel-ethereum-mainnet.dev-api.cx.metamask.io',
+     56: 'https://tx-sentinel-bsc-mainnet.api.cx.metamask.io',
+     137: 'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io',
+     8453: 'https://tx-sentinel-base-mainnet.api.cx.metamask.io',
