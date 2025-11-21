@@ -99,11 +99,9 @@ describe('CollectibleModal', () => {
     const mockTrackEvent = jest.fn();
     const mockCreateEventBuilder = jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),
-      build: jest
-        .fn()
-        .mockReturnValue({
-          properties: { chain_id: 1, source: 'mobile-nft-list' },
-        }),
+      build: jest.fn().mockReturnValue({
+        properties: { chain_id: 1, source: 'mobile-nft-list' },
+      }),
     }));
 
     jest.doMock('../../hooks/useMetrics', () => ({
@@ -129,11 +127,9 @@ describe('CollectibleModal', () => {
     const mockTrackEvent = jest.fn();
     const mockCreateEventBuilder = jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),
-      build: jest
-        .fn()
-        .mockReturnValue({
-          properties: { chain_id: 1, source: 'mobile-nft-list-page' },
-        }),
+      build: jest.fn().mockReturnValue({
+        properties: { chain_id: 1, source: 'mobile-nft-list-page' },
+      }),
     }));
 
     jest.doMock('../../hooks/useMetrics', () => ({
