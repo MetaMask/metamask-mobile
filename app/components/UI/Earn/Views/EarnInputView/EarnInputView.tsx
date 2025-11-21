@@ -1050,7 +1050,7 @@ const EarnInputView = () => {
           isPreviewVisible &&
           isNonZeroAmount && (
             <TronStakePreview
-              resourceType={resourceType}
+              stakeAmount={amountToken}
               fee={tronPreview?.fee as ComputeFeeResult}
             />
           )

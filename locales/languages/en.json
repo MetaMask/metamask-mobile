@@ -5481,6 +5481,7 @@
       "energy": "Energy",
       "estimated_annual_reward": "Estimated annual reward",
       "trx_locked_for": "TRX locked for",
+      "trx_locked_for_minimum_time": "~3 days",
       "fee": "Fee"
     },
     "stake_eth": "Stake ETH",
