@@ -1,15 +1,20 @@
-import { TrxScope } from '@metamask/keyring-api';
+import { CaipChainId, TrxScope } from '@metamask/keyring-api';
 import { BridgeToken } from '../../types';
+import { Hex } from '@metamask/utils';
+
+const nonTradableTokenNames: Record<Hex | CaipChainId, string[]> = {
+  [TrxScope.Mainnet]: [
+    'energy',
+    'bandwidth',
+    'max bandwidth',
+    'staked for energy',
+    'staked for bandwidth',
+  ],
+};
 
 export const isTradableToken = (token: BridgeToken) => {
-  if (
-    token.chainId === TrxScope.Mainnet &&
-    (token.name?.toLowerCase() === 'energy' ||
-      token.name?.toLowerCase() === 'bandwidth' ||
-      token.name?.toLowerCase() === 'max bandwidth')
-  ) {
-    return false;
-  }
-
-  return true;
+  const isNonTradableToken = nonTradableTokenNames[token.chainId]?.includes(
+    token.name?.toLowerCase() ?? '',
+  );
+  return !isNonTradableToken;
 };
