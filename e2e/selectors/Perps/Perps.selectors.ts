@@ -383,6 +383,7 @@ export const PerpsMarketBalanceActionsSelectorsIDs = {
   ADD_FUNDS_BUTTON: 'perps-market-add-funds-button',
   WITHDRAW_BUTTON: 'perps-market-withdraw-button',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP: 'perps-market-balance-geo-block-tooltip',
+  LEARN_MORE_BUTTON: 'perps-market-balance-learn-more-button',
 };
 
 export const PerpsChartAuxiliaryLinesSelectorsIDs = {

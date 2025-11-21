@@ -60,7 +60,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     scrollViewContent: {
-      paddingBottom: 16,
+      paddingBottom: 16, // Padding for tab bar safe area
     },
     tabBarContainer: {
       position: 'absolute',

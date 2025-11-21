@@ -93,7 +93,8 @@ const PerpsHomeView = () => {
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]: PerpsEventValues.SCREEN_TYPE.MARKETS,
+      [PerpsEventProperties.SCREEN_TYPE]:
+        PerpsEventValues.SCREEN_TYPE.HOMESCREEN,
       [PerpsEventProperties.SOURCE]: source,
     },
   });
@@ -195,7 +196,7 @@ const PerpsHomeView = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Balance Actions Component */}
-        <PerpsMarketBalanceActions />
+        <PerpsMarketBalanceActions positions={positions} />
 
         {/* Positions Section */}
         <PerpsHomeSection
