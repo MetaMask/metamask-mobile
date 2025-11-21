@@ -1,137 +1,186 @@
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+/* eslint-disable import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-var-requires */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
-// @ts-expect-error - No types declarations
-import pump from 'pump';
-
-import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
-// @ts-expect-error - No types declarations
-import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
-// @ts-expect-error - No types declarations
-import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
-import { JsonRpcParams, Json } from '@metamask/utils';
 import {
-  createSelectedNetworkMiddleware,
-  SelectedNetworkControllerMessenger,
-} from '@metamask/selected-network-controller';
-import { createPreinstalledSnapsMiddleware } from '@metamask/snaps-rpc-methods';
-import { SubjectType } from '@metamask/permission-controller';
-import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
+  createSwappableProxy,
+  createEventEmitterProxy,
+} from '@metamask/swappable-obj-proxy';
+import { JsonRpcEngine } from '@metamask/json-rpc-engine';
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
-import { SnapId } from '@metamask/snaps-sdk';
-import { InternalAccount } from '@metamask/keyring-internal-api';
+import EthQuery from '@metamask/eth-query';
 
 import Engine from '../Engine';
 import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
-import { createOriginMiddleware } from '../../util/middlewares';
-import { RPCMethodsMiddleParameters } from '../RPCMethods/RPCMethodMiddleware';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
+import { SubjectType } from '@metamask/permission-controller';
+import { createPreinstalledSnapsMiddleware } from '@metamask/snaps-rpc-methods';
 import { isSnapPreinstalled } from '../SnapKeyring/utils/snaps';
 
-/**
- * Type definition for the GetRPCMethodMiddleware function.
- */
-type GetRPCMethodMiddleware = ({
-  hostname,
-  getProviderState,
-}: {
-  hostname: RPCMethodsMiddleParameters['hostname'];
-  getProviderState: RPCMethodsMiddleParameters['getProviderState'];
-}) => JsonRpcMiddleware<JsonRpcParams, Json>;
+import ObjectMultiplex from '@metamask/object-multiplex';
+import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
+import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
+import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
+import { createOriginMiddleware } from '../../util/middlewares';
+import { createSelectedNetworkMiddleware } from '@metamask/selected-network-controller';
+const pump = require('pump');
 
-/**
- * A bridge for connecting the client Ethereum provider to a Snap's execution environment.
- *
- * @param params - The parameters for the SnapBridge.
- * @param params.snapId - The ID of the Snap.
- * @param params.connectionStream - The stream to connect to the Snap.
- * @param params.getRPCMethodMiddleware - A function to get the RPC method middleware.
- */
+interface ISnapBridgeProps {
+  snapId: string;
+  connectionStream: Duplex;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getRPCMethodMiddleware: (args: any) => any;
+}
+
 export default class SnapBridge {
-  #snapId: SnapId;
-  #stream: Duplex;
-  #getRPCMethodMiddleware: GetRPCMethodMiddleware;
+  snapId: string;
+  stream: Duplex;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getRPCMethodMiddleware: (args: any) => any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  provider: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blockTracker: any;
+
+  #mux: typeof ObjectMultiplex;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  #providerProxy: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  #blockTrackerProxy: any;
 
   constructor({
     snapId,
     connectionStream,
     getRPCMethodMiddleware,
-  }: {
-    snapId: SnapId;
-    connectionStream: Duplex;
-    getRPCMethodMiddleware: GetRPCMethodMiddleware;
-  }) {
-    Logger.log('[SNAP BRIDGE] Initializing SnapBridge for Snap:', snapId);
+  }: ISnapBridgeProps) {
+    Logger.log(
+      '[SNAP BRIDGE LOG] Engine+setupSnapProvider: Setup bridge for Snap',
+      snapId,
+    );
 
-    this.#snapId = snapId;
-    this.#stream = connectionStream;
-    this.#getRPCMethodMiddleware = getRPCMethodMiddleware;
+    this.snapId = snapId;
+    this.stream = connectionStream;
+    this.getRPCMethodMiddleware = getRPCMethodMiddleware;
+    this.deprecatedNetworkVersions = {};
+
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { NetworkController } = Engine.context as any;
+
+    const { provider, blockTracker } =
+      NetworkController.getProviderAndBlockTracker();
+
+    this.#providerProxy = null;
+    this.#blockTrackerProxy = null;
+
+    this.#setProvider(provider);
+    this.#setBlockTracker(blockTracker);
+
+    this.#mux = setupMultiplex(this.stream);
   }
 
-  /**
-   * Gets the provider state.
-   * @returns An object containing the provider state.
-   */
-  #getProviderState() {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  #setProvider = (provider: any): void => {
+    if (this.#providerProxy) {
+      this.#providerProxy.setTarget(provider);
+    } else {
+      this.#providerProxy = createSwappableProxy(provider);
+    }
+    this.provider = provider;
+  };
+
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  #setBlockTracker = (blockTracker: any): void => {
+    if (this.#blockTrackerProxy) {
+      this.#blockTrackerProxy.setTarget(blockTracker);
+    } else {
+      this.#blockTrackerProxy = createEventEmitterProxy(blockTracker, {
+        eventFilter: 'skipInternal',
+      });
+    }
+    this.blockTracker = blockTracker;
+  };
+
+  async getProviderState() {
     return {
-      isUnlocked: Engine.context.KeyringController.isUnlocked(),
+      isUnlocked: this.isUnlocked(),
+      ...(await this.getProviderNetworkState(this.snapId)),
     };
   }
 
-  /**
-   * Sets up the provider engine for the Snap.
-   * @returns The configured JSON-RPC engine.
-   */
-  #setupProviderEngine() {
-    Logger.log('[SNAP BRIDGE] Setting up provider engine');
+  setupProviderConnection = () => {
+    Logger.log('[SNAP BRIDGE LOG] Engine+setupProviderConnection');
+    const outStream = this.#mux.createStream('metamask-provider');
+    const engine = this.setupProviderEngine();
 
-    const { context, controllerMessenger } = Engine;
-    const { SelectedNetworkController, PermissionController } = context;
+    const providerStream = createEngineStream({ engine });
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pump(outStream, providerStream, outStream, (err: any) => {
+      engine.destroy();
+      if (err) Logger.log('Error with provider stream conn', err);
+    });
+  };
+
+  setupProviderEngine = () => {
     const engine = new JsonRpcEngine();
 
-    const proxy = SelectedNetworkController.getProviderAndBlockTracker(
-      this.#snapId,
-    );
+    // create filter polyfill middleware
+    const filterMiddleware = createFilterMiddleware({
+      provider: this.#providerProxy,
+      blockTracker: this.#blockTrackerProxy,
+    });
 
-    const filterMiddleware = createFilterMiddleware(proxy);
+    // create subscription polyfill middleware
+    const subscriptionManager = createSubscriptionManager({
+      provider: this.#providerProxy,
+      blockTracker: this.#blockTrackerProxy,
+    });
 
-    const subscriptionManager = createSubscriptionManager(proxy);
-    subscriptionManager.events.on('notification', (message: Json) =>
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subscriptionManager.events.on('notification', (message: any) =>
       engine.emit('notification', message),
     );
 
-    engine.push(
-      createOriginMiddleware({ origin: this.#snapId }) as JsonRpcMiddleware<
-        JsonRpcParams,
-        Json
-      >,
-    );
-
-    engine.push(
-      createSelectedNetworkMiddleware(
-        controllerMessenger as unknown as SelectedNetworkControllerMessenger,
-      ),
-    );
+    engine.push(createOriginMiddleware({ origin: this.snapId }));
+    engine.push(createSelectedNetworkMiddleware(Engine.controllerMessenger));
 
     // Filter and subscription polyfills
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
-    if (isSnapPreinstalled(this.#snapId)) {
+    const { context, controllerMessenger } = Engine;
+    const { PermissionController } = context;
+
+    if (isSnapPreinstalled(this.snapId)) {
       engine.push(
         createPreinstalledSnapsMiddleware({
           getPermissions: PermissionController.getPermissions.bind(
             PermissionController,
-            this.#snapId,
+            this.snapId,
           ),
           getAllEvmAccounts: () =>
             controllerMessenger
               .call('AccountsController:listAccounts')
-              .map((account: InternalAccount) => account.address),
+              .map((account) => account.address),
           grantPermissions: (approvedPermissions) =>
             controllerMessenger.call('PermissionController:grantPermissions', {
               approvedPermissions,
-              subject: { origin: this.#snapId },
+              subject: { origin: this.snapId },
             }),
         }),
       );
@@ -139,7 +188,7 @@ export default class SnapBridge {
 
     engine.push(
       PermissionController.createPermissionMiddleware({
-        origin: this.#snapId,
+        origin: this.snapId,
       }),
     );
 
@@ -147,44 +196,64 @@ export default class SnapBridge {
       snapMethodMiddlewareBuilder(
         context,
         controllerMessenger,
-        this.#snapId,
+        this.snapId,
         SubjectType.Snap,
       ),
     );
 
     // User-Facing RPC methods
     engine.push(
-      this.#getRPCMethodMiddleware({
-        hostname: this.#snapId,
-        getProviderState: this.#getProviderState.bind(this),
+      this.getRPCMethodMiddleware({
+        hostname: this.snapId,
+        getProviderState: this.getProviderState.bind(this),
       }),
     );
 
     // Forward to metamask primary provider
-    engine.push(providerAsMiddleware(proxy.provider));
-
+    engine.push(providerAsMiddleware(this.#providerProxy));
     return engine;
-  }
+  };
 
-  /**
-   * Sets up the provider connection for the Snap.
-   */
-  setupProviderConnection() {
-    Logger.log('[SNAP BRIDGE] Setting up provider connection');
+  isUnlocked = (): boolean => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { KeyringController } = Engine.context as any;
+    return KeyringController.isUnlocked();
+  };
 
-    const mux = setupMultiplex(this.#stream);
-    const stream = mux.createStream('metamask-provider');
+  async getProviderNetworkState(origin: string) {
+    const networkClientId = Engine.controllerMessenger.call(
+      'SelectedNetworkController:getNetworkClientIdForDomain',
+      origin,
+    );
 
-    const engine = this.#setupProviderEngine();
+    const networkClient = Engine.controllerMessenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
 
-    const providerStream = createEngineStream({ engine });
+    const { chainId } = networkClient.configuration;
 
-    pump(stream, providerStream, stream, (error: Error | null) => {
-      engine.destroy();
+    let networkVersion = this.deprecatedNetworkVersions[networkClientId];
+    if (!networkVersion) {
+      const ethQuery = new EthQuery(networkClient.provider);
+      networkVersion = await new Promise((resolve) => {
+        ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
+          if (error) {
+            console.error(error);
+            resolve(null);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+      this.deprecatedNetworkVersions[networkClientId] = networkVersion;
+    }
 
-      if (error) {
-        Logger.log('[SNAP BRIDGE] Error with provider stream:', error);
-      }
-    });
+    return {
+      chainId,
+      networkVersion: networkVersion ?? 'loading',
+    };
   }
 }
+///: END:ONLY_INCLUDE_IF

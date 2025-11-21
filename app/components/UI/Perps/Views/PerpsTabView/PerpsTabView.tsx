@@ -255,13 +255,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           }}
         >
           {!isInitialLoading && hasNoPositionsOrOrders ? (
-            <View style={styles.emptyStateContainer}>
-              <PerpsEmptyState
-                onAction={handleNewTrade}
-                testID="perps-empty-state"
-                twClassName="mx-auto"
-              />
-            </View>
+            <PerpsEmptyState
+              onAction={handleNewTrade}
+              testID="perps-empty-state"
+              twClassName="mx-auto"
+            />
           ) : (
             <View style={styles.tradeInfoContainer}>
               <View>{renderPositionsSection()}</View>

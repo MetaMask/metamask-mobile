@@ -2,12 +2,7 @@ import { waitFor } from '@testing-library/react-native';
 import BN from 'bnjs4';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import {
-  EVM_NATIVE_ASSET,
-  evmSendStateMock,
-  SOLANA_ASSET,
-  solanaSendStateMock,
-} from '../../__mocks__/send.mock';
+import { EVM_NATIVE_ASSET, evmSendStateMock } from '../../__mocks__/send.mock';
 import {
   useAmountValidation,
   validateERC1155Balance,
@@ -324,24 +319,5 @@ describe('useAmountValidation', () => {
 
     const error = await result.current.validateNonEvmAmountAsync();
     expect(error).toEqual(undefined);
-  });
-
-  it('return error when non-EVM asset has zero balance', async () => {
-    jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
-      asset: {
-        ...SOLANA_ASSET,
-        rawBalance: '0x0',
-      },
-      from: MOCK_ADDRESS_1,
-      value: '1',
-    } as unknown as SendContext.SendContextType);
-
-    const { result } = renderHookWithProvider(() => useAmountValidation(), {
-      state: solanaSendStateMock,
-    });
-
-    await waitFor(() =>
-      expect(result.current.amountError).toEqual('Insufficient funds'),
-    );
   });
 });

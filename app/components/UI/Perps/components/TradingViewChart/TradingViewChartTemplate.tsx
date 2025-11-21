@@ -51,123 +51,6 @@ export const createTradingViewChartTemplate = (
         window.visibleCandleCount = 45; // Default visible candle count
         window.allCandleData = []; // Store all loaded data for zoom functionality
         window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
-
-        // Cache for Intl.NumberFormat instances to avoid expensive recreation
-        // Key: decimal count (e.g., "0", "2", "4"), Value: NumberFormat instance
-        window.formatterCache = new Map();
-
-        // Price formatting constants (matches formatUtils.ts PRICE_RANGES_UNIVERSAL)
-        window.PRICE_THRESHOLD = {
-            VERY_HIGH: 100000,  // > $100k
-            HIGH: 10000,        // > $10k
-            LARGE: 1000,        // > $1k
-            MEDIUM: 100,        // > $100
-            MEDIUM_LOW: 10,     // > $10
-            LOW: 0.01,          // >= $0.01
-        };
-
-        // Universal price ranges configuration (matches PRICE_RANGES_UNIVERSAL from formatUtils.ts)
-        window.PRICE_RANGES = [
-            { threshold: window.PRICE_THRESHOLD.VERY_HIGH, minDec: 0, maxDec: 0, sigDig: 6 },
-            { threshold: window.PRICE_THRESHOLD.HIGH, minDec: 0, maxDec: 0, sigDig: 5 },
-            { threshold: window.PRICE_THRESHOLD.LARGE, minDec: 0, maxDec: 1, sigDig: 5 },
-            { threshold: window.PRICE_THRESHOLD.MEDIUM, minDec: 0, maxDec: 2, sigDig: 5 },
-            { threshold: window.PRICE_THRESHOLD.MEDIUM_LOW, minDec: 0, maxDec: 4, sigDig: 5 },
-            { threshold: window.PRICE_THRESHOLD.LOW, minDec: 2, maxDec: 6, sigDig: 5 },
-            { threshold: 0, minDec: 2, maxDec: 6, sigDig: 4 }, // < $0.01
-        ];
-
-        // Get or create cached Intl.NumberFormat for given decimal precision
-        // Caching prevents expensive formatter recreation on every Y-axis label render
-        window.getCachedFormatter = function(decimals) {
-            const key = String(decimals);
-
-            if (!window.formatterCache.has(key)) {
-                window.formatterCache.set(key, new Intl.NumberFormat('en-US', {
-                    minimumFractionDigits: decimals,
-                    maximumFractionDigits: decimals
-                }));
-            }
-
-            return window.formatterCache.get(key);
-        };
-
-        // Format price with significant digits (matches formatUtils.ts logic)
-        window.formatPriceWithSignificantDigits = function(value, sigDigits, minDec, maxDec) {
-            if (value === 0) return { value: 0, decimals: minDec || 0 };
-
-            const absValue = Math.abs(value);
-
-            if (absValue >= 1) {
-                const integerDigits = Math.floor(Math.log10(absValue)) + 1;
-                const decimalsNeeded = sigDigits - integerDigits;
-                let targetDecimals = Math.max(decimalsNeeded, 0);
-
-                if (minDec !== undefined && targetDecimals < minDec) {
-                    targetDecimals = minDec;
-                }
-
-                const finalDecimals = maxDec !== undefined ? Math.min(targetDecimals, maxDec) : targetDecimals;
-                const roundedValue = Number(value.toFixed(finalDecimals));
-
-                return { value: roundedValue, decimals: finalDecimals };
-            }
-
-            // For values < 1, use toPrecision
-            const precisionStr = absValue.toPrecision(sigDigits);
-            const precisionNum = parseFloat(precisionStr);
-            const valueStr = precisionNum.toString();
-            const [, decPart = ''] = valueStr.split('.');
-            let actualDecimals = decPart.length;
-
-            if (minDec !== undefined && actualDecimals < minDec) {
-                actualDecimals = minDec;
-            }
-            if (maxDec !== undefined && actualDecimals > maxDec) {
-                actualDecimals = maxDec;
-            }
-
-            const finalValue = value < 0 ? -precisionNum : precisionNum;
-            const roundedValue = Number(finalValue.toFixed(actualDecimals));
-
-            return { value: roundedValue, decimals: actualDecimals };
-        };
-
-        // Format price using universal ranges (matches formatPerpsFiat from formatUtils.ts)
-        window.formatPriceUniversal = function(price) {
-            if (price === 0) return '0';
-            if (isNaN(price)) return '0';
-
-            const absPrice = Math.abs(price);
-
-            // Find matching range
-            let rangeConfig = null;
-            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
-                if (absPrice > window.PRICE_RANGES[i].threshold) {
-                    rangeConfig = window.PRICE_RANGES[i];
-                    break;
-                }
-            }
-
-            // Fallback to last range if nothing matched
-            if (!rangeConfig) {
-                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
-            }
-
-            // Calculate formatting with significant digits
-            const { value: formattedValue, decimals } = window.formatPriceWithSignificantDigits(
-                price,
-                rangeConfig.sigDig,
-                rangeConfig.minDec,
-                rangeConfig.maxDec
-            );
-
-            // Format the number with consistent decimal places using cached formatter
-            // Keep trailing zeros to maintain visual consistency on Y-axis
-            // e.g., for $1.24-$1.26 range, all values show 4 decimals: 1.2391, 1.2560, 1.2500
-            const formatter = window.getCachedFormatter(decimals);
-            return formatter.format(formattedValue);
-        };
         
         // Smart timestamp formatter using TradingView's native tickMarkType with fallback
         window.formatTimestamp = function(time, tickMarkType, isCrosshair = false) {
@@ -304,64 +187,10 @@ export const createTradingViewChartTemplate = (
         window.lastLogicalRange = null;
         window.panVelocity = 0;
         window.panningDisableTime = 300; // ms to disable zoom restrictions after panning stops
-
+        
         // Reset prevention variables
         window.hasUserInteracted = false; // Track if user has ever interacted with the chart
         window.lastDataLength = 0; // Track actual data changes vs rerenders
-
-        // Edge detection variables for historical data loading
-        window.lastHistoryFetchTime = 0;
-        window.HISTORY_FETCH_COOLDOWN = 2000; // 2 seconds cooldown between fetches
-        window.EDGE_THRESHOLD = 5; // Consider "at edge" if within 5 candles from start
-        // Set up edge detection for loading more historical data
-        window.setupEdgeDetection = function() {
-            if (!window.chart) {
-                console.log('📊 TradingView: Cannot set up edge detection - chart not ready');
-                return;
-            }
-
-            try {
-                // Subscribe to visible logical range changes
-                window.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-                    if (!range || !window.allCandleData || window.allCandleData.length === 0) {
-                        return;
-                    }
-
-                    // Check if we're near the left edge (oldest data)
-                    const isAtLeftEdge = range.from <= window.EDGE_THRESHOLD;
-
-                    if (isAtLeftEdge) {
-                        const now = Date.now();
-                        const timeSinceLastFetch = now - window.lastHistoryFetchTime;
-
-                        // Throttle to avoid spam requests
-                        if (timeSinceLastFetch < window.HISTORY_FETCH_COOLDOWN) {
-                            return;
-                        }
-
-                        // Update last fetch time
-                        window.lastHistoryFetchTime = now;
-
-                        console.log('📊 TradingView: Reached left edge - requesting more history');
-
-                        // Send message to React Native to fetch more historical data
-                        if (window.ReactNativeWebView) {
-                            window.ReactNativeWebView.postMessage(JSON.stringify({
-                                type: 'NEED_MORE_HISTORY',
-                                timestamp: new Date().toISOString(),
-                                currentDataLength: window.allCandleData.length,
-                                visibleRange: { from: range.from, to: range.to }
-                            }));
-                        }
-                    }
-                });
-
-                console.log('📊 TradingView: Edge detection set up successfully');
-            } catch (error) {
-                console.error('📊 TradingView: Error setting up edge detection:', error);
-            }
-        };
-
         // Step 2: Create chart
         function createChart() {
             if (!window.LightweightCharts) {
@@ -419,56 +248,68 @@ export const createTradingViewChartTemplate = (
                     },
                     localization: {
                         priceFormatter: (price) => {
-                            // Hybrid formatter: starts with universal formatting but adjusts for tight ranges
-                            // This prevents duplicate Y-axis labels when zoomed in while maintaining
-                            // consistency with header and pills at normal zoom levels
-
-                            if (price === 0) return '0';
-                            if (isNaN(price)) return '0';
+                            // Dynamic Y-axis formatter that adjusts precision based on visible price range
+                            // This prevents duplicate labels (e.g., "160 160 161 161") by using more decimals when zoomed in
+                            
+                            if (price === 0) return '0.00';
 
                             const absPrice = Math.abs(price);
 
-                            // Get base formatting configuration from universal ranges
-                            let rangeConfig = null;
-                            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
-                                if (absPrice > window.PRICE_RANGES[i].threshold) {
-                                    rangeConfig = window.PRICE_RANGES[i];
-                                    break;
+                            // For values >= 1, use dynamic precision based on visible range
+                            if (absPrice >= 1) {
+                                let targetDecimals;
+
+                                // Use visible price range to determine precision (prevents duplicates when zoomed in)
+                                if (window.visiblePriceRange && window.visiblePriceRange.span > 0) {
+                                    const span = window.visiblePriceRange.span;
+                                    
+                                    if (span < 1) {
+                                        // Very tight range (e.g., 160.00-160.50): use 4 decimals
+                                        targetDecimals = 4;
+                                    } else if (span < 10) {
+                                        // Tight range (e.g., 160-165): use 3 decimals
+                                        targetDecimals = 3;
+                                    } else if (span < 100) {
+                                        // Medium range (e.g., 100-200): use 2 decimals
+                                        targetDecimals = 2;
+                                    } else {
+                                        // Wide range (e.g., 0-1000): use 1 decimal
+                                        targetDecimals = 1;
+                                    }
+                                } else {
+                                    // Fallback to price-based rules when range not available
+                                    if (absPrice >= 100) {
+                                        targetDecimals = 2; // Increased from 0 to prevent duplicates
+                                    } else if (absPrice >= 10) {
+                                        targetDecimals = 2;
+                                    } else {
+                                        targetDecimals = 3;
+                                    }
                                 }
-                            }
-                            if (!rangeConfig) {
-                                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
-                            }
 
-                            // Calculate base formatting with significant digits
-                            const { value: formattedValue, decimals: baseDecimals } = window.formatPriceWithSignificantDigits(
-                                price,
-                                rangeConfig.sigDig,
-                                rangeConfig.minDec,
-                                rangeConfig.maxDec
-                            );
+                                // Round to prevent floating-point artifacts (e.g., 2.820000000000003 → 2.82)
+                                const roundedPrice = Number(price.toFixed(targetDecimals));
 
-                            // Determine if we need extra decimals based on visible range
-                            let finalDecimals = baseDecimals;
-
-                            if (window.visiblePriceRange && window.visiblePriceRange.span > 0) {
-                                const span = window.visiblePriceRange.span;
-
-                                // Dynamic decimal adjustment based on zoom level
-                                // Tighter visible range = more decimals needed to distinguish Y-axis labels
-                                if (span < 1) {
-                                    finalDecimals = Math.max(4, baseDecimals);
-                                } else if (span < 10) {
-                                    finalDecimals = Math.max(3, baseDecimals);
-                                } else if (span < 100) {
-                                    finalDecimals = Math.max(2, baseDecimals);
-                                }
-                                // For span >= 100, use baseDecimals (no adjustment needed)
+                                return new Intl.NumberFormat('en-US', {
+                                    minimumFractionDigits: 0, // Allow trailing zeros to be removed
+                                    maximumFractionDigits: targetDecimals
+                                }).format(roundedPrice);
                             }
 
-                            // Format with final decimal precision using cached formatter
-                            const formatter = window.getCachedFormatter(finalDecimals);
-                            return formatter.format(formattedValue);
+                            // For values < 1, use 4 significant figures
+                            // Examples: 0.1234, 0.01234
+                            const precisionStr = absPrice.toPrecision(4);
+                            const precisionNum = parseFloat(precisionStr);
+                            const valueStr = precisionNum.toString();
+                            const [, decPart = ''] = valueStr.split('.');
+                            const actualDecimals = Math.min(decPart.length, 10);
+
+                            const finalValue = price < 0 ? -precisionNum : precisionNum;
+
+                            return new Intl.NumberFormat('en-US', {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: actualDecimals
+                            }).format(finalValue);
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
@@ -544,10 +385,7 @@ export const createTradingViewChartTemplate = (
                         type: 'CHART_READY',
                         timestamp: new Date().toISOString()
                     }));
-                }
-
-                // Set up edge detection for loading more historical data
-                window.setupEdgeDetection();
+                } 
             } catch (error) {
                 console.error('TradingView: Error creating chart:', error);
             }
@@ -1133,14 +971,6 @@ export const createTradingViewChartTemplate = (
                             } else {
                                 console.error('📊 TradingView: Failed to create candlestick series');
                             }
-                        }
-                        break;
-                    case 'CLEAR_DATA':
-                        // Clear chart data (e.g., during market switch)
-                        if (window.candlestickSeries) {
-                            window.candlestickSeries.setData([]);
-                            window.allCandleData = [];
-                            console.log('📊 TradingView: Cleared chart data');
                         }
                         break;
                     case 'ADD_AUXILIARY_LINES':

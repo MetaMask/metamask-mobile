@@ -27,7 +27,6 @@ import {
   safeNumberToBN,
 } from '../../../util/number';
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
-import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -190,7 +189,7 @@ const createStyles = (colors) =>
     },
   });
 
-const SWAPS_NATIVE_ADDRESS = NATIVE_SWAPS_TOKEN_ADDRESS;
+const SWAPS_NATIVE_ADDRESS = swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
 const TOKEN_MINIMUM_SOURCES = 1;
 const MAX_TOP_ASSETS = 20;
 

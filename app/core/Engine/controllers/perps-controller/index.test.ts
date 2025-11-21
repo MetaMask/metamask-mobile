@@ -107,6 +107,7 @@ describe('perps controller init', () => {
       ],
       accountState: null,
       perpsBalances: {},
+      pendingOrders: [],
       depositInProgress: false,
       lastDepositTransactionId: null,
       lastDepositResult: null,

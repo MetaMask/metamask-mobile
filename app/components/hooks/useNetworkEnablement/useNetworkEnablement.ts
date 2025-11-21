@@ -64,17 +64,6 @@ export const useNetworkEnablement = () => {
     [enabledNetworksByNamespace, namespace],
   );
 
-  const enabledNetworksForAllNamespaces = useMemo(
-    () =>
-      enabledNetworksByNamespace
-        ? Object.values(enabledNetworksByNamespace).reduce(
-            (acc, obj) => ({ ...acc, ...obj }),
-            {},
-          )
-        : {},
-    [enabledNetworksByNamespace],
-  );
-
   const enableNetwork = useMemo(
     () => (chainId: CaipChainId) => {
       if (isMultichainAccountsState2Enabled) {
@@ -140,7 +129,6 @@ export const useNetworkEnablement = () => {
     namespace,
     enabledNetworksByNamespace,
     enabledNetworksForCurrentNamespace,
-    enabledNetworksForAllNamespaces,
     networkEnablementController,
     enableNetwork,
     disableNetwork,

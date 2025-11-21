@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   TouchableOpacity,
@@ -15,6 +9,7 @@ import {
   EmitterSubscription,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import images from 'images/image-icons';
 import Device from '../../../util/device';
 import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
@@ -22,10 +17,7 @@ import Avatar, {
   AvatarVariant,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
-import {
-  getDecimalChainId,
-  getNetworkImageSource,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
@@ -164,12 +156,6 @@ const AccountRightButton = ({
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
-  const nonEvmNetworkImageSource = useMemo(() => {
-    if (!isEvmSelected && selectedNonEvmNetworkChainId) {
-      return getNetworkImageSource({ chainId: selectedNonEvmNetworkChainId });
-    }
-  }, [isEvmSelected, selectedNonEvmNetworkChainId]);
-
   const renderAvatarAccount = () => (
     <AvatarAccount type={avatarAccountType} accountAddress={selectedAddress} />
   );
@@ -193,9 +179,7 @@ const AccountRightButton = ({
               : nonEvmNetworkConfigurations?.[selectedNonEvmNetworkChainId]
                   ?.name
           }
-          imageSource={
-            isEvmSelected ? networkImageSource : nonEvmNetworkImageSource
-          }
+          imageSource={isEvmSelected ? networkImageSource : images.SOLANA}
         />
       )}
     </TouchableOpacity>

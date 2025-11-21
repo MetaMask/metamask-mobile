@@ -21,7 +21,6 @@ import {
 } from '../networkController';
 import { TEST_NETWORK_IDS } from '../../constants/network';
 import type { AccountGroupWithInternalAccounts } from './accounts.type';
-import { sortNetworkAddressItems } from '../../component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.utils';
 
 /**
  * Extracts the wallet ID from an account group ID.
@@ -283,7 +282,7 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
       return (groupId: AccountGroupId) => {
         const accounts = internalAccounts(groupId);
 
-        const items = accounts.flatMap((account) => {
+        return accounts.flatMap((account) => {
           // Determine scopes based on account type
           const scopes =
             account.type === EthAccountType.Eoa
@@ -299,31 +298,6 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
             networkName:
               networkConfigurations[scope]?.name || 'Unknown Network',
           }));
-        });
-
-        // Sort items using the same sorting logic as MultichainAddressRowsList
-        const sortedItems = sortNetworkAddressItems(
-          items.map((item) => ({
-            chainId: item.scope,
-            networkName: item.networkName,
-            address: item.account.address,
-          })),
-        );
-
-        // Map back to the original format with sorted order
-        return sortedItems.map((sortedItem) => {
-          const originalItem = items.find(
-            (item) =>
-              item.scope === sortedItem.chainId &&
-              item.account.address === sortedItem.address,
-          );
-          // originalItem should always exist since sortedItems is derived from items
-          if (!originalItem) {
-            throw new Error(
-              `Failed to find original item for scope ${sortedItem.chainId} and address ${sortedItem.address}`,
-            );
-          }
-          return originalItem;
         });
       };
     },
