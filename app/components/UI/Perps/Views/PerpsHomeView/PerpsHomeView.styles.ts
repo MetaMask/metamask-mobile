@@ -92,7 +92,26 @@ const styleSheet = (params: { theme: Theme }) => {
       marginRight: 12,
     },
     bottomSpacer: {
-      height: 80, // Space for tab bar + safe area
+      height: 100, // Space for fixed footer + tab bar + safe area (dynamically adjusted in component)
+    },
+    fixedFooter: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.background.default,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 32,
+    },
+    footerButtonsContainer: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    footerButton: {
+      flex: 1,
     },
     section: {
       marginBottom: 16,
