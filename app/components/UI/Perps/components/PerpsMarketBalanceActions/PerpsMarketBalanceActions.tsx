@@ -5,7 +5,7 @@ import React, {
   useState,
   useMemo,
 } from 'react';
-import { Animated, Image, Modal } from 'react-native';
+import { Animated, Image, Modal, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -380,16 +380,19 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
       </Box>
       {/* Eligibility Modal */}
       {isEligibilityModalVisible && (
-        <Modal visible transparent animationType="none" statusBarTranslucent>
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={closeEligibilityModal}
-            contentKey={'geo_block'}
-            testID={
-              PerpsMarketBalanceActionsSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
-            }
-          />
-        </Modal>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={closeEligibilityModal}
+              contentKey={'geo_block'}
+              testID={
+                PerpsMarketBalanceActionsSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
+              }
+            />
+          </Modal>
+        </View>
       )}
     </>
   );
