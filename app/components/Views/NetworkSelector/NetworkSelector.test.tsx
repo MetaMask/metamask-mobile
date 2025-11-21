@@ -335,6 +335,7 @@ describe('Network Selector', () => {
       chainId: CHAIN_IDS.MAINNET,
       rpcUrl: '',
       domainIsConnectedDapp: true,
+      nonEvmNetworkImageSource: '',
     };
     jest
       .spyOn(selectedNetworkControllerFcts, 'useNetworkInfo')
@@ -698,6 +699,7 @@ describe('Network Selector', () => {
         rpcUrl: 'https://test.network',
         domainIsConnectedDapp: false,
         origin: 'test-origin',
+        nonEvmNetworkImageSource: '',
       };
 
       jest
