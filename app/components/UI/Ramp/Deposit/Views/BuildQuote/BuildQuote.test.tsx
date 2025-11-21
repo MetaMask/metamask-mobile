@@ -534,7 +534,7 @@ describe('BuildQuote Component', () => {
         provider: 'DEPOSIT',
         account: '0x123',
         state: 'COMPLETED',
-      };
+      } as FiatOrder;
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);

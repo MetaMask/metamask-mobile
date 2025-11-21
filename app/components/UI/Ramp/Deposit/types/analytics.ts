@@ -1,15 +1,12 @@
+import { UnifiedRampRoutingType } from '../../../../../reducers/fiatOrders';
+
 interface RampsButtonClicked {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED BUY';
   user_id?: string;
   region: string;
   location: string;
-  ramp_routing?:
-    | 'DEPOSIT'
-    | 'AGGREGATOR BUY'
-    | 'AGGREGATOR SELL'
-    | 'UNSUPPORTED'
-    | 'ERROR';
+  ramp_routing?: UnifiedRampRoutingType | null;
   is_authenticated?: boolean;
   preferred_provider?: string;
   order_count?: number;
@@ -46,12 +43,7 @@ interface RampsTokenSelected {
   is_authenticated: boolean;
   token_caip19?: string;
   token_symbol?: string;
-  ramp_routing?:
-    | 'DEPOSIT'
-    | 'AGGREGATOR BUY'
-    | 'AGGREGATOR SELL'
-    | 'UNSUPPORTED'
-    | 'ERROR';
+  ramp_routing?: UnifiedRampRoutingType | null;
 }
 
 interface RampsRegionSelected {
