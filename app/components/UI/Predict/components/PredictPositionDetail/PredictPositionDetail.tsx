@@ -25,7 +25,6 @@ import {
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
-import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -40,10 +39,6 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 }: PredictPositionProps) => {
   const tw = useTailwind();
 
-  const currentPosition = usePredictOptimisticPositionRefresh({
-    position,
-  });
-
   const {
     icon,
     initialValue,
@@ -53,28 +48,28 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     title,
     optimistic,
     size,
-  } = currentPosition;
+  } = position;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: currentPosition.providerId,
+    providerId: position.providerId,
     navigation,
   });
 
   const groupItemTitle = market?.outcomes.find(
-    (o) => o.id === currentPosition.outcomeId && o.groupItemTitle,
+    (o) => o.id === position.outcomeId && o.groupItemTitle,
   )?.groupItemTitle;
 
   const onCashOut = () => {
     executeGuardedAction(
       () => {
         const _outcome = market?.outcomes.find(
-          (o) => o.id === currentPosition.outcomeId,
+          (o) => o.id === position.outcomeId,
         );
         navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
-          position: currentPosition,
+          position,
           outcome: _outcome,
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });

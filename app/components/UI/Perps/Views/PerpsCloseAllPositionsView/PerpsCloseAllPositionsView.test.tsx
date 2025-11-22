@@ -5,9 +5,7 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
-  usePerpsRewardAccountOptedIn,
 } from '../../hooks';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -22,7 +20,6 @@ jest.mock('../../hooks', () => ({
   usePerpsLivePositions: jest.fn(),
   usePerpsCloseAllCalculations: jest.fn(),
   usePerpsCloseAllPositions: jest.fn(),
-  usePerpsRewardAccountOptedIn: jest.fn(),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -113,10 +110,6 @@ const mockUsePerpsCloseAllPositions =
   usePerpsCloseAllPositions as jest.MockedFunction<
     typeof usePerpsCloseAllPositions
   >;
-const mockUsePerpsRewardAccountOptedIn =
-  usePerpsRewardAccountOptedIn as jest.MockedFunction<
-    typeof usePerpsRewardAccountOptedIn
-  >;
 
 describe('PerpsCloseAllPositionsView', () => {
   const mockPositions = [
@@ -171,21 +164,6 @@ describe('PerpsCloseAllPositionsView', () => {
     error: null,
   };
 
-  const mockRewardAccountOptedIn = {
-    accountOptedIn: true,
-    account: {
-      id: 'test-account-id',
-      address: '0x1234567890123456789012345678901234567890',
-      name: 'Test Account',
-      metadata: {
-        name: 'Test Account',
-        keyring: {
-          type: 'HD Key Tree',
-        },
-      },
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsLivePositions.mockReturnValue({
@@ -194,10 +172,6 @@ describe('PerpsCloseAllPositionsView', () => {
     });
     mockUsePerpsCloseAllCalculations.mockReturnValue(mockCalculations);
     mockUsePerpsCloseAllPositions.mockReturnValue(mockCloseAllHook);
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
-      accountOptedIn: true,
-      account: mockRewardAccountOptedIn as unknown as InternalAccount,
-    });
   });
 
   it('renders loading state when initially loading positions', () => {
@@ -296,70 +270,5 @@ describe('PerpsCloseAllPositionsView', () => {
 
     // Assert
     expect(getByText('perps.close_all_modal.description')).toBeTruthy();
-  });
-
-  it('calls usePerpsRewardAccountOptedIn with totalEstimatedPoints', () => {
-    // Arrange & Act
-    render(<PerpsCloseAllPositionsView />);
-
-    // Assert
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalledWith(
-      mockCalculations.totalEstimatedPoints,
-    );
-  });
-
-  it('passes accountOptedIn and rewardsAccount to PerpsCloseSummary', () => {
-    // Arrange
-    const mockAccount = {
-      id: 'test-account-id',
-      address: '0x1234567890123456789012345678901234567890',
-      name: 'Test Account',
-      metadata: {
-        name: 'Test Account',
-        keyring: {
-          type: 'HD Key Tree',
-        },
-      },
-    };
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
-      accountOptedIn: true,
-      account: mockAccount as unknown as InternalAccount,
-    });
-
-    // Act
-    render(<PerpsCloseAllPositionsView />);
-
-    // Assert
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
-  });
-
-  it('handles null accountOptedIn value', () => {
-    // Arrange
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
-      accountOptedIn: null,
-      account: null,
-    });
-
-    // Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
-
-    // Assert
-    expect(getByText('perps.close_all_modal.description')).toBeTruthy();
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
-  });
-
-  it('handles false accountOptedIn value', () => {
-    // Arrange
-    mockUsePerpsRewardAccountOptedIn.mockReturnValue({
-      accountOptedIn: false,
-      account: null,
-    });
-
-    // Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
-
-    // Assert
-    expect(getByText('perps.close_all_modal.description')).toBeTruthy();
-    expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
   });
 });

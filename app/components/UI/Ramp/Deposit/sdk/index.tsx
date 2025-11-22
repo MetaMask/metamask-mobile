@@ -25,6 +25,8 @@ import {
 } from '../utils/ProviderTokenVault';
 import { getSdkEnvironment } from './getSdkEnvironment';
 import {
+  fiatOrdersGetStartedDeposit,
+  setFiatOrdersGetStartedDeposit,
   fiatOrdersRegionSelectorDeposit,
   setFiatOrdersRegionDeposit,
   fiatOrdersCryptoCurrencySelectorDeposit,
@@ -35,7 +37,6 @@ import {
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import { DepositNavigationParams } from '../types';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -46,7 +47,8 @@ export interface DepositSDK {
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
   logoutFromProvider: (requireServerInvalidation?: boolean) => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
-
+  getStarted: boolean;
+  setGetStarted: (seen: boolean) => void;
   selectedWalletAddress: string | null;
   selectedRegion: DepositRegion | null;
   setSelectedRegion: (region: DepositRegion | null) => void;
@@ -54,15 +56,6 @@ export interface DepositSDK {
   setSelectedPaymentMethod: (paymentMethod: DepositPaymentMethod) => void;
   selectedCryptoCurrency: DepositCryptoCurrency | null;
   setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
-  intent?: DepositNavigationParams;
-  setIntent: (
-    intentOrSetter:
-      | DepositNavigationParams
-      | ((
-          previousIntent: DepositNavigationParams | undefined,
-        ) => DepositNavigationParams | undefined)
-      | undefined,
-  ) => void;
 }
 
 const environment = getSdkEnvironment();
@@ -92,10 +85,8 @@ export const DepositSDKProvider = ({
   const [sdkError, setSdkError] = useState<Error>();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authToken, setAuthToken] = useState<NativeTransakAccessToken>();
-  const [intent, setIntent] = useState<DepositNavigationParams | undefined>(
-    undefined,
-  );
 
+  const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedDeposit);
   const INITIAL_SELECTED_REGION: DepositRegion | null = useSelector(
     fiatOrdersRegionSelectorDeposit,
   );
@@ -103,6 +94,7 @@ export const DepositSDKProvider = ({
     useSelector(fiatOrdersCryptoCurrencySelectorDeposit);
   const INITIAL_SELECTED_PAYMENT_METHOD: DepositPaymentMethod | null =
     useSelector(fiatOrdersPaymentMethodSelectorDeposit);
+  const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
 
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
     INITIAL_SELECTED_REGION,
@@ -115,6 +107,14 @@ export const DepositSDKProvider = ({
 
   const selectedWalletAddress = useRampAccountAddress(
     selectedCryptoCurrency?.chainId,
+  );
+
+  const setGetStartedCallback = useCallback(
+    (getStartedFlag: boolean) => {
+      setGetStarted(getStartedFlag);
+      dispatch(setFiatOrdersGetStartedDeposit(getStartedFlag));
+    },
+    [dispatch],
   );
 
   const setSelectedRegionCallback = useCallback(
@@ -240,6 +240,8 @@ export const DepositSDKProvider = ({
       setAuthToken: setAuthTokenCallback,
       logoutFromProvider,
       checkExistingToken,
+      getStarted,
+      setGetStarted: setGetStartedCallback,
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
@@ -247,8 +249,6 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
       setSelectedCryptoCurrency: setSelectedCryptoCurrencyCallback,
-      intent,
-      setIntent,
     }),
     [
       sdk,
@@ -259,6 +259,8 @@ export const DepositSDKProvider = ({
       setAuthTokenCallback,
       logoutFromProvider,
       checkExistingToken,
+      getStarted,
+      setGetStartedCallback,
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegionCallback,
@@ -266,8 +268,6 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
       setSelectedCryptoCurrencyCallback,
-      intent,
-      setIntent,
     ],
   );
 

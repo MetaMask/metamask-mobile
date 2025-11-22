@@ -34,7 +34,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 
-export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
+export const BridgeSourceTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
@@ -79,14 +79,10 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
       : undefined;
   }
 
-  const tokenToExclude = useMemo(
-    () => (selectedDestToken ? [selectedDestToken] : []),
-    [selectedDestToken],
-  );
   const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedSourceToken?.chainId,
     balanceChainIds,
-    tokensToExclude: tokenToExclude,
+    tokensToExclude: selectedDestToken ? [selectedDestToken] : [],
   });
 
   const handleTokenPress = useCallback(
@@ -171,28 +167,18 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
     [selectedSourceChainIds, sortedSourceNetworks],
   );
 
-  const networksBar = useMemo(
-    () =>
-      isBridgeOrUnified ? (
-        <BridgeSourceNetworksBar
-          networksToShow={networksToShow}
-          networkConfigurations={allNetworkConfigurations}
-          selectedSourceChainIds={selectedSourceChainIds as Hex[]}
-          enabledSourceChains={enabledSourceChains}
-        />
-      ) : undefined,
-    [
-      isBridgeOrUnified,
-      networksToShow,
-      allNetworkConfigurations,
-      selectedSourceChainIds,
-      enabledSourceChains,
-    ],
-  );
-
   return (
     <BridgeTokenSelectorBase
-      networksBar={networksBar}
+      networksBar={
+        isBridgeOrUnified ? (
+          <BridgeSourceNetworksBar
+            networksToShow={networksToShow}
+            networkConfigurations={allNetworkConfigurations}
+            selectedSourceChainIds={selectedSourceChainIds as Hex[]}
+            enabledSourceChains={enabledSourceChains}
+          />
+        ) : undefined
+      }
       renderTokenItem={renderItem}
       allTokens={allTokens}
       tokensToRender={tokensToRender}
@@ -200,6 +186,4 @@ export const BridgeSourceTokenSelector: React.FC = React.memo(() => {
       chainIdToFetchMetadata={selectedChainId}
     />
   );
-});
-
-BridgeSourceTokenSelector.displayName = 'BridgeSourceTokenSelector';
+};

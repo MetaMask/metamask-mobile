@@ -88,7 +88,7 @@ describe('getNativeValueFn', () => {
     ).toStrictEqual('10.00');
   });
 
-  it('return empty string if input is empty string', () => {
+  it('return 0 if input is empty string', () => {
     expect(
       getNativeValueFn({
         conversionRate: 1,
@@ -96,7 +96,7 @@ describe('getNativeValueFn', () => {
         amount: '',
         decimals: 2,
       }),
-    ).toStrictEqual('');
+    ).toStrictEqual('0');
   });
 
   it('return 0 if input is invalid decimal', () => {

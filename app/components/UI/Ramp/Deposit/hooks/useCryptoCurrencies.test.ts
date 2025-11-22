@@ -26,7 +26,6 @@ jest.mock('react-redux', () => ({
 
 describe('useCryptoCurrencies', () => {
   const mockSetSelectedCryptoCurrency = jest.fn();
-  const mockSetIntent = jest.fn();
   const mockRetryFetchCryptoCurrencies = jest.fn();
 
   const mockNetworkConfigurations = {
@@ -54,8 +53,6 @@ describe('useCryptoCurrencies', () => {
         selectedRegion: MOCK_US_REGION,
         selectedCryptoCurrency: null,
         setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
-        intent: undefined,
-        setIntent: mockSetIntent,
       }),
     );
 
@@ -274,7 +271,6 @@ describe('useCryptoCurrencies', () => {
           selectedRegion: MOCK_US_REGION,
           selectedCryptoCurrency: MOCK_ETH_TOKEN,
           setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
-          setIntent: mockSetIntent,
         }),
       );
 
@@ -282,151 +278,6 @@ describe('useCryptoCurrencies', () => {
 
       expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
         MOCK_ETH_TOKEN,
-      );
-    });
-  });
-
-  describe('intent-based token selection', () => {
-    it('selects cryptocurrency matching intent assetId directly', () => {
-      const intent = { assetId: MOCK_USDC_TOKEN.assetId };
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          selectedRegion: MOCK_US_REGION,
-          selectedCryptoCurrency: null,
-          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
-          intent,
-          setIntent: mockSetIntent,
-        }),
-      );
-
-      renderHook(() => useCryptoCurrencies());
-
-      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
-        MOCK_USDC_TOKEN,
-      );
-    });
-
-    it('selects cryptocurrency matching intent assetId with chainId format', () => {
-      const intent = {
-        assetId: `${MOCK_USDC_TOKEN.chainId}/${MOCK_USDC_TOKEN.assetId}`,
-      };
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          selectedRegion: MOCK_US_REGION,
-          selectedCryptoCurrency: null,
-          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
-          intent,
-          setIntent: mockSetIntent,
-        }),
-      );
-
-      renderHook(() => useCryptoCurrencies());
-
-      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
-        MOCK_USDC_TOKEN,
-      );
-    });
-
-    it('clears intent assetId after processing', () => {
-      const intent = { assetId: MOCK_ETH_TOKEN.assetId };
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          selectedRegion: MOCK_US_REGION,
-          selectedCryptoCurrency: null,
-          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
-          intent,
-          setIntent: mockSetIntent,
-        }),
-      );
-
-      renderHook(() => useCryptoCurrencies());
-
-      expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
-    });
-
-    it('selects first cryptocurrency when intent assetId does not match any token', () => {
-      const intent = { assetId: 'unknown-asset-id' };
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          selectedRegion: MOCK_US_REGION,
-          selectedCryptoCurrency: null,
-          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
-          intent,
-          setIntent: mockSetIntent,
-        }),
-      );
-
-      renderHook(() => useCryptoCurrencies());
-
-      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
-        MOCK_CRYPTOCURRENCIES[0],
-      );
-    });
-
-    it('prioritizes intent-based selection over existing selection', () => {
-      const intent = { assetId: MOCK_ETH_TOKEN.assetId };
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          selectedRegion: MOCK_US_REGION,
-          selectedCryptoCurrency: MOCK_USDC_TOKEN,
-          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
-          intent,
-          setIntent: mockSetIntent,
-        }),
-      );
-
-      renderHook(() => useCryptoCurrencies());
-
-      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
-        MOCK_ETH_TOKEN,
-      );
-    });
-
-    it('does not process intent when assetId is undefined', () => {
-      const intent = { amount: '100' };
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          selectedRegion: MOCK_US_REGION,
-          selectedCryptoCurrency: null,
-          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
-          intent,
-          setIntent: mockSetIntent,
-        }),
-      );
-
-      renderHook(() => useCryptoCurrencies());
-
-      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
-        MOCK_CRYPTOCURRENCIES[0],
-      );
-    });
-
-    it('does not select when intent assetId matches token without assetId property', () => {
-      const cryptoWithoutAssetId = {
-        ...MOCK_ETH_TOKEN,
-        assetId: undefined,
-      };
-      const cryptosWithMissing = [cryptoWithoutAssetId, MOCK_USDC_TOKEN];
-      mockUseDepositSdkMethod.mockReturnValue([
-        { data: cryptosWithMissing, error: null, isFetching: false },
-        mockRetryFetchCryptoCurrencies,
-      ]);
-
-      const intent = { assetId: 'eth' };
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          selectedRegion: MOCK_US_REGION,
-          selectedCryptoCurrency: null,
-          setSelectedCryptoCurrency: mockSetSelectedCryptoCurrency,
-          intent,
-          setIntent: mockSetIntent,
-        }),
-      );
-
-      renderHook(() => useCryptoCurrencies());
-
-      expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
-        cryptosWithMissing[0],
       );
     });
   });

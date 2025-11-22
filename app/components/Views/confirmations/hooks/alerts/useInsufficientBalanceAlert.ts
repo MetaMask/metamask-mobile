@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Hex, add0x } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   addHexes,
@@ -9,7 +10,7 @@ import {
 } from '../../../../../util/conversions';
 import { strings } from '../../../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/Aggregator/routes/utils';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
@@ -32,7 +33,7 @@ export const useInsufficientBalanceAlert = ({
 }: {
   ignoreGasFeeToken?: boolean;
 } = {}): Alert[] => {
-  const { goToBuy } = useRampNavigation();
+  const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const { balanceWeiInHex } = useAccountNativeBalance(
@@ -105,7 +106,7 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            goToBuy();
+            navigation.navigate(...createBuyNavigationDetails());
             onReject(undefined, true);
           },
         },
@@ -126,10 +127,10 @@ export const useInsufficientBalanceAlert = ({
     isGaslessSupported,
     isPayTokenTarget,
     isTransactionValueUpdating,
+    navigation,
     networkConfigurations,
     onReject,
     payToken,
     transactionMetadata,
-    goToBuy,
   ]);
 };

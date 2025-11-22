@@ -23,10 +23,10 @@ export interface IHostApplicationAdapter {
   /**
    * Displays a global, non-interactive error modal.
    */
-  showConnectionError(conninfo?: ConnectionInfo): void;
+  showConnectionError(): void;
 
   /**
-   * Displays a "Return to App" toast notification for successful requests.
+   * Displays a "Return to App" toast notification.
    */
   showReturnToApp(conninfo: ConnectionInfo): void;
 

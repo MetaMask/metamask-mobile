@@ -89,11 +89,6 @@ jest.mock('../../../../../core/Engine', () => {
     '../../../../../util/test/keyringControllerTestUtils',
   );
   return {
-    controllerMessenger: {
-      call: jest.fn(),
-      subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
-    },
     context: {
       SwapsController: {
         fetchAggregatorMetadataWithCache: jest.fn(),
@@ -277,21 +272,6 @@ jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
 
-jest.mock('react-native-fade-in-image', () => {
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      children,
-      placeholderStyle,
-    }: {
-      children: React.ReactNode;
-      placeholderStyle?: unknown;
-    }) => React.createElement(View, { style: placeholderStyle }, children),
-  };
-});
-
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
 
@@ -443,7 +423,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { queryByTestId } = renderScreen(
+    const { queryByText } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -452,7 +432,7 @@ describe('BridgeView', () => {
     );
 
     // Verify max button is not present for native token
-    expect(queryByTestId('token-input-area-max-button')).toBeNull();
+    expect(queryByText('Max')).toBeNull();
   });
 
   it('should display max button when source token is not native token', () => {
@@ -472,7 +452,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { queryByTestId } = renderScreen(
+    const { queryByText } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -481,7 +461,7 @@ describe('BridgeView', () => {
     );
 
     // Verify max button is present for ERC-20 token
-    expect(queryByTestId('token-input-area-max-button')).toBeTruthy();
+    expect(queryByText('Max')).toBeTruthy();
   });
 
   it('should set source amount to maximum balance when max button is pressed', async () => {
@@ -501,7 +481,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { getByTestId } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -510,7 +490,7 @@ describe('BridgeView', () => {
     );
 
     // Find and press the max button
-    const maxButton = getByTestId('token-input-area-max-button');
+    const maxButton = getByText('Max');
     expect(maxButton).toBeTruthy();
     fireEvent.press(maxButton);
 

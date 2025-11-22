@@ -3,7 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { useRewardsIntroModal } from './useRewardsIntroModal';
-import { selectRewardsAnnouncementModalEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import {
+  selectRewardsEnabledFlag,
+  selectRewardsAnnouncementModalEnabledFlag,
+} from '../../../../selectors/featureFlagController/rewards';
 import { selectMultichainAccountsIntroModalSeen } from '../../../../reducers/user';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { setOnboardingActiveStep } from '../../../../reducers/rewards';
@@ -62,6 +65,7 @@ describe('useRewardsIntroModal', () => {
 
     // Default selector values: all conditions satisfied
     mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
       if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
       if (selector === selectMultichainAccountsIntroModalSeen) return true;
       if (selector === selectMultichainAccountsState2Enabled) return true;
@@ -105,8 +109,27 @@ describe('useRewardsIntroModal', () => {
     });
   });
 
+  it('does not navigate when rewards feature is disabled', async () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return false;
+      if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
+      if (selector === selectMultichainAccountsIntroModalSeen) return true;
+      if (selector === selectMultichainAccountsState2Enabled) return true;
+      return undefined;
+    });
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce('false');
+
+    renderHook(() => useRewardsIntroModal());
+
+    // Give effects a tick
+    await waitFor(() => {
+      expect(navigate).not.toHaveBeenCalled();
+    });
+  });
+
   it('does not navigate when announcement flag is disabled', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
       if (selector === selectRewardsAnnouncementModalEnabledFlag) return false;
       if (selector === selectMultichainAccountsIntroModalSeen) return true;
       if (selector === selectMultichainAccountsState2Enabled) return true;
@@ -123,6 +146,7 @@ describe('useRewardsIntroModal', () => {
 
   it('does not navigate when BIP44 intro modal has not been seen', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
       if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
       if (selector === selectMultichainAccountsIntroModalSeen) return false;
       if (selector === selectMultichainAccountsState2Enabled) return true;
@@ -139,6 +163,7 @@ describe('useRewardsIntroModal', () => {
 
   it('does not navigate when subscriptionId is present', async () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
       if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
       if (selector === selectMultichainAccountsIntroModalSeen) return true;
       if (selector === selectMultichainAccountsState2Enabled) return true;
@@ -159,6 +184,7 @@ describe('useRewardsIntroModal', () => {
   it('sets storage flag when subscriptionId is present', async () => {
     // Arrange
     mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
       if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
       if (selector === selectMultichainAccountsIntroModalSeen) return true;
       if (selector === selectMultichainAccountsState2Enabled) return true;
@@ -191,6 +217,7 @@ describe('useRewardsIntroModal', () => {
 
     // Mock BIP-44 modal as already seen (from previous session)
     mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
       if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
       if (selector === selectMultichainAccountsIntroModalSeen) return true; // Seen in previous session
       if (selector === selectMultichainAccountsState2Enabled) return true;
@@ -220,6 +247,7 @@ describe('useRewardsIntroModal', () => {
 
     // Start with BIP-44 modal already seen (from previous session)
     mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
       if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
       if (selector === selectMultichainAccountsIntroModalSeen) return true; // Already seen
       if (selector === selectMultichainAccountsState2Enabled) return true;
@@ -250,6 +278,7 @@ describe('useRewardsIntroModal', () => {
 
     // Start with BIP-44 modal NOT seen initially
     mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
       if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
       if (selector === selectMultichainAccountsIntroModalSeen) return false; // Initially not seen
       if (selector === selectMultichainAccountsState2Enabled) return true;
@@ -274,6 +303,7 @@ describe('useRewardsIntroModal', () => {
 
     // Now simulate BIP-44 modal being seen (state changes from false to true)
     mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsEnabledFlag) return true;
       if (selector === selectRewardsAnnouncementModalEnabledFlag) return true;
       if (selector === selectMultichainAccountsIntroModalSeen) return true; // Now seen
       if (selector === selectMultichainAccountsState2Enabled) return true;

@@ -232,10 +232,8 @@ describe('getTokenDetails', () => {
         aggregators: ['uniswap'],
       };
 
-      const { decimals, ...assetWithoutDecimals } = mockAsset;
-
       const result = getTokenDetails(
-        assetWithoutDecimals as TokenI,
+        mockAsset,
         false,
         '0x456',
         metadataWithoutDecimals,

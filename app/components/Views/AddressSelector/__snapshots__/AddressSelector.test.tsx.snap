@@ -989,7 +989,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Solana
+                                                BNB Chain
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1008,7 +1008,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-address"
                                               >
-                                                FcdCd3m...GPZgj
+                                                0x4FeC2...fdcB5
                                               </Text>
                                             </View>
                                             <View
@@ -1170,7 +1170,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Linea
+                                                Polygon
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1351,7 +1351,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Arbitrum
+                                                OP
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1532,7 +1532,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Base
+                                                Arbitrum
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1713,7 +1713,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                BNB Chain
+                                                Linea
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -1894,7 +1894,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                OP
+                                                Base
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -2075,7 +2075,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Polygon
+                                                Solana
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"
@@ -2094,7 +2094,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-address"
                                               >
-                                                0x4FeC2...fdcB5
+                                                FcdCd3m...GPZgj
                                               </Text>
                                             </View>
                                             <View

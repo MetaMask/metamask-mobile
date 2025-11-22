@@ -34,10 +34,6 @@ export const useAmountValidation = () => {
       return undefined;
     }
 
-    if (rawBalanceBN.isZero()) {
-      return strings('send.insufficient_funds');
-    }
-
     try {
       const result = (await validateAmountWithSnap(
         value || '0',
@@ -53,7 +49,7 @@ export const useAmountValidation = () => {
     } catch (error) {
       return strings('send.invalid_value');
     }
-  }, [value, validateAmountWithSnap, isNonEvmSendType, rawBalanceBN]);
+  }, [value, validateAmountWithSnap, isNonEvmSendType]);
 
   const validateAmountAsync = useCallback(async () => {
     if (!value) {

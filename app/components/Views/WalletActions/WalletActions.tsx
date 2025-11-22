@@ -24,9 +24,13 @@ import styleSheet from './WalletActions.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
-import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
@@ -43,9 +47,7 @@ const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
-  const isPooledStakingEnabled = useFeatureFlag(
-    FeatureFlagNames.earnPooledStakingEnabled,
-  );
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
@@ -56,12 +58,8 @@ const WalletActions = () => {
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
   );
-  const isPerpsEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  ) as boolean;
-  const isPredictEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  ) as boolean;
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);

@@ -1,11 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { isCarousel: boolean };
-}) => {
-  const { theme, vars } = params;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
 
   return StyleSheet.create({
     marketContainer: {
@@ -13,11 +10,10 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
       alignItems: 'flex-start',
       width: '100%',
-      ...(vars.isCarousel && { height: '100%' }),
       backgroundColor: theme.colors.background.section,
       borderRadius: 16,
-      padding: vars.isCarousel ? 12 : 16,
-      marginVertical: vars.isCarousel ? 0 : 8,
+      padding: 16,
+      marginVertical: 8,
     },
     marketHeader: {
       flexDirection: 'row',

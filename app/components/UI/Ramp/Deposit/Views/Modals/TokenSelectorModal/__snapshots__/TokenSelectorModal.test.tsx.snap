@@ -2954,7 +2954,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
                                   "name": "Tether USD",
                                   "symbol": "USDT",
-                                  "unsupported": true,
                                 },
                                 {
                                   "assetId": "bip122:000000000019d6689c085ae165831e93/slip44:0",
@@ -2963,7 +2962,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png",
                                   "name": "Bitcoin",
                                   "symbol": "BTC",
-                                  "unsupported": true,
                                 },
                                 {
                                   "assetId": "eip155:1/slip44:60",
@@ -2974,10 +2972,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "symbol": "ETH",
                                 },
                                 {
-                                  "assetId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
+                                  "assetId": "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
                                   "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
                                   "decimals": 6,
-                                  "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
+                                  "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
                                   "name": "USD Coin",
                                   "symbol": "USDC",
                                 },
@@ -3019,6 +3017,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3029,7 +3029,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
-                                  testID="token-list-item-eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3206,7 +3205,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USD Coin
+                                          USDC
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -3220,7 +3219,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USDC
+                                          Ethereum
                                         </Text>
                                       </View>
                                     </View>
@@ -3260,6 +3259,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3270,7 +3271,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
-                                  testID="token-list-item-eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3447,7 +3447,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          Tether USD
+                                          USDT
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -3461,7 +3461,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USDT
+                                          Ethereum
                                         </Text>
                                       </View>
                                     </View>
@@ -3474,6 +3474,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3484,7 +3486,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
-                                  testID="token-list-item-bip122:000000000019d6689c085ae165831e93/slip44:0"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3661,7 +3662,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          Bitcoin
+                                          BTC
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -3675,7 +3676,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          BTC
+                                          Bitcoin
                                         </Text>
                                       </View>
                                     </View>
@@ -3688,6 +3689,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3698,7 +3701,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
-                                  testID="token-list-item-eip155:1/slip44:60"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3875,7 +3877,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          ETH
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -3889,7 +3891,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          ETH
+                                          Ethereum
                                         </Text>
                                       </View>
                                     </View>
@@ -3902,6 +3904,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 style={null}
                               >
                                 <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
                                   disabled={false}
                                   onPress={[Function]}
                                   style={
@@ -3912,7 +3916,6 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "position": "relative",
                                     }
                                   }
-                                  testID="token-list-item-solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -3966,7 +3969,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                                 resizeMode="contain"
                                                 source={
                                                   {
-                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
+                                                    "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
                                                   }
                                                 }
                                                 style={
@@ -4089,7 +4092,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USD Coin
+                                          USDC
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -4103,7 +4106,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USDC
+                                          Solana
                                         </Text>
                                       </View>
                                     </View>

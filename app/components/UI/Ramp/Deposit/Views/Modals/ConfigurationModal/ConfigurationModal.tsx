@@ -9,7 +9,7 @@ import {
 } from '../../../../../../../component-library/components/Icons/Icon';
 
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
-import { useRampNavigation } from '../../../../hooks/useRampNavigation';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
@@ -36,7 +36,6 @@ function ConfigurationModal() {
   const { toastRef } = useContext(ToastContext);
   const trackEvent = useAnalytics();
 
-  const { goToAggregator } = useRampNavigation();
   const { logoutFromProvider, isAuthenticated, selectedRegion } =
     useDepositSDK();
 
@@ -62,8 +61,8 @@ function ConfigurationModal() {
       region: selectedRegion?.isoCode as string,
     });
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    goToAggregator();
-  }, [navigation, selectedRegion?.isoCode, trackEvent, goToAggregator]);
+    navigation.navigate(...createBuyNavigationDetails());
+  }, [navigation, selectedRegion?.isoCode, trackEvent]);
 
   const handleLogOut = useCallback(async () => {
     try {

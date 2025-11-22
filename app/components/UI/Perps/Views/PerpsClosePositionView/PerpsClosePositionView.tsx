@@ -400,10 +400,7 @@ const PerpsClosePositionView: React.FC = () => {
       slippage: {
         usdAmount: isFullClose ? undefined : closingValueString,
         priceAtCalculation: effectivePrice,
-        maxSlippageBps:
-          orderType === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
-            : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
+        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS,
       },
     });
   };
@@ -550,8 +547,6 @@ const PerpsClosePositionView: React.FC = () => {
       isLoadingFees={feeResults.isLoadingMetamaskFee}
       isLoadingRewards={rewardsState.isLoading}
       hasRewardsError={rewardsState.hasError}
-      accountOptedIn={rewardsState.accountOptedIn}
-      rewardsAccount={rewardsState.account}
       isInputFocused={isInputFocused}
       testIDs={{
         feesTooltip: PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,

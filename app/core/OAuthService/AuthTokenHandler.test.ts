@@ -292,18 +292,20 @@ describe('AuthTokenHandler', () => {
 
       fetchSpy.mockResolvedValueOnce({
         ok: true,
-        statusText: 'OK',
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
       // Act
-      const pendingPromise = AuthTokenHandler.renewRefreshToken({
+      const result = await AuthTokenHandler.renewRefreshToken({
         connection: mockConnection,
         revokeToken: mockRevokeToken,
       });
 
       // Assert
-      await expect(pendingPromise).rejects.toThrow();
+      expect(result).toEqual({
+        newRefreshToken: undefined,
+        newRevokeToken: undefined,
+      });
     });
   });
 
@@ -499,15 +501,6 @@ describe('AuthTokenHandler', () => {
       await AuthTokenHandler.refreshJWTToken({
         connection: AuthConnection.Google,
         refreshToken: 'test-token',
-      });
-
-      const refreshMockResponse = {
-        refresh_token: 'new-refresh-token',
-        revoke_token: 'new-revoke-token',
-      };
-      fetchSpy.mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(refreshMockResponse),
       });
 
       await AuthTokenHandler.renewRefreshToken({

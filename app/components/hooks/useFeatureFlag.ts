@@ -3,19 +3,7 @@ import { useFeatureFlagOverride } from '../../contexts/FeatureFlagOverrideContex
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 export enum FeatureFlagNames {
-  otaUpdatesEnabled = 'otaUpdatesEnabled',
-  rewardsEnableCardSpend = 'rewardsEnableCardSpend',
-  rewardsEnableMusdDeposit = 'rewardsEnableMusdDeposit',
-  cardFeature = 'cardFeature', //remote config
-  sampleFeatureCounterEnabled = 'sampleFeatureCounterEnabled',
-  bridgeConfigV2 = 'bridgeConfigV2', //remote config
-  depositConfig = 'depositConfig', //remote config
-  earnPooledStakingEnabled = 'earnPooledStakingEnabled',
-  predictTradingEnabled = 'predictTradingEnabled',
-  perpsPerpTradingEnabled = 'perpsPerpTradingEnabled',
-  confirmationsPay = 'confirmations_pay', //remote config
-  carouselBanners = 'carouselBanners',
-  fullPageAccountList = 'fullPageAccountList',
+  rewardsEnabled = 'rewardsEnabled',
 }
 
 export const useFeatureFlag = (key: FeatureFlagNames) => {

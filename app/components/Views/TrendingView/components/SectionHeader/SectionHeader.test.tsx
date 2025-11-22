@@ -4,15 +4,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import SectionHeader from './SectionHeader';
 
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
-
 const initialState = {
   engine: {
     backgroundState,
@@ -20,13 +11,15 @@ const initialState = {
 };
 
 describe('SectionHeader', () => {
+  const mockOnViewAll = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders title and view all text for predictions section', () => {
+  it('renders title and view all text correctly', () => {
     const { getByText } = renderWithProvider(
-      <SectionHeader sectionId="predictions" />,
+      <SectionHeader title="Predictions" onViewAll={mockOnViewAll} />,
       { state: initialState },
     );
 
@@ -34,34 +27,14 @@ describe('SectionHeader', () => {
     expect(getByText('View all')).toBeOnTheScreen();
   });
 
-  it('renders title and view all text for tokens section', () => {
+  it('calls onViewAll when view all button is pressed', () => {
     const { getByText } = renderWithProvider(
-      <SectionHeader sectionId="tokens" />,
-      { state: initialState },
-    );
-
-    expect(getByText('Tokens')).toBeOnTheScreen();
-    expect(getByText('View all')).toBeOnTheScreen();
-  });
-
-  it('renders title and view all text for perps section', () => {
-    const { getByText } = renderWithProvider(
-      <SectionHeader sectionId="perps" />,
-      { state: initialState },
-    );
-
-    expect(getByText('Perps')).toBeOnTheScreen();
-    expect(getByText('View all')).toBeOnTheScreen();
-  });
-
-  it('calls navigation action when view all button is pressed', () => {
-    const { getByText } = renderWithProvider(
-      <SectionHeader sectionId="perps" />,
+      <SectionHeader title="Predictions" onViewAll={mockOnViewAll} />,
       { state: initialState },
     );
 
     fireEvent.press(getByText('View all'));
 
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockOnViewAll).toHaveBeenCalledTimes(1);
   });
 });

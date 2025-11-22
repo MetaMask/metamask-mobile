@@ -8,6 +8,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
   isTestNet: jest.fn().mockReturnValue(false),
 }));
 
@@ -159,7 +160,60 @@ describe('DeFiPositionsControlBar', () => {
     expect(getByTestId('defi-positions-network-filter')).toBeDefined();
   });
 
-  it('shows enabled networks text when multiple networks enabled', () => {
+  it('should show current network name when isRemoveGlobalNetworkSelectorEnabled is false and single network', () => {
+    const mockState = createMockState({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            provider: {
+              chainId: CHAIN_IDS.MAINNET,
+              type: 'mainnet',
+            },
+          },
+          MultichainNetworkController: {
+            isEvmSelected: true,
+          },
+          PreferencesController: {
+            selectedAddress: '0x123',
+          },
+        },
+      },
+    });
+
+    store = mockStore(mockState);
+
+    const { getByText } = render(
+      <Provider store={store}>
+        <DeFiPositionsControlBar />
+      </Provider>,
+    );
+
+    expect(getByText('Ethereum Mainnet')).toBeDefined();
+  });
+
+  it('should show popular networks text when isRemoveGlobalNetworkSelectorEnabled is false and isAllNetworks is true', () => {
+    const mockState = createMockState();
+    store = mockStore(mockState);
+
+    const networkControllerModule = jest.requireMock(
+      '../../../selectors/networkController',
+    );
+    networkControllerModule.selectIsAllNetworks = () => true;
+    networkControllerModule.selectIsPopularNetwork = () => true;
+
+    const { getByText } = render(
+      <Provider store={store}>
+        <DeFiPositionsControlBar />
+      </Provider>,
+    );
+
+    expect(getByText(strings('wallet.popular_networks'))).toBeDefined();
+  });
+
+  it('should show enabled networks text when isRemoveGlobalNetworkSelectorEnabled is true and multiple networks enabled', () => {
+    const networksModule = jest.requireMock('../../../util/networks');
+    networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
     const mockState = createMockState();
     store = mockStore(mockState);
 
@@ -172,7 +226,10 @@ describe('DeFiPositionsControlBar', () => {
     expect(getByText(strings('wallet.popular_networks'))).toBeDefined();
   });
 
-  it('shows current network name when single network enabled', () => {
+  it('should show current network name when isRemoveGlobalNetworkSelectorEnabled is true and single network enabled', () => {
+    const networksModule = jest.requireMock('../../../util/networks');
+    networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
     const useCurrentNetworkInfoModule = jest.requireMock(
       '../../hooks/useCurrentNetworkInfo',
     );
@@ -203,7 +260,10 @@ describe('DeFiPositionsControlBar', () => {
     expect(getByText('Ethereum Mainnet')).toBeDefined();
   });
 
-  it('shows current network fallback when no network name', () => {
+  it('should show current network fallback when isRemoveGlobalNetworkSelectorEnabled is true and no network name', () => {
+    const networksModule = jest.requireMock('../../../util/networks');
+    networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
     const useCurrentNetworkInfoModule = jest.requireMock(
       '../../hooks/useCurrentNetworkInfo',
     );
@@ -232,7 +292,10 @@ describe('DeFiPositionsControlBar', () => {
     expect(getByText(strings('wallet.current_network'))).toBeDefined();
   });
 
-  it('navigates to network manager when filter button is pressed', () => {
+  it('should navigate to network manager when isRemoveGlobalNetworkSelectorEnabled is true and filter button is pressed', () => {
+    const networksModule = jest.requireMock('../../../util/networks');
+    networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
     const mockNavigation = {
       navigate: jest.fn(),
     };
@@ -256,6 +319,37 @@ describe('DeFiPositionsControlBar', () => {
       'RootModalFlow',
       expect.objectContaining({
         screen: 'NetworkManager',
+      }),
+    );
+  });
+
+  it('should navigate to token filter when isRemoveGlobalNetworkSelectorEnabled is false and filter button is pressed', () => {
+    const networksModule = jest.requireMock('../../../util/networks');
+    networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+    const mockNavigation = {
+      navigate: jest.fn(),
+    };
+
+    const navigationModule = jest.requireMock('@react-navigation/native');
+    navigationModule.useNavigation = () => mockNavigation;
+
+    const mockState = createMockState();
+    store = mockStore(mockState);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <DeFiPositionsControlBar />
+      </Provider>,
+    );
+
+    const filterButton = getByTestId('defi-positions-network-filter');
+    fireEvent.press(filterButton);
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      'RootModalFlow',
+      expect.objectContaining({
+        screen: 'TokenFilter',
       }),
     );
   });

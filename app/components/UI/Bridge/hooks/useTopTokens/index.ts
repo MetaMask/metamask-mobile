@@ -57,14 +57,14 @@ const formatCachedTokenListControllerTokens = (
 ): Record<string, BridgeToken> => {
   const bridgeTokenObj: Record<string, BridgeToken> = {};
 
-  const caipChainId = formatChainIdToCaip(chainId);
-  const hexChainId = formatChainIdToHex(chainId);
-  const isNonEnvChain = isNonEvmChainId(caipChainId);
-
   Object.entries(cachedTokens).forEach(([address, token]) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+    const hexChainId = formatChainIdToHex(chainId);
+
     // Convert non-EVM addresses to CAIP format for consistent deduplication
-    const assetId = formatAddressToAssetId(token.address, caipChainId);
-    const tokenAddress = isNonEnvChain ? assetId : token.address;
+    const tokenAddress = isNonEvmChainId(caipChainId)
+      ? formatAddressToAssetId(token.address, caipChainId)
+      : token.address;
 
     if (!tokenAddress) {
       throw new Error(
@@ -76,9 +76,9 @@ const formatCachedTokenListControllerTokens = (
       address: tokenAddress,
       symbol: token.symbol,
       name: token.name,
-      image: getTokenIconUrl(assetId, isNonEnvChain) || token.iconUrl || '',
+      image: getTokenIconUrl(tokenAddress, chainId) || token.iconUrl || '',
       decimals: token.decimals,
-      chainId: isNonEnvChain ? caipChainId : hexChainId,
+      chainId: isNonEvmChainId(caipChainId) ? caipChainId : hexChainId,
       accountType: getAccountType(caipChainId),
     };
   });
@@ -232,10 +232,11 @@ export const useTopTokens = ({
       [];
 
     // Helper function to add a token if it's not already added and we haven't reached the limit
-    const addTokenIfNotExists = (
-      token: BridgeToken,
-      normalizedAddress: string,
-    ) => {
+    const addTokenIfNotExists = (token: BridgeToken) => {
+      const normalizedAddress = isNonEvmChainId(token.chainId)
+        ? token.address // Solana addresses are case-sensitive, TODO but are Bitcoin addresses case-sensitive?
+        : token.address.toLowerCase(); // EVM addresses are case-insensitive
+
       if (!addedAddresses.has(normalizedAddress)) {
         addedAddresses.add(normalizedAddress);
         if (result.length < MAX_TOP_TOKENS) {
@@ -256,10 +257,7 @@ export const useTopTokens = ({
         bridgeTokens[toChecksumHexAddress(topAssetAddr)];
 
       if (candidateBridgeToken) {
-        const normalizedAddress = isNonEvmChainId(candidateBridgeToken.chainId)
-          ? candidateBridgeToken.address // Solana addresses are case-sensitive, TODO but are Bitcoin addresses case-sensitive?
-          : candidateBridgeToken.address.toLowerCase(); // EVM addresses are case-insensitive
-        addTokenIfNotExists(candidateBridgeToken, normalizedAddress);
+        addTokenIfNotExists(candidateBridgeToken);
       }
     }
 
@@ -269,7 +267,12 @@ export const useTopTokens = ({
         ? token.address // Solana addresses are case-sensitive, TODO but are Bitcoin addresses case-sensitive?
         : token.address.toLowerCase(); // EVM addresses are case-insensitive
 
-      addTokenIfNotExists(token, normalizedAddress);
+      // Skip if already added to top tokens
+      if (addedAddresses.has(normalizedAddress)) {
+        continue;
+      }
+
+      addTokenIfNotExists(token);
     }
 
     return {

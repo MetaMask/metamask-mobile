@@ -26,16 +26,6 @@ const styleSheet = (params: {
     dataScrollContainer: {
       height: 200,
     },
-    skeletonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingBottom: 8,
-      paddingHorizontal: 8,
-    },
-    skeletonBorderRadius: {
-      borderRadius: 4,
-    },
   });
 };
 

@@ -1,6 +1,6 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import { TEST_NETWORK_IDS } from '../../../../constants/network';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -18,12 +18,7 @@ export interface NetworkAddressItem {
  */
 const extractHexChainId = (chainId: CaipChainId): string => {
   if (chainId.startsWith('eip155:')) {
-    const chainIdPart = chainId.split(':')[1];
-    // Convert decimal to hex format if needed (CAIP format uses decimal)
-    if (!chainIdPart.startsWith('0x')) {
-      return `0x${parseInt(chainIdPart, 10).toString(16)}`;
-    }
-    return chainIdPart;
+    return chainId.split(':')[1];
   }
   return chainId;
 };
@@ -38,40 +33,30 @@ const getNetworkPriority = (chainId: CaipChainId): number => {
   // For EVM networks, extract hex chain ID for comparison
   const hexChainId = extractHexChainId(chainId);
 
-  // Hardcoded order for top networks
   if (hexChainId === CHAIN_IDS.MAINNET) {
     return 0;
   } // Ethereum first
-  if (chainId === BtcScope.Mainnet) {
-    return 1;
-  } // Bitcoin second
   if (chainId === SolScope.Mainnet) {
-    return 2;
-  } // Solana third
-  if (chainId === TrxScope.Mainnet) {
-    return 3;
-  } // Tron fourth
-  if (hexChainId === CHAIN_IDS.LINEA_MAINNET) {
-    return 4;
-  } // Linea fifth
+    return 1;
+  } // Solana second
   if (
     TEST_NETWORK_IDS.includes(hexChainId as (typeof TEST_NETWORK_IDS)[number])
   ) {
-    return 7;
+    return 4;
   } // Test networks last
 
   // Featured networks (popular networks)
   const popularChainIds = PopularList.map((network) => network.chainId);
   if (popularChainIds.includes(hexChainId as `0x${string}`)) {
-    return 5;
+    return 2;
   }
 
-  return 6; // Other custom networks
+  return 3; // Other custom networks
 };
 
 /**
  * Sorts network address items according to priority:
- * 1. Ethereum, 2. Bitcoin, 3. Solana, 4. Tron, 5. Linea, 6. Featured networks, 7. Other custom networks, 8. Test networks last
+ * 1. Ethereum first, 2. Solana second, 3. Featured networks, 4. Other custom networks, 5. Test networks last
  *
  * @param items - Array of NetworkAddressItem objects to sort
  * @returns Sorted array of NetworkAddressItem objects

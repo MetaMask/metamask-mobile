@@ -268,71 +268,67 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   },
 );
 
-export const selectMultichainTokenListForAccountsAnyChain =
+export const selectMultichainTokenListForAccountAnyChain =
   createDeepEqualSelector(
     selectMultichainBalances,
     selectMultichainAssets,
     selectMultichainAssetsMetadata,
     selectMultichainAssetsRates,
-    (_: RootState, accounts: InternalAccount[] | undefined) => accounts,
-    (multichainBalances, assets, assetsMetadata, assetsRates, accounts) => {
-      if (!accounts || accounts.length === 0) {
+    (_: RootState, account: InternalAccount | undefined) => account,
+    (multichainBalances, assets, assetsMetadata, assetsRates, account) => {
+      if (!account) {
         return [];
       }
 
+      const accountId = account.id;
+
+      const assetIds = assets?.[accountId] || [];
+      const balances = multichainBalances?.[accountId];
+
       const tokens = [];
 
-      for (const account of accounts) {
-        const accountId = account.id;
+      for (const assetId of assetIds) {
+        const { chainId, assetNamespace } = parseCaipAssetType(assetId);
 
-        const assetIds = assets?.[accountId] || [];
-        const balances = multichainBalances?.[accountId];
+        // Remove the chain filter - include tokens from all chains
+        const isNative = assetNamespace === 'slip44';
+        const balance = balances?.[assetId] || { amount: undefined, unit: '' };
+        const rate = assetsRates?.[assetId]?.rate || '0';
+        const balanceInFiat = balance.amount
+          ? new BigNumber(balance.amount).times(rate)
+          : undefined;
 
-        for (const assetId of assetIds) {
-          const { chainId, assetNamespace } = parseCaipAssetType(assetId);
+        const assetMetadataFallback = {
+          name: balance.unit || '',
+          symbol: balance.unit || '',
+          fungible: true,
+          units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
+        };
 
-          // Remove the chain filter - include tokens from all chains
-          const isNative = assetNamespace === 'slip44';
-          const balance = balances?.[assetId] || {
-            amount: undefined,
-            unit: '',
-          };
-          const rate = assetsRates?.[assetId]?.rate || '0';
-          const balanceInFiat = balance.amount
-            ? new BigNumber(balance.amount).times(rate)
-            : undefined;
+        const metadata = assetsMetadata[assetId] || assetMetadataFallback;
+        const decimals = metadata.units[0]?.decimals || 0;
 
-          const assetMetadataFallback = {
-            name: balance.unit || '',
-            symbol: balance.unit || '',
-            fungible: true,
-            units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
-          };
-
-          const metadata = assetsMetadata[assetId] || assetMetadataFallback;
-          const decimals = metadata.units[0]?.decimals || 0;
-
-          tokens.push({
-            name: metadata?.name ?? '',
-            address: assetId,
-            symbol: metadata?.symbol ?? '',
-            image: metadata?.iconUrl,
-            logo: metadata?.iconUrl,
-            decimals,
-            chainId,
-            isNative,
-            balance: balance.amount,
-            secondary: balanceInFiat ? balanceInFiat.toString() : undefined,
-            string: '',
-            balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
-            isStakeable: false,
-            aggregators: [],
-            isETH: false,
-            ticker: metadata.symbol,
-            accountType: account.type,
-          });
-        }
+        tokens.push({
+          name: metadata?.name ?? '',
+          address: assetId,
+          symbol: metadata?.symbol ?? '',
+          image: metadata?.iconUrl,
+          logo: metadata?.iconUrl,
+          decimals,
+          chainId,
+          isNative,
+          balance: balance.amount,
+          secondary: balanceInFiat ? balanceInFiat.toString() : undefined,
+          string: '',
+          balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
+          isStakeable: false,
+          aggregators: [],
+          isETH: false,
+          ticker: metadata.symbol,
+          accountType: account.type,
+        });
       }
+
       return tokens;
     },
   );

@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import type { PerpsMarketData } from '../controllers/types';
 
@@ -13,7 +15,7 @@ export interface PerpsNavigationHandlers {
   navigateToBrowser: () => void;
   navigateToActions: () => void;
   navigateToActivity: () => void;
-  navigateToRewards: () => void;
+  navigateToRewardsOrSettings: () => void;
 
   // Perps-specific navigation
   navigateToMarketDetails: (market: PerpsMarketData, source?: string) => void;
@@ -60,6 +62,7 @@ export interface PerpsNavigationHandlers {
  */
 export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   // Main app navigation handlers
   const navigateToWallet = useCallback(() => {
@@ -90,9 +93,15 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     });
   }, [navigation]);
 
-  const navigateToRewards = useCallback(() => {
-    navigation.navigate(Routes.REWARDS_VIEW);
-  }, [navigation]);
+  const navigateToRewardsOrSettings = useCallback(() => {
+    if (isRewardsEnabled) {
+      navigation.navigate(Routes.REWARDS_VIEW);
+    } else {
+      navigation.navigate(Routes.SETTINGS_VIEW, {
+        screen: 'Settings',
+      });
+    }
+  }, [navigation, isRewardsEnabled]);
 
   // Perps-specific navigation handlers
   const navigateToMarketDetails = useCallback(
@@ -150,7 +159,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToBrowser,
     navigateToActions,
     navigateToActivity,
-    navigateToRewards,
+    navigateToRewardsOrSettings,
 
     // Perps-specific navigation
     navigateToMarketDetails,

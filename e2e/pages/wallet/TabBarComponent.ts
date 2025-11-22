@@ -81,9 +81,9 @@ class TabBarComponent {
   async tapSettings(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        // Ensure we're on WalletView where the hamburger menu is located
-        await this.tapWallet();
-        await WalletView.tapHamburgerMenu();
+        await Gestures.waitAndTap(this.tabBarSettingButton, {
+          elemDescription: 'Tab Bar - Settings Button',
+        });
         await Assertions.expectElementToBeVisible(SettingsView.title);
       },
       {

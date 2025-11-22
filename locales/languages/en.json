@@ -631,7 +631,7 @@
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms.",
-      "title": "Buy",
+      "title": "Deposit",
       "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
       "limitError": "Failed to check your deposit limits. Please try again later."
     },
@@ -639,10 +639,7 @@
       "select_a_token": "Select a Token",
       "select_token": "Select token",
       "search_by_name_or_address": "Search token by name or address",
-      "no_tokens_found": "No tokens match \"{{searchString}}\"",
-      "unsupported_token_title": "Not available",
-      "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers",
-      "error_loading_tokens": "Unable to load tokens. Please try again later."
+      "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
     "networks_filter_bar": {
       "all_networks": "All networks"
@@ -1337,7 +1334,6 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
-      "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
@@ -1425,8 +1421,6 @@
       "position": "Position",
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
-      "recent_trades": "Recent activity",
-      "no_trades": "No recent activity",
       "trading_24_7": "This asset may be traded 24/7",
       "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
@@ -1945,10 +1939,10 @@
       "order_failed_generic": "Transaction failed. Please try again."
     },
     "withdraw": {
-      "withdrawing": "Withdrawal in progress",
-      "withdrawing_subtitle": "Available in about 1 minute",
-      "withdraw_completed": "Withdrawal complete",
-      "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
+      "withdrawing": "Withdrawing {{amount}} USDC",
+      "withdrawing_subtitle": "Est. {{time}} seconds",
+      "withdraw_completed": "Withdrawal completed",
+      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
@@ -3485,7 +3479,6 @@
     "self_sent_dai": "Sent Yourself DAI",
     "received_dai": "Received DAI",
     "sent_tokens": "Sent Tokens",
-    "received_tokens": "Received Tokens",
     "ether": "Ether",
     "sent_unit": "Sent {{unit}}",
     "self_sent_unit": "Sent Yourself {{unit}}",
@@ -4600,11 +4593,6 @@
       "title": "Eligibility Check Failed",
       "description": "We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.",
       "contact_support": "Contact Support",
-      "got_it": "Got It"
-    },
-    "unsupported_region_modal": {
-      "title": "Unavailable in your region",
-      "description": "Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.",
       "got_it": "Got It"
     },
     "region": {
@@ -6648,13 +6636,13 @@
       "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
       "not_supported_account_type_title": "Account type not supported",
-      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Please switch to a different account to proceed.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication Failed",
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
+      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
       "gtm_title": "Rewards are here",
       "gtm_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "gtm_confirm": "Get started",
@@ -6701,7 +6689,7 @@
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
       "link_account_button": "Add",
-      "link_account_failed_error": "Failed to add account",
+      "link_account_failed_error": "Failed to link account",
       "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
@@ -6824,13 +6812,12 @@
     },
     "link_account_group": {
       "link_account": "Add account",
-      "tracked": "Enrolled",
-      "untracked": "Not enrolled",
-      "unsupported": "Not supported",
-      "tracked_count": "{{optedIn}}/{{total}} enrolled",
+      "tracked": "Tracked",
+      "untracked": "Untracked",
+      "unsupported": "Unsupported",
+      "tracked_count": "{{optedIn}}/{{total}} tracked",
       "link_account_success": "{{accountName}} added successfully",
-      "link_account_error": "Failed to add one or more addresses for {{accountName}}",
-      "link_account_address_error": "Failed to add {{address}}"
+      "link_account_error": "Failed to add one or more addresses for {{accountName}}"
     },
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
@@ -6914,24 +6901,8 @@
   "trending": {
     "title": "Trending",
     "view_all": "View all",
-    "tokens": "Tokens",
-    "trending_tokens": "Trending Tokens",
-    "price_change": "Price change",
-    "all_networks": "All networks",
-    "24h": "24h",
-    "time": "Time",
-    "24_hours": "24 hours",
-    "6_hours": "6 hours",
-    "1_hour": "1 hour",
-    "5_minutes": "5 minutes",
-    "networks": "Networks",
-    "sort_by": "Sort by",
-    "volume": "Volume",
-    "market_cap": "Market cap",
-    "high_to_low": "High to low",
-    "low_to_high": "Low to high",
-    "apply": "Apply",
     "search_placeholder": "Search tokens, sites, URLs",
+    "tokens": "Tokens",
     "perps": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found"

@@ -83,7 +83,8 @@ function getTokenTransfer(args) {
   }
 
   const isIncomplete = isTransactionIncomplete(status);
-  const isSent = from?.toLowerCase() === selectedAddress?.toLowerCase();
+  const isSent =
+    renderFullAddress(from)?.toLowerCase() === selectedAddress?.toLowerCase();
 
   let actionVerb;
   if (isSent) {
@@ -191,7 +192,7 @@ function getCollectibleTransfer(args) {
   } = args;
 
   const isIncomplete = isTransactionIncomplete(status);
-  const isSent = from?.toLowerCase() === selectedAddress?.toLowerCase();
+  const isSent = renderFullAddress(from) === selectedAddress;
 
   let actionVerb;
   if (isSent) {
@@ -338,7 +339,10 @@ function decodeIncomingTransfer(args) {
     : weiToFiatNumber(totalGas, conversionRate);
 
   const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES;
-  const transactionType = !isIncoming ? SENT_TOKEN : RECEIVED_TOKEN;
+  const transactionType =
+    renderFullAddress(from)?.toLowerCase() === selectedAddress?.toLowerCase()
+      ? SENT_TOKEN
+      : RECEIVED_TOKEN;
 
   let transactionDetails = {
     renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,

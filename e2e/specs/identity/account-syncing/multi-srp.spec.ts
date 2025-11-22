@@ -59,7 +59,6 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();
-        await device.disableSynchronization(); // All expected syncs are awaited with retries, so disable auto-sync to avoid test flakiness/hangs
 
         // Wait for wallet to be ready after login
         await Assertions.expectElementToBeVisible(WalletView.container, {
@@ -74,7 +73,6 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           ),
           {
             description: `Account with name "${DEFAULT_ACCOUNT_NAME}" should be visible`,
-            timeout: 30000,
           },
         );
 
@@ -96,7 +94,6 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           ),
           {
             description: `Account with name "${SECOND_ACCOUNT_NAME}" should be visible`,
-            timeout: 30000,
           },
         );
         await AccountListBottomSheet.swipeToDismissAccountsModal(); // the next action taps on the identicon again
@@ -167,7 +164,6 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
       },
       async () => {
         await loginToApp();
-        await device.disableSynchronization(); // All expected syncs are awaited with retries, so disable auto-sync to avoid test flakiness/hangs
         // Wait for wallet to be ready after login
         await Assertions.expectElementToBeVisible(WalletView.container, {
           description: 'wallet should be visible after login',

@@ -20,8 +20,6 @@ function useSearchTokenResults({
     return tokens.filter((token) => networkFilter.includes(token.chainId));
   }, [tokens, networkFilter]);
 
-  type TokenWithNetworkName = DepositCryptoCurrency & { networkName: string };
-
   const tokensWithNetworkName = useMemo(
     () =>
       networkFilteredTokens.map((token) => ({
@@ -35,24 +33,29 @@ function useSearchTokenResults({
 
   const tokenFuse = useMemo(
     () =>
-      new Fuse<TokenWithNetworkName>(tokensWithNetworkName, {
+      new Fuse(tokensWithNetworkName, {
         shouldSort: true,
-        threshold: 0.6,
+        threshold: 0.45,
         location: 0,
         distance: 100,
+        maxPatternLength: 32,
         minMatchCharLength: 1,
         keys: ['symbol', 'assetId', 'name', 'chainId', 'networkName'],
       }),
     [tokensWithNetworkName],
   );
 
-  return useMemo((): TokenWithNetworkName[] => {
-    if (!searchString || tokensWithNetworkName.length === 0) {
-      return tokensWithNetworkName;
-    }
+  if (!searchString || tokensWithNetworkName.length === 0) {
+    return tokensWithNetworkName;
+  }
 
-    return tokenFuse.search(searchString);
-  }, [searchString, tokensWithNetworkName, tokenFuse]);
+  const results = tokenFuse.search(searchString);
+
+  if (results.length === 0) {
+    return [];
+  }
+
+  return results;
 }
 
 export default useSearchTokenResults;

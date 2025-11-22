@@ -132,7 +132,7 @@ const MultichainPermissionsSummary = ({
 
   const hostname = useMemo(() => {
     try {
-      return new URL(currentPageInformation.url).origin;
+      return new URL(currentPageInformation.url).hostname;
     } catch {
       return currentPageInformation.url;
     }
@@ -252,7 +252,9 @@ const MultichainPermissionsSummary = ({
                 params: {
                   hostInfo: {
                     metadata: {
-                      origin: hostname,
+                      origin:
+                        currentPageInformation?.url &&
+                        new URL(currentPageInformation?.url).hostname,
                     },
                   },
                   connectionDateTime: new Date().getTime(),
@@ -524,16 +526,10 @@ const MultichainPermissionsSummary = ({
         privacyMode={privacyMode}
         selectedAccountGroups={selectedAccountGroups}
         handleEditAccountsButtonPress={handleEditAccountsButtonPress}
-        isConnectionFlow={!isAlreadyConnected}
         {...restAccountsConnectedTabProps}
       />
     ),
-    [
-      privacyMode,
-      selectedAccountGroups,
-      handleEditAccountsButtonPress,
-      isAlreadyConnected,
-    ],
+    [privacyMode, selectedAccountGroups, handleEditAccountsButtonPress],
   );
 
   const renderTabsContent = () => {

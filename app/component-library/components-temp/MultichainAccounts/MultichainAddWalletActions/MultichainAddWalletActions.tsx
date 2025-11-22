@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { IconName } from '@metamask/design-system-react-native';
 import ActionListItem from '../../ActionListItem';
 import { strings } from '../../../../../locales/i18n';
@@ -87,6 +88,9 @@ const MultichainAddWalletActions = ({
   return (
     <SafeAreaView>
       <Fragment>
+        <BottomSheetHeader>
+          {strings('multichain_accounts.add_wallet')}
+        </BottomSheetHeader>
         {actionConfigs.map(
           (config) =>
             config.isVisible && (

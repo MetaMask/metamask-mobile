@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { Text } from 'react-native';
 import BaseControlBar, { BaseControlBarProps } from './BaseControlBar';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
@@ -12,6 +13,7 @@ import ButtonIcon from '../../../../component-library/components/Buttons/ButtonI
 
 // Mock dependencies
 jest.mock('../../../../util/networks', () => ({
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
   getNetworkImageSource: jest.fn(),
 }));
 
@@ -83,7 +85,10 @@ jest.mock(
 const mockUseCurrentNetworkInfo = useCurrentNetworkInfo as jest.MockedFunction<
   typeof useCurrentNetworkInfo
 >;
-
+const mockIsRemoveGlobalNetworkSelectorEnabled =
+  isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
+    typeof isRemoveGlobalNetworkSelectorEnabled
+  >;
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -223,6 +228,7 @@ describe('BaseControlBar', () => {
     useNetworkEnablementModule.useNetworkEnablement.mockReturnValue({
       enableAllPopularNetworks: jest.fn(),
     });
+    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
 
     // Setup selector mocks
     mockSelectIsAllNetworks.mockReturnValue(false);
@@ -267,87 +273,121 @@ describe('BaseControlBar', () => {
   });
 
   describe('Network label rendering', () => {
-    it('shows "Popular Networks" when multiple networks are enabled', () => {
-      const { getByText } = renderComponent();
-      expect(getByText('wallet.popular_networks')).toBeTruthy();
+    describe('when isRemoveGlobalNetworkSelectorEnabled is true', () => {
+      beforeEach(() => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      });
+
+      it('should show "Popular Networks" when multiple networks are enabled', () => {
+        const { getByText } = renderComponent();
+        expect(getByText('wallet.popular_networks')).toBeTruthy();
+      });
+
+      it('should show current network name when only one network is enabled', () => {
+        const singleNetworkInfo = {
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: '1', enabled: true }],
+        };
+        mockUseCurrentNetworkInfo.mockReturnValue(singleNetworkInfo);
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+          {
+            areAllNetworksSelected: false,
+            totalEnabledNetworksCount: 1,
+          },
+        );
+
+        const { getByText } = renderComponent();
+        expect(getByText('Ethereum Mainnet')).toBeTruthy();
+      });
+
+      it('should show fallback text when no network info is available', () => {
+        const noNetworkInfo = {
+          ...defaultNetworkInfo,
+          enabledNetworks: [{ chainId: '1', enabled: true }], // Single network
+          getNetworkInfo: jest.fn(() => null),
+        };
+        mockUseCurrentNetworkInfo.mockReturnValue(noNetworkInfo);
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+          {
+            areAllNetworksSelected: false,
+            totalEnabledNetworksCount: 1,
+          },
+        );
+
+        const { getByText } = renderComponent();
+        expect(getByText('wallet.current_network')).toBeTruthy();
+      });
+
+      it('should show network avatar when not all networks selected', () => {
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+          {
+            areAllNetworksSelected: false,
+            totalEnabledNetworksCount: 2,
+          },
+        );
+
+        renderComponent();
+        // Avatar should be rendered (tested via component structure)
+        expect(
+          useNetworksByNamespaceModule.useNetworksByCustomNamespace,
+        ).toHaveBeenCalled();
+      });
+
+      it('should not show network avatar when all networks selected', () => {
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+          {
+            areAllNetworksSelected: true,
+            totalEnabledNetworksCount: 5,
+          },
+        );
+
+        renderComponent();
+        expect(
+          useNetworksByNamespaceModule.useNetworksByCustomNamespace,
+        ).toHaveBeenCalled();
+      });
     });
 
-    it('should show current network name when only one network is enabled', () => {
-      const singleNetworkInfo = {
-        ...defaultNetworkInfo,
-        enabledNetworks: [{ chainId: '1', enabled: true }],
-      };
-      mockUseCurrentNetworkInfo.mockReturnValue(singleNetworkInfo);
-      useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
-        {
-          areAllNetworksSelected: false,
-          totalEnabledNetworksCount: 1,
-        },
-      );
+    describe('when isRemoveGlobalNetworkSelectorEnabled is false', () => {
+      beforeEach(() => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+      });
 
-      const { getByText } = renderComponent();
-      expect(getByText('Ethereum Mainnet')).toBeTruthy();
-    });
+      it('should show "Popular Networks" when all conditions are met', () => {
+        mockSelectIsAllNetworks.mockReturnValue(true);
+        mockSelectIsPopularNetwork.mockReturnValue(true);
+        mockSelectIsEvmNetworkSelected.mockReturnValue(true);
 
-    it('should show fallback text when no network info is available', () => {
-      const noNetworkInfo = {
-        ...defaultNetworkInfo,
-        enabledNetworks: [{ chainId: '1', enabled: true }], // Single network
-        getNetworkInfo: jest.fn(() => null),
-      };
-      mockUseCurrentNetworkInfo.mockReturnValue(noNetworkInfo);
-      useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
-        {
-          areAllNetworksSelected: false,
-          totalEnabledNetworksCount: 1,
-        },
-      );
+        const { getByText } = renderComponent();
+        expect(getByText('wallet.popular_networks')).toBeTruthy();
+      });
 
-      const { getByText } = renderComponent();
-      expect(getByText('wallet.current_network')).toBeTruthy();
-    });
+      it('should show network name when not all conditions are met', () => {
+        mockSelectIsAllNetworks.mockReturnValue(false);
+        mockSelectIsPopularNetwork.mockReturnValue(false);
+        mockSelectIsEvmNetworkSelected.mockReturnValue(true);
 
-    it('should show network avatar when not all networks selected', () => {
-      useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
-        {
-          areAllNetworksSelected: false,
-          totalEnabledNetworksCount: 2,
-        },
-      );
+        const { getByText } = renderComponent();
+        expect(getByText('Ethereum Mainnet')).toBeTruthy();
+      });
 
-      renderComponent();
-      // Avatar should be rendered (tested via component structure)
-      expect(
-        useNetworksByNamespaceModule.useNetworksByCustomNamespace,
-      ).toHaveBeenCalled();
-    });
+      it('should show fallback text when network name is not available', () => {
+        mockSelectNetworkName.mockReturnValue(null);
 
-    it('should not show network avatar when all networks selected', () => {
-      useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
-        {
-          areAllNetworksSelected: true,
-          totalEnabledNetworksCount: 5,
-        },
-      );
-
-      renderComponent();
-      expect(
-        useNetworksByNamespaceModule.useNetworksByCustomNamespace,
-      ).toHaveBeenCalled();
+        const { getByText } = renderComponent();
+        expect(getByText('wallet.current_network')).toBeTruthy();
+      });
     });
   });
 
   describe('Button interactions', () => {
-    it('navigates to NetworkManager when filter button pressed without custom handler', () => {
+    it('should call default filter handler when no custom handler provided', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
       fireEvent.press(filterButton);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'NetworkManager',
-        {},
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TokenFilter', {});
     });
 
     it('should call custom filter handler when provided', () => {
@@ -392,7 +432,9 @@ describe('BaseControlBar', () => {
   });
 
   describe('EVM selection logic', () => {
-    it('navigates to NetworkManager by default', () => {
+    it('should navigate to NetworkManager when feature flag is enabled', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
@@ -414,10 +456,7 @@ describe('BaseControlBar', () => {
 
       fireEvent.press(filterButton);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'NetworkManager',
-        {},
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TokenFilter', {});
     });
 
     it('should not navigate when useEvmSelectionLogic is true and EVM is not selected', () => {
@@ -443,10 +482,7 @@ describe('BaseControlBar', () => {
 
       fireEvent.press(filterButton);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'NetworkManager',
-        {},
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('TokenFilter', {});
     });
 
     it('should show arrow icon when EVM is selected and useEvmSelectionLogic is true', () => {
@@ -617,6 +653,7 @@ describe('BaseControlBar', () => {
 
   describe('Integration with strings', () => {
     it('should call strings function for localized text', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
       const multiNetworkInfo = {
         ...defaultNetworkInfo,
         enabledNetworks: [
@@ -631,20 +668,13 @@ describe('BaseControlBar', () => {
       expect(getByText('wallet.popular_networks')).toBeTruthy();
     });
 
-    it('calls strings function for fallback text with single network', () => {
+    it('should call strings function for fallback text', () => {
       mockSelectNetworkName.mockReturnValue(null);
       const noNetworkInfo = {
         ...defaultNetworkInfo,
-        enabledNetworks: [{ chainId: '1', enabled: true }], // Single network
         getNetworkInfo: jest.fn(() => null),
       };
       mockUseCurrentNetworkInfo.mockReturnValue(noNetworkInfo);
-      useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
-        {
-          areAllNetworksSelected: false,
-          totalEnabledNetworksCount: 1,
-        },
-      );
 
       renderComponent();
 

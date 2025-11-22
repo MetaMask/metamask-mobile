@@ -1,31 +1,12 @@
 import { Platform } from 'react-native';
-import { AuthConnection, AuthRefreshTokenResponse } from './OAuthInterface';
+import { AuthConnection } from './OAuthInterface';
 import { createLoginHandler } from './OAuthLoginHandlers';
-import type {
-  RefreshJWTToken,
-  RenewRefreshToken,
-  RevokeRefreshToken,
-} from '@metamask/seedless-onboarding-controller/dist/types.d.cts';
 
 export const AUTH_SERVER_RENEW_PATH = '/api/v2/oauth/renew_refresh_token';
 export const AUTH_SERVER_REVOKE_PATH = '/api/v2/oauth/revoke';
 export const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
 
-interface AuthTokenHandlerInterface {
-  refreshJWTToken: RefreshJWTToken;
-  renewRefreshToken: RenewRefreshToken;
-  revokeRefreshToken: RevokeRefreshToken;
-}
-
-class AuthTokenHandler implements AuthTokenHandlerInterface {
-  /**
-   * Refresh the JWT Token using the refresh token.
-   *
-   * @param params - The params from the login handler
-   * @param params.connection - The connection type (Google, Apple, etc.)
-   * @param params.refreshToken - The refresh token from the Web3Auth Authentication Server.
-   * @returns The id token, access token, and metadata access token.
-   */
+class AuthTokenHandler {
   async refreshJWTToken(params: {
     connection: AuthConnection;
     refreshToken: string;
@@ -60,7 +41,7 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
       throw new Error('Failed to refresh JWT token');
     }
 
-    const refreshTokenData: AuthRefreshTokenResponse = await response.json();
+    const refreshTokenData = await response.json();
     const idToken = refreshTokenData.id_token;
 
     if (
@@ -81,14 +62,6 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     };
   }
 
-  /**
-   * Renew the refresh token.
-   *
-   * @param params - The params from the login handler
-   * @param params.connection - The connection type (Google, Apple, etc.)
-   * @param params.revokeToken - The revoke token from the Web3Auth Authentication Server.
-   * @returns The new refresh token and revoke token.
-   */
   async renewRefreshToken(params: {
     connection: AuthConnection;
     revokeToken: string;
@@ -116,28 +89,12 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     }
 
     const responseData = await response.json();
-
-    const newRefreshToken = responseData.refresh_token;
-    const newRevokeToken = responseData.revoke_token;
-
-    if (!newRefreshToken || !newRevokeToken) {
-      throw new Error('Failed to renew refresh token - ' + response.statusText);
-    }
-
     return {
-      newRefreshToken,
-      newRevokeToken,
+      newRefreshToken: responseData.refresh_token,
+      newRevokeToken: responseData.revoke_token,
     };
   }
 
-  /**
-   * Revoke the refresh token.
-   *
-   * @param params - The params from the login handler
-   * @param params.connection - The connection type (Google, Apple, etc.)
-   * @param params.revokeToken - The revoke token from the Web3Auth Authentication Server.
-   * @returns void
-   */
   async revokeRefreshToken(params: {
     connection: AuthConnection;
     revokeToken: string;
@@ -165,6 +122,7 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
         'Failed to revoke refresh token - ' + response.statusText,
       );
     }
+
     return;
   }
 }

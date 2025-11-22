@@ -7,6 +7,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('react-native-device-info', () => ({
@@ -193,20 +194,17 @@ describe('DeFiPositionsList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const allPositions =
-      mockInitialState.engine.backgroundState.DeFiPositionsController
-        .allDeFiPositions[MOCK_ADDRESS_1] || {};
-
     const defiPositionsModule = jest.requireMock(
       '../../../selectors/defiPositionsController',
     );
     defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
-      allPositions,
+      mockInitialState.engine.backgroundState.DeFiPositionsController
+        .allDeFiPositions[MOCK_ADDRESS_1],
     );
-    // Network Manager is now always enabled, so mock returns only enabled chain (0x1)
-    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue({
-      [MOCK_CHAIN_ID_1]: allPositions[MOCK_CHAIN_ID_1],
-    });
+    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+      mockInitialState.engine.backgroundState.DeFiPositionsController
+        .allDeFiPositions[MOCK_ADDRESS_1],
+    );
   });
 
   it('renders protocol name and aggregated value for selected account and chain', async () => {
@@ -231,17 +229,6 @@ describe('DeFiPositionsList', () => {
   });
 
   it('renders protocol name and aggregated value for all chains when all networks is selected', async () => {
-    // Override mock to return all enabled chains
-    const allPositions =
-      mockInitialState.engine.backgroundState.DeFiPositionsController
-        .allDeFiPositions[MOCK_ADDRESS_1] || {};
-    const defiPositionsModule = jest.requireMock(
-      '../../../selectors/defiPositionsController',
-    );
-    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-      allPositions,
-    );
-
     const { findByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
@@ -357,8 +344,13 @@ describe('DeFiPositionsList', () => {
     expect(await findByText(`Explore DeFi`)).toBeOnTheScreen();
   });
 
-  describe('Network Manager Integration', () => {
-    it('uses defiPositionsByEnabledNetworks selector', async () => {
+  describe('when isRemoveGlobalNetworkSelectorEnabled is true', () => {
+    beforeEach(() => {
+      const networksModule = jest.requireMock('../../../util/networks');
+      networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+    });
+
+    it('uses defiPositionsByEnabledNetworks selector when feature flag is enabled', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
       );
@@ -471,7 +463,7 @@ describe('DeFiPositionsList', () => {
       expect(await findByText(`Explore DeFi`)).toBeOnTheScreen();
     });
 
-    it('shows control bar with enabled networks text', async () => {
+    it('shows control bar with enabled networks text when feature flag is enabled', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
       );
@@ -637,18 +629,6 @@ describe('DeFiPositionsList', () => {
     });
 
     it('renders multiple positions without scroll container when isHomepageRedesignV1Enabled is true', async () => {
-      // Override mock to return both enabled chains
-      const allPositions =
-        mockInitialState.engine.backgroundState.DeFiPositionsController
-          .allDeFiPositions[MOCK_ADDRESS_1] || {};
-      const defiPositionsModule = jest.requireMock(
-        '../../../selectors/defiPositionsController',
-      );
-      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue({
-        [MOCK_CHAIN_ID_1]: allPositions[MOCK_CHAIN_ID_1],
-        [MOCK_CHAIN_ID_2]: allPositions[MOCK_CHAIN_ID_2],
-      });
-
       const { findByTestId, findByText, queryByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
         {

@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 // External dependencies.
 import BottomSheet, {
@@ -18,11 +18,15 @@ import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
 import { useMetrics } from '../../hooks/useMetrics';
+import {
+  createBuyNavigationDetails,
+  createSellNavigationDetails,
+} from '../Ramp/Aggregator/routes/utils';
 import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
-import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
+import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 
 // Types
 import type {
@@ -34,6 +38,7 @@ import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const { navigate } = useNavigation();
   const route = useRoute<FundActionMenuRouteProp>();
 
   const customOnBuy = route.params?.onBuy;
@@ -47,8 +52,6 @@ const FundActionMenu = () => {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const { goToBuy, goToAggregator, goToSell, goToDeposit } =
-    useRampNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -118,11 +121,18 @@ const FundActionMenu = () => {
             chain_id_destination: getChainIdForAsset(),
             region: rampGeodetectedRegion,
           },
+          // TODO: Using same action for now, replace with go to buy action
           navigationAction: () => {
             if (customOnBuy) {
               customOnBuy();
+            } else if (assetContext) {
+              navigate(
+                ...createBuyNavigationDetails({
+                  assetId: assetContext.assetId,
+                }),
+              );
             } else {
-              goToBuy({ assetId: assetContext?.assetId });
+              navigate(...createBuyNavigationDetails());
             }
           },
         },
@@ -142,7 +152,7 @@ const FundActionMenu = () => {
             region: rampGeodetectedRegion,
           },
           traceName: TraceName.LoadDepositExperience,
-          navigationAction: () => goToDeposit(),
+          navigationAction: () => navigate(...createDepositNavigationDetails()),
         },
         {
           type: 'buy',
@@ -163,8 +173,14 @@ const FundActionMenu = () => {
           navigationAction: () => {
             if (customOnBuy) {
               customOnBuy();
+            } else if (assetContext) {
+              navigate(
+                ...createBuyNavigationDetails({
+                  assetId: assetContext.assetId,
+                }),
+              );
             } else {
-              goToAggregator({ assetId: assetContext?.assetId });
+              navigate(...createBuyNavigationDetails());
             }
           },
         },
@@ -185,7 +201,7 @@ const FundActionMenu = () => {
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.SELL } },
-          navigationAction: () => goToSell({ assetId: assetContext?.assetId }),
+          navigationAction: () => navigate(...createSellNavigationDetails()),
         },
       ] as ActionConfig[],
     [
@@ -196,12 +212,9 @@ const FundActionMenu = () => {
       getChainIdForAsset,
       isNetworkRampSupported,
       canSignTransactions,
+      navigate,
       customOnBuy,
       assetContext,
-      goToBuy,
-      goToAggregator,
-      goToSell,
-      goToDeposit,
     ],
   );
 

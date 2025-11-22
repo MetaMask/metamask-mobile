@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useEffect } from 'react';
 import Engine from '../../../../../core/Engine';
 import { type GenericQuoteRequest } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
@@ -46,6 +46,12 @@ export const useBridgeQuoteRequest = () => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
+  // Use a ref to track the latest insufficientBal value without triggering callback recreation
+  const insufficientBalRef = useRef(insufficientBal);
+  useEffect(() => {
+    insufficientBalRef.current = insufficientBal;
+  }, [insufficientBal]);
+
   const gasIncluded = useSelector(selectGasIncluded);
 
   /**
@@ -81,7 +87,7 @@ export const useBridgeQuoteRequest = () => {
       destWalletAddress: destAddress ?? walletAddress,
       gasIncluded,
       gasIncluded7702: false, // TODO: https://consensyssoftware.atlassian.net/browse/STX-263
-      insufficientBal,
+      insufficientBal: insufficientBalRef.current,
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
@@ -98,7 +104,6 @@ export const useBridgeQuoteRequest = () => {
     destAddress,
     context,
     gasIncluded,
-    insufficientBal,
   ]);
 
   // Create a stable debounced function that persists across renders

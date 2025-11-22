@@ -46,11 +46,6 @@ module.exports = {
     owner: 'metamask-test',
     runtimeVersion: RUNTIME_VERSION,
     updates: {
-      codeSigningCertificate: './certs/certificate.pem',
-      codeSigningMetadata: {
-        keyid: 'main',
-        alg: 'rsa-v1_5-sha256',
-      },
       url: UPDATE_URL,
       // Channel is set by requestHeaders, will be overridden with build script
       requestHeaders: {

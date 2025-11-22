@@ -1,3 +1,4 @@
-import { RampIntent } from '../../Aggregator/types';
-
-export type DepositNavigationParams = RampIntent;
+export interface DepositNavigationParams {
+  assetId?: string;
+  amount?: string;
+}
