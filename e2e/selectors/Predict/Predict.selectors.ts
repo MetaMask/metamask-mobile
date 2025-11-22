@@ -108,6 +108,15 @@ export const PredictPositionSelectorsIDs = {
 } as const;
 
 // ========================================
+// PREDICT BUY PREVIEW SELECTORS
+// ========================================
+
+export const PredictBuyPreviewSelectorsIDs = {
+  // Buy/Place bet button
+  PLACE_BET_BUTTON: 'predict-buy-preview-place-bet-button',
+} as const;
+
+// ========================================
 // PREDICT CASH OUT SELECTORS
 // ========================================
 
