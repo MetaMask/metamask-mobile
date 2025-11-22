@@ -816,6 +816,45 @@ export class CardSDK {
     } as CardExchangeTokenResponse;
   };
 
+  getUserDetails = async (): Promise<UserResponse> => {
+    const response = await this.makeRequest(
+      '/v1/user',
+      { method: 'GET' },
+      true,
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.json();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      this.logDebugInfo(
+        'getUserDetails::error',
+        `Status: ${response.status}, Message: ${JSON.stringify(responseBody, null, 2)}`,
+      );
+
+      if (response.status === 401 || response.status === 403) {
+        throw new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          responseBody?.message ||
+            'Invalid credentials. Please try logging in again.',
+        );
+      }
+
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        responseBody?.message ||
+          'Failed to get user details. Please try again.',
+      );
+    }
+
+    const data = await response.json();
+    return data as UserResponse;
+  };
+
   getCardDetails = async (): Promise<CardDetailsResponse> => {
     const response = await this.makeRequest(
       '/v1/card/status',

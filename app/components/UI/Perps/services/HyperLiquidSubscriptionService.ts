@@ -1595,7 +1595,12 @@ export class HyperLiquidSubscriptionService {
       // Last subscriber, cleanup subscription
       const subscription = this.globalActiveAssetSubscriptions.get(symbol);
       if (subscription) {
-        subscription.unsubscribe().catch(console.error);
+        subscription.unsubscribe().catch((error: unknown) => {
+          Logger.error(ensureError(error), {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            message: `Failed to cleanup active asset subscription for ${symbol}`,
+          });
+        });
         this.globalActiveAssetSubscriptions.delete(symbol);
         this.symbolSubscriberCounts.delete(symbol);
         DevLogger.log(
@@ -1834,7 +1839,12 @@ export class HyperLiquidSubscriptionService {
   private cleanupL2BookSubscription(symbol: string): void {
     const subscription = this.globalL2BookSubscriptions.get(symbol);
     if (subscription) {
-      subscription.unsubscribe().catch(console.error);
+      subscription.unsubscribe().catch((error: unknown) => {
+        Logger.error(ensureError(error), {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          message: `Failed to cleanup L2 book subscription for ${symbol}`,
+        });
+      });
       this.globalL2BookSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
       DevLogger.log(

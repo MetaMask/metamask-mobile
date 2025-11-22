@@ -39,6 +39,30 @@ export const getCandlestickChartSelector = {
 };
 
 // ========================================
+// PERPS OHLCV BAR SELECTORS
+// ========================================
+
+export const PerpsOHLCVBarSelectorsIDs = {
+  CONTAINER: 'perps-ohlcv-bar',
+  VALUES_ROW: 'perps-ohlcv-bar-values-row',
+  LABELS_ROW: 'perps-ohlcv-bar-labels-row',
+};
+
+// ========================================
+// PERPS CHART FULLSCREEN MODAL SELECTORS
+// ========================================
+
+export const PerpsChartFullscreenModalSelectorsIDs = {
+  MODAL: 'modal-container',
+  CONTAINER: 'perps-chart-fullscreen-container',
+  HEADER: 'perps-chart-fullscreen-header',
+  CLOSE_BUTTON: 'perps-chart-fullscreen-close-button',
+  CHART: 'fullscreen-chart',
+  INTERVAL_SELECTOR: 'perps-chart-fullscreen-interval-selector',
+  OHLCV_BAR: 'fullscreen-chart-ohlcv-bar',
+} as const;
+
+// ========================================
 // PERPS POSITION CARD SELECTORS
 // ========================================
 

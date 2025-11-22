@@ -34,7 +34,6 @@ const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
 
 describe('useEmailVerificationSend', () => {
   const mockEmailVerificationSend = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
 
   const mockSDK = {
     emailVerificationSend: mockEmailVerificationSend,
@@ -47,11 +46,8 @@ describe('useEmailVerificationSend', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
     mockGetErrorMessage.mockReturnValue('Mocked error message');
   });
@@ -190,11 +186,8 @@ describe('useEmailVerificationSend', () => {
 
     it('throws error when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => useEmailVerificationSend());
@@ -390,11 +383,8 @@ describe('useEmailVerificationSend', () => {
   describe('handles undefined SDK gracefully', () => {
     it('throws appropriate error when SDK is undefined', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => useEmailVerificationSend());
