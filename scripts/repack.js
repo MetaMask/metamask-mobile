@@ -55,7 +55,7 @@ function getKeystoreConfig() {
  */
 async function repackAndroid() {
   const startTime = Date.now();
-  const sourceApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const sourceApk = process.env.SOURCE_APK || (isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release.apk');
   const repackedApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release-repack.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
   const finalApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
   const sourcemapPath = 'sourcemaps/android/index.android.bundle.map';
