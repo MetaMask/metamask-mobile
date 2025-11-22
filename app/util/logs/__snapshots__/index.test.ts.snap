@@ -30,6 +30,11 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "AddressBookController": {
         "addressBook": {},
       },
+      "AnalyticsController": {
+        "analyticsId": "f2673eb8-db32-40bb-88a5-97cf5107d31d",
+        "enabled": true,
+        "optedIn": false,
+      },
       "ApprovalController": {
         "approvalFlows": [],
         "pendingApprovalCount": 0,
@@ -772,6 +777,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "AddressBookController": {
         "addressBook": {},
+      },
+      "AnalyticsController": {
+        "analyticsId": "f2673eb8-db32-40bb-88a5-97cf5107d31d",
+        "enabled": true,
+        "optedIn": false,
       },
       "ApprovalController": {
         "approvalFlows": [],

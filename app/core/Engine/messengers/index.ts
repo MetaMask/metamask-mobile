@@ -114,6 +114,7 @@ import { getErrorReportingServiceMessenger } from './error-reporting-service-mes
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
+import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 import {
   getMultichainRouterInitMessenger,
   getMultichainRouterMessenger,
@@ -395,6 +396,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountActivityService: {
     getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
+  },
+  AnalyticsController: {
+    getMessenger: getAnalyticsControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;
