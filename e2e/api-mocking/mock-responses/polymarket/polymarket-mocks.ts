@@ -965,7 +965,7 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
   } else if (positionType === 'cash-out') {
     balance = POST_CASH_OUT_USDC_BALANCE_WEI; // 58.66 USDC
   } else if (positionType === 'open-position') {
-    balance = POST_OPEN_POSITION_USDC_BALANCE_WEI; // 18.11 USDC
+    balance = POST_OPEN_POSITION_USDC_BALANCE_WEI; // 17.76 USDC
   } else {
     throw new Error(`Unknown positionType: ${positionType}`);
   }
