@@ -199,8 +199,8 @@ describe('UniversalRouter', () => {
         mockContext,
       );
 
-      expect(result.handled).toBe(true);
-      expect(result.metadata?.usedLegacy).toBe(true);
+      expect(result.handled).toBe(false);
+      expect(result.metadata?.reason).toBe('no_handler');
     });
 
     it('handles errors gracefully', async () => {
@@ -228,8 +228,8 @@ describe('UniversalRouter', () => {
       const result = await router.route('metamask://home', 'test', mockContext);
 
       expect(handleFn).toHaveBeenCalled();
-      expect(result.handled).toBe(true);
-      expect(result.metadata?.usedLegacy).toBe(true);
+      expect(result.handled).toBe(false);
+      expect(result.metadata?.reason).toBe('no_handler');
     });
   });
 
