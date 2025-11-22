@@ -3,7 +3,7 @@ import { useBridgeQuoteEvents } from '.';
 import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { QuoteWarning, RequestStatus } from '@metamask/bridge-controller';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -39,12 +39,8 @@ describe('useBridgeQuoteEvents', () => {
       renderHookWithProvider(
         () =>
           useBridgeQuoteEvents({
-            hasNoQuotesAvailable: false,
-            hasInsufficientBalance: false,
-            hasInsufficientGas: false,
-            hasTxAlert: false,
             isSubmitDisabled: false,
-            isPriceImpactWarningVisible: false,
+            warnings: [],
           }),
         { state: testState },
       );
@@ -80,12 +76,8 @@ describe('useBridgeQuoteEvents', () => {
       renderHookWithProvider(
         () =>
           useBridgeQuoteEvents({
-            hasNoQuotesAvailable: false,
-            hasInsufficientBalance: false,
-            hasInsufficientGas: false,
-            hasTxAlert: false,
             isSubmitDisabled: false,
-            isPriceImpactWarningVisible: false,
+            warnings: warnings as QuoteWarning[],
             ...hookArgs,
           }),
         { state: testState },

@@ -1265,6 +1265,8 @@ describe('BridgeView', () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
             quoteResponse: mockQuote,
+            warnings: [],
+            isLoading: false,
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -1331,6 +1333,8 @@ describe('BridgeView', () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
             quoteResponse: mockQuote,
+            warnings: [],
+            isLoading: false,
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -1394,6 +1398,8 @@ describe('BridgeView', () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
             quoteResponse: mockQuote,
+            warnings: [],
+            isLoading: false,
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -1454,6 +1460,8 @@ describe('BridgeView', () => {
         await waitFor(() => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
             quoteResponse: mockQuote,
+            warnings: [],
+            isLoading: false,
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
