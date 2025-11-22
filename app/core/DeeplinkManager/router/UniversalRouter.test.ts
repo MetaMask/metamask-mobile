@@ -1,19 +1,19 @@
-import { UniversalRouter } from './UniversalRouter';
-import { HandlerRegistry } from './HandlerRegistry';
-import { CoreLinkNormalizer } from '../CoreLinkNormalizer';
-import { LegacyLinkAdapter } from '../adapters/LegacyLinkAdapter';
+import { UniversalRouter } from '../router/UniversalRouter';
+import { HandlerRegistry } from '../registry/HandlerRegistry';
+import { CoreLinkNormalizer } from '../normalization/CoreLinkNormalizer';
+import { LegacyLinkAdapter } from '../normalization/LegacyLinkAdapter';
 import {
   UniversalLinkHandler,
   HandlerContext,
   HandlerResult,
-} from './interfaces/UniversalLinkHandler';
+} from '../types/UniversalLinkHandler';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
 import { ACTIONS } from '../../../constants/deeplinks';
 import ReduxService from '../../redux';
 
 // Mock dependencies
-jest.mock('../CoreLinkNormalizer');
-jest.mock('../adapters/LegacyLinkAdapter');
+jest.mock('../normalization/CoreLinkNormalizer');
+jest.mock('../normalization/LegacyLinkAdapter');
 jest.mock('../../../util/Logger');
 jest.mock('../../Analytics', () => ({
   MetaMetrics: {
