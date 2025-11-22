@@ -39,6 +39,7 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   await screensSetup(device);
 
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_3, 120000);
+  await WalletMainScreen.isTokenVisible('ETH');
   await TabBarModal.tapTradeButton();
 
   // Open Perps tab
@@ -63,7 +64,6 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
       await PerpsDepositScreen.isAmountInputVisible();
     },
   );
-
   // Select pay token
   await TimerHelper.withTimer(
     performanceTracker,

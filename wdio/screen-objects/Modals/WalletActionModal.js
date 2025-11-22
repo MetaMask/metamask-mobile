@@ -63,6 +63,8 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.sendButton);
     } else {
+      //const perpsTab = await AppwrightSelectors.getElementByCatchAll(this._device, 'Perps');
+      //await AppwrightGestures.tap(perpsTab);
       await AppwrightGestures.tap(this.sendButton); // Use static tapElement method with retry logic
     }
   }

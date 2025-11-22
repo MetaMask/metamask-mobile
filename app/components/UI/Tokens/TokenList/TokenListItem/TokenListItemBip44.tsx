@@ -219,6 +219,8 @@ export const TokenListItemBip44 = React.memo(
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={networkBadgeSource}
+                accessibilityRole="none"
+                accessible={false}
               />
             ) : null
           }
