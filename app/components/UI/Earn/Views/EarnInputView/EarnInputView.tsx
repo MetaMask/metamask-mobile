@@ -31,10 +31,7 @@ import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
-import {
-  selectNetworkConfigurationByChainId,
-  selectNetworkClientId,
-} from '../../../../../selectors/networkController';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
@@ -77,12 +74,15 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 
 const EarnInputView = () => {
   // navigation hooks
   const navigation = useNavigation();
   const route = useRoute<EarnInputViewProps['route']>();
   const { token } = route.params;
+  const { navigateToConfirmation } = useConfirmNavigation();
 
   // We want to keep track of the last quick amount pressed before navigating to review.
   const lastQuickAmountButtonPressed = useRef<string | null>(null);
@@ -99,6 +99,11 @@ const EarnInputView = () => {
 
   const isStakingDepositRedesignedEnabled =
     confirmationRedesignFlags?.staking_confirmations;
+  console.log('confirmationRedesignFlags', confirmationRedesignFlags);
+  console.log(
+    'isStakingDepositRedesignedEnabled',
+    isStakingDepositRedesignedEnabled,
+  );
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
@@ -164,7 +169,6 @@ const EarnInputView = () => {
     ///: END:ONLY_INCLUDE_IF
   ]);
 
-  const networkClientId = useSelector(selectNetworkClientId);
   const {
     isFiat,
     currentCurrency,
@@ -360,7 +364,7 @@ const EarnInputView = () => {
       CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
       '';
 
-    const createRedesignedLendingDepositConfirmation = (
+    const createRedesignedLendingDepositConfirmation = async (
       _earnToken: EarnTokenDetails,
       _activeAccount: InternalAccount,
     ) => {
@@ -382,6 +386,7 @@ const EarnInputView = () => {
           value: approveTxParams.txParams.value
             ? toHex(approveTxParams.txParams.value)
             : undefined,
+          chainId: _earnToken.chainId as Hex,
         },
         type: TransactionType.tokenMethodApprove,
       };
@@ -405,24 +410,52 @@ const EarnInputView = () => {
           value: lendingDepositTxParams.txParams.value
             ? toHex(lendingDepositTxParams.txParams.value)
             : undefined,
+          chainId: _earnToken.chainId as Hex,
         },
         type: TransactionType.lendingDeposit,
       };
 
-      addTransactionBatch({
-        from: (selectedAccount?.address as Hex) || '0x',
-        networkClientId,
-        origin: ORIGIN_METAMASK,
-        transactions: [approveTx, lendingDepositTx],
-        disable7702: true,
-        disableHook: true,
-        disableSequential: false,
-        requireApproval: true,
-      });
+      const { NetworkController } = Engine.context;
+      const tokenNetworkClientId =
+        NetworkController.findNetworkClientIdByChainId(
+          _earnToken.chainId as Hex,
+        );
 
-      navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      if (!tokenNetworkClientId) {
+        throw new Error(`Network not supported: ${_earnToken.chainId}`);
+      }
+
+      try {
+        navigateToConfirmation({
+          loader: ConfirmationLoader.CustomAmount,
+        });
+        // navigation.navigate('StakeScreens', {
+        //   screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        // });
+
+        addTransactionBatch({
+          from: (selectedAccount?.address as Hex) || '0x',
+          networkClientId: tokenNetworkClientId,
+          origin: ORIGIN_METAMASK,
+          transactions: [approveTx, lendingDepositTx],
+          useHook: true,
+          // requireApproval: true,
+        })
+          .then((batchResult) => {
+            if (!batchResult?.batchId) {
+              throw new Error('Failed to submit transactions');
+            }
+          })
+          .catch((error) => {
+            console.error('Failed to submit transactions:', error);
+            navigation.goBack();
+            throw error;
+          });
+      } catch (error) {
+        console.error('Failed to create lending confirmation:', error);
+        navigation.goBack();
+        throw error;
+      }
     };
 
     const createLegacyLendingDepositConfirmation = (
@@ -451,7 +484,16 @@ const EarnInputView = () => {
     const isRedesignedStablecoinLendingScreenEnabled =
       getIsRedesignedStablecoinLendingScreenEnabled();
     if (isRedesignedStablecoinLendingScreenEnabled) {
-      createRedesignedLendingDepositConfirmation(earnToken, selectedAccount);
+      setIsSubmittingStakeDepositTransaction(true);
+      try {
+        await createRedesignedLendingDepositConfirmation(
+          earnToken,
+          selectedAccount,
+        );
+      } catch (error) {
+        setIsSubmittingStakeDepositTransaction(false);
+        console.error('Failed to create lending confirmation:', error);
+      }
     } else {
       createLegacyLendingDepositConfirmation(
         lendingPoolContractAddress,
@@ -469,7 +511,6 @@ const EarnInputView = () => {
     amountToken,
     isFiat,
     amountTokenMinimalUnit,
-    networkClientId,
     navigation,
     token,
     amountFiatNumber,

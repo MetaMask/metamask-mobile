@@ -1,4 +1,4 @@
-const getIsRedesignedStablecoinLendingScreenEnabled = () =>
-  process.env.MM_STABLECOIN_LENDING_UI_ENABLED_REDESIGNED === 'true';
+const getIsRedesignedStablecoinLendingScreenEnabled = () => true;
+// process.env.MM_STABLECOIN_LENDING_UI_ENABLED_REDESIGNED === 'true';
 
 export { getIsRedesignedStablecoinLendingScreenEnabled };

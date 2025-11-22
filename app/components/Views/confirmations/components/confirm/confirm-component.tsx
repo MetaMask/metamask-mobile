@@ -99,6 +99,7 @@ interface ConfirmProps {
 }
 
 export const Confirm = ({ route }: ConfirmProps) => {
+  console.log('Confirm route params', route);
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation();

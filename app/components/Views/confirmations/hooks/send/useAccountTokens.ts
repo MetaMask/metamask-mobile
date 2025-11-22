@@ -20,6 +20,7 @@ export function useAccountTokens({
   const { isEvmOnly, isSolanaOnly } = useSendScope();
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
+  console.log('assets', assets);
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
 
