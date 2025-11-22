@@ -11,7 +11,7 @@ import PerpsTutorialScreen from '../../../../wdio/screen-objects/PerpsTutorialSc
 import PerpsMarketListView from '../../../../wdio/screen-objects/PerpsMarketListView.js';
 import PerpsTabView from '../../../../wdio/screen-objects/PerpsTabView.js';
 import PerpsDepositScreen from '../../../../wdio/screen-objects/PerpsDepositScreen.js';
-import { onboardingFlowImportSRP } from '../../../utils/Flows.js';
+import { onboardingFlowImportSRP } from '../../../utils/flows/Flows.js';
 
 async function screensSetup(device) {
   const screens = [
