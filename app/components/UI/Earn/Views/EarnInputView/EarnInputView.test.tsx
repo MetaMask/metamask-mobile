@@ -57,13 +57,10 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import EarnInputView from './EarnInputView';
 import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
-import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { trace, TraceName } from '../../../../../util/trace';
 import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-
-jest.mock('./utils');
 
 jest.mock('lodash', () => {
   const actual = jest.requireActual('lodash');
@@ -292,11 +289,6 @@ jest.mock('../../../Stake/hooks/usePoolStakedDeposit', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('./utils', () => ({
-  __esModule: true,
-  getIsRedesignedStablecoinLendingScreenEnabled: jest.fn(() => false),
-}));
-
 jest.mock('../../utils/tempLending', () => ({
   generateLendingAllowanceIncreaseTransaction: jest.fn(() => ({
     txParams: {
@@ -380,9 +372,6 @@ describe('EarnInputView', () => {
     jest.useFakeTimers();
 
     // Reset the mocked function to default value
-    (
-      getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock
-    ).mockReturnValue(false);
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,
     } as unknown as ConfirmationRedesignRemoteFlags);
@@ -470,7 +459,7 @@ describe('EarnInputView', () => {
   });
 
   afterEach(() => {
-    (getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock).mockClear();
+    jest.clearAllMocks();
   });
 
   function render(
@@ -994,10 +983,10 @@ describe('EarnInputView', () => {
       // Enable stablecoin lending feature flag
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
-      // Mock the function to return true for this test
-      (
-        getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock
-      ).mockReturnValue(true);
+      // Enable redesigned staking confirmations flag
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags);
 
       const getErc20SpendingLimitSpy = jest
         .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
@@ -1093,9 +1082,6 @@ describe('EarnInputView', () => {
                 type: 'lendingDeposit',
               },
             ],
-            disable7702: true,
-            disableHook: true,
-            disableSequential: false,
             requireApproval: true,
           });
 
