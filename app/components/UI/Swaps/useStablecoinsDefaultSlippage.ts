@@ -6,7 +6,11 @@ import usePrevious from '../../hooks/usePrevious';
 import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
-// USDC and USDT for now
+/**
+ * This is the list of stablecoins for the swaps UI.
+ * USDC and USDT for now
+ * @deprecated use the dynamic stablecoins list for the Bridge UI instead
+ */
 const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   [CHAIN_IDS.MAINNET]: new Set([
     '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
