@@ -13,6 +13,7 @@ const ACM_ERRORS_REGEX = {
   CANCEL: /cancel/i,
   NO_CREDENTIAL: /no credential/i,
   NO_MATCHING_CREDENTIAL: /matching credential/i,
+  USER_DISABLED_FEATURE: /user disabled the feature/i,
 };
 
 /**
@@ -83,6 +84,13 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
           throw new OAuthError(
             'handleGoogleLogin: User cancelled the login process',
             OAuthErrorType.UserCancelled,
+          );
+        } else if (ACM_ERRORS_REGEX.USER_DISABLED_FEATURE.test(error.message)) {
+          // User has disabled One Tap sign-in feature - treat as user cancellation
+          // This should not be sent to Sentry as it's a user preference
+          throw new OAuthError(
+            'handleGoogleLogin: User disabled One Tap sign-in feature',
+            OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
           );
         } else if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)) {
           if (!this.retried) {
