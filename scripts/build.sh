@@ -608,8 +608,12 @@ buildAndroidReleaseE2E(){
 	echo "Building E2E APKs for $flavor flavor..."
 	cd android
 	
+	echo "📦 Building native libraries for x86_64 ABI..."
+	./gradlew :app:externalNativeBuild${flavor}Release -Pandroid.injected.build.abi=x86_64
+
+	echo "📦 Building APKs..."
 	# Try building with optimized settings
-	if ! ./gradlew assemble${flavor}Release app:assemble${flavor}ReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release; then
+	if ! ./gradlew assemble${flavor}Release app:assemble${flavor}ReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release ; then
 		echo "⚠️  Build failed, retrying with reduced parallelism..."
 		# Kill any remaining daemon
 		./gradlew --stop || true
