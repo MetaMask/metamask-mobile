@@ -84,11 +84,11 @@ describe('useAutomaticTransactionPayToken', () => {
     isHardwareAccountMock.mockReturnValue(false);
   });
 
-  it('selects target token if has balance', () => {
+  it('selects first token', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue([
       {
         address: TOKEN_ADDRESS_2_MOCK,
-        chainId: CHAIN_ID_1_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
       },
       {
         address: TOKEN_ADDRESS_3_MOCK,
@@ -103,57 +103,13 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('selects token with highest balance on same chain if insufficient balance on target token', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue([
-      {
-        address: TOKEN_ADDRESS_3_MOCK,
-        chainId: CHAIN_ID_2_MOCK,
-      },
-      {
-        address: TOKEN_ADDRESS_2_MOCK,
-        chainId: CHAIN_ID_2_MOCK,
-      },
-      {
-        address: TOKEN_ADDRESS_3_MOCK,
-        chainId: CHAIN_ID_1_MOCK,
-      },
-    ] as AssetType[]);
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_3_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('selects token with highest balance on alternate chain if insufficient balance on same chain', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue([
-      {
-        address: TOKEN_ADDRESS_3_MOCK,
-        chainId: CHAIN_ID_2_MOCK,
-      },
-      {
-        address: TOKEN_ADDRESS_2_MOCK,
-        chainId: CHAIN_ID_2_MOCK,
-      },
-    ] as AssetType[]);
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_3_MOCK,
+      address: TOKEN_ADDRESS_2_MOCK,
       chainId: CHAIN_ID_2_MOCK,
     });
   });
 
-  it('selects target token if insufficient balance on all chains', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue([]);
+  it('selects target token if no tokens with balance', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue([] as AssetType[]);
 
     runHook();
 
