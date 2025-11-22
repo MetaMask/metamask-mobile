@@ -104,9 +104,9 @@ jobs:
               - 'scripts/build.sh'                 # Build script changes
               - 'scripts/setup.mjs'                # Setup script changes
               - 'patches/**'                       # Legacy patch changes
-              - '.yarn/patches'                    # Yarn patch changes
-              - '.github/workflows'                # GitHub workflow changes
-              - '.github/scripts'                  # GitHub workflow script changes
+              - '.yarn/patches/**'                 # Yarn patch changes
+              - '.github/workflows/**'             # GitHub workflow changes
+              - '.github/scripts/**'               # GitHub workflow script changes
               - 'react-native.config.js'           # React Native config changes
 
             ignore:
