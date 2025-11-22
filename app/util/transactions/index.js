@@ -77,6 +77,7 @@ export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
 export const TOKEN_METHOD_TRANSFER_FROM = 'transferfrom';
 export const TOKEN_METHOD_INCREASE_ALLOWANCE = 'increaseAllowance';
+export const TOKEN_METHOD_MINT = 'mint';
 export const CONTRACT_METHOD_DEPLOY = 'deploy';
 export const CONNEXT_METHOD_DEPOSIT = 'connextdeposit';
 export const TOKEN_METHOD_SET_APPROVAL_FOR_ALL = 'setapprovalforall';
@@ -102,6 +103,12 @@ export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 export const INCREASE_ALLOWANCE_SIGNATURE = '0x39509351';
 export const SET_APPROVAL_FOR_ALL_SIGNATURE = '0xa22cb465';
+
+// Common NFT method signatures
+export const SAFE_MINT_SIGNATURE = '0x40c10f19'; // safeMint(address,uint256)
+export const MINT_SIGNATURE = '0xa0712d68'; // mint(uint256)
+export const MINT_TO_SIGNATURE = '0x3b4b1381'; // mintTo(address) - common in many NFT contracts
+export const SAFE_MINT_WITH_DATA = '0x8832e6e3'; // safeMint(address,uint256,bytes)
 
 export const TRANSACTION_TYPES = {
   APPROVE: 'transaction_approve',
@@ -192,6 +199,7 @@ const actionKeys = {
   [DOWNGRADE_SMART_ACCOUNT_ACTION_KEY]: strings(
     'transactions.smart_account_downgrade',
   ),
+  [TOKEN_METHOD_MINT]: strings('transactions.mint'),
   [TransactionType.stakingClaim]: strings(
     'transactions.tx_review_staking_claim',
   ),
@@ -451,6 +459,15 @@ export async function getMethodData(data, networkClientId) {
   ) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }
+  // Common NFT mint methods
+  else if (
+    fourByteSignature === normalizeHex(SAFE_MINT_SIGNATURE) ||
+    fourByteSignature === normalizeHex(MINT_SIGNATURE) ||
+    fourByteSignature === normalizeHex(MINT_TO_SIGNATURE) ||
+    fourByteSignature === normalizeHex(SAFE_MINT_WITH_DATA)
+  ) {
+    return { name: TOKEN_METHOD_MINT };
+  }
 
   // If it's a new method, use on-chain method registry
   try {
@@ -557,6 +574,22 @@ export async function getTransactionActionKey(transaction, chainId) {
     return type;
   }
 
+  // Handle deployContract type explicitly
+  if (type === TransactionType.deployContract) {
+    return CONTRACT_METHOD_DEPLOY;
+  }
+
+  // Handle NFT/collectible transfers - ERC721 and ERC1155
+  // tokenMethodTransferFrom is used for ERC721
+  // tokenMethodSafeTransferFrom is used for ERC1155
+  if (
+    type === TransactionType.tokenMethodTransferFrom ||
+    type === TransactionType.tokenMethodSafeTransferFrom ||
+    type === 'transferfrom' // Legacy/fallback check
+  ) {
+    return TRANSFER_FROM_ACTION_KEY;
+  }
+
   if (hasTransactionType(transaction, [TransactionType.predictDeposit])) {
     return TransactionType.predictDeposit;
   }
@@ -591,6 +624,10 @@ export async function getTransactionActionKey(transaction, chainId) {
   if (data && data !== '0x') {
     const { name } = await getMethodData(data, networkClientId);
     if (name) return name;
+  }
+
+  if (type === TransactionType.contractInteraction) {
+    return SMART_CONTRACT_INTERACTION_ACTION_KEY;
   }
 
   const toSmartContract =
@@ -651,6 +688,40 @@ export function isTransactionIncomplete(status) {
  */
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
   const actionKey = await getTransactionActionKey(tx, chainId);
+
+  // Handle transferFrom - need to distinguish between NFT and ERC20
+  // Both return 'transferfrom' but have different transaction types
+  if (actionKey === TRANSFER_FROM_ACTION_KEY) {
+    const fromAddress = safeToChecksumAddress(tx.txParams.from)?.toLowerCase();
+    const toAddress = safeToChecksumAddress(tx.txParams.to)?.toLowerCase();
+    const selectedAddr = selectedAddress?.toLowerCase();
+    const sentByUser = fromAddress === selectedAddr;
+
+    // Check if it's an NFT/collectible transfer (ERC721/ERC1155)
+    const isNFTTransfer =
+      tx.type === TransactionType.tokenMethodTransferFrom ||
+      tx.type === TransactionType.tokenMethodSafeTransferFrom;
+
+    if (isNFTTransfer) {
+      // NFT transfers - show collectible messages
+      if (sentByUser) {
+        return strings('transactions.sent_collectible');
+      }
+      return strings('transactions.received_collectible');
+    }
+
+    // ERC20 transferFrom - show token messages
+    const incoming = !sentByUser;
+    const selfSent = fromAddress === selectedAddr && toAddress === selectedAddr;
+
+    if (selfSent) {
+      return strings('transactions.self_sent_tokens');
+    }
+    if (incoming) {
+      return strings('transactions.received_tokens');
+    }
+    return strings('transactions.sent_tokens');
+  }
 
   // Handle token transfers with direction logic (similar to ETH transfers)
   if (actionKey === SEND_TOKEN_ACTION_KEY) {

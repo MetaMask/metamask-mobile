@@ -451,6 +451,7 @@ function decodeTransferFromTx(args) {
       txParams,
       txParams: { gas, data, to },
       hash,
+      transferInformation,
     },
     txChainId,
     collectibleContracts,
@@ -460,11 +461,38 @@ function decodeTransferFromTx(args) {
     selectedAddress,
     ticker,
   } = args;
-  const [addressFrom, addressTo, tokenId] = decodeTransferData(
-    'transferFrom',
-    data,
-  );
-  const collectible = collectibleContracts.find((collectible) =>
+
+  // For transferFrom transactions, prioritize decoding from data when available
+  // transferInformation is used as fallback since the data may only contain the function signature
+  let addressFrom, addressTo, tokenId;
+
+  // Try to decode from data first if it's complete (4 bytes selector + 3×32 bytes params = 202 chars)
+  if (data && data.length >= 202) {
+    // Data is complete, decode the actual addresses from it
+    [addressFrom, addressTo, tokenId] = decodeTransferData(
+      'transferFrom',
+      data,
+    );
+  } else if (transferInformation) {
+    // Data is truncated, use transferInformation
+    tokenId =
+      transferInformation.tokenId ||
+      transferInformation.tokenAmount ||
+      transferInformation.value;
+    // For direction, use txParams.from as the sender
+    // Note: txParams.to is the contract, not the recipient, so we can't reliably set addressTo
+    addressFrom = txParams.from;
+    // We can't determine the actual recipient from truncated data
+    // Use txParams for direction logic, but this won't show the correct recipient in UI
+    addressTo = txParams.to;
+  } else {
+    // No transferInformation and no complete data - fallback to decoding attempt
+    [addressFrom, addressTo, tokenId] = decodeTransferData(
+      'transferFrom',
+      data,
+    );
+  }
+  const collectible = collectibleContracts?.find((collectible) =>
     areAddressesEqual(collectible.address, to),
   );
   let actionKey = args.actionKey;
@@ -473,16 +501,36 @@ function decodeTransferFromTx(args) {
   }
 
   const totalGas = calculateTotalGas(txParams);
-  const renderCollectible = collectible?.symbol
-    ? `${strings('unit.token_id')}${tokenId} ${collectible?.symbol}`
-    : `${strings('unit.token_id')}${tokenId}`;
+
+  // Handle cases where tokenId might be undefined or NaN
+  let renderCollectible;
+  if (collectible?.symbol) {
+    renderCollectible =
+      tokenId != null && !isNaN(Number(tokenId))
+        ? `${strings('unit.token_id')}${tokenId} ${collectible.symbol}`
+        : collectible.symbol;
+  } else if (collectible?.name) {
+    renderCollectible =
+      tokenId != null && !isNaN(Number(tokenId))
+        ? `${strings('unit.token_id')}${tokenId} ${collectible.name}`
+        : collectible.name;
+  } else {
+    // Fallback: show just the contract address or generic label
+    renderCollectible =
+      tokenId != null && !isNaN(Number(tokenId))
+        ? `${strings('unit.token_id')}${tokenId}`
+        : strings('wallet.collectible');
+  }
 
   const renderFrom = renderFullAddress(addressFrom);
   const renderTo = renderFullAddress(addressTo);
 
   const { SENT_COLLECTIBLE, RECEIVED_COLLECTIBLE } = TRANSACTION_TYPES;
   const transactionType =
-    renderFrom === selectedAddress ? SENT_COLLECTIBLE : RECEIVED_COLLECTIBLE;
+    (addressFrom?.toLowerCase() ?? txParams.from?.toLowerCase()) ===
+    selectedAddress?.toLowerCase()
+      ? SENT_COLLECTIBLE
+      : RECEIVED_COLLECTIBLE;
 
   let transactionDetails = {
     renderFrom,
@@ -523,12 +571,36 @@ function decodeTransferFromTx(args) {
     };
   }
 
+  // Handle value display - avoid showing #undefined or #NaN
+  let displayValue;
+  let displayFiatValue;
+
+  if (tokenId != null && !isNaN(Number(tokenId))) {
+    // We have a valid tokenId - show it
+    displayValue = `${strings('unit.token_id')}${tokenId}`;
+    displayFiatValue = collectible ? collectible.symbol : undefined;
+  } else if (collectible?.name) {
+    // Show collectible name
+    displayValue = collectible.name;
+    displayFiatValue = collectible.symbol;
+  } else if (collectible?.symbol) {
+    // Show collectible symbol
+    displayValue = collectible.symbol;
+    displayFiatValue = undefined;
+  } else {
+    // No tokenId or collectible info - show transaction fee
+    const totalGasFee = renderFromWei(totalGas);
+    displayValue =
+      totalGasFee === '0' ? `0 ${ticker}` : `${totalGasFee} ${ticker}`;
+    displayFiatValue = weiToFiat(totalGas, conversionRate, currentCurrency);
+  }
+
   const transactionElement = {
     renderTo,
     renderFrom,
     actionKey,
-    value: `${strings('unit.token_id')}${tokenId}`,
-    fiatValue: collectible ? collectible.symbol : undefined,
+    value: displayValue,
+    fiatValue: displayFiatValue,
     transactionType,
   };
 
