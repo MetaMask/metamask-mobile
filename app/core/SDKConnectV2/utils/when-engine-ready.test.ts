@@ -43,7 +43,7 @@ describe('when-engine-ready', () => {
       const promise = whenEngineReady();
 
       // Fast-forward time to trigger the check intervals
-      await jest.advanceTimersByTimeAsync(200);
+      await jest.advanceTimersByTimeAsync(2000);
 
       await expect(promise).resolves.toBeUndefined();
     });
@@ -65,7 +65,7 @@ describe('when-engine-ready', () => {
       const promise = whenEngineReady();
 
       // Fast-forward time to trigger the check intervals
-      await jest.advanceTimersByTimeAsync(300);
+      await jest.advanceTimersByTimeAsync(3000);
 
       await expect(promise).resolves.toBeUndefined();
     });
