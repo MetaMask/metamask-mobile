@@ -54,6 +54,7 @@ export { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
 export { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
 export { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
 export { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';
+export { usePerpsHomeActions } from './usePerpsHomeActions';
 export { useHasExistingPosition } from './useHasExistingPosition';
 export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';
