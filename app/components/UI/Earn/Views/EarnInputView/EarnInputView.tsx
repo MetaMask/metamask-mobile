@@ -75,7 +75,6 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 const EarnInputView = () => {
@@ -162,7 +161,7 @@ const EarnInputView = () => {
     selectDefaultEndpointByChainId(state, earnToken?.chainId as Hex),
   );
 
-  const networkClientId = endpoint.networkClientId;
+  const networkClientId = endpoint?.networkClientId;
 
   const {
     isFiat,
@@ -289,6 +288,13 @@ const EarnInputView = () => {
       isFiat,
     ],
   );
+
+  const confirmationRedesignFlags = useSelector(
+    selectConfirmationRedesignFlags,
+  );
+
+  const isStakingDepositRedesignedEnabled =
+    confirmationRedesignFlags?.staking_confirmations;
 
   const handleLendingFlow = useCallback(async () => {
     if (
@@ -444,9 +450,7 @@ const EarnInputView = () => {
       });
     };
 
-    const isRedesignedStablecoinLendingScreenEnabled =
-      getIsRedesignedStablecoinLendingScreenEnabled();
-    if (isRedesignedStablecoinLendingScreenEnabled) {
+    if (isStakingDepositRedesignedEnabled) {
       createRedesignedLendingDepositConfirmation(earnToken, selectedAccount);
     } else {
       createLegacyLendingDepositConfirmation(
@@ -472,14 +476,8 @@ const EarnInputView = () => {
     annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
+    isStakingDepositRedesignedEnabled,
   ]);
-
-  const confirmationRedesignFlags = useSelector(
-    selectConfirmationRedesignFlags,
-  );
-
-  const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_confirmations;
 
   const handlePooledStakingFlow = useCallback(async () => {
     if (isHighGasCostImpact()) {
@@ -528,7 +526,9 @@ const EarnInputView = () => {
       // start trace between user initiating deposit and the redesigned confirmation screen loading
       trace({
         name: TraceName.EarnDepositConfirmationScreen,
-        data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+        data: {
+          experience: earnToken?.experience?.type ?? '',
+        },
       });
 
       // this prevents the user from adding the transaction deposit into the
@@ -591,13 +591,13 @@ const EarnInputView = () => {
     annualRewardsToken,
     attemptDepositTransaction,
     createEventBuilder,
-    earnToken?.chainId,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
     isStakingDepositRedesignedEnabled,
     navigation,
     trackEvent,
+    earnToken,
   ]);
 
   const handleEarnPress = useCallback(async () => {
