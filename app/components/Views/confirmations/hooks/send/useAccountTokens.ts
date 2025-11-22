@@ -11,31 +11,35 @@ import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
-import { useSendScope } from './useSendScope';
+import { useSendType } from './useSendType';
 
 export function useAccountTokens({
   includeNoBalance = false,
 } = {}): AssetType[] {
   const assets = useSelector(selectFilteredAssetsBySelectedAccountGroup);
-  const { isEvmOnly, isSolanaOnly } = useSendScope();
+  const { isEvmSendType, isSolanaSendType, isTronSendType, isBitcoinSendType } =
+    useSendType();
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
 
-    let filteredAssets;
+    const accountTypeMap: Record<string, boolean> = {
+      eip155: !!isEvmSendType,
+      solana: !!isSolanaSendType,
+      tron: !!isTronSendType,
+      bip122: !!isBitcoinSendType,
+    };
 
-    if (isEvmOnly) {
-      filteredAssets = flatAssets.filter((asset) =>
-        asset.accountType.includes('eip155'),
-      );
-    } else if (isSolanaOnly) {
-      filteredAssets = flatAssets.filter((asset) =>
-        asset.accountType.includes('solana'),
-      );
-    } else {
-      filteredAssets = flatAssets;
-    }
+    const matchedAccountType = Object.entries(accountTypeMap).find(
+      ([, isType]) => isType,
+    )?.[0];
+
+    const filteredAssets = matchedAccountType
+      ? flatAssets.filter((asset) =>
+          asset.accountType.includes(matchedAccountType),
+        )
+      : flatAssets;
 
     const assetsWithBalance = filteredAssets.filter((asset) => {
       if (includeNoBalance) {
@@ -88,8 +92,10 @@ export function useAccountTokens({
   }, [
     assets,
     includeNoBalance,
-    isEvmOnly,
-    isSolanaOnly,
+    isEvmSendType,
+    isSolanaSendType,
+    isTronSendType,
+    isBitcoinSendType,
     fiatCurrency,
   ]) as unknown as AssetType[];
 }
