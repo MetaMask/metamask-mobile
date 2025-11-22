@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, Keyboard } from 'react-native';
+import { View, Keyboard, FlatList, Pressable } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
 import Text, {
@@ -29,10 +29,12 @@ import {
 import { isValidMnemonic } from '../../../util/validators';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import Logger from '../../../util/Logger';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
 }
+
 /**
  * SrpInputGrid Component
  *
@@ -55,6 +57,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       placeholderText,
       uniqueId = uuidv4(),
       disabled = false,
+      onFirstFocus,
     },
     ref,
   ) => {
@@ -69,11 +72,16 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     const [errorWordIndexes, setErrorWordIndexes] = useState<
       Record<number, boolean>
     >({});
+    const [currentInputWord, setCurrentInputWord] = useState<string>('');
+    const [focusedInputIndex, setFocusedInputIndex] = useState<number | null>(
+      null,
+    );
 
     const seedPhraseInputRefs = useRef<Map<
       number,
       { focus: () => void; blur: () => void }
     > | null>(null);
+    const hasCalledFirstFocusRef = useRef(false);
 
     // Calculate trimmed seed phrase length
     const trimmedSeedPhraseLength = useMemo(
@@ -86,6 +94,19 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       () => isFirstInputUtil(seedPhrase),
       [seedPhrase],
     );
+
+    // Filter BIP39 wordlist based on current input
+    const suggestions = useMemo(() => {
+      const trimmedWord = currentInputWord.trim().toLowerCase();
+
+      if (!trimmedWord) {
+        return [];
+      }
+
+      return wordlist
+        .filter((word) => word.startsWith(trimmedWord))
+        .slice(0, 5);
+    }, [currentInputWord]);
 
     // Initialize seed phrase input refs
     const getSeedPhraseInputRef = useCallback(() => {
@@ -171,6 +192,8 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 [index]: false,
               }));
             }
+
+            setCurrentInputWord(!text.includes(' ') ? text : '');
           }
         } catch (err) {
           Logger.error(err as Error, 'Error handling seed phrase change');
@@ -224,9 +247,23 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     );
 
     // Handle focus change with validation
-    const handleOnFocus = useCallback((index: number) => {
-      setNextSeedPhraseInputFocusedIndex(index);
-    }, []);
+    const handleOnFocus = useCallback(
+      (index: number) => {
+        setNextSeedPhraseInputFocusedIndex(index);
+        setFocusedInputIndex(index);
+
+        if (!hasCalledFirstFocusRef.current && onFirstFocus) {
+          hasCalledFirstFocusRef.current = true;
+          onFirstFocus();
+        }
+
+        const currentWord = seedPhrase[index] || '';
+        if (!currentWord.includes(' ')) {
+          setCurrentInputWord(currentWord);
+        }
+      },
+      [seedPhrase, onFirstFocus],
+    );
 
     const handleOnBlur = useCallback(
       (index: number) => {
@@ -239,6 +276,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             [index]: !checkValid,
           }));
         }
+
+        setFocusedInputIndex(null);
+        setCurrentInputWord('');
       },
       [seedPhrase],
     );
@@ -296,7 +336,25 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       onSeedPhraseChange(['']);
       setErrorWordIndexes({});
       setNextSeedPhraseInputFocusedIndex(null);
+      setCurrentInputWord('');
+      setFocusedInputIndex(null);
     }, [onSeedPhraseChange]);
+
+    const handleSuggestionSelect = useCallback(
+      (word: string) => {
+        if (focusedInputIndex === null) return;
+
+        // Update seed phrase with selected word
+        const updatedText = `${word}${SPACE_CHAR}`;
+        handleSeedPhraseChangeAtIndexRef.current(
+          updatedText,
+          focusedInputIndex,
+        );
+
+        setCurrentInputWord('');
+      },
+      [focusedInputIndex],
+    );
 
     useEffect(() => {
       if (nextSeedPhraseInputFocusedIndex === null) return;
@@ -380,10 +438,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   isError={errorWordIndexes[index]}
                   autoCapitalize="none"
                   testID={`${testIdPrefix}_${index}`}
-                  keyboardType="default"
+                  keyboardType="visible-password"
                   autoCorrect={false}
-                  textContentType="oneTimeCode"
+                  textContentType="none"
                   spellCheck={false}
+                  importantForAutofill="no"
                   autoFocus={index === nextSeedPhraseInputFocusedIndex}
                   onKeyPress={(e) => handleKeyPress(e, index)}
                   isDisabled={disabled}
@@ -418,10 +477,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 showSoftInputOnFocus
                 autoCapitalize="none"
                 testID={testIdPrefix}
-                keyboardType="default"
+                keyboardType="visible-password"
                 autoCorrect={false}
-                textContentType="oneTimeCode"
+                textContentType="none"
                 spellCheck={false}
+                importantForAutofill="no"
                 autoFocus={isFirstInput}
                 multiline
                 onKeyPress={(e) => handleKeyPress(e, 0)}
@@ -448,6 +508,43 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             ? strings('import_from_seed.clear_all')
             : strings('import_from_seed.paste')}
         </Text>
+
+        {suggestions.length > 0 && (
+          <View
+            style={[
+              styles.suggestionContainer,
+              {
+                backgroundColor: colors.background.default,
+              },
+            ]}
+          >
+            <FlatList
+              horizontal
+              data={suggestions}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.suggestionButton,
+                    {
+                      backgroundColor: colors.background.alternative,
+                      borderColor: colors.border.default,
+                    },
+                    pressed && styles.suggestionPressed,
+                  ]}
+                  onPress={() => handleSuggestionSelect(item)}
+                >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {item}
+                  </Text>
+                </Pressable>
+              )}
+              keyExtractor={(item) => item}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.suggestionListContent}
+              keyboardShouldPersistTaps="always"
+            />
+          </View>
+        )}
 
         {/* Error Text */}
         {Boolean(externalError || error) && (
