@@ -1,11 +1,9 @@
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import {
   ActivityIndicator,
   BackHandler,
   View,
   ScrollView,
-  StyleSheet,
   InteractionManager,
   Animated,
   Easing,
@@ -17,7 +15,8 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
+import { Dispatch } from 'redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
@@ -40,10 +39,16 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import NetInfo from '@react-native-community/netinfo';
+import { fetch as netInfoFetch } from '@react-native-community/netinfo';
+import {
+  NavigationProp,
+  ParamListBase,
+  RouteProp,
+} from '@react-navigation/native';
 import {
   TraceName,
   TraceOperation,
+  TraceContext,
   endTrace,
   trace,
   hasMetricsConsent,
@@ -51,7 +56,13 @@ import {
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import type { RootState } from '../../../reducers';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
+import { JsonMap } from '@segment/analytics-react-native';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
@@ -60,217 +71,111 @@ import Button, {
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
+import type { IUseMetricsHook } from '../../hooks/useMetrics/useMetrics.types';
+import type { IWithMetricsAwarenessProps } from '../../hooks/useMetrics/withMetricsAwareness.types';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
+import { createStyles } from './styles';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
-    scroll: {
-      flex: 1,
-    },
-    wrapper: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 16,
-    },
-    loaderWrapper: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      rowGap: 32,
-      marginBottom: 160,
-    },
-    loaderOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 1000,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    image: {
-      alignSelf: 'center',
-      width: Device.isMediumDevice() ? 180 : 240,
-      height: Device.isMediumDevice() ? 180 : 240,
-    },
-    largeFoxWrapper: {
-      width: Device.isMediumDevice() ? 180 : 240,
-      height: Device.isMediumDevice() ? 180 : 240,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginHorizontal: 'auto',
-      padding: Device.isMediumDevice() ? 30 : 40,
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      marginLeft: -(Device.isMediumDevice() ? 90 : 120),
-      marginTop: -(Device.isMediumDevice() ? 90 : 120),
-    },
-    foxImage: {
-      width: Device.isMediumDevice() ? 110 : 145,
-      height: Device.isMediumDevice() ? 110 : 145,
-      resizeMode: 'contain',
-    },
-    title: {
-      fontSize: Device.isMediumDevice() ? 30 : 40,
-      lineHeight: Device.isMediumDevice() ? 30 : 40,
-      textAlign: 'center',
-      paddingHorizontal: Device.isMediumDevice() ? 40 : 60,
-      fontFamily:
-        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
-      color: importedColors.gettingStartedTextColor,
-      width: '100%',
-      marginVertical: 16,
-    },
-    ctas: {
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      width: '100%',
-      paddingHorizontal: 20,
-      rowGap: Device.isMediumDevice() ? 16 : 24,
-    },
-    titleWrapper: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '100%',
-      flex: 1,
-      rowGap: Device.isMediumDevice() ? 24 : 32,
-    },
-    footer: {
-      marginBottom: 40,
-      marginTop: -40,
-    },
-    createWrapper: {
-      flexDirection: 'column',
-      rowGap: Device.isMediumDevice() ? 12 : 16,
-      marginBottom: 16,
-      position: 'absolute',
-      top: '50%',
-      left: Device.isMediumDevice() ? 26 : 36,
-      right: Device.isMediumDevice() ? 26 : 36,
-      marginTop: 180,
-      alignItems: 'stretch',
-    },
-    buttonWrapper: {
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      gap: Device.isMediumDevice() ? 12 : 16,
-      width: '100%',
-    },
-    buttonLabel: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      columnGap: 8,
-    },
-    loader: {
-      justifyContent: 'center',
-      textAlign: 'center',
-    },
-    loadingText: {
-      marginTop: 30,
-      textAlign: 'center',
-      color: colors.text.default,
-    },
-    modalTypeView: {
-      position: 'absolute',
-      bottom: 0,
-      paddingBottom: Device.isIphoneX() ? 20 : 10,
-      left: 0,
-      right: 0,
-      backgroundColor: importedColors.transparent,
-    },
-    notificationContainer: {
-      flex: 0.1,
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-    },
-    blackButton: {
-      backgroundColor: importedColors.white,
-    },
-    inverseBlackButton: {
-      backgroundColor: importedColors.applePayBlack,
-    },
-  });
+interface OnboardingState {
+  warningModalVisible: boolean;
+  loading: boolean;
+  existingUser: boolean;
+  createWallet: boolean;
+  existingWallet: boolean;
+  errorSheetVisible: boolean;
+  errorToThrow: Error | null;
+  startOnboardingAnimation: boolean;
+  startFoxAnimation: 'Start' | 'Loader' | undefined;
+}
 
-/**
- * View that is displayed to first time (new) users
- */
-class Onboarding extends PureComponent {
-  static propTypes = {
-    disableNewPrivacyPolicyToast: PropTypes.func,
-    /**
-     * The navigator object
-     */
-    navigation: PropTypes.object,
-    /**
-     * redux flag that indicates if the user set a password
-     */
-    passwordSet: PropTypes.bool,
-    /**
-     * loading status
-     */
-    loading: PropTypes.bool,
-    /**
-     * set loading status
-     */
-    setLoading: PropTypes.func,
-    /**
-     * unset loading status
-     */
-    unsetLoading: PropTypes.func,
-    /**
-     * redux flag that indicates if the user is existing
-     */
-    existingUser: PropTypes.bool,
-    /**
-     * Action to save onboarding event
-     */
-    saveOnboardingEvent: PropTypes.func,
-    /**
-     * loadings msg
-     */
-    loadingMsg: PropTypes.string,
-    /**
-     * Object that represents the current route info like params passed to it
-     */
-    route: PropTypes.object,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
+interface OAuthLoginResult {
+  type: 'success' | 'error';
+  existingUser: boolean;
+  accountName?: string;
+  error?: Error;
+}
+
+interface OnboardingRouteParams {
+  [PREVIOUS_SCREEN]: string;
+  delete_wallet_toast_visible?: boolean;
+  delete?: string;
+}
+
+const mapStateToProps = (state: RootState) => ({
+  accounts: selectAccounts(state),
+  passwordSet: state.user.passwordSet,
+  existingUser: selectExistingUser(state),
+  loading: state.user.loadingSet,
+  loadingMsg: state.user.loadingMsg || '',
+});
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  setLoading: (msg?: string) => dispatch(loadingSet(msg || '')),
+  unsetLoading: () => dispatch(loadingUnset()),
+  disableNewPrivacyPolicyToast: () =>
+    dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
+    dispatch(saveEvent(eventArgs)),
+});
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+interface OwnProps {
+  /**
+   * Navigation object required to push new views
+   */
+  navigation: NavigationProp<ParamListBase> & {
+    replace: (name: string, params?: object) => void;
   };
-  notificationAnimated = new Animated.Value(100);
-  detailsYAnimated = new Animated.Value(0);
-  actionXAnimated = new Animated.Value(0);
-  detailsAnimated = new Animated.Value(0);
+  /**
+   * Object that represents the current route info like params passed to it
+   */
+  route: RouteProp<{ params: OnboardingRouteParams }, 'params'>;
+  /**
+   * Metrics injected by withMetricsAwareness HOC
+   */
+  metrics: IUseMetricsHook;
+}
 
-  onboardingTraceCtx = null;
-  socialLoginTraceCtx = null;
+type OnboardingProps = PropsFromRedux & OwnProps;
 
-  animatedTimingStart = (animatedRef, toValue) => {
-    Animated.timing(animatedRef, {
-      toValue,
-      duration: 500,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    }).start();
-  };
+export type OnboardingComponentProps = Omit<OwnProps, 'metrics'>;
 
-  state = {
+class Onboarding extends PureComponent<OnboardingProps, OnboardingState> {
+  // Helper to get typed context
+  private get themeContext() {
+    return this.context as React.ContextType<typeof ThemeContext>;
+  }
+
+  notificationAnimated: Animated.Value = new Animated.Value(100);
+  detailsYAnimated: Animated.Value = new Animated.Value(0);
+  actionXAnimated: Animated.Value = new Animated.Value(0);
+  detailsAnimated: Animated.Value = new Animated.Value(0);
+
+  onboardingTraceCtx: TraceContext = undefined;
+  socialLoginTraceCtx: TraceContext = undefined;
+
+  seedwords: string | null = null;
+  importedAccounts: unknown[] | null = null;
+  channelName: string | null = null;
+  incomingDataStr: string = '';
+  dataToSync: unknown = null;
+  mounted: boolean = false;
+  hasCheckedVaultBackup: boolean = false;
+
+  warningCallback: () => boolean = () => true;
+
+  state: OnboardingState = {
     warningModalVisible: false,
     loading: false,
     existingUser: false,
@@ -279,20 +184,22 @@ class Onboarding extends PureComponent {
     errorSheetVisible: false,
     errorToThrow: null,
     startOnboardingAnimation: false,
-    startFoxAnimation: false,
+    startFoxAnimation: undefined,
   };
 
-  seedwords = null;
-  importedAccounts = null;
-  channelName = null;
-  incomingDataStr = '';
-  dataToSync = null;
-  mounted = false;
-  hasCheckedVaultBackup = false; // Prevent multiple vault backup checks
+  animatedTimingStart = (
+    animatedRef: Animated.Value,
+    toValue: number,
+  ): void => {
+    Animated.timing(animatedRef, {
+      toValue,
+      duration: 500,
+      easing: Easing.linear,
+      useNativeDriver: true,
+    }).start();
+  };
 
-  warningCallback = () => true;
-
-  showNotification = () => {
+  showNotification = (): void => {
     // show notification
     this.animatedTimingStart(this.notificationAnimated, 0);
     // hide notification
@@ -302,20 +209,20 @@ class Onboarding extends PureComponent {
     this.disableBackPress();
   };
 
-  disableBackPress = () => {
+  disableBackPress = (): void => {
     // Disable back press
     const hardwareBackPress = () => true;
     BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
   };
 
-  updateNavBar = () => {
+  updateNavBar = (): void => {
     const { navigation } = this.props;
     navigation.setOptions({
       headerShown: false,
     });
   };
 
-  componentDidMount() {
+  componentDidMount(): void {
     this.onboardingTraceCtx = trace({
       name: TraceName.OnboardingJourneyOverall,
       op: TraceOperation.OnboardingUserJourney,
@@ -338,17 +245,17 @@ class Onboarding extends PureComponent {
     });
   }
 
-  componentWillUnmount() {
+  componentWillUnmount(): void {
     this.mounted = false;
     this.props.unsetLoading();
     InteractionManager.runAfterInteractions(PreventScreenshot.allow);
   }
 
-  componentDidUpdate = () => {
+  componentDidUpdate = (): void => {
     this.updateNavBar();
   };
 
-  async checkIfExistingUser() {
+  async checkIfExistingUser(): Promise<void> {
     // Read from Redux state instead of MMKV storage
     const { existingUser } = this.props;
     if (existingUser) {
@@ -361,7 +268,7 @@ class Onboarding extends PureComponent {
    * This detects when a migration has failed and left the user with a corrupted state
    * but a valid vault backup still exists in the secure keychain
    */
-  async checkForMigrationFailureAndVaultBackup() {
+  async checkForMigrationFailureAndVaultBackup(): Promise<void> {
     // Prevent multiple checks - only run once per instance
     if (this.hasCheckedVaultBackup) {
       return;
@@ -402,13 +309,13 @@ class Onboarding extends PureComponent {
       }
     } catch (error) {
       Logger.error(
-        error,
+        error as Error,
         'Failed to check for migration failure and vault backup',
       );
     }
   }
 
-  onLogin = async () => {
+  onLogin = async (): Promise<void> => {
     const { passwordSet } = this.props;
     if (!passwordSet) {
       await Authentication.resetVault();
@@ -419,19 +326,19 @@ class Onboarding extends PureComponent {
     }
   };
 
-  handleExistingUser = (action) => {
+  handleExistingUser = (action: () => void | Promise<void>): void => {
     if (this.state.existingUser) {
       this.alertExistingUser(action);
     } else {
-      action();
+      void action();
     }
   };
 
-  onPressCreate = async () => {
+  onPressCreate = async (): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await this.props.metrics.enableSocialLogin(false);
+    await this.props.metrics.enableSocialLogin?.(false);
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
 
@@ -456,11 +363,11 @@ class Onboarding extends PureComponent {
     endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
-  onPressImport = async () => {
+  onPressImport = async (): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await this.props.metrics.enableSocialLogin(false);
+    await this.props.metrics.enableSocialLogin?.(false);
     await hasMetricsConsent();
 
     const action = async () => {
@@ -484,11 +391,15 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  handlePostSocialLogin = (result, createWallet, provider) => {
+  handlePostSocialLogin = (
+    result: OAuthLoginResult,
+    createWallet: boolean,
+    provider: string,
+  ): void => {
     const isIOS = Platform.OS === 'ios';
     if (this.socialLoginTraceCtx) {
       endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
-      this.socialLoginTraceCtx = null;
+      this.socialLoginTraceCtx = undefined;
     }
 
     if (result.type === 'success') {
@@ -569,10 +480,13 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressContinueWithSocialLogin = async (createWallet, provider) => {
+  onPressContinueWithSocialLogin = async (
+    createWallet: boolean,
+    provider: AuthConnection,
+  ): Promise<void> => {
     // check for internet connection
     try {
-      const netState = await NetInfo.fetch();
+      const netState = await netInfoFetch();
       if (!netState.isConnected || netState.isInternetReachable === false) {
         this.props.navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -600,7 +514,7 @@ class Onboarding extends PureComponent {
     this.props.navigation.navigate('Onboarding');
 
     // Enable metrics for OAuth users
-    await this.props.metrics.enableSocialLogin(true);
+    await this.props.metrics.enableSocialLogin?.(true);
     discardBufferedTraces();
     await setupSentry();
 
@@ -634,12 +548,16 @@ class Onboarding extends PureComponent {
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
         !createWallet,
-      ).catch((error) => {
+      ).catch((error: Error) => {
         this.props.unsetLoading();
         this.handleLoginError(error, provider);
-        return { type: 'error', error, existingUser: false };
+        return { type: 'error' as const, error, existingUser: false };
       });
-      this.handlePostSocialLogin(result, createWallet, provider);
+      this.handlePostSocialLogin(
+        result as OAuthLoginResult,
+        createWallet,
+        provider,
+      );
 
       // delay unset loading to avoid flash of loading state
       setTimeout(() => {
@@ -649,13 +567,13 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  onPressContinueWithApple = async (createWallet) =>
-    this.onPressContinueWithSocialLogin(createWallet, 'apple');
+  onPressContinueWithApple = async (createWallet: boolean): Promise<void> =>
+    this.onPressContinueWithSocialLogin(createWallet, AuthConnection.Apple);
 
-  onPressContinueWithGoogle = async (createWallet) =>
-    this.onPressContinueWithSocialLogin(createWallet, 'google');
+  onPressContinueWithGoogle = async (createWallet: boolean): Promise<void> =>
+    this.onPressContinueWithSocialLogin(createWallet, AuthConnection.Google);
 
-  handleLoginError = (error, socialConnectionType) => {
+  handleLoginError = (error: Error, socialConnectionType: string): void => {
     if (error instanceof OAuthError) {
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
@@ -704,7 +622,7 @@ class Onboarding extends PureComponent {
         name: TraceName.OnboardingSocialLoginAttempt,
         data: { success: false },
       });
-      this.socialLoginTraceCtx = null;
+      this.socialLoginTraceCtx = undefined;
     }
 
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -719,7 +637,7 @@ class Onboarding extends PureComponent {
     });
   };
 
-  handleOAuthLoginError = (error) => {
+  handleOAuthLoginError = (error: Error): void => {
     // If user has already consented to analytics, report error using regular Sentry
     if (this.props.metrics.isEnabled()) {
       captureException(error, {
@@ -736,7 +654,8 @@ class Onboarding extends PureComponent {
       });
     }
   };
-  track = (event, properties) => {
+
+  track = (event: IMetaMetricsEvent, properties: JsonMap = {}): void => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(event)
         .addProperties(properties)
@@ -745,20 +664,21 @@ class Onboarding extends PureComponent {
     );
   };
 
-  alertExistingUser = (callback) => {
+  alertExistingUser = (callback: () => void | Promise<void>): void => {
     this.warningCallback = () => {
-      callback();
+      void callback();
       this.toggleWarningModal();
+      return true;
     };
     this.toggleWarningModal();
   };
 
-  toggleWarningModal = () => {
+  toggleWarningModal = (): void => {
     const warningModalVisible = this.state.warningModalVisible;
     this.setState({ warningModalVisible: !warningModalVisible });
   };
 
-  handleCtaActions = async (actionType) => {
+  handleCtaActions = async (actionType: string): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ONBOARDING_SHEET,
@@ -778,12 +698,12 @@ class Onboarding extends PureComponent {
     }
   };
 
-  setStartFoxAnimation = () => {
+  setStartFoxAnimation = (): void => {
     this.setState({ startFoxAnimation: 'Start' });
   };
 
-  renderLoader = () => {
-    const colors = this.context.colors || mockTheme.colors;
+  renderLoader = (): React.ReactElement => {
+    const colors = this.themeContext.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     return (
@@ -796,8 +716,8 @@ class Onboarding extends PureComponent {
     );
   };
 
-  renderContent() {
-    const colors = this.context.colors || mockTheme.colors;
+  renderContent(): React.ReactElement {
+    const colors = this.themeContext.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     return (
@@ -845,11 +765,11 @@ class Onboarding extends PureComponent {
     );
   }
 
-  handleSimpleNotification = () => {
-    const colors = this.context.colors || mockTheme.colors;
+  handleSimpleNotification = (): React.ReactElement | null => {
+    const colors = this.themeContext.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (!this.props.route.params?.delete) return;
+    if (!this.props.route.params?.delete) return null;
     return (
       <Animated.View
         style={[
@@ -859,7 +779,6 @@ class Onboarding extends PureComponent {
       >
         <ElevatedView style={styles.modalTypeView} elevation={100}>
           <BaseNotification
-            closeButtonDisabled
             status="success"
             data={{
               title: strings('onboarding.success'),
@@ -871,10 +790,10 @@ class Onboarding extends PureComponent {
     );
   };
 
-  render() {
+  render(): React.ReactElement {
     const { loading } = this.props;
     const { existingUser, errorToThrow, startFoxAnimation } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
+    const colors = this.themeContext.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const hasFooter = existingUser && !loading;
 
@@ -900,7 +819,7 @@ class Onboarding extends PureComponent {
             baseStyles.flexGrow,
             {
               backgroundColor:
-                this.context.themeAppearance === 'dark'
+                this.themeContext.themeAppearance === 'dark'
                   ? importedColors.gettingStartedTextColor
                   : importedColors.gettingStartedPageBackgroundColorLightMode,
             },
@@ -920,7 +839,7 @@ class Onboarding extends PureComponent {
                     styles.loaderOverlay,
                     {
                       backgroundColor:
-                        this.context.themeAppearance === 'dark'
+                        this.themeContext.themeAppearance === 'dark'
                           ? importedColors.gettingStartedTextColor
                           : importedColors.gettingStartedPageBackgroundColorLightMode,
                     },
@@ -964,23 +883,11 @@ class Onboarding extends PureComponent {
 
 Onboarding.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  passwordSet: state.user.passwordSet,
-  existingUser: selectExistingUser(state),
-  loading: state.user.loadingSet,
-  loadingMsg: state.user.loadingMsg,
-});
+const ConnectedOnboarding = connector(Onboarding);
+const OnboardingWithMetrics = withMetricsAwareness(
+  ConnectedOnboarding as unknown as React.ComponentType<IWithMetricsAwarenessProps>,
+);
 
-const mapDispatchToProps = (dispatch) => ({
-  setLoading: (msg) => dispatch(loadingSet(msg)),
-  unsetLoading: () => dispatch(loadingUnset()),
-  disableNewPrivacyPolicyToast: () =>
-    dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
-});
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withMetricsAwareness(Onboarding));
+export default OnboardingWithMetrics as React.ComponentType<
+  Partial<OnboardingComponentProps>
+>;
