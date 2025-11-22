@@ -99,9 +99,7 @@ describe('Approval', () => {
     jest.clearAllMocks();
     store = mockStore({
       ...initialRootState,
-      settings: {
-        showCustomNonce: false,
-      },
+      settings: {},
       transaction: {
         id: TRANSACTION_ID_MOCK,
         from: '0x1234',

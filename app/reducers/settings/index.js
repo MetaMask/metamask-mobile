@@ -32,11 +32,6 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         showHexData: action.showHexData,
       };
-    case 'SET_SHOW_CUSTOM_NONCE':
-      return {
-        ...state,
-        showCustomNonce: action.showCustomNonce,
-      };
     case 'SET_HIDE_ZERO_BALANCE_TOKENS':
       return {
         ...state,
