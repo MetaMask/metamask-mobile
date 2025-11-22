@@ -148,7 +148,7 @@ class DeeplinkManager {
 
   // NOTE: keeping this for backwards compatibility
   _handleOpenSwap() {
-    this.navigation.navigate(Routes.SWAPS);
+    this.navigation.navigate(Routes.BRIDGE.ROOT);
   }
 
   _handleFastOnboarding(onboardingPath: string) {

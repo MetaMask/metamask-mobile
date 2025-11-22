@@ -165,10 +165,6 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
-    name="Swaps"
-  />
-  <Screen
-    component={[Function]}
     name="Bridge"
   />
   <Screen

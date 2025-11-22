@@ -35,15 +35,18 @@ describe('SwapHandler', () => {
     const result = await handler.handle(link, mockContext);
 
     expect(result.handled).toBe(true);
-    expect(mockContext.navigation.navigate).toHaveBeenCalledWith(Routes.SWAPS, {
-      screen: Routes.SWAPS_AMOUNT_VIEW,
-      params: {
-        sourceToken: 'ETH',
-        destinationToken: 'USDC',
-        sourceAmount: '1',
-        chainId: undefined,
+    expect(mockContext.navigation.navigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.ROOT,
+      {
+        screen: Routes.BRIDGE.BRIDGE_VIEW,
+        params: {
+          sourceToken: 'ETH',
+          destToken: 'USDC',
+          sourceAmount: '1',
+          chainId: undefined,
+        },
       },
-    });
+    );
   });
 
   it('requires authentication for swap', async () => {
