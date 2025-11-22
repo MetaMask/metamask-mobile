@@ -258,11 +258,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   })),
 }));
 
-// Mock Linea chain ID constant
-jest.mock('@metamask/swaps-controller/dist/constants', () => ({
-  LINEA_CHAIN_ID: '0xe708',
-}));
-
 // Mock utility functions
 jest.mock('../../util/getHighestFiatToken', () => ({
   getHighestFiatToken: jest.fn(() => mockPriorityToken),

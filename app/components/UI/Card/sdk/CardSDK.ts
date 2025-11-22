@@ -47,7 +47,7 @@ import {
   DelegationSettingsNetwork,
   GetOnboardingConsentResponse,
 } from '../types';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
@@ -84,7 +84,7 @@ export class CardSDK {
     this.enableLogs = enableLogs;
     this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
     this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
-    this.lineaChainId = `eip155:${getDecimalChainId(LINEA_CHAIN_ID)}`;
+    this.lineaChainId = `eip155:${getDecimalChainId(CHAIN_IDS.LINEA_MAINNET)}`;
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
