@@ -21,7 +21,7 @@ export const MusdConversionInfo = () => {
   useEffect(() => {
     if (!outputTokenInfo) {
       console.error(
-        '[Token Conversion] outputToken is required but was not provided in route params. Navigating back.',
+        '[mUSD Conversion] outputToken is required but was not provided in route params. Navigating back.',
       );
       navigation.goBack();
     }

@@ -1,12 +1,12 @@
 import {
   TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { useMusdConversionStatus } from './useMusdConversionStatus';
 import useEarnToasts, { EarnToastOptionsConfig } from './useEarnToasts';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationFeedbackType } from 'expo-haptics';
@@ -90,7 +90,7 @@ describe('useMusdConversionStatus', () => {
   const createTransactionMeta = (
     status: TransactionStatus,
     transactionId = 'test-transaction-1',
-    type = MUSD_CONVERSION_TRANSACTION_TYPE,
+    type = TransactionType.musdConversion,
   ): TransactionMeta => ({
     id: transactionId,
     status,
@@ -356,7 +356,7 @@ describe('useMusdConversionStatus', () => {
       const transactionMeta = createTransactionMeta(
         TransactionStatus.submitted,
         'test-transaction-5',
-        'contractInteraction' as typeof MUSD_CONVERSION_TRANSACTION_TYPE,
+        'contractInteraction' as typeof TransactionType.musdConversion,
       );
 
       handler({ transactionMeta });
@@ -371,7 +371,7 @@ describe('useMusdConversionStatus', () => {
       const transactionMeta = createTransactionMeta(
         TransactionStatus.confirmed,
         'test-transaction-6',
-        'swap' as typeof MUSD_CONVERSION_TRANSACTION_TYPE,
+        'swap' as typeof TransactionType.musdConversion,
       );
 
       handler({ transactionMeta });
@@ -386,7 +386,7 @@ describe('useMusdConversionStatus', () => {
       const transactionMeta = createTransactionMeta(
         TransactionStatus.failed,
         'test-transaction-7',
-        'simpleSend' as typeof MUSD_CONVERSION_TRANSACTION_TYPE,
+        'simpleSend' as typeof TransactionType.musdConversion,
       );
 
       handler({ transactionMeta });

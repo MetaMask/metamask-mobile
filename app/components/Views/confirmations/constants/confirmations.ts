@@ -1,6 +1,5 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../UI/Earn/constants/musd';
 
 export const MMM_ORIGIN = 'metamask';
 export const MM_MOBILE_ORIGIN = 'Metamask Mobile';
@@ -16,7 +15,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.deployContract,
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
-  MUSD_CONVERSION_TRANSACTION_TYPE,
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,
@@ -48,12 +47,12 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
   TransactionType.contractInteraction,
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
-  MUSD_CONVERSION_TRANSACTION_TYPE,
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
-  MUSD_CONVERSION_TRANSACTION_TYPE,
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,

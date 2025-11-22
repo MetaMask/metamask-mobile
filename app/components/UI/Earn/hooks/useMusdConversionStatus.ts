@@ -1,12 +1,11 @@
 import {
   TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import useEarnToasts from './useEarnToasts';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
-
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
  *
@@ -33,7 +32,7 @@ export const useMusdConversionStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (transactionMeta.type !== MUSD_CONVERSION_TRANSACTION_TYPE) {
+      if (transactionMeta.type !== TransactionType.musdConversion) {
         return;
       }
 
