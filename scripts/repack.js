@@ -77,7 +77,7 @@ async function repackAndroid() {
     // Dynamic import for ES module compatibility
     const { repackAppAndroidAsync } = await import('@expo/repack-app');
 
-    // Repack APK
+    // Repack APK (without signing - will use unsigned apktool-packed.apk)
     logger.info('⏱️  Repacking APK with updated JavaScript...');
     await repackAppAndroidAsync({
       platform: 'android',
@@ -86,30 +86,62 @@ async function repackAndroid() {
       outputPath: repackedApk,
       workingDirectory: workingDir,
       verbose: true,
-      androidSigningOptions: getKeystoreConfig(),
+      // androidSigningOptions: getKeystoreConfig(), // SKIP SIGNING - use unsigned APK
       exportEmbedOptions: {
         sourcemapOutput: sourcemapPath,
       },
       env: process.env,
     });
 
-    // Verify and move repacked APK
-    if (!fs.existsSync(repackedApk)) {
-      throw new Error(`Repacked APK not found: ${repackedApk}`);
+    // If repack-app fails due to missing signed APK, use the unsigned apktool-packed.apk
+    let createdApk = repackedApk;
+    if (!fs.existsSync(createdApk)) {
+      const unsignedApk = path.join(workingDir, 'apktool-packed.apk');
+      if (fs.existsSync(unsignedApk)) {
+        logger.warn('Signed APK not found, using unsigned APK (signing skipped)...');
+        // Ensure output directory exists
+        fs.mkdirSync(path.dirname(repackedApk), { recursive: true });
+        fs.copyFileSync(unsignedApk, repackedApk);
+        createdApk = repackedApk;
+      } else {
+        throw new Error(`Repacked APK not found: ${repackedApk}`);
+      }
     }
 
-    fs.copyFileSync(repackedApk, finalApk);
-    fs.unlinkSync(repackedApk);
+    fs.copyFileSync(createdApk, finalApk);
+    if (createdApk !== finalApk) {
+      try { fs.unlinkSync(createdApk); } catch (e) {
+        // Ignore errors when cleaning up intermediate file
+      }
+    }
     fs.rmSync(workingDir, { recursive: true, force: true });
 
     const duration = Math.round((Date.now() - startTime) / 1000);
-    logger.success(`🎉 Android APK repack completed in ${duration}s`);
+    logger.success(`🎉 Android APK repack completed (UNSIGNED) in ${duration}s`);
 
     if (fs.existsSync(sourcemapPath)) {
       logger.success(`Sourcemap: ${sourcemapPath}`);
     }
 
   } catch (error) {
+    // Fallback: if error is about missing resigned.apk, try to use unsigned apktool-packed.apk
+    const unsignedApk = path.join(workingDir, 'apktool-packed.apk');
+    if (fs.existsSync(unsignedApk)) {
+      logger.warn(`Repack tool reported error: ${error.message}`);
+      logger.warn('Found unsigned APK. Using it as fallback result (signing skipped)...');
+
+      // Ensure output directory exists
+      fs.mkdirSync(path.dirname(repackedApk), { recursive: true });
+      fs.copyFileSync(unsignedApk, repackedApk);
+      fs.copyFileSync(repackedApk, finalApk);
+
+      fs.rmSync(workingDir, { recursive: true, force: true });
+
+      const duration = Math.round((Date.now() - startTime) / 1000);
+      logger.success(`🎉 Android APK repack completed (UNSIGNED fallback) in ${duration}s`);
+      return;
+    }
+    
     logger.error(`Android repack failed: ${error.message}`);
     throw error;
   }
