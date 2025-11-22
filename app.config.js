@@ -30,6 +30,12 @@ module.exports = {
     ],
 
     'expo-apple-authentication',
+    [
+      'expo-screen-orientation',
+      {
+        initialOrientation: 'PORTRAIT',
+      },
+    ],
   ],
   android: {
     package:
