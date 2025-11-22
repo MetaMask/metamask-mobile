@@ -97,38 +97,10 @@ function getBestToken({
     return targetTokenFallback;
   }
 
-  const requiredToken = tokens.find(
-    (t) =>
-      t.address.toLowerCase() === targetToken?.address.toLowerCase() &&
-      t.chainId === targetToken?.chainId,
-  );
-
-  if (requiredToken) {
+  if (tokens?.length) {
     return {
-      address: requiredToken.address as Hex,
-      chainId: requiredToken.chainId as Hex,
-    };
-  }
-
-  const sameChainHighestBalanceToken = tokens.find(
-    (t) => t.chainId === targetToken?.chainId,
-  );
-
-  if (sameChainHighestBalanceToken) {
-    return {
-      address: sameChainHighestBalanceToken.address as Hex,
-      chainId: sameChainHighestBalanceToken.chainId as Hex,
-    };
-  }
-
-  const alternateChainHighestBalanceToken = tokens.find(
-    (t) => t.chainId !== targetToken?.chainId,
-  );
-
-  if (alternateChainHighestBalanceToken) {
-    return {
-      address: alternateChainHighestBalanceToken.address as Hex,
-      chainId: alternateChainHighestBalanceToken.chainId as Hex,
+      address: tokens[0].address as Hex,
+      chainId: tokens[0].chainId as Hex,
     };
   }
 
