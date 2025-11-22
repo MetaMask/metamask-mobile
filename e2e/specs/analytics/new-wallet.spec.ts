@@ -33,6 +33,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async ({ mockServer }) => {
         await CreateNewWallet();
@@ -140,6 +141,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async ({ mockServer }) => {
         await CreateNewWallet({
