@@ -17,6 +17,7 @@ import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { trace, TraceName } from '../../../util/trace';
 import FundActionMenu from './FundActionMenu';
+import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 // Mock BottomSheet component
 jest.mock(
@@ -74,6 +75,17 @@ jest.mock('../Ramp/Aggregator/routes/utils', () => ({
 }));
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
+}));
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../Ramp/hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
 // Type the mocked functions
@@ -440,25 +452,30 @@ describe('FundActionMenu', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks deposit analytics when deposit button is pressed', async () => {
+    it('tracks deposit analytics when deposit button is pressed', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       fireEvent.press(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
       );
 
-      await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
-        );
-        expect(mockAddProperties).toHaveBeenCalledWith({
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
           text: 'Deposit',
           location: 'FundActionMenu',
           chain_id_destination: 1,
           ramp_type: 'DEPOSIT',
-        });
-        expect(mockTrackEvent).toHaveBeenCalledWith(mockBuild());
-      });
+          ramp_routing: undefined,
+          is_authenticated: false,
+          preferred_provider: undefined,
+          order_count: 0,
+          region: undefined,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(mockBuild());
     });
 
     it('tracks buy analytics when buy button is pressed (without custom onBuy)', async () => {
