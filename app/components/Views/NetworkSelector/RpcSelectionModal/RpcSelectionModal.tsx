@@ -16,10 +16,7 @@ import {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import Networks, {
-  getNetworkImageSource,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../../util/networks';
+import Networks, { getNetworkImageSource } from '../../../../util/networks';
 import { strings } from '../../../../../locales/i18n';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import images from 'images/image-icons';
@@ -121,10 +118,8 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
           [chainId]: true,
         });
       }
-      if (isRemoveGlobalNetworkSelectorEnabled()) {
-        const caipChainId = formatChainIdToCaip(chainId);
-        selectNetwork(caipChainId);
-      }
+      const caipChainId = formatChainIdToCaip(chainId);
+      selectNetwork(caipChainId);
     },
     [isAllNetwork, selectNetwork],
   );
@@ -145,9 +140,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
     (networkClientId: string, chainIdArg: `0x${string}`) => {
       onRpcSelect(networkClientId, chainIdArg);
       setTokenNetworkFilter(chainIdArg);
-      if (isRemoveGlobalNetworkSelectorEnabled()) {
-        selectNetwork(chainIdArg);
-      }
+      selectNetwork(chainIdArg);
       closeRpcModal();
     },
     [onRpcSelect, setTokenNetworkFilter, closeRpcModal, selectNetwork],

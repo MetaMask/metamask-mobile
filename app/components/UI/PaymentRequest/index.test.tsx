@@ -14,8 +14,6 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import ethLogo from '../../../assets/images/eth-logo.png';
 
 jest.mock('react', () => ({
@@ -169,10 +167,6 @@ describe('PaymentRequest', () => {
   });
 
   it('renders correctly with network picker when feature flag is enabled', () => {
-    jest
-      .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-      .mockReturnValue(true);
-
     const { toJSON } = renderComponent({
       chainId: '0x1',
       networkImageSource: ethLogo,
@@ -265,10 +259,6 @@ describe('PaymentRequest', () => {
 
   describe('handleNetworkPickerPress', () => {
     it('should navigate to network selector modal when feature flag is enabled', () => {
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const mockMetrics = {
         trackEvent: jest.fn(),
         createEventBuilder: jest.fn(() => ({

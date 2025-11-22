@@ -12,7 +12,6 @@ import { selectNetworkConfigurations } from '../../../selectors/networkControlle
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
   isPrivateConnection: jest.fn().mockReturnValue(false),
 }));
 
@@ -384,14 +383,11 @@ describe('NetworkDetails', () => {
     });
   });
 
-  describe('when isRemoveGlobalNetworkSelectorEnabled is true', () => {
+  describe('Network Manager Integration', () => {
     let mockSelectNetwork: jest.Mock;
 
     beforeEach(() => {
       jest.clearAllMocks();
-
-      const networksModule = jest.requireMock('../../../util/networks');
-      networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
 
       mockSelectNetwork = jest.fn();
       const useNetworkSelectionModule = jest.requireMock(
@@ -404,7 +400,7 @@ describe('NetworkDetails', () => {
       });
     });
 
-    it('should call selectNetwork when adding a new network and feature flag is enabled', async () => {
+    it('should call selectNetwork when adding a new network', async () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
         return {};
@@ -435,7 +431,7 @@ describe('NetworkDetails', () => {
       expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
     });
 
-    it('should call selectNetwork when switching networks and feature flag is enabled', async () => {
+    it('should call selectNetwork when switching networks', async () => {
       const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
 
       const approveButton = getByTestId(
@@ -462,7 +458,7 @@ describe('NetworkDetails', () => {
       expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
     });
 
-    it('should call selectNetwork when updating an existing network and feature flag is enabled', async () => {
+    it('should call selectNetwork when updating an existing network', async () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectNetworkName) return 'Ethereum Main Network';
         if (selector === selectUseSafeChainsListValidation) return true;
@@ -500,38 +496,7 @@ describe('NetworkDetails', () => {
       expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
     });
 
-    it('should not call selectNetwork when feature flag is disabled', async () => {
-      const networksModule = jest.requireMock('../../../util/networks');
-      networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(
-        false,
-      );
-
-      const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
-
-      const approveButton = getByTestId(
-        NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
-      );
-      fireEvent.press(approveButton);
-
-      const switchButton = getByTestId(
-        NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
-      );
-
-      (
-        Engine.context.NetworkController.addNetwork as jest.Mock
-      ).mockResolvedValue({
-        rpcEndpoints: [{ networkClientId: 'test-network-id' }],
-        defaultRpcEndpointIndex: 0,
-      });
-
-      await act(async () => {
-        fireEvent.press(switchButton);
-      });
-
-      expect(mockSelectNetwork).not.toHaveBeenCalled();
-    });
-
-    it('should call selectNetwork with correct chainId format when feature flag is enabled', async () => {
+    it('should call selectNetwork with correct chainId format', async () => {
       const propsWithDifferentChainId = {
         ...props,
         networkConfiguration: {
