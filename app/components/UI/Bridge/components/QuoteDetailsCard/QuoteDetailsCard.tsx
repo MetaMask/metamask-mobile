@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import I18n, { strings } from '../../../../../../locales/i18n';
@@ -29,6 +29,7 @@ import {
   selectDestToken,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
@@ -76,6 +77,13 @@ const QuoteDetailsCard: React.FC = () => {
     isQuoteLoading,
   });
 
+  const nativeTokenName = useMemo(() => {
+    const chainId = sourceToken?.chainId;
+    if (!chainId) return undefined;
+    const native = getNativeSourceToken(chainId);
+    return native?.symbol ?? sourceToken?.symbol ?? '';
+  }, [sourceToken?.chainId, sourceToken?.symbol]);
+
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
@@ -93,6 +101,8 @@ const QuoteDetailsCard: React.FC = () => {
   }
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
+
+  const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
 
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
 
@@ -141,7 +151,29 @@ const QuoteDetailsCard: React.FC = () => {
             ),
           }}
         />
-        {activeQuote?.quote.gasIncluded ? (
+        {gasSponsored ? (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.network_fee'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.network_fee_info_title'),
+                content: strings('bridge.network_fee_info_content_sponsored', {
+                  nativeToken: nativeTokenName,
+                }),
+                size: TooltipSizes.Sm,
+              },
+            }}
+            value={{
+              label: {
+                text: strings('bridge.gas_fees_sponsored'),
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        ) : activeQuote?.quote.gasIncluded ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
