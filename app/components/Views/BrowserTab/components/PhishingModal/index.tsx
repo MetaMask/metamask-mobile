@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Alert } from 'react-native';
 import PhishingModalUI from '../../../../UI/PhishingModal';
 import URLParse from 'url-parse';
 import {
@@ -7,6 +8,7 @@ import {
   MM_ETHERSCAN_URL,
   MM_BLOCKLIST_ISSUE_URL,
 } from '../../../../../constants/urls';
+import { strings } from '../../../../../../locales/i18n';
 import { HOMEPAGE_URL } from '../../constants';
 import Modal from 'react-native-modal';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -81,14 +83,31 @@ const PhishingModal = ({
     );
     const { origin: urlOrigin } = new URLParse(blockedUrl);
 
-    addToWhitelist(urlOrigin);
-    setShowPhishingModal(false);
+    Alert.alert(
+      strings('phishing.proceed_anyway_alert_title'),
+      `${strings('phishing.proceed_anyway_alert_message')}\n\n${urlOrigin}`,
+      [
+        //TODO: add metric event to Cancel press?
+        {
+          text: strings('phishing.proceed_anyway_alert_left_btn'),
+          onPress: () => null,
+        },
+        {
+          text: strings('phishing.proceed_anyway_alert_left_btn'),
+          onPress: () => {
+            addToWhitelist(urlOrigin);
+            setShowPhishingModal(false);
 
-    blockedUrl !== activeUrl &&
-      setTimeout(() => {
-        goToUrl(blockedUrl);
-        setBlockedUrl(undefined);
-      }, 1000);
+            blockedUrl !== activeUrl &&
+              setTimeout(() => {
+                goToUrl(blockedUrl);
+                setBlockedUrl(undefined);
+              }, 1000);
+          },
+        },
+      ],
+      { cancelable: true },
+    );
   };
 
   /**
