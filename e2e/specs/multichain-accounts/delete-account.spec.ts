@@ -28,7 +28,7 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
       await Assertions.expectElementToBeVisible(
         AccountListBottomSheet.accountList,
       );
-
+      await AccountListBottomSheet.scrollToBottomOfAccountList();
       await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
       await deleteAccount();
       // Go back to account list
@@ -36,6 +36,7 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
 
       const importedAccountsSection =
         Matchers.getElementByText('Imported Accounts');
+      await AccountListBottomSheet.scrollToBottomOfAccountList();
       await Assertions.expectElementToNotBeVisible(importedAccountsSection);
     });
   });
