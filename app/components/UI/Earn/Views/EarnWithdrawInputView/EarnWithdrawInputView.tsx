@@ -63,6 +63,21 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import useTronUnstake from '../../hooks/useTronUnstake';
+import ResourceToggle, {
+  type ResourceType,
+} from '../../components/Tron/ResourceToggle';
+import {
+  TRON_RESOURCE,
+  TronResourceType,
+} from '../../../../../core/Multichain/constants';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
+import {
+  buildTronEarnTokenIfEligible,
+  handleTronStakingNavigationResult,
+  getStakedTrxTotalFromResources,
+} from '../../utils/tron';
 ///: END:ONLY_INCLUDE_IF
 
 const EarnWithdrawInputView = () => {
@@ -81,39 +96,55 @@ const EarnWithdrawInputView = () => {
   const earnTokenFromMap = getEarnToken(token);
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const isTronAsset = token.chainId?.startsWith('tron:');
+  const isTronAsset = isTronChainId(String(token.chainId));
+  const [resourceType, setResourceType] = useState<ResourceType>(
+    TRON_RESOURCE.ENERGY,
+  );
+  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+  const stakedTrxTotal = useMemo(
+    () =>
+      isTrxStakingEnabled && isTronAsset
+        ? getStakedTrxTotalFromResources(tronResources)
+        : 0,
+    [isTrxStakingEnabled, isTronAsset, tronResources],
+  );
+  const { validate: tronValidateUnstake, confirm: tronConfirmUnstake } =
+    useTronUnstake();
   ///: END:ONLY_INCLUDE_IF
-
   const earnToken = React.useMemo(() => {
-    if (earnTokenFromMap) return earnTokenFromMap;
-
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    if (isTrxStakingEnabled && isTronAsset) {
-      const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
-      return {
-        ...token,
-        isETH: false,
-        balanceMinimalUnit: '0',
-        balanceFormatted: token.balance ?? '0',
-        balanceFiat: token.balanceFiat ?? '0',
-        tokenUsdExchangeRate: 0,
-        experiences,
-        experience: experiences[0],
-      } as EarnTokenDetails;
+    const tronEarnToken = buildTronEarnTokenIfEligible(token, {
+      isTrxStakingEnabled,
+      isTronEligible: isTronAsset,
+      stakedBalanceOverride:
+        stakedTrxTotal && stakedTrxTotal > 0
+          ? stakedTrxTotal
+          : isTrxStakingEnabled && isTronAsset && token.isStaked
+            ? token.balance
+            : undefined,
+    });
+    if (tronEarnToken) {
+      return tronEarnToken;
     }
     ///: END:ONLY_INCLUDE_IF
+    if (earnTokenFromMap) {
+      return earnTokenFromMap;
+    }
+
     return undefined;
   }, [
     earnTokenFromMap,
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTrxStakingEnabled,
     isTronAsset,
+    stakedTrxTotal,
     token,
     ///: END:ONLY_INCLUDE_IF
   ]);
 
-  const receiptTokenToUse: EarnTokenDetails | undefined =
-    receiptToken as EarnTokenDetails;
+  const receiptTokenToUse: EarnTokenDetails | undefined = receiptToken
+    ? (receiptToken as EarnTokenDetails)
+    : (earnToken as EarnTokenDetails);
 
   const withdrawalToken: EarnTokenDetails | undefined = useMemo(() => {
     if (
@@ -544,6 +575,17 @@ const EarnWithdrawInputView = () => {
   // TODO: think about if we could rely on receiptToken experience instead here
   // should we be able to, consider the implications of not being able to
   const handleWithdrawPress = useCallback(async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTrxStakingEnabled && isTronAsset) {
+      const result = await tronConfirmUnstake?.(
+        amountToken,
+        resourceType as TronResourceType,
+        String(token.chainId),
+      );
+      handleTronStakingNavigationResult(navigation, result, 'unstake');
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
     if (
       withdrawalToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
@@ -554,6 +596,15 @@ const EarnWithdrawInputView = () => {
       return handleUnstakeWithdrawalFlow();
     }
   }, [
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    isTrxStakingEnabled,
+    isTronAsset,
+    tronConfirmUnstake,
+    amountToken,
+    token.chainId,
+    navigation,
+    resourceType,
+    ///: END:ONLY_INCLUDE_IF
     withdrawalToken?.experience?.type,
     handleLendingWithdrawalFlow,
     handleUnstakeWithdrawalFlow,
@@ -613,8 +664,13 @@ const EarnWithdrawInputView = () => {
       return strings('stake.enter_amount');
     }
     if (isOverMaximum.isOverMaximumToken) {
+      const tickerForError =
+        isTrxStakingEnabled && isTronAsset
+          ? (token.ticker ?? token.symbol ?? '')
+          : (withdrawalToken?.ticker ?? withdrawalToken?.symbol ?? '');
+
       return strings('stake.not_enough_token', {
-        ticker: withdrawalToken?.ticker ?? withdrawalToken?.symbol ?? '',
+        ticker: tickerForError,
       });
     }
     if (isOverMaximum.isOverMaximumEth) {
@@ -625,14 +681,20 @@ const EarnWithdrawInputView = () => {
       return strings('earn.amount_exceeds_safe_withdrawal_limit');
     }
 
-    return strings('stake.review');
+    return isTrxStakingEnabled && isTronAsset
+      ? strings('stake.unstake')
+      : strings('stake.review');
   }, [
     isNonZeroAmount,
     isOverMaximum.isOverMaximumToken,
     isOverMaximum.isOverMaximumEth,
     isWithdrawingMoreThanAvailableForLendingToken,
+    isTrxStakingEnabled,
+    isTronAsset,
     withdrawalToken?.ticker,
     withdrawalToken?.symbol,
+    token.symbol,
+    token.ticker,
   ]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
@@ -748,6 +810,13 @@ const EarnWithdrawInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled && isTronAsset ? (
+          <ResourceToggle value={resourceType} onChange={setResourceType} />
+        ) : null
+        ///: END:ONLY_INCLUDE_IF
+      }
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -774,7 +843,7 @@ const EarnWithdrawInputView = () => {
           <View style={styles.earnTokenSelectorContainer}>
             <View style={styles.spacer} />
             <EarnTokenSelector
-              token={withdrawalToken as TokenI}
+              token={token as TokenI}
               action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
             />
           </View>
@@ -786,7 +855,18 @@ const EarnWithdrawInputView = () => {
       />
       <Keypad
         value={isFiat ? amountFiatNumber : amountToken}
-        onChange={handleKeypadChange}
+        onChange={(data) => {
+          handleKeypadChange(data);
+          ///: BEGIN:ONLY_INCLUDE_IF(tron)
+          if (isTrxStakingEnabled && isTronAsset && !isFiat) {
+            tronValidateUnstake?.(
+              String((data as { value: string }).value),
+              resourceType as TronResourceType,
+              String(token.chainId),
+            );
+          }
+          ///: END:ONLY_INCLUDE_IF
+        }}
         style={styles.keypad}
         // TODO: this should be the underlying token symbol/ticker if not ETH
         // once this data is available in the state we can use that
@@ -802,11 +882,12 @@ const EarnWithdrawInputView = () => {
           variant={ButtonVariants.Primary}
           loading={isSubmittingStakeWithdrawalTransaction}
           isDisabled={
-            isWithdrawingMoreThanAvailableForLendingToken ||
-            isOverMaximum.isOverMaximumToken ||
-            isOverMaximum.isOverMaximumEth ||
-            !isNonZeroAmount ||
-            isSubmittingStakeWithdrawalTransaction
+            (isTronAsset
+              ? !isNonZeroAmount
+              : isWithdrawingMoreThanAvailableForLendingToken ||
+                isOverMaximum.isOverMaximumToken ||
+                isOverMaximum.isOverMaximumEth ||
+                !isNonZeroAmount) || isSubmittingStakeWithdrawalTransaction
           }
           width={ButtonWidthTypes.Full}
           onPress={handleWithdrawPress}
