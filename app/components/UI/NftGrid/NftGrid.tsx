@@ -52,9 +52,11 @@ interface NftGridProps {
 const NftRow = ({
   items,
   onLongPress,
+  source,
 }: {
   items: Nft[];
   onLongPress: (nft: Nft) => void;
+  source?: 'mobile-nft-list' | 'mobile-nft-list-page';
 }) => (
   <Box twClassName="flex-row gap-3 mb-3">
     {items.map((item, index) => {
@@ -62,7 +64,7 @@ const NftRow = ({
       const uniqueKey = `${item.address}-${item.tokenId}-${item.chainId}-${index}`;
       return (
         <Box key={uniqueKey} twClassName="flex-1">
-          <NftGridItem item={item} onLongPress={onLongPress} />
+          <NftGridItem item={item} onLongPress={onLongPress} source={source} />
         </Box>
       );
     })}
@@ -89,6 +91,8 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
   );
 
   const actionSheetRef = useRef<typeof ActionSheet>();
+
+  const nftSource = isFullView ? 'mobile-nft-list-page' : 'mobile-nft-list';
 
   const collectiblesByEnabledNetworks: Record<string, Nft[]> = useSelector(
     multichainCollectiblesByEnabledNetworksSelector,
@@ -152,6 +156,7 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
               key={`nft-row-${index}`}
               items={items}
               onLongPress={setLongPressedCollectible}
+              source={nftSource}
             />
           ))}
         </Box>
@@ -161,7 +166,11 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         ListHeaderComponent={<NftGridHeader />}
         data={groupedCollectibles}
         renderItem={({ item }) => (
-          <NftRow items={item} onLongPress={setLongPressedCollectible} />
+          <NftRow
+            items={item}
+            onLongPress={setLongPressedCollectible}
+            source={nftSource}
+          />
         )}
         keyExtractor={(_, index) => `nft-row-${index}`}
         testID={RefreshTestId}
