@@ -16,6 +16,9 @@ const useDeleteWallet = () => {
 
   const resetWalletState = useCallback(async () => {
     try {
+      // backup metrics state prior reset
+      metrics.backupMetricsOptInPriorReset?.();
+
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
 
@@ -44,7 +47,7 @@ const useDeleteWallet = () => {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
       Logger.log(error, errorMsg);
     }
-  }, []);
+  }, [metrics]);
 
   const deleteUser = async () => {
     try {

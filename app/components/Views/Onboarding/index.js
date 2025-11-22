@@ -431,8 +431,9 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await this.props.metrics.enableSocialLogin(false);
-    // need to call hasMetricConset to update the cached consent state
+
+    await this.props.metrics.restoreMetricsOptInPriorReset();
+    // need to call hasMetricsConsent to update the cached consent state
     await hasMetricsConsent();
 
     trace({ name: TraceName.OnboardingCreateWallet });
@@ -460,7 +461,8 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    await this.props.metrics.enableSocialLogin(false);
+
+    await this.props.metrics.restoreMetricsOptInPriorReset();
     await hasMetricsConsent();
 
     const action = async () => {
@@ -600,7 +602,7 @@ class Onboarding extends PureComponent {
     this.props.navigation.navigate('Onboarding');
 
     // Enable metrics for OAuth users
-    await this.props.metrics.enableSocialLogin(true);
+    await this.props.metrics.enable(true);
     discardBufferedTraces();
     await setupSentry();
 

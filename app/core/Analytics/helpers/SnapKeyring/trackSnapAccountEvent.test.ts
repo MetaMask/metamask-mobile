@@ -19,7 +19,6 @@ jest.spyOn(MetaMetrics, 'getInstance').mockReturnValue({
   trackEvent: mockTrackEvent,
   isEnabled: jest.fn(),
   enable: jest.fn(),
-  enableSocialLogin: jest.fn(),
   addTraitsToUser: jest.fn(),
   group: jest.fn(),
   reset: jest.fn(),
@@ -31,6 +30,8 @@ jest.spyOn(MetaMetrics, 'getInstance').mockReturnValue({
   isDataRecorded: jest.fn(),
   configure: jest.fn(),
   getMetaMetricsId: jest.fn(),
+  restoreMetricsOptInPriorReset: jest.fn(),
+  backupMetricsOptInPriorReset: jest.fn(),
 } as IMetaMetrics);
 
 describe('trackSnapAccountEvent', () => {
