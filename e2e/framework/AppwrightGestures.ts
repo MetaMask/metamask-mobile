@@ -294,7 +294,9 @@ export default class AppwrightGestures {
   ): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webDriverClient = (deviceInstance as any).webDriverClient;
-    await webDriverClient.background(time);
+    await webDriverClient.executeScript('mobile: backgroundApp', [
+      { seconds: time },
+    ]);
   }
 
   /**
