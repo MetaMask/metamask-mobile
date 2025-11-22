@@ -3,6 +3,7 @@ import { useTokenAsset } from './useTokenAsset';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { stakingDepositConfirmationState } from '../../../../util/test/confirm-data-helpers';
+import Engine from '../../../../core/Engine';
 
 jest.mock('./transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn().mockReturnValue({
@@ -12,6 +13,25 @@ jest.mock('./transactions/useTransactionMetadataRequest', () => ({
       from: '0x0000000000000000000000000000000000000000',
     },
   }),
+}));
+
+jest.mock('./useGetTokenStandardAndDetails', () => ({
+  useGetTokenStandardAndDetails: jest.fn().mockReturnValue({
+    details: {
+      decimalsNumber: undefined,
+      standard: undefined,
+      symbol: undefined,
+    },
+    isPending: false,
+  }),
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+    },
+  },
 }));
 
 describe('useTokenAsset', () => {
@@ -43,5 +63,35 @@ describe('useTokenAsset', () => {
       symbol: 'Ethereum',
     });
     expect(result.current.displayName).toEqual('ETH');
+  });
+
+  it('fetches and returns token details when asset is not in state', () => {
+    const mockUseGetTokenStandardAndDetails = require('./useGetTokenStandardAndDetails')
+      .useGetTokenStandardAndDetails;
+
+    mockUseGetTokenStandardAndDetails.mockReturnValueOnce({
+      details: {
+        symbol: 'TST',
+        name: 'Test Token',
+        decimalsNumber: 18,
+      },
+      isPending: false,
+    });
+
+    const { result } = renderHookWithProvider(useTokenAsset, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+          },
+        },
+      },
+    });
+
+    expect(result.current.displayName).toEqual('TST');
+    expect(result.current.asset).toMatchObject({
+      symbol: 'TST',
+      name: 'Test Token',
+    });
   });
 });
