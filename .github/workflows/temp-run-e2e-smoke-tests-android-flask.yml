@@ -42,6 +42,14 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
 
+      - name: Setup Android build environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@6742ebe1a3541cb13972d65352a0622a6a6677db
+        with:
+          platform: android
+          setup-simulator: false
+          configure-keystores: true
+          target: flask
+
       - name: Setup project
         run: yarn setup:github-ci --no-build-ios
 

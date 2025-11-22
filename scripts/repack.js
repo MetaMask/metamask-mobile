@@ -5,7 +5,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 /**
  * Logger utility
@@ -26,48 +25,28 @@ const isFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
   const keystorePath = process.env.ANDROID_KEYSTORE_PATH;
-  // Allow overriding keystore type (e.g. to use 'main' keys even for 'flask' build type)
-  const useFlaskKeystore = process.env.KEYSTORE_TYPE ? process.env.KEYSTORE_TYPE === 'flask' : isFlask;
+  const keystorePassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+  const keyAlias = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+  const keyPassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
 
-  const keystorePassword = useFlaskKeystore ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
-  const keyAlias = useFlaskKeystore ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
-  const keyPassword = useFlaskKeystore ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
-
-  // In CI, if env vars are missing, fall back to debug keystore instead of failing
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
-    logger.warn(
-      'Missing Android keystore environment variables in CI. ' +
-      'Falling back to debug keystore.'
+    logger.error(
+      'Missing required Android keystore environment variables in CI. ' +
+      'Please check that setup-e2e-env action has configure-keystores: true'
     );
+    process.exit(1);
   }
 
   const config = {
-    keyStorePath: path.resolve(process.cwd(), keystorePath || 'android/app/debug.keystore'),
-    keyStorePassword: keystorePassword || 'android',
+    keyStorePath: keystorePath || 'android/app/debug.keystore',
+    keyStorePassword: `pass:${keystorePassword || 'android'}`,
     keyAlias: keyAlias || 'androiddebugkey',
-    keyPassword: keyPassword || 'android',
+    keyPassword: `pass:${keyPassword || 'android'}`,
   };
 
   logger.info(`Using keystore: ${config.keyStorePath}`);
   logger.info(`Using key alias: ${config.keyAlias}`);
   return config;
-}
-
-function findApkSigner() {
-  const androidHome = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
-  if (!androidHome) return null;
-  
-  const buildTools = path.join(androidHome, 'build-tools');
-  if (!fs.existsSync(buildTools)) return null;
-  
-  const versions = fs.readdirSync(buildTools).sort().reverse();
-  if (versions.length === 0) return null;
-  
-  const signerPath = path.join(buildTools, versions[0], 'apksigner');
-  // Check for both 'apksigner' (binary) and 'apksigner.bat' (Windows) or just executable existence
-  if (fs.existsSync(signerPath)) return signerPath;
-  if (fs.existsSync(signerPath + '.bat')) return signerPath + '.bat';
-  return null;
 }
 
 /**
@@ -131,42 +110,6 @@ async function repackAndroid() {
     }
 
   } catch (error) {
-    // Fallback: manual signing if repack failed (e.g. ENOENT for resigned.apk) but apktool-packed.apk exists
-    const unsignedApk = path.join(workingDir, 'apktool-packed.apk');
-    if (fs.existsSync(unsignedApk)) {
-      logger.warn('Repack tool failed to sign/move APK. Attempting manual signing fallback...');
-      
-      const signer = findApkSigner();
-      if (signer) {
-        try {
-          const config = getKeystoreConfig();
-          // Ensure pass: prefix for CLI
-          const ksPass = config.keyStorePassword.startsWith('pass:') ? config.keyStorePassword : `pass:${config.keyStorePassword}`;
-          const keyPass = config.keyPassword.startsWith('pass:') ? config.keyPassword : `pass:${config.keyPassword}`;
-          
-          logger.info(`Signing manually with: ${signer}`);
-          const cmd = `"${signer}" sign --ks "${config.keyStorePath}" --ks-key-alias "${config.keyAlias}" --ks-pass "${ksPass}" --key-pass "${keyPass}" --out "${repackedApk}" "${unsignedApk}"`;
-          
-          execSync(cmd, { stdio: 'inherit' });
-          
-          if (fs.existsSync(repackedApk)) {
-             logger.success('Manual signing successful!');
-             fs.copyFileSync(repackedApk, finalApk);
-             fs.unlinkSync(repackedApk);
-             fs.rmSync(workingDir, { recursive: true, force: true });
-             
-             const duration = Math.round((Date.now() - startTime) / 1000);
-             logger.success(`🎉 Android APK repack completed (with manual signing) in ${duration}s`);
-             return; // Success!
-          }
-        } catch (signError) {
-          logger.error(`Manual signing failed: ${signError.message}`);
-        }
-      } else {
-        logger.warn('apksigner not found, cannot manually sign.');
-      }
-    }
-
     logger.error(`Android repack failed: ${error.message}`);
     throw error;
   }
