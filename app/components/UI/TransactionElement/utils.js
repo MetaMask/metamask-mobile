@@ -866,7 +866,7 @@ function decodeLegacySwapsTx(args) {
 
   if (isSwap) {
     if (!assetSymbol || sourceToken.symbol === assetSymbol) {
-      value = `${decimalSourceAmount} ${sourceToken.symbol}`;
+      value = `-${decimalSourceAmount} ${sourceToken.symbol}`;
       fiatValue = addCurrencySymbol(
         renderSourceTokenFiatNumber,
         currentCurrency,
