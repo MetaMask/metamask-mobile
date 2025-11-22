@@ -44,7 +44,7 @@ const AlertRow = ({
   const { fieldAlerts } = useAlerts();
   const alertSelected = fieldAlerts.find((a) => a.field === alertField);
   const { styles } = useStyles(styleSheet, {});
-  const { rowVariant } = props;
+  const { rowVariant, style } = props;
 
   if (!alertSelected && isShownWithAlertsOnly) {
     return null;
@@ -66,7 +66,7 @@ const AlertRow = ({
   return (
     <InfoRow
       {...alertRowProps}
-      style={isSmall ? undefined : styles.infoRowOverride}
+      style={style ?? (isSmall ? undefined : styles.infoRowOverride)}
       labelChildren={inlineAlert}
     />
   );

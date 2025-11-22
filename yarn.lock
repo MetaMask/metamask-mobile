@@ -8623,12 +8623,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/phishing-controller@npm:^15.0.0":
-  version: 15.0.0
-  resolution: "@metamask/phishing-controller@npm:15.0.0"
+"@metamask/phishing-controller@npm:^15.0.0, @metamask/phishing-controller@npm:^15.0.1":
+  version: 15.0.1
+  resolution: "@metamask/phishing-controller@npm:15.0.1"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.14.1"
+    "@metamask/controller-utils": "npm:^11.15.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@noble/hashes": "npm:^1.8.0"
     "@types/punycode": "npm:^2.1.0"
@@ -8637,7 +8637,7 @@ __metadata:
     punycode: "npm:^2.1.1"
   peerDependencies:
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/84e10ddcba9bb1351538c2de1105863dda030ad5f6dfa54bb17d731e436e948e6bcc4630fa914162046bda1b925514de37224f34cc00145e102b2f7f3f83059e
+  checksum: 10/2f3bc2946f8231256c4a17af8369637f9fc4e3beef31b30b45372059e899fedfa22261cf7b526db62fe607e752e74c63de4a0dea6bd811fae046aa677e4929d0
   languageName: node
   linkType: hard
 
@@ -35417,7 +35417,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^20.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^12.1.0"
-    "@metamask/phishing-controller": "npm:^15.0.0"
+    "@metamask/phishing-controller": "npm:^15.0.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^21.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.7.2"
