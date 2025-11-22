@@ -50,6 +50,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictDetailsChart, {
   ChartSeries,
 } from '../../components/PredictDetailsChart/PredictDetailsChart';
+import {
+  DAY_IN_MS,
+  getTimestampInMs,
+} from '../../components/PredictDetailsChart/utils';
 import PredictPositionDetail from '../../components/PredictPositionDetail';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
@@ -91,6 +95,12 @@ const DEFAULT_FIDELITY_BY_INTERVAL: Partial<
   [PredictPriceHistoryInterval.MAX]: 1440, // 24-hour resolution for max window
 };
 
+const MAX_INTERVAL_SHORT_RANGE_THRESHOLD_DAYS = 30;
+const MAX_INTERVAL_SHORT_RANGE_MS =
+  MAX_INTERVAL_SHORT_RANGE_THRESHOLD_DAYS * DAY_IN_MS;
+const MAX_INTERVAL_SHORT_RANGE_FIDELITY =
+  DEFAULT_FIDELITY_BY_INTERVAL[PredictPriceHistoryInterval.ONE_WEEK] ?? 240;
+
 // Use theme tokens instead of hex values for multi-series charts
 
 interface PredictMarketDetailsProps {}
@@ -105,6 +115,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const tw = useTailwind();
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<PredictPriceHistoryInterval>(PredictPriceHistoryInterval.ONE_DAY);
+  const [maxIntervalAdaptiveFidelity, setMaxIntervalAdaptiveFidelity] =
+    useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
@@ -315,7 +327,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     [chartOpenOutcomes],
   );
 
-  const selectedFidelity = DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
+  const selectedFidelity = useMemo(() => {
+    if (
+      selectedTimeframe === PredictPriceHistoryInterval.MAX &&
+      maxIntervalAdaptiveFidelity
+    ) {
+      return maxIntervalAdaptiveFidelity;
+    }
+
+    return DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
+  }, [selectedTimeframe, maxIntervalAdaptiveFidelity]);
   const {
     priceHistories,
     isFetching: isPriceHistoryFetching,
@@ -328,6 +349,50 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     fidelity: selectedFidelity,
     enabled: chartOutcomeTokenIds.length > 0,
   });
+
+  const maxIntervalRangeMs = useMemo(() => {
+    if (selectedTimeframe !== PredictPriceHistoryInterval.MAX) {
+      return null;
+    }
+
+    const timestamps = priceHistories.flatMap((history) =>
+      history.map((point) => getTimestampInMs(point.timestamp)),
+    );
+
+    if (!timestamps.length) {
+      return null;
+    }
+
+    return Math.max(...timestamps) - Math.min(...timestamps);
+  }, [priceHistories, selectedTimeframe]);
+
+  useEffect(() => {
+    if (selectedTimeframe !== PredictPriceHistoryInterval.MAX) {
+      if (maxIntervalAdaptiveFidelity !== null) {
+        setMaxIntervalAdaptiveFidelity(null);
+      }
+      return;
+    }
+
+    if (
+      typeof maxIntervalRangeMs === 'number' &&
+      maxIntervalRangeMs > 0 &&
+      maxIntervalRangeMs < MAX_INTERVAL_SHORT_RANGE_MS
+    ) {
+      if (maxIntervalAdaptiveFidelity !== MAX_INTERVAL_SHORT_RANGE_FIDELITY) {
+        setMaxIntervalAdaptiveFidelity(MAX_INTERVAL_SHORT_RANGE_FIDELITY);
+      }
+      return;
+    }
+
+    if (
+      maxIntervalAdaptiveFidelity !== null &&
+      (maxIntervalRangeMs === null ||
+        maxIntervalRangeMs >= MAX_INTERVAL_SHORT_RANGE_MS)
+    ) {
+      setMaxIntervalAdaptiveFidelity(null);
+    }
+  }, [maxIntervalRangeMs, maxIntervalAdaptiveFidelity, selectedTimeframe]);
 
   const chartData: ChartSeries[] = useMemo(() => {
     const palette = [
