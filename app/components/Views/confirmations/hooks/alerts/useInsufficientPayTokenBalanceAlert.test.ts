@@ -159,6 +159,39 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       ]);
     });
 
+    it('returns alert if pay token balance shortfall is equal to total amount', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceRaw: '999',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          ...REQUIRED_TOKEN_MOCK,
+          amountUsd: '0.02',
+        },
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenFees,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_balance_fees_no_target.message',
+            { amount: '$1.21' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
     it('returns alert if pay token balance is less than source amount plus source network', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
