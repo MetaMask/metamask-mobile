@@ -1,18 +1,10 @@
 import { Hex, Json, JsonRpcRequest } from '@metamask/utils';
 import type { PhishingController } from '@metamask/phishing-controller';
+import { parseApprovalTransactionData } from '../../components/Views/confirmations/utils/approvals';
+import { parseAndNormalizeSignTypedData } from '../../components/Views/confirmations/utils/signature';
 import { parseStandardTokenTransactionData } from '../../components/Views/confirmations/utils/transaction';
-import { APPROVAL_TYPES } from '../../components/Views/confirmations/constants/approvals';
+import { PRIMARY_TYPES_PERMIT } from '../../components/Views/confirmations/constants/signatures';
 import Logger from '../../util/Logger';
-
-/**
- * Known Permit EIP-712 primary types
- * These are used to detect permit-style signatures
- */
-export const PRIMARY_TYPES_PERMIT = [
-  'Permit',
-  'PermitSingle',
-  'PermitBatch',
-] as const;
 
 /**
  * Parsed typed data message structure
@@ -31,7 +23,7 @@ export interface ParsedTypedDataMessage {
 }
 
 /**
- * Parse typed data message from string or object
+ * Parse typed data message using existing robust utility
  *
  * @param data - The typed data as a string or object
  * @returns Parsed typed data message or undefined if parsing fails
@@ -41,17 +33,18 @@ export function parseTypedDataMessage(
 ): ParsedTypedDataMessage | undefined {
   try {
     if (typeof data === 'string') {
-      return JSON.parse(data) as ParsedTypedDataMessage;
+      return parseAndNormalizeSignTypedData(data) as ParsedTypedDataMessage;
     }
-    return data as ParsedTypedDataMessage;
+    return parseAndNormalizeSignTypedData(
+      JSON.stringify(data),
+    ) as ParsedTypedDataMessage;
   } catch (error) {
-    console.error('[parseTypedDataMessage] Failed to parse typed data:', error);
     return undefined;
   }
 }
 
 /**
- * Extract spender address from approval transaction data
+ * Extract spender address from approval transaction data using existing utility
  *
  * @param data - The transaction data hex string
  * @returns The spender address or undefined if not an approval or parsing fails
@@ -62,39 +55,23 @@ export function extractSpenderFromApprovalData(data?: Hex): string | undefined {
   }
 
   try {
+    const approvalData = parseApprovalTransactionData(data);
+
+    if (!approvalData) {
+      return undefined;
+    }
+
     const transactionDescription = parseStandardTokenTransactionData(data);
-    const { args, name } = transactionDescription ?? { name: '' };
+    const { args } = transactionDescription ?? {};
 
-    // For standard ERC-20 approve, the first argument is the spender
-    if (name === APPROVAL_TYPES.approve && args) {
-      // Standard approve(address spender, uint256 amount)
-      const spender = args[0] || args.spender || args._spender;
-      if (typeof spender === 'string') {
-        return spender;
-      }
+    if (!args) {
+      return undefined;
     }
 
-    // For increaseAllowance, the first argument is also the spender
-    if (name === APPROVAL_TYPES.increaseAllowance && args) {
-      // increaseAllowance(address spender, uint256 addedValue)
-      const spender = args[0] || args.spender || args._spender;
-      if (typeof spender === 'string') {
-        return spender;
-      }
-    }
+    const spender = args[0] || args[1] || args.spender || args._spender;
 
-    // For Permit2, the second argument is the spender
-    // approve(address token, address spender, uint160 amount, uint48 expiration)
-    if (args?.spender) {
-      return args.spender as string;
-    }
-
-    return undefined;
+    return typeof spender === 'string' ? spender : undefined;
   } catch (error) {
-    console.error(
-      '[extractSpenderFromApprovalData] Failed to extract spender:',
-      error,
-    );
     return undefined;
   }
 }
@@ -114,7 +91,6 @@ export function extractSpenderFromPermitMessage(
     return undefined;
   }
 
-  // Check if this is a known permit type
   if (
     !PRIMARY_TYPES_PERMIT.includes(
       primaryType as (typeof PRIMARY_TYPES_PERMIT)[number],
@@ -123,7 +99,6 @@ export function extractSpenderFromPermitMessage(
     return undefined;
   }
 
-  // Extract spender from message
   const spender = message.spender;
   if (typeof spender === 'string') {
     return spender;
@@ -131,10 +106,6 @@ export function extractSpenderFromPermitMessage(
 
   return undefined;
 }
-
-/**
- * RPC request validation utilities
- */
 
 /**
  * Basic JSON-RPC request interface for validation
@@ -184,10 +155,6 @@ export function isEthSignTypedData(req: BasicJsonRpcRequest): boolean {
     'eth_signTypedData_v4',
   ].includes(req.method);
 }
-
-/**
- * Security scanning utilities
- */
 
 /**
  * Scan an address using the phishing controller

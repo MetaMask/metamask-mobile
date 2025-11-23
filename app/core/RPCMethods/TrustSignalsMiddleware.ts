@@ -66,8 +66,6 @@ function getChainIdForRequest(
   }
 }
 
-// All validation and scanning utilities moved to address-scan-util.ts
-
 /**
  * Handle eth_sendTransaction address scanning
  *
@@ -81,7 +79,6 @@ async function handleEthSendTransaction(
   chainId: string,
 ): Promise<void> {
   if (!hasValidTransactionParams(req)) {
-    Logger.log('[TrustSignalsMiddleware] Invalid transaction parameters');
     return;
   }
 
