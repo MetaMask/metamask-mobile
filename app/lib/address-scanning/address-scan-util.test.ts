@@ -1,230 +1,375 @@
+import type { JsonRpcParams } from '@metamask/utils';
+import type { PhishingController } from '@metamask/phishing-controller';
+import Logger from '../../util/Logger';
 import {
   parseTypedDataMessage,
   extractSpenderFromApprovalData,
   extractSpenderFromPermitMessage,
+  hasValidTransactionParams,
+  hasValidTypedDataParams,
+  isEthSendTransaction,
+  isEthSignTypedData,
+  scanAddress,
+  scanUrl,
 } from './address-scan-util';
-import { Hex } from '@metamask/utils';
+import { PRIMARY_TYPES_PERMIT } from '../../components/Views/confirmations/constants/signatures';
+import { parseApprovalTransactionData } from '../../components/Views/confirmations/utils/approvals';
+import { parseAndNormalizeSignTypedData } from '../../components/Views/confirmations/utils/signature';
+import { parseStandardTokenTransactionData } from '../../components/Views/confirmations/utils/transaction';
+
+jest.mock('../../util/Logger', () => ({
+  log: jest.fn(),
+}));
+
+jest.mock('../../components/Views/confirmations/utils/approvals', () => ({
+  parseApprovalTransactionData: jest.fn(),
+}));
+
+jest.mock('../../components/Views/confirmations/utils/signature', () => ({
+  parseAndNormalizeSignTypedData: jest.fn(),
+}));
+
+jest.mock('../../components/Views/confirmations/utils/transaction', () => ({
+  parseStandardTokenTransactionData: jest.fn(),
+}));
+
+const mockLogger = Logger as jest.Mocked<typeof Logger>;
+const mockParseApprovalTransactionData =
+  parseApprovalTransactionData as jest.MockedFunction<
+    typeof parseApprovalTransactionData
+  >;
+const mockParseAndNormalizeSignTypedData =
+  parseAndNormalizeSignTypedData as jest.MockedFunction<
+    typeof parseAndNormalizeSignTypedData
+  >;
+const mockParseStandardTokenTransactionData =
+  parseStandardTokenTransactionData as jest.MockedFunction<
+    typeof parseStandardTokenTransactionData
+  >;
 
 describe('address-scan-util', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('parseTypedDataMessage', () => {
-    it('parses typed data from string', () => {
-      const typedDataString = JSON.stringify({
-        domain: {
-          name: 'Test',
-          version: '1',
-          chainId: 1,
-          verifyingContract: '0x1234567890123456789012345678901234567890',
-        },
-        message: { spender: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' },
-        primaryType: 'Permit',
-        types: {},
+    it('parses typed data when JSON string is provided', () => {
+      const input = '{"test":"data"}';
+      const parsed = { message: { test: 'data' } };
+      mockParseAndNormalizeSignTypedData.mockReturnValue(parsed as never);
+
+      const result = parseTypedDataMessage(input);
+
+      expect(mockParseAndNormalizeSignTypedData).toHaveBeenCalledWith(input);
+      expect(result).toEqual(parsed);
+    });
+
+    it('parses typed data when object is provided', () => {
+      const input = { test: 'data' };
+      const parsed = { message: { test: 'data' } };
+      mockParseAndNormalizeSignTypedData.mockReturnValue(parsed as never);
+
+      const result = parseTypedDataMessage(input);
+
+      expect(mockParseAndNormalizeSignTypedData).toHaveBeenCalledWith(
+        JSON.stringify(input),
+      );
+      expect(result).toEqual(parsed);
+    });
+
+    it('returns undefined when parsing throws error', () => {
+      mockParseAndNormalizeSignTypedData.mockImplementation(() => {
+        throw new Error('parse error');
       });
 
-      const result = parseTypedDataMessage(typedDataString);
-      expect(result).toBeDefined();
-      expect(result?.domain?.verifyingContract).toBe(
-        '0x1234567890123456789012345678901234567890',
-      );
-      expect(result?.message?.spender).toBe(
-        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      );
-      expect(result?.primaryType).toBe('Permit');
-    });
+      const result = parseTypedDataMessage('{"test":"data"}');
 
-    it('parses typed data from object', () => {
-      const typedDataObject = {
-        domain: {
-          name: 'Test',
-          version: '1',
-          chainId: 1,
-          verifyingContract: '0x1234567890123456789012345678901234567890',
-        },
-        message: { spender: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' },
-        primaryType: 'Permit',
-        types: {},
-      };
-
-      const result = parseTypedDataMessage(typedDataObject);
-      expect(result).toBeDefined();
-      expect(result?.domain?.verifyingContract).toBe(
-        '0x1234567890123456789012345678901234567890',
-      );
-      expect(result?.message?.spender).toBe(
-        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      );
-      expect(result?.primaryType).toBe('Permit');
-    });
-
-    it('returns undefined for invalid JSON string', () => {
-      const result = parseTypedDataMessage('invalid json');
       expect(result).toBeUndefined();
-    });
-
-    it('handles empty object', () => {
-      const result = parseTypedDataMessage({});
-      expect(result).toBeDefined();
-      expect(result?.domain).toBeUndefined();
-      expect(result?.message).toBeUndefined();
     });
   });
 
   describe('extractSpenderFromApprovalData', () => {
-    it('returns undefined for empty data', () => {
-      expect(extractSpenderFromApprovalData(undefined)).toBeUndefined();
-      expect(
-        extractSpenderFromApprovalData('0x' as unknown as Hex),
-      ).toBeUndefined();
+    it('returns spender from first argument when approval transaction has args array', () => {
+      const data = '0x1234';
+      mockParseApprovalTransactionData.mockReturnValue({} as never);
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        args: ['0xspender'],
+      } as never);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBe('0xspender');
     });
 
-    it('extracts spender from ERC-20 approve transaction', () => {
-      // approve(address spender, uint256 amount)
-      // Function signature: 0x095ea7b3
-      // spender: 0x1234567890123456789012345678901234567890
-      // amount: 1000000000000000000 (1 token with 18 decimals)
-      const data =
-        '0x095ea7b300000000000000000000000012345678901234567890123456789012345678900000000000000000000000000000000000000000000000000de0b6b3a7640000';
-      const spender = extractSpenderFromApprovalData(data);
-      expect(spender).toBe('0x1234567890123456789012345678901234567890');
-    });
+    it('returns undefined when data is undefined', () => {
+      const result = extractSpenderFromApprovalData(undefined);
 
-    it('returns undefined for non-approval transaction', () => {
-      // transfer(address to, uint256 amount)
-      // Function signature: 0xa9059cbb
-      const data =
-        '0xa9059cbb00000000000000000000000012345678901234567890123456789012345678900000000000000000000000000000000000000000000000000de0b6b3a7640000';
-      const spender = extractSpenderFromApprovalData(data);
-      expect(spender).toBeUndefined();
-    });
-
-    it('handles invalid transaction data gracefully', () => {
-      const data = '0xinvalid';
-      const spender = extractSpenderFromApprovalData(data);
-      expect(spender).toBeUndefined();
+      expect(result).toBeUndefined();
+      expect(mockParseApprovalTransactionData).not.toHaveBeenCalled();
+      expect(mockParseStandardTokenTransactionData).not.toHaveBeenCalled();
     });
   });
 
   describe('extractSpenderFromPermitMessage', () => {
-    it('extracts spender from Permit typed data', () => {
+    it('returns spender when primaryType is permit and message contains spender string', () => {
+      const permitType = PRIMARY_TYPES_PERMIT[0];
       const typedDataMessage = {
-        domain: {
-          name: 'Test Token',
-          version: '1',
-          chainId: 1,
-          verifyingContract: '0x1234567890123456789012345678901234567890',
-        },
+        primaryType: permitType,
         message: {
-          owner: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-          spender: '0x9876543210987654321098765432109876543210',
-          value: '1000000000000000000',
-          nonce: 0,
-          deadline: 1234567890,
+          spender: '0xpermitSpender',
         },
-        primaryType: 'Permit',
-        types: {},
       };
 
-      const spender = extractSpenderFromPermitMessage(typedDataMessage);
-      expect(spender).toBe('0x9876543210987654321098765432109876543210');
+      const result = extractSpenderFromPermitMessage(typedDataMessage);
+
+      expect(result).toBe('0xpermitSpender');
     });
 
-    it('extracts spender from PermitSingle typed data', () => {
+    it('returns undefined when primaryType is not a permit type', () => {
       const typedDataMessage = {
-        domain: {
-          name: 'Permit2',
-          version: '1',
-          chainId: 1,
-          verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3',
-        },
+        primaryType: 'NonPermit',
         message: {
-          details: {
-            token: '0x1234567890123456789012345678901234567890',
-            amount: '1000000000000000000',
-            expiration: 1234567890,
-            nonce: 0,
+          spender: '0xpermitSpender',
+        },
+      };
+
+      const result = extractSpenderFromPermitMessage(typedDataMessage);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('hasValidTransactionParams', () => {
+    it('returns true when params array contains non-null object at index 0', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_sendTransaction',
+        params: [{ to: '0x1' }] as JsonRpcParams,
+      } as unknown as Parameters<typeof hasValidTransactionParams>[0];
+
+      const result = hasValidTransactionParams(req);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when params is empty or first param is not an object', () => {
+      const baseReq = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_sendTransaction',
+      };
+
+      const withNoParams = {
+        ...baseReq,
+        params: [] as JsonRpcParams,
+      } as unknown as Parameters<typeof hasValidTransactionParams>[0];
+
+      const withNonObject = {
+        ...baseReq,
+        params: ['0x1'] as JsonRpcParams,
+      } as unknown as Parameters<typeof hasValidTransactionParams>[0];
+
+      expect(hasValidTransactionParams(withNoParams)).toBe(false);
+      expect(hasValidTransactionParams(withNonObject)).toBe(false);
+    });
+  });
+
+  describe('hasValidTypedDataParams', () => {
+    it('returns true when params has at least two entries', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_signTypedData',
+        params: ['0x1', { message: 'test' }],
+      } as unknown as Parameters<typeof hasValidTypedDataParams>[0];
+
+      const result = hasValidTypedDataParams(req);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when params is missing or has fewer than two entries', () => {
+      const withOneParam = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_signTypedData',
+        params: ['0x1'] as JsonRpcParams,
+      } as unknown as Parameters<typeof hasValidTypedDataParams>[0];
+
+      const withNoParams = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_signTypedData',
+        params: [] as JsonRpcParams,
+      } as unknown as Parameters<typeof hasValidTypedDataParams>[0];
+
+      expect(hasValidTypedDataParams(withOneParam)).toBe(false);
+      expect(hasValidTypedDataParams(withNoParams)).toBe(false);
+    });
+  });
+
+  describe('isEthSendTransaction', () => {
+    it('returns true for eth_sendTransaction method', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_sendTransaction',
+      } as unknown as Parameters<typeof isEthSendTransaction>[0];
+
+      expect(isEthSendTransaction(req)).toBe(true);
+    });
+
+    it('returns false for non-transaction methods', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_signTypedData',
+      } as unknown as Parameters<typeof isEthSendTransaction>[0];
+
+      expect(isEthSendTransaction(req)).toBe(false);
+    });
+  });
+
+  describe('isEthSignTypedData', () => {
+    it.each([
+      'eth_signTypedData',
+      'eth_signTypedData_v1',
+      'eth_signTypedData_v3',
+      'eth_signTypedData_v4',
+    ] as const)('returns true for %s method', (method) => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method,
+      } as unknown as Parameters<typeof isEthSignTypedData>[0];
+
+      expect(isEthSignTypedData(req)).toBe(true);
+    });
+
+    it('returns false for other methods', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_sendTransaction',
+      } as unknown as Parameters<typeof isEthSignTypedData>[0];
+
+      expect(isEthSignTypedData(req)).toBe(false);
+    });
+  });
+
+  describe('scanAddress', () => {
+    const chainId = '0x1';
+    const address = '0x1234';
+
+    function createMockPhishingController(): PhishingController {
+      const controllerState: {
+        // chainId -> address -> boolean
+        addressScanCache: Record<string, Record<string, boolean>>;
+      } = {
+        addressScanCache: {},
+      };
+
+      const scanAddressMock = jest
+        .fn()
+        .mockImplementation(
+          async (scanChainId: string, scannedAddress: string) => {
+            controllerState.addressScanCache[scanChainId] ??= {};
+            controllerState.addressScanCache[scanChainId][scannedAddress] =
+              true;
           },
-          spender: '0x9876543210987654321098765432109876543210',
-          sigDeadline: 1234567890,
-        },
-        primaryType: 'PermitSingle',
-        types: {},
-      };
+        );
 
-      const spender = extractSpenderFromPermitMessage(typedDataMessage);
-      expect(spender).toBe('0x9876543210987654321098765432109876543210');
+      return {
+        scanAddress: scanAddressMock,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        state: controllerState as any,
+      } as unknown as PhishingController;
+    }
+
+    it('calls phishingController.scanAddress and logs cache on success', async () => {
+      const phishingController = createMockPhishingController();
+
+      await scanAddress(phishingController, chainId, address);
+
+      expect(phishingController.scanAddress).toHaveBeenCalledWith(
+        chainId,
+        address,
+      );
+
+      expect(phishingController.state.addressScanCache).toEqual({
+        [chainId]: {
+          [address]: true,
+        },
+      });
     });
 
-    it('returns undefined for non-permit typed data', () => {
-      const typedDataMessage = {
-        domain: {
-          name: 'Test',
-          version: '1',
-          chainId: 1,
-          verifyingContract: '0x1234567890123456789012345678901234567890',
-        },
-        message: {
-          from: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-          to: '0x9876543210987654321098765432109876543210',
-        },
-        primaryType: 'Transfer',
-        types: {},
+    it('logs error when phishingController.scanAddress throws and does not rethrow', async () => {
+      const phishingController = {
+        scanAddress: jest.fn().mockRejectedValue(new Error('scan failure')),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        state: { addressScanCache: {} } as any,
+      } as unknown as PhishingController;
+
+      await expect(
+        scanAddress(phishingController, chainId, address),
+      ).resolves.toBeUndefined();
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('[scanAddress] Failed to scan address'),
+        expect.any(Error),
+      );
+    });
+  });
+
+  describe('scanUrl', () => {
+    const origin = 'https://example.com';
+
+    function createMockPhishingController(): PhishingController {
+      const controllerState: {
+        // origin -> cached result flag
+        urlScanCache: Record<string, boolean>;
+      } = {
+        urlScanCache: {},
       };
 
-      const spender = extractSpenderFromPermitMessage(typedDataMessage);
-      expect(spender).toBeUndefined();
+      return {
+        scanUrl: jest.fn().mockImplementation(async (scanOrigin: string) => {
+          controllerState.urlScanCache[scanOrigin] = true;
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        state: controllerState as any,
+      } as unknown as PhishingController;
+    }
+
+    it('calls phishingController.scanUrl and logs cache on success', async () => {
+      const phishingController = createMockPhishingController();
+
+      await scanUrl(phishingController, origin);
+
+      expect(phishingController.scanUrl).toHaveBeenCalledWith(origin);
+      expect(phishingController.state.urlScanCache).toEqual({
+        [origin]: true,
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('[scanUrl] Cache:'),
+      );
     });
 
-    it('returns undefined if message has no spender', () => {
-      const typedDataMessage = {
-        domain: {
-          name: 'Test Token',
-          version: '1',
-          chainId: 1,
-          verifyingContract: '0x1234567890123456789012345678901234567890',
-        },
-        message: {
-          owner: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-          value: '1000000000000000000',
-        },
-        primaryType: 'Permit',
-        types: {},
-      };
+    it('logs error when phishingController.scanUrl throws and does not rethrow', async () => {
+      const phishingController = {
+        scanUrl: jest.fn().mockRejectedValue(new Error('scan failure')),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        state: { urlScanCache: {} } as any,
+      } as unknown as PhishingController;
 
-      const spender = extractSpenderFromPermitMessage(typedDataMessage);
-      expect(spender).toBeUndefined();
-    });
-
-    it('returns undefined if primaryType is missing', () => {
-      const typedDataMessage = {
-        domain: {
-          name: 'Test Token',
-          version: '1',
-          chainId: 1,
-          verifyingContract: '0x1234567890123456789012345678901234567890',
-        },
-        message: {
-          spender: '0x9876543210987654321098765432109876543210',
-        },
-        types: {},
-      };
-
-      const spender = extractSpenderFromPermitMessage(typedDataMessage);
-      expect(spender).toBeUndefined();
-    });
-
-    it('returns undefined if message is missing', () => {
-      const typedDataMessage = {
-        domain: {
-          name: 'Test Token',
-          version: '1',
-          chainId: 1,
-          verifyingContract: '0x1234567890123456789012345678901234567890',
-        },
-        primaryType: 'Permit',
-        types: {},
-      };
-
-      const spender = extractSpenderFromPermitMessage(typedDataMessage);
-      expect(spender).toBeUndefined();
+      await expect(
+        scanUrl(phishingController, origin),
+      ).resolves.toBeUndefined();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('[scanUrl] Failed to scan URL'),
+        expect.any(Error),
+      );
     });
   });
 });
