@@ -92,6 +92,7 @@ export const useSearchRequest = (options: {
 
     // If query is empty, don't trigger search
     if (!memoizedOptions.query) {
+      setIsLoading(false);
       return;
     }
 

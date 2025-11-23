@@ -72,11 +72,16 @@ import { makeSelectNonEvmAssetById } from '../../../../../selectors/multichain/m
 import { FlashListAssetKey } from '..';
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectIsMusdConversionFlowEnabledFlag,
+  selectMusdConversionPaymentTokensAllowlist,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
+import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -273,6 +278,31 @@ export const TokenListItem = React.memo(
 
     const earnToken = getEarnToken(asset as TokenI);
 
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const musdConversionPaymentTokensAllowlist = useSelector(
+      selectMusdConversionPaymentTokensAllowlist,
+    );
+
+    const isConvertibleStablecoin = useMemo(
+      () =>
+        isMusdConversionFlowEnabled &&
+        asset?.chainId &&
+        asset?.address &&
+        isMusdConversionPaymentToken(
+          asset.address,
+          asset.chainId,
+          musdConversionPaymentTokensAllowlist,
+        ),
+      [
+        isMusdConversionFlowEnabled,
+        asset?.chainId,
+        asset?.address,
+        musdConversionPaymentTokensAllowlist,
+      ],
+    );
+
     const networkBadgeSource = useCallback(
       (currentChainId: Hex) => {
         if (isTestNet(currentChainId))
@@ -385,12 +415,23 @@ export const TokenListItem = React.memo(
 
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
+      const shouldShowMusdConvertCta = isConvertibleStablecoin;
 
-      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
+      if (
+        shouldShowStakeCta ||
+        shouldShowStablecoinLendingCta ||
+        shouldShowMusdConvertCta
+      ) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [asset, earnToken, isStablecoinLendingEnabled, isStakeable]);
+    }, [
+      asset,
+      earnToken,
+      isConvertibleStablecoin,
+      isStablecoinLendingEnabled,
+      isStakeable,
+    ]);
 
     if (!asset || !chainId) {
       return null;
