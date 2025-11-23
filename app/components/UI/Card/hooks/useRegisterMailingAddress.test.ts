@@ -35,7 +35,6 @@ const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
 
 describe('useRegisterMailingAddress', () => {
   const mockRegisterMailingAddress = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
 
   const mockSDK = {
     registerMailingAddress: mockRegisterMailingAddress,
@@ -63,11 +62,8 @@ describe('useRegisterMailingAddress', () => {
   };
 
   const mockCardSDK: ICardSDK = {
+    ...jest.requireMock('../sdk'),
     sdk: mockSDK,
-    isLoading: false,
-    user: null,
-    setUser: jest.fn(),
-    logoutFromProvider: mockLogoutFromProvider,
   };
 
   beforeEach(() => {
@@ -143,11 +139,8 @@ describe('useRegisterMailingAddress', () => {
 
     it('throws error when SDK is not available', async () => {
       const mockCardSDKUndefined: ICardSDK = {
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);
 
@@ -333,7 +326,7 @@ describe('useRegisterMailingAddress', () => {
         await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
         });
-      } catch (error) {
+      } catch (err) {
         // Expected to throw
       }
 
@@ -391,7 +384,7 @@ describe('useRegisterMailingAddress', () => {
         await act(async () => {
           await result.current.registerAddress(mockAddressRequest);
         });
-      } catch (error) {
+      } catch (err) {
         // Expected to throw
       }
 
@@ -439,11 +432,8 @@ describe('useRegisterMailingAddress', () => {
 
     it('handles undefined SDK gracefully', async () => {
       const mockCardSDKUndefined: ICardSDK = {
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       };
       mockUseCardSDK.mockReturnValue(mockCardSDKUndefined);
 

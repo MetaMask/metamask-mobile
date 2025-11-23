@@ -27,30 +27,28 @@ const SectionCard: React.FC<SectionCardProps> = ({ sectionId }) => {
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const { data, isLoading } = SECTIONS_CONFIG[sectionId].useSectionData();
+  const section = SECTIONS_CONFIG[sectionId];
+  const { data, isLoading } = section.useSectionData();
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
-    ({ item }) => {
-      const section = SECTIONS_CONFIG[sectionId];
-      return section.renderRowItem(item, navigation);
-    },
-    [navigation, sectionId],
+    ({ item }) => <section.RowItem item={item} navigation={navigation} />,
+    [navigation, section],
   );
 
   return (
     <Card style={styles.cardContainer} disabled>
       {isLoading && (
         <>
-          {SECTIONS_CONFIG[sectionId].renderSkeleton()}
-          {SECTIONS_CONFIG[sectionId].renderSkeleton()}
-          {SECTIONS_CONFIG[sectionId].renderSkeleton()}
+          <section.Skeleton />
+          <section.Skeleton />
+          <section.Skeleton />
         </>
       )}
       {!isLoading && (
         <FlashList
           data={data.slice(0, 3)}
           renderItem={renderFlatItem}
-          keyExtractor={(item) => SECTIONS_CONFIG[sectionId].keyExtractor(item)}
+          keyExtractor={(item) => section.keyExtractor(item)}
           keyboardShouldPersistTaps="handled"
           testID="perps-tokens-list"
         />
