@@ -342,7 +342,7 @@ describe('address-scan-util', () => {
       } as unknown as PhishingController;
     }
 
-    it('calls phishingController.scanUrl and logs cache on success', async () => {
+    it('calls phishingController.scanUrl and updates cache on success', async () => {
       const phishingController = createMockPhishingController();
 
       await scanUrl(phishingController, origin);
@@ -351,9 +351,6 @@ describe('address-scan-util', () => {
       expect(phishingController.state.urlScanCache).toEqual({
         [origin]: true,
       });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('[scanUrl] Cache:'),
-      );
     });
 
     it('logs error when phishingController.scanUrl throws and does not rethrow', async () => {
