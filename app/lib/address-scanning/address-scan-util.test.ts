@@ -2,35 +2,10 @@ import {
   parseTypedDataMessage,
   extractSpenderFromApprovalData,
   extractSpenderFromPermitMessage,
-  resemblesAddress,
-  PRIMARY_TYPES_PERMIT,
 } from './address-scan-util';
 import { Hex } from '@metamask/utils';
 
 describe('address-scan-util', () => {
-  describe('resemblesAddress', () => {
-    it('returns true for valid Ethereum addresses', () => {
-      expect(
-        resemblesAddress('0x1234567890123456789012345678901234567890'),
-      ).toBe(true);
-      expect(
-        resemblesAddress('0xAbCdEf1234567890123456789012345678901234'),
-      ).toBe(true);
-    });
-
-    it('returns false for invalid addresses', () => {
-      expect(resemblesAddress('0x123')).toBe(false);
-      expect(resemblesAddress('1234567890123456789012345678901234567890')).toBe(
-        false,
-      );
-      expect(
-        resemblesAddress('0xGGGG567890123456789012345678901234567890'),
-      ).toBe(false);
-      expect(resemblesAddress('')).toBe(false);
-      expect(resemblesAddress(undefined)).toBe(false);
-    });
-  });
-
   describe('parseTypedDataMessage', () => {
     it('parses typed data from string', () => {
       const typedDataString = JSON.stringify({
@@ -250,14 +225,6 @@ describe('address-scan-util', () => {
 
       const spender = extractSpenderFromPermitMessage(typedDataMessage);
       expect(spender).toBeUndefined();
-    });
-  });
-
-  describe('PRIMARY_TYPES_PERMIT', () => {
-    it('contains expected permit types', () => {
-      expect(PRIMARY_TYPES_PERMIT).toContain('Permit');
-      expect(PRIMARY_TYPES_PERMIT).toContain('PermitSingle');
-      expect(PRIMARY_TYPES_PERMIT).toContain('PermitBatch');
     });
   });
 });

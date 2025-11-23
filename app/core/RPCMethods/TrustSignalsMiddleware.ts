@@ -112,7 +112,6 @@ async function handleEthSignTypedData(
   chainId: string,
 ): Promise<void> {
   if (!hasValidTypedDataParams(req)) {
-    Logger.log('[TrustSignalsMiddleware] Invalid typed data parameters');
     return;
   }
 
@@ -154,9 +153,6 @@ export function createTrustSignalsMiddleware({
 
       const chainId = getChainIdForRequest(req, networkController);
       if (!chainId) {
-        Logger.log(
-          '[TrustSignalsMiddleware] Could not get chainId for request',
-        );
         return;
       }
 
