@@ -13,8 +13,6 @@ import {
   getChainIdsToPoll,
   selectSingleTokenByAddressAndChainId,
 } from './tokensController';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 describe('TokensController Selectors', () => {
@@ -25,6 +23,7 @@ describe('TokensController Selectors', () => {
     allTokens: {
       '0x1': {
         '0xAddress1': [mockToken],
+        '0xAddress2': [mockToken2],
       },
     },
     allDetectedTokens: {
@@ -97,7 +96,6 @@ describe('TokensController Selectors', () => {
     });
 
     it('returns tokens from TokensController state if portfolio view is enabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       expect(selectTokens(mockRootState)).toStrictEqual([mockToken]);
     });
   });
@@ -244,7 +242,10 @@ describe('TokensController Selectors', () => {
 
   describe('selectAllTokensFlat', () => {
     it('returns all tokens as a flat array', () => {
-      expect(selectAllTokensFlat(mockRootState)).toStrictEqual([mockToken]);
+      expect(selectAllTokensFlat(mockRootState)).toStrictEqual([
+        mockToken,
+        mockToken2,
+      ]);
     });
 
     it('returns an empty array if no tokens are present', () => {
@@ -342,17 +343,7 @@ describe('TokensController Selectors', () => {
       '0x2': { chainId: '0x2' } as unknown as NetworkConfiguration,
     };
 
-    it('returns only the current chain ID if PORTFOLIO_VIEW is not set', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-      const chainIds = getChainIdsToPoll.resultFunc(
-        mockNetworkConfigurations,
-        '0x1',
-      );
-      expect(chainIds).toStrictEqual(['0x1']);
-    });
-
-    it('returns only the chainIds included in PopularList if PORTFOLIO_VIEW is set', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+    it('returns only the chainIds included in PopularList', () => {
       const chainIds = getChainIdsToPoll.resultFunc(
         mockNetworkConfigurations,
         '0x1',
@@ -374,10 +365,19 @@ describe('TokensController Selectors', () => {
     it('returns undefined if no token exists for the given address and chain ID', () => {
       const token = selectSingleTokenByAddressAndChainId(
         mockRootState,
-        '0xAddress1',
+        '0xToken3',
         '0x2',
       );
       expect(token).toBeUndefined();
+    });
+
+    it('returns token not from selected address', () => {
+      const token = selectSingleTokenByAddressAndChainId(
+        mockRootState,
+        '0xToken2',
+        '0x1',
+      );
+      expect(token).toStrictEqual(mockToken2);
     });
   });
 });

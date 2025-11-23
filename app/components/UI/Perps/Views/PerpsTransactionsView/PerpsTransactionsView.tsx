@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -15,6 +16,9 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { selectChainId } from '../../../../../selectors/networkController';
+import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
 
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
@@ -51,6 +55,19 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   const { isConnected, isConnecting } = usePerpsConnection();
 
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const currentChainId = useSelector(selectChainId);
+  const accountId = useMemo(() => {
+    if (!selectedAddress || !currentChainId) {
+      return undefined;
+    }
+    return (
+      formatAccountToCaipAccountId(selectedAddress, currentChainId) ?? undefined
+    );
+  }, [selectedAddress, currentChainId]);
+
   // Use single source of truth for all transaction data (includes deposits/withdrawals from user history)
   const {
     transactions: allTransactions,
@@ -58,6 +75,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     refetch: refreshTransactions,
   } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
+    accountId,
   });
 
   // Helper function to group transactions by date
@@ -325,15 +343,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     </View>
   );
 
-  const filterTabs: FilterTab[] = useMemo(
-    () => [
-      strings('perps.transactions.tabs.trades'),
-      strings('perps.transactions.tabs.orders'),
-      strings('perps.transactions.tabs.funding'),
-      strings('perps.transactions.tabs.deposits'),
-    ],
-    [],
-  );
+  const filterTabs: FilterTab[] = ['Trades', 'Orders', 'Funding', 'Deposits'];
 
   const filterTabDescription = useMemo(() => {
     if (activeFilter === 'Funding') {

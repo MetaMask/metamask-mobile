@@ -4,8 +4,6 @@ import {
   selectMultichainIsMainnet,
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainShouldShowFiat,
-  selectMultichainConversionRate,
-  selectMultichainCoinRates,
   selectMultichainBalances,
   selectMultichainTransactions,
   selectSelectedAccountMultichainNetworkAggregatedBalance,
@@ -120,11 +118,6 @@ function getEvmState(
           nativeCurrency: 'ETH',
           pendingCurrentCurrency: null,
           pendingNativeCurrency: null,
-        },
-        RatesController: {
-          rates: {},
-          fiatCurrency: 'usd',
-          cryptocurrencies: [],
         },
         MultichainNetworkController: {
           isEvmSelected: true,
@@ -440,45 +433,6 @@ describe('MultichainNonEvm Selectors', () => {
     });
   });
 
-  describe('selectMultichainConversionRate', () => {
-    it('returns EVM conversion rate if account is EVM', () => {
-      const mockEvmConversionRate = 1500;
-      const state = getEvmState(undefined, mockEvmConversionRate);
-
-      expect(selectMultichainConversionRate(state)).toBe(mockEvmConversionRate);
-    });
-
-    it('returns non-EVM conversion rate if account is non-EVM', () => {
-      const mockBtcConversionRate = '45000.00';
-      const state = getNonEvmState(undefined, mockBtcConversionRate);
-
-      expect(selectMultichainConversionRate(state)).toBe(mockBtcConversionRate);
-    });
-
-    it('returns undefined if non-EVM ticker is not found', () => {
-      const state = getNonEvmState();
-
-      expect(selectMultichainConversionRate(state)).toBeUndefined();
-    });
-
-    it('returns Solana conversion rate if account is Solana', () => {
-      const mockSolConversionRate = 100;
-      const state = getNonEvmState(
-        MOCK_SOLANA_ACCOUNT,
-        mockSolConversionRate.toString(),
-      );
-      state.engine.backgroundState.RatesController.rates = {
-        sol: {
-          conversionRate: mockSolConversionRate,
-          conversionDate: new Date().getTime(),
-          usdConversionRate: mockSolConversionRate,
-        },
-      };
-
-      expect(selectMultichainConversionRate(state)).toBe(mockSolConversionRate);
-    });
-  });
-
   describe('selectMultichainBalances and selectMultichainCoinRates', () => {
     it('selectMultichainBalances returns balances from the MultichainBalancesController state', () => {
       const state = getEvmState();
@@ -490,19 +444,6 @@ describe('MultichainNonEvm Selectors', () => {
       state.engine.backgroundState.MultichainBalancesController.balances =
         mockBalances;
       expect(selectMultichainBalances(state)).toEqual(mockBalances);
-    });
-
-    it('selectMultichainCoinRates returns rates from the RatesController state', () => {
-      const state = getEvmState();
-      const mockRates = {
-        eth: {
-          conversionRate: 2000,
-          conversionDate: Date.now(),
-          usdConversionRate: 2000,
-        },
-      };
-      state.engine.backgroundState.RatesController.rates = mockRates;
-      expect(selectMultichainCoinRates(state)).toEqual(mockRates);
     });
   });
 

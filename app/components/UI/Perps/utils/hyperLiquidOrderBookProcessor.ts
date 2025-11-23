@@ -48,7 +48,7 @@ export function processL2BookData(params: ProcessL2BookDataParams): void {
     notifySubscribers,
   } = params;
 
-  if (data.coin !== symbol || !data.levels) {
+  if (data?.coin !== symbol || !data?.levels) {
     return;
   }
 

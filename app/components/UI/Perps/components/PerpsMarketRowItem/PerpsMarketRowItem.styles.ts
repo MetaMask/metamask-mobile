@@ -1,18 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
-
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     container: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      backgroundColor: colors.background.default,
+      paddingVertical: 6,
     },
     perpIcon: {
       marginRight: 16,
@@ -50,6 +44,5 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 2,
     },
   });
-};
 
 export default styleSheet;

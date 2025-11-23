@@ -1,33 +1,35 @@
-/* eslint-disable react-native/no-inline-styles */
-/* eslint-disable react/display-name */
 // Third party dependencies.
 import React, { useContext } from 'react';
-import { Alert } from 'react-native';
+import { Alert, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import type { Meta } from '@storybook/react-native';
 
 // External dependencies.
 import Button, { ButtonVariants } from '../Buttons/Button';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies.
 import { default as ToastComponent } from './Toast';
 import { ToastContext, ToastContextWrapper } from './Toast.context';
-import { ToastVariants } from './Toast.types';
+import { ToastOptions, ToastVariants } from './Toast.types';
 import {
   TEST_ACCOUNT_ADDRESS,
   TEST_AVATAR_TYPE,
   TEST_NETWORK_IMAGE_URL,
 } from './Toast.constants';
 
-const ToastMeta = {
+interface ToastStoryArgs {
+  variant: ToastVariants;
+}
+
+export default {
   title: 'Component Library / Toast',
   component: ToastComponent,
   decorators: [
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (Story: any) => (
+    (StoryComponent) => (
       <SafeAreaProvider>
         <ToastContextWrapper>
-          <Story />
+          <StoryComponent />
         </ToastContextWrapper>
       </SafeAreaProvider>
     ),
@@ -41,27 +43,30 @@ const ToastMeta = {
       defaultValue: ToastVariants.Plain,
     },
   },
-};
-export default ToastMeta;
+} as Meta;
 
-export const Toast = {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render: (args: any) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+export const Default = {
+  args: {
+    variant: ToastVariants.Plain,
+  },
+  render: function Render(args: ToastStoryArgs) {
     const { toastRef } = useContext(ToastContext);
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let otherToastProps: any;
+    const tw = useTailwind();
+
+    let toastOptions: ToastOptions;
 
     switch (args.variant) {
       case ToastVariants.Plain:
-        otherToastProps = {
+        toastOptions = {
+          variant: ToastVariants.Plain,
+          hasNoTimeout: false,
           labelOptions: [{ label: 'This is a Toast message.' }],
         };
         break;
       case ToastVariants.Account:
-        otherToastProps = {
+        toastOptions = {
+          variant: ToastVariants.Account,
+          hasNoTimeout: false,
           labelOptions: [
             { label: 'Switching to' },
             { label: ' Account 2.', isBold: true },
@@ -71,13 +76,18 @@ export const Toast = {
         };
         break;
       case ToastVariants.Network:
-        otherToastProps = {
+        toastOptions = {
+          variant: ToastVariants.Network,
+          hasNoTimeout: false,
           labelOptions: [
             { label: 'Added' },
             { label: ' Mainnet', isBold: true },
             { label: ' network.' },
           ],
           networkImageSource: { uri: TEST_NETWORK_IMAGE_URL },
+          descriptionOptions: {
+            description: 'This is a description text for the network toast.',
+          },
           linkButtonOptions: {
             label: 'Click here!',
             onPress: () => {
@@ -87,25 +97,24 @@ export const Toast = {
         };
         break;
       default:
-        otherToastProps = {
+        toastOptions = {
+          variant: ToastVariants.Plain,
+          hasNoTimeout: false,
           labelOptions: [{ label: 'This is a Toast message.' }],
         };
     }
 
     return (
-      <>
+      <View style={tw.style('min-h-[300px] relative')}>
         <Button
           variant={ButtonVariants.Secondary}
           label={`Show ${args.variant} Toast`}
           onPress={() => {
-            toastRef?.current?.showToast({
-              variant: args.variant,
-              ...otherToastProps,
-            });
+            toastRef?.current?.showToast(toastOptions);
           }}
         />
         <ToastComponent ref={toastRef} />
-      </>
+      </View>
     );
   },
 };

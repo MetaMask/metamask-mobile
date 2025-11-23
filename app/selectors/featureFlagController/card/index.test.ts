@@ -20,6 +20,13 @@ jest.mock('../../../util/remoteFeatureFlag', () => ({
   validatedVersionGatedFeatureFlag: jest.fn(),
 }));
 
+jest.mock(
+  '../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
+
 const originalEnv = process.env;
 
 beforeEach(() => {
@@ -493,25 +500,43 @@ describe('selectDisplayCardButtonFeatureFlag', () => {
 });
 
 describe('selectCardExperimentalSwitch', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns false when feature flag state is empty', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
     const result = selectCardExperimentalSwitch(mockedEmptyFlagsState);
 
     expect(result).toBe(false);
   });
 
   it('returns false when RemoteFeatureFlagController state is undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
     const result = selectCardExperimentalSwitch(mockedUndefinedFlagsState);
 
     expect(result).toBe(false);
   });
 
-  it('returns true when cardExperimentalSwitch is enabled', () => {
+  it('returns true when feature flag is enabled and version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
     const stateWithExperimentalSwitch = {
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              cardExperimentalSwitch: true,
+              cardExperimentalSwitch2: {
+                enabled: true,
+                minimumVersion: '7.0.0',
+              },
             },
             cacheTimestamp: 0,
           },
@@ -523,15 +548,24 @@ describe('selectCardExperimentalSwitch', () => {
     const result = selectCardExperimentalSwitch(stateWithExperimentalSwitch);
 
     expect(result).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
   });
 
-  it('returns false when cardExperimentalSwitch is disabled', () => {
+  it('returns false when feature flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
     const stateWithDisabledSwitch = {
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              cardExperimentalSwitch: false,
+              cardExperimentalSwitch2: {
+                enabled: false,
+                minimumVersion: '7.0.0',
+              },
             },
             cacheTimestamp: 0,
           },
@@ -545,13 +579,18 @@ describe('selectCardExperimentalSwitch', () => {
     expect(result).toBe(false);
   });
 
-  it('returns false when cardExperimentalSwitch is null', () => {
-    const stateWithNullSwitch = {
+  it('returns false when version requirement is not met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const stateWithVersionGate = {
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              cardExperimentalSwitch: null,
+              cardExperimentalSwitch2: {
+                enabled: true,
+                minimumVersion: '99.0.0',
+              },
             },
             cacheTimestamp: 0,
           },
@@ -560,18 +599,22 @@ describe('selectCardExperimentalSwitch', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const result = selectCardExperimentalSwitch(stateWithNullSwitch);
+    const result = selectCardExperimentalSwitch(stateWithVersionGate);
 
     expect(result).toBe(false);
   });
 
-  it('returns false when cardExperimentalSwitch is undefined', () => {
-    const stateWithUndefinedSwitch = {
+  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const stateWithMalformedFlag = {
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              cardExperimentalSwitch: undefined,
+              cardExperimentalSwitch2: {
+                enabled: 'true', // Invalid type
+              },
             },
             cacheTimestamp: 0,
           },
@@ -580,7 +623,7 @@ describe('selectCardExperimentalSwitch', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const result = selectCardExperimentalSwitch(stateWithUndefinedSwitch);
+    const result = selectCardExperimentalSwitch(stateWithMalformedFlag);
 
     expect(result).toBe(false);
   });

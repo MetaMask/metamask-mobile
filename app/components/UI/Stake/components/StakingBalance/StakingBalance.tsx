@@ -23,15 +23,11 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
-import {
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
 import type { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import useBalance from '../../hooks/useBalance';
@@ -53,7 +49,10 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
-import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../components/hooks/useFeatureFlag';
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
@@ -74,7 +73,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isPooledStakingEnabled = useFeatureFlag(
+    FeatureFlagNames.earnPooledStakingEnabled,
+  );
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
@@ -240,18 +241,14 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
               />
             }
           >
-            {isPortfolioViewEnabled() ? (
-              <NetworkAssetLogo
-                chainId={asset.chainId as Hex}
-                style={styles.ethLogo}
-                ticker={asset.symbol}
-                big={false}
-                biggest={false}
-                testID={'staking-balance-asset-logo'}
-              />
-            ) : (
-              <NetworkMainAssetLogo style={styles.ethLogo} />
-            )}
+            <NetworkAssetLogo
+              chainId={asset.chainId as Hex}
+              style={styles.ethLogo}
+              ticker={asset.symbol}
+              big={false}
+              biggest={false}
+              testID={'staking-balance-asset-logo'}
+            />
           </BadgeWrapper>
           <View style={styles.balances}>
             <Text variant={TextVariant.BodyMD} testID="staked-ethereum-label">

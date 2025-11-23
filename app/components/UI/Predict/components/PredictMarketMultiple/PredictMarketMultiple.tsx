@@ -8,9 +8,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
-import { captureException } from '@sentry/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -27,8 +27,11 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PREDICT_CONSTANTS } from '../../constants/errors';
+import { ensureError } from '../../utils/predictErrorHandler';
 import {
   PredictMarket,
+  Recurrence,
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
@@ -37,22 +40,24 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { formatVolume } from '../../utils/format';
+import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 interface PredictMarketMultipleProps {
   market: PredictMarket;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  isCarousel?: boolean;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  isCarousel = false,
 }) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({
@@ -60,7 +65,12 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     navigation,
   });
 
-  const getFirstOutcomePrice = (
+  // filter resolved outcomes
+  const filteredOutcomes = market.outcomes.filter(
+    (outcome) => outcome.tokens[0].price !== 0 && outcome.tokens[0].price !== 1,
+  );
+
+  const getOutcomePercentage = (
     outcomePrices?: number[],
   ): string | undefined => {
     if (!outcomePrices) {
@@ -71,7 +81,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       const parsed = outcomePrices;
       if (Array.isArray(parsed) && parsed.length > 0) {
         const firstValue = parsed[0];
-        return (firstValue * 100).toFixed(2);
+        return formatPercentage(firstValue * 100, { truncate: true });
       }
     } catch (error) {
       DevLogger.log('PredictMarketMultiple: Failed to parse outcomePrices', {
@@ -79,23 +89,23 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         error,
       });
 
-      captureException(
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          tags: {
-            component: 'PredictMarketMultiple',
+      Logger.error(ensureError(error), {
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          component: 'PredictMarketMultiple',
+        },
+        context: {
+          name: 'PredictMarketMultiple',
+          data: {
+            method: 'parseOutcomePrices',
             action: 'parse_outcome_prices',
             operation: 'market_display',
-          },
-          extra: {
-            context: {
-              marketId: market.id,
-              marketTitle: market.title,
-              outcomePrices,
-            },
+            marketId: market.id,
+            marketTitle: market.title,
+            outcomePrices,
           },
         },
-      );
+      });
     }
 
     return undefined;
@@ -115,17 +125,17 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   ) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken,
-            entryPoint,
-          },
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+          market,
+          outcome,
+          outcomeToken,
+          entryPoint,
         });
       },
-      { checkBalance: true },
+      {
+        checkBalance: true,
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+      },
     );
   };
 
@@ -138,12 +148,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MARKET_DETAILS,
-          params: {
-            marketId: market.id,
-            entryPoint,
-          },
+        navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
+          marketId: market.id,
+          entryPoint,
+          title: market.title,
+          image: market.image,
         });
       }}
     >
@@ -152,13 +161,15 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="mb-3 gap-4"
+            twClassName={isCarousel ? 'mb-2 gap-2' : 'mb-3 gap-4'}
           >
-            <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-              {market.outcomes[0]?.image && (
+            <Box
+              twClassName={`${isCarousel ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-muted overflow-hidden`}
+            >
+              {market.image && (
                 <Box twClassName="w-full h-full">
                   <Image
-                    source={{ uri: market.outcomes[0].image }}
+                    source={{ uri: market.image }}
                     style={tw.style('w-full h-full')}
                     resizeMode="cover"
                   />
@@ -167,30 +178,42 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             </Box>
             <Box twClassName="flex-1">
               <Text
-                variant={TextVariant.HeadingSM}
+                variant={
+                  isCarousel ? TextVariant.BodyMDMedium : TextVariant.HeadingSM
+                }
                 color={TextColor.Default}
-                style={tw.style('font-medium leading-[24px]')}
+                style={tw.style(
+                  isCarousel
+                    ? 'font-medium leading-[20px]'
+                    : 'font-medium leading-[24px]',
+                )}
+                numberOfLines={isCarousel ? 2 : undefined}
               >
                 {market.title}
               </Text>
             </Box>
           </Box>
-
-          {market.outcomes.slice(0, 3).map((outcome) => {
+          {filteredOutcomes.slice(0, 3).map((outcome) => {
             const outcomeLabels = outcome.tokens.map((token) => token.title);
             return (
               <Box
                 key={`${outcome.id}`}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="py-1 gap-4"
+                twClassName={isCarousel ? 'py-0.5 gap-2' : 'py-1 gap-4'}
               >
                 <Box twClassName="flex-1">
                   <Text
-                    variant={TextVariant.BodySMMedium}
+                    variant={
+                      isCarousel
+                        ? TextVariant.BodyXSMedium
+                        : TextVariant.BodySMMedium
+                    }
                     color={TextColor.Default}
-                    numberOfLines={2}
-                    style={tw.style('leading-[18px]')}
+                    numberOfLines={1}
+                    style={tw.style(
+                      isCarousel ? 'leading-[16px]' : 'leading-[18px]',
+                    )}
                   >
                     {outcome.groupItemTitle}
                   </Text>
@@ -198,20 +221,26 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
                 <Box>
                   <Text
-                    variant={TextVariant.BodySMMedium}
+                    variant={
+                      isCarousel
+                        ? TextVariant.BodyXSMedium
+                        : TextVariant.BodySMMedium
+                    }
                     color={TextColor.Alternative}
                   >
-                    {getFirstOutcomePrice(
+                    {getOutcomePercentage(
                       outcome.tokens.map((token) => token.price),
                     ) ?? '0'}
-                    %
                   </Text>
                 </Box>
 
-                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName={isCarousel ? 'gap-1' : 'gap-2'}
+                >
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={ButtonSize.Md}
+                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
                     label={
                       <Text
                         style={tw.style('font-medium')}
@@ -227,7 +256,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   />
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={ButtonSize.Md}
+                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
                     width={ButtonWidthTypes.Full}
                     label={
                       <Text
@@ -254,9 +283,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             twClassName="mt-3"
           >
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {market.outcomes.length > 3
-                ? `+${market.outcomes.length - 3} ${
-                    market.outcomes.length - 3 === 1
+              {filteredOutcomes.length > 3
+                ? `+${filteredOutcomes.length - 3} ${
+                    filteredOutcomes.length - 3 === 1
                       ? strings('predict.outcomes_singular')
                       : strings('predict.outcomes_plural')
                   }`
@@ -270,7 +299,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
               </Text>
-              {market.recurrence && (
+              {market.recurrence && market.recurrence !== Recurrence.NONE && (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}

@@ -183,7 +183,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -231,7 +231,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -313,7 +313,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -447,7 +447,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={28}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1163,7 +1163,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1215,7 +1215,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1267,7 +1267,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1333,7 +1333,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1385,7 +1385,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1437,7 +1437,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1503,7 +1503,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1555,7 +1555,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1607,7 +1607,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1673,7 +1673,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1725,7 +1725,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -1778,7 +1778,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -2057,7 +2057,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -2105,7 +2105,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2187,7 +2187,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -2321,7 +2321,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={28}
+              handlerTag={30}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3037,7 +3037,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3089,7 +3089,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3141,7 +3141,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3207,7 +3207,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3259,7 +3259,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3311,7 +3311,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3377,7 +3377,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3429,7 +3429,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3481,7 +3481,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3547,7 +3547,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3599,7 +3599,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3652,7 +3652,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -3931,7 +3931,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -3979,7 +3979,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4061,7 +4061,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -4195,7 +4195,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={30}
+              handlerTag={32}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4911,7 +4911,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -4963,7 +4963,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5015,7 +5015,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5081,7 +5081,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5133,7 +5133,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5185,7 +5185,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5251,7 +5251,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5303,7 +5303,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5355,7 +5355,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5421,7 +5421,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5473,7 +5473,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5526,7 +5526,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -5805,7 +5805,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -5853,7 +5853,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -5935,7 +5935,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -6069,7 +6069,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={18}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -6724,7 +6724,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -6776,7 +6776,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -6828,7 +6828,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -6894,7 +6894,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -6946,7 +6946,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -6998,7 +6998,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -7064,7 +7064,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -7116,7 +7116,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -7168,7 +7168,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -7234,7 +7234,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -7286,7 +7286,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -7339,7 +7339,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -7618,7 +7618,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -7666,7 +7666,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -7748,7 +7748,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -7882,7 +7882,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={17}
+              handlerTag={19}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8537,7 +8537,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -8589,7 +8589,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -8641,7 +8641,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -8707,7 +8707,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -8759,7 +8759,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -8811,7 +8811,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -8877,7 +8877,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -8929,7 +8929,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -8981,7 +8981,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -9047,7 +9047,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -9099,7 +9099,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -9152,7 +9152,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -9430,7 +9430,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -9478,7 +9478,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -9560,7 +9560,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -10349,7 +10349,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10401,7 +10401,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10453,7 +10453,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10519,7 +10519,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10571,7 +10571,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10623,7 +10623,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10689,7 +10689,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10741,7 +10741,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10793,7 +10793,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10859,7 +10859,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10911,7 +10911,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -10964,7 +10964,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -11243,7 +11243,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -11291,7 +11291,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -11373,7 +11373,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -12255,7 +12255,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12307,7 +12307,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12359,7 +12359,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12425,7 +12425,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12477,7 +12477,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12529,7 +12529,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12595,7 +12595,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12647,7 +12647,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12699,7 +12699,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12765,7 +12765,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12817,7 +12817,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -12870,7 +12870,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -13149,7 +13149,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -13197,7 +13197,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -13279,7 +13279,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -14023,7 +14023,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14075,7 +14075,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14127,7 +14127,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14193,7 +14193,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14245,7 +14245,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14297,7 +14297,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14363,7 +14363,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14415,7 +14415,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14467,7 +14467,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14533,7 +14533,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14585,7 +14585,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14638,7 +14638,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -14917,7 +14917,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -14965,7 +14965,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -15047,7 +15047,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -15836,7 +15836,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -15888,7 +15888,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -15940,7 +15940,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16006,7 +16006,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16058,7 +16058,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16110,7 +16110,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16176,7 +16176,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16228,7 +16228,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16280,7 +16280,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16346,7 +16346,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16398,7 +16398,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16451,7 +16451,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -16730,7 +16730,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -16778,7 +16778,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -16860,7 +16860,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -17649,7 +17649,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -17701,7 +17701,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -17753,7 +17753,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -17819,7 +17819,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -17871,7 +17871,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -17923,7 +17923,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -17989,7 +17989,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -18041,7 +18041,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -18093,7 +18093,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -18159,7 +18159,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -18211,7 +18211,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -18264,7 +18264,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -18543,7 +18543,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -18591,7 +18591,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -18673,7 +18673,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -19462,7 +19462,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -19514,7 +19514,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -19566,7 +19566,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -19632,7 +19632,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -19684,7 +19684,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -19736,7 +19736,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -19802,7 +19802,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -19854,7 +19854,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -19906,7 +19906,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -19972,7 +19972,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -20024,7 +20024,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -20077,7 +20077,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -20356,7 +20356,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -20404,7 +20404,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -20486,7 +20486,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -21275,7 +21275,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21327,7 +21327,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21379,7 +21379,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21445,7 +21445,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21497,7 +21497,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21549,7 +21549,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21615,7 +21615,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21667,7 +21667,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21719,7 +21719,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21785,7 +21785,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21837,7 +21837,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -21890,7 +21890,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -22169,7 +22169,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -22217,7 +22217,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -22299,7 +22299,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -23181,7 +23181,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23233,7 +23233,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23285,7 +23285,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23351,7 +23351,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23403,7 +23403,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23455,7 +23455,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23521,7 +23521,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23573,7 +23573,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23625,7 +23625,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23691,7 +23691,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23743,7 +23743,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -23796,7 +23796,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -24075,7 +24075,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -24123,7 +24123,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -24205,7 +24205,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -24339,7 +24339,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={16}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -24992,7 +24992,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25044,7 +25044,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25096,7 +25096,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25162,7 +25162,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25214,7 +25214,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25266,7 +25266,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25332,7 +25332,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25384,7 +25384,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25436,7 +25436,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25502,7 +25502,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25554,7 +25554,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25607,7 +25607,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -25886,7 +25886,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -25934,7 +25934,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -26016,7 +26016,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -26150,7 +26150,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={15}
+              handlerTag={17}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -26896,7 +26896,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -26948,7 +26948,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27000,7 +27000,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27066,7 +27066,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27118,7 +27118,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27170,7 +27170,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27236,7 +27236,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27288,7 +27288,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27340,7 +27340,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27406,7 +27406,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27458,7 +27458,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27511,7 +27511,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -27790,7 +27790,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -27838,7 +27838,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -27920,7 +27920,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -28054,7 +28054,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={19}
+              handlerTag={21}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -28802,7 +28802,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -28854,7 +28854,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -28906,7 +28906,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -28972,7 +28972,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -29024,7 +29024,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -29076,7 +29076,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -29142,7 +29142,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -29194,7 +29194,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -29246,7 +29246,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -29312,7 +29312,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -29364,7 +29364,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -29417,7 +29417,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -29696,7 +29696,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="MoreHorizontal"
+                    name="Setting"
                     style={
                       [
                         {
@@ -29744,7 +29744,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Deposit
+                  Buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -29826,7 +29826,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       },
                     ]
                   }
-                  testID="button-icon"
+                  testID="deposit-close-navbar-button"
                 >
                   <SvgMock
                     fill="currentColor"
@@ -30615,7 +30615,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -30667,7 +30667,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -30719,7 +30719,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -30785,7 +30785,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -30837,7 +30837,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -30889,7 +30889,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -30955,7 +30955,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -31007,7 +31007,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -31059,7 +31059,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -31125,7 +31125,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -31177,7 +31177,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#3c4d9d0f",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },
@@ -31230,7 +31230,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         {
                                           "alignItems": "center",
                                           "borderRadius": 12,
-                                          "height": 40,
+                                          "height": 48,
                                           "justifyContent": "center",
                                           "paddingHorizontal": 16,
                                         },

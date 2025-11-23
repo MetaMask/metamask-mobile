@@ -1,7 +1,8 @@
+import { toSentenceCase } from '../../../app/util/string';
 import enContent from '../../../locales/languages/en.json';
 
 export const QuoteViewSelectorText = {
-  NETWORK_FEE: enContent.bridge.network_fee,
+  NETWORK_FEE: toSentenceCase(enContent.bridge.network_fee),
   CONFIRM_BRIDGE: enContent.bridge.confirm_bridge,
   CONFIRM_SWAP: enContent.bridge.confirm_swap,
   SELECT_AMOUNT: enContent.bridge.select_amount,

@@ -12,19 +12,6 @@ const createStyles = (colors: Colors) =>
     bottomSheetText: {
       width: '100%',
     },
-    emptyView: {
-      backgroundColor: colors.background.default,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 50,
-    },
-    emptyTokensView: {
-      alignItems: 'center',
-      marginTop: 130,
-    },
-    emptyTokensViewText: {
-      fontFamily: 'Geist Medium',
-    },
     balances: {
       flex: 1,
       justifyContent: 'center',
@@ -117,6 +104,21 @@ const createStyles = (colors: Colors) =>
     },
     badge: {
       marginTop: 8,
+    },
+    wrapperSkeleton: {
+      backgroundColor: colors.background.default,
+    },
+    skeletonItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+    },
+    skeletonTextContainer: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    skeletonValueContainer: {
+      alignItems: 'flex-end',
     },
   });
 

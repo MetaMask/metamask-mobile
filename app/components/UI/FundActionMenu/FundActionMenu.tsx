@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 
 // External dependencies.
 import BottomSheet, {
@@ -18,15 +18,11 @@ import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
 import { useMetrics } from '../../hooks/useMetrics';
-import {
-  createBuyNavigationDetails,
-  createSellNavigationDetails,
-} from '../Ramp/Aggregator/routes/utils';
 import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
-import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 
 // Types
 import type {
@@ -34,10 +30,10 @@ import type {
   ActionConfig,
 } from './FundActionMenu.types';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation();
   const route = useRoute<FundActionMenuRouteProp>();
 
   const customOnBuy = route.params?.onBuy;
@@ -50,6 +46,9 @@ const FundActionMenu = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const { goToBuy, goToAggregator, goToSell, goToDeposit } =
+    useRampNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -63,7 +62,10 @@ const FundActionMenu = () => {
       closeBottomSheetAndNavigate(config.navigationAction);
 
       // Special handling for buy action with custom onBuy
-      if (config.type === 'buy' && customOnBuy) {
+      if (
+        (config.type === 'buy' || config.type === 'buy-unified') &&
+        customOnBuy
+      ) {
         return; // Skip analytics for custom onBuy
       }
 
@@ -103,12 +105,34 @@ const FundActionMenu = () => {
     () =>
       [
         {
+          type: 'buy-unified',
+          label: strings('fund_actionmenu.buy_unified'),
+          description: strings('fund_actionmenu.buy_unified_description'),
+          iconName: IconName.Add,
+          testID: WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON,
+          isVisible: rampUnifiedV1Enabled,
+          analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
+          analyticsProperties: {
+            text: 'Buy',
+            location: 'FundActionMenu',
+            chain_id_destination: getChainIdForAsset(),
+            region: rampGeodetectedRegion,
+          },
+          navigationAction: () => {
+            if (customOnBuy) {
+              customOnBuy();
+            } else {
+              goToBuy({ assetId: assetContext?.assetId });
+            }
+          },
+        },
+        {
           type: 'deposit',
           label: strings('fund_actionmenu.deposit'),
           description: strings('fund_actionmenu.deposit_description'),
           iconName: IconName.Money,
           testID: WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON,
-          isVisible: isDepositEnabled,
+          isVisible: isDepositEnabled && !rampUnifiedV1Enabled,
           analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
           analyticsProperties: {
             text: 'Deposit',
@@ -118,7 +142,7 @@ const FundActionMenu = () => {
             region: rampGeodetectedRegion,
           },
           traceName: TraceName.LoadDepositExperience,
-          navigationAction: () => navigate(...createDepositNavigationDetails()),
+          navigationAction: () => goToDeposit(),
         },
         {
           type: 'buy',
@@ -126,7 +150,7 @@ const FundActionMenu = () => {
           description: strings('fund_actionmenu.buy_description'),
           iconName: IconName.Add,
           testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-          isVisible: true,
+          isVisible: !rampUnifiedV1Enabled,
           analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
           analyticsProperties: {
             text: 'Buy',
@@ -139,14 +163,8 @@ const FundActionMenu = () => {
           navigationAction: () => {
             if (customOnBuy) {
               customOnBuy();
-            } else if (assetContext) {
-              navigate(
-                ...createBuyNavigationDetails({
-                  assetId: assetContext.assetId,
-                }),
-              );
             } else {
-              navigate(...createBuyNavigationDetails());
+              goToAggregator({ assetId: assetContext?.assetId });
             }
           },
         },
@@ -167,19 +185,23 @@ const FundActionMenu = () => {
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.SELL } },
-          navigationAction: () => navigate(...createSellNavigationDetails()),
+          navigationAction: () => goToSell({ assetId: assetContext?.assetId }),
         },
       ] as ActionConfig[],
     [
       isDepositEnabled,
-      isNetworkRampSupported,
-      rampGeodetectedRegion,
-      canSignTransactions,
+      rampUnifiedV1Enabled,
       chainId,
+      rampGeodetectedRegion,
       getChainIdForAsset,
-      navigate,
+      isNetworkRampSupported,
+      canSignTransactions,
       customOnBuy,
       assetContext,
+      goToBuy,
+      goToAggregator,
+      goToSell,
+      goToDeposit,
     ],
   );
 

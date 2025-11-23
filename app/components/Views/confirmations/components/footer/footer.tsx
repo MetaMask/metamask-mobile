@@ -37,11 +37,15 @@ import {
 } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
-import { useIsTransactionPayLoading } from '../../hooks/pay/useIsTransactionPayLoading';
+import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../UI/Earn/constants/musd';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+  MUSD_CONVERSION_TRANSACTION_TYPE,
 ];
 
 export const Footer = () => {
@@ -64,7 +68,7 @@ export const Footer = () => {
   const isMMSendReq =
     REDESIGNED_TRANSFER_TYPES.includes(transactionType) &&
     transactionMetadata?.origin === MMM_ORIGIN;
-  const { isLoading: isPayLoading } = useIsTransactionPayLoading();
+  const isPayLoading = useIsTransactionPayLoading();
 
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
@@ -245,3 +249,19 @@ export const Footer = () => {
     </>
   );
 };
+
+export function FooterSkeleton() {
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { styles } = useStyles(styleSheet, {
+    confirmDisabled: false,
+    isStakingConfirmationBool: false,
+    isFullScreenConfirmation,
+  });
+
+  return (
+    <View style={styles.footerSkeletonContainer}>
+      <Skeleton height={48} style={styles.footerButtonSkeleton} />
+      <Skeleton height={48} style={styles.footerButtonSkeleton} />
+    </View>
+  );
+}

@@ -19,8 +19,13 @@ export interface UseCryptoCurrenciesResult {
 }
 
 export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
-  const { selectedRegion, selectedCryptoCurrency, setSelectedCryptoCurrency } =
-    useDepositSDK();
+  const {
+    selectedRegion,
+    selectedCryptoCurrency,
+    setSelectedCryptoCurrency,
+    intent,
+    setIntent,
+  } = useDepositSDK();
 
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -49,6 +54,21 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
 
   useEffect(() => {
     if (cryptoCurrencies && cryptoCurrencies.length > 0) {
+      if (intent?.assetId) {
+        const intentCrypto = cryptoCurrencies.find(
+          (token) => token.assetId === intent.assetId,
+        );
+
+        setIntent((prevIntent) =>
+          prevIntent ? { ...prevIntent, assetId: undefined } : undefined,
+        );
+
+        if (intentCrypto) {
+          setSelectedCryptoCurrency(intentCrypto);
+          return;
+        }
+      }
+
       let newSelectedCrypto: DepositCryptoCurrency | null = null;
 
       if (selectedCryptoCurrency) {
@@ -66,7 +86,13 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
         setSelectedCryptoCurrency(newSelectedCrypto);
       }
     }
-  }, [cryptoCurrencies, selectedCryptoCurrency, setSelectedCryptoCurrency]);
+  }, [
+    cryptoCurrencies,
+    selectedCryptoCurrency,
+    setSelectedCryptoCurrency,
+    intent,
+    setIntent,
+  ]);
 
   return {
     cryptoCurrencies,

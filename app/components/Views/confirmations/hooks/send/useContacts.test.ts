@@ -201,6 +201,20 @@ describe('useContacts', () => {
     expect(result.current).toEqual([]);
   });
 
+  it('returns empty array when isNonEvmSendType is true', () => {
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: true,
+      isSolanaSendType: false,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: true,
+      isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
+      isTronSendType: false,
+    });
+    const { result } = renderHook(() => useContacts());
+    expect(result.current).toEqual([]);
+  });
+
   it('handles address book with empty chains', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectAddressBook) {

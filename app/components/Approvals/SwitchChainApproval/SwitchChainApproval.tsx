@@ -5,10 +5,7 @@ import ApprovalModal from '../ApprovalModal';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  isPortfolioViewEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import {
   NetworkType,
   useNetworksByNamespace,
@@ -56,11 +53,9 @@ const SwitchChainApproval = () => {
   const onConfirm = useCallback(() => {
     defaultOnConfirm();
 
-    // If portfolio view is enabled should set network filter
-    if (isPortfolioViewEnabled()) {
-      if (isRemoveGlobalNetworkSelectorEnabled()) {
-        selectNetwork(chainId);
-      }
+    // If remove global network selector is enabled should set network filter
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      selectNetwork(chainId);
     }
 
     dispatch(

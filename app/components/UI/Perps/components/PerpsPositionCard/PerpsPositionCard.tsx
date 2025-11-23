@@ -12,6 +12,9 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconColor,
   IconName,
@@ -30,7 +33,11 @@ import type {
   Position,
   TPSLTrackingData,
 } from '../../controllers/types';
-import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
+import {
+  usePerpsLivePrices,
+  usePerpsMarkets,
+  usePerpsTPSLUpdate,
+} from '../../hooks';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
   formatPerpsFiat,
@@ -91,6 +98,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const absoluteSize = Math.abs(parseFloat(position.size));
 
   const { markets, error, isLoading } = usePerpsMarkets();
+
+  const livePrices = usePerpsLivePrices({ symbols: [position.coin] });
 
   const marketData = useMemo(
     () => markets.find((market) => market.symbol === position.coin),
@@ -176,6 +185,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     setIsEligibilityModalVisible,
     setIsTPSLCountWarningVisible,
   ]);
+
+  const handleSharePress = () => {
+    navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
+      position,
+      marketPrice: livePrices[position.coin]?.price,
+    });
+  };
 
   const handleTpslCountPress = useCallback(async () => {
     if (isLoading || error) {
@@ -462,7 +478,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   </Text>
                   {onTooltipPress && (
                     <TouchableOpacity
-                      onPress={() => onTooltipPress('funding_rate')}
+                      onPress={() => onTooltipPress('funding_payments')}
                     >
                       <Icon
                         name={IconName.Info}
@@ -490,15 +506,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               width={ButtonWidthTypes.Auto}
-              label={strings('perps.position.card.edit_tpsl')}
-              onPress={handleEditTPSL}
-              style={styles.footerButton}
-              testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              width={ButtonWidthTypes.Auto}
               label={
                 <Text
                   variant={TextVariant.BodyMDMedium}
@@ -512,6 +519,23 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               onPress={handleClosePress}
               style={styles.footerButton}
               testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              width={ButtonWidthTypes.Auto}
+              label={strings('perps.position.card.edit_tpsl')}
+              onPress={handleEditTPSL}
+              style={styles.footerButton}
+              testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
+            />
+            <ButtonIcon
+              size={ButtonIconSizes.Md}
+              iconName={IconName.Share}
+              iconColor={IconColor.Default}
+              onPress={handleSharePress}
+              style={styles.shareButton}
+              testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
             />
           </View>
         )}

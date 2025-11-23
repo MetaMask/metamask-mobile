@@ -960,6 +960,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -1639,7 +1640,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -2734,6 +2734,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -3413,7 +3414,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -4508,6 +4508,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -5187,7 +5188,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -6323,6 +6323,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -7002,7 +7003,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -8097,6 +8097,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -8776,7 +8777,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -9871,6 +9871,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -10550,7 +10551,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -12216,6 +12216,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -12895,7 +12896,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }
@@ -13990,6 +13990,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -14669,7 +14670,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "flex": 1,
                                             "flexDirection": "row",
                                             "height": 64,
                                           }

@@ -66,16 +66,6 @@ jest.mock('react-native', () => {
   };
 });
 
-jest.mock('./animationTimings', () => ({
-  ANIMATION_TIMINGS: {
-    EMPTY_STATE_IDLE_TIME: 500,
-    EMPTY_STATE_FADE_DURATION: 200,
-    EMPTY_STATE_FOLD_DELAY: 50,
-    EMPTY_STATE_FOLD_DURATION: 200,
-    EMPTY_STATE_HEIGHT_DURATION: 300,
-  },
-}));
-
 describe('useTransitionToEmpty', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -125,8 +115,8 @@ describe('useTransitionToEmpty', () => {
 
     const transitionPromise = result.current.executeTransition(mockCallback);
 
-    // Fast-forward timers
-    jest.advanceTimersByTime(500);
+    // Fast-forward timers to complete the idle timeout
+    jest.runAllTimers();
 
     await expect(transitionPromise).resolves.toBeUndefined();
     expect(mockCallback).toHaveBeenCalled();

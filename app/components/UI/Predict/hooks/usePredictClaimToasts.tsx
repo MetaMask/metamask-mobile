@@ -1,13 +1,16 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { selectPredictClaimablePositions } from '../selectors/predictController';
-import { PredictPosition, PredictPositionStatus } from '../types';
+import { selectPredictWonPositions } from '../selectors/predictController';
+import { PredictPosition } from '../types';
 import { formatPrice } from '../utils/format';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictPositions } from './usePredictPositions';
 import { usePredictToasts } from './usePredictToasts';
+import Engine from '../../../../core/Engine';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { usePredictBalance } from './usePredictBalance';
 
 export const usePredictClaimToasts = () => {
   const { claim } = usePredictClaim();
@@ -15,14 +18,12 @@ export const usePredictClaimToasts = () => {
     claimable: true,
     loadOnMount: true,
   });
+  const { loadBalance } = usePredictBalance({ loadOnMount: false });
 
-  const claimablePositions = useSelector(selectPredictClaimablePositions);
-  const wonPositions = useMemo(
-    () =>
-      claimablePositions.filter(
-        (position) => position.status === PredictPositionStatus.WON,
-      ),
-    [claimablePositions],
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedAddress = evmAccount?.address ?? '0x0';
+  const wonPositions = useSelector(
+    selectPredictWonPositions({ address: selectedAddress }),
   );
 
   const totalClaimableAmount = useMemo(
@@ -37,6 +38,18 @@ export const usePredictClaimToasts = () => {
   const formattedAmount = formatPrice(totalClaimableAmount, {
     maximumDecimals: 2,
   });
+
+  const handleClaimConfirmed = useCallback(() => {
+    Engine.context.PredictController.confirmClaim({
+      providerId: 'polymarket',
+    });
+    loadPositions({ isRefresh: true }).catch(() => {
+      // Ignore errors when refreshing positions
+    });
+    loadBalance({ isRefresh: true }).catch(() => {
+      // Ignore errors when refreshing balance
+    });
+  }, [loadBalance, loadPositions]);
 
   usePredictToasts({
     transactionType: TransactionType.predictClaim,
@@ -62,10 +75,6 @@ export const usePredictClaimToasts = () => {
       retryLabel: strings('predict.claim.toasts.error.try_again'),
       onRetry: claim,
     },
-    onConfirmed: () => {
-      loadPositions({ isRefresh: true }).catch(() => {
-        // Ignore errors when refreshing positions
-      });
-    },
+    onConfirmed: handleClaimConfirmed,
   });
 };

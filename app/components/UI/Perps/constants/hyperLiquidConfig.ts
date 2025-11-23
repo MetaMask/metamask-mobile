@@ -99,7 +99,6 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
   marginPercent: 10, // 10% fixed margin default
   takeProfitPercent: 0.3, // 30% take profit
   stopLossPercent: 0.1, // 10% stop loss
-  slippage: 0.05, // 5% max slippage protection
   amount: {
     mainnet: 10, // $10 minimum order size
     testnet: 10, // $10 minimum order size
@@ -113,6 +112,38 @@ export const FEE_RATES: FeeRatesConfig = {
   taker: 0.00045, // 0.045% - Market orders and aggressive limit orders
   maker: 0.00015, // 0.015% - Limit orders that add liquidity
 };
+
+/**
+ * HIP-3 fee multiplier configuration
+ *
+ * HIP-3 (builder-deployed) perpetual markets charge 2x base fees compared to
+ * validator-operated markets. This covers a 50/50 split between the protocol
+ * and the builder/deployer.
+ *
+ * Reference: HIP-3.md line 45 - "From the user perspective, fees are 2x the
+ * usual fees on validator-operated perp markets."
+ *
+ * Applied to:
+ * - Base fee rates (taker/maker)
+ * - User-specific discounted rates
+ * - All fee calculations for HIP-3 assets (identified by dex:SYMBOL format)
+ *
+ * Example: For xyz:TSLA (HIP-3 asset):
+ * - Base taker rate: 0.045%
+ * - After HIP-3 multiplier: 0.045% × 2 = 0.090%
+ * - Protocol receives: 0.045% (same as regular markets)
+ * - Builder receives: 0.045% (deployed market incentive)
+ *
+ * @see HIP-3.md for detailed protocol specification
+ * @see parseAssetName() in HyperLiquidProvider for HIP-3 asset detection
+ */
+export const HIP3_FEE_CONFIG = {
+  /**
+   * Fee multiplier for HIP-3 assets (2x base rate)
+   * Covers 50% deployer share + 50% protocol share
+   */
+  FEE_MULTIPLIER: 2,
+} as const;
 
 const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
 

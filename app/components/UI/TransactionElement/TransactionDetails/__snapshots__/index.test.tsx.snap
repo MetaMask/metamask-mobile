@@ -430,11 +430,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                {
-                                  "fontSize": 12,
-                                  "letterSpacing": 0.5,
-                                  "marginTop": 4,
-                                },
+                                [
+                                  {
+                                    "fontSize": 12,
+                                    "letterSpacing": 0.5,
+                                    "marginTop": 4,
+                                  },
+                                  undefined,
+                                ],
                               ]
                             }
                           >
@@ -615,19 +618,19 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 8,
-                                      "height": 32,
+                                      "borderRadius": 6,
+                                      "height": 24,
                                       "marginRight": 8,
                                       "overflow": "hidden",
-                                      "width": 32,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <View
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
                                   />
@@ -635,14 +638,13 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   primary={true}
-                                  small={true}
                                   style={
                                     {
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                   testID="account-label"
@@ -746,19 +748,19 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 8,
-                                      "height": 32,
+                                      "borderRadius": 6,
+                                      "height": 24,
                                       "marginRight": 8,
                                       "overflow": "hidden",
-                                      "width": 32,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <View
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
                                   />
@@ -766,14 +768,13 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   primary={true}
-                                  small={true}
                                   style={
                                     {
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                   testID="account-label"
@@ -1706,11 +1707,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                {
-                                  "fontSize": 12,
-                                  "letterSpacing": 0.5,
-                                  "marginTop": 4,
-                                },
+                                [
+                                  {
+                                    "fontSize": 12,
+                                    "letterSpacing": 0.5,
+                                    "marginTop": 4,
+                                  },
+                                  undefined,
+                                ],
                               ]
                             }
                           >
@@ -1891,19 +1895,19 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 8,
-                                      "height": 32,
+                                      "borderRadius": 6,
+                                      "height": 24,
                                       "marginRight": 8,
                                       "overflow": "hidden",
-                                      "width": 32,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <View
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
                                   />
@@ -1911,14 +1915,13 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 <Text
                                   accessibilityRole="text"
                                   primary={true}
-                                  small={true}
                                   style={
                                     {
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                   testID="account-label"
@@ -2022,19 +2025,19 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 8,
-                                      "height": 32,
+                                      "borderRadius": 6,
+                                      "height": 24,
                                       "marginRight": 8,
                                       "overflow": "hidden",
-                                      "width": 32,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <View
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
                                   />
@@ -2042,14 +2045,13 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 <Text
                                   accessibilityRole="text"
                                   primary={true}
-                                  small={true}
                                   style={
                                     {
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                   testID="account-label"
@@ -2982,11 +2984,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 undefined,
                                 undefined,
                                 undefined,
-                                {
-                                  "fontSize": 12,
-                                  "letterSpacing": 0.5,
-                                  "marginTop": 4,
-                                },
+                                [
+                                  {
+                                    "fontSize": 12,
+                                    "letterSpacing": 0.5,
+                                    "marginTop": 4,
+                                  },
+                                  undefined,
+                                ],
                               ]
                             }
                           >
@@ -3167,19 +3172,19 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 8,
-                                      "height": 32,
+                                      "borderRadius": 6,
+                                      "height": 24,
                                       "marginRight": 8,
                                       "overflow": "hidden",
-                                      "width": 32,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <View
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
                                   />
@@ -3187,14 +3192,13 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 <Text
                                   accessibilityRole="text"
                                   primary={true}
-                                  small={true}
                                   style={
                                     {
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                   testID="account-label"
@@ -3298,19 +3302,19 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 8,
-                                      "height": 32,
+                                      "borderRadius": 6,
+                                      "height": 24,
                                       "marginRight": 8,
                                       "overflow": "hidden",
-                                      "width": 32,
+                                      "width": 24,
                                     }
                                   }
                                 >
                                   <View
                                     style={
                                       {
-                                        "height": 32,
-                                        "width": 32,
+                                        "height": 24,
+                                        "width": 24,
                                       }
                                     }
                                   />
@@ -3318,14 +3322,13 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 <Text
                                   accessibilityRole="text"
                                   primary={true}
-                                  small={true}
                                   style={
                                     {
                                       "color": "#121314",
                                       "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                   testID="account-label"

@@ -1,8 +1,6 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import useAccountTrackerPolling from './useAccountTrackerPolling';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 import { RootState } from '../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 
@@ -76,9 +74,7 @@ describe('useAccountTrackerPolling', () => {
     },
   } as unknown as RootState;
 
-  it('should poll all network configurations when portfolio view is enabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
+  it('should poll all network configurations', () => {
     const { unmount } = renderHookWithProvider(
       () => useAccountTrackerPolling(),
       { state },
@@ -101,9 +97,7 @@ describe('useAccountTrackerPolling', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it('should use provided network client IDs when specified, even with portfolio view enabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
+  it('should use provided network client IDs when specified', () => {
     const { unmount } = renderHookWithProvider(
       () =>
         useAccountTrackerPolling({
@@ -330,12 +324,7 @@ describe('useAccountTrackerPolling', () => {
       },
     } as unknown as RootState;
 
-    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
+    it('should poll enabled EVM networks when global network selector is removed', () => {
       const { unmount } = renderHookWithProvider(
         () => useAccountTrackerPolling(),
         { state: baseState },
@@ -362,37 +351,7 @@ describe('useAccountTrackerPolling', () => {
       ).toHaveBeenCalledTimes(1);
     });
 
-    it('should poll current chain when portfolio view is disabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-
-      const { unmount } = renderHookWithProvider(
-        () => useAccountTrackerPolling(),
-        { state: baseState },
-      );
-
-      const mockedAccountTrackerController = jest.mocked(
-        Engine.context.AccountTrackerController,
-      );
-
-      expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-        networkClientIds: ['selectedNetworkClientId'],
-      });
-
-      unmount();
-      expect(
-        mockedAccountTrackerController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(1);
-    });
-
     it('should handle empty enabled networks gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithEmptyNetworks = {
         ...baseState,
         engine: {
@@ -428,11 +387,6 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle missing network configurations gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithMissingConfigs = {
         ...baseState,
         engine: {
@@ -474,11 +428,6 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle undefined enabled networks gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-      jest
-        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
-        .mockReturnValue(true);
-
       const stateWithUndefinedNetworks = {
         ...baseState,
         engine: {
@@ -517,8 +466,6 @@ describe('useAccountTrackerPolling', () => {
     });
 
     it('should handle undefined selectedNetworkClientId gracefully', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-
       const stateWithUndefinedClientId = {
         ...baseState,
         engine: {
@@ -542,14 +489,23 @@ describe('useAccountTrackerPolling', () => {
         Engine.context.AccountTrackerController,
       );
 
+      // With global network selector removed, polling should still occur for enabled networks
+      // even when selectedNetworkClientId is undefined
       expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
-        0,
+        1,
       );
+      expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
+        networkClientIds: [
+          'selectedNetworkClientId',
+          'selectedNetworkClientId2',
+          'selectedNetworkClientId3',
+        ],
+      });
 
       unmount();
       expect(
         mockedAccountTrackerController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(0);
+      ).toHaveBeenCalledTimes(1);
     });
   });
 });

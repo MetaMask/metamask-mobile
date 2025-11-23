@@ -1,6 +1,5 @@
 import React from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -21,7 +20,7 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
@@ -36,12 +35,12 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
 }) => {
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
-  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const { goToBuy } = useRampNavigation();
 
   const handleAction = () => {
-    navigation.navigate(...createBuyNavigationDetails());
+    goToBuy();
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED).build(),

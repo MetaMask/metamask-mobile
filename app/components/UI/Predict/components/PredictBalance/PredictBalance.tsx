@@ -35,6 +35,7 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
+import { PredictEventValues } from '../../constants/eventNames';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
@@ -68,24 +69,22 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [isDepositPending, loadBalance]);
 
   const handleAddFunds = useCallback(() => {
-    executeGuardedAction(() => {
-      deposit();
-    });
+    executeGuardedAction(
+      () => {
+        deposit();
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
+    );
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
-    executeGuardedAction(
-      () => {
-        withdraw();
-      },
-      { checkBalance: true },
-    );
-  }, [withdraw, executeGuardedAction]);
+    withdraw();
+  }, [withdraw]);
 
   if (isLoading) {
     return (
       <Box
-        twClassName="bg-muted rounded-xl p-4 gap-3"
+        twClassName="bg-muted rounded-xl p-4 mx-4 gap-3"
         testID="predict-balance-card-skeleton"
       >
         <Box
@@ -164,7 +163,6 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
                 variant={BadgeVariant.Network}
                 imageSource={images.POL}
                 name="Polygon"
-                style={tw.style('rounded-2xl')}
               />
             }
           >

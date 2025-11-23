@@ -21,7 +21,6 @@ import {
   getFeatureFlagChainId,
   setSwapsLiveness,
   swapsTokensMultiChainObjectSelector,
-  swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
 import {
   selectChainId,
@@ -31,6 +30,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
+import { isHexAddress } from '@metamask/utils';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -39,7 +39,6 @@ import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   isMainnetByChainId,
-  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -67,7 +66,6 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   selectSwapsTransactions,
   selectTransactions,
@@ -78,7 +76,7 @@ import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectNonEvmTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
@@ -218,9 +216,9 @@ class Asset extends PureComponent {
   filter = undefined;
   navSymbol = undefined;
   navAddress = undefined;
-  selectedAddress = toChecksumHexAddress(
-    this.props.selectedInternalAccount?.address,
-  );
+  selectedAddress = isHexAddress(this.props.selectedInternalAccount?.address)
+    ? safeToChecksumAddress(this.props.selectedInternalAccount?.address)
+    : this.props.selectedInternalAccount?.address;
 
   updateNavBar = (contentOffset = 0) => {
     const {
@@ -294,10 +292,6 @@ class Asset extends PureComponent {
       this.checkLiveness(tokenChainId);
     }
 
-    InteractionManager.runAfterInteractions(() => {
-      this.normalizeTransactions();
-      this.mounted = true;
-    });
     this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
     this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
 
@@ -306,6 +300,9 @@ class Asset extends PureComponent {
     } else {
       this.filter = this.ethFilter;
     }
+
+    this.normalizeTransactions();
+    this.mounted = true;
   }
 
   componentDidUpdate(prevProps) {
@@ -433,7 +430,8 @@ class Asset extends PureComponent {
         if (
           (this.txs.length === 0 && !this.state.transactionsUpdated) ||
           this.txs.length !== filteredTransactions.length ||
-          this.chainId !== chainId
+          this.chainId !== chainId ||
+          this.state.loading // Ensure loading is reset even if nothing else changed
         ) {
           this.txs = filteredTransactions;
           this.txsPending = [];
@@ -514,7 +512,8 @@ class Asset extends PureComponent {
           (this.txs.length === 0 && !this.state.transactionsUpdated) ||
           this.txs.length !== filteredTransactions.length ||
           this.chainId !== chainId ||
-          this.didTxStatusesChange(newPendingTxs)
+          this.didTxStatusesChange(newPendingTxs) ||
+          this.state.loading // Ensure loading is reset even if nothing else changed
         ) {
           this.txs = filteredTransactions;
           this.txsPending = newPendingTxs;
@@ -527,7 +526,7 @@ class Asset extends PureComponent {
           });
         }
       }
-    } else if (!this.state.transactionsUpdated) {
+    } else if (!this.state.transactionsUpdated || this.state.loading) {
       this.setState({ transactionsUpdated: true, loading: false });
     }
     this.isNormalizing = false;
@@ -670,8 +669,12 @@ const mapStateToProps = (state, { route }) => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (asset?.chainId && isNonEvmChainId(asset.chainId)) {
-    const nonEvmTransactions = selectNonEvmTransactions(state);
-    const txs = nonEvmTransactions?.transactions || [];
+    const nonEvmTransactions =
+      selectNonEvmTransactionsForSelectedAccountGroup(state);
+    const txs =
+      nonEvmTransactions?.transactions?.filter(
+        (tx) => tx.chain === asset.chainId,
+      ) || [];
 
     const assetAddress = route.params?.address?.toLowerCase();
     const assetSymbol = route.params?.symbol?.toLowerCase();
@@ -761,9 +764,7 @@ const mapStateToProps = (state, { route }) => {
 
   return {
     swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
-    swapsTokens: isPortfolioViewEnabled()
-      ? swapsTokensMultiChainObjectSelector(state)
-      : swapsTokensObjectSelector(state),
+    swapsTokens: swapsTokensMultiChainObjectSelector(state),
     searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
       state,
       route.params.chainId,
