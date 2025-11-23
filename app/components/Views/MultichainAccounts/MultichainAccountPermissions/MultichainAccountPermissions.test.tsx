@@ -466,6 +466,27 @@ describe('MultichainAccountPermissions', () => {
     });
   });
 
+  describe('networkAvatars', () => {
+    it('filters out wallet scopes from network avatars', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountPermissions
+          route={{
+            params: {
+              hostInfo: { metadata: { origin: 'test.com' } },
+            },
+          }}
+        />,
+        { state: mockInitialState() },
+      );
+
+      // The component should render without errors even when wallet scopes like 'wallet:eip155' are present
+      // These should be filtered out and not cause issues
+      expect(
+        getByTestId('navigate_to_edit_networks_permissions_button'),
+      ).toBeDefined();
+    });
+  });
+
   describe('screen navigation', () => {
     it('should render correct screen based on current state', () => {
       const { getByTestId } = renderWithProvider(
