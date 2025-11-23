@@ -148,6 +148,10 @@ export function createTrustSignalsMiddleware({
 }: TrustSignalsMiddlewareConfig) {
   return createAsyncMiddleware(async (req: TrustSignalsRequest, _res, next) => {
     try {
+      if (req.origin) {
+        scanUrl(phishingController, req.origin);
+      }
+
       const chainId = getChainIdForRequest(req, networkController);
       if (!chainId) {
         Logger.log(
@@ -157,13 +161,9 @@ export function createTrustSignalsMiddleware({
       }
 
       if (isEthSendTransaction(req)) {
-        await handleEthSendTransaction(req, phishingController, chainId);
+        handleEthSendTransaction(req, phishingController, chainId);
       } else if (isEthSignTypedData(req)) {
-        await handleEthSignTypedData(req, phishingController, chainId);
-      }
-
-      if (req.origin) {
-        await scanUrl(phishingController, req.origin);
+        handleEthSignTypedData(req, phishingController, chainId);
       }
     } catch (error) {
       Logger.log('[TrustSignalsMiddleware] Unexpected error:', error);
