@@ -48,6 +48,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import Engine from '../../../../../../core/Engine';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -76,6 +77,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       amountHumanDebounced,
       hasInput,
       isInputChanged,
+      transactionId,
       updatePendingAmount,
       updatePendingAmountPercentage,
       updateTokenAmount,
@@ -94,7 +96,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
-    }, []);
+
+      Engine.controllerMessenger.call('TransactionPayController:clearQuotes', {
+        transactionId,
+      });
+    }, [transactionId]);
 
     return (
       <Box style={styles.container}>

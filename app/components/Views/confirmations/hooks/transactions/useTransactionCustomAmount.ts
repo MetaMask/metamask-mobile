@@ -40,7 +40,7 @@ export function useTransactionCustomAmount({
   );
 
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const { chainId } = transactionMeta;
+  const { chainId, id: transactionId } = transactionMeta;
 
   const tokenAddress = getTokenAddress(transactionMeta);
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
@@ -112,6 +112,7 @@ export function useTransactionCustomAmount({
     amountHumanDebounced,
     hasInput,
     isInputChanged,
+    transactionId,
     updatePendingAmount,
     updatePendingAmountPercentage,
     updateTokenAmount,
