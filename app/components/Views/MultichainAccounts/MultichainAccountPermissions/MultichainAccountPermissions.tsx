@@ -124,7 +124,11 @@ export const MultichainAccountPermissions = (
   const networkAvatars: NetworkAvatarProps[] = useMemo(
     () =>
       selectedChainIds
-        // Filter to only include valid CAIP chain IDs, excluding wallet scopes like 'wallet:eip155'
+        // TODO: Remove this filter once upstream issue is fixed
+        // selectedChainIds is populated by getAllScopesFromCaip25CaveatValue() from
+        // @metamask/chain-agnostic-permission, which incorrectly includes wallet scopes
+        // like 'wallet:eip155' that are not valid chain IDs.
+        // For now, filter to only include valid CAIP chain IDs, excluding wallet scopes.
         .filter(
           (chainId) => isCaipChainId(chainId) && !chainId.startsWith('wallet:'),
         )
