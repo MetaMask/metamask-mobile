@@ -26,7 +26,6 @@ import type {
 } from '../types';
 import {
   ClobAuthDomain,
-  SLIPPAGE,
   EIP712Domain,
   FEE_PERCENTAGE,
   HASH_ZERO_BYTES32,
@@ -34,6 +33,8 @@ import {
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
   ROUNDING_CONFIG,
+  SLIPPAGE_BUY,
+  SLIPPAGE_SELL,
 } from './constants';
 import { SafeFeeAuthorization } from './safe/types';
 import {
@@ -1151,7 +1152,7 @@ export const previewOrder = async (
       sharePrice: bestPrice,
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
-      slippage: SLIPPAGE,
+      slippage: SLIPPAGE_BUY,
       tickSize: parseFloat(book.tick_size),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
@@ -1184,7 +1185,7 @@ export const previewOrder = async (
     sharePrice: bestPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
-    slippage: SLIPPAGE,
+    slippage: SLIPPAGE_SELL,
     tickSize: parseFloat(book.tick_size),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
