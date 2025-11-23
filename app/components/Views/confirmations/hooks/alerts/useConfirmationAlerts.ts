@@ -11,6 +11,9 @@ import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBa
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
+import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
+import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
+import { useUrlTrustSignalAlerts } from './useUrlTrustSignalAlerts';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -28,6 +31,8 @@ function useTransactionAlerts(): Alert[] {
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
   const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
   const burnAddressAlert = useBurnAddressAlert();
+  const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
+  const addressTrustSignalAlerts = useAddressTrustSignalAlerts();
 
   return useMemo(
     () => [
@@ -39,6 +44,8 @@ function useTransactionAlerts(): Alert[] {
       ...noPayTokenQuotesAlert,
       ...insufficientPredictBalanceAlert,
       ...burnAddressAlert,
+      ...tokenTrustSignalAlerts,
+      ...addressTrustSignalAlerts,
     ],
     [
       insufficientBalanceAlert,
@@ -49,6 +56,8 @@ function useTransactionAlerts(): Alert[] {
       noPayTokenQuotesAlert,
       insufficientPredictBalanceAlert,
       burnAddressAlert,
+      tokenTrustSignalAlerts,
+      addressTrustSignalAlerts,
     ],
   );
 }
@@ -57,6 +66,7 @@ export default function useConfirmationAlerts(): Alert[] {
   const signatureAlerts = useSignatureAlerts();
   const transactionAlerts = useTransactionAlerts();
   const accountTypeUpgrade = useAccountTypeUpgrade();
+  const urlTrustSignalAlerts = useUrlTrustSignalAlerts();
 
   return useMemo(
     () => [
@@ -64,7 +74,14 @@ export default function useConfirmationAlerts(): Alert[] {
       ...signatureAlerts,
       ...transactionAlerts,
       ...accountTypeUpgrade,
+      ...urlTrustSignalAlerts,
     ],
-    [blockaidAlerts, signatureAlerts, transactionAlerts, accountTypeUpgrade],
+    [
+      blockaidAlerts,
+      signatureAlerts,
+      transactionAlerts,
+      accountTypeUpgrade,
+      urlTrustSignalAlerts,
+    ],
   );
 }
