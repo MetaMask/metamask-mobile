@@ -114,10 +114,14 @@ interface OnboardingRouteParams {
 }
 
 interface OnboardingProps {
-  route: RouteProp<{ params: OnboardingRouteParams }, 'params'>;
+  route?: RouteProp<{ params: OnboardingRouteParams }, 'params'>;
 }
 
-const Onboarding: React.FC<OnboardingProps> = ({ route }) => {
+const Onboarding = (props: OnboardingProps = {}) => {
+  const {
+    route = {} as RouteProp<{ params: OnboardingRouteParams }, 'params'>,
+  } = props;
+
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const dispatch = useDispatch();
   const metrics = useMetrics();
@@ -759,7 +763,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ route }) => {
 
   const handleSimpleNotification =
     useCallback((): React.ReactElement | null => {
-      if (!route.params?.delete) return null;
+      if (!route?.params?.delete) return null;
       return (
         <Animated.View
           style={[
@@ -778,7 +782,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ route }) => {
           </ElevatedView>
         </Animated.View>
       );
-    }, [route, styles, notificationAnimated]);
+    }, [route?.params?.delete, styles, notificationAnimated]);
 
   useLayoutEffect(() => {
     onboardingTraceCtx.current = trace({
@@ -796,7 +800,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ route }) => {
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
       PreventScreenshot.forbid();
-      if (route.params?.delete) {
+      if (route?.params?.delete) {
         showNotification();
       }
       setState((prevState) => ({
@@ -816,7 +820,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ route }) => {
     checkIfExistingUser,
     disableNewPrivacyPolicyToast,
     checkForMigrationFailureAndVaultBackup,
-    route.params?.delete,
+    route?.params?.delete,
     showNotification,
   ]);
 
