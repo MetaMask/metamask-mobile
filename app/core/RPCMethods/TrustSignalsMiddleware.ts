@@ -86,7 +86,7 @@ async function handleEthSendTransaction(
   const { to, data } = txParams;
 
   if (to) {
-    await scanAddress(phishingController, chainId, to);
+    scanAddress(phishingController, chainId, to);
   }
 
   if (data && typeof data === 'string') {
@@ -94,7 +94,7 @@ async function handleEthSendTransaction(
       data as unknown as Hex,
     );
     if (spenderAddress) {
-      await scanAddress(phishingController, chainId, spenderAddress);
+      scanAddress(phishingController, chainId, spenderAddress);
     }
   }
 }
@@ -124,12 +124,12 @@ async function handleEthSignTypedData(
 
   const verifyingContract = typedDataMessage.domain?.verifyingContract;
   if (verifyingContract) {
-    await scanAddress(phishingController, chainId, verifyingContract);
+    scanAddress(phishingController, chainId, verifyingContract);
   }
 
   const spenderAddress = extractSpenderFromPermitMessage(typedDataMessage);
   if (spenderAddress) {
-    await scanAddress(phishingController, chainId, spenderAddress);
+    scanAddress(phishingController, chainId, spenderAddress);
   }
 }
 

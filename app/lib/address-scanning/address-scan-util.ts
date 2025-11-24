@@ -2,8 +2,12 @@ import { Hex, Json, JsonRpcRequest } from '@metamask/utils';
 import type { PhishingController } from '@metamask/phishing-controller';
 import { parseApprovalTransactionData } from '../../components/Views/confirmations/utils/approvals';
 import { parseAndNormalizeSignTypedData } from '../../components/Views/confirmations/utils/signature';
-import { parseStandardTokenTransactionData } from '../../components/Views/confirmations/utils/transaction';
+import {
+  parseStandardTokenTransactionData,
+  get4ByteCode,
+} from '../../components/Views/confirmations/utils/transaction';
 import { PRIMARY_TYPES_PERMIT } from '../../components/Views/confirmations/constants/signatures';
+import { APPROVAL_4BYTE_SELECTORS } from '../../components/Views/confirmations/constants/approve';
 import Logger from '../../util/Logger';
 
 /**
@@ -44,7 +48,7 @@ export function parseTypedDataMessage(
 }
 
 /**
- * Extract spender address from approval transaction data using existing utility
+ * Extract spender address from approval transaction data using 4-byte selector approach
  *
  * @param data - The transaction data hex string
  * @returns The spender address or undefined if not an approval or parsing fails
@@ -55,20 +59,44 @@ export function extractSpenderFromApprovalData(data?: Hex): string | undefined {
   }
 
   try {
+    // First check if it's an approval transaction
     const approvalData = parseApprovalTransactionData(data);
-
     if (!approvalData) {
       return undefined;
     }
 
+    const fourByteCode = get4ByteCode(data);
+
     const transactionDescription = parseStandardTokenTransactionData(data);
-    const { args } = transactionDescription ?? {};
+    const args = transactionDescription?.args;
 
     if (!args) {
       return undefined;
     }
 
-    const spender = args[0] || args[1] || args.spender || args._spender;
+    let spender: unknown;
+
+    switch (fourByteCode) {
+      case APPROVAL_4BYTE_SELECTORS.APPROVE:
+        spender = args[0] ?? args._spender;
+        break;
+
+      case APPROVAL_4BYTE_SELECTORS.ERC20_INCREASE_ALLOWANCE:
+      case APPROVAL_4BYTE_SELECTORS.ERC20_DECREASE_ALLOWANCE:
+        spender = args[0] ?? args._spender;
+        break;
+
+      case APPROVAL_4BYTE_SELECTORS.SET_APPROVAL_FOR_ALL:
+        spender = args[0] ?? args._operator;
+        break;
+
+      case APPROVAL_4BYTE_SELECTORS.PERMIT2_APPROVE:
+        spender = args[1] ?? args.spender;
+        break;
+
+      default:
+        return undefined;
+    }
 
     return typeof spender === 'string' ? spender : undefined;
   } catch (error) {
@@ -77,7 +105,7 @@ export function extractSpenderFromApprovalData(data?: Hex): string | undefined {
 }
 
 /**
- * Extract spender address from permit-style typed data message
+ * Extract spender address from ERC-2612 permit signatures
  *
  * @param typedDataMessage - The parsed typed data message
  * @returns The spender address or undefined if not a permit or spender not found
@@ -170,6 +198,11 @@ export async function scanAddress(
 ): Promise<void> {
   try {
     await phishingController.scanAddress(chainId, address);
+    // log cache
+    Logger.log(
+      `[scanAddress] Cache:`,
+      phishingController.state.addressScanCache,
+    );
   } catch (error) {
     Logger.log(`[scanAddress] Failed to scan address ${address}:`, error);
   }
