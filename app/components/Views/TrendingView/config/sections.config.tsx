@@ -115,10 +115,21 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         trendingResults.map((result) => [result.assetId, result]),
       );
 
-      searchResults.forEach((result) => {
-        const asset = result as TrendingAsset;
+      searchResults.forEach((asset) => {
         if (!resultMap.has(asset.assetId)) {
-          resultMap.set(asset.assetId, asset);
+          const formattedAsset: TrendingAsset = {
+            assetId: asset.assetId,
+            symbol: asset.symbol,
+            name: asset.name,
+            decimals: asset.decimals,
+            price: asset.price,
+            aggregatedUsdVolume: asset.totalVolume,
+            marketCap: asset.marketCap,
+            priceChangePct: {
+              h24: asset.pricePercentChange1d,
+            },
+          };
+          resultMap.set(asset.assetId, formattedAsset);
         }
       });
 

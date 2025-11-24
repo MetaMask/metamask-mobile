@@ -5,6 +5,17 @@ import { searchTokens } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
 export const DEBOUNCE_WAIT = 0;
 
+interface SearchResult {
+  assetId: CaipChainId;
+  decimals: number;
+  name: string;
+  symbol: string;
+  marketCap: number;
+  totalVolume: number;
+  price: string;
+  pricePercentChange1d: string;
+}
+
 /**
  * Hook for handling search tokens request
  * @returns {Object} An object containing the search results, loading state, and a function to trigger search
@@ -57,6 +68,7 @@ export const useSearchRequest = (options: {
         memoizedOptions.query,
         {
           limit: memoizedOptions.limit,
+          includeMarketData: true,
         },
       );
       // Only update state if this is still the current request
@@ -106,7 +118,7 @@ export const useSearchRequest = (options: {
   }, [debouncedSearchTokensRequest, memoizedOptions.query]);
 
   return {
-    results: results?.data || [],
+    results: (results?.data || []) as SearchResult[],
     isLoading,
     error,
     search: debouncedSearchTokensRequest,
