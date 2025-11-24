@@ -128,13 +128,13 @@ describe('address-scan-util', () => {
       expect(result).toBeUndefined();
     });
 
-    it('returns spender from args[0] for standard ERC20 approve', () => {
+    it('returns spender from args._spender for standard ERC20 approve', () => {
       const data = '0x095ea7b31234567890';
       mockParseApprovalTransactionData.mockReturnValue({} as never);
       mockGet4ByteCode.mockReturnValue(APPROVAL_4BYTE_SELECTORS.APPROVE);
       mockParseStandardTokenTransactionData.mockReturnValue({
         name: 'approve',
-        args: ['0xspenderAddress', '1000000'], // [spender, amount]
+        args: { _spender: '0xspenderAddress', _value: '1000000' },
       } as never);
 
       const result = extractSpenderFromApprovalData(data);
@@ -156,7 +156,7 @@ describe('address-scan-util', () => {
       expect(result).toBe('0xspenderAddress');
     });
 
-    it('returns spender from args[1] for Permit2 approve', () => {
+    it('returns spender from args.spender for Permit2 approve', () => {
       const data = '0x87517c451234567890';
       mockParseApprovalTransactionData.mockReturnValue({} as never);
       mockGet4ByteCode.mockReturnValue(
@@ -166,11 +166,10 @@ describe('address-scan-util', () => {
         name: 'approve',
         args: {
           token: '0xtokenAddress',
-          0: '0xtokenAddress',
-          1: '0xspenderAddress',
-          2: '1000000',
-          3: '1234567890',
-        }, // [token, spender, amount, expiration]
+          spender: '0xspenderAddress',
+          amount: '1000000',
+          expiration: '1234567890',
+        },
       } as never);
 
       const result = extractSpenderFromApprovalData(data);
@@ -199,7 +198,7 @@ describe('address-scan-util', () => {
       expect(result).toBe('0xspenderAddress');
     });
 
-    it('returns spender from args[0] for increaseAllowance', () => {
+    it('returns spender from args._spender for increaseAllowance', () => {
       const data = '0x395093511234567890';
       mockParseApprovalTransactionData.mockReturnValue({} as never);
       mockGet4ByteCode.mockReturnValue(
@@ -207,7 +206,7 @@ describe('address-scan-util', () => {
       );
       mockParseStandardTokenTransactionData.mockReturnValue({
         name: 'increaseAllowance',
-        args: ['0xspenderAddress', '500000'], // [spender, increment]
+        args: { _spender: '0xspenderAddress', increment: '500000' },
       } as never);
 
       const result = extractSpenderFromApprovalData(data);
@@ -231,7 +230,7 @@ describe('address-scan-util', () => {
       expect(result).toBe('0xspenderAddress');
     });
 
-    it('returns operator from args[0] for setApprovalForAll', () => {
+    it('returns operator from args._operator for setApprovalForAll', () => {
       const data = '0xa22cb4651234567890';
       mockParseApprovalTransactionData.mockReturnValue({} as never);
       mockGet4ByteCode.mockReturnValue(
@@ -239,7 +238,7 @@ describe('address-scan-util', () => {
       );
       mockParseStandardTokenTransactionData.mockReturnValue({
         name: 'setApprovalForAll',
-        args: ['0xoperatorAddress', true], // [operator, approved]
+        args: { _operator: '0xoperatorAddress', _approved: true },
       } as never);
 
       const result = extractSpenderFromApprovalData(data);
@@ -283,7 +282,7 @@ describe('address-scan-util', () => {
       mockGet4ByteCode.mockReturnValue(APPROVAL_4BYTE_SELECTORS.APPROVE);
       mockParseStandardTokenTransactionData.mockReturnValue({
         name: 'approve',
-        args: [123456, '1000000'], // spender is a number, not a string
+        args: { _spender: 123456, _value: '1000000' }, // spender is a number, not a string
       } as never);
 
       const result = extractSpenderFromApprovalData(data);
@@ -302,7 +301,7 @@ describe('address-scan-util', () => {
       expect(result).toBeUndefined();
     });
 
-    it('returns spender from args[0] for decreaseAllowance', () => {
+    it('returns spender from args._spender for decreaseAllowance', () => {
       const data = '0xa457c2d71234567890';
       mockParseApprovalTransactionData.mockReturnValue({} as never);
       mockGet4ByteCode.mockReturnValue(
@@ -310,7 +309,7 @@ describe('address-scan-util', () => {
       );
       mockParseStandardTokenTransactionData.mockReturnValue({
         name: 'decreaseAllowance',
-        args: ['0xspenderAddress', '300000'], // [spender, decrement]
+        args: { _spender: '0xspenderAddress', decrement: '300000' },
       } as never);
 
       const result = extractSpenderFromApprovalData(data);
