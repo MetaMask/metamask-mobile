@@ -381,6 +381,7 @@ const Routes = {
     NOTIFICATION: 'CardNotification',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
+    VERIFYING_REGISTRATION: 'VerifyingRegistration',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
