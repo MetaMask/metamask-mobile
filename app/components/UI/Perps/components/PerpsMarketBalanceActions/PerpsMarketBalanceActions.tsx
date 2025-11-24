@@ -43,6 +43,12 @@ import type { PerpsNavigationParamList } from '../../controllers/types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 import {
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
@@ -177,6 +183,7 @@ const PerpsMarketBalanceActions: React.FC<
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const { navigateToConfirmation } = useConfirmNavigation();
+  const { track } = usePerpsEventTracking();
 
   // Use the reusable hooks for balance animation
   const {
@@ -228,6 +235,16 @@ const PerpsMarketBalanceActions: React.FC<
   );
 
   const handleAddFunds = useCallback(async () => {
+    // Track button click
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PerpsEventProperties.BUTTON_CLICKED]:
+        PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
+      [PerpsEventProperties.BUTTON_LOCATION]:
+        PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+    });
+
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
@@ -252,9 +269,20 @@ const PerpsMarketBalanceActions: React.FC<
     ensureArbitrumNetworkExists,
     navigateToConfirmation,
     depositWithConfirmation,
+    track,
   ]);
 
   const handleWithdraw = useCallback(async () => {
+    // Track button click
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PerpsEventProperties.BUTTON_CLICKED]:
+        PerpsEventValues.BUTTON_CLICKED.WITHDRAW,
+      [PerpsEventProperties.BUTTON_LOCATION]:
+        PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+    });
+
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
@@ -271,7 +299,7 @@ const PerpsMarketBalanceActions: React.FC<
     } catch (error) {
       console.error('Failed to proceed with withdraw:', error);
     }
-  }, [navigation, isEligible, ensureArbitrumNetworkExists]);
+  }, [navigation, isEligible, ensureArbitrumNetworkExists, track]);
 
   const availableBalance = perpsAccount?.availableBalance || '0';
   const isBalanceEmpty = BigNumber(availableBalance).isZero();

@@ -320,6 +320,10 @@ const PerpsMarketListView = ({
       ? PerpsEventValues.PERP_DEX.HYPERLIQUID
       : undefined;
 
+  // Extract button_clicked and button_location from route params
+  const buttonClicked = route.params?.button_clicked;
+  const buttonLocation = route.params?.button_location;
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [displayMarkets.length > 0],
@@ -329,6 +333,12 @@ const PerpsMarketListView = ({
       [PerpsEventProperties.SOURCE]: source,
       [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
       ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
+      ...(buttonClicked && {
+        [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
+      }),
+      ...(buttonLocation && {
+        [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
+      }),
     },
   });
 

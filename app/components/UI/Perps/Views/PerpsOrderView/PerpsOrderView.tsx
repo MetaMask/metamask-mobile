@@ -575,6 +575,40 @@ const PerpsOrderViewContentBase: React.FC = () => {
     return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
   }, [orderValidation.errors]);
 
+  // Track errors and warnings when they're displayed
+  useEffect(() => {
+    if (filteredErrors.length > 0) {
+      filteredErrors.forEach((error) => {
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]: error,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
+          [PerpsEventProperties.ASSET]: orderForm.asset,
+        });
+      });
+    }
+  }, [filteredErrors, track, orderForm.asset]);
+
+  // Track warnings when they're displayed
+  useEffect(() => {
+    if (orderValidation.warnings && orderValidation.warnings.length > 0) {
+      orderValidation.warnings.forEach((warning) => {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.WARNING_MESSAGE]: warning,
+          [PerpsEventProperties.WARNING_TYPE]:
+            PerpsEventValues.WARNING_TYPE.MINIMUM_ORDER_SIZE,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.TRADING,
+          [PerpsEventProperties.ASSET]: orderForm.asset,
+        });
+      });
+    }
+  }, [orderValidation.warnings, track, orderForm.asset]);
+
   // Handlers
   const handleTPSLPress = useCallback(() => {
     if (orderForm.type === 'limit' && !orderForm.limitPrice) {

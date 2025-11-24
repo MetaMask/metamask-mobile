@@ -104,6 +104,10 @@ const PerpsHomeView = () => {
       ? PerpsEventValues.PERP_DEX.HYPERLIQUID
       : undefined;
 
+  // Extract button_clicked and button_location from route params
+  const buttonClicked = route.params?.button_clicked;
+  const buttonLocation = route.params?.button_location;
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
@@ -113,17 +117,38 @@ const PerpsHomeView = () => {
       [PerpsEventProperties.SOURCE]: source,
       [PerpsEventProperties.HAS_PERP_BALANCE]: hasPerpBalance,
       ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
+      ...(buttonClicked && {
+        [PerpsEventProperties.BUTTON_CLICKED]: buttonClicked,
+      }),
+      ...(buttonLocation && {
+        [PerpsEventProperties.BUTTON_LOCATION]: buttonLocation,
+      }),
     },
   });
 
   const handleSearchToggle = useCallback(() => {
+    // Track button click
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+        .addProperties({
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
+          [PerpsEventProperties.BUTTON_LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        })
+        .build(),
+    );
     // Navigate to MarketListView with search enabled
     perpsNavigation.navigateToMarketList({
       defaultSearchVisible: true,
       source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
+      button_clicked: PerpsEventValues.BUTTON_CLICKED.MAGNIFYING_GLASS,
+      button_location: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
     });
-  }, [perpsNavigation]);
+  }, [perpsNavigation, trackEvent, createEventBuilder]);
 
   const navigtateToTutorial = useCallback(() => {
     navigation.navigate(Routes.PERPS.TUTORIAL, {

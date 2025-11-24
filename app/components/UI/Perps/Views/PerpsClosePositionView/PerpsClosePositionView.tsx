@@ -324,6 +324,8 @@ const PerpsClosePositionView: React.FC = () => {
     return initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
   }, [marginUsed, pnl]);
 
+  const { track } = usePerpsEventTracking();
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
@@ -340,6 +342,40 @@ const PerpsClosePositionView: React.FC = () => {
       [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
     },
   });
+
+  // Track errors and warnings when they're displayed
+  useEffect(() => {
+    if (validationResult.errors.length > 0) {
+      validationResult.errors.forEach((error) => {
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]: error,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.POSITION_CLOSE,
+          [PerpsEventProperties.ASSET]: position.coin,
+        });
+      });
+    }
+  }, [validationResult.errors, track, position.coin]);
+
+  // Track warnings when they're displayed
+  useEffect(() => {
+    if (validationResult.warnings && validationResult.warnings.length > 0) {
+      validationResult.warnings.forEach((warning) => {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.WARNING_MESSAGE]: warning,
+          [PerpsEventProperties.WARNING_TYPE]:
+            PerpsEventValues.WARNING_TYPE.MINIMUM_ORDER_SIZE,
+          [PerpsEventProperties.SCREEN_TYPE]:
+            PerpsEventValues.SCREEN_TYPE.POSITION_CLOSE,
+          [PerpsEventProperties.ASSET]: position.coin,
+        });
+      });
+    }
+  }, [validationResult.warnings, track, position.coin]);
 
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {

@@ -83,6 +83,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
       | 'all'
       | 'stocks_and_commodities';
     fromHome?: boolean;
+    button_clicked?: string;
+    button_location?: string;
   };
 
   PerpsMarketDetails: {
@@ -90,6 +92,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
     initialTab?: 'position' | 'orders' | 'info';
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
+    button_clicked?: string;
+    button_location?: string;
   };
 
   PerpsPositions: undefined;
