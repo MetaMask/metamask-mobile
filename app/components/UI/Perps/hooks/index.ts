@@ -24,7 +24,6 @@ export { usePerpsConnection } from './usePerpsConnection';
 export { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 
 // Live data hooks (WebSocket subscriptions)
-export { usePerpsPositionData } from './usePerpsPositionData';
 export { usePerpsPrices } from './usePerpsPrices';
 
 // Asset metadata hooks
@@ -55,6 +54,8 @@ export { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
 export { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
 export { usePerpsCancelAllOrders } from './usePerpsCancelAllOrders';
 export { usePerpsCloseAllPositions } from './usePerpsCloseAllPositions';
+// Removed from barrel: usePerpsHomeActions imports Engine-dependent hooks
+// Import directly: import { usePerpsHomeActions } from './hooks/usePerpsHomeActions';
 export { useHasExistingPosition } from './useHasExistingPosition';
 export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';

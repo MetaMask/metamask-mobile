@@ -271,26 +271,28 @@ export interface RegisterAddressResponse {
 
 export interface UserResponse {
   id: string;
-  firstName?: string;
-  lastName?: string;
-  dateOfBirth?: string; // Format: YYYY-MM-DD
-  email?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  dateOfBirth?: string | null; // Format: YYYY-MM-DD
+  email?: string | null;
   verificationState?: CardVerificationState;
-  phoneNumber?: string; // Format: 2345678901
-  phoneCountryCode?: string; // Format: +1
-  addressLine1?: string;
-  addressLine2?: string;
-  city?: string;
-  zip?: string;
-  usState?: string; // Required for US users
-  countryOfResidence?: string; // ISO 3166-1 alpha-2 country code
-  countryOfNationality?: string; // ISO 3166-1 alpha-2 country code
-  ssn?: string; // Required for US users only
-  mailingAddressLine1?: string;
-  mailingAddressLine2?: string;
-  mailingCity?: string;
-  mailingZip?: string;
-  mailingUsState?: string; // Required for US users
+  phoneNumber?: string | null; // Format: 2345678901
+  phoneCountryCode?: string | null; // Format: +1
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  zip?: string | null;
+  usState?: string | null; // Required for US users
+  countryOfResidence?: string | null; // ISO 3166-1 alpha-2 country code
+  countryOfNationality?: string | null; // ISO 3166-1 alpha-2 country code
+  ssn?: string | null; // Required for US users only
+  mailingAddressLine1?: string | null;
+  mailingAddressLine2?: string | null;
+  mailingCity?: string | null;
+  mailingZip?: string | null;
+  mailingUsState?: string | null; // Required for US users
+  contactVerificationId?: string | null;
+  createdAt?: string | null;
 }
 
 // Country type definition
