@@ -18,7 +18,8 @@ jobs:
 
   build-main-android-apks:
     name: 'Build Main Android APKs'
-    if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    # if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    # needs: [needs_e2e_build]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
@@ -28,12 +29,12 @@ jobs:
 
   repack-android-flask-apps:
     name: 'Repack Android Flask Apps'
-    if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    #if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
     runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-main-android-apks]
+    needs: [build-main-android-apks]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -139,7 +140,7 @@ jobs:
         split: [1, 2, 3]
       fail-fast: false
     needs: [repack-android-flask-apps]
-    if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    # if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: flask-android-smoke-${{ matrix.split }}
@@ -147,7 +148,8 @@ jobs:
       test_suite_tag: 'FlaskBuildTests'
       split_number: ${{ matrix.split }}
       total_splits: 3
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      # changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      changed_files: ''
       build_type: 'flask'
       metamask_environment: 'e2e'
     secrets: inherit
