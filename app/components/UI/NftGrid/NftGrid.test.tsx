@@ -547,6 +547,7 @@ describe('NftGrid', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('NftDetails', {
         collectible: mockNft,
+        source: 'mobile-nft-list',
       });
     });
   });
