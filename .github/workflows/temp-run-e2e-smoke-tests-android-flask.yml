@@ -16,6 +16,16 @@ jobs:
     name: 'Detect Mobile Build Changes'
     uses: ./.github/workflows/needs-e2e-build.yml
 
+  build-main-android-apks:
+    name: 'Build Main Android APKs'
+    if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
+    secrets: inherit
+
   repack-android-flask-apps:
     name: 'Repack Android Flask Apps'
     if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
@@ -23,7 +33,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build]
+    needs: [needs_e2e_build, build-main-android-apks]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,24 +65,20 @@ jobs:
         env:
           ANDROID_KEYSTORE_PATH: android/keystores/flask-uat.keystore
 
-      # Download APK from GitHub release instead of building
-      - name: Download APK from GitHub Release
+      - name: Download Main APK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          pattern: main-e2e-release*.apk
+
+      - name: Setup Main APK artifacts
         run: |
           mkdir -p android/app/build/outputs/apk/prod/release/
-          curl -L -o release-apk.zip https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/repack/release-apk.zip
-          unzip -q release-apk.zip -d android/app/build/outputs/apk/prod/release/
-          # Ensure the APK is named correctly
-          if [ ! -f android/app/build/outputs/apk/prod/release/app-prod-release.apk ]; then
-            # If the zip contains a different structure, find and move the APK
-            find android/app/build/outputs/apk/prod/release/ -name "*.apk" -type f | head -1 | xargs -I {} mv {} android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          fi
-          rm release-apk.zip
-
-      - name: Download Main Test APK (placeholder)
-        run: |
           mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
-          # Create a placeholder test APK if needed, or skip if not required for repacking
-          touch android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk || true
+          # Move main APK to expected location
+          find artifacts/ -name "main-e2e-release.apk" -type f -exec mv {} android/app/build/outputs/apk/prod/release/app-prod-release.apk \;
+          # Move main test APK to expected location
+          find artifacts/ -name "main-e2e-release-androidTest.apk" -type f -exec mv {} android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk \;
 
       - name: Repack Main to Flask
         run: node scripts/repack.js
@@ -85,11 +91,32 @@ jobs:
           # Keystore credentials (BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_*) are automatically exported by configure-keystore action
           ANDROID_KEYSTORE_PATH: android/keystores/flask-uat.keystore
 
+        # test
+      - name: Ensure Flask APK is in expected location
+        run: |
+          # The repack tool may write to working directory instead of outputPath
+          # Check if final APK exists, if not, look in working directory
+          if [ ! -f android/app/build/outputs/apk/flask/release/app-flask-release.apk ]; then
+            echo "Final APK not found, checking working directory..."
+            if [ -f android/app/build/repack-working-main/resigned.apk ]; then
+              echo "Found signed APK in working directory, copying to final location"
+              mkdir -p android/app/build/outputs/apk/flask/release/
+              cp android/app/build/repack-working-main/resigned.apk android/app/build/outputs/apk/flask/release/app-flask-release.apk
+            else
+              echo "❌ Flask APK not found in expected location or working directory"
+              echo "Working directory contents:"
+              ls -la android/app/build/repack-working-main/ || echo "Working directory does not exist"
+              exit 1
+            fi
+          else
+            echo "✅ Flask APK found at expected location"
+          fi
+
       - name: Prepare Flask Artifacts
         run: |
           # Create destination directory for Test APK
           mkdir -p android/app/build/outputs/apk/androidTest/flask/release/
-          # Copy Main Test APK to Flask location (assuming tests are compatible)
+          # Copy Main Test APK to Flask location (tests are compatible between main and flask)
           cp android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk
 
       - name: Upload Flask APK
@@ -122,6 +149,7 @@ jobs:
       total_splits: 3
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       build_type: 'flask'
+      metamask_environment: 'e2e'
     secrets: inherit
 
   report-android-smoke-tests:
