@@ -1,4 +1,3 @@
-/* eslint-disable import/no-nodejs-modules */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -46,11 +45,13 @@ async function fetchJobIds(octokit, owner, repo, runId) {
       allJobs.find((job) => job.name === 'Build iOS Apps') ||
       allJobs.find((job) => job.name.includes('Build iOS Apps') && job.name.includes('Build iOS E2E Apps')) ||
       allJobs.find((job) => job.name === 'Build iOS E2E Apps') ||
-      allJobs.find((job) => job.name.includes('iOS') && job.name.includes('E2E') && job.name.includes('Apps'));
+      allJobs.find((job) => {
+        const nameLower = job.name.toLowerCase();
+        return nameLower.includes('ios') && nameLower.includes('e2e') && nameLower.includes('apps');
+      });
 
     const androidFlaskJob =
       allJobs.find((job) => job.name === 'Build Android Flask APKs') ||
-      allJobs.find((job) => job.name.includes('Build Android Flask APKs') && job.name.includes('Build Android E2E APKs')) ||
       allJobs.find((job) => job.name.includes('Flask') && job.name.includes('Build Android E2E APKs')) ||
       allJobs.find((job) => job.name.includes('Android') && job.name.includes('Flask') && job.name.includes('E2E'));
 
@@ -252,7 +253,13 @@ async function start() {
         // since build numbers typically increase and the highest is most likely correct.
         // If parsing fails (NaN), fallback to the first found version.
         const maxVersion = Math.max(...versions.map((v) => parseInt(v, 10) || 0));
-        iosBuildNumber = maxVersion > 0 ? maxVersion.toString() : versions[0];
+
+        if (maxVersion > 0) {
+          iosBuildNumber = maxVersion.toString();
+        } else {
+          console.log('Using first version as fallback:', versions[0]);
+          iosBuildNumber = versions[0];
+        }
       }
     } else {
       console.warn(`iOS project file not found at ${pbxprojPath}`);
@@ -347,7 +354,7 @@ async function start() {
 
 | Platform | Link | Note |
 | :--- | :--- | :--- |
-${rows.join('\n')}
+|${rows.join('\n')}
 
 <details>
 <summary>More Info</summary>
@@ -409,4 +416,3 @@ start().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-
