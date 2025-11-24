@@ -75,6 +75,7 @@ export const handleSendPageNavigation = (
       screen,
       params: {
         asset,
+        location,
       },
     });
   } else {
