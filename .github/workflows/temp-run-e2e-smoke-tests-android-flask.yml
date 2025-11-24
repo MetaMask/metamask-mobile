@@ -114,12 +114,24 @@ jobs:
             echo "✅ Flask APK found at expected location"
           fi
 
-      - name: Prepare Flask Artifacts
+      - name: Re-sign Flask Test APK
         run: |
           # Create destination directory for Test APK
           mkdir -p android/app/build/outputs/apk/androidTest/flask/release/
-          # Copy Main Test APK to Flask location (tests are compatible between main and flask)
-          cp android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk
+          # Re-sign test APK with Flask UAT keystore to match the repacked Flask APK
+          # Android requires test APK and main APK to have matching signatures
+          echo "Re-signing test APK with Flask UAT keystore..."
+          apksigner sign \
+            --ks android/keystores/flask-uat.keystore \
+            --ks-pass "pass:${BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD}" \
+            --ks-key-alias "${BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS}" \
+            --key-pass "pass:${BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD}" \
+            --out android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk \
+            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          echo "Test APK re-signed with Flask UAT keystore"
+        env:
+          # Keystore credentials are automatically exported by configure-keystore action
+          ANDROID_KEYSTORE_PATH: android/keystores/flask-uat.keystore
 
       - name: Upload Flask APK
         uses: actions/upload-artifact@v4
