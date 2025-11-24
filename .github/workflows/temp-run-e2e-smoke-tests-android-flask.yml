@@ -45,6 +45,14 @@ jobs:
       - name: Setup project
         run: yarn setup:github-ci --no-build-ios
 
+      - name: Configure Keystore
+        uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
+        with:
+          aws-role-to-assume: ${{ secrets.METAMASK_MOBILE_BUILDER_SIGNER_QA }}
+          aws-region: us-east-2
+          platform: android
+          target: qa
+
       # Download APK from GitHub release instead of building
       - name: Download APK from GitHub Release
         run: |
@@ -72,6 +80,7 @@ jobs:
           METAMASK_BUILD_TYPE: flask
           SOURCE_APK: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           CI: 'true'
+          ANDROID_KEYSTORE_PATH: android/keystores/qa.keystore
 
       - name: Ensure Repacked APK is in expected location
         run: |
