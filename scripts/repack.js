@@ -17,6 +17,7 @@ const logger = {
 };
 
 const isFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
+const isMain = process.env.METAMASK_BUILD_TYPE === 'main';
 
 /**
  * Get Android keystore configuration
@@ -25,9 +26,24 @@ const isFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
   const keystorePath = process.env.ANDROID_KEYSTORE_PATH;
-  const keystorePassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
-  const keyAlias = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
-  const keyPassword = isFlask ? process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD : process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
+
+  // Determine keystore credentials based on build type
+  let keystorePassword, keyAlias, keyPassword;
+  if (isFlask) {
+    keystorePassword = process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD;
+    keyAlias = process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS;
+    keyPassword = process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  } else if (isMain) {
+    // Main keystore uses standard naming (without FLASK_UAT or QA prefix)
+    keystorePassword = process.env.BITRISEIO_ANDROID_KEYSTORE_PASSWORD;
+    keyAlias = process.env.BITRISEIO_ANDROID_KEYSTORE_ALIAS;
+    keyPassword = process.env.BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  } else {
+    // Default to QA for backward compatibility
+    keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+    keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+    keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  }
 
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
     logger.error(
