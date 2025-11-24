@@ -128,20 +128,6 @@ describe('address-scan-util', () => {
       expect(result).toBeUndefined();
     });
 
-    it('returns spender from args._spender for standard ERC20 approve', () => {
-      const data = '0x095ea7b31234567890';
-      mockParseApprovalTransactionData.mockReturnValue({} as never);
-      mockGet4ByteCode.mockReturnValue(APPROVAL_4BYTE_SELECTORS.APPROVE);
-      mockParseStandardTokenTransactionData.mockReturnValue({
-        name: 'approve',
-        args: { _spender: '0xspenderAddress', _value: '1000000' },
-      } as never);
-
-      const result = extractSpenderFromApprovalData(data);
-
-      expect(result).toBe('0xspenderAddress');
-    });
-
     it('returns spender from args._spender for standard ERC20 approve with named params', () => {
       const data = '0x095ea7b31234567890';
       mockParseApprovalTransactionData.mockReturnValue({} as never);
@@ -149,27 +135,6 @@ describe('address-scan-util', () => {
       mockParseStandardTokenTransactionData.mockReturnValue({
         name: 'approve',
         args: { _spender: '0xspenderAddress', _value: '1000000' },
-      } as never);
-
-      const result = extractSpenderFromApprovalData(data);
-
-      expect(result).toBe('0xspenderAddress');
-    });
-
-    it('returns spender from args.spender for Permit2 approve', () => {
-      const data = '0x87517c451234567890';
-      mockParseApprovalTransactionData.mockReturnValue({} as never);
-      mockGet4ByteCode.mockReturnValue(
-        APPROVAL_4BYTE_SELECTORS.PERMIT2_APPROVE,
-      );
-      mockParseStandardTokenTransactionData.mockReturnValue({
-        name: 'approve',
-        args: {
-          token: '0xtokenAddress',
-          spender: '0xspenderAddress',
-          amount: '1000000',
-          expiration: '1234567890',
-        },
       } as never);
 
       const result = extractSpenderFromApprovalData(data);
@@ -198,22 +163,6 @@ describe('address-scan-util', () => {
       expect(result).toBe('0xspenderAddress');
     });
 
-    it('returns spender from args._spender for increaseAllowance', () => {
-      const data = '0x395093511234567890';
-      mockParseApprovalTransactionData.mockReturnValue({} as never);
-      mockGet4ByteCode.mockReturnValue(
-        APPROVAL_4BYTE_SELECTORS.ERC20_INCREASE_ALLOWANCE,
-      );
-      mockParseStandardTokenTransactionData.mockReturnValue({
-        name: 'increaseAllowance',
-        args: { _spender: '0xspenderAddress', increment: '500000' },
-      } as never);
-
-      const result = extractSpenderFromApprovalData(data);
-
-      expect(result).toBe('0xspenderAddress');
-    });
-
     it('returns spender from args._spender for increaseAllowance with named params', () => {
       const data = '0x395093511234567890';
       mockParseApprovalTransactionData.mockReturnValue({} as never);
@@ -228,22 +177,6 @@ describe('address-scan-util', () => {
       const result = extractSpenderFromApprovalData(data);
 
       expect(result).toBe('0xspenderAddress');
-    });
-
-    it('returns operator from args._operator for setApprovalForAll', () => {
-      const data = '0xa22cb4651234567890';
-      mockParseApprovalTransactionData.mockReturnValue({} as never);
-      mockGet4ByteCode.mockReturnValue(
-        APPROVAL_4BYTE_SELECTORS.SET_APPROVAL_FOR_ALL,
-      );
-      mockParseStandardTokenTransactionData.mockReturnValue({
-        name: 'setApprovalForAll',
-        args: { _operator: '0xoperatorAddress', _approved: true },
-      } as never);
-
-      const result = extractSpenderFromApprovalData(data);
-
-      expect(result).toBe('0xoperatorAddress');
     });
 
     it('returns operator from args._operator for setApprovalForAll with named params', () => {
