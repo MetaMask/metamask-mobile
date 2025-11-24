@@ -18,7 +18,10 @@ import {
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
-import { safeToChecksumAddress, toChecksumAddress } from '../address';
+import {
+  safeToChecksumAddress,
+  toChecksumAddress,
+} from '../address';
 import {
   balanceToFiatNumber,
   BNToHex,
@@ -692,7 +695,6 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
   // Both return 'transferfrom' but have different transaction types
   if (actionKey === TRANSFER_FROM_ACTION_KEY) {
     const fromAddress = safeToChecksumAddress(tx.txParams.from)?.toLowerCase();
-    const toAddress = safeToChecksumAddress(tx.txParams.to)?.toLowerCase();
     const selectedAddr = selectedAddress?.toLowerCase();
     const sentByUser = fromAddress === selectedAddr;
 
@@ -709,14 +711,30 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
       return strings('transactions.received_collectible');
     }
 
-    // ERC20 transferFrom - show token messages
-    const incoming = !sentByUser;
-    const selfSent = fromAddress === selectedAddr && toAddress === selectedAddr;
-
-    if (selfSent) {
-      return strings('transactions.self_sent_tokens');
+    // ERC20 transferFrom - decode actual recipient from transaction data
+    // tx.txParams.to is the token contract, not the recipient
+    let toAddress;
+    try {
+      // transferFrom has 3 parameters (from, to, amount): 0x + 8 (sig) + 64*3 (params) = 202 chars
+      if (tx.txParams.data && tx.txParams.data.length >= 202) {
+        // Decode recipient from transferFrom(from, to, amount) calldata
+        const [, decodedToAddress] = decodeTransferData(
+          'transferFrom',
+          tx.txParams.data,
+        );
+        toAddress = decodedToAddress?.toLowerCase();
+      }
+    } catch (error) {
+      // If decoding fails, fall back to transferInformation if available
+      if (tx.transferInformation?.recipient) {
+        toAddress = tx.transferInformation.recipient?.toLowerCase();
+      }
     }
-    if (incoming) {
+
+    // Determine direction based on whether user is the recipient
+    const isRecipient = toAddress && toAddress === selectedAddr;
+
+    if (isRecipient) {
       return strings('transactions.received_tokens');
     }
     return strings('transactions.sent_tokens');
