@@ -418,6 +418,155 @@ describe('Earn Controller Selectors', () => {
         zeroBalances,
       );
     });
+
+    describe('synthetic Staked Ethereum token creation', () => {
+      interface PooledStakesConfig {
+        assets: string;
+        exitRequests: {
+          positionTicket: string;
+          timestamp: string;
+          totalShares: string;
+          withdrawalTimestamp: string | null;
+          exitQueueIndex: string;
+          claimedAssets: string | null;
+          leftShares: string | null;
+        }[];
+        lifetimeRewards: string;
+      }
+
+      const createMockStateWithPooledStakes = (
+        stakedBalance: string, // hex string of account balance in minimal units
+        pooledStakesConfig: PooledStakesConfig,
+      ) => {
+        const baseState = mockEarnControllerRootState({
+          pooledStakes: {
+            account: internalAccount2.address,
+            ...pooledStakesConfig,
+          },
+        });
+
+        return {
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine.backgroundState,
+              EarnController: baseState.engine.backgroundState.EarnController,
+              AccountTrackerController: {
+                accountsByChainId: {
+                  [CHAIN_IDS.MAINNET]: {
+                    [toChecksumHexAddress(internalAccount2.address)]: {
+                      balance: '0x15345543',
+                      stakedBalance,
+                    },
+                  },
+                },
+              } as AccountTrackerControllerState,
+            },
+          },
+        };
+      };
+
+      it('does not add synthetic Staked ETH when user has active staking position', () => {
+        const testState = createMockStateWithPooledStakes('0x5f5e100', {
+          assets: '1000',
+          exitRequests: [],
+          lifetimeRewards: '100',
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          testState as unknown as RootState,
+        );
+
+        expect(result.earnOutputTokens.length).toBe(4);
+        const stakedEthTokens = result.earnOutputTokens.filter(
+          (token) => token.isETH === true && token.isStaked === true,
+        );
+        expect(stakedEthTokens.length).toBe(1);
+        expect(stakedEthTokens[0].name).toBe('Staked Ethereum');
+        expect(stakedEthTokens[0].balance).not.toBe('0');
+      });
+
+      it('adds synthetic Staked ETH when user is unstaking entire position', () => {
+        const testState = createMockStateWithPooledStakes('0x0', {
+          assets: '0',
+          exitRequests: [
+            {
+              positionTicket: '123',
+              timestamp: '1000',
+              totalShares: '100',
+              withdrawalTimestamp: null,
+              exitQueueIndex: '-1',
+              claimedAssets: null,
+              leftShares: null,
+            },
+          ],
+          lifetimeRewards: '100',
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          testState as unknown as RootState,
+        );
+
+        expect(result.earnOutputTokens.length).toBe(4);
+        const stakedEthToken = result.earnOutputTokens.find(
+          (token) => token.isETH === true && token.isStaked === true,
+        );
+
+        if (!stakedEthToken) {
+          throw new Error('Expected stakedEthToken to exist');
+        }
+
+        expect(stakedEthToken.isStaked).toBe(true);
+        expect(stakedEthToken.balance).toBe('0');
+        expect(stakedEthToken.name).toBe('Staked Ethereum');
+        expect(stakedEthToken.balanceFiat).toBeUndefined();
+      });
+
+      it('adds synthetic Staked ETH when user has past rewards but no active stake', () => {
+        const testState = createMockStateWithPooledStakes('0x0', {
+          assets: '0',
+          exitRequests: [],
+          lifetimeRewards: '500',
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          testState as unknown as RootState,
+        );
+
+        expect(result.earnOutputTokens.length).toBe(4);
+        const stakedEthToken = result.earnOutputTokens.find(
+          (token) => token.isETH === true && token.isStaked === true,
+        );
+
+        if (!stakedEthToken) {
+          throw new Error('Expected stakedEthToken to exist');
+        }
+
+        expect(stakedEthToken.isStaked).toBe(true);
+        expect(stakedEthToken.balance).toBe('0');
+        expect(stakedEthToken.name).toBe('Staked Ethereum');
+        expect(stakedEthToken.isETH).toBe(true);
+      });
+
+      it('does not add synthetic Staked ETH when user never staked', () => {
+        const testState = createMockStateWithPooledStakes('0x0', {
+          assets: '0',
+          exitRequests: [],
+          lifetimeRewards: '0',
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          testState as unknown as RootState,
+        );
+
+        expect(result.earnOutputTokens.length).toBe(3);
+        const stakedEthTokens = result.earnOutputTokens.filter(
+          (token) => token.name === 'Staked Ethereum',
+        );
+        expect(stakedEthTokens.length).toBe(0);
+      });
+    });
   });
 
   describe('selectEarnToken', () => {

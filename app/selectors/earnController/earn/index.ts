@@ -152,6 +152,56 @@ const selectEarnTokens = createDeepEqualSelector(
       return emptyEarnTokensData;
     }
 
+    /**
+     * Add synthetic Staked Ethereum token if ETH exists but Staked ETH doesn't
+     *
+     * This fixes an issue where the APR and earnings history are empty when a user is actively unstaking their entire position
+     * or when they have claimable ETH.
+     *
+     * This issue happens because "Staked Ethereum" is not a real token, and is only added in the selectStakedAssets when a user has an active staked position (balance > 0).
+     */
+    if (pooledStakingPerChain && isPooledStakingEligible) {
+      for (const [chainIdStr, pooledStakingData] of Object.entries(
+        pooledStakingPerChain,
+      )) {
+        const ethToken = allTokens.find(
+          (token) =>
+            token.isETH &&
+            !token.isStaked &&
+            getDecimalChainId(token.chainId) === chainIdStr,
+        );
+
+        const stakedEthToken = allTokens.find(
+          (token) =>
+            token.isETH &&
+            token.isStaked &&
+            getDecimalChainId(token.chainId) === chainIdStr,
+        );
+
+        // Only add synthetic token if ETH exists but Staked ETH doesn't
+        if (ethToken && !stakedEthToken && pooledStakingData.pooledStakes) {
+          const stakes = pooledStakingData.pooledStakes;
+
+          // Check if there's any staking activity
+          const hasStakingActivity =
+            stakes.assets !== '0' ||
+            stakes.exitRequests.length > 0 ||
+            stakes.lifetimeRewards !== '0';
+
+          if (hasStakingActivity) {
+            // Push synthetic Staked ETH directly to allTokens
+            allTokens.push({
+              ...ethToken,
+              name: 'Staked Ethereum',
+              isStaked: true,
+              balance: '0',
+              balanceFiat: undefined,
+            });
+          }
+        }
+      }
+    }
+
     const lendingMarketsByChainIdAndTokenAddress =
       selectLendingMarketsByChainIdAndTokenAddress(earnState);
     const lendingMarketsByChainIdAndOutputTokenAddress =
