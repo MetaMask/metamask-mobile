@@ -76,10 +76,11 @@ jobs:
         run: |
           mkdir -p android/app/build/outputs/apk/prod/release/
           mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
-          # Move main APK to expected location
-          find artifacts/ -name "main-e2e-release.apk" -type f -exec mv {} android/app/build/outputs/apk/prod/release/app-prod-release.apk \;
-          # Move main test APK to expected location
-          find artifacts/ -name "main-e2e-release-androidTest.apk" -type f -exec mv {} android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk \;
+          # Artifacts are downloaded as folders, each containing the APK file
+          # Copy main APK from artifact folder to expected location
+          cp artifacts/main-e2e-release.apk/app-prod-release.apk android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          # Copy main test APK from artifact folder to expected location
+          cp artifacts/main-e2e-release-androidTest.apk/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
 
       - name: Repack Main to Flask
         run: node scripts/repack.js
