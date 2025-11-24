@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run post-merge validation
-        uses: MetaMask/github-tools/.github/actions/post-merge-validation@v1.0.0
+        uses: MetaMask/github-tools/.github/actions/post-merge-validation@v1
         with:
           repo: ${{ github.repository }}
           start-hour-utc: '7'
