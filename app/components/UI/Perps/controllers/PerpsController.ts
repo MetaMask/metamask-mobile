@@ -57,6 +57,7 @@ import type {
   EditOrderParams,
   FeeCalculationParams,
   FeeCalculationResult,
+  FlipPositionParams,
   Funding,
   GetAccountStateParams,
   GetAvailableDexsParams,
@@ -68,6 +69,7 @@ import type {
   LiquidationPriceParams,
   LiveDataConfig,
   MaintenanceMarginParams,
+  MarginResult,
   MarketInfo,
   Order,
   OrderFill,
@@ -83,6 +85,7 @@ import type {
   SubscribePricesParams,
   SwitchProviderResult,
   ToggleTestnetResult,
+  UpdateMarginParams,
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
@@ -1226,6 +1229,43 @@ export class PerpsController extends BaseController<
       provider,
       params,
       context: this.createServiceContext('updatePositionTPSL', {
+        rewardsController: RewardsController,
+        networkController: NetworkController,
+        messenger: this.messenger,
+      }),
+    });
+  }
+
+  /**
+   * Update margin for an existing position (add or remove)
+   */
+  async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
+    const provider = this.getActiveProvider();
+    const { RewardsController, NetworkController } = Engine.context;
+
+    return TradingService.updateMargin({
+      provider,
+      coin: params.coin,
+      amount: params.amount,
+      context: this.createServiceContext('updateMargin', {
+        rewardsController: RewardsController,
+        networkController: NetworkController,
+        messenger: this.messenger,
+      }),
+    });
+  }
+
+  /**
+   * Flip position (reverse direction while keeping size and leverage)
+   */
+  async flipPosition(params: FlipPositionParams): Promise<OrderResult> {
+    const provider = this.getActiveProvider();
+    const { RewardsController, NetworkController } = Engine.context;
+
+    return TradingService.flipPosition({
+      provider,
+      position: params.position,
+      context: this.createServiceContext('flipPosition', {
         rewardsController: RewardsController,
         networkController: NetworkController,
         messenger: this.messenger,

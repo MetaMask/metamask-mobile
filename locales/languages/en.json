@@ -1078,6 +1078,8 @@
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
       "estimated_points": "Est. Points",
+      "long_label": "Long",
+      "short_label": "Short",
       "market": "Market",
       "limit": "Limit",
       "open_orders": "Orders",
@@ -1356,6 +1358,16 @@
     "position": {
       "title": "Positions",
       "card": {
+        "position_title": "Position",
+        "pnl_label": "P&L",
+        "return_label": "Return",
+        "size_label": "Size",
+        "margin_label": "Margin",
+        "details_title": "Details",
+        "direction_label": "Direction",
+        "entry_label": "Entry",
+        "liquidation_price_label": "Liquidation price",
+        "funding_payments_label": "Funding payments",
         "entry_price": "Entry price",
         "funding_cost": "Funding",
         "liquidation_price": "Liq. Price",
@@ -1396,6 +1408,11 @@
       "tpsl": {
         "update_success": "TP/SL updated successfully",
         "update_failed": "Failed to update TP/SL"
+      },
+      "margin": {
+        "add_success": "Added {{amount}} {{asset}} to margin",
+        "remove_success": "Removed {{amount}} {{asset}} from margin",
+        "adjustment_failed": "Failed to adjust margin"
       }
     },
     "markets": {
@@ -1407,6 +1424,8 @@
         "error_message": "Market data not found. Please go back and try again."
       },
       "statistics": "Overview",
+      "stats": "Stats",
+      "order_book": "Order book",
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",
@@ -1434,7 +1453,21 @@
         "commodity": "COMMODITY",
         "crypto": "CRYPTO",
         "forex": "FOREX"
-      }
+      },
+      "close": "Close",
+      "close_long": "Close Long",
+      "close_short": "Close Short",
+      "modify": "Modify",
+      "share": "Share",
+      "add_tp_sl": "Add TP/SL"
+    },
+    "flip_position": {
+      "title": "Flip Position",
+      "description": "You're about to flip your position from {{from}} to {{to}}. Review the details below before confirming.",
+      "est_size": "Est. size",
+      "cancel": "Cancel",
+      "flip": "Flip",
+      "flipping": "Flipping..."
     },
     "buttons": {
       "get_account_balance": "Get Account Balance",
@@ -1759,6 +1792,44 @@
       "share_failed": "Failed to export image",
       "export_success": "Exported image",
       "referral_code_text": "Use my referral code to earn extra rewards."
+    },
+    "modify": {
+      "title": "Modify Position",
+      "add_to_position": "Add to position",
+      "add_to_position_description": "Increase your position in the same direction",
+      "reduce_position": "Reduce position",
+      "reduce_position_description": "Partially or fully close your position",
+      "flip_position": "Flip position",
+      "flip_position_description": "Flip to opposite direction with same size"
+    },
+    "auto_close": {
+      "title": "Auto close",
+      "description": "Protect your margin"
+    },
+    "adjust_margin": {
+      "title": "Adjust Margin",
+      "add_title": "Add Margin",
+      "remove_title": "Remove Margin",
+      "current_margin": "Current Margin",
+      "available_to_add": "Available to Add",
+      "available_to_withdraw": "Available to Withdraw",
+      "current_liquidation_price": "Current Liquidation Price",
+      "amount_to_add": "Amount to Add",
+      "amount_to_remove": "Amount to Remove",
+      "max": "MAX",
+      "impact": "Impact",
+      "new_margin": "New Margin",
+      "new_leverage": "New Leverage",
+      "new_liquidation_price": "New Liquidation Price",
+      "low_amount_warning": "Adding a small amount may not significantly reduce your liquidation risk.",
+      "danger_title": "High Liquidation Risk",
+      "danger_message": "Removing this amount brings your position very close to liquidation. Proceed with extreme caution.",
+      "warning_title": "Increased Liquidation Risk",
+      "warning_message": "Removing this margin will increase your leverage and move your liquidation price closer to the current price.",
+      "confirm": "Confirm"
+    },
+    "activity": {
+      "flip_label": "Flip"
     }
   },
   "predict": {

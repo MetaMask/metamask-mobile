@@ -6,106 +6,119 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    // Legacy container for backward compatibility
     container: {
-      backgroundColor: colors.background.section,
+      backgroundColor: colors.background.default,
       borderRadius: 12,
-      marginVertical: 6,
-    },
-    // Container styles for different states
-    expandedContainer: {
-      backgroundColor: colors.background.section,
-      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border.default,
       padding: 16,
-      marginVertical: 8,
-    },
-    collapsedContainer: {
-      borderRadius: 8,
-      paddingVertical: 12,
-      marginVertical: 2, // Reduced spacing between cards
     },
     header: {
       flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      marginBottom: 16,
     },
-    headerExpanded: {
-      marginBottom: 16, // Extra spacing for expanded cards before the divider
-    },
-    // Icon section styles
-    perpIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden',
-    },
-    tpslCountPress: {
-      textDecorationLine: 'underline',
-      textDecorationStyle: 'dotted',
-    },
-    headerLeft: {
-      flex: 1,
-      alignItems: 'flex-start',
-    },
-    headerRight: {
-      flex: 1,
-      alignItems: 'flex-end',
-    },
-    headerRow: {
+    pnlSection: {
       flexDirection: 'row',
-      alignItems: 'center',
-    },
-    // Right accessory styles
-    rightAccessory: {
-      marginLeft: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    body: {
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
-      paddingVertical: 16,
-      marginBottom: 4,
-    },
-    bodyRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      gap: 12,
       marginBottom: 12,
     },
-    bodyRowLast: {
-      marginBottom: 0,
-    },
-    bodyItem: {
+    pnlCard: {
       flex: 1,
-      alignItems: 'flex-start',
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 12,
+      gap: 4,
     },
-    bodyItemLabel: {
-      marginBottom: 4,
+    pnlCardLeft: {
+      // Left card styling if different
     },
-    footer: {
+    pnlCardRight: {
+      // Right card styling if different
+    },
+    sizeMarginRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       gap: 12,
+      marginBottom: 12,
     },
-    footerButton: {
+    sizeContainer: {
       flex: 1,
-    },
-    fundingCostLabelRightMargin: {
-      marginRight: 4,
-    },
-    fundingCostLabelFlex: {
-      display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 12,
     },
-    shareButton: {
-      alignSelf: 'center',
-      backgroundColor: colors.background.muted,
-      height: 40,
-      width: 40,
+    sizeLeftContent: {
+      flex: 1,
+      gap: 4,
+    },
+    marginContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 12,
+    },
+    marginLeftContent: {
+      flex: 1,
+      gap: 4,
+    },
+    autoCloseSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 12,
+    },
+    autoCloseTextContainer: {
+      flex: 1,
+      gap: 4,
+    },
+    toggleContainer: {
+      marginLeft: 16,
+    },
+    toggle: {
+      width: 48,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.background.alternative,
+      padding: 2,
+      justifyContent: 'center',
+    },
+    toggleEnabled: {
+      backgroundColor: colors.primary.default,
+    },
+    toggleThumb: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.background.default,
+      shadowColor: colors.shadow.default,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    toggleThumbEnabled: {
+      alignSelf: 'flex-end',
+    },
+    detailsSection: {
+      gap: 12,
+    },
+    detailsTitle: {
+      marginBottom: 4,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
   });
 };

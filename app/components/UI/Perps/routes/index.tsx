@@ -19,6 +19,10 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsTPSLView from '../Views/PerpsTPSLView/PerpsTPSLView';
+import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMarginView';
+import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
+import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
+import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
@@ -72,6 +76,28 @@ const PerpsModalStack = () => (
           component={PerpsCrossMarginWarningBottomSheet}
           options={{
             title: strings('perps.crossMargin.title'),
+          }}
+        />
+        {/* Action Selection Modals */}
+        <ModalStack.Screen
+          name={Routes.PERPS.SELECT_MODIFY_ACTION}
+          component={PerpsSelectModifyActionView}
+          options={{
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
+        />
+        <ModalStack.Screen
+          name={Routes.PERPS.SELECT_ADJUST_MARGIN_ACTION}
+          component={PerpsSelectAdjustMarginActionView}
+          options={{
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
+        />
+        <ModalStack.Screen
+          name={Routes.PERPS.SELECT_ORDER_TYPE}
+          component={PerpsSelectOrderTypeView}
+          options={{
+            cardStyle: { backgroundColor: 'transparent' },
           }}
         />
       </ModalStack.Navigator>
@@ -208,6 +234,16 @@ const PerpsScreenStack = () => (
           component={PerpsTPSLView}
           options={{
             title: strings('perps.tpsl.title'),
+            headerShown: false,
+          }}
+        />
+
+        {/* Adjust Margin View */}
+        <Stack.Screen
+          name={Routes.PERPS.ADJUST_MARGIN}
+          component={PerpsAdjustMarginView}
+          options={{
+            title: strings('perps.adjust_margin.title'),
             headerShown: false,
           }}
         />

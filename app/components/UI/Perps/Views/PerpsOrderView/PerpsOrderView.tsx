@@ -79,6 +79,7 @@ import type {
   OrderParams,
   OrderType,
   PerpsNavigationParamList,
+  Position,
 } from '../../controllers/types';
 import {
   useHasExistingPosition,
@@ -124,6 +125,8 @@ interface OrderRouteParams {
   asset?: string;
   amount?: string;
   leverage?: number;
+  // Existing position param
+  existingPosition?: Position;
   // Modal return values
   leverageUpdate?: number;
   orderTypeUpdate?: OrderType;
@@ -203,6 +206,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     handlePercentageAmount,
     handleMaxAmount,
     maxPossibleAmount,
+    // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
   /**
@@ -233,7 +237,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   });
 
   // Check if user has an existing position for this market
-  const { existingPosition } = useHasExistingPosition({
+  const { existingPosition: currentMarketPosition } = useHasExistingPosition({
     asset: orderForm.asset || '',
     loadOnMount: true,
   });
@@ -552,7 +556,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Get existing position leverage for validation (protocol constraint)
   // Note: This is the same value used for initial form state, but needed here for validation
   const existingPositionLeverageForValidation =
-    existingPosition?.leverage?.value;
+    currentMarketPosition?.leverage?.value;
 
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
@@ -704,7 +708,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
       }
 
       // Check for cross-margin position (MetaMask only supports isolated margin)
-      if (existingPosition?.leverage?.type === 'cross') {
+      if (currentMarketPosition?.leverage?.type === 'cross') {
         navigation.navigate(Routes.PERPS.MODALS.ROOT, {
           screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
         });
@@ -801,9 +805,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
       // Check if TP/SL should be handled separately (for new positions or position flips)
       const shouldHandleTPSLSeparately =
         (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
-        ((!existingPosition && orderForm.type === 'market') ||
-          (existingPosition &&
-            willFlipPosition(existingPosition, orderParams)));
+        ((!currentMarketPosition && orderForm.type === 'market') ||
+          (currentMarketPosition &&
+            willFlipPosition(currentMarketPosition, orderParams)));
 
       if (shouldHandleTPSLSeparately) {
         // Execute order without TP/SL first, then update position TP/SL
@@ -840,7 +844,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     assetData.price,
     navigation,
     navigationMarketData,
-    existingPosition,
+    currentMarketPosition,
     executeOrder,
     showToast,
     PerpsToastOptions.formValidation.orderForm,
@@ -1451,6 +1455,7 @@ const PerpsOrderView: React.FC = () => {
     asset = 'BTC',
     amount: paramAmount,
     leverage: paramLeverage,
+    existingPosition,
   } = route.params || {};
 
   return (
@@ -1459,6 +1464,7 @@ const PerpsOrderView: React.FC = () => {
       initialDirection={direction}
       initialAmount={paramAmount}
       initialLeverage={paramLeverage}
+      existingPosition={existingPosition}
     >
       <PerpsOrderViewContent />
     </PerpsOrderProvider>

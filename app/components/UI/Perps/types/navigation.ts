@@ -103,6 +103,26 @@ export interface PerpsNavigationParamList extends ParamListBase {
     position: Position;
   };
 
+  PerpsAdjustMargin: {
+    position: Position;
+    mode: 'add' | 'remove';
+  };
+
+  // Action selection routes
+  PerpsSelectModifyAction: {
+    position: Position;
+  };
+
+  PerpsSelectAdjustMarginAction: {
+    position: Position;
+  };
+
+  PerpsSelectOrderType: {
+    currentOrderType: OrderType;
+    asset: string;
+    direction: 'long' | 'short';
+  };
+
   // Order history routes
   PerpsOrderHistory: undefined;
 

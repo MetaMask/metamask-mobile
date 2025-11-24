@@ -213,6 +213,21 @@ export type ClosePositionsResult = {
   }[];
 };
 
+export type UpdateMarginParams = {
+  coin: string; // Asset symbol (e.g., 'BTC', 'ETH')
+  amount: string; // Amount to adjust as string (positive = add, negative = remove)
+};
+
+export type MarginResult = {
+  success: boolean;
+  error?: string;
+};
+
+export type FlipPositionParams = {
+  coin: string; // Asset symbol to flip
+  position: Position; // Current position to flip
+};
+
 export interface InitializeResult {
   success: boolean;
   error?: string;
@@ -708,6 +723,7 @@ export interface IPerpsProvider {
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
   closePositions?(params: ClosePositionsParams): Promise<ClosePositionsResult>; // Optional: batch close for protocols that support it
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
+  updateMargin(params: UpdateMarginParams): Promise<MarginResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]>;

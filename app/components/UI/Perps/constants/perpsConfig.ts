@@ -269,6 +269,26 @@ export const CLOSE_POSITION_CONFIG = {
 } as const;
 
 /**
+ * Margin adjustment configuration
+ * Controls behavior for adding/removing margin from positions
+ */
+export const MARGIN_ADJUSTMENT_CONFIG = {
+  // Risk thresholds for margin removal warnings
+  // Threshold values represent ratio of (price distance to liquidation) / (liquidation price)
+  // Values < 1.0 mean price is dangerously close to liquidation
+  LIQUIDATION_RISK_THRESHOLD: 1.2, // 20% buffer before liquidation - triggers danger state
+  LIQUIDATION_WARNING_THRESHOLD: 1.5, // 50% buffer before liquidation - triggers warning state
+
+  // Minimum margin adjustment amount (USD)
+  // Prevents dust adjustments and ensures meaningful position changes
+  MIN_ADJUSTMENT_AMOUNT: 1,
+
+  // Precision for margin calculations
+  // Ensures accurate decimal handling in margin/leverage calculations
+  CALCULATION_PRECISION: 6,
+} as const;
+
+/**
  * Data Lake API configuration
  * Endpoints for reporting perps trading activity for notifications
  */
