@@ -10,7 +10,7 @@ import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controlle
 import { Hex } from '@metamask/utils';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
-import { AssetType } from '../../types/token';
+import { AssetType, PreferredPaymentToken } from '../../types/token';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../../util/address');
@@ -21,8 +21,11 @@ jest.mock('./useTransactionPayAvailableTokens');
 const TOKEN_ADDRESS_1_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const TOKEN_ADDRESS_2_MOCK = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 const TOKEN_ADDRESS_3_MOCK = '0xabc1234567890abcdef1234567890abcdef12345678';
+const PREFERRED_TOKEN_ADDRESS_MOCK =
+  '0x9999999999999999999999999999999999999999';
 const CHAIN_ID_1_MOCK = '0x1';
 const CHAIN_ID_2_MOCK = '0x2';
+const PREFERRED_CHAIN_ID_MOCK = '0x3';
 
 const STATE_MOCK = merge(
   {},
@@ -43,9 +46,15 @@ const STATE_MOCK = merge(
   },
 );
 
-function runHook({ disable = false } = {}) {
+function runHook({
+  disable = false,
+  preferredPaymentToken,
+}: {
+  disable?: boolean;
+  preferredPaymentToken?: PreferredPaymentToken;
+} = {}) {
   return renderHookWithProvider(
-    () => useAutomaticTransactionPayToken({ disable }),
+    () => useAutomaticTransactionPayToken({ disable, preferredPaymentToken }),
     {
       state: STATE_MOCK,
     },
@@ -165,5 +174,102 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook({ disable: true });
 
     expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('selects preferred payment token when provided with available tokens', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+      {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK,
+        chainId: PREFERRED_CHAIN_ID_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+    ] as AssetType[]);
+
+    runHook({
+      preferredPaymentToken: {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
+        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+      },
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: PREFERRED_TOKEN_ADDRESS_MOCK,
+      chainId: PREFERRED_CHAIN_ID_MOCK,
+    });
+  });
+
+  it('ignores preferred payment token when using hardware wallet', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_3_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+    ] as AssetType[]);
+
+    isHardwareAccountMock.mockReturnValue(true);
+
+    runHook({
+      preferredPaymentToken: {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
+        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+      },
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_1_MOCK,
+      chainId: CHAIN_ID_1_MOCK,
+    });
+  });
+
+  it('selects target token when preferred payment token provided but no tokens available', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue([] as AssetType[]);
+
+    runHook({
+      preferredPaymentToken: {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
+        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+      },
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_1_MOCK,
+      chainId: CHAIN_ID_1_MOCK,
+    });
+  });
+
+  it('selects first available token when preferred token not in available tokens', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+    ] as AssetType[]);
+
+    runHook({
+      preferredPaymentToken: {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
+        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+      },
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_1_MOCK,
+      chainId: CHAIN_ID_1_MOCK,
+    });
   });
 });
