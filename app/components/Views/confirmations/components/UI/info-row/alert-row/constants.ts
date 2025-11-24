@@ -10,4 +10,5 @@ export enum RowAlertKey {
   PendingTransaction = 'pendingTransaction',
   RequestFrom = 'requestFrom',
   IncomingTokens = 'IncomingTokens',
+  InteractingWith = 'interactingWith',
 }

@@ -79,7 +79,7 @@ export function useTokenTrustSignalAlerts(): Alert[] {
 
       alertsList.push({
         key: alertKey,
-        field: RowAlertKey.IncomingTokens,
+        field: RowAlertKey.InteractingWith,
         message,
         title,
         severity,

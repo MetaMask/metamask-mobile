@@ -87,7 +87,7 @@ export function useAddressTrustSignalAlerts(): Alert[] {
 
       alertsList.push({
         key: alertKey,
-        field: RowAlertKey.Blockaid, // Using Blockaid field as a generic security field
+        field: RowAlertKey.InteractingWith,
         message,
         title,
         severity,
