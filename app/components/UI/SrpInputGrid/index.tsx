@@ -526,8 +526,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   style={({ pressed }) => [
                     styles.suggestionButton,
                     {
-                      backgroundColor: colors.background.alternative,
-                      borderColor: colors.border.default,
+                      backgroundColor: colors.background.section,
                     },
                     pressed && styles.suggestionPressed,
                   ]}
