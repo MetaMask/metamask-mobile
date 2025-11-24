@@ -168,7 +168,21 @@ export function isTransactionOnChains(
   chainIds: Hex[],
   allTransactions: TransactionMeta[],
 ): boolean {
-  const { chainId, requiredTransactionIds } = transaction;
+  const { chainId, requiredTransactionIds, type } = transaction;
+
+  // Hide Perps deposit transaction if it was funded by a non-selected chain.
+  if (type === TransactionType.perpsDeposit && requiredTransactionIds?.length) {
+    const requiredTransaction = allTransactions.find(
+      (t) => t.id === requiredTransactionIds[0],
+    );
+
+    if (
+      requiredTransaction &&
+      !chainIds.includes(requiredTransaction.chainId)
+    ) {
+      return false;
+    }
+  }
 
   if (chainIds.includes(chainId)) {
     return true;
