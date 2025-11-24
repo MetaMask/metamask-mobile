@@ -28,8 +28,8 @@ import {
   usePerpsHomeData,
   usePerpsNavigation,
   usePerpsMeasurement,
-  usePerpsHomeActions,
 } from '../../hooks';
+import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { BigNumber } from 'bignumber.js';

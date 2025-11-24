@@ -23,11 +23,8 @@ import Text, {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { LEARN_MORE_CONFIG } from '../../constants/perpsConfig';
-import {
-  useColorPulseAnimation,
-  useBalanceComparison,
-  usePerpsHomeActions,
-} from '../../hooks';
+import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
+import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
