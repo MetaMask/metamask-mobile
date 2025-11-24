@@ -3032,6 +3032,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: 250,
         feeDiscountPercentage: 15,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act
@@ -3058,6 +3060,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: null,
+        account: null,
       });
 
       // Act
@@ -3083,6 +3087,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act
@@ -3108,6 +3114,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: undefined,
         feeDiscountPercentage: undefined,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act
@@ -3133,6 +3141,8 @@ describe('PerpsClosePositionView', () => {
         bonusBips: 500,
         feeDiscountPercentage: 25,
         isRefresh: false,
+        accountOptedIn: true,
+        account: null,
       });
 
       // Act

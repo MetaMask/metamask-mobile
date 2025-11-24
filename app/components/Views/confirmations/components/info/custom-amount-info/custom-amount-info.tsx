@@ -32,11 +32,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import {
-  RampMode,
-  useRampNavigation,
-} from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { RampType } from '../../../../../../reducers/fiatOrders/types';
+import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
@@ -52,6 +48,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -102,7 +99,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     return (
       <Box style={styles.container}>
-        <Box>
+        <Box style={styles.inputContainer}>
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
@@ -148,7 +145,7 @@ export function CustomAmountInfoSkeleton() {
 
   return (
     <Box style={styles.container}>
-      <Box>
+      <Box style={styles.inputContainer}>
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
         <PayWithRowSkeleton />
@@ -181,17 +178,11 @@ function BuySection() {
     asset?.assetId ?? '0x0',
   );
 
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const handleBuyPress = useCallback(() => {
-    goToRamps({
-      mode: RampMode.AGGREGATOR,
-      params: {
-        rampType: RampType.BUY,
-        intent: { assetId },
-      },
-    });
-  }, [assetId, goToRamps]);
+    goToBuy({ assetId });
+  }, [assetId, goToBuy]);
 
   let message: string | undefined;
 
@@ -215,6 +206,7 @@ function BuySection() {
         variant={ButtonVariants.Primary}
         onPress={handleBuyPress}
         width={ButtonWidthTypes.Full}
+        size={ButtonSize.Lg}
       />
     </Box>
   );
@@ -272,6 +264,10 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
+  }
+
+  if (hasTransactionType(transaction, [MUSD_CONVERSION_TRANSACTION_TYPE])) {
+    return strings('earn.musd_conversion.confirmation_button');
   }
 
   return strings('confirm.deposit_edit_amount_done');
