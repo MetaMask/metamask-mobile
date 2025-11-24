@@ -104,18 +104,25 @@ jobs:
             echo "✅ Repacked APK found at expected location"
           fi
 
+      - name: Prepare artifacts for upload
+        run: |
+          # Copy APKs to workspace root with correct names (no path structure)
+          # This ensures artifacts contain just the filename at the root level
+          cp android/app/build/outputs/apk/prod/release/app-prod-release.apk app-flask-release.apk
+          cp android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk app-flask-release-androidTest.apk
+
       - name: Upload Repacked APK
         uses: actions/upload-artifact@v4
         with:
-          name: main-e2e-release.apk
-          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          name: flask-e2e-release.apk
+          path: app-flask-release.apk
           retention-days: 1
 
       - name: Upload Test APK
         uses: actions/upload-artifact@v4
         with:
-          name: main-e2e-release-androidTest.apk
-          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          name: flask-e2e-release-androidTest.apk
+          path: app-flask-release-androidTest.apk
           retention-days: 1
 
   flask-android-smoke:
