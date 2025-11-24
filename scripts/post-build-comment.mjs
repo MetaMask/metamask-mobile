@@ -31,8 +31,8 @@ async function fetchJobIds(octokit, owner, repo, runId) {
     console.log(`Found ${allJobs.length} jobs in workflow run ${runId}`);
     console.log('All job names:', allJobs.map((job) => `"${job.name}"`).join(', '));
 
-    // Find jobs by name. Handles composite names from reusable workflows.
-    // Uses fallback patterns for robustness against naming changes.
+    // Find jobs by name. Handles composite names from reusable workflows (e.g. "Caller / Reusable")
+    // by checking if the name includes both parts. Uses fallback patterns for robustness.
     const androidJob =
       allJobs.find((job) => job.name === 'Build Android APKs') ||
       allJobs.find((job) => job.name.includes('Build Android APKs') && job.name.includes('Build Android E2E APKs') && !job.name.includes('Flask')) ||
@@ -248,7 +248,11 @@ async function start() {
           );
         }
 
-        iosBuildNumber = versions[0];
+        // Select the maximum CURRENT_PROJECT_VERSION value as the build number,
+        // since build numbers typically increase and the highest is most likely correct.
+        // If parsing fails (NaN), fallback to the first found version.
+        const maxVersion = Math.max(...versions.map((v) => parseInt(v, 10) || 0));
+        iosBuildNumber = maxVersion > 0 ? maxVersion.toString() : versions[0];
       }
     } else {
       console.warn(`iOS project file not found at ${pbxprojPath}`);
