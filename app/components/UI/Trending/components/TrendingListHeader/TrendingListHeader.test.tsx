@@ -64,6 +64,19 @@ describe('TrendingListHeader', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
+  it('navigates back with default handler when onBack is not provided', () => {
+    const { getByTestId } = render(
+      <TrendingListHeader {...defaultProps} onBack={undefined} />,
+    );
+
+    const backButton = getByTestId('trending-list-header-back-button');
+
+    fireEvent.press(backButton);
+
+    expect(mockCanGoBack).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('renders search bar when search is visible', () => {
     const { getByTestId, queryByTestId } = render(
       <TrendingListHeader {...defaultProps} isSearchVisible />,
