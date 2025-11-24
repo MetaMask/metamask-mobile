@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { isTestNet } from '../../../../../util/networks';
 import { usePopularNetworks } from '.';
 
@@ -139,6 +140,75 @@ describe('usePopularNetworks', () => {
       expect(result.current.some((n) => n.name === 'Avalanche')).toBe(true);
       expect(result.current.some((n) => n.name === 'Arbitrum')).toBe(true);
       expect(result.current.some((n) => n.name === 'BNB Chain')).toBe(true);
+    });
+
+    it('filters out Bitcoin testnets from networkConfigurations', () => {
+      const mockNetworkConfigurations = {
+        // Bitcoin mainnet example
+        [BtcScope.Mainnet]: {
+          caipChainId: BtcScope.Mainnet as CaipChainId,
+          name: 'Bitcoin',
+        },
+        // Bitcoin testnet variants using full CAIP IDs from BtcScope
+        [BtcScope.Testnet]: {
+          caipChainId: BtcScope.Testnet as CaipChainId,
+          name: 'Bitcoin Testnet',
+        },
+        [BtcScope.Testnet4]: {
+          caipChainId: BtcScope.Testnet4 as CaipChainId,
+          name: 'Bitcoin Testnet4',
+        },
+        [BtcScope.Regtest]: {
+          caipChainId: BtcScope.Regtest as CaipChainId,
+          name: 'Bitcoin Regtest',
+        },
+        [BtcScope.Signet]: {
+          caipChainId: BtcScope.Signet as CaipChainId,
+          name: 'Bitcoin Signet',
+        },
+      };
+
+      mockUseSelector.mockReturnValue(mockNetworkConfigurations);
+
+      const { result } = renderHook(() => usePopularNetworks());
+
+      expect(result.current.some((n) => n.name === 'Bitcoin')).toBe(true);
+      expect(result.current.some((n) => n.name === 'Bitcoin Testnet')).toBe(
+        false,
+      );
+      expect(result.current.some((n) => n.name === 'Bitcoin Testnet4')).toBe(
+        false,
+      );
+      expect(result.current.some((n) => n.name === 'Bitcoin Regtest')).toBe(
+        false,
+      );
+      expect(result.current.some((n) => n.name === 'Bitcoin Signet')).toBe(
+        false,
+      );
+    });
+
+    it('filters out Solana Devnet from networkConfigurations', () => {
+      const mockNetworkConfigurations = {
+        [SolScope.Mainnet]: {
+          caipChainId: SolScope.Mainnet as CaipChainId,
+          name: 'Solana Mainnet',
+        },
+        [SolScope.Devnet]: {
+          caipChainId: SolScope.Devnet as CaipChainId,
+          name: 'Solana Devnet',
+        },
+      };
+
+      mockUseSelector.mockReturnValue(mockNetworkConfigurations);
+
+      const { result } = renderHook(() => usePopularNetworks());
+
+      expect(result.current.some((n) => n.name === 'Solana Mainnet')).toBe(
+        true,
+      );
+      expect(result.current.some((n) => n.name === 'Solana Devnet')).toBe(
+        false,
+      );
     });
   });
 

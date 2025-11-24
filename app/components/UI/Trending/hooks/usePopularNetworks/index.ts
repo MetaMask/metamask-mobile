@@ -38,19 +38,19 @@ export const usePopularNetworks = (): ProcessedNetwork[] => {
         return isTestNet(hexChainId);
       }
 
-      // Check Bitcoin testnets
+      // Check Bitcoin testnets using full CAIP IDs from BtcScope
       if (namespace === 'bip122') {
         return (
-          reference === BtcScope.Testnet ||
-          reference === BtcScope.Testnet4 ||
-          reference === BtcScope.Regtest ||
-          reference === BtcScope.Signet
+          caipChainId === BtcScope.Testnet ||
+          caipChainId === BtcScope.Testnet4 ||
+          caipChainId === BtcScope.Regtest ||
+          caipChainId === BtcScope.Signet
         );
       }
 
-      // Check Solana testnets
+      // Check Solana testnets using full CAIP IDs from SolScope
       if (namespace === 'solana') {
-        return reference === SolScope.Devnet;
+        return caipChainId === SolScope.Devnet;
       }
 
       // For other namespaces, assume mainnet if not explicitly a testnet
