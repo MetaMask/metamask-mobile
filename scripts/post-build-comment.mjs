@@ -38,7 +38,7 @@ async function fetchJobIds(octokit, owner, repo, runId) {
       allJobs.find((job) => job.name === 'Build Android E2E APKs') ||
       allJobs.find((job) => {
         const nameLower = job.name.toLowerCase();
-        return job.name.includes('Android') && job.name.includes('E2E') && job.name.includes('APK') && !nameLower.includes('flask');
+        return nameLower.includes('android') && nameLower.includes('e2e') && nameLower.includes('apk') && !nameLower.includes('flask');
       });
 
     const iosJob =
@@ -251,12 +251,16 @@ async function start() {
 
         // Select the maximum CURRENT_PROJECT_VERSION value as the build number,
         // since build numbers typically increase and the highest is most likely correct.
-        // If parsing fails (NaN), fallback to the first found version.
+        // We use 0 as the threshold because a build number of 0 is considered invalid,
+        // and parseInt failures (NaN) are coerced to 0. If at least one valid build number
+        // is found, use the highest one.
         const maxVersion = Math.max(...versions.map((v) => parseInt(v, 10) || 0));
 
         if (maxVersion > 0) {
           iosBuildNumber = maxVersion.toString();
         } else {
+          // If all versions parse to 0 or NaN, fall back to the first found version string.
+          // This may be invalid, but is the only available value.
           console.log('Using first version as fallback:', versions[0]);
           iosBuildNumber = versions[0];
         }
@@ -354,7 +358,7 @@ async function start() {
 
 | Platform | Link | Note |
 | :--- | :--- | :--- |
-|${rows.join('\n')}
+${rows.join('\n')}
 
 <details>
 <summary>More Info</summary>
