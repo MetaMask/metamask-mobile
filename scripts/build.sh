@@ -562,6 +562,10 @@ generateAndroidBinary() {
 		exit 1
 	fi
 
+	if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
+		cp ./gradle.properties.github ./gradle.properties
+	fi
+
 	if [ "$configuration" = "Debug" ] || [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
 		# Define assemble test APK task
 		assembleTestApkTask="app:assemble${flavor}${configuration}AndroidTest"
@@ -585,7 +589,7 @@ generateAndroidBinary() {
 		# Generate AAB bundle (not needed for E2E)
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
-		./gradlew $bundleConfiguration
+		./gradlew $bundleConfiguration --build-cache --no-parallel --max-workers=2
 
 		# Generate checksum
 		echo "Generating checksum for ($flavor) flavor with ($configuration) configuration"
