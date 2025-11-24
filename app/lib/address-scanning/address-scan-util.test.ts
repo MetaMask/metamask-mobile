@@ -13,9 +13,13 @@ import {
   scanUrl,
 } from './address-scan-util';
 import { PRIMARY_TYPES_PERMIT } from '../../components/Views/confirmations/constants/signatures';
+import { APPROVAL_4BYTE_SELECTORS } from '../../components/Views/confirmations/constants/approve';
 import { parseApprovalTransactionData } from '../../components/Views/confirmations/utils/approvals';
 import { parseAndNormalizeSignTypedData } from '../../components/Views/confirmations/utils/signature';
-import { parseStandardTokenTransactionData } from '../../components/Views/confirmations/utils/transaction';
+import {
+  parseStandardTokenTransactionData,
+  get4ByteCode,
+} from '../../components/Views/confirmations/utils/transaction';
 
 jest.mock('../../util/Logger', () => ({
   log: jest.fn(),
@@ -31,6 +35,7 @@ jest.mock('../../components/Views/confirmations/utils/signature', () => ({
 
 jest.mock('../../components/Views/confirmations/utils/transaction', () => ({
   parseStandardTokenTransactionData: jest.fn(),
+  get4ByteCode: jest.fn(),
 }));
 
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
@@ -46,6 +51,9 @@ const mockParseStandardTokenTransactionData =
   parseStandardTokenTransactionData as jest.MockedFunction<
     typeof parseStandardTokenTransactionData
   >;
+const mockGet4ByteCode = get4ByteCode as jest.MockedFunction<
+  typeof get4ByteCode
+>;
 
 describe('address-scan-util', () => {
   beforeEach(() => {
@@ -89,24 +97,157 @@ describe('address-scan-util', () => {
   });
 
   describe('extractSpenderFromApprovalData', () => {
-    it('returns spender from first argument when approval transaction has args array', () => {
-      const data = '0x1234';
-      mockParseApprovalTransactionData.mockReturnValue({} as never);
-      mockParseStandardTokenTransactionData.mockReturnValue({
-        args: ['0xspender'],
-      } as never);
-
-      const result = extractSpenderFromApprovalData(data);
-
-      expect(result).toBe('0xspender');
-    });
-
     it('returns undefined when data is undefined', () => {
       const result = extractSpenderFromApprovalData(undefined);
 
       expect(result).toBeUndefined();
       expect(mockParseApprovalTransactionData).not.toHaveBeenCalled();
       expect(mockParseStandardTokenTransactionData).not.toHaveBeenCalled();
+    });
+
+    it('returns undefined when parseApprovalTransactionData returns undefined', () => {
+      const data = '0x1234';
+      mockParseApprovalTransactionData.mockReturnValue(undefined);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBeUndefined();
+      expect(mockParseStandardTokenTransactionData).not.toHaveBeenCalled();
+    });
+
+    it('returns undefined when transactionDescription has no args', () => {
+      const data = '0x095ea7b31234567890';
+      mockParseApprovalTransactionData.mockReturnValue({} as never);
+      mockGet4ByteCode.mockReturnValue(APPROVAL_4BYTE_SELECTORS.APPROVE);
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        name: 'approve',
+      } as never);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns spender from args._spender for standard ERC20 approve with named params', () => {
+      const data = '0x095ea7b31234567890';
+      mockParseApprovalTransactionData.mockReturnValue({} as never);
+      mockGet4ByteCode.mockReturnValue(APPROVAL_4BYTE_SELECTORS.APPROVE);
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        name: 'approve',
+        args: { _spender: '0xspenderAddress', _value: '1000000' },
+      } as never);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBe('0xspenderAddress');
+    });
+
+    it('returns spender from args.spender for Permit2 approve with named params', () => {
+      const data = '0x87517c451234567890';
+      mockParseApprovalTransactionData.mockReturnValue({} as never);
+      mockGet4ByteCode.mockReturnValue(
+        APPROVAL_4BYTE_SELECTORS.PERMIT2_APPROVE,
+      );
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        name: 'approve',
+        args: {
+          token: '0xtokenAddress',
+          spender: '0xspenderAddress',
+          amount: '1000000',
+          expiration: '1234567890',
+        },
+      } as never);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBe('0xspenderAddress');
+    });
+
+    it('returns spender from args._spender for increaseAllowance with named params', () => {
+      const data = '0x395093511234567890';
+      mockParseApprovalTransactionData.mockReturnValue({} as never);
+      mockGet4ByteCode.mockReturnValue(
+        APPROVAL_4BYTE_SELECTORS.ERC20_INCREASE_ALLOWANCE,
+      );
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        name: 'increaseAllowance',
+        args: { _spender: '0xspenderAddress', increment: '500000' },
+      } as never);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBe('0xspenderAddress');
+    });
+
+    it('returns operator from args._operator for setApprovalForAll with named params', () => {
+      const data = '0xa22cb4651234567890';
+      mockParseApprovalTransactionData.mockReturnValue({} as never);
+      mockGet4ByteCode.mockReturnValue(
+        APPROVAL_4BYTE_SELECTORS.SET_APPROVAL_FOR_ALL,
+      );
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        name: 'setApprovalForAll',
+        args: { _operator: '0xoperatorAddress', _approved: true },
+      } as never);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBe('0xoperatorAddress');
+    });
+
+    it('returns undefined for unknown approval method', () => {
+      const data = '0xunknown1234567890';
+      mockParseApprovalTransactionData.mockReturnValue({} as never);
+      mockGet4ByteCode.mockReturnValue('0xunknown12');
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        name: 'unknownMethod',
+        args: ['0xsomeAddress'],
+      } as never);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when spender is not a string', () => {
+      const data = '0x095ea7b31234567890';
+      mockParseApprovalTransactionData.mockReturnValue({} as never);
+      mockGet4ByteCode.mockReturnValue(APPROVAL_4BYTE_SELECTORS.APPROVE);
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        name: 'approve',
+        args: { _spender: 123456, _value: '1000000' }, // spender is a number, not a string
+      } as never);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when parsing throws an error', () => {
+      const data = '0x1234';
+      mockParseApprovalTransactionData.mockImplementation(() => {
+        throw new Error('parse error');
+      });
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns spender from args._spender for decreaseAllowance', () => {
+      const data = '0xa457c2d71234567890';
+      mockParseApprovalTransactionData.mockReturnValue({} as never);
+      mockGet4ByteCode.mockReturnValue(
+        APPROVAL_4BYTE_SELECTORS.ERC20_DECREASE_ALLOWANCE,
+      );
+      mockParseStandardTokenTransactionData.mockReturnValue({
+        name: 'decreaseAllowance',
+        args: { _spender: '0xspenderAddress', decrement: '300000' },
+      } as never);
+
+      const result = extractSpenderFromApprovalData(data);
+
+      expect(result).toBe('0xspenderAddress');
     });
   });
 
@@ -342,7 +483,7 @@ describe('address-scan-util', () => {
       } as unknown as PhishingController;
     }
 
-    it('calls phishingController.scanUrl and logs cache on success', async () => {
+    it('calls phishingController.scanUrl and updates cache on success', async () => {
       const phishingController = createMockPhishingController();
 
       await scanUrl(phishingController, origin);
@@ -351,9 +492,6 @@ describe('address-scan-util', () => {
       expect(phishingController.state.urlScanCache).toEqual({
         [origin]: true,
       });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('[scanUrl] Cache:'),
-      );
     });
 
     it('logs error when phishingController.scanUrl throws and does not rethrow', async () => {
