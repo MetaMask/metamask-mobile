@@ -577,6 +577,8 @@ generateAndroidBinary() {
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
+	# Kill and restart Gradle daemon to avoid memory errors
+	./gradlew --stop || true
 	# Disable parallel builds and set max workers for E2E builds to reduce memory pressure in CI
 	# Note: Memory error usually appears as with error (Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed))
 	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg --build-cache --no-parallel --max-workers=2
