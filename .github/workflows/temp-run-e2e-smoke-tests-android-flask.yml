@@ -16,6 +16,17 @@ jobs:
     name: 'Detect Mobile Build Changes'
     uses: ./.github/workflows/needs-e2e-build.yml
 
+  build-main-android-apks:
+    name: 'Build Main Android APKs'
+    # if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    # needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
+    secrets: inherit
+
   repack-android-flask-apps:
     name: 'Repack Android Flask Apps'
     #if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
@@ -23,7 +34,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build]
+    needs: [build-main-android-apks]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,24 +66,21 @@ jobs:
         env:
           ANDROID_KEYSTORE_PATH: android/keystores/internalRelease.keystore
 
-      # Download APK from GitHub release instead of building
-      - name: Download APK from GitHub Release
+      - name: Download Main APK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          pattern: main-e2e-release*.apk
+
+      - name: Setup Main APK artifacts
         run: |
           mkdir -p android/app/build/outputs/apk/prod/release/
-          curl -L -o release-apk.zip https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/repack/release-apk.zip
-          unzip -q release-apk.zip -d android/app/build/outputs/apk/prod/release/
-          # Ensure the APK is named correctly
-          if [ ! -f android/app/build/outputs/apk/prod/release/app-prod-release.apk ]; then
-            # If the zip contains a different structure, find and move the APK
-            find android/app/build/outputs/apk/prod/release/ -name "*.apk" -type f | head -1 | xargs -I {} mv {} android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          fi
-          rm release-apk.zip
-
-      - name: Download Main Test APK (placeholder)
-        run: |
           mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
-          # Create a placeholder test APK if needed, or skip if not required for repacking
-          touch android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk || true
+          # Artifacts are downloaded as folders, each containing the APK file
+          # Copy main APK from artifact folder to expected location
+          cp artifacts/main-e2e-release.apk/app-prod-release.apk android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          # Copy main test APK from artifact folder to expected location
+          cp artifacts/main-e2e-release-androidTest.apk/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
 
       - name: Repack Main APK
         run: node scripts/repack.js
