@@ -452,20 +452,15 @@ describe('StakeButton', () => {
       fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
 
       await waitFor(() => {
-        expect(mockInitiateConversion).toHaveBeenCalledWith(
-          expect.objectContaining({
-            outputToken: expect.objectContaining({
-              symbol: 'MUSD',
-              decimals: 6,
-            }),
-            preferredPaymentToken: expect.objectContaining({
-              address: expect.any(String),
-              chainId: expect.any(String),
-            }),
-            allowedPaymentTokens: mockAllowlist,
-            navigationStack: Routes.EARN.ROOT,
-          }),
-        );
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          outputChainId: '0x1',
+          preferredPaymentToken: {
+            address: '0xaBc',
+            chainId: '0x1',
+          },
+          allowedPaymentTokens: mockAllowlist,
+          navigationStack: Routes.EARN.ROOT,
+        });
       });
     });
 

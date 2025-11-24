@@ -31,14 +31,14 @@ export const STABLECOIN_SYMBOL_TO_ADDRESS_BY_CHAIN: Record<
     DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
   },
   // Temp: Uncomment once we support Linea -> Linea quotes
-  // [NETWORKS_CHAIN_ID.LINEA_MAINNET]: {
-  //   USDC: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
-  //   USDT: '0xa219439258ca9da29e9cc4ce5596924745e12b93',
-  // },
-  // [NETWORKS_CHAIN_ID.BSC]: {
-  //   USDC: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
-  //   USDT: '0x55d398326f99059ff775485246999027b3197955',
-  // },
+  [NETWORKS_CHAIN_ID.LINEA_MAINNET]: {
+    USDC: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    USDT: '0xa219439258ca9da29e9cc4ce5596924745e12b93',
+  },
+  [NETWORKS_CHAIN_ID.BSC]: {
+    USDC: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
+    USDT: '0x55d398326f99059ff775485246999027b3197955',
+  },
 };
 
 export const CONVERTIBLE_STABLECOINS_BY_CHAIN: Record<Hex, Hex[]> = (() => {

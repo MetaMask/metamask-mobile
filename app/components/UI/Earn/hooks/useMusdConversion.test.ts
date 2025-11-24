@@ -93,13 +93,7 @@ describe('useMusdConversion', () => {
 
   describe('initiateConversion', () => {
     const mockConfig = {
-      outputToken: {
-        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA' as Hex,
-        chainId: '0x1' as Hex,
-        symbol: 'MUSD',
-        name: 'MUSD',
-        decimals: 6,
-      },
+      outputChainId: '0x1' as Hex,
       preferredPaymentToken: {
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
         chainId: '0x1' as Hex,
@@ -126,8 +120,11 @@ describe('useMusdConversion', () => {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: {
           loader: ConfirmationLoader.CustomAmount,
-          preferredPaymentToken: mockConfig.preferredPaymentToken,
-          outputToken: mockConfig.outputToken,
+          preferredPaymentToken: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: '0x1',
+          },
+          outputChainId: '0x1',
           allowedPaymentTokens: undefined,
         },
       });
@@ -151,11 +148,11 @@ describe('useMusdConversion', () => {
 
       expect(mockTransactionController.addTransaction).toHaveBeenCalledWith(
         {
-          to: mockConfig.outputToken.address,
-          from: mockSelectedAccount.address,
+          to: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          from: '0x123456789abcdef',
           data: '0xmockedTransferData',
           value: '0x0',
-          chainId: mockConfig.outputToken.chainId,
+          chainId: '0x1',
         },
         {
           networkClientId: 'mainnet',
@@ -164,7 +161,7 @@ describe('useMusdConversion', () => {
           type: TransactionType.musdConversion,
           nestedTransactions: [
             {
-              to: mockConfig.outputToken.address,
+              to: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
               data: '0xmockedTransferData',
               value: '0x0',
             },
@@ -197,7 +194,7 @@ describe('useMusdConversion', () => {
       expect(Array.isArray(options.nestedTransactions)).toBe(true);
       expect(options.nestedTransactions).toHaveLength(1);
       expect(options.nestedTransactions[0]).toEqual({
-        to: mockConfig.outputToken.address,
+        to: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
         data: '0xmockedTransferData',
         value: '0x0',
       });
@@ -239,7 +236,7 @@ describe('useMusdConversion', () => {
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('throws error when outputToken is missing', async () => {
+    it('throws error when outputChainId is missing', async () => {
       const mockSelectorFn = jest.fn(() => mockSelectedAccount);
       mockUseSelector.mockReturnValue(mockSelectorFn);
       mockSelectorFn.mockReturnValue(mockSelectedAccount);
@@ -248,15 +245,15 @@ describe('useMusdConversion', () => {
 
       const invalidConfig = {
         ...mockConfig,
-        outputToken: undefined,
+        outputChainId: undefined,
       };
 
       await act(async () => {
         await expect(
-          // @ts-expect-error - Intentionally testing invalid config with missing outputToken
+          // @ts-expect-error - Intentionally testing invalid config with missing outputChainId
           result.current.initiateConversion(invalidConfig),
         ).rejects.toThrow(
-          'Output token and preferred payment token are required',
+          'Output chain ID and preferred payment token are required',
         );
       });
     });
@@ -278,7 +275,7 @@ describe('useMusdConversion', () => {
           // @ts-expect-error - Intentionally testing invalid config with missing preferredPaymentToken
           result.current.initiateConversion(invalidConfig),
         ).rejects.toThrow(
-          'Output token and preferred payment token are required',
+          'Output chain ID and preferred payment token are required',
         );
       });
     });
@@ -410,14 +407,8 @@ describe('useMusdConversion', () => {
 
       const { result } = renderHook(() => useMusdConversion());
 
-      const mockConfig = {
-        outputToken: {
-          address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA' as Hex,
-          chainId: '0x1' as Hex,
-          symbol: 'MUSD',
-          name: 'MUSD',
-          decimals: 6,
-        },
+      const testConfig = {
+        outputChainId: '0x1' as Hex,
         preferredPaymentToken: {
           address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
           chainId: '0x1' as Hex,
@@ -430,7 +421,7 @@ describe('useMusdConversion', () => {
 
       await act(async () => {
         await expect(
-          result.current.initiateConversion(mockConfig),
+          result.current.initiateConversion(testConfig),
         ).rejects.toThrow('Transaction failed');
       });
 
@@ -441,7 +432,7 @@ describe('useMusdConversion', () => {
       });
 
       await act(async () => {
-        await result.current.initiateConversion(mockConfig);
+        await result.current.initiateConversion(testConfig);
       });
 
       expect(result.current.error).toBeNull();

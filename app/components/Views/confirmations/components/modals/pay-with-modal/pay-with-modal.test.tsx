@@ -11,15 +11,24 @@ import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { AssetType, TokenStandard } from '../../../types/token';
+import {
+  AssetType,
+  TokenStandard,
+  AllowedPaymentTokens,
+} from '../../../types/token';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
+import { useRoute } from '@react-navigation/native';
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: jest.fn(),
+}));
 
 const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET as Hex;
 const CHAIN_ID_2_MOCK = '0x2' as Hex;
@@ -123,6 +132,7 @@ describe('PayWithModal', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
+  const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -134,6 +144,10 @@ describe('PayWithModal', () => {
       payToken: { address: '0x0', chainId: '0x0' },
       setPayToken: setPayTokenMock,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    mockUseRoute.mockReturnValue({
+      params: {},
+    } as unknown as ReturnType<typeof useRoute>);
   });
 
   it('renders tokens', async () => {
@@ -160,6 +174,25 @@ describe('PayWithModal', () => {
         address: TOKENS_MOCK[1].address,
         chainId: TOKENS_MOCK[1].chainId,
       });
+    });
+  });
+
+  describe('allowedPaymentTokens', () => {
+    it('shows only allowed tokens when allowedPaymentTokens provided in route params', () => {
+      const allowedPaymentTokens: AllowedPaymentTokens = {
+        [CHAIN_ID_1_MOCK]: [TOKENS_MOCK[1].address],
+      };
+
+      mockUseRoute.mockReturnValue({
+        params: {
+          allowedPaymentTokens,
+        },
+      } as unknown as ReturnType<typeof useRoute>);
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('Test Token 1')).toBeDefined();
+      expect(queryByText('Native Token 1')).toBeNull();
     });
   });
 });
