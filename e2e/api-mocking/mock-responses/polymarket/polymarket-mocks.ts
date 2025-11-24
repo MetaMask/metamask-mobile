@@ -8,6 +8,7 @@ import {
   POLYMARKET_CURRENT_POSITIONS_RESPONSE,
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
+  POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE,
 } from './polymarket-positions-response';
 import {
   POLYMARKET_EVENT_DETAILS_BLUE_JAYS_MARINERS_RESPONSE,
@@ -57,6 +58,9 @@ import { createTransactionSentinelResponse } from './polymarket-transaction-sent
 
 // Global variable to track current USDC balance
 let currentUSDCBalance = MOCK_RPC_RESPONSES.USDC_BALANCE_RESULT;
+
+// Global Set to track when Celtics vs Nets orders have been submitted
+const celticsOrderSubmitted = new Set<string>();
 
 /**
  * Mock Priority System
@@ -1145,9 +1149,11 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
     .matching(async (request) => {
       try {
         const urlParam = new URL(request.url).searchParams.get('url');
-        const relayerEndpointPattern =
-          /predict\.(dev-)?api\.cx\.metamask\.io\/order/;
-        if (!urlParam || !relayerEndpointPattern.test(urlParam)) {
+        if (
+          !urlParam ||
+          !urlParam.includes('predict.') ||
+          !urlParam.includes('api.cx.metamask.io/order')
+        ) {
           return false;
         }
 
@@ -1195,9 +1201,20 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
         const proxyAddress =
           order?.maker?.toLowerCase() || PROXY_WALLET_ADDRESS.toLowerCase();
 
+        // Check if it's a Celtics vs Nets token
+        const isCelticsToken =
+          order?.tokenId ===
+          '51851880223290407825872150827934296608070009371891114025629582819868766043137';
+
         // Track both addresses - positions/activity may use either
         orderSubmitted.add(userAddress);
         orderSubmitted.add(proxyAddress);
+
+        // Track Celtics orders separately for position addition
+        if (isCelticsToken) {
+          celticsOrderSubmitted.add(userAddress);
+          celticsOrderSubmitted.add(proxyAddress);
+        }
 
         return {
           statusCode: 200,
@@ -1220,6 +1237,7 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
         const proxyAddress = PROXY_WALLET_ADDRESS.toLowerCase();
         orderSubmitted.add(userAddress);
         orderSubmitted.add(proxyAddress);
+        // Note: Can't check tokenId in catch block, so don't add to celticsOrderSubmitted
 
         return {
           statusCode: 200,
@@ -1246,9 +1264,11 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
     .matching(async (request) => {
       try {
         const urlParam = new URL(request.url).searchParams.get('url');
-        const relayerEndpointPattern =
-          /predict\.(dev-)?api\.cx\.metamask\.io\/order/;
-        if (!urlParam || !relayerEndpointPattern.test(urlParam)) {
+        if (
+          !urlParam ||
+          !urlParam.includes('predict.') ||
+          !urlParam.includes('api.cx.metamask.io/order')
+        ) {
           return false;
         }
 
@@ -1273,9 +1293,20 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
         const proxyAddress =
           order?.maker?.toLowerCase() || PROXY_WALLET_ADDRESS.toLowerCase();
 
+        // Check if it's a Celtics vs Nets token
+        const isCelticsToken =
+          order?.tokenId ===
+          '51851880223290407825872150827934296608070009371891114025629582819868766043137';
+
         // Track both addresses - positions/activity may use either
         orderSubmitted.add(userAddress);
         orderSubmitted.add(proxyAddress);
+
+        // Track Celtics orders separately for position addition
+        if (isCelticsToken) {
+          celticsOrderSubmitted.add(userAddress);
+          celticsOrderSubmitted.add(proxyAddress);
+        }
 
         return {
           statusCode: 200,
@@ -1297,6 +1328,7 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
         const proxyAddress = PROXY_WALLET_ADDRESS.toLowerCase();
         orderSubmitted.add(userAddress);
         orderSubmitted.add(proxyAddress);
+        // Note: Can't check tokenId in catch block, so don't add to celticsOrderSubmitted
 
         return {
           statusCode: 200,
@@ -1353,6 +1385,8 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
           if (isCelticsToken) {
             orderSubmitted.add(userAddress);
             orderSubmitted.add(proxyAddress);
+            celticsOrderSubmitted.add(userAddress);
+            celticsOrderSubmitted.add(proxyAddress);
           }
 
           // Return success for any BUY order
@@ -1402,6 +1436,99 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
 
   // Update balance after opening position
   // await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+};
+
+/**
+ * Mock for adding Celtics vs Nets position to positions list after order is submitted
+ * This override adds the Celtics vs Nets position only after the open position flow is completed
+ *
+ * Mocks endpoint: https://data-api.polymarket.com/positions?limit=100&offset=0&user=...&sortBy=CURRENT&redeemable=false&eventId=79682
+ * - Always uses PROXY_WALLET_ADDRESS for the proxyWallet field (regardless of user in URL)
+ * - When eventId=79682 (Celtics vs Nets), returns only the Celtics position
+ * - When no eventId, returns all positions including Celtics (if order was submitted)
+ * - Also mocks the position appearing in the main positions list on the predict page
+ *
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
+          !url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base positions mock
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
+      const eventId = eventIdMatch ? eventIdMatch[1] : null;
+
+      // Check if Celtics vs Nets order has been submitted
+      const proxyAddressLower = PROXY_WALLET_ADDRESS.toLowerCase();
+      const celticsOrderSubmittedForProxy =
+        celticsOrderSubmitted.has(proxyAddressLower);
+
+      // If eventId=79682 (Celtics vs Nets), return only the Celtics position
+      if (eventId === '79682') {
+        if (!celticsOrderSubmittedForProxy) {
+          // Return empty array if order hasn't been submitted yet
+          return {
+            statusCode: 200,
+            json: [],
+          };
+        }
+
+        // Return Celtics vs Nets position with PROXY_WALLET_ADDRESS
+        const dynamicResponse =
+          POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE.map(
+            (position) => ({
+              ...position,
+              proxyWallet: PROXY_WALLET_ADDRESS,
+            }),
+          );
+
+        return {
+          statusCode: 200,
+          json: dynamicResponse,
+        };
+      }
+
+      // For main positions list (no eventId filter), combine existing positions with Celtics position
+      // only if Celtics order was submitted. Put Celtics position at the top of the list.
+      let allPositions = [...POLYMARKET_CURRENT_POSITIONS_RESPONSE];
+      if (celticsOrderSubmittedForProxy) {
+        allPositions = [
+          ...POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE,
+          ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
+        ];
+      }
+
+      // Filter positions by eventId if provided (for other eventIds)
+      let filteredPositions = allPositions;
+      if (eventId) {
+        filteredPositions = allPositions.filter(
+          (position) => position.eventId === eventId,
+        );
+      }
+
+      // Always use PROXY_WALLET_ADDRESS for proxyWallet field
+      const dynamicResponse = filteredPositions.map((position) => ({
+        ...position,
+        proxyWallet: PROXY_WALLET_ADDRESS,
+      }));
+
+      return {
+        statusCode: 200,
+        json: dynamicResponse,
+      };
+    });
 };
 
 /**

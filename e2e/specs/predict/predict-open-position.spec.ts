@@ -17,6 +17,7 @@ import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
+  POLYMARKET_ADD_CELTICS_POSITION_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
@@ -64,9 +65,11 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapPositionAmount('10');
 
         await PredictDetailsPage.tapDoneButton();
+        await POLYMARKET_ADD_CELTICS_POSITION_MOCKS(mockServer);
 
         await PredictDetailsPage.tapOpenPosition();
         await device.enableSynchronization();
+        // await new Promise((resolve) => setTimeout(resolve, 3000));
 
         await PredictDetailsPage.tapBackButton();
         await Assertions.expectTextDisplayed('$17.76');
