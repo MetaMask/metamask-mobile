@@ -40,7 +40,7 @@ const RadioButton = ({
       {...props}
       disabled={isDisabled || isReadOnly}
     >
-      <View style={styles.radioButton} accessibilityRole="radio">
+      <View accessibilityRole="none" accessible={false} style={styles.radioButton} accessibilityRole="radio">
         {isChecked && (
           <View accessibilityRole="none" accessible={false} style={styles.icon} testID={RADIOBUTTON_ICON_TESTID} />
         )}

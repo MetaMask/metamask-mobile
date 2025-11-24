@@ -158,7 +158,7 @@ const UrlAutocomplete = forwardRef<
   );
 
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
-  const resultsRef = useRef<View | null>(null);
+  const resultsRef = useRef<View accessibilityRole="none" accessible={false} | null>(null);
   const { styles } = useStyles(styleSheet, {});
 
   /**
