@@ -359,7 +359,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
       [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
-      [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
+      [PerpsEventProperties.LEVERAGE_USED]: parseFloat(
+        String(orderForm.leverage),
+      ),
       [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
     },
   });
