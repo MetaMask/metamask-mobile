@@ -104,4 +104,32 @@ describe('useToAddressValidation', () => {
       });
     });
   });
+
+  it('validate tron address correctly', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        name: 'Tron',
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        isNative: true,
+        chainId: 'tron:1',
+        symbol: 'TRX',
+        decimals: 18,
+      },
+      to: 'dummy',
+      chainId: 'tron:1',
+    } as unknown as ReturnType<typeof useSendContext>);
+    const { result } = renderHookWithProvider(
+      () => useToAddressValidation(),
+      mockState,
+    );
+    await waitFor(() => {
+      expect(result.current).toStrictEqual({
+        loading: false,
+        resolvedAddress: undefined,
+        toAddressError: 'Invalid address',
+        toAddressValidated: 'dummy',
+        toAddressWarning: undefined,
+      });
+    });
+  });
 });
