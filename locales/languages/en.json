@@ -116,22 +116,22 @@
     },
     "address_trust_signal": {
       "malicious": {
-        "message": "This address has been flagged as potentially malicious. Exercise extreme caution when interacting with it.",
-        "title": "Malicious Address Detected"
+        "message": "If you confirm this request, you will probably lose your assets to a scammer.",
+        "title": "Malicious address"
       },
       "warning": {
-        "message": "This address has been flagged with a security warning. Proceed with caution.",
-        "title": "Address Security Warning"
+        "message": "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
+        "title": "Address Needs Review"
       }
     },
     "url_trust_signal": {
       "malicious": {
-        "message": "This website has been flagged as potentially malicious. Exercise extreme caution when interacting with it.",
-        "title": "Malicious Website Detected"
+        "message": "This has been identified as malicious. We recommend not interacting with this site.",
+        "title": "Malicious site"
       },
       "warning": {
-        "message": "This website has been flagged with a security warning. Proceed with caution.",
-        "title": "Website Security Warning"
+        "message": "This has been identified as suspicious. We recommend not interacting with this site.",
+        "title": "Suspicious site"
       }
     }
   },
