@@ -59,7 +59,7 @@ const ChangeInSimulationModal = ({
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View style={styles.wrapper}>
         <Icon
           color={IconColor.Error}
           name={IconName.Warning}
@@ -67,7 +67,7 @@ const ChangeInSimulationModal = ({
         />
         <SheetHeader title={strings('change_in_simulation_modal.title')} />
         <Text>{strings('change_in_simulation_modal.description')}</Text>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonsWrapper}>
+        <View style={styles.buttonsWrapper}>
           <Button
             label={strings('change_in_simulation_modal.reject')}
             onPress={handleReject}

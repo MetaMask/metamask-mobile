@@ -287,7 +287,7 @@ const LedgerConfirmationModal = ({
   if (errorDetails) {
     return (
       <SafeAreaView style={styles.wrapper}>
-        <View accessibilityRole="none" accessible={false} style={styles.contentWrapper}>
+        <View style={styles.contentWrapper}>
           <ErrorStep
             onReject={onReject}
             onRetry={onRetry}
@@ -314,7 +314,7 @@ const LedgerConfirmationModal = ({
   if (!isSendingLedgerCommands || !completeClose) {
     return (
       <SafeAreaView style={styles.wrapper}>
-        <View accessibilityRole="none" accessible={false} style={styles.contentWrapper}>
+        <View style={styles.contentWrapper}>
           <SearchingForDeviceStep />
         </View>
       </SafeAreaView>
@@ -324,7 +324,7 @@ const LedgerConfirmationModal = ({
   if (isAppLaunchConfirmationNeeded) {
     return (
       <SafeAreaView style={styles.wrapper}>
-        <View accessibilityRole="none" accessible={false} style={styles.contentWrapper}>
+        <View style={styles.contentWrapper}>
           <OpenETHAppStep onReject={onReject} />
         </View>
       </SafeAreaView>
@@ -333,7 +333,7 @@ const LedgerConfirmationModal = ({
 
   return (
     <SafeAreaView style={styles.wrapper}>
-      <View accessibilityRole="none" accessible={false} style={styles.contentWrapper}>
+      <View style={styles.contentWrapper}>
         <ConfirmationStep onReject={onReject} />
       </View>
     </SafeAreaView>

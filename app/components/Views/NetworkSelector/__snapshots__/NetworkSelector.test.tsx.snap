@@ -513,7 +513,7 @@ exports[`Network Selector renders correctly 1`] = `
                               }
                               testID="other-networks-scroll"
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   disabled={false}
                                   onPress={[Function]}
@@ -2031,7 +2031,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               }
                               testID="other-networks-scroll"
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <View
                                   style={
                                     {

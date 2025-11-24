@@ -114,7 +114,7 @@ const ExperienceEnhancerModal = () => {
         >
           {strings('experience_enhancer_modal.paragraph2')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.list}>
+        <View style={styles.list}>
           <Text
             style={styles.line}
             testID={ExperienceEnhancerBottomSheetSelectorsIDs.BULLET_1}

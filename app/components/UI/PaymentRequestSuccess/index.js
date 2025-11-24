@@ -275,10 +275,10 @@ class PaymentRequestSuccess extends PureComponent {
           style={styles.contentWrapper}
           contentContainerStyle={styles.scrollViewContainer}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.iconWrapper}>
+          <View style={styles.iconWrapper}>
             <EvilIcons name="share-apple" size={54} style={styles.icon} />
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.informationWrapper}>
+          <View style={styles.informationWrapper}>
             <Text style={styles.titleText}>
               {strings('payment_request.send_link')}
             </Text>
@@ -292,26 +292,26 @@ class PaymentRequestSuccess extends PureComponent {
               </Text>
             </Text>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.linkWrapper}>
+          <View style={styles.linkWrapper}>
             <Text style={styles.linkText}>{link}</Text>
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.buttonsWrapper}>
-            <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+          <View style={styles.buttonsWrapper}>
+            <View style={styles.buttonsContainer}>
               <StyledButton
                 type={'normal'}
                 onPress={this.copyAccountToClipboard}
                 containerStyle={styles.button}
               >
-                <View accessibilityRole="none" accessible={false} style={styles.buttonContent}>
-                  <View accessibilityRole="none" accessible={false} style={styles.buttonIconWrapper}>
+                <View style={styles.buttonContent}>
+                  <View style={styles.buttonIconWrapper}>
                     <IonicIcon
                       name={'link'}
                       size={18}
                       color={colors.primary.default}
                     />
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.buttonTextWrapper}>
+                  <View style={styles.buttonTextWrapper}>
                     <Text style={styles.buttonText}>
                       {strings('payment_request.copy_to_clipboard')}
                     </Text>
@@ -324,15 +324,15 @@ class PaymentRequestSuccess extends PureComponent {
                 containerStyle={styles.button}
                 testID={SendLinkViewSelectorsIDs.QR_CODE_BUTTON}
               >
-                <View accessibilityRole="none" accessible={false} style={styles.buttonContent}>
-                  <View accessibilityRole="none" accessible={false} style={styles.buttonIconWrapper}>
+                <View style={styles.buttonContent}>
+                  <View style={styles.buttonIconWrapper}>
                     <FontAwesome
                       name={'qrcode'}
                       size={18}
                       color={colors.primary.default}
                     />
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.buttonTextWrapper}>
+                  <View style={styles.buttonTextWrapper}>
                     <Text style={styles.buttonText}>
                       {strings('payment_request.qr_code')}
                     </Text>
@@ -344,15 +344,15 @@ class PaymentRequestSuccess extends PureComponent {
                 onPress={this.onShare}
                 containerStyle={styles.button}
               >
-                <View accessibilityRole="none" accessible={false} style={styles.buttonContent}>
-                  <View accessibilityRole="none" accessible={false} style={styles.buttonIconWrapper}>
+                <View style={styles.buttonContent}>
+                  <View style={styles.buttonIconWrapper}>
                     <EvilIcons
                       name="share-apple"
                       size={24}
                       style={styles.blueIcon}
                     />
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.buttonTextWrapper}>
+                  <View style={styles.buttonTextWrapper}>
                     <Text style={styles.blueButtonText}>
                       {strings('payment_request.send_link')}
                     </Text>
@@ -372,12 +372,12 @@ class PaymentRequestSuccess extends PureComponent {
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.detailsWrapper}>
+          <View style={styles.detailsWrapper}>
             <View
               style={styles.qrCode}
               testID={SendLinkViewSelectorsIDs.QR_MODAL}
             >
-              <View accessibilityRole="none" accessible={false} style={styles.titleQr}>
+              <View style={styles.titleQr}>
                 <Text style={styles.addressTitle}>
                   {strings('payment_request.request_qr_code')}
                 </Text>
@@ -397,7 +397,7 @@ class PaymentRequestSuccess extends PureComponent {
                   />
                 </TouchableOpacity>
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.qrCodeWrapper}>
+              <View style={styles.qrCodeWrapper}>
                 <QRCode
                   value={this.state.qrLink}
                   size={Dimensions.get('window').width - 160}

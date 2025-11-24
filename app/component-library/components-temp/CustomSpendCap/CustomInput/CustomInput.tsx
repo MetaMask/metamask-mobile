@@ -62,7 +62,7 @@ const CustomInput = ({
       ]}
       testID={CUSTOM_SPEND_CAP_INPUT_TEST_ID}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.body}>
+      <View style={styles.body}>
         {!isEditDisabled ? (
           <TextInput
             testID={CUSTOM_SPEND_CAP_INPUT_INPUT_ID}

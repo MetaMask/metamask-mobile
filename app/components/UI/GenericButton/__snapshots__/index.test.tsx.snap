@@ -11,7 +11,7 @@ exports[`GenericButton should render correctly on android 1`] = `
   }
   delayPressIn={0}
 >
-  <View accessibilityRole="none" accessible={false} />
+  <View />
 </TouchableNativeFeedback>
 `;
 

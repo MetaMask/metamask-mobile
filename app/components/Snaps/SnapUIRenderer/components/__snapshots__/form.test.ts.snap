@@ -30,7 +30,7 @@ exports[`SnapUIForm will render 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             color="Default"
@@ -230,7 +230,7 @@ exports[`SnapUIForm will render with fields 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             color="Default"
@@ -775,7 +775,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                   />
                 </TouchableOpacity>
               </View>
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Modal
                   animationType="none"
                   deviceHeight={null}
@@ -1030,7 +1030,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           </View>
                         </View>
                         <RCTScrollView>
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               flexDirection="column"
                               gap={8}
@@ -1506,7 +1506,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                   />
                 </TouchableOpacity>
               </View>
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Modal
                   animationType="none"
                   deviceHeight={null}
@@ -1761,7 +1761,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           </View>
                         </View>
                         <RCTScrollView>
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               flexDirection="column"
                               gap={8}

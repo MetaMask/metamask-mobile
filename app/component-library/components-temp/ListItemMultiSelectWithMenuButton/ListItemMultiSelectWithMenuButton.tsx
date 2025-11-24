@@ -43,7 +43,7 @@ const ListItemMultiSelectWithMenuButton: React.FC<
   });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <TouchableOpacity
         style={styles.base}
         disabled={isDisabled}
@@ -57,7 +57,7 @@ const ListItemMultiSelectWithMenuButton: React.FC<
         </ListItem>
       </TouchableOpacity>
       {showButtonIcon ? (
-        <View accessibilityRole="none" accessible={false} style={styles.buttonIcon}>
+        <View style={styles.buttonIcon}>
           <ButtonIcon
             iconName={buttonIcon}
             iconColor={IconColor.Default}

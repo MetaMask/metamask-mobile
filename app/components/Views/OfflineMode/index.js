@@ -81,8 +81,8 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
   return (
     <SafeAreaView style={styles.container}>
       <Image source={astronautImage} style={styles.frame} />
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
-        <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
+      <View style={styles.content}>
+        <View style={baseStyles.flexGrow}>
           <Text bold centered style={styles.title}>
             {strings('offline_mode.title')}
           </Text>
@@ -90,7 +90,7 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
             {strings(`offline_mode.text`)}
           </Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           <StyledButton type={'blue'} onPress={action}>
             {strings(
               `offline_mode.${infuraBlocked ? 'learn_more' : 'try_again'}`,

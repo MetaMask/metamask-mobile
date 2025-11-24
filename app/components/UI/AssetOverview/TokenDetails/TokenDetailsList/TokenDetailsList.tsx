@@ -48,11 +48,11 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('token.token_details')}
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.listWrapper}>
+      <View style={styles.listWrapper}>
         {tokenDetails.contractAddress && (
           <TokenDetailsListItem
             label={strings('token.contract_address')}

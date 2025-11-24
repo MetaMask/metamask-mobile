@@ -10,14 +10,14 @@ jest.mock('../../components/PredictFeedHeader', () => {
     __esModule: true,
     default: jest.fn(
       ({ isSearchVisible, onSearchToggle, onSearchCancel, onSearch }) => (
-        <View accessibilityRole="none" accessible={false} testID="predict-feed-header-mock">
+        <View testID="predict-feed-header-mock">
           <Pressable testID="mock-search-toggle" onPress={onSearchToggle} />
           <Pressable testID="mock-search-cancel" onPress={onSearchCancel} />
           <Pressable
             testID="mock-search-input"
             onPress={() => onSearch('test query')}
           />
-          {isSearchVisible && <View accessibilityRole="none" accessible={false} testID="search-visible-indicator" />}
+          {isSearchVisible && <View testID="search-visible-indicator" />}
         </View>
       ),
     ),
@@ -28,7 +28,7 @@ jest.mock('../../components/PredictBalance', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     PredictBalance: jest.fn(({ onLayout }) => (
-      <View accessibilityRole="none" accessible={false} testID="predict-balance-mock" onLayout={() => onLayout?.(100)}>
+      <View testID="predict-balance-mock" onLayout={() => onLayout?.(100)}>
         <Text>Balance Component</Text>
       </View>
     )),
@@ -40,7 +40,7 @@ jest.mock('../../components/PredictMarketList', () => {
   return {
     __esModule: true,
     default: jest.fn(({ isSearchVisible, searchQuery }) => (
-      <View accessibilityRole="none" accessible={false} testID="predict-market-list-mock">
+      <View testID="predict-market-list-mock">
         <Text>Market List</Text>
         {isSearchVisible && (
           <Text testID="market-list-search-mode">Searching</Text>

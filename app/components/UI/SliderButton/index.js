@@ -264,7 +264,7 @@ function SliderButton({
       }}
       testID={SwapsViewSelectorsIDs.SWIPE_TO_SWAP_BUTTON}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.trackBack}>
+      <View style={styles.trackBack}>
         <Image
           style={[
             styles.trackBackGradient,
@@ -310,7 +310,7 @@ function SliderButton({
           },
         ]}
       >
-        <View accessibilityRole="none" accessible={false} style={[styles.textFrontContainer, { width: componentWidth }]}>
+        <View style={[styles.textFrontContainer, { width: componentWidth }]}>
           <Text style={styles.textFront}>{completeText}</Text>
         </View>
       </Animated.View>

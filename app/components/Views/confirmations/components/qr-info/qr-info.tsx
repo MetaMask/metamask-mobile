@@ -80,10 +80,10 @@ const QRInfo = () => {
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} testID={ConfirmationInfoComponentIDs.QR_INFO}>
+    <View testID={ConfirmationInfoComponentIDs.QR_INFO}>
       {pendingScanRequest?.type === QrScanRequestType.SIGN &&
         pendingScanRequest?.request && (
-          <View accessibilityRole="none" accessible={false} style={styles.container}>
+          <View style={styles.container}>
             <TouchableOpacity>
               {/* todo: to be replaced by alert system */}
               {errorMessage && (
@@ -104,7 +104,7 @@ const QRInfo = () => {
                   <Text style={styles.errorText}>{cameraError}</Text>
                 </Alert>
               )}
-              <View accessibilityRole="none" accessible={false} style={styles.title}>
+              <View style={styles.title}>
                 <Text style={styles.titleText}>
                   {strings('confirm.qr_scan_text')}
                 </Text>

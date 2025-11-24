@@ -44,7 +44,7 @@ function AssetSwapButton({
   }, [isAssetAllowed, isFeatureLive, isNetworkAllowed]);
   return (
     <>
-      <View accessibilityRole="none" accessible={false} style={isDisabled && styles.disabledButton}>
+      <View style={isDisabled && styles.disabledButton}>
         <AssetActionButton
           icon="swap"
           label={strings('asset_overview.swap')}

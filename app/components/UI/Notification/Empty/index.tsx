@@ -11,7 +11,7 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 const Empty = ({ testID }: { testID?: string }) => (
-  <View accessibilityRole="none" accessible={false} style={styles.wrapper} testID={testID}>
+  <View style={styles.wrapper} testID={testID}>
     <Icon
       name={IconName.Notification}
       size={IconSize.Xl}

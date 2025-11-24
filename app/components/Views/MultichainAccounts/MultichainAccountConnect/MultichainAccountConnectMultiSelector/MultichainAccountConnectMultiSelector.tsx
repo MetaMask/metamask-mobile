@@ -105,8 +105,8 @@ const MultichainAccountConnectMultiSelector = ({
 
   const renderCtaButtons = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.ctaButtonsContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.connectOrUpdateButtonContainer}>
+      <View style={styles.ctaButtonsContainer}>
+        <View style={styles.connectOrUpdateButtonContainer}>
           {areAnyAccountsSelected && (
             <Button
               variant={ButtonVariants.Primary}
@@ -123,15 +123,15 @@ const MultichainAccountConnectMultiSelector = ({
           )}
         </View>
         {areNoAccountsSelected && showDisconnectAllButton && (
-          <View accessibilityRole="none" accessible={false} style={styles.disconnectAllContainer}>
-            <View accessibilityRole="none" accessible={false} style={styles.helpTextContainer}>
+          <View style={styles.disconnectAllContainer}>
+            <View style={styles.helpTextContainer}>
               <HelpText severity={HelpTextSeverity.Error}>
                 {strings('common.disconnect_you_from', {
                   dappUrl: hostname,
                 })}
               </HelpText>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.disconnectAllButtonContainer}>
+            <View style={styles.disconnectAllButtonContainer}>
               <Button
                 variant={ButtonVariants.Primary}
                 label={strings('accounts.disconnect')}
@@ -162,7 +162,7 @@ const MultichainAccountConnectMultiSelector = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <SheetHeader
           title={screenTitle || strings('accounts.connect_accounts_title')}
           onBack={onBack}
@@ -174,8 +174,8 @@ const MultichainAccountConnectMultiSelector = ({
           showCheckbox
         />
         {connection?.originatorInfo?.apiVersion && (
-          <View accessibilityRole="none" accessible={false} style={styles.sdkInfoContainer}>
-            <View accessibilityRole="none" accessible={false} style={styles.sdkInfoDivier} />
+          <View style={styles.sdkInfoContainer}>
+            <View style={styles.sdkInfoDivier} />
             <Text color={TextColor.Muted}>
               {strings('permissions.sdk_connection', {
                 originator_platform: connection?.originatorInfo?.platform,
@@ -184,7 +184,7 @@ const MultichainAccountConnectMultiSelector = ({
             </Text>
           </View>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.body}>{renderCtaButtons()}</View>
+        <View style={styles.body}>{renderCtaButtons()}</View>
       </View>
     </SafeAreaView>
   );

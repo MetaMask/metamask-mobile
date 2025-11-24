@@ -8,7 +8,7 @@ describe('InfoSection', () => {
   it('should render text passed correctly', async () => {
     const { getByText } = render(
       <InfoSection>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text>Test</Text>
         </View>
       </InfoSection>,

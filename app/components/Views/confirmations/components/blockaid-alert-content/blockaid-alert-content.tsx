@@ -100,14 +100,14 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
         isExpanded={isExpanded}
         horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.details}>
+        <View style={styles.details}>
           {alertDetails?.map((feature, i) => (
             <Text key={`details-${i}`} style={styles.detailsItem}>
               {'• ' + feature}
             </Text>
           ))}
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.attributionBase}>
+        <View style={styles.attributionBase}>
           <Text
             variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
             data-testid={FALSE_POSITIVE_REPOST_LINE_TEST_ID}

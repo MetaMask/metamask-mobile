@@ -22,7 +22,7 @@ const BadgeBase: React.FC<BadgeBaseProps> = ({ children, style, ...props }) => {
   });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.base} testID={BADGE_BASE_TEST_ID} {...props}>
+    <View style={styles.base} testID={BADGE_BASE_TEST_ID} {...props}>
       {children}
     </View>
   );

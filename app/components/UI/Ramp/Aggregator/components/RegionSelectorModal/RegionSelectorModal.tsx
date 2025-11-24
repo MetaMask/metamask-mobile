@@ -174,11 +174,11 @@ function RegionSelectorModal() {
           accessible
         >
           <ListItemColumn widthType={WidthType.Fill}>
-            <View accessibilityRole="none" accessible={false} style={styles.region}>
-              <View accessibilityRole="none" accessible={false} style={styles.emoji}>
+            <View style={styles.region}>
+              <View style={styles.emoji}>
                 <Text variant={TextVariant.BodyLGMedium}>{region.emoji}</Text>
               </View>
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Text variant={TextVariant.BodyLGMedium}>{region.name}</Text>
               </View>
             </View>
@@ -196,7 +196,7 @@ function RegionSelectorModal() {
 
   const renderEmptyList = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.emptyList}>
+      <View style={styles.emptyList}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('fiat_on_ramp_aggregator.region.no_region_results', {
             searchString,
@@ -267,7 +267,7 @@ function RegionSelectorModal() {
             : regionInTransit?.name}
         </Text>
       </BottomSheetHeader>
-      <View accessibilityRole="none" accessible={false} style={styles.description}>
+      <View style={styles.description}>
         <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
           {strings(
             isBuy
@@ -276,7 +276,7 @@ function RegionSelectorModal() {
           )}
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.searchContainer}>
+      <View style={styles.searchContainer}>
         <TextFieldSearch
           value={searchString}
           showClearButton={searchString.length > 0}

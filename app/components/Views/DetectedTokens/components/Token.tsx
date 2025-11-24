@@ -169,7 +169,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.tokenContainer}>
+    <View style={styles.tokenContainer}>
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
@@ -186,12 +186,12 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
         />
       </BadgeWrapper>
 
-      <View accessibilityRole="none" accessible={false} style={styles.tokenInfoContainer}>
+      <View style={styles.tokenInfoContainer}>
         <Text style={styles.tokenUnitLabel}>{tokenBalanceWithSymbol}</Text>
         {fiatBalance ? (
           <Text style={styles.tokenDollarLabel}>{fiatBalance}</Text>
         ) : null}
-        <View accessibilityRole="none" accessible={false} style={styles.tokenAddressContainer}>
+        <View style={styles.tokenAddressContainer}>
           <Text style={styles.tokenAddressLabel}>
             {strings('detected_tokens.token_address')}
           </Text>
@@ -207,7 +207,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
             <Icon style={styles.copyIcon} name={'copy'} size={16} />
           </TouchableOpacity>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.tokenAggregatorContainer}>
+        <View style={styles.tokenAggregatorContainer}>
           <Text style={styles.tokenAggregatorLabel}>
             {strings('detected_tokens.token_lists', {
               listNames: aggregators

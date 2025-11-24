@@ -15,7 +15,7 @@ describe('Accordion - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <Accordion title={SAMPLE_ACCORDION_TITLE}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </Accordion>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -23,7 +23,7 @@ describe('Accordion - Snapshot', () => {
   it('should render a proper expanded state', () => {
     const wrapper = shallow(
       <Accordion title={SAMPLE_ACCORDION_TITLE} isExpanded>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </Accordion>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -34,7 +34,7 @@ describe('Accordion', () => {
   it('should render Accordion', () => {
     const wrapper = shallow(
       <Accordion title={SAMPLE_ACCORDION_TITLE}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </Accordion>,
     );
     const AccordionComponent = wrapper.findWhere(
@@ -46,7 +46,7 @@ describe('Accordion', () => {
   it('should render Accordion content if isExpanded = true', () => {
     const wrapper = shallow(
       <Accordion title={SAMPLE_ACCORDION_TITLE} isExpanded>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </Accordion>,
     );
     const AccordionContentComponent = wrapper.findWhere(
@@ -58,7 +58,7 @@ describe('Accordion', () => {
   it('should NOT render Accordion content if isExpanded = false', () => {
     const wrapper = shallow(
       <Accordion title={SAMPLE_ACCORDION_TITLE}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </Accordion>,
     );
     const AccordionContentComponent = wrapper.findWhere(

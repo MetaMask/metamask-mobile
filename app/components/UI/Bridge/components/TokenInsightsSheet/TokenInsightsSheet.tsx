@@ -333,7 +333,7 @@ const TokenInsightsSheet: React.FC = () => {
   if (isLoading && !marketData) {
     return (
       <BottomSheet ref={bottomSheetRef}>
-        <View accessibilityRole="none" accessible={false} style={[styles.container, styles.loadingContainer]}>
+        <View style={[styles.container, styles.loadingContainer]}>
           <ActivityIndicator
             size="large"
             color={theme.colors.primary.default}
@@ -345,14 +345,14 @@ const TokenInsightsSheet: React.FC = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         {/* Header */}
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.center}
           style={styles.header}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
+          <View style={styles.iconContainer}>
             <TokenIcon
               symbol={token.symbol}
               icon={token.image}
@@ -375,8 +375,8 @@ const TokenInsightsSheet: React.FC = () => {
           style={styles.detailsContainer}
         >
           {/* Price */}
-          <View accessibilityRole="none" accessible={false} style={styles.row}>
-            <View accessibilityRole="none" accessible={false} style={styles.labelContainer}>
+          <View style={styles.row}>
+            <View style={styles.labelContainer}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.price')}
               </Text>
@@ -385,13 +385,13 @@ const TokenInsightsSheet: React.FC = () => {
           </View>
 
           {/* Percent Change */}
-          <View accessibilityRole="none" accessible={false} style={styles.row}>
-            <View accessibilityRole="none" accessible={false} style={styles.labelContainer}>
+          <View style={styles.row}>
+            <View style={styles.labelContainer}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.percent_change')}
               </Text>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.valueContainer}>
+            <View style={styles.valueContainer}>
               {priceChange24h !== 0 && (
                 <Icon
                   name={
@@ -419,7 +419,7 @@ const TokenInsightsSheet: React.FC = () => {
           </View>
 
           {/* Volume */}
-          <View accessibilityRole="none" accessible={false} style={styles.row}>
+          <View style={styles.row}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('bridge.volume')}
             </Text>
@@ -429,7 +429,7 @@ const TokenInsightsSheet: React.FC = () => {
           </View>
 
           {/* Market Cap */}
-          <View accessibilityRole="none" accessible={false} style={styles.row}>
+          <View style={styles.row}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('bridge.market_cap_fdv')}
             </Text>
@@ -440,8 +440,8 @@ const TokenInsightsSheet: React.FC = () => {
 
           {/* Contract Address - Only show for non-native tokens */}
           {shouldShowContractAddress() && (
-            <View accessibilityRole="none" accessible={false} style={styles.row}>
-              <View accessibilityRole="none" accessible={false} style={styles.labelContainer}>
+            <View style={styles.row}>
+              <View style={styles.labelContainer}>
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
@@ -450,7 +450,7 @@ const TokenInsightsSheet: React.FC = () => {
                 </Text>
               </View>
               <TouchableOpacity onPress={handleCopyAddress}>
-                <View accessibilityRole="none" accessible={false} style={styles.valueContainer}>
+                <View style={styles.valueContainer}>
                   <Icon
                     name={IconName.Copy}
                     size={IconSize.Sm}

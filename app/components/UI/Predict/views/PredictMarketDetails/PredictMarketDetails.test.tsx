@@ -117,7 +117,7 @@ jest.mock('react-native-safe-area-context', () => {
       style?: React.ComponentProps<typeof View>['style'];
       testID?: string;
     }) => (
-      <View accessibilityRole="none" accessible={false} style={style} testID={testID}>
+      <View style={style} testID={testID}>
         {children}
       </View>
     ),
@@ -236,7 +236,7 @@ jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockPredictDetailsChart() {
     return (
-      <View accessibilityRole="none" accessible={false} testID="predict-details-chart">
+      <View testID="predict-details-chart">
         <Text>Chart Component</Text>
       </View>
     );
@@ -251,7 +251,7 @@ jest.mock('../../components/PredictMarketOutcome', () => {
     outcome: { title?: string };
   }) {
     return (
-      <View accessibilityRole="none" accessible={false} testID="predict-market-outcome">
+      <View testID="predict-market-outcome">
         <Text>{outcome?.title || 'Outcome'}</Text>
       </View>
     );
@@ -262,7 +262,7 @@ jest.mock('../../../../Base/TabBar', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockTabBar({ textStyle }: { textStyle: object }) {
     return (
-      <View accessibilityRole="none" accessible={false} testID="tab-bar">
+      <View testID="tab-bar">
         <Text style={textStyle}>Tab Bar</Text>
       </View>
     );
@@ -279,7 +279,7 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
     renderTabBar?: () => React.ReactNode;
   }) {
     return (
-      <View accessibilityRole="none" accessible={false} testID="scrollable-tab-view">
+      <View testID="scrollable-tab-view">
         {renderTabBar?.()}
         {children}
       </View>
@@ -394,7 +394,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
       size?: string;
       color?: string;
     }) {
-      return <View accessibilityRole="none" accessible={false} testID={`icon-${name}`} />;
+      return <View testID={`icon-${name}`} />;
     },
     IconName: {
       ArrowLeft: 'ArrowLeft',

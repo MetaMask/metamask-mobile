@@ -67,15 +67,15 @@ export default class PickComponent extends PureComponent<PickComponentProps> {
     const styles = createStyles(colors);
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.root}>
-        <View accessibilityRole="none" accessible={false} style={styles.option}>
+      <View style={styles.root}>
+        <View style={styles.option}>
           <RadioButton
             onPress={this.pickFirst}
             isChecked={selectedValue === valueFirst}
             label={textFirst}
           />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.option}>
+        <View style={styles.option}>
           <RadioButton
             onPress={this.pickSecond}
             isChecked={selectedValue === valueSecond}

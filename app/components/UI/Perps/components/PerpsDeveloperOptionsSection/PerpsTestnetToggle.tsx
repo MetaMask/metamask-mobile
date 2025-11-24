@@ -66,7 +66,7 @@ export const PerpsTestnetToggle = () => {
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container} testID={PerpsTestnetToggleSelectorsIDs.ROOT}>
+    <View style={styles.container} testID={PerpsTestnetToggleSelectorsIDs.ROOT}>
       <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
         {strings('perps.developer_options.hyperliquid_network_toggle')}
       </Text>

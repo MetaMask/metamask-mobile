@@ -250,7 +250,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
   }));
 
   const renderPostCompletedContent = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.absoluteFill}>
+    <View style={styles.absoluteFill}>
       <Animated.View style={[styles.outerCircle, outerCircleStyle]}>
         <Animated.View style={[styles.innerCircle, innerCircleStyle]} />
       </Animated.View>
@@ -309,7 +309,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
       activeOpacity={1}
     >
       <Animated.View style={[styles.container, containerStyle]}>
-        <View accessibilityRole="none" accessible={false} style={styles.progressContainer}>
+        <View style={styles.progressContainer}>
           {renderPostCompletedContent()}
           {renderPreCompletedContent()}
         </View>

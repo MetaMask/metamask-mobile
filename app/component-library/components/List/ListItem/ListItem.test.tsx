@@ -17,7 +17,7 @@ describe('ListItem', () => {
   it('should render snapshot correctly', () => {
     const wrapper = render(
       <ListItem>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItem>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -25,8 +25,8 @@ describe('ListItem', () => {
 
   it('should render the top accessory', () => {
     const wrapper = render(
-      <ListItem topAccessory={<View accessibilityRole="none" accessible={false} />}>
-        <View accessibilityRole="none" accessible={false} />
+      <ListItem topAccessory={<View />}>
+        <View />
       </ListItem>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -34,8 +34,8 @@ describe('ListItem', () => {
 
   it('should render the bottom accessory', () => {
     const wrapper = render(
-      <ListItem bottomAccessory={<View accessibilityRole="none" accessible={false} />}>
-        <View accessibilityRole="none" accessible={false} />
+      <ListItem bottomAccessory={<View />}>
+        <View />
       </ListItem>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -44,8 +44,8 @@ describe('ListItem', () => {
   it('should render the correct topAccessoryGap', () => {
     const givenTopAccessoryGap = 20;
     const { getByRole } = render(
-      <ListItem topAccessory={<View accessibilityRole="none" accessible={false} />} topAccessoryGap={givenTopAccessoryGap}>
-        <View accessibilityRole="none" accessible={false} />
+      <ListItem topAccessory={<View />} topAccessoryGap={givenTopAccessoryGap}>
+        <View />
       </ListItem>,
     );
     expect(getByRole('none').props.children[0].props.style.marginBottom).toBe(
@@ -57,10 +57,10 @@ describe('ListItem', () => {
     const givenBottomAccessoryGap = 20;
     const { getByRole } = render(
       <ListItem
-        bottomAccessory={<View accessibilityRole="none" accessible={false} />}
+        bottomAccessory={<View />}
         bottomAccessoryGap={givenBottomAccessoryGap}
       >
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItem>,
     );
     expect(getByRole('none').props.children[2].props.style.marginTop).toBe(
@@ -71,8 +71,8 @@ describe('ListItem', () => {
   it('should render the correct default gap', () => {
     const { getByTestId } = render(
       <ListItem>
-        <View accessibilityRole="none" accessible={false} />
-        <View accessibilityRole="none" accessible={false} />
+        <View />
+        <View />
       </ListItem>,
     );
     expect(getByTestId(TESTID_LISTITEM_GAP).props.style.width).toBe(
@@ -84,8 +84,8 @@ describe('ListItem', () => {
     const givenGap = 20;
     const { getByTestId } = render(
       <ListItem gap={givenGap}>
-        <View accessibilityRole="none" accessible={false} />
-        <View accessibilityRole="none" accessible={false} />
+        <View />
+        <View />
       </ListItem>,
     );
     expect(getByTestId(TESTID_LISTITEM_GAP).props.style.width).toBe(givenGap);
@@ -94,7 +94,7 @@ describe('ListItem', () => {
   it('should not render a gap with only 1 child', () => {
     const { queryByTestId } = render(
       <ListItem>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItem>,
     );
     expect(queryByTestId(TESTID_LISTITEM_GAP)).toBeNull();
@@ -103,7 +103,7 @@ describe('ListItem', () => {
   it('should render the correct default verticalAlignment', () => {
     const { getByRole } = render(
       <ListItem>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItem>,
     );
     expect(getByRole('none').props.children[1].props.style.alignItems).toBe(
@@ -114,7 +114,7 @@ describe('ListItem', () => {
   it('should render the given verticalAlignment', () => {
     const { getByRole } = render(
       <ListItem verticalAlignment={VerticalAlignment.Top}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItem>,
     );
 

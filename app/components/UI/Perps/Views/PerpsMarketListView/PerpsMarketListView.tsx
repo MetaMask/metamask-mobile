@@ -318,7 +318,7 @@ const PerpsMarketListView = ({
     // Skeleton List - show immediately while loading
     if (isLoadingMarkets) {
       return (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           {Array.from({ length: 8 }).map((_, index) => (
             //Using index as key is fine here because the list is static
             // eslint-disable-next-line react/no-array-index-key
@@ -334,7 +334,7 @@ const PerpsMarketListView = ({
     // Error (Failed to load markets)
     if (error && displayMarkets.length === 0) {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.errorContainer}>
+        <View style={styles.errorContainer}>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Error}
@@ -352,7 +352,7 @@ const PerpsMarketListView = ({
     // Empty favorites results - show when favorites filter is active but no favorites found
     if (showFavoritesOnly && displayMarkets.length === 0) {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.emptyStateContainer}>
+        <View style={styles.emptyStateContainer}>
           <Icon
             name={IconName.Star}
             size={IconSize.Xl}
@@ -380,7 +380,7 @@ const PerpsMarketListView = ({
     // Empty search results - show when search is visible and no markets match
     if (isSearchVisible && displayMarkets.length === 0) {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.emptyStateContainer}>
+        <View style={styles.emptyStateContainer}>
           <Icon
             name={IconName.Search}
             size={IconSize.Xl}
@@ -447,7 +447,7 @@ const PerpsMarketListView = ({
         !isLoadingMarkets &&
         !error &&
         tabsData.length > 0 && (
-          <View accessibilityRole="none" accessible={false} style={styles.tabsContainer}>
+          <View style={styles.tabsContainer}>
             {/* Tab Bar */}
             <TabsBar
               tabs={tabsData.map((tab) => ({
@@ -522,14 +522,14 @@ const PerpsMarketListView = ({
         !isLoadingMarkets &&
         !error &&
         tabsData.length === 0 && (
-          <View accessibilityRole="none" accessible={false} style={styles.listContainerWithTabBar}>
+          <View style={styles.listContainerWithTabBar}>
             {renderMarketList()}
           </View>
         )}
 
       {/* Show regular list when searching or loading */}
       {(isSearchVisible || isLoadingMarkets || error) && (
-        <View accessibilityRole="none" accessible={false} style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
+        <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
       )}
 
       {/* Sort Field Bottom Sheet */}

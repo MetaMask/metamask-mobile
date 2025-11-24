@@ -86,7 +86,7 @@ const GetStarted: React.FC = () => {
       <ScreenLayout.Body>
         <ScrollView>
           <ScreenLayout.Content>
-            <View accessibilityRole="none" accessible={false} style={styles.getStartedImageWrapper}>
+            <View style={styles.getStartedImageWrapper}>
               <Image
                 source={
                   metamaskUsdEnabled ? getStartedIconMUSD : getStartedIcon
@@ -104,13 +104,13 @@ const GetStarted: React.FC = () => {
                 : strings('deposit.get_started.title')}
             </Text>
             {bulletPoints.map((bulletPoint, index) => (
-              <View accessibilityRole="none" accessible={false} key={index} style={styles.bulletPointContainer}>
+              <View key={index} style={styles.bulletPointContainer}>
                 <Icon
                   name={IconName.Check}
                   color={theme.colors.success.default}
                   size={IconSize.Lg}
                 />
-                <View accessibilityRole="none" accessible={false} style={styles.bulletPointContent}>
+                <View style={styles.bulletPointContent}>
                   <Text variant={TextVariant.BodyMDBold}>
                     {bulletPoint.title}
                   </Text>

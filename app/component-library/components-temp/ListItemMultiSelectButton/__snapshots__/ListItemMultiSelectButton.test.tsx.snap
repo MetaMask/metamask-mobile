@@ -46,7 +46,7 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
           }
         }
       >
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </View>
     </View>
   </TouchableOpacity>

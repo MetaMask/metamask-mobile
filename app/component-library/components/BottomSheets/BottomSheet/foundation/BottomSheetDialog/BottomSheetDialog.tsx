@@ -245,8 +245,8 @@ const BottomSheetDialog = forwardRef<
             style={combinedSheetStyle}
           >
             {isInteractable && (
-              <View accessibilityRole="none" accessible={false} style={styles.notchWrapper}>
-                <View accessibilityRole="none" accessible={false} style={styles.notch} />
+              <View style={styles.notchWrapper}>
+                <View style={styles.notch} />
               </View>
             )}
             {children}

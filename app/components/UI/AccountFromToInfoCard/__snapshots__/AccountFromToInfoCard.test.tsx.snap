@@ -78,7 +78,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
             }
             testID="badge-wrapper-badge"
           >
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <View
                 style={
                   {
@@ -180,7 +180,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
               </View>
             </View>
           </View>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <Text
               accessibilityRole="text"
               style={
@@ -221,7 +221,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
             </View>
           </View>
         </View>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text
             accessibilityRole="text"
             style={
@@ -482,7 +482,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
       </View>
     </View>
   </View>
-  <View accessibilityRole="none" accessible={false} />
+  <View />
 </View>
 `;
 

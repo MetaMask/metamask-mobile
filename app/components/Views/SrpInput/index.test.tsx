@@ -44,7 +44,7 @@ describe('SrpInput', () => {
 
   it('renders the startAccessory when provided', () => {
     const wrapper = render(
-      <SrpInput startAccessory={<View accessibilityRole="none" accessible={false} />} testID={INPUT_TEST_ID} />,
+      <SrpInput startAccessory={<View />} testID={INPUT_TEST_ID} />,
     );
 
     const textFieldComponent = wrapper.getByTestId(
@@ -56,7 +56,7 @@ describe('SrpInput', () => {
 
   it('renders the endAccessory when provided', () => {
     const wrapper = render(
-      <SrpInput endAccessory={<View accessibilityRole="none" accessible={false} />} testID={INPUT_TEST_ID} />,
+      <SrpInput endAccessory={<View />} testID={INPUT_TEST_ID} />,
     );
 
     const textFieldComponent = wrapper.getByTestId(

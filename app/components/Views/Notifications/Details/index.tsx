@@ -101,7 +101,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>
+    <View style={styles.modalContainer}>
       {/* Header */}
       <View
         style={[
@@ -120,7 +120,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           {/* Modal Headers */}
           {state.header && <ModalHeader modalHeader={state.header} />}
 
@@ -138,7 +138,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
 
         {/* Modal Footers */}
         {state.footer && (
-          <View accessibilityRole="none" accessible={false} style={styles.footerContainer}>
+          <View style={styles.footerContainer}>
             <ModalFooter
               modalFooter={state.footer}
               notification={notification}

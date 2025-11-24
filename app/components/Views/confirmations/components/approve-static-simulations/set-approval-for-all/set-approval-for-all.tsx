@@ -21,7 +21,7 @@ const NFTInfoRow: React.FC<NFTInfoRowProps> = ({ transactionMetadata }) => {
   const { styles } = useStyles(styleSheet, {});
   return (
     <InfoRow label={strings('confirm.nfts')}>
-      <View accessibilityRole="none" accessible={false} style={styles.amountAndAddressContainer}>
+      <View style={styles.amountAndAddressContainer}>
         <Pill
           testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
           text={strings('confirm.all')}

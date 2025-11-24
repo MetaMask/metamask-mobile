@@ -88,7 +88,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   const renderFallback = useCallback(
     (isImageSourcePossiblyAvailable: boolean) =>
       isImageSourcePossiblyAvailable ? (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <RemoteImage
             source={NftFallbackImage}
             style={[
@@ -101,7 +101,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             ]}
             testID="fallback-nft-ipfs"
           />
-          <View accessibilityRole="none" accessible={false} style={styles.imageFallBackTextContainer}>
+          <View style={styles.imageFallBackTextContainer}>
             <Text style={styles.imageFallBackText}>
               {collectible.tokenId
                 ? ` #${formatTokenId(parseInt(collectible.tokenId, 10))}`
@@ -242,7 +242,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     collectible.chainId,
   ]);
 
-  return <View accessibilityRole="none" accessible={false} style={styles.container}>{renderMedia()}</View>;
+  return <View style={styles.container}>{renderMedia()}</View>;
 };
 
 export default CollectibleMedia;

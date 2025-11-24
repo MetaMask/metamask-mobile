@@ -34,7 +34,7 @@ const CellBase = ({
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.cellBase}>
+    <View style={styles.cellBase}>
       {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
       <Avatar
         style={styles.avatar}
@@ -42,7 +42,7 @@ const CellBase = ({
         size={DEFAULT_CELLBASE_AVATAR_SIZE}
         {...avatarProps}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.cellBaseInfo}>
+      <View style={styles.cellBaseInfo}>
         <Text
           numberOfLines={1}
           variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
@@ -71,7 +71,7 @@ const CellBase = ({
         )}
         {!!tagLabel && <Tag label={tagLabel} style={styles.tagLabel} />}
       </View>
-      {children && <View accessibilityRole="none" accessible={false} style={styles.optionalAccessory}>{children}</View>}
+      {children && <View style={styles.optionalAccessory}>{children}</View>}
     </View>
   );
 };

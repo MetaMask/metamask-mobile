@@ -52,7 +52,7 @@ function IncompatibleAccountTokenModal() {
         </Text>
       </BottomSheetHeader>
 
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
+      <View style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {strings('deposit.incompatible_token_acount_modal.description', {
             networkName,

@@ -367,7 +367,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                         update={[Function]}
                         viewIsInsideTabBar={false}
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               {
@@ -669,7 +669,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                           </View>
                         </View>
                       </RCTScrollView>
-                      <View accessibilityRole="none" accessible={false} />
+                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>

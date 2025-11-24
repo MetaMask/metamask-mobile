@@ -97,7 +97,7 @@ const CustomAction: React.FC<Props> = ({
           topAccessory={
             <>
               {shouldShowTags && (
-                <View accessibilityRole="none" accessible={false} style={styles.tags}>
+                <View style={styles.tags}>
                   {previouslyUsedProvider ? (
                     <TagColored>
                       {strings('fiat_on_ramp_aggregator.previously_used')}
@@ -111,7 +111,7 @@ const CustomAction: React.FC<Props> = ({
                 accessibilityLabel={`${provider?.name} logo`}
                 accessibilityHint="Shows provider details"
               >
-                <View accessibilityRole="none" accessible={false} style={styles.title}>
+                <View style={styles.title}>
                   {provider?.logos?.[themeAppearance] ? (
                     <RemoteImage
                       style={{
@@ -139,7 +139,7 @@ const CustomAction: React.FC<Props> = ({
               style={[styles.data, animatedStyle]}
               testID="animated-view-height"
             >
-              <View accessibilityRole="none" accessible={false} style={styles.buyButton}>
+              <View style={styles.buyButton}>
                 <StyledButton
                   type={'blue'}
                   onPress={onPressCTA}

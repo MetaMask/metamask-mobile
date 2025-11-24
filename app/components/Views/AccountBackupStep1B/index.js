@@ -212,7 +212,7 @@ const AccountBackupStep1B = (props) => {
     selectSeedlessOnboardingLoginFlow,
   );
 
-  const headerLeft = useCallback(() => <View accessibilityRole="none" accessible={false} />, []);
+  const headerLeft = useCallback(() => <View />, []);
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
@@ -275,12 +275,12 @@ const AccountBackupStep1B = (props) => {
           testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
         >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
-          <View accessibilityRole="none" accessible={false} style={styles.content}>
+          <View style={styles.content}>
             <Text style={styles.titleIcon}>🔒</Text>
             <Text style={styles.title}>
               {strings('account_backup_step_1B.title')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.text}>
+            <View style={styles.text}>
               <Text style={styles.label}>
                 {strings('account_backup_step_1B.subtitle_1')}{' '}
                 <Text style={styles.blue} onPress={showWhatIsSeedphrase}>
@@ -302,7 +302,7 @@ const AccountBackupStep1B = (props) => {
               </Text>
             </TouchableOpacity>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.card}>
+          <View style={styles.card}>
             <Text style={styles.manualTitle}>
               {strings('account_backup_step_1B.manual_title')}
             </Text>
@@ -312,10 +312,10 @@ const AccountBackupStep1B = (props) => {
             <Text style={styles.barsTitle}>
               {strings('account_backup_step_1B.manual_security')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.barsContainer}>
-              <View accessibilityRole="none" accessible={false} style={styles.bar} />
-              <View accessibilityRole="none" accessible={false} style={styles.bar} />
-              <View accessibilityRole="none" accessible={false} style={styles.bar} />
+            <View style={styles.barsContainer}>
+              <View style={styles.bar} />
+              <View style={styles.bar} />
+              <View style={styles.bar} />
             </View>
             <Text style={styles.smallParagraph}>
               {strings('account_backup_step_1B.risks_title')}
@@ -365,9 +365,9 @@ const AccountBackupStep1B = (props) => {
         displayCancelButton={false}
         onRequestClose={hideWhySecureWallet}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.secureModalContainer}>
-          <View accessibilityRole="none" accessible={false} style={styles.secureModalTitleContainer}>
-            <View accessibilityRole="none" accessible={false} style={styles.auxCenterView} />
+        <View style={styles.secureModalContainer}>
+          <View style={styles.secureModalTitleContainer}>
+            <View style={styles.auxCenterView} />
             <Text style={styles.whySecureTitle}>
               {strings('account_backup_step_1B.why_secure_title')}
             </Text>
@@ -379,7 +379,7 @@ const AccountBackupStep1B = (props) => {
               <Icon name="times" style={styles.secureModalXIcon} />
             </TouchableOpacity>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.explainBackupContainer}>
+          <View style={styles.explainBackupContainer}>
             <Image
               source={explain_backup_seedphrase}
               style={styles.image}

@@ -96,7 +96,7 @@ const ProtectYourWallet = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.setting, styles.firstSetting]}>
+    <View style={[styles.setting, styles.firstSetting]}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.protect_title')}
       </Text>

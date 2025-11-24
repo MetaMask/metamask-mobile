@@ -94,9 +94,9 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
-      <View accessibilityRole="none" accessible={false} style={styles.flexRowTokenValueAndAddress}>
-        <View accessibilityRole="none" accessible={false} style={styles.valueAndAddress}>
+    <View style={styles.wrapper}>
+      <View style={styles.flexRowTokenValueAndAddress}>
+        <View style={styles.valueAndAddress}>
           <ButtonPill
             onPress={handlePressTokenValue}
             onPressIn={handlePressTokenValue}
@@ -118,7 +118,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
                 })}
             </Text>
           </ButtonPill>
-          <View accessibilityRole="none" accessible={false} style={styles.marginStart4}>
+          <View style={styles.marginStart4}>
             <AssetPill asset={{ chainId, type: AssetType.Native }} />
           </View>
         </View>
@@ -136,8 +136,8 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
             activeOpacity={1}
             onPress={() => setHasValueModalOpen(false)}
           >
-            <View accessibilityRole="none" accessible={false} style={styles.valueModal}>
-              <View accessibilityRole="none" accessible={false} style={styles.valueModalHeader}>
+            <View style={styles.valueModal}>
+              <View style={styles.valueModalHeader}>
                 <ButtonIcon
                   iconColor={IconColor.Default}
                   style={styles.valueModalHeaderIcon}

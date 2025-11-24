@@ -15,7 +15,7 @@ jest.mock(
   '../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton',
   () => {
     const { View } = jest.requireActual('react-native');
-    return jest.fn(() => <View accessibilityRole="none" accessible={false} testID="perps-skeleton" />);
+    return jest.fn(() => <View testID="perps-skeleton" />);
   },
 );
 jest.mock('@shopify/flash-list', () => {

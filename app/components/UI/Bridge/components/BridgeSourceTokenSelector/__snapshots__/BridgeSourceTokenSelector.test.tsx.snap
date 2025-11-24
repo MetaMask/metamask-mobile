@@ -889,7 +889,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               </View>
                             </View>
                           </View>
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <RCTScrollView
                               ListEmptyComponent={[Function]}
                               bounces={true}
@@ -1027,7 +1027,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               viewabilityConfigCallbackPairs={[]}
                               windowSize={10}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <View
                                   onFocusCapture={[Function]}
                                   onLayout={[Function]}
@@ -1087,7 +1087,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -1364,7 +1364,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -1641,7 +1641,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -1951,7 +1951,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -2228,7 +2228,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -2505,7 +2505,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -2782,7 +2782,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               useNativeDriver={true}
                                             >
@@ -3092,7 +3092,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {

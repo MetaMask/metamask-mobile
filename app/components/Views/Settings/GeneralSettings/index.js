@@ -298,8 +298,8 @@ class Settings extends PureComponent {
   //   const styles = createStyles(colors);
 
   //   return (
-  //     <View accessibilityRole="none" accessible={false} style={styles.setting}>
-  //       <View accessibilityRole="none" accessible={false}>
+  //     <View style={styles.setting}>
+  //       <View>
   //         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
   //           {strings('app_settings.theme_title', {
   //             theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
@@ -329,8 +329,8 @@ class Settings extends PureComponent {
 
     return (
       <ScrollView style={styles.wrapper}>
-        <View accessibilityRole="none" accessible={false} style={styles.inner}>
-          <View accessibilityRole="none" accessible={false} style={[styles.setting, styles.firstSetting]}>
+        <View style={styles.inner}>
+          <View style={[styles.setting, styles.firstSetting]}>
             <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.conversion_title')}
             </Text>
@@ -341,8 +341,8 @@ class Settings extends PureComponent {
             >
               {strings('app_settings.conversion_desc')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.accessory}>
-              <View accessibilityRole="none" accessible={false} style={styles.picker}>
+            <View style={styles.accessory}>
+              <View style={styles.picker}>
                 <SelectComponent
                   selectedValue={currentCurrency}
                   onValueChange={this.selectCurrency}
@@ -352,7 +352,7 @@ class Settings extends PureComponent {
               </View>
             </View>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.setting}>
+          <View style={styles.setting}>
             <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.primary_currency_title')}
             </Text>
@@ -364,7 +364,7 @@ class Settings extends PureComponent {
               {strings('app_settings.primary_currency_desc')}
             </Text>
             {this.primaryCurrencyOptions && (
-              <View accessibilityRole="none" accessible={false} style={styles.accessory}>
+              <View style={styles.accessory}>
                 <PickComponent
                   pick={this.selectPrimaryCurrency}
                   textFirst={strings(
@@ -380,7 +380,7 @@ class Settings extends PureComponent {
               </View>
             )}
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.setting}>
+          <View style={styles.setting}>
             <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.current_language')}
             </Text>
@@ -392,8 +392,8 @@ class Settings extends PureComponent {
               {strings('app_settings.language_desc')}
             </Text>
             {this.languageOptions && (
-              <View accessibilityRole="none" accessible={false} style={styles.accessory}>
-                <View accessibilityRole="none" accessible={false} style={styles.picker}>
+              <View style={styles.accessory}>
+                <View style={styles.picker}>
                   <SelectComponent
                     selectedValue={this.state.currentLanguage}
                     onValueChange={this.selectLanguage}
@@ -404,7 +404,7 @@ class Settings extends PureComponent {
               </View>
             )}
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.setting}>
+          <View style={styles.setting}>
             <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.search_engine')}
             </Text>
@@ -416,8 +416,8 @@ class Settings extends PureComponent {
               {strings('app_settings.engine_desc')}
             </Text>
             {this.searchEngineOptions && (
-              <View accessibilityRole="none" accessible={false} style={styles.accessory}>
-                <View accessibilityRole="none" accessible={false} style={styles.picker}>
+              <View style={styles.accessory}>
+                <View style={styles.picker}>
                   <SelectComponent
                     selectedValue={this.props.searchEngine}
                     onValueChange={this.selectSearchEngine}
@@ -428,12 +428,12 @@ class Settings extends PureComponent {
               </View>
             )}
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.setting}>
-            <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
+          <View style={styles.setting}>
+            <View style={styles.titleContainer}>
               <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
                 {strings('app_settings.hide_zero_balance_tokens_title')}
               </Text>
-              <View accessibilityRole="none" accessible={false} style={styles.toggle}>
+              <View style={styles.toggle}>
                 <Switch
                   value={hideZeroBalanceTokens}
                   onValueChange={this.toggleHideZeroBalanceTokens}
@@ -455,7 +455,7 @@ class Settings extends PureComponent {
               {strings('app_settings.hide_zero_balance_tokens_desc')}
             </Text>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.setting}>
+          <View style={styles.setting}>
             <Text variant={TextVariant.BodyLGMedium}>
               {strings('app_settings.accounts_identicon_title')}
             </Text>
@@ -466,8 +466,8 @@ class Settings extends PureComponent {
             >
               {strings('app_settings.accounts_identicon_desc')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.accessory}>
-              <View accessibilityRole="none" accessible={false} style={styles.identicon_container}>
+            <View style={styles.accessory}>
+              <View style={styles.identicon_container}>
                 <TouchableOpacity
                   onPress={() =>
                     setAvatarAccountType(AvatarAccountType.Maskicon)

@@ -220,8 +220,8 @@ export function EarningsHistoryChart({
       }}
       testID={'earnings-history-chart-container'}
     >
-      <View accessibilityRole="none" accessible={false}>
-        <View accessibilityRole="none" accessible={false} style={styles.earningsHistoryChartHeaderContainer}>
+      <View>
+        <View style={styles.earningsHistoryChartHeaderContainer}>
           <Text variant={TextVariant.HeadingLG} color={colors.success.default}>
             {selectedBarAmount ?? earningsTotal} {ticker}
           </Text>

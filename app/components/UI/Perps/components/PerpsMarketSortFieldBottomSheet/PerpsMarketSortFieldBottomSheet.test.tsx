@@ -55,7 +55,7 @@ jest.mock(
             onCloseBottomSheet: jest.fn(),
           }));
 
-          return <View accessibilityRole="none" accessible={false} testID={testID}>{children}</View>;
+          return <View testID={testID}>{children}</View>;
         },
       ),
     };
@@ -71,7 +71,7 @@ jest.mock(
     }: {
       children: React.ReactNode;
     }) {
-      return <View accessibilityRole="none" accessible={false} testID="bottom-sheet-header">{children}</View>;
+      return <View testID="bottom-sheet-header">{children}</View>;
     };
   },
 );
@@ -92,7 +92,7 @@ jest.mock(
       testID?: string;
     }) {
       return (
-        <View accessibilityRole="none" accessible={false} testID={testID}>
+        <View testID={testID}>
           {options.map((option) => (
             <TouchableOpacity
               key={option.value}

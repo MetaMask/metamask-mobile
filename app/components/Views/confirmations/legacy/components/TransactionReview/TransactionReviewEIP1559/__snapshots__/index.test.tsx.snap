@@ -278,8 +278,8 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
       </View>
     </View>
   </View>
-  <View accessibilityRole="none" accessible={false} />
-  <View accessibilityRole="none" accessible={false} />
-  <View accessibilityRole="none" accessible={false} />
+  <View />
+  <View />
+  <View />
 </View>
 `;

@@ -81,14 +81,14 @@ const PredictGTMModal = () => {
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.pageContainer} testID="predict-gtm-modal-container">
+    <View style={styles.pageContainer} testID="predict-gtm-modal-container">
       {/* Background Image - Full Screen */}
       <Image source={PredictMarketingImage} style={styles.backgroundImage} />
 
       {/* Content Overlay */}
       <SafeAreaView style={styles.contentContainer}>
         {/* Header Section */}
-        <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
+        <View style={styles.headerContainer}>
           <Image
             source={PoweredByPolymarketImage}
             style={styles.poweredByImage}
@@ -103,10 +103,10 @@ const PredictGTMModal = () => {
         </View>
 
         {/* Spacer to push footer to bottom */}
-        <View accessibilityRole="none" accessible={false} style={styles.spacer} />
+        <View style={styles.spacer} />
 
         {/* Footer Section */}
-        <View accessibilityRole="none" accessible={false} style={styles.footerContainer}>
+        <View style={styles.footerContainer}>
           <ButtonBase
             onPress={() => handleGetStarted()}
             testID="predict-gtm-get-started-button"

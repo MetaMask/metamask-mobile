@@ -24,7 +24,7 @@ exports[`MultiAssetListItems render matches previous snapshot 1`] = `
     scrollEventThrottle={0.0001}
     style={{}}
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {

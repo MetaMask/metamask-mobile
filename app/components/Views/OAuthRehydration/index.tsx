@@ -661,8 +661,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           extraScrollHeight={Platform.OS === 'android' ? -200 : 0}
           enableResetScrollToCoords={false}
         >
-          <View accessibilityRole="none" accessible={false} testID={LoginViewSelectors.CONTAINER} style={styles.container}>
-            <View accessibilityRole="none" accessible={false} style={styles.oauthContentWrapper}>
+          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
+            <View style={styles.oauthContentWrapper}>
               <Image
                 source={METAMASK_NAME}
                 style={styles.metamaskName}
@@ -692,7 +692,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 {strings('login.title')}
               </Text>
 
-              <View accessibilityRole="none" accessible={false} style={styles.field}>
+              <View style={styles.field}>
                 <Label
                   variant={TextVariant.BodyMDMedium}
                   color={TextColor.Default}
@@ -718,7 +718,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 />
               </View>
 
-              <View accessibilityRole="none" accessible={false} style={styles.helperTextContainer}>
+              <View style={styles.helperTextContainer}>
                 {!!error && (
                   <HelpText
                     severity={HelpTextSeverity.Error}
@@ -730,7 +730,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 )}
               </View>
 
-              <View accessibilityRole="none" accessible={false} style={styles.ctaWrapperRehydration}>
+              <View style={styles.ctaWrapperRehydration}>
                 <Button
                   variant={ButtonVariants.Primary}
                   width={ButtonWidthTypes.Full}
@@ -756,7 +756,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   size={ButtonSize.Lg}
                 />
               ) : (
-                <View accessibilityRole="none" accessible={false} style={styles.footer}>
+                <View style={styles.footer}>
                   <TouchableOpacity
                     onPress={handleUseOtherMethod}
                     disabled={finalLoading}

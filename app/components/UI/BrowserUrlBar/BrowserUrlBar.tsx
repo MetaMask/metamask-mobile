@@ -247,8 +247,8 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     };
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.browserUrlBarWrapper}>
-        <View accessibilityRole="none" accessible={false} style={styles.main} testID={BrowserViewSelectorsIDs.URL_INPUT}>
+      <View style={styles.browserUrlBarWrapper}>
+        <View style={styles.main} testID={BrowserViewSelectorsIDs.URL_INPUT}>
           {isConnectionIconVisible ? (
             <Icon
               color={colors.icon.alternative}
@@ -257,7 +257,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
               style={styles.connectionIcon}
             />
           ) : null}
-          <View accessibilityRole="none" accessible={false} style={styles.textInputWrapper}>
+          <View style={styles.textInputWrapper}>
             <TextInput
               testID={BrowserURLBarSelectorsIDs.URL_INPUT}
               keyboardType={'web-search'}
@@ -300,7 +300,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
             />
           ) : null}
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.rightButton}>{renderRightButton()}</View>
+        <View style={styles.rightButton}>{renderRightButton()}</View>
       </View>
     );
   },

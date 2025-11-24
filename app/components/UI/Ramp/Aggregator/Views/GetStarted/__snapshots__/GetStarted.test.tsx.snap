@@ -464,7 +464,7 @@ exports[`GetStarted renders correctly 1`] = `
                               }
                             }
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -599,7 +599,7 @@ exports[`GetStarted renders correctly 1`] = `
                             </View>
                           </RCTScrollView>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -1142,7 +1142,7 @@ exports[`GetStarted renders correctly 2`] = `
                               }
                             }
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -1277,7 +1277,7 @@ exports[`GetStarted renders correctly 2`] = `
                             </View>
                           </RCTScrollView>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [

@@ -231,7 +231,7 @@ const EnterAddress = (): JSX.Element => {
         >
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
-            <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
+            <View style={styles.textContainer}>
               <Text variant={TextVariant.HeadingLG}>
                 {strings('deposit.enter_address.title')}
               </Text>
@@ -240,7 +240,7 @@ const EnterAddress = (): JSX.Element => {
               </Text>
             </View>
             {error && (
-              <View accessibilityRole="none" accessible={false} style={styles.errorContainer}>
+              <View style={styles.errorContainer}>
                 <BannerAlert
                   description={error}
                   severity={BannerAlertSeverity.Error}
@@ -284,7 +284,7 @@ const EnterAddress = (): JSX.Element => {
               onSubmitEditing={focusNextField(cityInputRef)}
             />
 
-            <View accessibilityRole="none" accessible={false} style={styles.nameInputRow}>
+            <View style={styles.nameInputRow}>
               <DepositTextField
                 label={strings('deposit.enter_address.city')}
                 placeholder={strings('deposit.enter_address.city')}
@@ -334,7 +334,7 @@ const EnterAddress = (): JSX.Element => {
               )}
             </View>
 
-            <View accessibilityRole="none" accessible={false} style={styles.nameInputRow}>
+            <View style={styles.nameInputRow}>
               <DepositTextField
                 label={strings('deposit.enter_address.postal_code')}
                 placeholder={strings('deposit.enter_address.postal_code')}

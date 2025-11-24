@@ -61,19 +61,19 @@ function Loader({
   }, [error, onError]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <TouchableOpacity onPress={onClose} style={styles.closeButton}>
         <AntIcon color={colors.text.default} size={16} name={'close'} />
       </TouchableOpacity>
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
-        <View accessibilityRole="none" accessible={false} style={styles.item}>
+      <View style={styles.content}>
+        <View style={styles.item}>
           {error ? (
             <FA5Icon name="video-slash" color={colors.icon.default} size={40} />
           ) : (
             <ActivityIndicator color={colors.icon.default} size="large" />
           )}
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.item}>
+        <View style={styles.item}>
           <Text style={styles.text} black>
             {strings(`media_player.${error ? 'not_found' : 'loading'}`)}
           </Text>

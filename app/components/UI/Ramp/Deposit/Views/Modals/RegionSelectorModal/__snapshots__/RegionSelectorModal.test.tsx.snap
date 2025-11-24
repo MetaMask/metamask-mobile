@@ -669,7 +669,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   {
@@ -1406,7 +1406,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -1481,7 +1481,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               🇩🇪
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -1577,7 +1577,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               🇨🇦
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -2337,7 +2337,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -2412,7 +2412,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -2535,7 +2535,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               🇩🇪
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -2631,7 +2631,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               🇨🇦
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -2727,7 +2727,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               🇫🇷
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -3476,7 +3476,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   {
@@ -4242,7 +4242,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -4317,7 +4317,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                               🇩🇪
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -5077,7 +5077,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -5152,7 +5152,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -5275,7 +5275,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               🇩🇪
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -5371,7 +5371,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               🇨🇦
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -5467,7 +5467,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               🇫🇷
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -6227,7 +6227,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -6302,7 +6302,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -6398,7 +6398,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               🇩🇪
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -6521,7 +6521,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               🇨🇦
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -6617,7 +6617,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               🇫🇷
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -7377,7 +7377,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -7452,7 +7452,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -7575,7 +7575,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               🇩🇪
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -7671,7 +7671,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               🇨🇦
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -7767,7 +7767,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               🇫🇷
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={

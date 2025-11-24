@@ -814,7 +814,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                     ]
                                   }
                                 >
-                                  <View accessibilityRole="none" accessible={false}>
+                                  <View>
                                     <View
                                       accessibilityRole="none"
                                       accessible={true}
@@ -850,7 +850,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                             }
                                             testID="badge-wrapper-badge"
                                           >
-                                            <View accessibilityRole="none" accessible={false}>
+                                            <View>
                                               <View
                                                 style={
                                                   [
@@ -1018,7 +1018,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -1296,7 +1296,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                           onPress={[Function]}
                                           testID="select-currency"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -1585,7 +1585,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                           }
                                           testID="listitem-gap"
                                         />
-                                        <View accessibilityRole="none" accessible={false}>
+                                        <View>
                                           <Text
                                             style={
                                               [
@@ -1766,7 +1766,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -1892,7 +1892,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                               horizontal={true}
                               showsHorizontalScrollIndicator={false}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
@@ -5951,7 +5951,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     ]
                                   }
                                 >
-                                  <View accessibilityRole="none" accessible={false}>
+                                  <View>
                                     <View
                                       accessibilityRole="none"
                                       accessible={true}
@@ -6260,7 +6260,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                           onPress={[Function]}
                                           testID="select-currency"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -6609,7 +6609,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -6735,7 +6735,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                               horizontal={true}
                               showsHorizontalScrollIndicator={false}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
@@ -9274,7 +9274,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     ]
                                   }
                                 >
-                                  <View accessibilityRole="none" accessible={false}>
+                                  <View>
                                     <View
                                       accessibilityRole="none"
                                       accessible={true}
@@ -9841,7 +9841,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -9967,7 +9967,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                               horizontal={true}
                               showsHorizontalScrollIndicator={false}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
@@ -12508,7 +12508,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     ]
                                   }
                                 >
-                                  <View accessibilityRole="none" accessible={false}>
+                                  <View>
                                     <View
                                       accessibilityRole="none"
                                       accessible={true}
@@ -12544,7 +12544,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                             }
                                             testID="badge-wrapper-badge"
                                           >
-                                            <View accessibilityRole="none" accessible={false}>
+                                            <View>
                                               <View
                                                 style={
                                                   [
@@ -12712,7 +12712,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -12990,7 +12990,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           onPress={[Function]}
                                           testID="select-currency"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -13279,7 +13279,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           }
                                           testID="listitem-gap"
                                         />
-                                        <View accessibilityRole="none" accessible={false}>
+                                        <View>
                                           <Text
                                             style={
                                               [
@@ -13417,7 +13417,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -13543,7 +13543,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                               horizontal={true}
                               showsHorizontalScrollIndicator={false}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
@@ -15324,7 +15324,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     ]
                                   }
                                 >
-                                  <View accessibilityRole="none" accessible={false}>
+                                  <View>
                                     <View
                                       accessibilityRole="none"
                                       accessible={true}
@@ -15360,7 +15360,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                             }
                                             testID="badge-wrapper-badge"
                                           >
-                                            <View accessibilityRole="none" accessible={false}>
+                                            <View>
                                               <View
                                                 style={
                                                   [
@@ -15528,7 +15528,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -15806,7 +15806,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                           onPress={[Function]}
                                           testID="select-currency"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -16155,7 +16155,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -16281,7 +16281,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                               horizontal={true}
                               showsHorizontalScrollIndicator={false}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
@@ -18784,7 +18784,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     ]
                                   }
                                 >
-                                  <View accessibilityRole="none" accessible={false}>
+                                  <View>
                                     <View
                                       accessibilityRole="none"
                                       accessible={true}
@@ -19351,7 +19351,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -19477,7 +19477,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                               horizontal={true}
                               showsHorizontalScrollIndicator={false}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
@@ -21258,7 +21258,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     ]
                                   }
                                 >
-                                  <View accessibilityRole="none" accessible={false}>
+                                  <View>
                                     <View
                                       accessibilityRole="none"
                                       accessible={true}
@@ -21294,7 +21294,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             }
                                             testID="badge-wrapper-badge"
                                           >
-                                            <View accessibilityRole="none" accessible={false}>
+                                            <View>
                                               <View
                                                 style={
                                                   [
@@ -21462,7 +21462,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -21740,7 +21740,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           onPress={[Function]}
                                           testID="select-currency"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -22029,7 +22029,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           }
                                           testID="listitem-gap"
                                         />
-                                        <View accessibilityRole="none" accessible={false}>
+                                        <View>
                                           <Text
                                             style={
                                               [
@@ -22210,7 +22210,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -22336,7 +22336,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                               horizontal={true}
                               showsHorizontalScrollIndicator={false}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
@@ -24184,7 +24184,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     ]
                                   }
                                 >
-                                  <View accessibilityRole="none" accessible={false}>
+                                  <View>
                                     <View
                                       accessibilityRole="none"
                                       accessible={true}
@@ -24220,7 +24220,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             }
                                             testID="badge-wrapper-badge"
                                           >
-                                            <View accessibilityRole="none" accessible={false}>
+                                            <View>
                                               <View
                                                 style={
                                                   [
@@ -24388,7 +24388,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           }
                                           testID="listitemcolumn"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -24804,7 +24804,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           }
                                           testID="listitem-gap"
                                         />
-                                        <View accessibilityRole="none" accessible={false}>
+                                        <View>
                                           <Text
                                             style={
                                               [
@@ -24985,7 +24985,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -25111,7 +25111,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                               horizontal={true}
                               showsHorizontalScrollIndicator={false}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}

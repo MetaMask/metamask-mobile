@@ -60,7 +60,7 @@ const Checkbox = ({
       {...props}
       disabled={isDisabled || isReadOnly}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.checkbox} accessibilityRole="checkbox">
+      <View style={styles.checkbox} accessibilityRole="checkbox">
         {iconName && (
           <Icon
             testID={CHECKBOX_ICON_TESTID}
@@ -72,7 +72,7 @@ const Checkbox = ({
         )}
       </View>
       {label && (
-        <View accessibilityRole="none" accessible={false} style={styles.label}>
+        <View style={styles.label}>
           {typeof label === 'string' ? (
             <Text
               variant={DEFAULT_CHECKBOX_LABEL_TEXTVARIANT}

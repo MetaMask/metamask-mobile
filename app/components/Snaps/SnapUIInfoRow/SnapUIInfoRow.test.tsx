@@ -98,7 +98,7 @@ describe('SnapUIInfoRow', () => {
     const { getByTestId, queryByTestId } = render(
       <SnapUIInfoRow
         label="Label with Custom Child"
-        labelChildren={<View accessibilityRole="none" accessible={false} testID="custom-label-child" />}
+        labelChildren={<View testID="custom-label-child" />}
         tooltip="This tooltip should not appear"
       >
         Some value

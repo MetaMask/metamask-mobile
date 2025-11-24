@@ -78,8 +78,8 @@ const SmartAccountModal = () => {
       >
         {strings('multichain_accounts.account_details.smart_account')}
       </HeaderBase>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
-        <View accessibilityRole="none" accessible={false} style={styles.contentContainer} testID="smart-account-content">
+      <View style={styles.container}>
+        <View style={styles.contentContainer} testID="smart-account-content">
           <Box style={styles.cardContainer}>
             <Text variant={TextVariant.BodyMDMedium}>
               {strings('multichain_accounts.smart_account.title')}

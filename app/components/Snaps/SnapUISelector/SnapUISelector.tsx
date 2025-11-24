@@ -160,7 +160,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
         onCancel={handleModalClose}
         avoidKeyboard
       >
-        <View accessibilityRole="none" accessible={false} style={styles.modal}>
+        <View style={styles.modal}>
           <BottomSheetHeader onBack={handleModalClose}>
             {title}
           </BottomSheetHeader>

@@ -6,7 +6,7 @@ import { styleSheet } from './styles';
 export const TokenDiscovery: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <Text>Token Discovery placeholder</Text>
     </View>
   );

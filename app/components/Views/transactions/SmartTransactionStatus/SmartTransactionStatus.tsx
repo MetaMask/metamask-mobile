@@ -381,7 +381,7 @@ const SmartTransactionStatus = ({
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+    <View style={styles.wrapper}>
       <TouchableOpacity onPress={onConfirm} style={styles.close}>
         <Icon name={IconName.Close} />
       </TouchableOpacity>
@@ -390,11 +390,11 @@ const SmartTransactionStatus = ({
         <TransactionBackgroundTop name="TransactionBackgroundTop" />
       </LoopingScrollAnimation>
 
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
+      <View style={styles.content}>
         <Icon name={icon} color={iconColor} size={IconSize.Xl} />
         <Text style={styles.header}>{header}</Text>
         {isStxPending && <ProgressBar percentComplete={percentComplete} />}
-        <View accessibilityRole="none" accessible={false} style={styles.textWrapper}>
+        <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
 
           {isEvmSelected ? renderViewTransactionLink() : null}
@@ -404,7 +404,7 @@ const SmartTransactionStatus = ({
         <TransactionBackgroundBottom name="TransactionBackgroundBottom" />
       </LoopingScrollAnimation>
 
-      <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
+      <View style={styles.buttonWrapper}>
         {renderPrimaryButton()}
         {renderSecondaryButton()}
       </View>

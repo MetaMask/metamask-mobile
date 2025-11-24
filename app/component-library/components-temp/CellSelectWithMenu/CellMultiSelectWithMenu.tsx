@@ -42,7 +42,7 @@ const CellMultiSelectWithMenu = ({
       testID={CellComponentSelectorsIDs.MULTISELECT_WITH_MENU}
       {...props}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.cellBase}>
+      <View style={styles.cellBase}>
         {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
         {withAvatar ? (
           <Avatar
@@ -53,7 +53,7 @@ const CellMultiSelectWithMenu = ({
           />
         ) : null}
 
-        <View accessibilityRole="none" accessible={false} style={styles.cellMultiSelectBaseInfo}>
+        <View style={styles.cellMultiSelectBaseInfo}>
           {title === undefined || typeof title === 'string' ? (
             <Text
               numberOfLines={1}
@@ -78,7 +78,7 @@ const CellMultiSelectWithMenu = ({
             />
           )}
         </View>
-        {children && <View accessibilityRole="none" accessible={false} style={styles.optionalAccessory}>{children}</View>}
+        {children && <View style={styles.optionalAccessory}>{children}</View>}
       </View>
     </ListItemMultiSelectWithMenuButton>
   );

@@ -64,7 +64,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
 
   const renderEmpty = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.emptyContainer} testID={`${testID}-empty`}>
+      <View style={styles.emptyContainer} testID={`${testID}-empty`}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
           {emptyMessage}
         </Text>

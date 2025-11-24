@@ -74,8 +74,8 @@ const InstallSnapConnectionRequest = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} testID={SNAP_INSTALL_CONNECTION_REQUEST} style={styles.root}>
-      <View accessibilityRole="none" accessible={false} style={styles.accountCardWrapper}>
+    <View testID={SNAP_INSTALL_CONNECTION_REQUEST} style={styles.root}>
+      <View style={styles.accountCardWrapper}>
         <TagUrl
           imageSource={favicon}
           label={urlWithProtocol}
@@ -93,7 +93,7 @@ const InstallSnapConnectionRequest = ({
             snap: snapName,
           })}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
+        <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
             buttonPropsArray={[cancelButtonProps, connectButtonProps]}

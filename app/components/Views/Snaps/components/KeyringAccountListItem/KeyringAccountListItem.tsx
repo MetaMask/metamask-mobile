@@ -38,9 +38,9 @@ const KeyringAccountListItem = ({
   }, [blockExplorerUrl]);
 
   return (
-    <View accessibilityRole="none" accessible={false} testID={KEYRING_ACCOUNT_LIST_ITEM} style={styles.container}>
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
-        <View accessibilityRole="none" accessible={false} style={styles.textContent}>
+    <View testID={KEYRING_ACCOUNT_LIST_ITEM} style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.textContent}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
             {strings(
               'app_settings.snaps.keyring_account_list_item.account_name',
@@ -56,7 +56,7 @@ const KeyringAccountListItem = ({
             {toChecksumHexAddress(account.address)}
           </Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           <ButtonIcon
             testID={KEYRING_ACCOUNT_LIST_ITEM_BUTTON}
             iconName={IconName.Export}

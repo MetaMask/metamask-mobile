@@ -145,7 +145,7 @@ jest.mock('../../../../Base/Keypad', () => {
     decimals: number;
     style?: React.ComponentProps<typeof View>['style'];
   }) => (
-    <View accessibilityRole="none" accessible={false} style={style} testID="keypad-component">
+    <View style={style} testID="keypad-component">
       <Text testID="keypad-value">{value || '0'}</Text>
       <Text testID="keypad-currency">{currency}</Text>
       <TouchableOpacity
@@ -182,7 +182,7 @@ jest.mock(
           onCloseBottomSheet: jest.fn(),
         }));
 
-        return <View accessibilityRole="none" accessible={false} {...props}>{props.children}</View>;
+        return <View {...props}>{props.children}</View>;
       },
     );
 
@@ -200,7 +200,7 @@ jest.mock(
     return {
       __esModule: true,
       default: (props: { children: React.ReactNode }) => (
-        <View accessibilityRole="none" accessible={false} {...props}>{props.children}</View>
+        <View {...props}>{props.children}</View>
       ),
     };
   },
@@ -222,7 +222,7 @@ jest.mock(
           disabled?: boolean;
         }[];
       }) => (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           {buttonPropsArray?.map((buttonProps, index) => (
             <TouchableOpacity
               key={index}

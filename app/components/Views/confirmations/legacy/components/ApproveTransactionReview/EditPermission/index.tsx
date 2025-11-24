@@ -181,12 +181,12 @@ function EditPermission({
   ]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+    <View style={styles.wrapper}>
       <ConnectHeader
         action={onBackPress}
         title={strings('spend_limit_edition.title')}
       />
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <Text style={styles.spendLimitTitle}>
           {strings('spend_limit_edition.spend_limit')}
         </Text>
@@ -196,20 +196,20 @@ function EditPermission({
           {strings('spend_limit_edition.allow_explanation')}
         </Text>
 
-        <View accessibilityRole="none" accessible={false} style={styles.option}>
+        <View style={styles.option}>
           <TouchableOpacity
             onPress={onPressSpendLimitUnlimitedSelected}
             style={styles.touchableOption}
           >
             {spendLimitUnlimitedSelected ? (
-              <View accessibilityRole="none" accessible={false} style={styles.outSelectedCircle}>
-                <View accessibilityRole="none" accessible={false} style={styles.selectedCircle} />
+              <View style={styles.outSelectedCircle}>
+                <View style={styles.selectedCircle} />
               </View>
             ) : (
-              <View accessibilityRole="none" accessible={false} style={styles.circle} />
+              <View style={styles.circle} />
             )}
           </TouchableOpacity>
-          <View accessibilityRole="none" accessible={false} style={styles.spendLimitContent}>
+          <View style={styles.spendLimitContent}>
             <Text
               style={[
                 styles.optionText,
@@ -230,20 +230,20 @@ function EditPermission({
           </View>
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.option}>
+        <View style={styles.option}>
           <TouchableOpacity
             onPress={onPressSpendLimitCustomSelected}
             style={styles.touchableOption}
           >
             {spendLimitUnlimitedSelected ? (
-              <View accessibilityRole="none" accessible={false} style={styles.circle} />
+              <View style={styles.circle} />
             ) : (
-              <View accessibilityRole="none" accessible={false} style={styles.outSelectedCircle}>
-                <View accessibilityRole="none" accessible={false} style={styles.selectedCircle} />
+              <View style={styles.outSelectedCircle}>
+                <View style={styles.selectedCircle} />
               </View>
             )}
           </TouchableOpacity>
-          <View accessibilityRole="none" accessible={false} style={styles.spendLimitContent}>
+          <View style={styles.spendLimitContent}>
             <Text
               style={[
                 styles.optionText,
@@ -273,7 +273,7 @@ function EditPermission({
               keyboardAppearance={themeAppearance}
             />
             {displayErrorMsg && (
-              <View accessibilityRole="none" accessible={false} style={styles.errorMessageWrapper}>
+              <View style={styles.errorMessageWrapper}>
                 <ErrorMessage
                   errorMessage={strings(
                     'spend_limit_edition.must_be_at_least',

@@ -47,7 +47,7 @@ class TabCountIcon extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View accessibilityRole="none" accessible={false} style={[styles.tabIcon, style]}>
+      <View style={[styles.tabIcon, style]}>
         <Text
           style={styles.tabCount}
           testID={BrowserViewSelectorsIDs.TABS_NUMBER}

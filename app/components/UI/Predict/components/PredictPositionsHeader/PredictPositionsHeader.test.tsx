@@ -48,7 +48,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID?: string;
       [key: string]: unknown;
     }) => (
-      <View accessibilityRole="none" accessible={false} testID={testID} {...props}>
+      <View testID={testID} {...props}>
         {children}
       </View>
     ),
@@ -157,7 +157,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
       testID?: string;
       [key: string]: unknown;
     }) => (
-      <View accessibilityRole="none" accessible={false} testID={testID} {...props}>
+      <View testID={testID} {...props}>
         <Text>{name}</Text>
       </View>
     ),
@@ -180,7 +180,7 @@ jest.mock(
     return {
       __esModule: true,
       default: ({ testID, ...props }: { testID?: string }) => (
-        <View accessibilityRole="none" accessible={false} testID={testID || 'unrealized-pnl-skeleton'} {...props} />
+        <View testID={testID || 'unrealized-pnl-skeleton'} {...props} />
       ),
     };
   },
@@ -207,7 +207,7 @@ jest.mock('react-native', () => {
     }: {
       testID?: string;
       [key: string]: unknown;
-    }) => <View accessibilityRole="none" accessible={false} testID={testID || 'activity-indicator'} {...props} />,
+    }) => <View testID={testID || 'activity-indicator'} {...props} />,
   };
 });
 

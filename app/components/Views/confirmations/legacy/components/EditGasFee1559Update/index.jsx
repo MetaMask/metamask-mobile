@@ -357,7 +357,7 @@ const EditGasFee1559Update = ({
     value,
     infoValue,
   }) => (
-    <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+    <View style={styles.labelTextContainer}>
       <Text black bold noMargin>
         {strings(value)}
       </Text>
@@ -398,19 +398,19 @@ const EditGasFee1559Update = ({
   );
 
   const renderInputs = (option) => (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <FadeAnimationView
         valueToWatch={valueToWatch}
         animateOnChange={animateOnChange}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <HorizontalSelector
             selected={selectedOption}
             onPress={selectOption}
             options={renderOptions}
           />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.advancedOptionsContainer}>
+        <View style={styles.advancedOptionsContainer}>
           <TouchableOpacity
             disabled={option?.showAdvanced}
             onPress={toggleAdvancedOptions}
@@ -424,8 +424,8 @@ const EditGasFee1559Update = ({
             </Text>
           </TouchableOpacity>
           {(showAdvancedOptions || option?.maxFeeThreshold) && (
-            <View accessibilityRole="none" accessible={false} style={styles.advancedOptionsInputsContainer}>
-              <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer}>
+            <View style={styles.advancedOptionsInputsContainer}>
+              <View style={styles.rangeInputContainer}>
                 <RangeInput
                   leftLabelComponent={
                     <LeftLabelComponent
@@ -470,7 +470,7 @@ const EditGasFee1559Update = ({
                   onChangeValue={changedMaxPriorityFee}
                 />
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer}>
+              <View style={styles.rangeInputContainer}>
                 <RangeInput
                   leftLabelComponent={
                     <LeftLabelComponent
@@ -501,7 +501,7 @@ const EditGasFee1559Update = ({
           )}
         </View>
       </FadeAnimationView>
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableOpacity
           style={styles.saveButton}
           onPress={toggleLearnMoreModal}
@@ -540,7 +540,7 @@ const EditGasFee1559Update = ({
           style={styles.warningContainer}
         >
           {() => (
-            <View accessibilityRole="none" accessible={false} style={styles.warningTextContainer}>
+            <View style={styles.warningTextContainer}>
               <Text black style={styles.warningText}>
                 {warning}
               </Text>
@@ -569,7 +569,7 @@ const EditGasFee1559Update = ({
           style={styles.warningContainer}
         >
           {() => (
-            <View accessibilityRole="none" accessible={false} style={styles.warningTextContainer}>
+            <View style={styles.warningTextContainer}>
               <Text red style={styles.warningText}>
                 {error}
               </Text>
@@ -590,15 +590,15 @@ const EditGasFee1559Update = ({
   }, [updateOption]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.root}>
+    <View style={styles.root}>
       <ScrollView
         style={styles.wrapper}
         testID={EditGasViewSelectorsIDs.EDIT_PRIORITY_SCREEN_TEST_ID}
       >
         <TouchableWithoutFeedback>
-          <View accessibilityRole="none" accessible={false}>
-            <View accessibilityRole="none" accessible={false}>
-              <View accessibilityRole="none" accessible={false} style={styles.customGasHeader}>
+          <View>
+            <View>
+              <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
                   <Icon
                     name={'arrow-back'}
@@ -616,7 +616,7 @@ const EditGasFee1559Update = ({
                 />
               </View>
               {updateOption && (
-                <View accessibilityRole="none" accessible={false} style={styles.newGasFeeHeader}>
+                <View style={styles.newGasFeeHeader}>
                   <Text black bold noMargin>
                     {strings('edit_gas_fee_eip1559.new_gas_fee')}{' '}
                   </Text>
@@ -641,7 +641,7 @@ const EditGasFee1559Update = ({
               valueToWatch={valueToWatch}
               animateOnChange={animateOnChange}
             >
-              <View accessibilityRole="none" accessible={false} style={styles.headerTitle}>
+              <View style={styles.headerTitle}>
                 <Text
                   black
                   style={styles.headerText}
@@ -671,7 +671,7 @@ const EditGasFee1559Update = ({
                 )}
                 )
               </Text>
-              <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+              <View style={styles.labelTextContainer}>
                 <Text
                   green={
                     timeEstimateColor === 'green' ||
@@ -699,7 +699,7 @@ const EditGasFee1559Update = ({
               </View>
             </FadeAnimationView>
             {!showInputs ? (
-              <View accessibilityRole="none" accessible={false} style={styles.dappEditGasContainer}>
+              <View style={styles.dappEditGasContainer}>
                 <StyledButton
                   type={'orange'}
                   onPress={() => setShowInputs(true)}
@@ -728,7 +728,7 @@ const EditGasFee1559Update = ({
                 updateModalInfo({ ...modalInfo, isVisible: false })
               }
               body={
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Text grey infoModal>
                     {modalInfo.value === 'gas_limit' &&
                       strings('edit_gas_fee_eip1559.learn_more_gas_limit')}
@@ -753,10 +753,10 @@ const EditGasFee1559Update = ({
               toggleModal={toggleLearnMoreModal}
               propagateSwipe
               body={
-                <View accessibilityRole="none" accessible={false} style={styles.learnMoreModal}>
+                <View style={styles.learnMoreModal}>
                   <ScrollView>
                     <TouchableWithoutFeedback>
-                      <View accessibilityRole="none" accessible={false}>
+                      <View>
                         <Text noMargin grey infoModal>
                           {strings('edit_gas_fee_eip1559.learn_more.intro')}
                         </Text>

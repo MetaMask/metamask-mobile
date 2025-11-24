@@ -58,7 +58,7 @@ const LedgerSignModal = () => {
 
   return (
     <Modal isVisible style={styles.modal}>
-      <View accessibilityRole="none" accessible={false} style={styles.contentWrapper}>
+      <View style={styles.contentWrapper}>
         <LedgerConfirmationModal
           onConfirmation={onConfirmation}
           onRejection={onRejection}

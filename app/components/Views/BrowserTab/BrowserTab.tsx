@@ -1099,7 +1099,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Render the progress bar
      */
     const renderProgressBar = () => (
-      <View accessibilityRole="none" accessible={false} style={styles.progressBarWrapper}>
+      <View style={styles.progressBarWrapper}>
         <WebviewProgressBar progress={progress} />
       </View>
     );
@@ -1444,7 +1444,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     return (
       <ErrorBoundary navigation={navigation} view="BrowserTab">
-        <View accessibilityRole="none" accessible={false} style={[styles.wrapper, !isTabActive && styles.hide]}>
+        <View style={[styles.wrapper, !isTabActive && styles.hide]}>
           <View
             style={styles.wrapper}
             {...(Device.isAndroid() ? { collapsable: false } : {})}
@@ -1480,9 +1480,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 />
               </Box>
             </Box>
-            <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+            <View style={styles.wrapper}>
               {renderProgressBar()}
-              <View accessibilityRole="none" accessible={false} style={styles.webview}>
+              <View style={styles.webview}>
                 {!!entryScriptWeb3 && firstUrlLoaded && (
                   <>
                     <WebView

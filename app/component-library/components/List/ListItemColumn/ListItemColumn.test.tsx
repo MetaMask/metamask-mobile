@@ -17,7 +17,7 @@ describe('ListItemColumn', () => {
   it('should render snapshot correctly', () => {
     const wrapper = shallow(
       <ListItemColumn>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemColumn>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -25,7 +25,7 @@ describe('ListItemColumn', () => {
   it('should render component correctly', () => {
     const wrapper = shallow(
       <ListItemColumn>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemColumn>,
     );
     const listItemColumnComponent = wrapper.findWhere(
@@ -37,7 +37,7 @@ describe('ListItemColumn', () => {
   it('should render the correct default widthType', () => {
     const wrapper = shallow(
       <ListItemColumn widthType={DEFAULT_LISTITEMCOLUMN_WIDTHTYPE}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemColumn>,
     );
     const listItemColumnComponent = wrapper.findWhere(
@@ -49,7 +49,7 @@ describe('ListItemColumn', () => {
   it('should render the given widthType', () => {
     const wrapper = shallow(
       <ListItemColumn widthType={WidthType.Fill}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemColumn>,
     );
     const listItemColumnComponent = wrapper.findWhere(

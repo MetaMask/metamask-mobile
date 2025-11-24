@@ -47,7 +47,7 @@ export function getNavbar({
 
   return {
     headerTitle: () => (
-      <View accessibilityRole="none" accessible={false} style={innerStyles.headerTitle}>
+      <View style={innerStyles.headerTitle}>
         <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
       </View>
     ),

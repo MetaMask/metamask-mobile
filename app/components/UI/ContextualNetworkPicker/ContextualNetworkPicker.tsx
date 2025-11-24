@@ -30,14 +30,14 @@ const ContextualNetworkPicker = ({
     // eslint-disable-next-line no-empty-function
   };
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.accountSelectorWrapper}>
+    <View style={styles.accountSelectorWrapper}>
       <PickerBase
         onPress={disabled ? noop : onPress}
         iconSize={IconSize.Xs}
         style={styles.base}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.row}>
-          <View accessibilityRole="none" accessible={false} style={styles.avatarWrapper}>
+        <View style={styles.row}>
+          <View style={styles.avatarWrapper}>
             <Avatar
               variant={AvatarVariant.Network}
               size={AvatarSize.Xs}

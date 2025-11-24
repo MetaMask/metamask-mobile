@@ -40,7 +40,7 @@ exports[`AssetSelectorButton renders correctly 1`] = `
         ]
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <View
           accessibilityRole="none"
           accessible={true}
@@ -125,7 +125,7 @@ exports[`AssetSelectorButton renders correctly 1`] = `
               }
               testID="listitemcolumn"
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Text
                   style={
                     [
@@ -286,7 +286,7 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
         ]
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <View
           accessibilityRole="none"
           accessible={true}
@@ -346,7 +346,7 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
               }
               testID="listitemcolumn"
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Text
                   style={
                     [
@@ -507,7 +507,7 @@ exports[`AssetSelectorButton renders loading state correctly 1`] = `
         ]
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <View
           accessibilityRole="none"
           accessible={true}

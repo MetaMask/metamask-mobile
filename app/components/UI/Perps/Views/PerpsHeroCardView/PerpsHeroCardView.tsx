@@ -166,7 +166,7 @@ const PerpsHeroCardView: React.FC = () => {
           />
 
           {/* Top Row: Logo + Referral Tag */}
-          <View accessibilityRole="none" accessible={false} style={styles.heroCardTopRow}>
+          <View style={styles.heroCardTopRow}>
             <Image
               source={MetaMaskLogo}
               style={styles.metamaskLogo}
@@ -175,7 +175,7 @@ const PerpsHeroCardView: React.FC = () => {
           </View>
 
           {/* Asset Info Row */}
-          <View accessibilityRole="none" accessible={false} style={styles.heroCardAssetRow}>
+          <View style={styles.heroCardAssetRow}>
             <PerpsTokenLogo
               symbol={data.asset}
               size={14.5}
@@ -219,10 +219,10 @@ const PerpsHeroCardView: React.FC = () => {
             </Text>
 
             {/* Price Rows Container */}
-            <View accessibilityRole="none" accessible={false} style={styles.priceRowsContainer}>
+            <View style={styles.priceRowsContainer}>
               {/* Entry Price */}
-              <View accessibilityRole="none" accessible={false} style={styles.priceRow}>
-                <View accessibilityRole="none" accessible={false} style={styles.priceLabelContainer}>
+              <View style={styles.priceRow}>
+                <View style={styles.priceLabelContainer}>
                   <Text
                     style={styles.priceLabel}
                     variant={TextVariant.BodySMMedium}
@@ -242,8 +242,8 @@ const PerpsHeroCardView: React.FC = () => {
               </View>
 
               {/* Mark Price */}
-              <View accessibilityRole="none" accessible={false} style={styles.priceRow}>
-                <View accessibilityRole="none" accessible={false} style={styles.priceLabelContainer}>
+              <View style={styles.priceRow}>
+                <View style={styles.priceLabelContainer}>
                   <Text
                     style={styles.priceLabel}
                     variant={TextVariant.BodySMMedium}
@@ -400,8 +400,8 @@ const PerpsHeroCardView: React.FC = () => {
       testID={PerpsHeroCardViewSelectorsIDs.CONTAINER}
     >
       {/* Header */}
-      <View accessibilityRole="none" accessible={false} style={styles.header} testID={PerpsHeroCardViewSelectorsIDs.HEADER}>
-        <View accessibilityRole="none" accessible={false} style={styles.closeButton} />
+      <View style={styles.header} testID={PerpsHeroCardViewSelectorsIDs.HEADER}>
+        <View style={styles.closeButton} />
         <Text
           variant={TextVariant.HeadingMD}
           color={TextColor.Default}
@@ -435,7 +435,7 @@ const PerpsHeroCardView: React.FC = () => {
           testID={PerpsHeroCardViewSelectorsIDs.CAROUSEL}
         >
           <ScrollableTabView
-            renderTabBar={() => <View accessibilityRole="none" accessible={false} />}
+            renderTabBar={() => <View />}
             onChangeTab={handleTabChange}
             initialPage={0}
             prerenderingSiblingsNumber={1}
@@ -461,7 +461,7 @@ const PerpsHeroCardView: React.FC = () => {
       </View>
 
       {/* Footer Button */}
-      <View accessibilityRole="none" accessible={false} style={styles.footerButtonContainer}>
+      <View style={styles.footerButtonContainer}>
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}

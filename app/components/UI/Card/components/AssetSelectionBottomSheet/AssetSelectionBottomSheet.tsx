@@ -651,7 +651,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
     // Loading state
     if (!delegationSettings) {
       return (
-        <View accessibilityRole="none" accessible={false} style={tw.style('items-center justify-center py-8')}>
+        <View style={tw.style('items-center justify-center py-8')}>
           <ActivityIndicator
             size="large"
             color={theme.colors.primary.default}
@@ -663,7 +663,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
     // Empty state
     if (supportedTokensWithBalances.length === 0) {
       return (
-        <View accessibilityRole="none" accessible={false} style={tw.style('items-center justify-center py-8')}>
+        <View style={tw.style('items-center justify-center py-8')}>
           <Text
             variant={TextVariant.BodySM}
             style={tw.style('text-center text-text-alternative')}
@@ -863,7 +863,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
           {strings('card.select_asset')}
         </Text>
       </BottomSheetHeader>
-      <View accessibilityRole="none" accessible={false} style={tw.style('max-h-[400px]')}>
+      <View style={tw.style('max-h-[400px]')}>
         {renderBottomSheetContent()}
       </View>
     </BottomSheet>

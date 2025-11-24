@@ -595,7 +595,7 @@ const PerpsClosePositionView: React.FC = () => {
         />
 
         {/* Toggle Button for USD/Token Display */}
-        <View accessibilityRole="none" accessible={false} style={styles.toggleContainer}>
+        <View style={styles.toggleContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.coin)}`}
           </Text>
@@ -603,7 +603,7 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
-          <View accessibilityRole="none" accessible={false} style={styles.sliderSection}>
+          <View style={styles.sliderSection}>
             <PerpsSlider
               value={closePercentage}
               onValueChange={handleSliderChange}
@@ -618,12 +618,12 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
         {orderType === 'limit' && !isInputFocused && (
-          <View accessibilityRole="none" accessible={false} style={styles.detailsWrapper}>
-            <View accessibilityRole="none" accessible={false} style={[styles.detailItem, styles.detailListItem]}>
+          <View style={styles.detailsWrapper}>
+            <View style={[styles.detailItem, styles.detailListItem]}>
               <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                 <ListItem>
                   <ListItemColumn widthType={WidthType.Fill}>
-                    <View accessibilityRole="none" accessible={false} style={styles.detailLeft}>
+                    <View style={styles.detailLeft}>
                       <Text
                         variant={TextVariant.BodyLGMedium}
                         color={TextColor.Alternative}
@@ -655,9 +655,9 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Validation Messages - keep visible while typing */}
         {/* Filter the errors and only show minimum $10 error */}
         {filteredErrors.length > 0 && (
-          <View accessibilityRole="none" accessible={false} style={styles.validationSection}>
+          <View style={styles.validationSection}>
             {filteredErrors.map((error, index) => (
-              <View accessibilityRole="none" accessible={false} key={`error-${index}`} style={styles.errorMessage}>
+              <View key={`error-${index}`} style={styles.errorMessage}>
                 <Icon
                   name={IconName.Danger}
                   size={IconSize.Sm}
@@ -674,10 +674,10 @@ const PerpsClosePositionView: React.FC = () => {
 
       {/* Keypad Section - Show when input is focused; keep summary and slider above */}
       {isInputFocused && (
-        <View accessibilityRole="none" accessible={false} style={styles.bottomSection}>
+        <View style={styles.bottomSection}>
           {/* Summary shown above keypad while editing */}
           {Summary}
-          <View accessibilityRole="none" accessible={false} style={styles.percentageButtonsContainer}>
+          <View style={styles.percentageButtonsContainer}>
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
@@ -719,7 +719,7 @@ const PerpsClosePositionView: React.FC = () => {
       )}
 
       {/* Summary + Action Buttons - Always visible (button hidden when keypad active) */}
-      <View accessibilityRole="none" accessible={false} style={[styles.footer, styles.footerWithSummary]}>
+      <View style={[styles.footer, styles.footerWithSummary]}>
         {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
         {!isInputFocused && Summary}
         {!isInputFocused && (

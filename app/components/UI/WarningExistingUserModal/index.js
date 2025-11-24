@@ -36,7 +36,7 @@ const Default = () => {
   const styles = createStyles(colors);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.warningModalView}>
+    <View style={styles.warningModalView}>
       <Text style={styles.warningModalTitle}>
         {strings('onboarding.warning_title')}
       </Text>

@@ -36,7 +36,7 @@ const SnapsSettingsList = () => {
   }, [colors, navigation, snaps]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <ScrollView>
         {(Object.values(snaps) as Snap[]).map((snap: Snap) => (
           <SnapElement {...snap} key={snap.id} />

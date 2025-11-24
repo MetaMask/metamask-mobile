@@ -22,7 +22,7 @@ jest.mock('../SelectSRP', () => {
   const mockReact = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return mockReact.forwardRef(() => (
-    <View accessibilityRole="none" accessible={false} testID="select-srp">
+    <View testID="select-srp">
       <Text>SelectSRP Component</Text>
     </View>
   ));

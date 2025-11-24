@@ -26,7 +26,7 @@ const PerpsSection = () => {
   );
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <SectionHeader sectionId="perps" />
       <SectionCard>
         {isLoading || perpsTokens.length === 0 ? (

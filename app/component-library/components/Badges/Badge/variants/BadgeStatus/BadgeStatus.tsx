@@ -25,7 +25,7 @@ const BadgeStatus = ({
 
   return (
     <BadgeBase style={styles.base} testID={BADGE_STATUS_TEST_ID}>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </BadgeBase>
   );
 };

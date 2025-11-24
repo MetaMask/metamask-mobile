@@ -30,7 +30,7 @@ function AddressField(props: AddressFieldProps) {
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.row}>
+    <View style={styles.row}>
       <Avatar
         variant={AvatarVariant.Account}
         type={accountAvatarType}
@@ -38,7 +38,7 @@ function AddressField(props: AddressFieldProps) {
         size={AvatarSize.Md}
         style={styles.badgeWrapper}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.boxLeft}>
+      <View style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>{label}</Text>
         <Pressable
           onPress={() =>

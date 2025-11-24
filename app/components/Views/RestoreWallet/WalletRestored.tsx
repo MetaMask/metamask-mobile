@@ -102,7 +102,7 @@ const WalletRestored = () => {
           </Text>
         </Text>
       </ScrollView>
-      <View accessibilityRole="none" accessible={false} style={styles.actionButtonWrapper}>
+      <View style={styles.actionButtonWrapper}>
         <StyledButton
           type="confirm"
           containerStyle={styles.actionButton}

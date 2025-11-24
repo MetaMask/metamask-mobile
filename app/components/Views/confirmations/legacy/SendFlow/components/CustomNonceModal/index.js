@@ -159,11 +159,11 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
       >
         <SafeAreaView style={styles.modal}>
           <ModalDragger />
-          <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>
+          <View style={styles.modalContainer}>
             <Text bold centered style={styles.title}>
               {strings('transaction.edit_transaction_nonce')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.nonceInputContainer}>
+            <View style={styles.nonceInputContainer}>
               <TextInput
                 // disable keyboard for now
                 showSoftInputOnFocus={false}
@@ -191,7 +191,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
               {strings('transaction.current_suggested_nonce')}{' '}
               <Text bold>{proposedNonce}</Text>
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.incrementDecrementNonceContainer}>
+            <View style={styles.incrementDecrementNonceContainer}>
               <TouchableOpacity
                 style={styles.incrementHit}
                 onPress={() => incrementDecrementNonce(true)}
@@ -215,9 +215,9 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
                 />
               </TouchableOpacity>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.descWarningContainer}>
+            <View style={styles.descWarningContainer}>
               {displayWarning ? (
-                <View accessibilityRole="none" accessible={false} style={styles.nonceWarning}>
+                <View style={styles.nonceWarning}>
                   <Icon
                     name="exclamation-circle"
                     color={colors.warning.default}
@@ -237,7 +237,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
               </Text>
             </View>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.actionRow}>
+          <View style={styles.actionRow}>
             <StyledButton
               type={'normal'}
               containerStyle={styles.actionButton}

@@ -562,7 +562,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
@@ -884,7 +884,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               </View>
                             </View>
                           </View>
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <RCTScrollView
                               ListEmptyComponent={[Function]}
                               bounces={true}
@@ -962,7 +962,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               viewabilityConfigCallbackPairs={[]}
                               windowSize={10}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <View
                                   onFocusCapture={[Function]}
                                   onLayout={[Function]}
@@ -1022,7 +1022,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -1333,7 +1333,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -1644,7 +1644,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               useNativeDriver={true}
                                             >

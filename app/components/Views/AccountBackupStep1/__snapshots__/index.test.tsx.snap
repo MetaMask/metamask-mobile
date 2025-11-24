@@ -33,7 +33,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
     }
     testID="protect-your-account-screen"
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -165,7 +165,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
             }
           }
         >
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -203,7 +203,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               </Text>
             </TouchableOpacity>
           </View>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -284,7 +284,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
     }
     testID="protect-your-account-screen"
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -416,7 +416,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
             }
           }
         >
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -454,7 +454,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               </Text>
             </TouchableOpacity>
           </View>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -535,7 +535,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
     }
     testID="protect-your-account-screen"
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -667,7 +667,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
             }
           }
         >
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -705,7 +705,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               </Text>
             </TouchableOpacity>
           </View>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -786,7 +786,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
     }
     testID="protect-your-account-screen"
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -918,7 +918,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
             }
           }
         >
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -956,7 +956,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               </Text>
             </TouchableOpacity>
           </View>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -1037,7 +1037,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
     }
     testID="protect-your-account-screen"
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -1169,7 +1169,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
             }
           }
         >
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -1207,7 +1207,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               </Text>
             </TouchableOpacity>
           </View>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}

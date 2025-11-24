@@ -13,7 +13,7 @@ describe('StepProgressBarItem', () => {
         isLastItem={false}
         isEdgeComplete={false}
       >
-        <View accessibilityRole="none" accessible={false} testID="test-children">Test Content</View>
+        <View testID="test-children">Test Content</View>
       </StepProgressBarItem>,
     );
 
@@ -27,7 +27,7 @@ describe('StepProgressBarItem', () => {
         isLastItem={false}
         isEdgeComplete={false}
       >
-        <View accessibilityRole="none" accessible={false} testID="test-children">Test Content</View>
+        <View testID="test-children">Test Content</View>
       </StepProgressBarItem>,
     );
 
@@ -41,7 +41,7 @@ describe('StepProgressBarItem', () => {
         isLastItem={false}
         isEdgeComplete={false}
       >
-        <View accessibilityRole="none" accessible={false} testID="test-children">Test Content</View>
+        <View testID="test-children">Test Content</View>
       </StepProgressBarItem>,
     );
 
@@ -55,7 +55,7 @@ describe('StepProgressBarItem', () => {
         isLastItem
         isEdgeComplete={false}
       >
-        <View accessibilityRole="none" accessible={false} testID="test-children">Test Content</View>
+        <View testID="test-children">Test Content</View>
       </StepProgressBarItem>,
     );
 
@@ -71,7 +71,7 @@ describe('StepProgressBarItem', () => {
         isLastItem={false}
         isEdgeComplete
       >
-        <View accessibilityRole="none" accessible={false} testID="test-children">Test Content</View>
+        <View testID="test-children">Test Content</View>
       </StepProgressBarItem>,
     );
 

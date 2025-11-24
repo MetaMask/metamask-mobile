@@ -24,7 +24,7 @@ jest.mock('../../../UI/Predict/hooks/usePredictMarketData');
 jest.mock('../../../UI/Predict/components/PredictMarket', () => {
   const { View, Text } = jest.requireActual('react-native');
   return jest.fn(({ market, testID }) => (
-    <View accessibilityRole="none" accessible={false} testID={testID}>
+    <View testID={testID}>
       <Text>PredictMarket: {market.title}</Text>
     </View>
   ));
@@ -32,7 +32,7 @@ jest.mock('../../../UI/Predict/components/PredictMarket', () => {
 jest.mock('../../../UI/Predict/components/PredictMarketSkeleton', () => {
   const { View, Text } = jest.requireActual('react-native');
   return jest.fn(({ testID }) => (
-    <View accessibilityRole="none" accessible={false} testID={testID}>
+    <View testID={testID}>
       <Text>Loading...</Text>
     </View>
   ));

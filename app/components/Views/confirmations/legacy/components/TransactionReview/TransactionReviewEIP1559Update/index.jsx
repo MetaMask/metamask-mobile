@@ -118,8 +118,8 @@ const TransactionReviewEIP1559Update = ({
   return (
     <Summary style={styles.overview(noMargin)}>
       <Summary.Row>
-        <View accessibilityRole="none" accessible={false} style={styles.gasRowContainer}>
-          <View accessibilityRole="none" accessible={false} style={styles.gasRowContainer}>
+        <View style={styles.gasRowContainer}>
+          <View style={styles.gasRowContainer}>
             <Text
               primary={!originWarning}
               bold
@@ -218,13 +218,13 @@ const TransactionReviewEIP1559Update = ({
       </Summary.Row>
       {!legacy && (
         <Summary.Row>
-          <View accessibilityRole="none" accessible={false} style={styles.gasRowContainer}>
+          <View style={styles.gasRowContainer}>
             {gasEstimationReady ? (
               <FadeAnimationView
                 valueToWatch={valueToWatchAnimation}
                 animateOnChange={animateOnChange}
               >
-                <View accessibilityRole="none" accessible={false} style={styles.timeEstimateContainer}>
+                <View style={styles.timeEstimateContainer}>
                   <Text
                     small
                     green={timeEstimateColor === 'green'}
@@ -309,9 +309,9 @@ const TransactionReviewEIP1559Update = ({
         </Summary.Row>
       )}
       {!hideTotal && (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Summary.Separator />
-          <View accessibilityRole="none" accessible={false} style={styles.gasBottomRowContainer}>
+          <View style={styles.gasBottomRowContainer}>
             <Summary.Row>
               <Text primary bold noMargin>
                 {strings('transaction_review_eip1559.total')}
@@ -417,7 +417,7 @@ const TransactionReviewEIP1559Update = ({
         title={strings('transaction_review_eip1559.estimated_gas_fee_tooltip')}
         toggleModal={toggleLearnMoreModal}
         body={
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <Text infoModal>
               {strings(
                 'transaction_review_eip1559.estimated_gas_fee_tooltip_text_1',

@@ -107,7 +107,7 @@ const SettingsDrawer = ({
             </Text>
           )}
           {warning && (
-            <View accessibilityRole="none" accessible={false} style={styles.warningTag}>
+            <View style={styles.warningTag}>
               <Icon
                 size={IconSize.Sm}
                 color={IconColor.Error}

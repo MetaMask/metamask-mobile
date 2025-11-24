@@ -25,10 +25,10 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   const styles = createStyles(colors);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.feeRowContent}>
+    <View style={styles.feeRowContent}>
       {feeDiscountPercentage && feeDiscountPercentage > 0 ? (
         <TagColored color={TagColor.Warning}>
-          <View accessibilityRole="none" accessible={false} style={styles.feeDiscountContainer}>
+          <View style={styles.feeDiscountContainer}>
             <FoxIcon width={14} height={14} />
             <Text variant={TextVariant.BodySM}>
               {`-${feeDiscountPercentage}%`}

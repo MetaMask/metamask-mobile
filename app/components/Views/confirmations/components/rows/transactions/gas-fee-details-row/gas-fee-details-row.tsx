@@ -90,7 +90,7 @@ const EstimationInfo = ({
   const isSimulationLoading = !simulationData || balanceChangesResult.pending;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.estimationContainer}>
+    <View style={styles.estimationContainer}>
       {isGasFeeSponsored ? (
         <PaidByMetaMask />
       ) : isSimulationLoading ? (
@@ -278,7 +278,7 @@ const GasFeesDetailsRow = ({
           tooltip={confirmGasFeeTokenTooltip}
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.valueContainer}>
+          <View style={styles.valueContainer}>
             {disableUpdate ||
             gasFeeToken ||
             isGasFeeSponsored ||
@@ -298,7 +298,7 @@ const GasFeesDetailsRow = ({
             )}
           </View>
           {gasFeeToken && (
-            <View accessibilityRole="none" accessible={false} style={styles.gasFeeTokenContainer}>
+            <View style={styles.gasFeeTokenContainer}>
               <Text
                 data-testid="gas-fee-token-fee"
                 variant={TextVariant.BodySM}

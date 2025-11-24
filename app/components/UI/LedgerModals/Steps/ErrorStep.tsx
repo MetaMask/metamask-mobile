@@ -73,28 +73,28 @@ const ErrorStep = ({
         style={styles.ledgerImageStyle}
         resizeMode="contain"
       />
-      <View accessibilityRole="none" accessible={false} style={styles.textContainer} testID={ERROR_STEP}>
+      <View style={styles.textContainer} testID={ERROR_STEP}>
         <Text big bold style={styles.titleText}>
           {title}
         </Text>
         <Text style={styles.subtitleText}>{subTitle}</Text>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+      <View style={styles.buttonContainer}>
         {showViewSettings && (
-          <View accessibilityRole="none" accessible={false} style={styles.buttonStyle}>
+          <View style={styles.buttonStyle}>
             <StyledButton type="confirm" onPress={onViewSettings}>
               {strings('ledger.view_settings')}
             </StyledButton>
           </View>
         )}
         {!isRetryHide && (
-          <View accessibilityRole="none" accessible={false} style={styles.buttonStyle}>
+          <View style={styles.buttonStyle}>
             <StyledButton type="normal" onPress={onRetry} testID={RETRY_BUTTON}>
               {strings('ledger.try_again')}
             </StyledButton>
           </View>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.buttonStyle}>
+        <View style={styles.buttonStyle}>
           <StyledButton type="cancel" onPress={onReject}>
             {strings('transaction.reject')}
           </StyledButton>

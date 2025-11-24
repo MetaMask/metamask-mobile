@@ -46,18 +46,18 @@ const ConnectionDetails = (props: ConnectionDetailsProps) => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <BottomSheetHeader>
           {strings('permissions.connection_details_title')}
         </BottomSheetHeader>
-        <View accessibilityRole="none" accessible={false} style={styles.descriptionContainer}>
+        <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD}>
             {strings('permissions.connection_details_description', {
               connectionDateTime: formatConnectionDate(connectionDateTime),
             })}
           </Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+        <View style={styles.buttonsContainer}>
           <Button
             label={strings('permissions.got_it')}
             style={styles.button}

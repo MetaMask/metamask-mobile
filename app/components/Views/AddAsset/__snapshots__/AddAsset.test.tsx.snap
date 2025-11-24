@@ -140,7 +140,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
         update={[Function]}
         viewIsInsideTabBar={false}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             accessibilityState={
               {
@@ -637,7 +637,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
       }
     >
       <RCTScrollView>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               [

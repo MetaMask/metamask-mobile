@@ -35,7 +35,7 @@ jest.mock('react-native-svg', () => ({
   }) => {
     const { View, Text } = jest.requireActual('react-native');
     return (
-      <View accessibilityRole="none" accessible={false} testID="fox-icon-svg" style={{ width, height }}>
+      <View testID="fox-icon-svg" style={{ width, height }}>
         <Text testID="fox-icon-xml">{xml}</Text>
       </View>
     );

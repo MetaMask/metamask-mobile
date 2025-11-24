@@ -105,7 +105,7 @@ jest.mock(
       children: React.ReactNode;
       onClose?: () => void;
     }) => (
-      <View accessibilityRole="none" accessible={false} testID="header">
+      <View testID="header">
         <TouchableOpacity testID="header-close-button" onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>

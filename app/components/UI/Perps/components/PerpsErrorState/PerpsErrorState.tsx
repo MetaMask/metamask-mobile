@@ -82,8 +82,8 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
   const iconSize = 48 as unknown as IconSize;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container} testID={testID}>
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
+    <View style={styles.container} testID={testID}>
+      <View style={styles.content}>
         <Icon
           name={errorContent.icon}
           color={IconColor.Muted}

@@ -5,7 +5,7 @@ exports[`EarningsHistoryChart renders to match snapshot 1`] = `
   onLayout={[Function]}
   testID="earnings-history-chart-container"
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       style={
         {

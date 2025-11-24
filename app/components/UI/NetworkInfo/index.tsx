@@ -138,7 +138,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   const networkName = useSelector(selectNetworkName);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+    <View style={styles.wrapper}>
       <View
         style={styles.modalContentView}
         testID={NetworkEducationModalSelectorsIDs.CONTAINER}
@@ -146,8 +146,8 @@ const NetworkInfo = (props: NetworkInfoProps) => {
         <Text style={styles.title}>
           {strings('network_information.switched_network')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.tokenView}>
-          <View accessibilityRole="none" accessible={false} style={styles.tokenType}>
+        <View style={styles.tokenView}>
+          <View style={styles.tokenType}>
             <Avatar
               variant={AvatarVariant.Network}
               name={networkName.toUpperCase()}
@@ -166,7 +166,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
           {strings('network_information.things_to_keep_in_mind')}:
         </Text>
 
-        <View accessibilityRole="none" accessible={false} style={styles.descriptionViews}>
+        <View style={styles.descriptionViews}>
           <Description
             description={
               isNonEvmChainId(chainId)

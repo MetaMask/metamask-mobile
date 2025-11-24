@@ -51,7 +51,7 @@ const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
 
 const EarnTokenListSkeletonPlaceholder = () => (
-  <View accessibilityRole="none" accessible={false} testID="earn-token-list-skeleton">
+  <View testID="earn-token-list-skeleton">
     <SkeletonPlaceholder>
       <SkeletonPlaceholder.Item
         width={'auto'}
@@ -261,7 +261,7 @@ const EarnTokenList = () => {
   const renderTokenItem = ({ item }: { item: EarnTokenDetails }) => {
     const onItemPressScreen = params?.onItemPressScreen;
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.listItemContainer}>
+      <View style={styles.listItemContainer}>
         {onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW ? (
           <EarnWithdrawalTokenListItem
             earnToken={item}
@@ -330,7 +330,7 @@ const EarnTokenList = () => {
             : strings('stake.select_a_token_to_deposit')}
         </Text>
       </BottomSheetHeader>
-      <View accessibilityRole="none" accessible={false} style={styles.flatList}>
+      <View style={styles.flatList}>
         <FlatList
           data={filteredTokens}
           renderItem={renderTokenItem}

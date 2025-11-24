@@ -19,7 +19,7 @@ const PerpsLeverage = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.maxLeverage} testID={testID}>
+    <View style={styles.maxLeverage} testID={testID}>
       <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
         {maxLeverage}
       </Text>

@@ -77,7 +77,7 @@ interface PerPositionResult {
  * });
  *
  * return (
- *   <View accessibilityRole="none" accessible={false}>
+ *   <View>
  *     <Text>Total Fees: {calculations.totalFees}</Text>
  *     <Text>Estimated Points: {calculations.totalEstimatedPoints}</Text>
  *     <Text>You'll Receive: {calculations.receiveAmount}</Text>

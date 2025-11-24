@@ -572,7 +572,7 @@ class TransactionReview extends PureComponent {
             -Device.getDeviceWidth(),
           ])}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.actionViewWrapper}>
+          <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
               cancelText={strings('transaction.reject')}
@@ -584,7 +584,7 @@ class TransactionReview extends PureComponent {
               }
               confirmButtonState={this.getConfirmButtonState.bind(this)()}
             >
-              <View accessibilityRole="none" accessible={false} style={styles.actionViewChildren}>
+              <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
                   <View
                     style={styles.accountTransactionWrapper}
@@ -596,19 +596,19 @@ class TransactionReview extends PureComponent {
                       sdkDappMetadata={sdkDappMetadata}
                       url={url}
                     />
-                    <View accessibilityRole="none" accessible={false} style={styles.blockaidBannerContainer}>
+                    <View style={styles.blockaidBannerContainer}>
                       <TransactionBlockaidBanner
                         transactionId={transactionId}
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     </View>
                     {shouldUseSmartTransaction && (
-                      <View accessibilityRole="none" accessible={false} style={styles.smartTransactionsMigrationBanner}>
+                      <View style={styles.smartTransactionsMigrationBanner}>
                         <SmartTransactionsMigrationBanner />
                       </View>
                     )}
                     {to && (
-                      <View accessibilityRole="none" accessible={false} style={styles.accountWrapper}>
+                      <View style={styles.accountWrapper}>
                         <AccountFromToInfoCard
                           transactionState={transaction}
                           layout="vertical"
@@ -628,14 +628,14 @@ class TransactionReview extends PureComponent {
                     {useTransactionSimulations &&
                       transactionSimulationData &&
                       transactionMetadata && (
-                        <View accessibilityRole="none" accessible={false} style={styles.transactionSimulations}>
+                        <View style={styles.transactionSimulations}>
                           <SimulationDetails
                             transaction={transactionMetadata}
                             enableMetrics
                           />
                         </View>
                       )}
-                    <View accessibilityRole="none" accessible={false} style={styles.accountInfoCardWrapper}>
+                    <View style={styles.accountInfoCardWrapper}>
                       <TransactionReviewInformation
                         navigation={navigation}
                         error={error}
@@ -693,7 +693,7 @@ class TransactionReview extends PureComponent {
 
     const styles = this.getStyles();
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.actionViewQRObject}>
+      <View style={styles.actionViewQRObject}>
         <TransactionHeader currentPageInformation={currentPageInformation} />
         <QRSigningDetails
           pendingScanRequest={pendingScanRequest}

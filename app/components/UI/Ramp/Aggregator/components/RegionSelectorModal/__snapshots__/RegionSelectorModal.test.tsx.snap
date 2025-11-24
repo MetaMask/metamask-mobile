@@ -749,7 +749,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -824,7 +824,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 1`] = `
                                               🇵🇹
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -1631,7 +1631,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -1706,7 +1706,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               🇵🇹
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -1802,7 +1802,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               🇫🇷
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -1898,7 +1898,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -2025,7 +2025,7 @@ exports[`RegionSelectorModal clears search when clear button is pressed 2`] = `
                                               🇪🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -2813,7 +2813,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -2888,7 +2888,7 @@ exports[`RegionSelectorModal filters regions based on search input 1`] = `
                                               🇵🇹
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -3617,7 +3617,7 @@ exports[`RegionSelectorModal handles empty regions list gracefully 1`] = `
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   {
@@ -4348,7 +4348,7 @@ exports[`RegionSelectorModal handles undefined regions gracefully 1`] = `
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   {
@@ -5128,7 +5128,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -5203,7 +5203,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -6010,7 +6010,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -6085,7 +6085,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               🇵🇹
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -6181,7 +6181,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               🇫🇷
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -6277,7 +6277,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -6404,7 +6404,7 @@ exports[`RegionSelectorModal navigates back to country view when back button is 
                                               🇪🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -7211,7 +7211,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -7286,7 +7286,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               🇵🇹
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -7382,7 +7382,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               🇫🇷
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -7478,7 +7478,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -7605,7 +7605,7 @@ exports[`RegionSelectorModal renders the modal with region list 1`] = `
                                               🇪🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -8413,7 +8413,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -8488,7 +8488,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               🇵🇹
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -8611,7 +8611,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               🇫🇷
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -8707,7 +8707,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -8834,7 +8834,7 @@ exports[`RegionSelectorModal renders the modal with selected region in list 1`] 
                                               🇪🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -9642,7 +9642,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -9717,7 +9717,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               🇵🇹
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -9813,7 +9813,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               🇫🇷
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -9909,7 +9909,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               🇺🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -10063,7 +10063,7 @@ exports[`RegionSelectorModal renders the modal with selected state in list 1`] =
                                               🇪🇸
                                             </Text>
                                           </View>
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -10833,7 +10833,7 @@ exports[`RegionSelectorModal shows empty state when search returns no results 1`
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   {

@@ -71,7 +71,7 @@ const SpendingLimitProgressBar = ({
 
   if (isLoading) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <Skeleton
           height={20}
           width={'100%'}
@@ -83,9 +83,9 @@ const SpendingLimitProgressBar = ({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
-      <View accessibilityRole="none" accessible={false} style={styles.divider} />
-      <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
+    <View style={styles.container}>
+      <View style={styles.divider} />
+      <View style={styles.textContainer}>
         <Text variant={TextVariant.BodySMMedium}>Spending Limit</Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {consumedAmountDisplay}/{totalAllowanceDisplay} {symbol}

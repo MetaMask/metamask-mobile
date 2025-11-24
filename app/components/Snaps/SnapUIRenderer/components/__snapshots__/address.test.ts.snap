@@ -30,7 +30,7 @@ exports[`SnapUIAddress renders Bitcoin address 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -124,7 +124,7 @@ exports[`SnapUIAddress renders Bitcoin address with blockie 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -227,7 +227,7 @@ exports[`SnapUIAddress renders Cosmos address 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -321,7 +321,7 @@ exports[`SnapUIAddress renders Cosmos address with blockie 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -424,7 +424,7 @@ exports[`SnapUIAddress renders Ethereum address 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -518,7 +518,7 @@ exports[`SnapUIAddress renders Ethereum address with blockie 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -621,7 +621,7 @@ exports[`SnapUIAddress renders Hedera address 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -715,7 +715,7 @@ exports[`SnapUIAddress renders Hedera address with blockie 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -818,7 +818,7 @@ exports[`SnapUIAddress renders Polkadot address 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -912,7 +912,7 @@ exports[`SnapUIAddress renders Polkadot address with blockie 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -1015,7 +1015,7 @@ exports[`SnapUIAddress renders Starknet address 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -1109,7 +1109,7 @@ exports[`SnapUIAddress renders Starknet address with blockie 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"
@@ -1212,7 +1212,7 @@ exports[`SnapUIAddress renders legacy Ethereum address 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             alignItems="center"

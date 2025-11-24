@@ -26,7 +26,7 @@ const StakingDetails = () => {
     <InfoSection testID={ConfirmationRowComponentIDs.STAKING_DETAILS}>
       <InfoRow label={strings('stake.apr')}>{apr}</InfoRow>
       <InfoRow label={strings('stake.estimated_annual_reward')}>
-        <View accessibilityRole="none" accessible={false} style={styles.valueContainer}>
+        <View style={styles.valueContainer}>
           <Text style={styles.secondaryValue}>{annualRewardsFiat}</Text>
           <Text style={styles.primaryValue}>{annualRewardsETH}</Text>
         </View>

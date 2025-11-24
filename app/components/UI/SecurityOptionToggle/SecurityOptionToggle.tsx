@@ -40,12 +40,12 @@ const SecurityOptionToggle = ({
     [onOptionUpdated],
   );
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
-      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
+    <View style={styles.container}>
+      <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {title}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
+        <View style={styles.switchElement}>
           <Switch
             value={value}
             onValueChange={(newValue: boolean) => handleOnValueChange(newValue)}

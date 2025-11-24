@@ -93,7 +93,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableOpacity
           accessibilityLabel="select_all"
           disabled={false}
@@ -214,7 +214,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
       }
       viewabilityConfigCallbackPairs={[]}
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <View
           onFocusCapture={[Function]}
           onLayout={[Function]}

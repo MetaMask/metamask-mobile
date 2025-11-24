@@ -52,7 +52,7 @@ export const SnapUICopyable: React.FC<SnapUICopyableProps> = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.containerWrapper}>
+    <View style={styles.containerWrapper}>
       <TouchableOpacity
         onPress={
           sensitive && !isVisible ? handleVisibilityClick : handleCopyPress
@@ -73,7 +73,7 @@ export const SnapUICopyable: React.FC<SnapUICopyableProps> = ({
             {strings('snap_ui.revealSensitiveContent.message')}
           </Text>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.content}>
+        <View style={styles.content}>
           {isVisible && (
             <Text style={styles.text} testID="copyable-text">
               {displayText}

@@ -52,14 +52,14 @@ const SwitchAccountTypeModal = () => {
           style={styles.backIcon}
         />
       </TouchableOpacity>
-      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View style={styles.wrapper}>
         {pending ? (
-          <View accessibilityRole="none" accessible={false} style={styles.spinner} testID="network-data-loader">
+          <View style={styles.spinner} testID="network-data-loader">
             <Spinner />
           </View>
         ) : (
           <>
-            <View accessibilityRole="none" accessible={false} style={styles.account_info}>
+            <View style={styles.account_info}>
               <Avatar
                 variant={AvatarVariant.Account}
                 size={AvatarSize.Md}
@@ -69,7 +69,7 @@ const SwitchAccountTypeModal = () => {
                 {account?.metadata.name}
               </Text>
             </View>
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               {network7702List?.map((networkConfiguration) => (
                 <AccountNetworkRow
                   network={networkConfiguration}

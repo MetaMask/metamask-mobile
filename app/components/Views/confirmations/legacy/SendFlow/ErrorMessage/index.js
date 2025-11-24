@@ -21,7 +21,7 @@ export default function ErrorMessage(props) {
   return (
     <Alert type={isOnlyWarning ? AlertType.Info : AlertType.Error}>
       {(textStyle) => (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text
             small
             style={[textStyle, styles.errorMessage]}

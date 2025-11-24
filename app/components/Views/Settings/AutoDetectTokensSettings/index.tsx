@@ -41,12 +41,12 @@ const AutoDetectTokensSettings = () => {
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.setting}>
-      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
+    <View style={styles.setting}>
+      <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.token_detection_title')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.toggle}>
+        <View style={styles.toggle}>
           <Switch
             testID={TOKEN_DETECTION_TOGGLE}
             value={isTokenDetectionEnabled}

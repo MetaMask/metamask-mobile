@@ -17,9 +17,9 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
   onGestureHandlerEvent={[Function]}
   onGestureHandlerStateChange={[Function]}
 >
-  <View accessibilityRole="none" accessible={false}>
-    <View accessibilityRole="none" accessible={false}>
-      <View accessibilityRole="none" accessible={false}>
+  <View>
+    <View>
+      <View>
         <View
           style={
             {
@@ -194,7 +194,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
           onLayout={[Function]}
           testID="earnings-history-chart-container"
         >
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <View
               style={
                 {
@@ -842,7 +842,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
           >
             Payout history
           </Text>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <View
               style={
                 {
@@ -942,7 +942,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                     ETH
                   </Text>
                 </View>
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Text
                     accessibilityRole="text"
                     style={

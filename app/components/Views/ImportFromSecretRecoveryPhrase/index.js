@@ -209,7 +209,7 @@ const ImportFromSecretRecoveryPhrase = ({
         />
       </TouchableOpacity>
     ) : (
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     );
 
   const updateNavBar = () => {
@@ -537,8 +537,8 @@ const ImportFromSecretRecoveryPhrase = ({
             >
               {strings('import_from_seed.title')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.importSrpContainer}>
-              <View accessibilityRole="none" accessible={false} style={styles.description}>
+            <View style={styles.importSrpContainer}>
+              <View style={styles.description}>
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
@@ -568,7 +568,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 placeholderText={strings('import_from_seed.srp_placeholder')}
                 uniqueId={uniqueId}
               />
-              <View accessibilityRole="none" accessible={false} style={styles.seedPhraseCtaContainer}>
+              <View style={styles.seedPhraseCtaContainer}>
                 <Button
                   variant={ButtonVariants.Primary}
                   label={strings('import_from_seed.continue')}
@@ -584,8 +584,8 @@ const ImportFromSecretRecoveryPhrase = ({
         )}
 
         {currentStep === 1 && (
-          <View accessibilityRole="none" accessible={false} style={styles.passwordContainer}>
-            <View accessibilityRole="none" accessible={false} style={styles.passwordContainerTitle}>
+          <View style={styles.passwordContainer}>
+            <View style={styles.passwordContainerTitle}>
               <Text
                 variant={TextVariant.DisplayMD}
                 color={TextColor.Default}
@@ -602,7 +602,7 @@ const ImportFromSecretRecoveryPhrase = ({
               </Text>
             </View>
 
-            <View accessibilityRole="none" accessible={false} style={styles.field}>
+            <View style={styles.field}>
               <Label
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
@@ -650,7 +650,7 @@ const ImportFromSecretRecoveryPhrase = ({
               )}
             </View>
 
-            <View accessibilityRole="none" accessible={false} style={styles.field}>
+            <View style={styles.field}>
               <Label
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
@@ -695,7 +695,7 @@ const ImportFromSecretRecoveryPhrase = ({
               )}
             </View>
 
-            <View accessibilityRole="none" accessible={false} style={styles.learnMoreContainer}>
+            <View style={styles.learnMoreContainer}>
               <Checkbox
                 onPress={() => setLearnMore(!learnMore)}
                 isChecked={learnMore}
@@ -723,7 +723,7 @@ const ImportFromSecretRecoveryPhrase = ({
               />
             </View>
 
-            <View accessibilityRole="none" accessible={false} style={styles.createPasswordCtaContainer}>
+            <View style={styles.createPasswordCtaContainer}>
               <Button
                 loading={loading}
                 width={ButtonWidthTypes.Full}

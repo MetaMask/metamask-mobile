@@ -36,7 +36,7 @@ function AssetField(props: AssetFieldProps) {
   }, [props.tokenIconUrl]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.row}>
+    <View style={styles.row}>
       {/* Token Logo + Network Badge */}
       <BadgeWrapper
         testID={'badge-wrapper'}
@@ -58,7 +58,7 @@ function AssetField(props: AssetFieldProps) {
       </BadgeWrapper>
 
       {/* Token Label + Description */}
-      <View accessibilityRole="none" accessible={false} style={styles.boxLeft}>
+      <View style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>{props.label}</Text>
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {props.description}
@@ -66,7 +66,7 @@ function AssetField(props: AssetFieldProps) {
       </View>
 
       {/* Token Amount + USD Amount */}
-      <View accessibilityRole="none" accessible={false} style={styles.rightSection}>
+      <View style={styles.rightSection}>
         <Text variant={TextVariant.BodyLGMedium}>{props.amount}</Text>
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {props.usdAmount}

@@ -46,7 +46,7 @@ const SelectorButton: React.FC<SelectorButtonProps & TouchableOpacityProps> = ({
 
   return (
     <TouchableOpacity onPress={onPress} disabled={disabled} {...props}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <>{children}</>
         <Icon name="caret-down" size={18} style={styles.caretDown} />
       </View>

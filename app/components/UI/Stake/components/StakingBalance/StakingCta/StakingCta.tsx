@@ -53,11 +53,11 @@ const StakingCta = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={style}>
+    <View style={style}>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('stake.stake_eth_and_earn')}
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.contentMain}>
+      <View style={styles.contentMain}>
         <Text style={styles.rightPad}>
           {strings('stake.stake_your_eth_cta.base')}
         </Text>

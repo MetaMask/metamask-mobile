@@ -50,7 +50,7 @@ const PerpsQuoteExpiredModal = () => {
           {strings('perps.deposit.quote_expired_modal.title')}
         </Text>
       </BottomSheetHeader>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <Text variant={TextVariant.BodyMD}>
           {strings('perps.deposit.quote_expired_modal.description', {
             refreshRate,

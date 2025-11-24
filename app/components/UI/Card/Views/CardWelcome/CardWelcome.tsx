@@ -78,8 +78,8 @@ const CardWelcome = () => {
 
   return (
     <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
-        <View accessibilityRole="none" accessible={false} style={styles.imageWrapper}>
+      <View style={styles.container}>
+        <View style={styles.imageWrapper}>
           <Image
             source={MM_CARDS_MOCKUP}
             style={styles.image}
@@ -87,7 +87,7 @@ const CardWelcome = () => {
             testID={CardWelcomeSelectors.CARD_IMAGE}
           />
         </View>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text
             variant={TextVariant.HeadingLG}
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}

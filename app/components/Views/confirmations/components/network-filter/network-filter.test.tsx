@@ -83,7 +83,7 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
   __esModule: true,
   default: ({ name }: { name: string }) => {
     const { View } = jest.requireActual('react-native');
-    return <View accessibilityRole="none" accessible={false} testID={`avatar-${name}`} />;
+    return <View testID={`avatar-${name}`} />;
   },
   AvatarSize: { Xs: 'xs' },
   AvatarVariant: { Network: 'network' },

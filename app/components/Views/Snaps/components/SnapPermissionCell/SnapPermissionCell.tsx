@@ -41,15 +41,15 @@ const SnapPermissionCell = ({ title, date }: SnapPermissionCellProps) => {
   const { styles } = useStyles(stylesheet, {});
   return (
     <Card style={styles.permissionCell}>
-      <View accessibilityRole="none" accessible={false} testID={SNAP_PERMISSION_CELL} style={styles.cellBase}>
-        <View accessibilityRole="none" accessible={false} style={styles.iconWrapper}>
+      <View testID={SNAP_PERMISSION_CELL} style={styles.cellBase}>
+        <View style={styles.iconWrapper}>
           <Icon
             name={IconName.Key}
             size={IconSize.Md}
             color={IconColor.Muted}
           />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.cellBaseInfo}>
+        <View style={styles.cellBaseInfo}>
           <Text
             testID={SNAP_PERMISSIONS_TITLE}
             numberOfLines={2}

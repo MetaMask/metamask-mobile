@@ -125,7 +125,7 @@ const OnboardingAnimation = ({
 
   return (
     <>
-      <View accessibilityRole="none" accessible={false} style={styles.titleWrapper} pointerEvents="box-none">
+      <View style={styles.titleWrapper} pointerEvents="box-none">
         <Animated.View
           style={[
             styles.largeFoxWrapper,

@@ -48,7 +48,7 @@ const OptIn = () => {
 
   return (
     <Fragment>
-      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View style={styles.wrapper}>
         <Text
           variant={TextVariant.HeadingMD}
           color={TextColor.Default}
@@ -58,7 +58,7 @@ const OptIn = () => {
           {strings('notifications.activation_card.title')}
         </Text>
         <ScrollView>
-          <View accessibilityRole="none" accessible={false} style={styles.card}>
+          <View style={styles.card}>
             <Image
               source={EnableNotificationsCardPlaceholder}
               style={styles.image}
@@ -98,7 +98,7 @@ const OptIn = () => {
           </Text>
         </ScrollView>
 
-        <View accessibilityRole="none" accessible={false} style={styles.btnContainer}>
+        <View style={styles.btnContainer}>
           <Button
             variant={ButtonVariants.Secondary}
             label={strings('notifications.activation_card.cancel')}

@@ -95,7 +95,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   };
 
   const renderCardSettings = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.heading}>
+    <View style={styles.heading}>
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
         {strings('experimental_settings.card_title')}
       </Text>
@@ -147,7 +147,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   };
 
   const renderPerformanceSettings = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.heading}>
+    <View style={styles.heading}>
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
         Download Performance Metrics
       </Text>

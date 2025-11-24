@@ -234,9 +234,9 @@ const SlippageSlider = ({
         style={[styles.trackBackContainer, { width: componentWidth }]}
         onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.trackBack}>
+        <View style={styles.trackBack}>
           {new Array(ticksLength + 1).fill().map((_, i) => (
-            <View accessibilityRole="none" accessible={false} key={i} style={styles.tick} />
+            <View key={i} style={styles.tick} />
           ))}
         </View>
       </View>

@@ -656,8 +656,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!selectedTooltip) return null;
 
     return (
-      // Android Compatibility: Wrap the <Modal> in a plain <View accessibilityRole="none" accessible={false}> component to prevent rendering issues and freezing.
-      <View accessibilityRole="none" accessible={false}>
+      // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+      <View>
         <Modal visible transparent animationType="none" statusBarTranslucent>
           <PerpsBottomSheetTooltip
             isVisible
@@ -698,7 +698,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   if (tabs.length === 1 && tabs[0].id === 'statistics') {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.singleTabContainer}>
+      <View style={styles.singleTabContainer}>
         <Text
           variant={TextVariant.HeadingSM}
           color={TextColor.Default}

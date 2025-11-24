@@ -105,11 +105,11 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, allTokens }: Props) => {
       style={[isFocus ? styles.searchSectionFocused : styles.searchSection]}
       testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.icon}>
+      <View style={styles.icon}>
         <Icon name={IconName.Search} size={IconSize.Sm} />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.input}>
+      <View style={styles.input}>
         <TextInput
           style={styles.textInput}
           value={searchString}
@@ -129,7 +129,7 @@ const AssetSearch = ({ onSearch, onFocus, onBlur, allTokens }: Props) => {
         />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.iconClose}>
+      <View style={styles.iconClose}>
         <ButtonIcon
           size={ButtonIconSizes.Sm}
           iconName={IconName.Close}

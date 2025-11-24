@@ -1475,9 +1475,9 @@ export class NetworkSettings extends PureComponent {
       if (warningChainId) {
         if (warningChainId === strings('app_settings.unMatched_chain_name')) {
           return (
-            <View accessibilityRole="none" accessible={false} style={containerStyle}>
+            <View style={containerStyle}>
               <Text style={styles.warningText}>{warningChainId}</Text>
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Text style={styles.warningText}>
                   {strings('app_settings.find_the_right_one')}{' '}
                   <Text
@@ -1501,7 +1501,7 @@ export class NetworkSettings extends PureComponent {
           strings('app_settings.chain_id_associated_with_another_network')
         ) {
           return (
-            <View accessibilityRole="none" accessible={false} style={containerStyle}>
+            <View style={containerStyle}>
               <Text style={styles.warningText}>
                 {strings(
                   'app_settings.chain_id_associated_with_another_network',
@@ -1517,7 +1517,7 @@ export class NetworkSettings extends PureComponent {
           );
         }
         return (
-          <View accessibilityRole="none" accessible={false} style={containerStyle}>
+          <View style={containerStyle}>
             <Text style={styles.warningText}>{warningChainId}</Text>
           </View>
         );
@@ -1530,7 +1530,7 @@ export class NetworkSettings extends PureComponent {
       if (warningSymbol) {
         if (validatedSymbol) {
           return (
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <Text style={styles.inlineWarning}>
                 {strings('wallet.suggested_token_symbol')}{' '}
                 <Text
@@ -1549,7 +1549,7 @@ export class NetworkSettings extends PureComponent {
           );
         }
         return (
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <Text style={styles.inlineWarning}>
               {strings('wallet.suggested_token_symbol')}{' '}
               <Text
@@ -1570,8 +1570,8 @@ export class NetworkSettings extends PureComponent {
     const renderButtons = () => {
       if (isNetworkUiRedesignEnabled()) {
         return (
-          <View accessibilityRole="none" accessible={false} style={styles.buttonsWrapper}>
-            <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+          <View style={styles.buttonsWrapper}>
+            <View style={styles.buttonsContainer}>
               <Button
                 size={ButtonSize.Lg}
                 variant={ButtonVariants.Primary}
@@ -1588,9 +1588,9 @@ export class NetworkSettings extends PureComponent {
       }
       if (addMode || editable) {
         return (
-          <View accessibilityRole="none" accessible={false} style={styles.buttonsWrapper}>
+          <View style={styles.buttonsWrapper}>
             {editable ? (
-              <View accessibilityRole="none" accessible={false} style={styles.editableButtonsContainer}>
+              <View style={styles.editableButtonsContainer}>
                 <Button
                   size={ButtonSize.Lg}
                   variant={ButtonVariants.Secondary}
@@ -1611,7 +1611,7 @@ export class NetworkSettings extends PureComponent {
                 />
               </View>
             ) : (
-              <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+              <View style={styles.buttonsContainer}>
                 <Button
                   size={ButtonSize.Lg}
                   variant={ButtonVariants.Primary}
@@ -1676,7 +1676,7 @@ export class NetworkSettings extends PureComponent {
               keyboardAppearance={themeAppearance}
             />
             {warningName ? (
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Text style={styles.messageWarning}>
                   {strings('wallet.incorrect_network_name_warning')}
                 </Text>
@@ -1697,14 +1697,14 @@ export class NetworkSettings extends PureComponent {
               {strings('app_settings.network_rpc_url_label')}
             </Text>
             {isNetworkUiRedesignEnabled() ? (
-              <View accessibilityRole="none" accessible={false} style={styles.dropDownInput}>
+              <View style={styles.dropDownInput}>
                 <Cell
                   key={rpcUrl}
                   testID={NetworksViewSelectorsIDs.ICON_BUTTON_RPC}
                   variant={CellVariant.SelectWithMenu}
                   title={
-                    <View accessibilityRole="none" accessible={false} style={styles.rpcTitleWrapper}>
-                      <View accessibilityRole="none" accessible={false}>
+                    <View style={styles.rpcTitleWrapper}>
+                      <View>
                         <Text
                           numberOfLines={1}
                           variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
@@ -1837,7 +1837,7 @@ export class NetworkSettings extends PureComponent {
             </Text>
 
             {isNetworkUiRedesignEnabled() ? (
-              <View accessibilityRole="none" accessible={false} style={styles.dropDownInput}>
+              <View style={styles.dropDownInput}>
                 <Cell
                   key={rpcUrl}
                   testID={NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER}
@@ -1873,7 +1873,7 @@ export class NetworkSettings extends PureComponent {
               />
             )}
           </SafeAreaView>
-          <View accessibilityRole="none" accessible={false} style={styles.bottomSection}>
+          <View style={styles.bottomSection}>
             {isCustomMainnet ? (
               <Button
                 variant={ButtonVariants.Primary}
@@ -1897,8 +1897,8 @@ export class NetworkSettings extends PureComponent {
             onDismiss={this.closeAddRpcForm}
             shouldGoBack={false}
           >
-            <View accessibilityRole="none" accessible={false} style={styles.notch} />
-            <View accessibilityRole="none" accessible={false} style={styles.container}>
+            <View style={styles.notch} />
+            <View style={styles.container}>
               {/* Sticky Header */}
               <BottomSheetHeader
                 onBack={() => {
@@ -1934,7 +1934,7 @@ export class NetworkSettings extends PureComponent {
                   keyboardAppearance={themeAppearance}
                 />
                 {warningRpcUrl && (
-                  <View accessibilityRole="none" accessible={false} testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}>
+                  <View testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}>
                     <Text style={styles.warningText}>{warningRpcUrl}</Text>
                   </View>
                 )}
@@ -1956,7 +1956,7 @@ export class NetworkSettings extends PureComponent {
                   keyboardAppearance={themeAppearance}
                 />
                 {/* Add RPC Button */}
-                <View accessibilityRole="none" accessible={false} style={styles.scrollableBox}>
+                <View style={styles.scrollableBox}>
                   <ButtonPrimary
                     label={strings('app_settings.add_rpc_url')}
                     size={ButtonSize.Lg}
@@ -1979,7 +1979,7 @@ export class NetworkSettings extends PureComponent {
             shouldGoBack={false}
             onDismiss={this.closeAddBlockExplorerRpcForm}
           >
-            <View accessibilityRole="none" accessible={false} style={styles.notch} />
+            <View style={styles.notch} />
             <BottomSheetHeader
               onBack={() => {
                 this.closeAddBlockExplorerRpcForm();
@@ -2022,7 +2022,7 @@ export class NetworkSettings extends PureComponent {
                     </Text>
                   )}
 
-                <View accessibilityRole="none" accessible={false} style={styles.addRpcNameButton}>
+                <View style={styles.addRpcNameButton}>
                   <ButtonPrimary
                     label={strings('app_settings.add_block_explorer_url')}
                     testID={NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER}
@@ -2056,8 +2056,8 @@ export class NetworkSettings extends PureComponent {
             shouldGoBack={false}
           >
             {/* Sticky Notch */}
-            <View accessibilityRole="none" accessible={false} style={styles.notch} />
-            <View accessibilityRole="none" accessible={false} style={styles.container}>
+            <View style={styles.notch} />
+            <View style={styles.container}>
               {/* Sticky Header */}
               <BottomSheetHeader>
                 {strings('app_settings.add_block_explorer_url')}
@@ -2066,7 +2066,7 @@ export class NetworkSettings extends PureComponent {
               {/* Scrollable Middle Content */}
               <ScrollView contentContainerStyle={styles.scrollViewContent}>
                 {blockExplorerUrls.length > 0 ? (
-                  <View accessibilityRole="none" accessible={false}>
+                  <View>
                     {blockExplorerUrls.map((url) => (
                       <Cell
                         key={url}
@@ -2094,7 +2094,7 @@ export class NetworkSettings extends PureComponent {
                 ) : null}
 
                 {/* Add Block Explorer Button */}
-                <View accessibilityRole="none" accessible={false} style={styles.scrollableBox}>
+                <View style={styles.scrollableBox}>
                   <ButtonLink
                     label={strings('app_settings.add_block_explorer_url')}
                     endIconName={IconName.Add}
@@ -2121,8 +2121,8 @@ export class NetworkSettings extends PureComponent {
             onDismiss={this.closeRpcModal}
             shouldGoBack={false}
           >
-            <View accessibilityRole="none" accessible={false} style={styles.notch} />
-            <View accessibilityRole="none" accessible={false} style={styles.container}>
+            <View style={styles.notch} />
+            <View style={styles.container}>
               {/* Sticky Header */}
               <BottomSheetHeader>
                 {strings('app_settings.add_rpc_url')}
@@ -2131,7 +2131,7 @@ export class NetworkSettings extends PureComponent {
               {/* Scrollable Middle Content */}
               <ScrollView contentContainerStyle={styles.scrollViewContent}>
                 {rpcUrls.length > 0 ? (
-                  <View accessibilityRole="none" accessible={false}>
+                  <View>
                     {rpcUrls.map(({ url, failoverUrls, name, type }) => {
                       const formattedName = type === 'infura' ? 'Infura' : name;
                       return (
@@ -2139,8 +2139,8 @@ export class NetworkSettings extends PureComponent {
                           key={`${url}-${name}`}
                           variant={CellVariant.SelectWithMenu}
                           title={
-                            <View accessibilityRole="none" accessible={false} style={styles.rpcTitleWrapper}>
-                              <View accessibilityRole="none" accessible={false}>
+                            <View style={styles.rpcTitleWrapper}>
+                              <View>
                                 <Text
                                   numberOfLines={1}
                                   variant={
@@ -2201,7 +2201,7 @@ export class NetworkSettings extends PureComponent {
                     })}
                   </View>
                 ) : null}
-                <View accessibilityRole="none" accessible={false} style={styles.scrollableBox}>
+                <View style={styles.scrollableBox}>
                   <ButtonLink
                     label={strings('app_settings.add_rpc_url')}
                     endIconName={IconName.Add}
@@ -2284,7 +2284,7 @@ export class NetworkSettings extends PureComponent {
         style={styles.wrapper}
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.informationWrapper}>
+        <View style={styles.informationWrapper}>
           {(isNetworkUiRedesignEnabled() && !shouldShowPopularNetworks) ||
           networkTypeOrRpcUrl ? (
             this.customNetwork()

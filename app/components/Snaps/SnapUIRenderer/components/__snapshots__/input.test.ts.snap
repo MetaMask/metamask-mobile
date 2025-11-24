@@ -30,7 +30,7 @@ exports[`SnapUIInput handles disabled input 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             color="Default"
@@ -188,7 +188,7 @@ exports[`SnapUIInput renders with initial value 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableHighlight>
           <View
             color="Default"

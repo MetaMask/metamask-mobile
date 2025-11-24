@@ -158,7 +158,7 @@ const UrlAutocomplete = forwardRef<
   );
 
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
-  const resultsRef = useRef<View accessibilityRole="none" accessible={false} | null>(null);
+  const resultsRef = useRef<View | null>(null);
   const { styles } = useStyles(styleSheet, {});
 
   /**
@@ -264,7 +264,7 @@ const UrlAutocomplete = forwardRef<
 
   const renderSectionHeader = useCallback(
     ({ section: { category } }: { section: ResultsWithCategory }) => (
-      <View accessibilityRole="none" accessible={false} style={styles.categoryWrapper}>
+      <View style={styles.categoryWrapper}>
         <Text style={styles.category}>
           {strings(`autocomplete.${category}`)}
         </Text>
@@ -296,19 +296,19 @@ const UrlAutocomplete = forwardRef<
 
   if (!hasResults && !isTokenSearchLoading) {
     return (
-      <View accessibilityRole="none" accessible={false} ref={resultsRef} style={styles.wrapper}>
+      <View ref={resultsRef} style={styles.wrapper}>
         <TouchableWithoutFeedback
           style={styles.bg}
           onPress={dismissAutocomplete}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.bg} />
+          <View style={styles.bg} />
         </TouchableWithoutFeedback>
       </View>
     );
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} ref={resultsRef} style={styles.wrapper}>
+    <View ref={resultsRef} style={styles.wrapper}>
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

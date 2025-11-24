@@ -45,7 +45,7 @@ export const GasInput = ({
   }, [error, onErrorChange]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <TextFieldWithLabel
         error={error}
         inputType="gas"

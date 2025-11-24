@@ -415,7 +415,7 @@ const RevealPrivateCredential = ({
   }, []);
 
   const renderTabView = (privCredentialName: string) => (
-    <View accessibilityRole="none" accessible={false} style={styles.tabContainer}>
+    <View style={styles.tabContainer}>
       <ScrollableTabView
         renderTabBar={() => renderTabBar()}
         // TODO: Replace "any" with type
@@ -430,7 +430,7 @@ const RevealPrivateCredential = ({
           <Text style={styles.boldText}>
             {strings(`reveal_credential.${privCredentialName}`)}
           </Text>
-          <View accessibilityRole="none" accessible={false} style={styles.seedPhraseView}>
+          <View style={styles.seedPhraseView}>
             <TextInput
               value={clipboardPrivateCredential}
               numberOfLines={3}
@@ -615,8 +615,8 @@ const RevealPrivateCredential = ({
   );
 
   const renderWarning = (privCredentialName: string) => (
-    <View accessibilityRole="none" accessible={false} style={[styles.rowWrapper, styles.warningWrapper]}>
-      <View accessibilityRole="none" accessible={false} style={[styles.warningRowWrapper]}>
+    <View style={[styles.rowWrapper, styles.warningWrapper]}>
+      <View style={[styles.warningRowWrapper]}>
         <Icon
           color={colors.error.default}
           name={IconName.EyeSlash}
@@ -673,9 +673,9 @@ const RevealPrivateCredential = ({
         extraScrollHeight={40}
         showsVerticalScrollIndicator={false}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
-          <View accessibilityRole="none" accessible={false} style={[styles.rowWrapper, styles.normalText]}>
+          <View style={[styles.rowWrapper, styles.normalText]}>
             {isPrivateKey && account ? (
               <>
                 <AccountInfo account={account} />
@@ -699,7 +699,7 @@ const RevealPrivateCredential = ({
           {unlocked ? (
             renderTabView(credentialSlug)
           ) : (
-            <View accessibilityRole="none" accessible={false} style={styles.rowWrapper}>{renderPasswordEntry()}</View>
+            <View style={styles.rowWrapper}>{renderPasswordEntry()}</View>
           )}
         </View>
       </ActionView>

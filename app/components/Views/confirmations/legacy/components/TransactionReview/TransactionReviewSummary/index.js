@@ -115,13 +115,13 @@ class TransactionReviewSummary extends PureComponent {
     const isTestNetResult = isTestNet(chainId);
 
     return (
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         {!!approveTransaction && (
-          <View accessibilityRole="none" accessible={false} style={styles.warning}>
+          <View style={styles.warning}>
             <WarningMessage warningMessage={this.renderWarning()} />
           </View>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.summary}>
+        <View style={styles.summary}>
           <Text style={styles.confirmBadge} numberOfLines={1}>
             {actionKey}
           </Text>
@@ -137,7 +137,7 @@ class TransactionReviewSummary extends PureComponent {
               {assetAmount}
             </Text>
           ) : (
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <Text
                 style={
                   isTestNetResult

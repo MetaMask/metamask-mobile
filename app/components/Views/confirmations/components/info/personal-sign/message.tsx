@@ -54,7 +54,7 @@ const DetailedSIWEMessage = ({
     resources,
   } = parsedMessage;
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text style={styles.siweTos}>{parsedMessage?.statement}</Text>
       <InfoRow label={strings('confirm.siwe_message.url')}>{uri}</InfoRow>
       <InfoRow label={strings('confirm.siwe_message.network')}>

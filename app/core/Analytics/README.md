@@ -89,7 +89,7 @@ function MyComponent() {
   };
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Button title="Send Transaction" onPress={handleTransactionStart} />
       <Button title="Open Wallet" onPress={handleWalletOpen} />
     </View>
@@ -193,7 +193,7 @@ function TransactionComponent() {
   };
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <TextInput value={amount} onChangeText={setAmount} placeholder="Amount" />
       <TextInput
         value={recipient}
@@ -231,7 +231,7 @@ function UserProfile() {
   };
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Button title="Update Profile" onPress={handleUserUpdate} />
     </View>
   );

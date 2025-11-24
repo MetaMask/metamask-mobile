@@ -41,9 +41,9 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container} testID={testID}>
+    <View style={styles.container} testID={testID}>
       {onBackPress && (
-        <View accessibilityRole="none" accessible={false} style={styles.backButton}>
+        <View style={styles.backButton}>
           <ButtonIcon
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
@@ -55,7 +55,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
       )}
 
       {/* Icon Section - Smaller size for better spacing */}
-      <View accessibilityRole="none" accessible={false} style={styles.perpIcon}>
+      <View style={styles.perpIcon}>
         <PerpsTokenLogo
           symbol={market.symbol}
           size={32}
@@ -64,8 +64,8 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
       </View>
 
       {/* Left Section */}
-      <View accessibilityRole="none" accessible={false} style={styles.leftSection}>
-        <View accessibilityRole="none" accessible={false} style={styles.assetRow}>
+      <View style={styles.leftSection}>
+        <View style={styles.assetRow}>
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Default}
@@ -75,7 +75,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           </Text>
           <PerpsLeverage maxLeverage={market.maxLeverage} />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.secondRow}>
+        <View style={styles.secondRow}>
           <LivePriceHeader
             symbol={market.symbol}
             fallbackPrice={market.price || '0'}

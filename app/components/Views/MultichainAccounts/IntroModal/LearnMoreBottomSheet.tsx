@@ -69,8 +69,8 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
 
   return (
     <BottomSheet ref={sheetRef} onClose={onClose}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
-        <View accessibilityRole="none" accessible={false} style={styles.header}>
+      <View style={styles.container}>
+        <View style={styles.header}>
           <ButtonIcon
             onPress={handleBack}
             iconName={IconName.ArrowLeft}
@@ -90,7 +90,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
           />
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.content}>
+        <View style={styles.content}>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
@@ -108,7 +108,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
           />
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.footer}>
+        <View style={styles.footer}>
           <Button
             variant={ButtonVariants.Primary}
             label={strings('multichain_accounts.learn_more.confirm_button')}

@@ -25,17 +25,17 @@ const YouReceiveCard = ({ amountWei, amountFiat }: YouReceiveCardProps) => {
 
   return (
     <Card style={styles.changesCard} disabled>
-      <View accessibilityRole="none" accessible={false} style={styles.estimatedChangesWrapper}>
+      <View style={styles.estimatedChangesWrapper}>
         <Text variant={TextVariant.BodyMDMedium}>
           {strings('stake.estimated_changes')}
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.youReceiveWrapper}>
+      <View style={styles.youReceiveWrapper}>
         <Text variant={TextVariant.BodyMDMedium}>
           {strings('stake.you_receive')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.youReceiveRightSide}>
-          <View accessibilityRole="none" accessible={false} style={styles.flexRow}>
+        <View style={styles.youReceiveRightSide}>
+          <View style={styles.flexRow}>
             <TagBase severity={TagSeverity.Success} shape={TagShape.Pill}>
               <Text
                 variant={TextVariant.BodyMDMedium}

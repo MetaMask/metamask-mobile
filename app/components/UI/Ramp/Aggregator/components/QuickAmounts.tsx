@@ -91,7 +91,7 @@ const QuickAmounts = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.content}>
+    <View style={styles.content}>
       <ScrollView
         horizontal
         contentContainerStyle={{ paddingLeft: INSET, paddingRight: INSET }}

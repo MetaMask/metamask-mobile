@@ -280,7 +280,7 @@ const EditGasFeeLegacy = ({
           style={styles.warningContainer}
         >
           {() => (
-            <View accessibilityRole="none" accessible={false} style={styles.warningTextContainer}>
+            <View style={styles.warningTextContainer}>
               <Text black style={styles.warningText}>
                 {warning}
               </Text>
@@ -309,7 +309,7 @@ const EditGasFeeLegacy = ({
           style={styles.warningContainer}
         >
           {() => (
-            <View accessibilityRole="none" accessible={false} style={styles.warningTextContainer}>
+            <View style={styles.warningTextContainer}>
               <Text red style={styles.warningText}>
                 {error}
               </Text>
@@ -335,12 +335,12 @@ const EditGasFeeLegacy = ({
   const valueToWatch = gasFeeNative;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.root}>
+    <View style={styles.root}>
       <ScrollView style={styles.wrapper}>
         <TouchableWithoutFeedback>
-          <View accessibilityRole="none" accessible={false}>
-            <View accessibilityRole="none" accessible={false}>
-              <View accessibilityRole="none" accessible={false} style={styles.customGasHeader}>
+          <View>
+            <View>
+              <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
                   <Icon
                     name={'arrow-back'}
@@ -366,9 +366,9 @@ const EditGasFeeLegacy = ({
               onAnimationStart={onUpdatingValuesStart}
               onAnimationEnd={onUpdatingValuesEnd}
             >
-              <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
-                <View accessibilityRole="none" accessible={false} style={styles.headerTitle}>
-                  <View accessibilityRole="none" accessible={false} style={styles.headerTitleSide}>
+              <View style={styles.headerContainer}>
+                <View style={styles.headerTitle}>
+                  <View style={styles.headerTitleSide}>
                     <Text right black style={styles.headerText}>
                       ~
                     </Text>
@@ -376,7 +376,7 @@ const EditGasFeeLegacy = ({
                   <Text black style={styles.headerText}>
                     {gasFeePrimary}
                   </Text>
-                  <View accessibilityRole="none" accessible={false} style={styles.headerTitleSide} />
+                  <View style={styles.headerTitleSide} />
                 </View>
                 <Text big black>
                   <Text bold black>
@@ -385,7 +385,7 @@ const EditGasFeeLegacy = ({
                 </Text>
               </View>
               {!onlyAdvanced && (
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <HorizontalSelector
                     selected={selectedOption}
                     onPress={selectOption}
@@ -393,7 +393,7 @@ const EditGasFeeLegacy = ({
                   />
                 </View>
               )}
-              <View accessibilityRole="none" accessible={false} style={styles.advancedOptionsContainer}>
+              <View style={styles.advancedOptionsContainer}>
                 {!onlyAdvanced && (
                   <TouchableOpacity
                     onPress={toggleAdvancedOptions}
@@ -410,11 +410,11 @@ const EditGasFeeLegacy = ({
                   </TouchableOpacity>
                 )}
                 {showAdvancedOptions && (
-                  <View accessibilityRole="none" accessible={false} style={styles.advancedOptionsInputsContainer}>
-                    <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer}>
+                  <View style={styles.advancedOptionsInputsContainer}>
+                    <View style={styles.rangeInputContainer}>
                       <RangeInput
                         leftLabelComponent={
-                          <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+                          <View style={styles.labelTextContainer}>
                             <Text black bold noMargin>
                               {strings('edit_gas_fee_eip1559.gas_limit')}{' '}
                             </Text>
@@ -438,10 +438,10 @@ const EditGasFeeLegacy = ({
                         increment={GAS_LIMIT_INCREMENT}
                       />
                     </View>
-                    <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer}>
+                    <View style={styles.rangeInputContainer}>
                       <RangeInput
                         leftLabelComponent={
-                          <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+                          <View style={styles.labelTextContainer}>
                             <Text black bold noMargin>
                               {strings('edit_gas_fee_eip1559.gas_price')}{' '}
                             </Text>
@@ -474,7 +474,7 @@ const EditGasFeeLegacy = ({
                 )}
               </View>
             </FadeAnimationView>
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <StyledButton
                 type={'confirm'}
                 onPress={save}
@@ -494,7 +494,7 @@ const EditGasFeeLegacy = ({
               }
               toggleModal={() => setShowRangeInfoModal(null)}
               body={
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Text grey infoModal>
                     {showRangeInfoModal === 'gas_limit' &&
                       strings(

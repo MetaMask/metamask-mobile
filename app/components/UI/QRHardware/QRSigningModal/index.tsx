@@ -83,7 +83,7 @@ const QRSigningModal = ({
       }}
       propagateSwipe
     >
-      <View accessibilityRole="none" accessible={false} style={styles.contentWrapper}>
+      <View style={styles.contentWrapper}>
         <QRSigningDetails
           pendingScanRequest={pendingScanRequest}
           showCancelButton

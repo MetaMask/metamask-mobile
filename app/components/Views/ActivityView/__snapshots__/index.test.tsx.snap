@@ -492,7 +492,7 @@ exports[`ActivityView should render correctly 1`] = `
                               />
                             </View>
                           </View>
-                          <View accessibilityRole="none" accessible={false} />
+                          <View />
                         </View>
                         <RCTScrollView
                           ListEmptyComponent={
@@ -560,7 +560,7 @@ exports[`ActivityView should render correctly 1`] = `
                           stickyHeaderIndices={[]}
                           viewabilityConfigCallbackPairs={[]}
                         >
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               collapsable={false}
                               onLayout={[Function]}
@@ -573,7 +573,7 @@ exports[`ActivityView should render correctly 1`] = `
                                 onGestureHandlerEvent={[Function]}
                                 onGestureHandlerStateChange={[Function]}
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       [

@@ -287,7 +287,7 @@ const SnapPermissions = ({
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} testID={SNAP_PERMISSIONS} style={styles.section}>
+    <View testID={SNAP_PERMISSIONS} style={styles.section}>
       {showLabel ? (
         <Text variant={TextVariant.HeadingMD}>
           {strings(

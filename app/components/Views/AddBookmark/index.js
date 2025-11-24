@@ -131,8 +131,8 @@ export default class AddBookmark extends PureComponent {
           onCancelPress={this.cancelAddBookmark}
           onConfirmPress={this.addBookmark}
         >
-          <View accessibilityRole="none" accessible={false}>
-            <View accessibilityRole="none" accessible={false} style={styles.rowWrapper}>
+          <View>
+            <View style={styles.rowWrapper}>
               <Text style={styles.inputTitle}>
                 {strings('add_favorite.title_label')}
               </Text>
@@ -149,7 +149,7 @@ export default class AddBookmark extends PureComponent {
               />
               <Text style={styles.warningText}>{this.state.warningSymbol}</Text>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.rowWrapper}>
+            <View style={styles.rowWrapper}>
               <Text style={styles.inputTitle}>
                 {strings('add_favorite.url_label')}
               </Text>

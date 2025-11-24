@@ -118,7 +118,7 @@ export const SDKSessionItem = ({
   }, [connection, navigate, sessionName, icon]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <BadgeWrapper
         style={styles.selfCenter}
         badgeElement={
@@ -136,7 +136,7 @@ export const SDKSessionItem = ({
           <AvatarToken name={sessionName} isHaloEnabled size={AvatarSize.Md} />
         )}
       </BadgeWrapper>
-      <View accessibilityRole="none" accessible={false} style={styles.labelContainer}>
+      <View style={styles.labelContainer}>
         <Text variant={TextVariant.BodyLGMedium}>{sessionName}</Text>
         <Text variant={TextVariant.BodyMD}>
           {strings('sdk_session_item.connected_accounts', {

@@ -30,7 +30,7 @@ const MockComponent = () => {
   const stakeContractAddress = stakeContext.stakingContract?.contract.address;
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text>{stakeContractAddress}</Text>
     </View>
   );

@@ -527,7 +527,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                             </View>
                           </View>
                           <RCTScrollView>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -582,7 +582,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                   }
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       [

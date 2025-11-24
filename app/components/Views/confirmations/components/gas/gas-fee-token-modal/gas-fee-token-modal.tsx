@@ -59,9 +59,9 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
         })
       }
     >
-      <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.container}>
-          <View accessibilityRole="none" accessible={false} style={styles.backButton}>
+      <View style={styles.modalContainer}>
+        <View style={styles.container}>
+          <View style={styles.backButton}>
             <ButtonIcon
               iconName={IconName.ArrowLeft}
               onPress={onClose}
@@ -72,7 +72,7 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
             {strings('gas_fee_token_modal.title')}
           </Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+        <View style={styles.contentContainer}>
           {gasFeeTokenAddresses.map((tokenAddress: Hex) => (
             <GasFeeTokenListItem
               key={tokenAddress}

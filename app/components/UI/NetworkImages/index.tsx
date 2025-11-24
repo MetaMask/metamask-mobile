@@ -36,7 +36,7 @@ const NetworkImageComponent = ({
   const networkContent = useMemo(() => {
     if (isAllNetworksEnabled) {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.overlappingAvatarsContainer}>
+        <View style={styles.overlappingAvatarsContainer}>
           {Object.keys(allNetworksEnabled).map((networkId, index) => (
             <View
               style={[styles.avatarWrapper, { zIndex: 5 - index }]}
@@ -66,7 +66,7 @@ const NetworkImageComponent = ({
       );
     }
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.overlappingAvatarsContainer}>
+      <View style={styles.overlappingAvatarsContainer}>
         <Avatar
           variant={AvatarVariant.Network}
           size={AvatarSize.Sm}

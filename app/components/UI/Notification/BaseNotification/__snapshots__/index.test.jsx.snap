@@ -187,7 +187,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
           Testing description
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </TouchableOpacity>
   </View>
 </View>
@@ -380,7 +380,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
           Testing description
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </TouchableOpacity>
   </View>
 </View>
@@ -573,7 +573,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
           Testing description
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </TouchableOpacity>
   </View>
 </View>
@@ -736,7 +736,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
           Testing description
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </TouchableOpacity>
   </View>
 </View>
@@ -899,7 +899,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
           Testing description
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </TouchableOpacity>
   </View>
 </View>
@@ -1062,7 +1062,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
           Testing description
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </TouchableOpacity>
   </View>
 </View>
@@ -1225,7 +1225,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
           Testing description
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </TouchableOpacity>
   </View>
 </View>
@@ -1388,7 +1388,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
           Testing description
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </TouchableOpacity>
   </View>
 </View>
@@ -1551,7 +1551,7 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
           Testing description
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} />
+      <View />
     </TouchableOpacity>
   </View>
 </View>

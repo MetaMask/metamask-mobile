@@ -111,8 +111,8 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.marketContainer}>
-      <View accessibilityRole="none" accessible={false} style={styles.marketHeader}>
+    <View style={styles.marketContainer}>
+      <View style={styles.marketHeader}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -184,7 +184,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
         </Box>
       </View>
       {!isClosed && (
-        <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Md}

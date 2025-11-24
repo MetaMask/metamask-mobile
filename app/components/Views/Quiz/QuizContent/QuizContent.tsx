@@ -28,10 +28,10 @@ const QuizContent = ({
   const { colors } = theme;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <>
-        <View accessibilityRole="none" accessible={false} style={styles.header}>
-          <View accessibilityRole="none" accessible={false} style={styles.spacer} />
+        <View style={styles.header}>
+          <View style={styles.spacer} />
           <Text variant={TextVariant.HeadingSM} style={styles.headerText}>
             {header}
           </Text>
@@ -59,7 +59,7 @@ const QuizContent = ({
           </Text>
         ) : null}
       </>
-      <View accessibilityRole="none" accessible={false} style={styles.bottomContainer}>
+      <View style={styles.bottomContainer}>
         {buttons.map((btn, idx) => (
           <Button
             key={idx}

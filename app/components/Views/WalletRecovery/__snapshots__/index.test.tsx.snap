@@ -17,7 +17,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
   }
 >
   <RCTScrollView>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {

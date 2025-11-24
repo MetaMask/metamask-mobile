@@ -357,7 +357,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     navigateToMarketsList,
   ]);
 
-  const renderTabBar = () => <View accessibilityRole="none" accessible={false} />;
+  const renderTabBar = () => <View />;
 
   const buttonLabel = useMemo(() => {
     if (isLastScreen) {
@@ -368,9 +368,9 @@ const PerpsTutorialCarousel: React.FC = () => {
   }, [isLastScreen]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
+    <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
       {/* Progress Dots */}
-      <View accessibilityRole="none" accessible={false} style={styles.progressContainer}>
+      <View style={styles.progressContainer}>
         {tutorialScreens.map((screen, index) => (
           <View
             key={screen.id}
@@ -383,7 +383,7 @@ const PerpsTutorialCarousel: React.FC = () => {
       </View>
 
       {/* Tutorial Content */}
-      <View accessibilityRole="none" accessible={false} style={styles.carouselWrapper}>
+      <View style={styles.carouselWrapper}>
         <ScrollableTabView
           ref={scrollableTabViewRef}
           renderTabBar={renderTabBar}
@@ -391,15 +391,15 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialPage={0}
         >
           {tutorialScreens.map((screen) => (
-            <View accessibilityRole="none" accessible={false} key={screen.id} style={styles.fullScreenContainer}>
+            <View key={screen.id} style={styles.fullScreenContainer}>
               <ScrollView
                 style={styles.scrollableContent}
                 contentContainerStyle={styles.scrollContentContainer}
                 showsVerticalScrollIndicator={false}
               >
-                <View accessibilityRole="none" accessible={false} style={styles.screenContainer}>
+                <View style={styles.screenContainer}>
                   {/* Header Section - Now flexible height */}
-                  <View accessibilityRole="none" accessible={false}>
+                  <View>
                     <Text
                       variant={TextVariant.HeadingLG}
                       color={TextColor.Default}
@@ -427,11 +427,11 @@ const PerpsTutorialCarousel: React.FC = () => {
 
                   {/* Content Section */}
                   {screen?.content && (
-                    <View accessibilityRole="none" accessible={false} style={styles.contentSection}>{screen.content}</View>
+                    <View style={styles.contentSection}>{screen.content}</View>
                   )}
 
                   {screen?.riveArtboardName && (
-                    <View accessibilityRole="none" accessible={false} style={styles.animationContainer}>
+                    <View style={styles.animationContainer}>
                       <Rive
                         key={screen.id}
                         style={styles.animation}
@@ -445,7 +445,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                   )}
                 </View>
                 {screen.footerText && (
-                  <View accessibilityRole="none" accessible={false} style={styles.footerTextContainer}>
+                  <View style={styles.footerTextContainer}>
                     <Text
                       variant={TextVariant.BodySM}
                       color={TextColor.Alternative}
@@ -462,8 +462,8 @@ const PerpsTutorialCarousel: React.FC = () => {
       </View>
 
       {/* Footer */}
-      <View accessibilityRole="none" accessible={false} style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonRow}>
+      <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
+        <View style={styles.buttonRow}>
           <Button
             variant={ButtonVariants.Primary}
             label={buttonLabel}
@@ -472,7 +472,7 @@ const PerpsTutorialCarousel: React.FC = () => {
             testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
             style={styles.continueButton}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.skipButton}>
+          <View style={styles.skipButton}>
             <TouchableOpacity
               onPress={handleSkip}
               disabled={isLastScreen && !isEligible}

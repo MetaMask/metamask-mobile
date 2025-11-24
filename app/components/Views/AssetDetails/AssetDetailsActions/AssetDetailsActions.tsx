@@ -138,9 +138,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   }, [withNavigationLock, onReceive]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.activitiesButton}>
+    <View style={styles.activitiesButton}>
       {displayBuyButton && (
-        <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           <MainActionButton
             iconName={IconName.AttachMoney}
             label={strings('asset_overview.buy_button')}
@@ -151,7 +151,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         </View>
       )}
       {displaySwapsButton && (
-        <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           <MainActionButton
             iconName={IconName.SwapVertical}
             label={strings('asset_overview.swap')}
@@ -161,7 +161,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           />
         </View>
       )}
-      <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+      <View style={styles.buttonContainer}>
         <MainActionButton
           iconName={IconName.Send}
           label={strings('asset_overview.send_button')}
@@ -170,7 +170,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           testID={sendButtonActionID}
         />
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+      <View style={styles.buttonContainer}>
         <MainActionButton
           iconName={IconName.Received}
           label={strings('asset_overview.receive_button')}

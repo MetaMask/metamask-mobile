@@ -47,7 +47,7 @@ const UnknownEthereumAddress: React.FC<{
   const { styles } = useStyles(styleSheet, { displayNameVariant });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.base, style]}>
+    <View style={[styles.base, style]}>
       <Identicon
         avatarSize={iconSize}
         address={address}
@@ -114,7 +114,7 @@ const Name: React.FC<NameProperties> = ({
         testID={`name-${value}`}
         onPress={() => setIsTooltipVisible(true)}
       >
-        <View accessibilityRole="none" accessible={false} style={[styles.base, style]}>
+        <View style={[styles.base, style]}>
           {isFirstPartyContractName ? (
             <Badge
               size={AvatarSize.Xs}
@@ -130,7 +130,7 @@ const Name: React.FC<NameProperties> = ({
               customStyle={styles.image}
             />
           )}
-          <View accessibilityRole="none" accessible={false} style={styles.labelContainer}>
+          <View style={styles.labelContainer}>
             <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
               {truncatedName}
             </NameLabel>

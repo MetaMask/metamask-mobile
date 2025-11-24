@@ -25,7 +25,7 @@ const GraphTooltip = ({
 
   if (isLoading) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <SkeletonPlaceholder>
           <SkeletonPlaceholder.Item {...styles.containerSkeleton}>
             <SkeletonPlaceholder.Item
@@ -45,7 +45,7 @@ const GraphTooltip = ({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <Text variant={TextVariant.HeadingLG} color={color ?? TextColor.Success}>
         {title}
       </Text>

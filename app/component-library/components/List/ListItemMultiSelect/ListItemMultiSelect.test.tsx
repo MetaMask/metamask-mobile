@@ -14,7 +14,7 @@ describe('ListItemMultiSelect', () => {
   it('renders with basic props', () => {
     const { getByTestId } = render(
       <ListItemMultiSelect onPress={() => null} testID="list-item-multi-select">
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -29,7 +29,7 @@ describe('ListItemMultiSelect', () => {
         isDisabled
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -45,7 +45,7 @@ describe('ListItemMultiSelect', () => {
         onPress={mockOnPress}
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -63,7 +63,7 @@ describe('ListItemMultiSelect', () => {
         isDisabled
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -79,7 +79,7 @@ describe('ListItemMultiSelect', () => {
         isSelected
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -98,7 +98,7 @@ describe('ListItemMultiSelect', () => {
         isSelected={false}
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -117,7 +117,7 @@ describe('ListItemMultiSelect', () => {
         isSelected={false}
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -135,7 +135,7 @@ describe('ListItemMultiSelect', () => {
         testID="test-list-item"
         accessibilityLabel="Test List Item"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -150,7 +150,7 @@ describe('ListItemMultiSelect', () => {
         gap={20}
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -166,7 +166,7 @@ describe('ListItemMultiSelect', () => {
         style={customStyle}
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -181,7 +181,7 @@ describe('ListItemMultiSelect', () => {
         onPress={mockOnPress}
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 
@@ -200,7 +200,7 @@ describe('ListItemMultiSelect', () => {
         isDisabled
         testID="list-item-multi-select"
       >
-        <View accessibilityRole="none" accessible={false} testID="test-content">Test Content</View>
+        <View testID="test-content">Test Content</View>
       </ListItemMultiSelect>,
     );
 

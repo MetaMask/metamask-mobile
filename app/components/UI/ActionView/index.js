@@ -74,7 +74,7 @@ export default function ActionView({
   const styles = getStyles(colors);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
+    <View style={baseStyles.flexGrow}>
       <KeyboardAwareScrollView
         style={[baseStyles.flexGrow, style]}
         resetScrollToCoords={{ x: 0, y: 0 }}
@@ -99,7 +99,7 @@ export default function ActionView({
           {children}
         </TouchableWithoutFeedback>
 
-        <View accessibilityRole="none" accessible={false} style={[styles.actionContainer, buttonContainerStyle]}>
+        <View style={[styles.actionContainer, buttonContainerStyle]}>
           {showCancelButton && (
             <Button
               onPress={onCancelPress}

@@ -360,7 +360,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             }
                           }
                         >
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 {
@@ -500,7 +500,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   ETH
                                 </Text>
                               </View>
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}
@@ -1959,7 +1959,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             }
                           }
                         >
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 {
@@ -2099,7 +2099,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   ETH
                                 </Text>
                               </View>
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <TouchableOpacity
                                   accessibilityRole="button"
                                   accessible={true}

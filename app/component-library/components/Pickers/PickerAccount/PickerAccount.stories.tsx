@@ -28,7 +28,7 @@ export const PickerAccount = {
       PickerAccountProps &
       React.RefAttributes<
         React.ForwardRefExoticComponent<
-          TouchableOpacityProps & React.RefAttributes<View accessibilityRole="none" accessible={false}>
+          TouchableOpacityProps & React.RefAttributes<View>
         >
       >,
   ) => <PickerAccountComponent {...args} />,

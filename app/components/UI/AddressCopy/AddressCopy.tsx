@@ -126,7 +126,7 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   ]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.address}>
+    <View style={styles.address}>
       <ButtonIcon
         iconName={IconName.Copy}
         size={ButtonIconSize.Lg}

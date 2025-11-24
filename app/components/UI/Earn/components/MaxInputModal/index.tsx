@@ -40,20 +40,20 @@ const MaxInputModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <BottomSheetHeader onClose={handleCancel}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('stake.max_modal.title')}
           </Text>
         </BottomSheetHeader>
-        <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
+        <View style={styles.textContainer}>
           <Text variant={TextVariant.BodyMD}>
             {strings('stake.max_modal.eth.description')}
           </Text>
         </View>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.button}>
+      <View style={styles.buttonContainer}>
+        <View style={styles.button}>
           <Button
             onPress={handleCancel}
             label={strings('stake.cancel')}
@@ -62,7 +62,7 @@ const MaxInputModal = () => {
             size={ButtonSize.Lg}
           />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.button}>
+        <View style={styles.button}>
           <Button
             onPress={handleConfirm}
             label={strings('stake.use_max')}

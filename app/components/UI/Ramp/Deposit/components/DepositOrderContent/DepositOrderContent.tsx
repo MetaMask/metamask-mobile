@@ -104,9 +104,9 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
   return (
     <>
-      <View accessibilityRole="none" accessible={false} style={styles.mainSection}>
-        <View accessibilityRole="none" accessible={false} style={styles.iconRow}>
-          <View accessibilityRole="none" accessible={false} style={getIconContainerStyle()}>
+      <View style={styles.mainSection}>
+        <View style={styles.iconRow}>
+          <View style={getIconContainerStyle()}>
             {order.state === FIAT_ORDER_STATES.PENDING ||
             order.state === FIAT_ORDER_STATES.CREATED ? (
               <Loader size="large" color={theme.colors.primary.default} />
@@ -162,12 +162,12 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
         ) : null}
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.detailsContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.detailRow}>
+      <View style={styles.detailsContainer}>
+        <View style={styles.detailRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('deposit.order_processing.account')}
           </Text>
-          <View accessibilityRole="none" accessible={false} style={styles.accountInfo}>
+          <View style={styles.accountInfo}>
             {selectedAddress ? (
               <Avatar
                 variant={AvatarVariant.Account}
@@ -180,11 +180,11 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           </View>
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.detailRow}>
+        <View style={styles.detailRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('deposit.order_processing.network')}
           </Text>
-          <View accessibilityRole="none" accessible={false} style={styles.networkInfo}>
+          <View style={styles.networkInfo}>
             {networkImageSource ? (
               <Image source={networkImageSource} style={styles.networkIcon} />
             ) : null}
@@ -192,7 +192,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           </View>
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.detailRow}>
+        <View style={styles.detailRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('deposit.order_processing.order_id')}
           </Text>
@@ -209,10 +209,10 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           </TouchableOpacity>
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.separator} />
+        <View style={styles.separator} />
 
         {Boolean(orderFee) && (
-          <View accessibilityRole="none" accessible={false} style={styles.detailRow}>
+          <View style={styles.detailRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('deposit.order_processing.fees')}
             </Text>
@@ -220,7 +220,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           </View>
         )}
 
-        <View accessibilityRole="none" accessible={false} style={styles.detailRow}>
+        <View style={styles.detailRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('deposit.order_processing.total')}
           </Text>

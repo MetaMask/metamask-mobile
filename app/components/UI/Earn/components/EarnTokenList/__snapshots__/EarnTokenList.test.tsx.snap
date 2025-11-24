@@ -395,7 +395,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
             stickyHeaderIndices={[]}
             viewabilityConfigCallbackPairs={[]}
           >
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <View
                 collapsable={false}
                 onLayout={[Function]}
@@ -499,7 +499,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         }
                         testID="badge-wrapper-badge"
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             useNativeDriver={true}
                           >
@@ -738,7 +738,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         }
                         testID="badge-wrapper-badge"
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               {

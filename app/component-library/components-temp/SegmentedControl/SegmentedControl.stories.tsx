@@ -226,8 +226,8 @@ const ButtonSizesDemo = ({
   );
 
   return (
-    <View accessibilityRole="none" accessible={false}>
-      <View accessibilityRole="none" accessible={false} style={styles.sizeDemo}>
+    <View>
+      <View style={styles.sizeDemo}>
         <Text variant={TextVariant.BodySM} style={styles.description}>
           Small Size
         </Text>
@@ -239,7 +239,7 @@ const ButtonSizesDemo = ({
         />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.sizeDemo}>
+      <View style={styles.sizeDemo}>
         <Text variant={TextVariant.BodySM} style={styles.description}>
           Medium Size (Default)
         </Text>
@@ -251,7 +251,7 @@ const ButtonSizesDemo = ({
         />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.sizeDemo}>
+      <View style={styles.sizeDemo}>
         <Text variant={TextVariant.BodySM} style={styles.description}>
           Large Size
         </Text>
@@ -272,7 +272,7 @@ const DisabledStateDemo = ({
 }: {
   styles: ReturnType<typeof createStyles>;
 }) => (
-  <View accessibilityRole="none" accessible={false} style={styles.demoWrapper}>
+  <View style={styles.demoWrapper}>
     <SegmentedControlComponent
       options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
       selectedValue={SAMPLE_SEGMENTEDCONTROL_OPTIONS[1].value}
@@ -307,7 +307,7 @@ export const SegmentedControl = {
 
     return (
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.container}>
+        <View style={styles.container}>
           <Text variant={TextVariant.HeadingSM}>
             SegmentedControl Component
           </Text>
@@ -316,7 +316,7 @@ export const SegmentedControl = {
             modes.
           </Text>
 
-          <View accessibilityRole="none" accessible={false} style={styles.section}>
+          <View style={styles.section}>
             <Text variant={TextVariant.BodyMDBold}>Basic Single-Select</Text>
             <Text variant={TextVariant.BodySM} style={styles.description}>
               The default configuration with single-select behavior
@@ -324,7 +324,7 @@ export const SegmentedControl = {
             <BasicSingleSelectDemo />
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.section}>
+          <View style={styles.section}>
             <Text variant={TextVariant.BodyMDBold}>Multi-Select</Text>
             <Text variant={TextVariant.BodySM} style={styles.description}>
               Allows selecting multiple options simultaneously
@@ -332,7 +332,7 @@ export const SegmentedControl = {
             <MultiSelectDemo />
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.section}>
+          <View style={styles.section}>
             <Text variant={TextVariant.BodyMDBold}>
               Scrollable with Flexible Width
             </Text>
@@ -342,7 +342,7 @@ export const SegmentedControl = {
             <ScrollableFlexibleWidthDemo />
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.section}>
+          <View style={styles.section}>
             <Text variant={TextVariant.BodyMDBold}>
               Scrollable with Fixed Width
             </Text>
@@ -352,7 +352,7 @@ export const SegmentedControl = {
             <ScrollableFixedWidthDemo />
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.section}>
+          <View style={styles.section}>
             <Text variant={TextVariant.BodyMDBold}>
               Single-Select with Icons
             </Text>
@@ -362,7 +362,7 @@ export const SegmentedControl = {
             <SingleSelectWithIconsDemo />
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.section}>
+          <View style={styles.section}>
             <Text variant={TextVariant.BodyMDBold}>
               Multi-Select with Icons (Scrollable)
             </Text>
@@ -372,7 +372,7 @@ export const SegmentedControl = {
             <MultiSelectWithIconsScrollableDemo />
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.section}>
+          <View style={styles.section}>
             <Text variant={TextVariant.BodyMDBold}>Size Variations</Text>
             <Text variant={TextVariant.BodySM} style={styles.description}>
               Small, medium (default), and large button sizes
@@ -380,7 +380,7 @@ export const SegmentedControl = {
             <ButtonSizesDemo styles={styles} />
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.section}>
+          <View style={styles.section}>
             <Text variant={TextVariant.BodyMDBold}>Disabled State</Text>
             <Text variant={TextVariant.BodySM} style={styles.description}>
               Control in a disabled state with interaction prevented

@@ -73,7 +73,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
     }
     viewabilityConfigCallbackPairs={[]}
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         onFocusCapture={[Function]}
         onLayout={[Function]}
@@ -682,7 +682,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
     }
     viewabilityConfigCallbackPairs={[]}
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         onFocusCapture={[Function]}
         onLayout={[Function]}
@@ -1259,7 +1259,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
     }
     viewabilityConfigCallbackPairs={[]}
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         onFocusCapture={[Function]}
         onLayout={[Function]}

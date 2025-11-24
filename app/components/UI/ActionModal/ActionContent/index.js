@@ -70,9 +70,9 @@ export default function ActionContent({
   const styles = createStyles(colors);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.viewWrapper, viewWrapperStyle]}>
-      <View accessibilityRole="none" accessible={false} style={[styles.viewContainer, viewContainerStyle]}>
-        <View accessibilityRole="none" accessible={false} style={[styles.childrenContainer, childrenContainerStyle]}>
+    <View style={[styles.viewWrapper, viewWrapperStyle]}>
+      <View style={[styles.viewContainer, viewContainerStyle]}>
+        <View style={[styles.childrenContainer, childrenContainerStyle]}>
           {children}
         </View>
         <View

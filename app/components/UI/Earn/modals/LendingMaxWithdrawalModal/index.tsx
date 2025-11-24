@@ -22,7 +22,7 @@ const LendingMaxWithdrawalModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingSM}>
             {strings(
@@ -30,7 +30,7 @@ const LendingMaxWithdrawalModal = () => {
             )}
           </Text>
         </BottomSheetHeader>
-        <View accessibilityRole="none" accessible={false} style={styles.bodyTextContainer}>
+        <View style={styles.bodyTextContainer}>
           <Text>{`${strings(
             'earn.tooltip_content.lending_risk_aware_withdrawal_tooltip.your_withdrawal_amount_may_be_limited_by',
           )}:`}</Text>

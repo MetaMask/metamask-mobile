@@ -123,7 +123,7 @@ jest.mock('react-native/index.js', () => {
 jest.mock('@metamask/react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { View } = require('react-native');
-  const WebView = (props) => <View accessibilityRole="none" accessible={false} {...props} />;
+  const WebView = (props) => <View {...props} />;
 
   return {
     WebView,

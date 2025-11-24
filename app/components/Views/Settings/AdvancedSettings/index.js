@@ -146,12 +146,12 @@ const SettingsRow = ({
 }) => {
   const { brandColors, colors } = useTheme();
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.setting}>
-      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
+    <View style={styles.setting}>
+      <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {heading}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.toggle}>
+        <View style={styles.toggle}>
           <Switch
             testID={testId}
             value={value}
@@ -402,7 +402,7 @@ class AdvancedSettings extends PureComponent {
               cancelResetAccount={this.cancelResetAccount}
               styles={styles}
             />
-            <View accessibilityRole="none" accessible={false} style={[styles.setting, styles.firstSetting]}>
+            <View style={[styles.setting, styles.firstSetting]}>
               <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.reset_account')}
               </Text>
@@ -515,7 +515,7 @@ class AdvancedSettings extends PureComponent {
               styles={styles}
             />
 
-            <View accessibilityRole="none" accessible={false} style={styles.setting}>
+            <View style={styles.setting}>
               <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.state_logs')}
               </Text>

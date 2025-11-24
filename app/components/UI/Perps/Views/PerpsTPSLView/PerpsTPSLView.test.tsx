@@ -37,7 +37,7 @@ jest.mock('react-native-safe-area-context', () => {
     SafeAreaView: jest
       .fn()
       .mockImplementation(({ children, ...props }) => (
-        <View accessibilityRole="none" accessible={false} {...props}>{children}</View>
+        <View {...props}>{children}</View>
       )),
     useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
     useSafeAreaFrame: jest.fn().mockImplementation(() => frame),

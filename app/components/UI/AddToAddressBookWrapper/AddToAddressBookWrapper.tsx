@@ -74,12 +74,12 @@ export const AddToAddressBookWrapper = ({
           cancelTestID={AddAddressModalSelectorsIDs.CANCEL_BUTTON}
           confirmTestID={AddAddressModalSelectorsIDs.SAVE_BUTTON}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.addToAddressBookRoot}>
+          <View style={styles.addToAddressBookRoot}>
             <View
               style={styles.addToAddressBookWrapper}
               testID={AddAddressModalSelectorsIDs.CONTAINER}
             >
-              <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
+              <View style={baseStyles.flexGrow}>
                 <Text
                   style={styles.addTextTitle}
                   {...generateTestId(
@@ -92,8 +92,8 @@ export const AddToAddressBookWrapper = ({
                 <Text style={styles.addTextSubtitle}>
                   {strings('address_book.enter_an_alias')}
                 </Text>
-                <View accessibilityRole="none" accessible={false} style={styles.addInputWrapper}>
-                  <View accessibilityRole="none" accessible={false} style={styles.input}>
+                <View style={styles.addInputWrapper}>
+                  <View style={styles.input}>
                     <TextInput
                       autoFocus
                       autoCapitalize="none"

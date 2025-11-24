@@ -143,7 +143,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
 
       case 'object':
         return (
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             {Object.keys(localValue as object).map((itemKey: string) => (
               <Text key={itemKey}>
                 {itemKey}:{' '}

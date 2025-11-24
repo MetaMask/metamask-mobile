@@ -47,10 +47,10 @@ const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+    <View style={styles.wrapper}>
       <Title style={styles.title}>{strings('asset_overview.about')}</Title>
       {isDescriptionLoading ? (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <SkeletonPlaceholder>
             <SkeletonPlaceholder.Item {...skeletonProps} />
             <SkeletonPlaceholder.Item {...skeletonProps} />

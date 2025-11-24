@@ -397,8 +397,8 @@ const PerpsTPSLView: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Simple header with back button and title */}
-      <View accessibilityRole="none" accessible={false} style={styles.header}>
-        <View accessibilityRole="none" accessible={false} style={styles.headerBackButton}>
+      <View style={styles.header}>
+        <View style={styles.headerBackButton}>
           <ButtonIcon
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
@@ -407,7 +407,7 @@ const PerpsTPSLView: React.FC = () => {
             testID={PerpsTPSLViewSelectorsIDs.BACK_BUTTON}
           />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.headerTitleContainer}>
+        <View style={styles.headerTitleContainer}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.tpsl.title')}
           </Text>
@@ -420,7 +420,7 @@ const PerpsTPSLView: React.FC = () => {
         onScrollBeginDrag={Keyboard.dismiss}
         showsVerticalScrollIndicator={false}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.scrollContent} testID="scroll-content">
+        <View style={styles.scrollContent} testID="scroll-content">
           {/* Current price and liquidation price info */}
           <View
             style={
@@ -430,7 +430,7 @@ const PerpsTPSLView: React.FC = () => {
             }
           >
             {position && (
-              <View accessibilityRole="none" accessible={false} style={styles.priceInfoRow}>
+              <View style={styles.priceInfoRow}>
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
@@ -449,7 +449,7 @@ const PerpsTPSLView: React.FC = () => {
                 </Text>
               </View>
             )}
-            <View accessibilityRole="none" accessible={false} style={styles.priceInfoRow}>
+            <View style={styles.priceInfoRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {orderType === 'limit' &&
                 limitPrice &&
@@ -465,7 +465,7 @@ const PerpsTPSLView: React.FC = () => {
                   : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
               </Text>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.priceInfoRow}>
+            <View style={styles.priceInfoRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.tpsl.liquidation_price')}
               </Text>
@@ -483,9 +483,9 @@ const PerpsTPSLView: React.FC = () => {
           </View>
 
           {/* Take Profit Section */}
-          <View accessibilityRole="none" accessible={false} style={focusedInput ? styles.sectionCondensed : styles.section}>
+          <View style={focusedInput ? styles.sectionCondensed : styles.section}>
             {/* Section title row with Clear button */}
-            <View accessibilityRole="none" accessible={false} style={styles.sectionTitleRow}>
+            <View style={styles.sectionTitleRow}>
               <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
                 {actualDirection === 'short'
                   ? strings('perps.tpsl.take_profit_short')
@@ -504,7 +504,7 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Percentage buttons */}
-            <View accessibilityRole="none" accessible={false} style={styles.percentageButtonsContainer}>
+            <View style={styles.percentageButtonsContainer}>
               {TP_SL_VIEW_CONFIG.TAKE_PROFIT_ROE_PRESETS.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
@@ -528,7 +528,7 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Input row */}
-            <View accessibilityRole="none" accessible={false} style={styles.inputRow}>
+            <View style={styles.inputRow}>
               {/* Price Input */}
               <View
                 style={[
@@ -653,9 +653,9 @@ const PerpsTPSLView: React.FC = () => {
           </View>
 
           {/* Stop Loss Section */}
-          <View accessibilityRole="none" accessible={false} style={focusedInput ? styles.sectionCondensed : styles.section}>
+          <View style={focusedInput ? styles.sectionCondensed : styles.section}>
             {/* Section title row with Clear button */}
-            <View accessibilityRole="none" accessible={false} style={styles.sectionTitleRow}>
+            <View style={styles.sectionTitleRow}>
               <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
                 {actualDirection === 'short'
                   ? strings('perps.tpsl.stop_loss_short')
@@ -674,7 +674,7 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Percentage buttons */}
-            <View accessibilityRole="none" accessible={false} style={styles.percentageButtonsContainer}>
+            <View style={styles.percentageButtonsContainer}>
               {TP_SL_VIEW_CONFIG.STOP_LOSS_ROE_PRESETS.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
@@ -698,7 +698,7 @@ const PerpsTPSLView: React.FC = () => {
             </View>
 
             {/* Input row */}
-            <View accessibilityRole="none" accessible={false} style={styles.inputRow}>
+            <View style={styles.inputRow}>
               {/* Price Input */}
               <View
                 style={[
@@ -816,7 +816,7 @@ const PerpsTPSLView: React.FC = () => {
         </View>
       </ScrollView>
 
-      <View accessibilityRole="none" accessible={false} style={styles.keypadFooter}>
+      <View style={styles.keypadFooter}>
         {focusedInput ? (
           <>
             <Button
@@ -827,7 +827,7 @@ const PerpsTPSLView: React.FC = () => {
               width={ButtonWidthTypes.Full}
               onPress={dismissKeypad}
             />
-            <View accessibilityRole="none" accessible={false} style={styles.keypadContainer}>
+            <View style={styles.keypadContainer}>
               <Keypad
                 value={(() => {
                   if (focusedInput === 'takeProfitPrice')
@@ -844,8 +844,8 @@ const PerpsTPSLView: React.FC = () => {
             </View>
           </>
         ) : (
-          <View accessibilityRole="none" accessible={false} style={styles.footer}>
-            <View accessibilityRole="none" accessible={false} style={styles.footerButtonsRow}>
+          <View style={styles.footer}>
+            <View style={styles.footerButtonsRow}>
               <Button
                 style={styles.footerButton}
                 label={strings('perps.tpsl.cancel')}

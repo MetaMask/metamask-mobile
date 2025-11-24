@@ -69,7 +69,7 @@ const PerpsPositionsView: React.FC = () => {
   const renderContent = () => {
     if (isInitialLoading) {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.loadingContainer}>
+        <View style={styles.loadingContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
             {strings('perps.position.list.loading')}
           </Text>
@@ -79,7 +79,7 @@ const PerpsPositionsView: React.FC = () => {
 
     if (error) {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.errorContainer}>
+        <View style={styles.errorContainer}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Error}>
             {strings('perps.position.list.error_title')}
           </Text>
@@ -92,7 +92,7 @@ const PerpsPositionsView: React.FC = () => {
 
     if (positions.length === 0) {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.emptyContainer}>
+        <View style={styles.emptyContainer}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.position.list.empty_title')}
           </Text>
@@ -108,7 +108,7 @@ const PerpsPositionsView: React.FC = () => {
         style={styles.positionsSection}
         testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.sectionHeader}>
+        <View style={styles.sectionHeader}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.position.list.open_positions')}
           </Text>
@@ -133,7 +133,7 @@ const PerpsPositionsView: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View accessibilityRole="none" accessible={false} style={styles.header}>
+      <View style={styles.header}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           iconColor={IconColor.Default}
@@ -144,17 +144,17 @@ const PerpsPositionsView: React.FC = () => {
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.position.title')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.headerPlaceholder} />
+        <View style={styles.headerPlaceholder} />
       </View>
 
       <ScrollView style={styles.container}>
         {/* Account Summary */}
-        <View accessibilityRole="none" accessible={false} style={styles.accountSummary}>
+        <View style={styles.accountSummary}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('perps.position.account.summary_title')}
           </Text>
 
-          <View accessibilityRole="none" accessible={false} style={styles.summaryRow}>
+          <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.total_balance')}
             </Text>
@@ -168,7 +168,7 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.summaryRow}>
+          <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.available_balance')}
             </Text>
@@ -182,7 +182,7 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.summaryRow}>
+          <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.margin_used')}
             </Text>
@@ -195,7 +195,7 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.summaryRow}>
+          <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.total_unrealized_pnl')}
             </Text>

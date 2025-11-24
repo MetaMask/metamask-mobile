@@ -122,7 +122,7 @@ const NonEvmAggregatedPercentage = ({
     : '';
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+    <View style={styles.wrapper}>
       <SensitiveText
         isHidden={privacyMode}
         length="10"

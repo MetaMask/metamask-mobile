@@ -79,9 +79,9 @@ const PerpsRowSkeleton: React.FC<PerpsRowSkeletonProps> = ({
   return (
     <>
       {rows.map((index) => (
-        <View accessibilityRole="none" accessible={false} key={index} style={[styles.row, style]}>
+        <View key={index} style={[styles.row, style]}>
           {/* Left section: Icon + Info */}
-          <View accessibilityRole="none" accessible={false} style={styles.leftSection}>
+          <View style={styles.leftSection}>
             {/* Circular icon skeleton */}
             <Skeleton
               height={iconSize}
@@ -90,7 +90,7 @@ const PerpsRowSkeleton: React.FC<PerpsRowSkeletonProps> = ({
             />
 
             {/* Text info */}
-            <View accessibilityRole="none" accessible={false} style={styles.textInfo}>
+            <View style={styles.textInfo}>
               {/* Primary text (larger) */}
               <Skeleton height={16} width="70%" style={styles.primaryText} />
 
@@ -100,7 +100,7 @@ const PerpsRowSkeleton: React.FC<PerpsRowSkeletonProps> = ({
           </View>
 
           {/* Right section: Value + Label */}
-          <View accessibilityRole="none" accessible={false} style={styles.rightSection}>
+          <View style={styles.rightSection}>
             {/* Value text */}
             <Skeleton height={16} width={80} style={styles.valueText} />
 

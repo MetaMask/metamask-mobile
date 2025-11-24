@@ -163,7 +163,7 @@ const AddFundsBottomSheet: React.FC = () => {
               testID={item.testID}
             >
               <ListItemColumn>
-                <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
+                <View style={styles.iconContainer}>
                   <Icon
                     name={item.icon}
                     size={IconSize.Md}

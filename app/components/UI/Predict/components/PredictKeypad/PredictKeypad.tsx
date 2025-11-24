@@ -142,8 +142,8 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     if (!isInputFocused) return null;
 
     return (
-      <View accessibilityRole="none" accessible={false} style={tw.style('py-4')}>
-        <View accessibilityRole="none" accessible={false} style={tw.style('px-4 mb-3')}>
+      <View style={tw.style('py-4')}>
+        <View style={tw.style('px-4 mb-3')}>
           {hasInsufficientFunds && onAddFunds ? (
             <Button
               variant={ButtonVariants.Primary}
@@ -153,7 +153,7 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
               style={tw.style('w-full')}
             />
           ) : (
-            <View accessibilityRole="none" accessible={false} style={tw.style('flex-row space-between gap-2')}>
+            <View style={tw.style('flex-row space-between gap-2')}>
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Md}

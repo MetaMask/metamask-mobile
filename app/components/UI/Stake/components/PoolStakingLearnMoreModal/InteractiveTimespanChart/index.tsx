@@ -222,7 +222,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
   const renderChart = () => {
     if (isLoading) {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.chartContainer}>
+        <View style={styles.chartContainer}>
           <SkeletonPlaceholder>
             <SkeletonPlaceholder.Item height={112} />
           </SkeletonPlaceholder>
@@ -231,7 +231,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
     }
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.chartContainer} {...panResponder.panHandlers}>
+      <View style={styles.chartContainer} {...panResponder.panHandlers}>
         <AreaChart
           style={styles.chart}
           data={parsedDataPointValues}
@@ -259,7 +259,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} testID={testID}>
+    <View testID={testID}>
       <ChartTimespanButtonGroup
         buttons={timespanButtons}
         onPress={handleTimespanPressed}

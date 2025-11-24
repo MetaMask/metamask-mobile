@@ -25,7 +25,7 @@ const BannerTip: React.FC<BannerTipProps> = ({
   const { styles } = useStyles(styleSheet, { style });
 
   const foxLogo = (
-    <View accessibilityRole="none" accessible={false} style={styles.logoContainer}>
+    <View style={styles.logoContainer}>
       <Image
         source={IMAGESOURCE_BY_BANNERTIPLOGOTYPE[logoType]}
         style={styles.logo}

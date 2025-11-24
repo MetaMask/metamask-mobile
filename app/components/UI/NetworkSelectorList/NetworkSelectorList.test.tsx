@@ -92,7 +92,7 @@ describe('NetworkSelectorList', () => {
   });
 
   it('renders right accessory when provided', () => {
-    mockRenderRightAccessory.mockReturnValue(<View accessibilityRole="none" accessible={false} testID="right-accessory" />);
+    mockRenderRightAccessory.mockReturnValue(<View testID="right-accessory" />);
     const { getAllByTestId } = renderWithProvider(
       <NetworkSelectorList
         networks={mockNetworks}

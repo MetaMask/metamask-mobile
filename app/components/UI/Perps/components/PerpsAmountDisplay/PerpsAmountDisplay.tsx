@@ -98,7 +98,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           {label}
         </Text>
       )}
-      <View accessibilityRole="none" accessible={false} style={styles.amountRow}>
+      <View style={styles.amountRow}>
         {/* Text only takes 1 arg */}
         {isLoading ? (
           <SkeletonPlaceholder>

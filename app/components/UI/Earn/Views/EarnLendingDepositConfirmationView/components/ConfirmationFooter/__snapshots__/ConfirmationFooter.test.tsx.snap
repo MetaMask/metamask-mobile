@@ -10,8 +10,8 @@ exports[`ConfirmationFooter renders correctly 1`] = `
   }
   testID="earn-lending-confirmation-footer"
 >
-  <View accessibilityRole="none" accessible={false}>
-    <View accessibilityRole="none" accessible={false}>
+  <View>
+    <View>
       <RNSVGSvgView
         bbHeight={10}
         bbWidth="100%"

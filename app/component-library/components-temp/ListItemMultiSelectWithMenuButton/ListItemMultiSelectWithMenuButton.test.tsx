@@ -12,7 +12,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
   it('should render correctly with default props', () => {
     const wrapper = render(
       <ListItemMultiSelectWithMenuButton>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     expect(wrapper).toMatchSnapshot();
@@ -21,7 +21,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
   it('should not render checkbox icon when isSelected is false', () => {
     const { queryByTestId } = render(
       <ListItemMultiSelectWithMenuButton>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     // Checkbox icon should not be present when not selected
@@ -37,7 +37,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
           onButtonClick: mockOnPress,
         }}
       >
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     fireEvent.press(getByRole('button'));
@@ -47,7 +47,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
   it('should render the button icon with the correct name', () => {
     const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton buttonIcon={IconName.Check}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     expect(getByTestId(BUTTON_TEST_ID)).not.toBeNull();
@@ -62,7 +62,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
           onButtonClick: mockOnButtonClick,
         }}
       >
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     fireEvent.press(getByTestId(BUTTON_TEST_ID));
@@ -72,7 +72,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
   it('should render checkbox icon when isSelected is true', () => {
     const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton isSelected>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     // Checkbox icon should be present when selected
@@ -83,7 +83,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
     const mockOnPress = jest.fn();
     const { getByRole } = render(
       <ListItemMultiSelectWithMenuButton isDisabled onPress={mockOnPress}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
 
@@ -94,7 +94,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
   it('should not render button icon when showButtonIcon is false', () => {
     const { queryByTestId } = render(
       <ListItemMultiSelectWithMenuButton showButtonIcon={false}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     expect(queryByTestId(BUTTON_TEST_ID)).toBeNull();
@@ -104,7 +104,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
     const mockOnPress = jest.fn();
     const { getByRole } = render(
       <ListItemMultiSelectWithMenuButton onPress={mockOnPress}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
 
@@ -115,7 +115,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
   it('should render with custom gap', () => {
     const { getByRole } = render(
       <ListItemMultiSelectWithMenuButton gap={24}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     expect(getByRole('button')).toBeTruthy();
@@ -129,7 +129,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
           buttonTestId: customTestId,
         }}
       >
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     expect(getByTestId(customTestId)).toBeTruthy();
@@ -138,7 +138,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
   it('should render with custom button icon', () => {
     const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton buttonIcon={IconName.Arrow2Right}>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     expect(getByTestId(BUTTON_TEST_ID)).toBeTruthy();
@@ -152,7 +152,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
           showButtonIcon: true,
         }}
       >
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     expect(getByRole('button')).toBeTruthy();
@@ -165,7 +165,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
           showButtonIcon: false,
         }}
       >
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </ListItemMultiSelectWithMenuButton>,
     );
     // The button should still render even when buttonProps.showButtonIcon is false

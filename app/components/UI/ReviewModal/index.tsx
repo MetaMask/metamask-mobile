@@ -70,12 +70,12 @@ const ReviewModal = () => {
   );
 
   const renderReviewContent = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+    <View style={styles.contentContainer}>
       <Image style={styles.fox} source={foxImage} />
       <Text style={styles.questionLabel}>
         {strings('review_prompt.mobile_sentiment')}
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.optionsContainer}>
+      <View style={styles.optionsContainer}>
         <TouchableOpacity
           style={styles.option}
           onPress={triggerShowReviewPrompt}
@@ -104,7 +104,7 @@ const ReviewModal = () => {
 
   const renderHelpContent = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+      <View style={styles.contentContainer}>
         <Text style={styles.questionLabel}>
           {strings('review_prompt.help_title')}
         </Text>
@@ -144,7 +144,7 @@ const ReviewModal = () => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
-      <View accessibilityRole="none" accessible={false} style={styles.modal}>
+      <View style={styles.modal}>
         {renderContent()}
         <TouchableOpacity
           style={styles.closeButton}

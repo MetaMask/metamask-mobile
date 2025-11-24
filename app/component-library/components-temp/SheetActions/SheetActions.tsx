@@ -34,9 +34,9 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
           return (
             <React.Fragment key={key}>
               {actions.length > 1 && !isFirstElement && (
-                <View accessibilityRole="none" accessible={false} style={styles.separator} />
+                <View style={styles.separator} />
               )}
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Button
                   variant={ButtonVariants.Link}
                   width={ButtonWidthTypes.Full}

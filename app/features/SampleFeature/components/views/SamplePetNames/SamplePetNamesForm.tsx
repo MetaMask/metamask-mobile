@@ -133,8 +133,8 @@ export function SamplePetNamesForm({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.formContainer}>
-      <View accessibilityRole="none" accessible={false} style={styles.inputContainer}>
+    <View style={styles.formContainer}>
+      <View style={styles.inputContainer}>
         <Label>{strings('sample_feature.pet_name.address')}</Label>
         <TextField
           value={address}
@@ -145,7 +145,7 @@ export function SamplePetNamesForm({
         />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.inputContainer}>
+      <View style={styles.inputContainer}>
         <Label>{strings('sample_feature.pet_name.name')}</Label>
         <TextField
           value={name}

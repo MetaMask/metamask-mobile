@@ -251,7 +251,7 @@ const CaipAccountSelectorListRightAccessoryUseAccounts = () => {
   return (
     <CaipAccountSelectorList
       renderRightAccessory={(address, name) => (
-        <View accessibilityRole="none" accessible={false} testID={RIGHT_ACCESSORY_TEST_ID}>{`${address} - ${name}`}</View>
+        <View testID={RIGHT_ACCESSORY_TEST_ID}>{`${address} - ${name}`}</View>
       )}
       isSelectionDisabled
       selectedAddresses={[]}

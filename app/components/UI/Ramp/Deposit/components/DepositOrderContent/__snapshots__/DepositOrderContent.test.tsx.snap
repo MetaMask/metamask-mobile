@@ -61,7 +61,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -544,7 +544,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -1027,7 +1027,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -1510,7 +1510,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -1993,7 +1993,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -2465,7 +2465,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -2937,7 +2937,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -3420,7 +3420,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -3903,7 +3903,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -4386,7 +4386,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         }
         testID="badge-wrapper-badge"
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {

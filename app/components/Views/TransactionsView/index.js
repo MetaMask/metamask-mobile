@@ -243,7 +243,7 @@ const TransactionsView = ({
   }, [filterTransactions, selectedNetworkClientId]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+    <View style={styles.wrapper}>
       <Transactions
         navigation={navigation}
         transactions={allTransactions}

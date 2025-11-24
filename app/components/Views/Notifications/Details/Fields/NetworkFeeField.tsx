@@ -65,7 +65,7 @@ function NetworkFeeLabelAndValue(props: {
 }) {
   const { label, value, styles } = props;
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.row}>
+    <View style={styles.row}>
       <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
         {label}
       </Text>
@@ -89,7 +89,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
 
   if (isLoading && !networkFee) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.row}>
+      <View style={styles.row}>
         <NetworkFeeFieldSkeleton />
       </View>
     );
@@ -98,7 +98,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
   const renderNetworkFeeDetails = () => {
     if (!networkFee) {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.boxLeft}>
+        <View style={styles.boxLeft}>
           <Text variant={TextVariant.BodyLGMedium}>
             {strings('notifications.network_fee_not_available')}
           </Text>
@@ -110,7 +110,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
     const collapsedIcon = isCollapsed ? IconName.ArrowDown : IconName.ArrowUp;
     return (
       <>
-        <View accessibilityRole="none" accessible={false} style={styles.boxLeft}>
+        <View style={styles.boxLeft}>
           <Text variant={TextVariant.BodyLGMedium}>
             {strings('asset_details.network_fee')}
           </Text>
@@ -120,7 +120,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
             {networkFee.transactionFeeInUsd})
           </Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.copyContainer}>
+        <View style={styles.copyContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
             {strings('transaction.details')}
           </Text>
@@ -164,7 +164,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
   return (
     <>
       <TouchableOpacity testID={NETWORK_FEE_FIELD_TESTID} onPress={onPress}>
-        <View accessibilityRole="none" accessible={false} style={styles.row}>
+        <View style={styles.row}>
           <Avatar
             variant={AvatarVariant.Icon}
             size={AvatarSize.Md}
@@ -183,7 +183,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
           shouldNavigateBack={false}
           onClose={() => props.setIsCollapsed(true)}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.gasDetails}>
+          <View style={styles.gasDetails}>
             <NetworkFeeLabelAndValue
               label={strings('transactions.gas_limit')}
               value={`${networkFee.gasLimit}`}

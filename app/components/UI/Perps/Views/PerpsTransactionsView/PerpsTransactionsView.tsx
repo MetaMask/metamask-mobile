@@ -313,7 +313,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const renderListItem = ({ item }: { item: ListItem }) => {
     if (item.type === 'header') {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.sectionHeader}>
+        <View style={styles.sectionHeader}>
           <Text style={styles.sectionHeaderText}>{item.title}</Text>
         </View>
       );
@@ -331,7 +331,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   };
 
   const renderEmptyState = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.emptyContainer}>
+    <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>
         {strings('perps.transactions.empty_state.no_transactions', {
           type: activeFilter.toLowerCase(),
@@ -388,8 +388,8 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Show loading skeleton during initial load
   if (isInitialLoading) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
-        <View accessibilityRole="none" accessible={false} style={styles.filterContainer} pointerEvents="box-none">
+      <View style={styles.container}>
+        <View style={styles.filterContainer} pointerEvents="box-none">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -402,7 +402,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
         </View>
 
         {filterTabDescription && (
-          <View accessibilityRole="none" accessible={false} style={styles.tabDescription}>
+          <View style={styles.tabDescription}>
             <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
           </View>
         )}
@@ -413,8 +413,8 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
-      <View accessibilityRole="none" accessible={false} style={styles.filterContainer} pointerEvents="box-none">
+    <View style={styles.container}>
+      <View style={styles.filterContainer} pointerEvents="box-none">
         <ScrollView
           horizontal
           contentContainerStyle={styles.filterTabContainer}
@@ -427,7 +427,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       </View>
 
       {filterTabDescription && (
-        <View accessibilityRole="none" accessible={false} style={styles.tabDescription}>
+        <View style={styles.tabDescription}>
           <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
         </View>
       )}

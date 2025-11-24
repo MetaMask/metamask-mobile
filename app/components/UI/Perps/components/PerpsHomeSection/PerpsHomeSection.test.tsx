@@ -4,7 +4,7 @@ import { View, Text } from 'react-native';
 import PerpsHomeSection from './PerpsHomeSection';
 
 describe('PerpsHomeSection', () => {
-  const mockSkeleton = () => <View accessibilityRole="none" accessible={false} testID="skeleton-loader" />;
+  const mockSkeleton = () => <View testID="skeleton-loader" />;
   const mockChildren = <Text testID="section-content">Content</Text>;
 
   describe('rendering', () => {
@@ -307,7 +307,7 @@ describe('PerpsHomeSection', () => {
 
     it('calls renderSkeleton function when loading', () => {
       const mockRenderSkeleton = jest.fn(() => (
-        <View accessibilityRole="none" accessible={false} testID="custom-skeleton" />
+        <View testID="custom-skeleton" />
       ));
 
       const { getByTestId } = render(
@@ -345,8 +345,8 @@ describe('PerpsHomeSection', () => {
     it('handles complex children', () => {
       const complexChildren = (
         <>
-          <View accessibilityRole="none" accessible={false} testID="child-1" />
-          <View accessibilityRole="none" accessible={false} testID="child-2" />
+          <View testID="child-1" />
+          <View testID="child-2" />
           <Text testID="child-3">Text</Text>
         </>
       );

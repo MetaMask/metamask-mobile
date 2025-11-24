@@ -108,7 +108,7 @@ const CustomNetworkSelector = ({
       };
 
       return (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Cell
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}

@@ -73,8 +73,8 @@ const Description = (props: DescriptionProps) => {
   }, [navigation, onClose]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.descriptionContainer}>
-      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+    <View style={styles.descriptionContainer}>
+      <View style={styles.contentContainer}>
         <Text style={styles.numberStyle}>{number}.</Text>
         <Text style={styles.description}>
           <Text>{`${description} `}</Text>

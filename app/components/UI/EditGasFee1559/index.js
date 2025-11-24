@@ -386,14 +386,14 @@ const EditGasFee1559 = ({
   const valueToWatch = `${gasFeeNative}${gasFeeMaxNative}`;
 
   const renderInputs = () => (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <FadeAnimationView
         valueToWatch={valueToWatch}
         animateOnChange={animateOnChange}
         onAnimationStart={onUpdatingValuesStart}
         onAnimationEnd={onUpdatingValuesEnd}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           {/* TODO(eip1559) hook with strings i18n */}
           <HorizontalSelector
             selected={selectedOption}
@@ -401,7 +401,7 @@ const EditGasFee1559 = ({
             options={renderOptions()}
           />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.advancedOptionsContainer}>
+        <View style={styles.advancedOptionsContainer}>
           <TouchableOpacity
             disable={updateOption?.showAdvanced}
             onPress={toggleAdvancedOptions}
@@ -415,11 +415,11 @@ const EditGasFee1559 = ({
             </Text>
           </TouchableOpacity>
           {(showAdvancedOptions || updateOption?.showAdvanced) && (
-            <View accessibilityRole="none" accessible={false} style={styles.advancedOptionsInputsContainer}>
-              <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer}>
+            <View style={styles.advancedOptionsInputsContainer}>
+              <View style={styles.rangeInputContainer}>
                 <RangeInput
                   leftLabelComponent={
-                    <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+                    <View style={styles.labelTextContainer}>
                       <Text black bold noMargin>
                         {strings('edit_gas_fee_eip1559.gas_limit')}{' '}
                       </Text>
@@ -443,10 +443,10 @@ const EditGasFee1559 = ({
                   increment={GAS_LIMIT_INCREMENT}
                 />
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer}>
+              <View style={styles.rangeInputContainer}>
                 <RangeInput
                   leftLabelComponent={
-                    <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+                    <View style={styles.labelTextContainer}>
                       <Text black bold noMargin>
                         {strings('edit_gas_fee_eip1559.max_priority_fee')}{' '}
                       </Text>
@@ -488,10 +488,10 @@ const EditGasFee1559 = ({
                   onChangeValue={changedMaxPriorityFee}
                 />
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer}>
+              <View style={styles.rangeInputContainer}>
                 <RangeInput
                   leftLabelComponent={
-                    <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+                    <View style={styles.labelTextContainer}>
                       <Text
                         black={!maxFeeError}
                         red={Boolean(maxFeeError)}
@@ -541,7 +541,7 @@ const EditGasFee1559 = ({
           )}
         </View>
       </FadeAnimationView>
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableOpacity
           style={styles.saveButton}
           onPress={toggleLearnMoreModal}
@@ -580,7 +580,7 @@ const EditGasFee1559 = ({
           style={styles.warningContainer}
         >
           {() => (
-            <View accessibilityRole="none" accessible={false} style={styles.warningTextContainer}>
+            <View style={styles.warningTextContainer}>
               <Text black style={styles.warningText}>
                 {warning}
               </Text>
@@ -609,7 +609,7 @@ const EditGasFee1559 = ({
           style={styles.warningContainer}
         >
           {() => (
-            <View accessibilityRole="none" accessible={false} style={styles.warningTextContainer}>
+            <View style={styles.warningTextContainer}>
               <Text red style={styles.warningText}>
                 {error}
               </Text>
@@ -630,12 +630,12 @@ const EditGasFee1559 = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.root}>
+    <View style={styles.root}>
       <ScrollView style={styles.wrapper}>
         <TouchableWithoutFeedback>
-          <View accessibilityRole="none" accessible={false}>
-            <View accessibilityRole="none" accessible={false}>
-              <View accessibilityRole="none" accessible={false} style={styles.customGasHeader}>
+          <View>
+            <View>
+              <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
                   <Icon
                     name={'arrow-back'}
@@ -653,7 +653,7 @@ const EditGasFee1559 = ({
                 />
               </View>
               {updateOption && (
-                <View accessibilityRole="none" accessible={false} style={styles.newGasFeeHeader}>
+                <View style={styles.newGasFeeHeader}>
                   <Text black bold noMargin>
                     {strings('edit_gas_fee_eip1559.new_gas_fee')}{' '}
                   </Text>
@@ -678,7 +678,7 @@ const EditGasFee1559 = ({
               valueToWatch={valueToWatch}
               animateOnChange={animateOnChange}
             >
-              <View accessibilityRole="none" accessible={false} style={styles.headerTitle}>
+              <View style={styles.headerTitle}>
                 <Text
                   black
                   style={styles.headerText}
@@ -695,7 +695,7 @@ const EditGasFee1559 = ({
                 </Text>
                 {gasFeeMaxPrimary} ({gasFeeMaxSecondary})
               </Text>
-              <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+              <View style={styles.labelTextContainer}>
                 <Text
                   green={
                     timeEstimateColor === 'green' ||
@@ -722,7 +722,7 @@ const EditGasFee1559 = ({
               </View>
             </FadeAnimationView>
             {!showInputs ? (
-              <View accessibilityRole="none" accessible={false} style={styles.dappEditGasContainer}>
+              <View style={styles.dappEditGasContainer}>
                 <StyledButton
                   type={'orange'}
                   onPress={() => setShowInputs(true)}
@@ -748,7 +748,7 @@ const EditGasFee1559 = ({
               }
               toggleModal={() => setShowInfoModal(null)}
               body={
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Text grey infoModal>
                     {showInfoModal === 'gas_limit' &&
                       strings('edit_gas_fee_eip1559.learn_more_gas_limit')}
@@ -775,10 +775,10 @@ const EditGasFee1559 = ({
               toggleModal={toggleLearnMoreModal}
               propagateSwipe
               body={
-                <View accessibilityRole="none" accessible={false} style={styles.learnMoreModal}>
+                <View style={styles.learnMoreModal}>
                   <ScrollView>
                     <TouchableWithoutFeedback>
-                      <View accessibilityRole="none" accessible={false}>
+                      <View>
                         <Text noMargin grey infoModal>
                           {strings('edit_gas_fee_eip1559.learn_more.intro')}
                         </Text>

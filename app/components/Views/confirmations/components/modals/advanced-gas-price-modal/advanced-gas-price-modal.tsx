@@ -92,12 +92,12 @@ export const AdvancedGasPriceModal = ({
       onBackButtonPress={navigateToEstimatesModal}
       onSwipeComplete={navigateToEstimatesModal}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <GasModalHeader
           onBackButtonClick={navigateToEstimatesModal}
           title={strings('transactions.gas_modal.advanced_gas_fee')}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.inputsContainer}>
+        <View style={styles.inputsContainer}>
           <GasPriceInput
             onChange={handleGasPriceChange}
             onErrorChange={handleGasPriceError}

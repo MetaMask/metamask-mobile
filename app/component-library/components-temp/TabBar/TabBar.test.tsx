@@ -75,7 +75,7 @@ describe('TabBar', () => {
         initialPage={0}
       >
         {tabs.map((label, index) => (
-          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <TextComponent>{label} Content</TextComponent>
           </View>
         ))}
@@ -100,7 +100,7 @@ describe('TabBar', () => {
         initialPage={0}
       >
         {tabs.map((label, index) => (
-          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <TextComponent>{label} Content</TextComponent>
           </View>
         ))}
@@ -122,7 +122,7 @@ describe('TabBar', () => {
         initialPage={0}
       >
         {tabLabels.map((label, index) => (
-          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <TextComponent>{label} Content</TextComponent>
           </View>
         ))}
@@ -175,10 +175,10 @@ describe('TabBar', () => {
         onChangeTab={mockOnChangeTab}
         initialPage={0}
       >
-        <View accessibilityRole="none" accessible={false} key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+        <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
           <TextComponent>Tab 1 Content</TextComponent>
         </View>
-        <View accessibilityRole="none" accessible={false} key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+        <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
           <TextComponent>Tab 2 Content</TextComponent>
         </View>
       </ScrollableTabView>,
@@ -199,7 +199,7 @@ describe('TabBar', () => {
         initialPage={0}
       >
         {multipleTabLabels.map((label, index) => (
-          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <TextComponent>{label} Content</TextComponent>
           </View>
         ))}
@@ -230,7 +230,7 @@ describe('TabBar', () => {
         initialPage={0}
       >
         {tabs.map((label, index) => (
-          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <TextComponent>{label} Content</TextComponent>
           </View>
         ))}
@@ -252,7 +252,7 @@ describe('TabBar', () => {
         initialPage={1}
       >
         {tabs.map((label, index) => (
-          <View accessibilityRole="none" accessible={false} key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <TextComponent>{label} Tab</TextComponent>
           </View>
         ))}

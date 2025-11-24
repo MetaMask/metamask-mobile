@@ -12,7 +12,7 @@ describe('ThemeProvider', () => {
   it('renders children correctly', () => {
     const { getByTestId } = renderWithProvider(
       <ThemeProvider>
-        <View accessibilityRole="none" accessible={false} testID="child-component" />
+        <View testID="child-component" />
       </ThemeProvider>,
     );
 

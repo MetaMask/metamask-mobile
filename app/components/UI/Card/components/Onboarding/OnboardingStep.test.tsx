@@ -501,7 +501,7 @@ describe('OnboardingStep Component', () => {
   describe('Component Integration', () => {
     it('integrates properly with complex form fields', () => {
       const complexFormFields = (
-        <View accessibilityRole="none" accessible={false} testID="complex-form">
+        <View testID="complex-form">
           <Text>Input Field 1</Text>
           <Text>Input Field 2</Text>
           <TouchableOpacity testID="form-button">
@@ -527,7 +527,7 @@ describe('OnboardingStep Component', () => {
 
     it('integrates properly with complex actions', () => {
       const complexActions = (
-        <View accessibilityRole="none" accessible={false} testID="complex-actions">
+        <View testID="complex-actions">
           <TouchableOpacity testID="primary-action">
             <Text>Primary Action</Text>
           </TouchableOpacity>
@@ -555,7 +555,7 @@ describe('OnboardingStep Component', () => {
 
     it('renders with complex form fields using Box components', () => {
       const complexFormFields = (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text testID="form-field-1">Field 1</Text>
           <Text testID="form-field-2">Field 2</Text>
           <Text testID="form-field-3">Field 3</Text>
@@ -578,7 +578,7 @@ describe('OnboardingStep Component', () => {
 
     it('renders with complex actions using Box components', () => {
       const complexActions = (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text testID="action-1">Action 1</Text>
           <Text testID="action-2">Action 2</Text>
         </View>
@@ -599,15 +599,15 @@ describe('OnboardingStep Component', () => {
 
     it('integrates properly with nested components', () => {
       const nestedFormFields = (
-        <View accessibilityRole="none" accessible={false} testID="nested-form-container">
-          <View accessibilityRole="none" accessible={false} testID="nested-form-section">
+        <View testID="nested-form-container">
+          <View testID="nested-form-section">
             <Text testID="nested-form-field">Nested Field</Text>
           </View>
         </View>
       );
 
       const nestedActions = (
-        <View accessibilityRole="none" accessible={false} testID="nested-actions-container">
+        <View testID="nested-actions-container">
           <Text testID="nested-action">Nested Action</Text>
         </View>
       );

@@ -108,7 +108,7 @@ export default class Collectibles extends PureComponent {
           />
         }
       >
-        <View accessibilityRole="none" accessible={false} style={styles.emptyView}>
+        <View style={styles.emptyView}>
           <Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
         </View>
       </ScrollView>
@@ -184,9 +184,9 @@ export default class Collectibles extends PureComponent {
         onLongPress={this.showRemoveMenu}
         asset={item}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.itemWrapper}>
+        <View style={styles.itemWrapper}>
           <CollectibleMedia small collectible={item} />
-          <View accessibilityRole="none" accessible={false} style={styles.rows}>
+          <View style={styles.rows}>
             <Text style={styles.name}>{item.name}</Text>
             <Text style={styles.tokenId} numberOfLines={1}>
               {strings('unit.token_id')}
@@ -218,7 +218,7 @@ export default class Collectibles extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.wrapper} testID={'collectibles'}>
+      <View style={styles.wrapper} testID={'collectibles'}>
         {collectibles && collectibles.length
           ? this.renderCollectiblesList()
           : this.renderEmpty()}

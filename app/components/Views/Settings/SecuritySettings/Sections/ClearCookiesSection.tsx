@@ -81,7 +81,7 @@ const ClearCookiesSection = () => {
 
   return (
     <>
-      <View accessibilityRole="none" accessible={false} style={styles.setting}>
+      <View style={styles.setting}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.clear_browser_cookies_desc')}
         </Text>
@@ -92,7 +92,7 @@ const ClearCookiesSection = () => {
         >
           {strings('app_settings.clear_cookies_desc')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.accessory}>
+        <View style={styles.accessory}>
           <Button
             size={ButtonSize.Lg}
             variant={ButtonVariants.Secondary}
@@ -111,7 +111,7 @@ const ClearCookiesSection = () => {
         onRequestClose={toggleClearCookiesModal}
         onConfirmPress={clearCookies}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.modalView}>
+        <View style={styles.modalView}>
           <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
             {strings('app_settings.clear_cookies_modal_title')}
           </Text>

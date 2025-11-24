@@ -19,7 +19,7 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
   return (
     // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
     // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
-    <View accessibilityRole="none" accessible={false} style={styles.title}>
+    <View style={styles.title}>
       {setIsModalVisible ? (
         <TouchableOpacity onPress={() => setIsModalVisible(true)}>
           {isStringTitle ? (
@@ -89,7 +89,7 @@ export const Hero = ({
   });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.base}>
+    <View style={styles.base}>
       {componentAsset}
       <Title
         title={title}

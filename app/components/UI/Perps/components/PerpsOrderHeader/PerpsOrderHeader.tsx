@@ -95,14 +95,14 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   }, [priceChange, price]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
+    <View style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
       <ButtonIcon
         iconName={IconName.Arrow2Left}
         onPress={handleBack}
         iconColor={IconColor.Default}
         size={ButtonIconSizes.Md}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.headerLeft}>
+      <View style={styles.headerLeft}>
         <Text
           variant={TextVariant.HeadingMD}
           style={styles.headerTitle}
@@ -115,7 +115,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
                 : strings('perps.market.short')
             } ${getPerpsDisplaySymbol(asset)}`}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.priceRow}>
+        <View style={styles.priceRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {formattedPrice}
           </Text>
@@ -135,7 +135,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
           disabled={isLoading}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.marketButton}>
+          <View style={styles.marketButton}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {orderType === 'market'
                 ? strings('perps.order.market')

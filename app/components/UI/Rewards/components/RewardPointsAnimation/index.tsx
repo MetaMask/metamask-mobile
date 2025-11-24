@@ -114,8 +114,8 @@ const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.outerContainer}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.outerContainer}>
+      <View style={styles.container}>
         {/* Rive fox animation */}
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Animated.View style={[styles.riveIcon, rivePositionStyle] as any}>
@@ -131,7 +131,7 @@ const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
         {/* Animated points number or error text */}
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Animated.View style={animatedStyle as any}>
-          <View accessibilityRole="none" accessible={false} style={styles.infoIconContainer}>
+          <View style={styles.infoIconContainer}>
             <Text variant={variant} style={styles.counterText}>
               {displayText || (hideValue ? '' : formatter.format(displayValue))}
             </Text>

@@ -26,7 +26,7 @@ const SnapVersionTag: React.FC<SnapVersionTagProps> = ({
 }: SnapVersionTagProps) => {
   const { styles } = useStyles(stylesheet, {});
   return (
-    <View accessibilityRole="none" accessible={false} testID={SNAP_VERSION_BADGE} style={styles.versionBadgeContainer}>
+    <View testID={SNAP_VERSION_BADGE} style={styles.versionBadgeContainer}>
       <Text
         testID={SNAP_VERSION_BADGE_VALUE}
         variant={TextVariant.BodyMD}

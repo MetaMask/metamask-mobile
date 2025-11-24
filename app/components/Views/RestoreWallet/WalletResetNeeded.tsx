@@ -77,7 +77,7 @@ const WalletResetNeeded = () => {
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View accessibilityRole="none" accessible={false} style={styles.images}>
+        <View style={styles.images}>
           <Icon
             name={IconName.Danger}
             size={IconSize.XXL}
@@ -99,7 +99,7 @@ const WalletResetNeeded = () => {
           )}
         </Text>
       </ScrollView>
-      <View accessibilityRole="none" accessible={false} style={styles.actionButtonWrapper}>
+      <View style={styles.actionButtonWrapper}>
         <StyledButton
           type="confirm"
           containerStyle={styles.actionButton}

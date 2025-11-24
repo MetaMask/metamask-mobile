@@ -50,7 +50,7 @@ import { View, Text } from 'react-native';
 import UnmountOnBlur from '../UnmountOnBlur';
 
 const MyScreen = () => (
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <Text>This content always renders</Text>
     <UnmountOnBlur>
       <ExpensiveComponent />
@@ -67,7 +67,7 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import UnmountOnBlur from '../UnmountOnBlur';
 
 const MyScreen = () => (
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <UnmountOnBlur 
       fallback={<ActivityIndicator size="small" />}
     >
@@ -85,7 +85,7 @@ import { View } from 'react-native';
 import UnmountOnBlur from '../UnmountOnBlur';
 
 const MyScreen = () => (
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <UnmountOnBlur>
       <ChatComponent />
       <NotificationListener />

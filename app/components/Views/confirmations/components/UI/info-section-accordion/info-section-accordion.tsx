@@ -106,7 +106,7 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
   });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.container, style]} testID={testID}>
+    <View style={[styles.container, style]} testID={testID}>
       <TouchableOpacity
         style={[styles.header, headerStyle]}
         onPress={toggleAccordion}
@@ -130,7 +130,7 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
         </Animated.View>
       </TouchableOpacity>
       {isExpanded && (
-        <View accessibilityRole="none" accessible={false} style={[styles.content, contentStyle]}>{children}</View>
+        <View style={[styles.content, contentStyle]}>{children}</View>
       )}
     </View>
   );

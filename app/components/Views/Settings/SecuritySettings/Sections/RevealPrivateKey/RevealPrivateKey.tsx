@@ -44,7 +44,7 @@ const RevealPrivateKey = () => {
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.setting} testID={testIds.section}>
+    <View style={styles.setting} testID={testIds.section}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('reveal_credential.private_key_title_for_account', {
           accountName: selectedInternalAccount?.metadata.name,

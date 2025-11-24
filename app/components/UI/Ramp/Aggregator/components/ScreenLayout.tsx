@@ -91,7 +91,7 @@ const Header = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.header, style]} {...props}>
+    <View style={[styles.header, style]} {...props}>
       {title && (
         <Text style={titleStyle} big black centered bold={bold}>
           {typeof title === 'function' ? title() : title}
@@ -110,17 +110,17 @@ const Header = ({
 const Body = ({ style, ...props }: BodyProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View accessibilityRole="none" accessible={false} style={[styles.body, style]} {...props} />;
+  return <View style={[styles.body, style]} {...props} />;
 };
 
 const Footer = ({ style, ...props }: FooterProps) => (
-  <View accessibilityRole="none" accessible={false} style={style} {...props} />
+  <View style={style} {...props} />
 );
 const Content = ({ style, grow, ...props }: ContentProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.content, grow && styles.grow, style]} {...props} />
+    <View style={[styles.content, grow && styles.grow, style]} {...props} />
   );
 };
 

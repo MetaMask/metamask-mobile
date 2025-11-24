@@ -136,8 +136,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       onPress={handleNewTrade}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.startTradeContent}>
-        <View accessibilityRole="none" accessible={false} style={styles.startTradeIconContainer}>
+      <View style={styles.startTradeContent}>
+        <View style={styles.startTradeIconContainer}>
           <Icon
             name={IconName.Add}
             color={IconColor.Default}
@@ -159,7 +159,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
     return (
       <>
-        <View accessibilityRole="none" accessible={false} style={styles.sectionHeader}>
+        <View style={styles.sectionHeader}>
           <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.order.open_orders')}
           </Text>
@@ -169,7 +169,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           {orders.map((order) => (
             <PerpsCard
               key={order.orderId}
@@ -197,7 +197,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
     return (
       <>
-        <View accessibilityRole="none" accessible={false} style={styles.sectionHeader}>
+        <View style={styles.sectionHeader}>
           <Text
             variant={TextVariant.BodyMDMedium}
             style={styles.sectionTitle}
@@ -211,7 +211,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           {positions.map((position, index) => {
             const directionSegment = getPositionDirection(position.size);
             return (
@@ -261,15 +261,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               twClassName="mx-auto"
             />
           ) : (
-            <View accessibilityRole="none" accessible={false} style={styles.tradeInfoContainer}>
-              <View accessibilityRole="none" accessible={false}>{renderPositionsSection()}</View>
-              <View accessibilityRole="none" accessible={false}>{renderOrdersSection()}</View>
+            <View style={styles.tradeInfoContainer}>
+              <View>{renderPositionsSection()}</View>
+              <View>{renderOrdersSection()}</View>
             </View>
           )}
         </ConditionalScrollView>
         {isEligibilityModalVisible && (
-          // Android Compatibility: Wrap the <Modal> in a plain <View accessibilityRole="none" accessible={false}> component to prevent rendering issues and freezing.
-          <View accessibilityRole="none" accessible={false}>
+          // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+          <View>
             <Modal
               visible
               transparent

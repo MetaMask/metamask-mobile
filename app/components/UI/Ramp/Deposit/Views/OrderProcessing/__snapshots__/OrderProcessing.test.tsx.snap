@@ -110,7 +110,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
               }
               testID="badge-wrapper-badge"
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   style={
                     {
@@ -520,7 +520,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
         </View>
       </View>
     </View>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           [
@@ -699,7 +699,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               }
               testID="badge-wrapper-badge"
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   style={
                     {
@@ -1109,7 +1109,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
         </View>
       </View>
     </View>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           [
@@ -1381,7 +1381,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
               }
               testID="badge-wrapper-badge"
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   style={
                     {
@@ -1791,7 +1791,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
         </View>
       </View>
     </View>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           [
@@ -1970,7 +1970,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               }
               testID="badge-wrapper-badge"
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   style={
                     {
@@ -2380,7 +2380,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
         </View>
       </View>
     </View>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           [

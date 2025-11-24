@@ -84,18 +84,18 @@ const EarningsContent = ({ asset }: EarningsProps) => {
   if (!hasEarnings) return <></>;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.earningsContainer}>
+    <View style={styles.earningsContainer}>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('stake.your_earnings')}
       </Text>
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         {(isEarnLendingServiceInterruptionBannerEnabled ||
           isPooledStakingServiceInterruptionBannerEnabled) && (
           <EarnMaintenanceBanner />
         )}
         {/* Annual Rate */}
-        <View accessibilityRole="none" accessible={false} style={styles.keyValueRow}>
-          <View accessibilityRole="none" accessible={false} style={styles.keyValuePrimaryTextWrapper}>
+        <View style={styles.keyValueRow}>
+          <View style={styles.keyValuePrimaryTextWrapper}>
             <Text
               variant={TextVariant.BodyMDMedium}
               style={styles.keyValuePrimaryText}
@@ -136,8 +136,8 @@ const EarningsContent = ({ asset }: EarningsProps) => {
           )}
         </View>
         {experienceType === EARN_EXPERIENCES.POOLED_STAKING && (
-          <View accessibilityRole="none" accessible={false} style={styles.keyValueRow}>
-            <View accessibilityRole="none" accessible={false} style={styles.keyValuePrimaryTextWrapperCentered}>
+          <View style={styles.keyValueRow}>
+            <View style={styles.keyValuePrimaryTextWrapperCentered}>
               <Text
                 variant={TextVariant.BodyMDMedium}
                 style={styles.keyValuePrimaryText}
@@ -145,7 +145,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
                 {strings('stake.lifetime_rewards')}
               </Text>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.keyValueSecondaryText}>
+            <View style={styles.keyValueSecondaryText}>
               {isLoadingEarningsData ? (
                 <SkeletonPlaceholder>
                   <SkeletonPlaceholder.Item
@@ -176,8 +176,8 @@ const EarningsContent = ({ asset }: EarningsProps) => {
             </View>
           </View>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.keyValueRow}>
-          <View accessibilityRole="none" accessible={false} style={styles.keyValuePrimaryTextWrapperCentered}>
+        <View style={styles.keyValueRow}>
+          <View style={styles.keyValuePrimaryTextWrapperCentered}>
             <Text
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Alternative}
@@ -185,7 +185,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
               {strings('stake.estimated_annual_earnings')}
             </Text>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.keyValueSecondaryText}>
+          <View style={styles.keyValueSecondaryText}>
             {isLoadingEarningsData ? (
               <SkeletonPlaceholder>
                 <SkeletonPlaceholder.Item
@@ -224,7 +224,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
 };
 
 export const Earnings = ({ asset }: EarningsProps) => (
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <EarningsContent asset={asset} />
   </View>
 );

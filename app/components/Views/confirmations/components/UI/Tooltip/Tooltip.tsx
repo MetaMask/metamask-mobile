@@ -42,8 +42,8 @@ export const TooltipModal = ({
 
   return (
     <BottomModal visible={open} onClose={() => setOpen(false)} isTooltip>
-      <View accessibilityRole="none" accessible={false} style={styles.modalView}>
-        <View accessibilityRole="none" accessible={false} style={styles.modalHeader}>
+      <View style={styles.modalView}>
+        <View style={styles.modalHeader}>
           <ButtonIcon
             iconColor={IconColor.Default}
             iconName={IconName.ArrowLeft}
@@ -54,7 +54,7 @@ export const TooltipModal = ({
           />
           {<Text style={styles.modalTitle}>{title ?? ''}</Text>}
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.modalContent}>
+        <View style={styles.modalContent}>
           {typeof content === 'string' ? (
             <Text style={styles.modalContentValue}>{content}</Text>
           ) : (
@@ -84,7 +84,7 @@ const Tooltip = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <ButtonIcon
         iconColor={iconColor}
         iconName={iconName}

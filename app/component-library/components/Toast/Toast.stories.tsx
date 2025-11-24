@@ -105,7 +105,7 @@ export const Default = {
     }
 
     return (
-      <View accessibilityRole="none" accessible={false} style={tw.style('min-h-[300px] relative')}>
+      <View style={tw.style('min-h-[300px] relative')}>
         <Button
           variant={ButtonVariants.Secondary}
           label={`Show ${args.variant} Toast`}

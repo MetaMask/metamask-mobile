@@ -166,7 +166,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       alignItems={AlignItems.center}
       style={styles.container}
     >
-      {isSelected && <View accessibilityRole="none" accessible={false} style={styles.selectedIndicator} />}
+      {isSelected && <View style={styles.selectedIndicator} />}
 
       <TouchableOpacity
         key={token.address}
@@ -246,14 +246,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             {balance &&
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <View accessibilityRole="none" accessible={false} style={styles.skeleton} />
+                <View style={styles.skeleton} />
               ) : (
                 <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <View accessibilityRole="none" accessible={false} style={styles.skeleton} />
+                <View style={styles.skeleton} />
               ) : (
                 <Text
                   variant={TextVariant.BodyMD}

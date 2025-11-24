@@ -24,7 +24,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
     }
     testID="aes-crypto-form-scroll"
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text
         accessibilityRole="text"
         style={

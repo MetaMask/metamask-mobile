@@ -23,9 +23,9 @@ const TronStakingCta = ({
   aprText,
   onLearnMore,
 }: TronStakingCtaProps) => (
-  <View accessibilityRole="none" accessible={false} style={style}>
+  <View style={style}>
     <Text variant={TextVariant.HeadingMD}>{strings('stake.earn')}</Text>
-    <View accessibilityRole="none" accessible={false} style={styles.row}>
+    <View style={styles.row}>
       <Text>{strings('stake.stake_your_trx_cta.base')} </Text>
       {aprText ? (
         <>

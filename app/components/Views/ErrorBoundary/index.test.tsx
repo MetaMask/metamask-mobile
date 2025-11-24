@@ -50,7 +50,7 @@ const MockThrowComponent = () => {
   useEffect(() => {
     throw mockError;
   }, []);
-  return <View accessibilityRole="none" accessible={false} />;
+  return <View />;
 };
 
 describe('ErrorBoundary', () => {

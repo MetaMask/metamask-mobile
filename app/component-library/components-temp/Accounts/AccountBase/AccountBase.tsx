@@ -24,8 +24,8 @@ const AccountBase = ({
   badgeProps,
   avatarAccountType,
 }: AccountBaseProps) => (
-  <View accessibilityRole="none" accessible={false} style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+  <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
+    <View style={styles.container}>
       <BadgeWrapper
         badgeElement={<Badge {...badgeProps} />}
         style={styles.badgeWrapper}
@@ -38,14 +38,14 @@ const AccountBase = ({
           accountAddress={accountAddress}
         />
       </BadgeWrapper>
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <Text variant={TextVariant.BodySM}>{accountNetwork}</Text>
 
-        <View accessibilityRole="none" accessible={false} style={styles.accountNameLabel}>
+        <View style={styles.accountNameLabel}>
           <Text variant={TextVariant.BodyMDBold}>{accountName}</Text>
         </View>
         {accountTypeLabel && (
-          <View accessibilityRole="none" accessible={false} style={styles.accountNameLabel}>
+          <View style={styles.accountNameLabel}>
             <Text
               variant={TextVariant.BodyMDBold}
               style={styles.accountNameLabelText}
@@ -56,7 +56,7 @@ const AccountBase = ({
         )}
       </View>
     </View>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text variant={TextVariant.BodySM} style={styles.label}>
         {accountBalanceLabel}
       </Text>

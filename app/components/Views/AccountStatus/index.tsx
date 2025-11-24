@@ -153,9 +153,9 @@ const AccountStatus = ({
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <View accessibilityRole="none" accessible={false} style={styles.root}>
+      <View style={styles.root}>
         <ScrollView style={styles.scrollView}>
-          <View accessibilityRole="none" accessible={false} style={styles.content}>
+          <View style={styles.content}>
             <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
               {type === 'found'
                 ? strings('account_status.account_already_exists')
@@ -166,7 +166,7 @@ const AccountStatus = ({
               resizeMode="contain"
               style={styles.walletReadyImage}
             />
-            <View accessibilityRole="none" accessible={false} style={styles.descriptionWrapper}>
+            <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings(
                   type === 'found'
@@ -181,7 +181,7 @@ const AccountStatus = ({
           </View>
         </ScrollView>
 
-        <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           <Button
             variant={ButtonVariants.Primary}
             size={isSmallScreen ? ButtonSize.Md : ButtonSize.Lg}

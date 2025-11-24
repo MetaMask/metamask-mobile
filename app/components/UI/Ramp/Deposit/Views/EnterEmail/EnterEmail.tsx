@@ -117,7 +117,7 @@ const EnterEmail = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={0} />
-          <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+          <View style={styles.contentContainer}>
             <Text variant={TextVariant.HeadingLG} style={styles.title}>
               {strings('deposit.enter_email.title')}
             </Text>

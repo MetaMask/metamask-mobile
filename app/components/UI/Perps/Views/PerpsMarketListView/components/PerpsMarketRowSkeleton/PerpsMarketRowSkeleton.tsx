@@ -31,12 +31,12 @@ const PerpsMarketRowSkeleton: React.FC<PerpsMarketRowSkeletonProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.skeletonContainer} testID={testID}>
-      <View accessibilityRole="none" accessible={false} style={styles.skeletonLeftSection}>
+    <View style={styles.skeletonContainer} testID={testID}>
+      <View style={styles.skeletonLeftSection}>
         {/* Avatar skeleton */}
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
-        <View accessibilityRole="none" accessible={false} style={styles.skeletonTokenInfo}>
-          <View accessibilityRole="none" accessible={false} style={styles.skeletonTokenHeader}>
+        <View style={styles.skeletonTokenInfo}>
+          <View style={styles.skeletonTokenHeader}>
             {/* Token symbol skeleton */}
             <Skeleton
               width={60}
@@ -50,7 +50,7 @@ const PerpsMarketRowSkeleton: React.FC<PerpsMarketRowSkeletonProps> = ({
           <Skeleton width={80} height={12} style={styles.skeletonVolume} />
         </View>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.skeletonRightSection}>
+      <View style={styles.skeletonRightSection}>
         {/* Price skeleton */}
         <Skeleton width={90} height={16} style={styles.skeletonPrice} />
         {/* Change skeleton */}

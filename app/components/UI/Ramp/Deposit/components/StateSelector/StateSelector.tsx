@@ -51,11 +51,11 @@ const StateSelector: React.FC<StateSelectorProps> = ({
   }, [navigation, selectedValue, onValueChange]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.field, containerStyle]}>
+    <View style={[styles.field, containerStyle]}>
       <Label variant={TextVariant.BodyMD} style={styles.label}>
         {label}
       </Label>
-      <View accessibilityRole="none" accessible={false} style={styles.selectorContainer}>
+      <View style={styles.selectorContainer}>
         <TouchableOpacity
           style={styles.selectorTouchable}
           onPress={handlePress}

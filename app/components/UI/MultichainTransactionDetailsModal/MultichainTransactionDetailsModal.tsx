@@ -93,9 +93,9 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
     value: string,
     isLink: boolean = false,
   ) => (
-    <View accessibilityRole="none" accessible={false} style={style.detailRow}>
+    <View style={style.detailRow}>
       <Text style={style.label}>{label}</Text>
-      <View accessibilityRole="none" accessible={false} style={style.valueContainer}>
+      <View style={style.valueContainer}>
         {isLink ? (
           <TouchableOpacity
             style={style.linkContainer}
@@ -133,8 +133,8 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
       animationOut="slideOutDown"
       style={style.modal}
     >
-      <View accessibilityRole="none" accessible={false} style={style.container}>
-        <View accessibilityRole="none" accessible={false} style={style.header}>
+      <View style={style.container}>
+        <View style={style.header}>
           <Text style={style.title}>{title}</Text>
           <Text style={style.date}>
             {timestamp && toDateFormat(new Date(timestamp * 1000))}
@@ -148,7 +148,7 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
           </TouchableOpacity>
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={style.content}>
+        <View style={style.content}>
           {renderDetailRow(TransactionDetailRow.Status, capitalize(status))}
           {renderDetailRow(TransactionDetailRow.TransactionID, id, true)}
           {from?.address &&

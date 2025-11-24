@@ -65,7 +65,7 @@ const RetryModal = ({
       onCancelPress={onCancelPress}
       onRequestClose={onCancelPress}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.modalView}>
+      <View style={styles.modalView}>
         <Text variant={TextVariant.HeadingLG} style={styles.modalTitle}>
           {strings('transaction_update_retry_modal.title')}
         </Text>

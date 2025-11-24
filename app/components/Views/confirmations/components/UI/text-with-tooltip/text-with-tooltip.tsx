@@ -35,7 +35,7 @@ const TextWithTooltip = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <TouchableOpacity onPress={() => setTooltipVisible(true)}>
         <Text
           ellipsizeMode={ellipsizeMode}
@@ -47,8 +47,8 @@ const TextWithTooltip = ({
       </TouchableOpacity>
       {isTooltipVisible && (
         <BottomModal onClose={() => setTooltipVisible(false)}>
-          <View accessibilityRole="none" accessible={false} style={styles.container}>
-            <View accessibilityRole="none" accessible={false} style={styles.tooltipHeader}>
+          <View style={styles.container}>
+            <View style={styles.tooltipHeader}>
               <ButtonIcon
                 style={styles.backIcon}
                 iconColor={IconColor.Default}
@@ -59,7 +59,7 @@ const TextWithTooltip = ({
               />
               <Text style={styles.text}>{label}</Text>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.tooltipContext}>
+            <View style={styles.tooltipContext}>
               <Text style={styles.text}>{tooltip}</Text>
             </View>
           </View>

@@ -54,7 +54,7 @@ describe('ManageCardListItem Component', () => {
   it('renders with React.ReactNode description and matches snapshot', () => {
     const customDescription = (
       <React.Fragment>
-        <View accessibilityRole="none" accessible={false}>Custom</View>
+        <View>Custom</View>
       </React.Fragment>
     );
 

@@ -25,7 +25,7 @@ const TagColored: React.FC<TagColoredProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, color });
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.base} testID={TAGCOLORED_TESTID}>
+    <View style={styles.base} testID={TAGCOLORED_TESTID}>
       {typeof children === 'string' ? (
         <Text
           variant={DEFAULT_TAGCOLORED_TEXTVARIANT}

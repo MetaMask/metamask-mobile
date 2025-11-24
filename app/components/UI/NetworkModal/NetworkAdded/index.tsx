@@ -61,11 +61,11 @@ const NetworkAdded = (props: NetworkAddedProps) => {
     },
   ];
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.base}>
+    <View style={styles.base}>
       <BottomSheetHeader style={styles.header}>
         {strings('networks.new_network')}
       </BottomSheetHeader>
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
+      <View style={styles.content}>
         <Text>
           <Text variant={TextVariant.BodyMDBold}>
             {`"${strings('networks.network_name', {

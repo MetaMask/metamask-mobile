@@ -888,10 +888,10 @@ const EarnInputView = () => {
           handleCurrencySwitch={handleCurrencySwitchWithTracking}
           currencyToggleValue={currencyToggleValue}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.rewardsRateContainer}>
+        <View style={styles.rewardsRateContainer}>
           {isStablecoinLendingEnabled && !isTrxStakingEnabled ? (
             <>
-              <View accessibilityRole="none" accessible={false} style={styles.spacer} />
+              <View style={styles.spacer} />
               <EarnTokenSelector
                 token={token}
                 action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
@@ -927,7 +927,7 @@ const EarnInputView = () => {
         currency={token.symbol}
         decimals={!isFiat ? 5 : 2}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.reviewButtonContainer}>
+      <View style={styles.reviewButtonContainer}>
         <Button
           label={buttonLabel}
           size={ButtonSize.Lg}

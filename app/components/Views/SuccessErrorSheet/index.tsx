@@ -83,7 +83,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       onClose={handleClose}
       isInteractable={isInteractable}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.statusContainer}>
+      <View style={styles.statusContainer}>
         <Icon name={getIcon} size={IconSize.Xl} color={getIconColor} />
 
         {typeof title === 'string' ? (

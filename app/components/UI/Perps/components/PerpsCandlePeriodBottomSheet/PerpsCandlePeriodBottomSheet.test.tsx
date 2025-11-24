@@ -51,7 +51,7 @@ jest.mock(
       (
         { children, testID }: { children: React.ReactNode; testID?: string },
         _ref: unknown,
-      ) => <View accessibilityRole="none" accessible={false} testID={testID || 'bottom-sheet'}>{children}</View>,
+      ) => <View testID={testID || 'bottom-sheet'}>{children}</View>,
     );
     BottomSheet.displayName = 'BottomSheet';
     return {
@@ -73,9 +73,9 @@ jest.mock(
         children: React.ReactNode;
         onClose?: () => void;
       }) => (
-        <View accessibilityRole="none" accessible={false} testID="bottom-sheet-header">
+        <View testID="bottom-sheet-header">
           {children}
-          <View accessibilityRole="none" accessible={false} testID="close-button" onTouchEnd={onClose} />
+          <View testID="close-button" onTouchEnd={onClose} />
         </View>
       ),
     );

@@ -117,7 +117,7 @@ class CollectibleView extends PureComponent {
     return (
       <SafeAreaView style={styles.root}>
         <ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
-          <View accessibilityRole="none" accessible={false} style={styles.assetOverviewWrapper}>
+          <View style={styles.assetOverviewWrapper}>
             <CollectibleOverview
               navigation={navigation}
               collectible={collectible}
@@ -125,7 +125,7 @@ class CollectibleView extends PureComponent {
           </View>
         </ScrollView>
         {tradable && (
-          <View accessibilityRole="none" accessible={false} style={styles.buttons}>
+          <View style={styles.buttons}>
             <StyledButton
               type={'confirm'}
               onPress={this.onSend}

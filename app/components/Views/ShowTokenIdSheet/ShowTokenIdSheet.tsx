@@ -26,7 +26,7 @@ const ShowTokenIdSheet = () => {
         style={styles.header}
         title={strings('nft_details.token_id')}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.textContent}>
+      <View style={styles.textContent}>
         <Text>{tokenId}</Text>
       </View>
     </BottomSheet>

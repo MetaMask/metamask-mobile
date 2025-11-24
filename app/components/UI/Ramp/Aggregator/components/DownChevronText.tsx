@@ -21,7 +21,7 @@ const DownChevronText = ({ text, ...props }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <View accessibilityRole="none" accessible={false} {...props}>
+    <View {...props}>
       <Text black>
         <Text black bold>
           {text}

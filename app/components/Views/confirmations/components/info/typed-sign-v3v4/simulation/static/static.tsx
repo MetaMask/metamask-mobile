@@ -31,7 +31,7 @@ const StaticSimulation: React.FC<{
   const { styles, theme } = useStyles(styleSheet, {});
 
   return (
-    <View accessibilityRole="none" accessible={false} style={isCollapsed ? styles.base : {}}>
+    <View style={isCollapsed ? styles.base : {}}>
       <InfoSection>
         <InfoRow label={title} tooltip={titleTooltip}>
           {description}

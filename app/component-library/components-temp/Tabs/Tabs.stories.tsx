@@ -34,13 +34,13 @@ const ExampleTabContent: React.FC<{ title: string; height?: number }> = ({
 export const Default = () => (
   <Box twClassName="flex-1 p-4 bg-background-default">
     <TabsList>
-      <View accessibilityRole="none" accessible={false} key="tokens" {...({ tabLabel: 'Tokens' } as TabViewProps)}>
+      <View key="tokens" {...({ tabLabel: 'Tokens' } as TabViewProps)}>
         <ExampleTabContent title="Tokens" height={300} />
       </View>
-      <View accessibilityRole="none" accessible={false} key="nfts" {...({ tabLabel: 'NFTs' } as TabViewProps)}>
+      <View key="nfts" {...({ tabLabel: 'NFTs' } as TabViewProps)}>
         <ExampleTabContent title="NFTs" height={150} />
       </View>
-      <View accessibilityRole="none" accessible={false} key="defi" {...({ tabLabel: 'DeFi' } as TabViewProps)}>
+      <View key="defi" {...({ tabLabel: 'DeFi' } as TabViewProps)}>
         <ExampleTabContent title="DeFi" height={400} />
       </View>
     </TabsList>
@@ -50,25 +50,25 @@ export const Default = () => (
 export const ManyTabs = () => (
   <Box twClassName="flex-1 p-4 bg-background-default">
     <TabsList>
-      <View accessibilityRole="none" accessible={false} key="tokens" {...({ tabLabel: 'Tokens' } as TabViewProps)}>
+      <View key="tokens" {...({ tabLabel: 'Tokens' } as TabViewProps)}>
         <ExampleTabContent title="Tokens" />
       </View>
-      <View accessibilityRole="none" accessible={false} key="nfts" {...({ tabLabel: 'NFTs' } as TabViewProps)}>
+      <View key="nfts" {...({ tabLabel: 'NFTs' } as TabViewProps)}>
         <ExampleTabContent title="NFTs" />
       </View>
-      <View accessibilityRole="none" accessible={false} key="defi" {...({ tabLabel: 'DeFi' } as TabViewProps)}>
+      <View key="defi" {...({ tabLabel: 'DeFi' } as TabViewProps)}>
         <ExampleTabContent title="DeFi" />
       </View>
-      <View accessibilityRole="none" accessible={false} key="staking" {...({ tabLabel: 'Staking' } as TabViewProps)}>
+      <View key="staking" {...({ tabLabel: 'Staking' } as TabViewProps)}>
         <ExampleTabContent title="Staking" />
       </View>
-      <View accessibilityRole="none" accessible={false} key="portfolio" {...({ tabLabel: 'Portfolio' } as TabViewProps)}>
+      <View key="portfolio" {...({ tabLabel: 'Portfolio' } as TabViewProps)}>
         <ExampleTabContent title="Portfolio" />
       </View>
-      <View accessibilityRole="none" accessible={false} key="history" {...({ tabLabel: 'History' } as TabViewProps)}>
+      <View key="history" {...({ tabLabel: 'History' } as TabViewProps)}>
         <ExampleTabContent title="History" />
       </View>
-      <View accessibilityRole="none" accessible={false} key="settings" {...({ tabLabel: 'Settings' } as TabViewProps)}>
+      <View key="settings" {...({ tabLabel: 'Settings' } as TabViewProps)}>
         <ExampleTabContent title="Settings" />
       </View>
     </TabsList>
@@ -84,7 +84,7 @@ export const IndividuallyDisabledTabs = () => (
       >
         <ExampleTabContent title="Disabled 1" />
       </View>
-      <View accessibilityRole="none" accessible={false} key="active" {...({ tabLabel: 'Active' } as TabViewProps)}>
+      <View key="active" {...({ tabLabel: 'Active' } as TabViewProps)}>
         <ExampleTabContent title="Active" />
       </View>
       <View
@@ -93,7 +93,7 @@ export const IndividuallyDisabledTabs = () => (
       >
         <ExampleTabContent title="Disabled 2" />
       </View>
-      <View accessibilityRole="none" accessible={false} key="enabled" {...({ tabLabel: 'Enabled' } as TabViewProps)}>
+      <View key="enabled" {...({ tabLabel: 'Enabled' } as TabViewProps)}>
         <ExampleTabContent title="Enabled" />
       </View>
     </TabsList>
@@ -128,13 +128,13 @@ export const AllTabsDisabled = () => (
 export const DifferentHeights = () => (
   <Box twClassName="flex-1 p-4 bg-background-default">
     <TabsList>
-      <View accessibilityRole="none" accessible={false} key="short" {...({ tabLabel: 'Short' } as TabViewProps)}>
+      <View key="short" {...({ tabLabel: 'Short' } as TabViewProps)}>
         <ExampleTabContent title="Short Content" height={100} />
       </View>
-      <View accessibilityRole="none" accessible={false} key="medium" {...({ tabLabel: 'Medium' } as TabViewProps)}>
+      <View key="medium" {...({ tabLabel: 'Medium' } as TabViewProps)}>
         <ExampleTabContent title="Medium Content" height={250} />
       </View>
-      <View accessibilityRole="none" accessible={false} key="tall" {...({ tabLabel: 'Tall' } as TabViewProps)}>
+      <View key="tall" {...({ tabLabel: 'Tall' } as TabViewProps)}>
         <ExampleTabContent title="Tall Content" height={500} />
       </View>
     </TabsList>

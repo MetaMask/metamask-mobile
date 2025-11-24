@@ -419,19 +419,19 @@ export const TokenListItem = React.memo(
         >
           {renderNetworkAvatar()}
         </BadgeWrapper>
-        <View accessibilityRole="none" accessible={false} style={styles.balances}>
+        <View style={styles.balances}>
           {/*
            * The name of the token must callback to the symbol
            * The reason for this is that the wallet_watchAsset doesn't return the name
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
-          <View accessibilityRole="none" accessible={false} style={styles.assetName}>
+          <View style={styles.assetName}>
             <TextComponent variant={TextVariant.BodyMDMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </TextComponent>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.percentageChange}>
+          <View style={styles.percentageChange}>
             {balanceValueFormatted ? (
               <SensitiveText
                 variant={TextVariant.BodySMMedium}

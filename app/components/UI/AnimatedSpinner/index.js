@@ -137,7 +137,7 @@ export default class AnimatedSpinner extends PureComponent {
     });
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.static}>
+      <View style={styles.static}>
         <Animated.View style={[styles.view, { transform: [{ rotate: spin }] }]}>
           <Icon
             name="loading"

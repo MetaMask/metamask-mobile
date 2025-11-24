@@ -38,7 +38,7 @@ exports[`GetStarted render matches snapshot 1`] = `
       }
     >
       <RCTScrollView>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               [
@@ -279,7 +279,7 @@ exports[`GetStarted render matches snapshot 1`] = `
         </View>
       </RCTScrollView>
     </View>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           [

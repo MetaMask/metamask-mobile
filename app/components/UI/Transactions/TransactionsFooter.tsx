@@ -109,9 +109,9 @@ const TransactionsFooter = ({
   const blockExplorerText = getBlockExplorerText();
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       {blockExplorerText && rpcBlockExplorer && (
-        <View accessibilityRole="none" accessible={false} style={styles.viewMoreWrapper}>
+        <View style={styles.viewMoreWrapper}>
           <Button
             variant={ButtonVariants.Link}
             size={ButtonSize.Lg}
@@ -122,7 +122,7 @@ const TransactionsFooter = ({
         </View>
       )}
       {showDisclaimer && (
-        <View accessibilityRole="none" accessible={false} style={styles.disclaimerWrapper}>
+        <View style={styles.disclaimerWrapper}>
           <Text style={styles.disclaimerText}>
             {strings('asset_overview.disclaimer')}
           </Text>

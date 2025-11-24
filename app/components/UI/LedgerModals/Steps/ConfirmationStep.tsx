@@ -62,10 +62,10 @@ const ConfirmationStep = ({ onReject }: ConfirmationStepProps) => {
           {strings('ledger.confirm_transaction_on_ledger')}
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.confirmationActivityIndicator}>
+      <View style={styles.confirmationActivityIndicator}>
         <ActivityIndicator />
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+      <View style={styles.buttonContainer}>
         <StyledButton type="cancel" onPress={onReject}>
           {strings('transaction.reject')}
         </StyledButton>

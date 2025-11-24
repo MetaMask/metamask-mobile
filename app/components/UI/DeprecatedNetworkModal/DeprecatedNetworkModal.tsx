@@ -52,7 +52,7 @@ const DeprecatedNetworkModal = () => {
           {strings('accounts.learn_more')}
         </Text>
       </Text>
-      <View accessibilityRole="none" accessible={false} style={{ ...styles.footer }}>
+      <View style={{ ...styles.footer }}>
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}

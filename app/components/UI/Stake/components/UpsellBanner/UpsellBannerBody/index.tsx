@@ -23,13 +23,13 @@ const UpsellBannerBody = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
-      <View accessibilityRole="none" accessible={false} style={styles.left}>
+    <View style={styles.container}>
+      <View style={styles.left}>
         <Text variant={TextVariant.HeadingMD}>{primaryText}</Text>
         <Text variant={TextVariant.DisplayMD} color={TextColor.Success}>
           {secondaryText}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.tooltipContainer}>
+        <View style={styles.tooltipContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {tertiaryText}
           </Text>
@@ -42,7 +42,7 @@ const UpsellBannerBody = ({
           </TouchableOpacity>
         </View>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.right}>
+      <View style={styles.right}>
         {React.isValidElement(endAccessory) && endAccessory}
       </View>
     </View>

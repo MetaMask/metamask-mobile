@@ -137,7 +137,7 @@ const PaymentMethod: React.FC<Props> = ({
       <ListItem
         bottomAccessory={
           <>
-            <View accessibilityRole="none" accessible={false} style={[styles.line, compact && styles.compactLine]} />
+            <View style={[styles.line, compact && styles.compactLine]} />
 
             <Text variant={TextVariant.BodySM}>
               <Feather name="clock" /> {renderTime(time)} •{' '}
@@ -178,7 +178,7 @@ const PaymentMethod: React.FC<Props> = ({
 
         <ListItemColumn>
           {logo ? (
-            <View accessibilityRole="none" accessible={false} style={styles.cardIcons}>
+            <View style={styles.cardIcons}>
               <PaymentMethodBadges
                 style={styles.cardIcon}
                 logosByTheme={logo}

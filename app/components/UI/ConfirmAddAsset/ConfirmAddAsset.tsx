@@ -64,7 +64,7 @@ const RenderBalance = (
       : undefined,
   );
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.balanceSection}>
+    <View style={styles.balanceSection}>
       <Text variant={TextVariant.BodyLGMedium} style={styles.balanceFiat}>
         {balanceFiat === TOKEN_BALANCE_LOADING ? (
           <SkeletonText thin style={styles.skeleton} />
@@ -140,7 +140,7 @@ const ConfirmAddAsset = () => {
         style={styles.box}
         testID={ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.notch} />
+        <View style={styles.notch} />
         <SheetHeader title={strings('wallet.are_you_sure_exit')} />
 
         <Box style={styles.boxContent}>
@@ -181,8 +181,8 @@ const ConfirmAddAsset = () => {
       </Text>
       <ScrollView style={styles.root}>
         {selectedAsset?.map((asset, i) => (
-          <View accessibilityRole="none" accessible={false} style={styles.assetElement} key={i}>
-            <View accessibilityRole="none" accessible={false}>
+          <View style={styles.assetElement} key={i}>
+            <View>
               <BadgeWrapper
                 badgePosition={BadgePosition.BottomRight}
                 badgeElement={
@@ -212,7 +212,7 @@ const ConfirmAddAsset = () => {
               </BadgeWrapper>
             </View>
 
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
               <Text variant={TextVariant.BodyMD} style={styles.symbolText}>
                 {asset.symbol}
@@ -223,7 +223,7 @@ const ConfirmAddAsset = () => {
         ))}
       </ScrollView>
 
-      <View accessibilityRole="none" accessible={false} style={styles.bottomContainer}>
+      <View style={styles.bottomContainer}>
         <BottomSheetFooter
           buttonPropsArray={[
             {

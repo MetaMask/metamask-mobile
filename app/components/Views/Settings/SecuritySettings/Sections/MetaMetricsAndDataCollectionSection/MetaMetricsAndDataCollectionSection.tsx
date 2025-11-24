@@ -201,12 +201,12 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   };
 
   const renderMetaMetricsSection = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.halfSetting} testID={META_METRICS_SECTION}>
-      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
+    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
+      <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.metametrics_title')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
+        <View style={styles.switchElement}>
           <Switch
             disabled={!isBasicFunctionalityEnabled}
             value={analyticsEnabled}
@@ -243,11 +243,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       style={styles.halfSetting}
       testID={META_METRICS_DATA_MARKETING_SECTION}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
+      <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.data_collection_title')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
+        <View style={styles.switchElement}>
           <Switch
             disabled={!isBasicFunctionalityEnabled}
             value={isDataCollectionForMarketingEnabled}

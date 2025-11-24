@@ -120,7 +120,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
             />
           ))}
         </ScrollView>
-        <View accessibilityRole="none" accessible={false} style={styles.disconnectAllContainer}>
+        <View style={styles.disconnectAllContainer}>
           <Button
             variant={ButtonVariants.Secondary}
             label={strings('sdk.disconnect_all')}
@@ -136,7 +136,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   );
 
   const renderEmptyResult = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.emptyContainer}>
+    <View style={styles.emptyContainer}>
       <Icon name={IconName.Global} size={IconSize.Xl} />
       <Text variant={TextVariant.HeadingSM}>
         {strings('sdk.no_connections')}

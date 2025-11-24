@@ -505,14 +505,14 @@ const BuildQuote = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content style={styles.content}>
-          <View accessibilityRole="none" accessible={false} style={styles.selectionRow}>
+          <View style={styles.selectionRow}>
             <AccountSelector isEvmOnly={false} />
             <TouchableOpacity
               style={styles.fiatSelector}
               onPress={handleRegionPress}
               disabled={!!regionsError || !regions || regions.length === 0}
             >
-              <View accessibilityRole="none" accessible={false} style={styles.regionContent}>
+              <View style={styles.regionContent}>
                 {!selectedRegion ? (
                   <>
                     <Text variant={TextVariant.BodyMD}>🏳️</Text>
@@ -537,8 +537,8 @@ const BuildQuote = () => {
             </TouchableOpacity>
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.centerGroup}>
-            <View accessibilityRole="none" accessible={false}>
+          <View style={styles.centerGroup}>
+            <View>
               <Text
                 variant={TextVariant.HeadingLG}
                 style={styles.mainAmount}
@@ -586,7 +586,7 @@ const BuildQuote = () => {
                 cryptoCurrencies.length === 0
               }
             >
-              <View accessibilityRole="none" accessible={false} style={styles.cryptoPill}>
+              <View style={styles.cryptoPill}>
                 {!selectedCryptoCurrency ? (
                   <>
                     <AvatarToken
@@ -657,7 +657,7 @@ const BuildQuote = () => {
               errorType="userDetails"
             />
             {quoteError && (
-              <View accessibilityRole="none" accessible={false} style={styles.errorContainer}>
+              <View style={styles.errorContainer}>
                 <TruncatedError error={quoteError} />
               </View>
             )}

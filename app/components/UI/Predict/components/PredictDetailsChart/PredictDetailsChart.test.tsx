@@ -8,7 +8,7 @@ jest.mock('react-native-svg-charts', () => ({
     // Only add testID if the chart is visible (not the transparent tooltip overlay)
     const isVisible = svg?.stroke !== 'transparent';
     return (
-      <View accessibilityRole="none" accessible={false} testID={isVisible ? 'line-chart' : undefined} {...props}>
+      <View testID={isVisible ? 'line-chart' : undefined} {...props}>
         <Text testID={isVisible ? 'chart-data' : undefined}>
           {JSON.stringify(data)}
         </Text>
@@ -21,7 +21,7 @@ jest.mock('react-native-svg-charts', () => ({
 jest.mock('react-native-svg', () => ({
   Line: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
-    return <View accessibilityRole="none" accessible={false} testID="svg-line" {...props} />;
+    return <View testID="svg-line" {...props} />;
   }),
   Text: jest.fn((props) => {
     const { Text } = jest.requireActual('react-native');
@@ -29,31 +29,31 @@ jest.mock('react-native-svg', () => ({
   }),
   G: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
-    return <View accessibilityRole="none" accessible={false} testID="svg-g" {...props} />;
+    return <View testID="svg-g" {...props} />;
   }),
   Defs: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
-    return <View accessibilityRole="none" accessible={false} testID="svg-defs" {...props} />;
+    return <View testID="svg-defs" {...props} />;
   }),
   LinearGradient: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
-    return <View accessibilityRole="none" accessible={false} testID="svg-linear-gradient" {...props} />;
+    return <View testID="svg-linear-gradient" {...props} />;
   }),
   Stop: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
-    return <View accessibilityRole="none" accessible={false} testID="svg-stop" {...props} />;
+    return <View testID="svg-stop" {...props} />;
   }),
   Path: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
-    return <View accessibilityRole="none" accessible={false} testID="svg-path" {...props} />;
+    return <View testID="svg-path" {...props} />;
   }),
   Circle: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
-    return <View accessibilityRole="none" accessible={false} testID="svg-circle" {...props} />;
+    return <View testID="svg-circle" {...props} />;
   }),
   Rect: jest.fn((props) => {
     const { View } = jest.requireActual('react-native');
-    return <View accessibilityRole="none" accessible={false} testID="svg-rect" {...props} />;
+    return <View testID="svg-rect" {...props} />;
   }),
 }));
 

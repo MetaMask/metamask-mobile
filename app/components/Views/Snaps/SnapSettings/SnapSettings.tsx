@@ -155,16 +155,16 @@ const SnapSettings = () => {
       <SafeAreaView style={styles.snapSettingsContainer}>
         <ScrollView testID={SNAP_SETTINGS_SCROLLVIEW}>
           <SnapDetails snap={snap} />
-          <View accessibilityRole="none" accessible={false} style={styles.itemPaddedContainer}>
+          <View style={styles.itemPaddedContainer}>
             <SnapDescription
               snapName={snap.manifest.proposedName}
               snapDescription={snap.manifest.description}
             />
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.itemPaddedContainer}>
+          <View style={styles.itemPaddedContainer}>
             <SnapPermissions permissions={permissionsFromController} />
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.removeSection}>
+          <View style={styles.removeSection}>
             <Text variant={TextVariant.HeadingMD}>
               {strings(
                 'app_settings.snaps.snap_settings.remove_snap_section_title',

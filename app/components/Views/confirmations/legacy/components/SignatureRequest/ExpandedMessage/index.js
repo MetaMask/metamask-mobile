@@ -98,7 +98,7 @@ export default class ExpandedMessage extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.expandedRoot}>
+      <View style={styles.expandedRoot}>
         <TouchableOpacity
           style={styles.expandedMessageHeader}
           onPress={toggleExpandedMessage}
@@ -107,9 +107,9 @@ export default class ExpandedMessage extends PureComponent {
           <Text style={styles.messageLabelTextExpanded}>
             {strings('signature_request.message')}
           </Text>
-          <View accessibilityRole="none" accessible={false} style={styles.iconHidden} />
+          <View style={styles.iconHidden} />
         </TouchableOpacity>
-        <View accessibilityRole="none" accessible={false} style={styles.messageIntroWrapper}>
+        <View style={styles.messageIntroWrapper}>
           <WebsiteIcon
             style={styles.domainLogo}
             title={title}
@@ -122,7 +122,7 @@ export default class ExpandedMessage extends PureComponent {
         </View>
         <ScrollView style={styles.scrollView}>
           <TouchableWithoutFeedback>
-            <View accessibilityRole="none" accessible={false}>{renderMessage()}</View>
+            <View>{renderMessage()}</View>
           </TouchableWithoutFeedback>
         </ScrollView>
       </View>

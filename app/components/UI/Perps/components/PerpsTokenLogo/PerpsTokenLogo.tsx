@@ -56,7 +56,7 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   // Show custom two-letter fallback if no symbol or error
   if (!symbol || !imageUri || hasError) {
     return (
-      <View accessibilityRole="none" accessible={false} style={[containerStyle, style]} testID={testID}>
+      <View style={[containerStyle, style]} testID={testID}>
         <Text variant={TextVariant.BodyMD} style={fallbackTextStyle}>
           {fallbackText}
         </Text>
@@ -65,9 +65,9 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[containerStyle, style]} testID={testID}>
+    <View style={[containerStyle, style]} testID={testID}>
       {isLoading && (
-        <View accessibilityRole="none" accessible={false} style={loadingContainerStyle}>
+        <View style={loadingContainerStyle}>
           <ActivityIndicator size="small" />
         </View>
       )}

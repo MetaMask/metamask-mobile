@@ -49,7 +49,7 @@ export const MainNotificationToggle = () => {
           testID={NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE}
         />
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.setting}>
+      <View style={styles.setting}>
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {strings('app_settings.allow_notifications_desc')}{' '}
           <Text

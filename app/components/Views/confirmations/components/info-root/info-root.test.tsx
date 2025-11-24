@@ -58,7 +58,7 @@ jest.mock('../qr-info', () => () => {
     '../../constants/info-ids',
   ).ConfirmationInfoComponentIDs;
   return (
-    <View accessibilityRole="none" accessible={false} testID={componentIDs.QR_INFO}>
+    <View testID={componentIDs.QR_INFO}>
       <MockText>QR Scanning Component</MockText>
     </View>
   );

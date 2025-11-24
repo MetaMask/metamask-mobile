@@ -48,7 +48,7 @@ jest.mock(
           };
 
           return (
-            <View accessibilityRole="none" accessible={false} testID="bottom-sheet">
+            <View testID="bottom-sheet">
               {children}
               <TouchableOpacity testID="close-button" onPress={handleClose} />
             </View>
@@ -120,7 +120,7 @@ jest.mock('../../../component-library/components/Icons/Icon', () => {
   return {
     __esModule: true,
     default: ({ name, ...props }: { name: string; [key: string]: unknown }) => (
-      <View accessibilityRole="none" accessible={false} testID={`icon-${name}`} {...props} />
+      <View testID={`icon-${name}`} {...props} />
     ),
     IconColor: { Success: 'success' },
     IconName: { Confirmation: 'confirmation' },
@@ -139,7 +139,7 @@ jest.mock('../../../component-library/components/Sheet/SheetHeader', () => {
       title: string;
       [key: string]: unknown;
     }) => (
-      <View accessibilityRole="none" accessible={false} {...props}>
+      <View {...props}>
         <Text>{title}</Text>
       </View>
     ),

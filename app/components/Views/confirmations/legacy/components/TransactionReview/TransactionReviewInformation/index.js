@@ -698,7 +698,7 @@ class TransactionReviewInformation extends PureComponent {
           <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />
         )}
         {!!amountError && (
-          <View accessibilityRole="none" accessible={false} style={styles.overviewAlert}>
+          <View style={styles.overviewAlert}>
             <MaterialIcon
               name={'error'}
               size={20}
@@ -710,7 +710,7 @@ class TransactionReviewInformation extends PureComponent {
           </View>
         )}
         {!!error && (
-          <View accessibilityRole="none" accessible={false} style={styles.errorWrapper}>
+          <View style={styles.errorWrapper}>
             {isTestNetworkWithFaucet(chainId) || isNativeTokenBuySupported ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
@@ -726,12 +726,12 @@ class TransactionReviewInformation extends PureComponent {
           </View>
         )}
         {!!warningGasPriceHigh && (
-          <View accessibilityRole="none" accessible={false} style={styles.errorWrapper}>
+          <View style={styles.errorWrapper}>
             <Text style={styles.error}>{warningGasPriceHigh}</Text>
           </View>
         )}
         {!over && !showCustomNonce && (
-          <View accessibilityRole="none" accessible={false} style={styles.viewDataWrapper}>
+          <View style={styles.viewDataWrapper}>
             <TouchableOpacity
               style={styles.viewDataButton}
               onPress={toggleDataView}

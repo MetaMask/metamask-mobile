@@ -48,8 +48,8 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
     }
     testID="badge-wrapper-badge"
   >
-    <View accessibilityRole="none" accessible={false}>
-      <View accessibilityRole="none" accessible={false}>
+    <View>
+      <View>
         <View
           fadeIn={true}
           isTokenImage={true}

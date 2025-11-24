@@ -63,7 +63,7 @@ describe('Skeleton', () => {
 
     const { getByTestId } = render(
       <Skeleton childrenWrapperProps={{ testID: childrenWrapperId }}>
-        <View accessibilityRole="none" accessible={false} testID={childTestId} />
+        <View testID={childTestId} />
       </Skeleton>,
     );
 
@@ -82,7 +82,7 @@ describe('Skeleton', () => {
         hideChildren
         childrenWrapperProps={{ testID: childrenWrapperId }}
       >
-        <View accessibilityRole="none" accessible={false} testID={childTestId} />
+        <View testID={childTestId} />
       </Skeleton>,
     );
 
@@ -96,7 +96,7 @@ describe('Skeleton', () => {
 
     const { getByTestId } = render(
       <Skeleton childrenWrapperProps={{ testID: childrenWrapperId }}>
-        <View accessibilityRole="none" accessible={false} testID={childTestId} />
+        <View testID={childTestId} />
       </Skeleton>,
     );
 
@@ -139,7 +139,7 @@ describe('Skeleton', () => {
         childrenWrapperProps={{ testID: childrenWrapperId }}
         animatedViewProps={{ testID: animatedBackgroundId }}
       >
-        <View accessibilityRole="none" accessible={false} testID={childTestId} />
+        <View testID={childTestId} />
       </Skeleton>,
     );
 

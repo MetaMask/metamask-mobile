@@ -183,7 +183,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       collapsable={false}
       onLayout={[Function]}
@@ -196,7 +196,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               [
@@ -406,7 +406,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -672,7 +672,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -938,7 +938,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -1204,7 +1204,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -1470,7 +1470,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -1871,7 +1871,7 @@ exports[`OrdersList renders correctly 1`] = `
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       collapsable={false}
       onLayout={[Function]}
@@ -1884,7 +1884,7 @@ exports[`OrdersList renders correctly 1`] = `
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               [
@@ -2094,7 +2094,7 @@ exports[`OrdersList renders correctly 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -2360,7 +2360,7 @@ exports[`OrdersList renders correctly 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -2626,7 +2626,7 @@ exports[`OrdersList renders correctly 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -2892,7 +2892,7 @@ exports[`OrdersList renders correctly 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -3158,7 +3158,7 @@ exports[`OrdersList renders correctly 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -3424,7 +3424,7 @@ exports[`OrdersList renders correctly 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -3686,7 +3686,7 @@ exports[`OrdersList renders empty buy message 1`] = `
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       collapsable={false}
       onLayout={[Function]}
@@ -3699,7 +3699,7 @@ exports[`OrdersList renders empty buy message 1`] = `
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               [
@@ -3934,7 +3934,7 @@ exports[`OrdersList renders empty sell message 1`] = `
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       collapsable={false}
       onLayout={[Function]}
@@ -3947,7 +3947,7 @@ exports[`OrdersList renders empty sell message 1`] = `
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               [
@@ -4208,7 +4208,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       collapsable={false}
       onLayout={[Function]}
@@ -4221,7 +4221,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               [
@@ -4431,7 +4431,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -4719,7 +4719,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       collapsable={false}
       onLayout={[Function]}
@@ -4732,7 +4732,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               [
@@ -4942,7 +4942,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -5343,7 +5343,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       collapsable={false}
       onLayout={[Function]}
@@ -5356,7 +5356,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               [
@@ -5566,7 +5566,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -5832,7 +5832,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -6098,7 +6098,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -6364,7 +6364,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -6630,7 +6630,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}
@@ -6896,7 +6896,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Image
                     resizeMode="stretch"
                     source={1}

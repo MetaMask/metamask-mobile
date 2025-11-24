@@ -182,7 +182,7 @@ const EditGasFeeLegacy = ({
           )}
         >
           {() => (
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <Text color={TextColor.Warning} style={styles.text}>
                 {warning}
               </Text>
@@ -210,7 +210,7 @@ const EditGasFeeLegacy = ({
           )}
         >
           {() => (
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <Text color={TextColor.Error} style={styles.text}>
                 {error}
               </Text>
@@ -249,12 +249,12 @@ const EditGasFeeLegacy = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.root} testID={EditGasViewSelectorsIDs.LEGACY_CONTAINER}>
+    <View style={styles.root} testID={EditGasViewSelectorsIDs.LEGACY_CONTAINER}>
       <ScrollView style={styles.wrapper}>
         <TouchableWithoutFeedback>
-          <View accessibilityRole="none" accessible={false}>
-            <View accessibilityRole="none" accessible={false}>
-              <View accessibilityRole="none" accessible={false} style={styles.customGasHeader}>
+          <View>
+            <View>
+              <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
                   <Icon
                     name={'arrow-back'}
@@ -276,12 +276,12 @@ const EditGasFeeLegacy = ({
             {showTransactionError}
 
             {!showEditUI ? (
-              <View accessibilityRole="none" accessible={false} style={styles.dappEditGasContainer}>
-                <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
+              <View style={styles.dappEditGasContainer}>
+                <View style={styles.headerContainer}>
                   <Text variant={TextVariant.DisplayMD} style={{}}>
                     ~ {gasFeePrimary}
                   </Text>
-                  <View accessibilityRole="none" accessible={false} style={styles.headerTitleSide} />
+                  <View style={styles.headerTitleSide} />
                   <Text
                     variant={TextVariant.BodyLGMedium}
                     color={TextColor.Alternative}
@@ -297,18 +297,18 @@ const EditGasFeeLegacy = ({
                 </StyledButton>
               </View>
             ) : (
-              <View accessibilityRole="none" accessible={false} style={styles.dappEditGasContainer}>
+              <View style={styles.dappEditGasContainer}>
                 <FadeAnimationView
                   valueToWatch={valueToWatch}
                   animateOnChange={animateOnChange}
                   onAnimationStart={onUpdatingValuesStart}
                   onAnimationEnd={onUpdatingValuesEnd}
                 >
-                  <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
+                  <View style={styles.headerContainer}>
                     <Text variant={TextVariant.DisplayMD} style={{}}>
                       ~ {gasFeePrimary}
                     </Text>
-                    <View accessibilityRole="none" accessible={false} style={styles.headerTitleSide} />
+                    <View style={styles.headerTitleSide} />
                     <Text
                       variant={TextVariant.BodyLGMedium}
                       color={TextColor.Alternative}
@@ -316,10 +316,10 @@ const EditGasFeeLegacy = ({
                       {gasFeeSecondary}
                     </Text>
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer}>
+                  <View style={styles.rangeInputContainer}>
                     <RangeInput
                       leftLabelComponent={
-                        <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+                        <View style={styles.labelTextContainer}>
                           <Text variant={TextVariant.BodyMDBold}>
                             {strings('edit_gas_fee_eip1559.gas_limit')}{' '}
                           </Text>
@@ -343,10 +343,10 @@ const EditGasFeeLegacy = ({
                       increment={GAS_LIMIT_INCREMENT}
                     />
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.rangeInputContainer}>
+                  <View style={styles.rangeInputContainer}>
                     <RangeInput
                       leftLabelComponent={
-                        <View accessibilityRole="none" accessible={false} style={styles.labelTextContainer}>
+                        <View style={styles.labelTextContainer}>
                           <Text variant={TextVariant.BodyMDBold}>
                             {strings('edit_gas_fee_eip1559.gas_price')}{' '}
                           </Text>
@@ -376,7 +376,7 @@ const EditGasFeeLegacy = ({
                     />
                   </View>
                 </FadeAnimationView>
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <StyledButton
                     type={'confirm'}
                     onPress={save}
@@ -398,7 +398,7 @@ const EditGasFeeLegacy = ({
               }
               toggleModal={() => setShowRangeInfoModal(false)}
               body={
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Text color={TextColor.Alternative}>
                     {infoText === 'gas_limit' &&
                       strings(

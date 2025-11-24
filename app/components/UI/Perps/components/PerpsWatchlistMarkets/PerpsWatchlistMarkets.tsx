@@ -73,7 +73,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   // Header component
   const SectionHeader = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.header}>
+      <View style={styles.header}>
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.home.watchlist')}
         </Text>
@@ -85,9 +85,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   // Show skeleton during initial load
   if (isLoading) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.section}>
+      <View style={styles.section}>
         <SectionHeader />
-        <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+        <View style={styles.contentContainer}>
           <PerpsRowSkeleton count={3} />
         </View>
       </View>
@@ -101,9 +101,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
 
   // Render market list
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.section}>
+    <View style={styles.section}>
       <SectionHeader />
-      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+      <View style={styles.contentContainer}>
         <FlatList
           data={markets}
           renderItem={renderMarket}

@@ -86,7 +86,7 @@ class GlobalAlert extends PureComponent {
       case 'clipboard-alert':
         return this.renderClipboardAlert();
       default:
-        return <View accessibilityRole="none" accessible={false} />;
+        return <View />;
     }
   }
 
@@ -104,7 +104,7 @@ class GlobalAlert extends PureComponent {
         style={styles.copyAlert(this.props.data && this.props.data.width)}
         elevation={5}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.copyAlertIcon}>
+        <View style={styles.copyAlertIcon}>
           <Icon
             name={'check-circle'}
             size={64}

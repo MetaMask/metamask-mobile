@@ -454,7 +454,7 @@ class ResetPassword extends PureComponent {
     if (!prevLoading && loading) {
       // update navigationOptions
       navigation.setParams({
-        headerLeft: () => <View accessibilityRole="none" accessible={false} />,
+        headerLeft: () => <View />,
       });
     }
   }
@@ -699,7 +699,7 @@ class ResetPassword extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.loader}>
+      <View style={styles.loader}>
         <ActivityIndicator size="small" />
       </View>
     );
@@ -764,8 +764,8 @@ class ResetPassword extends PureComponent {
 
   // Helper method to render loading state
   renderLoadingState = (previousScreen, colors, styles) => (
-    <View accessibilityRole="none" accessible={false} style={styles.loadingWrapper}>
-      <View accessibilityRole="none" accessible={false} style={styles.foxWrapper}>
+    <View style={styles.loadingWrapper}>
+      <View style={styles.foxWrapper}>
         <LottieView
           style={styles.image}
           autoPlay
@@ -799,8 +799,8 @@ class ResetPassword extends PureComponent {
           style={[baseStyles.flexGrow, styles.root]}
           enableOnAndroid
         >
-          <View accessibilityRole="none" accessible={false} style={styles.confirmPasswordWrapper}>
-            <View accessibilityRole="none" accessible={false} style={[styles.content, styles.passwordRequiredContent]}>
+          <View style={styles.confirmPasswordWrapper}>
+            <View style={[styles.content, styles.passwordRequiredContent]}>
               <Label
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
@@ -822,7 +822,7 @@ class ResetPassword extends PureComponent {
               />
               {this.renderWarningText(warningIncorrectPassword, styles)}
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
+            <View style={styles.buttonWrapper}>
               <Button
                 {...getCommonButtonProps()}
                 label={strings('manual_backup_step_1.confirm')}
@@ -922,7 +922,7 @@ class ResetPassword extends PureComponent {
             contentContainerStyle={styles.keyboardScrollableWrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
-            <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+            <View style={styles.wrapper}>
               <View
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
                 style={styles.changePasswordContainer}
@@ -936,7 +936,7 @@ class ResetPassword extends PureComponent {
                     : strings('choose_password.description_social_login')}
                 </Text>
 
-                <View accessibilityRole="none" accessible={false} style={styles.field}>
+                <View style={styles.field}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
                     color={TextColor.Default}
@@ -982,7 +982,7 @@ class ResetPassword extends PureComponent {
                   )}
                 </View>
 
-                <View accessibilityRole="none" accessible={false} style={styles.field}>
+                <View style={styles.field}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
                     color={TextColor.Default}
@@ -1026,7 +1026,7 @@ class ResetPassword extends PureComponent {
                   {this.renderErrorText()}
                 </View>
 
-                <View accessibilityRole="none" accessible={false} style={styles.checkboxContainer}>
+                <View style={styles.checkboxContainer}>
                   <Checkbox
                     onPress={this.setSelection}
                     isChecked={isSelected}
@@ -1062,7 +1062,7 @@ class ResetPassword extends PureComponent {
                   />
                 </View>
 
-                <View accessibilityRole="none" accessible={false} style={styles.ctaWrapper}>
+                <View style={styles.ctaWrapper}>
                   {this.renderSwitch()}
                   <Button
                     {...getCommonButtonProps()}

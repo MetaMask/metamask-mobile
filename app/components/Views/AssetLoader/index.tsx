@@ -49,14 +49,14 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({
 
   if (tokenResult && !tokenResult.found) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <Text>Token not found</Text>
       </View>
     );
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <ActivityIndicator testID="asset-loader-spinner" size="large" />
     </View>
   );

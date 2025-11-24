@@ -20,7 +20,7 @@ const TimeEstimateInfoModal = ({ timeEstimateId, isVisible, onHideModal }) => (
             : null
     }
     body={
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <Text>
           {timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN &&
             strings('times_eip1559.warning_unknown')}

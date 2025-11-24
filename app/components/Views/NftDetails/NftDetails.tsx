@@ -317,7 +317,7 @@ const NftDetails = () => {
   return (
     <SafeAreaView style={styles.wrapper}>
       <ScrollView>
-        <View accessibilityRole="none" accessible={false} style={styles.infoContainer}>
+        <View style={styles.infoContainer}>
           <TouchableOpacity
             style={[styles.collectibleMediaWrapper]}
             onPress={onMediaPress}
@@ -331,8 +331,8 @@ const NftDetails = () => {
               isFullRatio
             />
           </TouchableOpacity>
-          <View accessibilityRole="none" accessible={false}>
-            <View accessibilityRole="none" accessible={false} style={styles.nameWrapper}>
+          <View>
+            <View style={styles.nameWrapper}>
               <Text style={styles.heading}>{collectible.name}</Text>
               {collectible.collection?.openseaVerificationStatus ===
               'verified' ? (
@@ -345,7 +345,7 @@ const NftDetails = () => {
             </View>
             {renderDescription()}
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.generalInfoFrame}>
+          <View style={styles.generalInfoFrame}>
             {hasLastSalePrice || hasFloorAskPrice ? (
               <>
                 <NftDetailsBox
@@ -640,7 +640,7 @@ const NftDetails = () => {
           ) : null}
 
           {collectible?.attributes?.length !== 0 ? (
-            <View accessibilityRole="none" accessible={false} style={styles.generalInfoFrame}>
+            <View style={styles.generalInfoFrame}>
               {collectible.attributes?.map((elm, idx) => {
                 const { key, value } = elm;
                 return (
@@ -655,7 +655,7 @@ const NftDetails = () => {
               })}
             </View>
           ) : null}
-          <View accessibilityRole="none" accessible={false} style={styles.disclaimer}>
+          <View style={styles.disclaimer}>
             <Text style={styles.disclaimerText}>
               {strings('nft_details.disclaimer')}
             </Text>
@@ -664,7 +664,7 @@ const NftDetails = () => {
       </ScrollView>
 
       {isTradable() ? (
-        <View accessibilityRole="none" accessible={false} style={styles.buttonSendWrapper}>
+        <View style={styles.buttonSendWrapper}>
           <StyledButton
             type={'confirm'}
             containerStyle={styles.buttonSend}

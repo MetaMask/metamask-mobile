@@ -89,7 +89,7 @@ const QRTabSwitcher = () => {
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       {selectedIndex === QRTabSwitcherScreens.Scanner ? (
         <QRScanner
           onScanError={onScanError}
@@ -99,7 +99,7 @@ const QRTabSwitcher = () => {
         />
       ) : null}
 
-      <View accessibilityRole="none" accessible={false} style={styles.overlay}>
+      <View style={styles.overlay}>
         <HeaderBase
           style={styles.header}
           endAccessory={

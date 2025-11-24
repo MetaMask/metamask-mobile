@@ -16,7 +16,7 @@ const Tag = ({ label, style, ...props }: TagProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.base} {...props}>
+    <View style={styles.base} {...props}>
       <Text variant={TextVariant.BodyXSMedium} color={TextColor.Alternative}>
         {label}
       </Text>

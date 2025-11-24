@@ -466,7 +466,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                           }
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -488,7 +488,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       {
@@ -1412,7 +1412,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -1959,7 +1959,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                           }
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -1981,7 +1981,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       {
@@ -2923,7 +2923,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -3470,7 +3470,7 @@ exports[`OrderDetails renders a created order 1`] = `
                           }
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -3492,7 +3492,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       {
@@ -4449,7 +4449,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -4944,7 +4944,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                           }
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -4966,7 +4966,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       {
@@ -5890,7 +5890,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -6437,7 +6437,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                           }
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -6459,7 +6459,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       {
@@ -7416,7 +7416,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -9033,7 +9033,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                           }
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -9055,7 +9055,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       {
@@ -10027,7 +10027,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -10587,7 +10587,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                           }
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -10609,7 +10609,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       {
@@ -11597,7 +11597,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -12144,7 +12144,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                           }
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -12166,7 +12166,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       {
@@ -13123,7 +13123,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                 </View>
                               </View>
                             </View>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [
@@ -13618,7 +13618,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                           }
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -13640,7 +13640,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <View
                                     style={
                                       {
@@ -14612,7 +14612,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                 </View>
                               </View>
                             </View>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   [

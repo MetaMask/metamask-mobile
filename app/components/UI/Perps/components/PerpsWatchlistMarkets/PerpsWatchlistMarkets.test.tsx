@@ -46,7 +46,7 @@ jest.mock('../PerpsMarketRowItem', () => {
 jest.mock('../PerpsRowSkeleton', () => {
   const { View } = jest.requireActual('react-native');
   return function MockPerpsRowSkeleton({ count }: { count: number }) {
-    return <View accessibilityRole="none" accessible={false} testID={`perps-row-skeleton-${count}`} />;
+    return <View testID={`perps-row-skeleton-${count}`} />;
   };
 });
 

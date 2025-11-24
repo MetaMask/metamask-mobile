@@ -60,10 +60,10 @@ const AccountNetworkInfoCollapsed = () => {
 
   return (
     <InfoSection>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
-        <View accessibilityRole="none" accessible={false} style={styles.accountContainer}>
+      <View style={styles.container}>
+        <View style={styles.accountContainer}>
           {isMultichainAccountsState2Enabled ? (
-            <View accessibilityRole="none" accessible={false} style={styles.badgeWrapper}>{avatarComponent}</View>
+            <View style={styles.badgeWrapper}>{avatarComponent}</View>
           ) : (
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
@@ -79,8 +79,8 @@ const AccountNetworkInfoCollapsed = () => {
               {avatarComponent}
             </BadgeWrapper>
           )}
-          <View accessibilityRole="none" accessible={false} style={styles.infoContainer}>
-            <View accessibilityRole="none" accessible={false} style={styles.accountInfo}>
+          <View style={styles.infoContainer}>
+            <View style={styles.accountInfo}>
               <Text
                 ellipsizeMode="tail"
                 numberOfLines={1}

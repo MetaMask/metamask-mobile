@@ -39,7 +39,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   return {
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    default: ({ name, ...props }: any) => <View accessibilityRole="none" accessible={false} {...props} testID={name} />,
+    default: ({ name, ...props }: any) => <View {...props} testID={name} />,
     IconName: {
       Warning: 'Warning',
     },
@@ -116,7 +116,7 @@ jest.mock('../../../../Base/ScreenView', () => {
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     default: ({ children, ...props }: any) => (
-      <View accessibilityRole="none" accessible={false} {...props}>{children}</View>
+      <View {...props}>{children}</View>
     ),
   };
 });

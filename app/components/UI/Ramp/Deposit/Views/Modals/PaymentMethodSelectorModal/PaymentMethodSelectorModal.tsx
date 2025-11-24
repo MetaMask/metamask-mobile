@@ -91,7 +91,7 @@ function PaymentMethodSelectorModal() {
         accessible
       >
         <ListItemColumn widthType={WidthType.Auto}>
-          <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
+          <View style={styles.iconContainer}>
             <Icon
               name={paymentMethod.icon as IconName}
               color={

@@ -52,7 +52,7 @@ const AccountConnectSingle = ({
 
   const renderSheetAction = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.sheetActionContainer}>
+      <View style={styles.sheetActionContainer}>
         <SheetActions
           actions={[
             {
@@ -71,8 +71,8 @@ const AccountConnectSingle = ({
         />
 
         {connection?.originatorInfo?.apiVersion && (
-          <View accessibilityRole="none" accessible={false} style={styles.sdkInfoContainer}>
-            <View accessibilityRole="none" accessible={false} style={styles.sdkInfoDivier} />
+          <View style={styles.sdkInfoContainer}>
+            <View style={styles.sdkInfoDivier} />
             <Text color={TextColor.Muted}>
               SDK {connection?.originatorInfo?.platform} v
               {connection?.originatorInfo?.apiVersion}
@@ -93,7 +93,7 @@ const AccountConnectSingle = ({
 
   const renderCtaButtons = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={[styles.ctaButtonsContainer, isLoading && styles.disabled]}>
+      <View style={[styles.ctaButtonsContainer, isLoading && styles.disabled]}>
         <Button
           variant={ButtonVariants.Secondary}
           label={strings('accounts.cancel')}
@@ -104,7 +104,7 @@ const AccountConnectSingle = ({
           style={styles.button}
           testID={CommonSelectorsIDs.CANCEL_BUTTON}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.buttonSeparator} />
+        <View style={styles.buttonSeparator} />
         <Button
           variant={ButtonVariants.Primary}
           label={strings('accounts.connect')}
@@ -142,7 +142,7 @@ const AccountConnectSingle = ({
         disabled={isLoading}
         style={isLoading && styles.disabled}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.downCaretContainer}>
+        <View style={styles.downCaretContainer}>
           <Icon name={IconName.ArrowDown} />
         </View>
       </Cell>
@@ -173,7 +173,7 @@ const AccountConnectSingle = ({
         {renderSelectedAccount()}
       </View>
       {renderSheetAction()}
-      <View accessibilityRole="none" accessible={false} style={styles.body}>{renderCtaButtons()}</View>
+      <View style={styles.body}>{renderCtaButtons()}</View>
     </>
   );
 };

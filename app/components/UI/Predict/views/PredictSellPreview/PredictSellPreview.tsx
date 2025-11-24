@@ -199,7 +199,7 @@ const PredictSellPreview = () => {
         testID={PredictCashOutSelectorsIDs.CONTAINER}
         style={styles.container}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.cashOutContainer}>
+        <View style={styles.cashOutContainer}>
           <Text style={styles.currentValue} variant={TextVariant.BodyMDMedium}>
             {formatPrice(currentValue, { maximumDecimals: 2 })}
           </Text>
@@ -221,7 +221,7 @@ const PredictSellPreview = () => {
             })} (${formatPercentage(percentPnl)})`}
           </Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.bottomContainer}>
+        <View style={styles.bottomContainer}>
           {placeOrderError && (
             <Text
               variant={TextVariant.BodySM}
@@ -251,7 +251,7 @@ const PredictSellPreview = () => {
               </Text>
             </Box>
           </Box>
-          <View accessibilityRole="none" accessible={false} style={styles.cashOutButtonContainer}>
+          <View style={styles.cashOutButtonContainer}>
             {renderCashOutButton()}
             <Text variant={TextVariant.BodyXS} style={styles.cashOutButtonText}>
               {strings('predict.cash_out_info')}

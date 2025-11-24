@@ -14,7 +14,7 @@ const AccountListHeader = memo(
     const { styles } = useStyles(createStyles, {});
 
     return (
-      <View accessibilityRole="none" accessible={false} style={[styles.sectionHeader, containerStyle]}>
+      <View style={[styles.sectionHeader, containerStyle]}>
         <Text
           variant={TextVariant.BodyMDMedium}
           color={TextColor.Alternative}

@@ -23,7 +23,7 @@ exports[`TokenValueStack render matches snapshot 1`] = `
     }
     testID="badge-wrapper-badge"
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         useNativeDriver={true}
       >

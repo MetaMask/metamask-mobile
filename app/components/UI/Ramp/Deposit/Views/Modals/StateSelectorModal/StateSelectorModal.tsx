@@ -117,7 +117,7 @@ function StateSelectorModal() {
         accessible
       >
         <ListItemColumn widthType={WidthType.Fill}>
-          <View accessibilityRole="none" accessible={false} style={styles.state}>
+          <View style={styles.state}>
             <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
               {state.name}
             </Text>
@@ -130,7 +130,7 @@ function StateSelectorModal() {
 
   const renderEmptyList = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.emptyList}>
+      <View style={styles.emptyList}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('deposit.state_modal.no_state_results', {
             searchString,
@@ -161,7 +161,7 @@ function StateSelectorModal() {
           {strings('deposit.state_modal.select_a_state')}
         </Text>
       </BottomSheetHeader>
-      <View accessibilityRole="none" accessible={false} style={styles.searchContainer}>
+      <View style={styles.searchContainer}>
         <TextFieldSearch
           value={searchString}
           showClearButton={searchString.length > 0}

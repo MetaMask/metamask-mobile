@@ -625,7 +625,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                             </Text>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [

@@ -163,8 +163,8 @@ function RegionSelectorModal() {
           disabled={!isSelectable}
         >
           <ListItemColumn widthType={WidthType.Fill}>
-            <View accessibilityRole="none" accessible={false} style={styles.region}>
-              <View accessibilityRole="none" accessible={false} style={styles.emoji}>
+            <View style={styles.region}>
+              <View style={styles.emoji}>
                 <Text
                   variant={TextVariant.BodyLGMedium}
                   color={
@@ -174,7 +174,7 @@ function RegionSelectorModal() {
                   {region.flag}
                 </Text>
               </View>
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Text
                   variant={TextVariant.BodyLGMedium}
                   color={
@@ -200,7 +200,7 @@ function RegionSelectorModal() {
 
   const renderEmptyList = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.emptyList}>
+      <View style={styles.emptyList}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('fiat_on_ramp_aggregator.region.no_region_results', {
             searchString,
@@ -229,7 +229,7 @@ function RegionSelectorModal() {
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         {strings('deposit.region_modal.select_a_region')}
       </BottomSheetHeader>
-      <View accessibilityRole="none" accessible={false} style={styles.searchContainer}>
+      <View style={styles.searchContainer}>
         <TextFieldSearch
           value={searchString}
           showClearButton={searchString.length > 0}

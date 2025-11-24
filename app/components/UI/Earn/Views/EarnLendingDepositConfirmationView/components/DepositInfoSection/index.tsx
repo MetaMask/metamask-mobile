@@ -50,7 +50,7 @@ const DepositInfoSection = ({
 
   return (
     <InfoSection testID={DEPOSIT_DETAILS_SECTION_TEST_ID}>
-      <View accessibilityRole="none" accessible={false} style={styles.infoSectionContent}>
+      <View style={styles.infoSectionContent}>
         <KeyValueRow
           field={{
             label: {
@@ -60,7 +60,7 @@ const DepositInfoSection = ({
             tooltip: {
               title: strings('earn.apr'),
               content: (
-                <View accessibilityRole="none" accessible={false} style={styles.aprTooltipContentContainer}>
+                <View style={styles.aprTooltipContentContainer}>
                   <Text>{strings('earn.tooltip_content.apr.part_one')}</Text>
                   <Text>{strings('earn.tooltip_content.apr.part_two')}</Text>
                 </View>
@@ -84,7 +84,7 @@ const DepositInfoSection = ({
           }}
           value={{
             label: (
-              <View accessibilityRole="none" accessible={false} style={styles.estAnnualReward}>
+              <View style={styles.estAnnualReward}>
                 <Text numberOfLines={1}>
                   {
                     estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsFormatted

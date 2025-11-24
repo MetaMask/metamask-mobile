@@ -70,18 +70,18 @@ const AccountPermissionsConfirmRevokeAll = (
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <BottomSheetHeader>
           {strings('accounts.disconnect_all')}
         </BottomSheetHeader>
-        <View accessibilityRole="none" accessible={false} style={styles.descriptionContainer}>
+        <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD}>
             {strings('accounts.reconnect_notice', {
               dappUrl: hostname,
             })}
           </Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+        <View style={styles.buttonsContainer}>
           <Button
             label={strings('accounts.cancel')}
             style={styles.button}

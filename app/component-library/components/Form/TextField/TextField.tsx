@@ -104,7 +104,7 @@ const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
             {startAccessory}
           </View>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.inputContainer}>
+        <View style={styles.inputContainer}>
           {inputElement ?? (
             <Input
               textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}

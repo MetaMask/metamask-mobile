@@ -37,13 +37,13 @@ const SignatureMessageSection = ({
     <Expandable
       collapsedContent={
         <InfoSection>
-          <View accessibilityRole="none" accessible={false} style={styles.container}>
-            <View accessibilityRole="none" accessible={false}>
+          <View style={styles.container}>
+            <View>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('confirm.message')}
               </Text>
               {messageCollapsed && (
-                <View accessibilityRole="none" accessible={false} style={styles.message}>
+                <View style={styles.message}>
                   {typeof messageCollapsed === 'string' ? (
                     <Text
                       style={styles.description}
@@ -69,12 +69,12 @@ const SignatureMessageSection = ({
         </InfoSection>
       }
       expandedContent={
-        <View accessibilityRole="none" accessible={false} style={styles.messageContainer}>
-          <View accessibilityRole="none" accessible={false} style={styles.copyButtonContainer}>
+        <View style={styles.messageContainer}>
+          <View style={styles.copyButtonContainer}>
             <CopyButton copyText={copyMessageText} />
           </View>
           <ScrollView>
-            <View accessibilityRole="none" accessible={false} style={styles.scrollableSection}>
+            <View style={styles.scrollableSection}>
               <TouchableOpacity>{messageExpanded}</TouchableOpacity>
             </View>
           </ScrollView>

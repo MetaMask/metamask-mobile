@@ -92,12 +92,12 @@ const MultipleRequestContent = ({
         name={IconName.Danger}
         size={IconSize.Xl}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.titleWrapper}>
+      <View style={styles.titleWrapper}>
         <Text style={styles.title} variant={TextVariant.HeadingMD}>
           {strings('spam_filter.title')}
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.tagWrapper}>
+      <View style={styles.tagWrapper}>
         <TagUrl
           imageSource={favicon}
           label={urlWithProtocol}
@@ -107,7 +107,7 @@ const MultipleRequestContent = ({
       <Text style={styles.description}>
         {strings('spam_filter.description')}
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.buttonsWrapper}>
+      <View style={styles.buttonsWrapper}>
         <Button
           label={strings('spam_filter.cancel')}
           onPress={() => {
@@ -145,7 +145,7 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
       />
       <SheetHeader title={strings('spam_filter.site_blocked_title')} />
       <Text>{strings('spam_filter.site_blocked_description')}</Text>
-      <View accessibilityRole="none" accessible={false} style={styles.buttonsWrapper}>
+      <View style={styles.buttonsWrapper}>
         <Button
           label={strings('spam_filter.got_it')}
           onPress={() => {
@@ -189,7 +189,7 @@ const OriginSpamModal = ({
       onClose={handleResetOriginSpamState}
       ref={sheetRef}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View style={styles.wrapper}>
         {isBlockOriginOptedIn ? (
           <SiteBlockedContent onCloseModal={handleCloseModal} />
         ) : (

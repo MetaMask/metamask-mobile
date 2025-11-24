@@ -74,7 +74,7 @@ const DeFiProtocolPositionGroups: React.FC<
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.protocolDetailsPositionsWrapper}>
+    <View style={styles.protocolDetailsPositionsWrapper}>
       <FlatList
         data={positionGroups}
         renderItem={({ item: positionGroup }) => (

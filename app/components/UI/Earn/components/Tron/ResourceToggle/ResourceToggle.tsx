@@ -54,7 +54,7 @@ const ResourceToggle = ({
   });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container} {...rest}>
+    <View style={styles.container} {...rest}>
       <View
         style={styles.group}
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
@@ -65,8 +65,8 @@ const ResourceToggle = ({
             { width: segmentWidth, transform: [{ translateX }] },
           ]}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.row}>
-          <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
+        <View style={styles.row}>
+          <View style={styles.buttonWrapper}>
             <ButtonBase
               onPress={() => onChange('energy')}
               label={energyLabel}
@@ -80,7 +80,7 @@ const ResourceToggle = ({
               accessibilityLabel={energyLabel}
             />
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
+          <View style={styles.buttonWrapper}>
             <ButtonBase
               onPress={() => onChange('bandwidth')}
               label={bandwidthLabel}

@@ -81,13 +81,13 @@ jest.mock('@shopify/flash-list', () => {
       }));
 
       return (
-        <View accessibilityRole="none" accessible={false} testID="flash-list" {...otherProps}>
+        <View testID="flash-list" {...otherProps}>
           {data?.map((item: unknown, index: number) => {
             const key = keyExtractor
               ? keyExtractor(item, index)
               : index.toString();
             return (
-              <View accessibilityRole="none" accessible={false} key={key} testID={`flash-list-item-${key}`}>
+              <View key={key} testID={`flash-list-item-${key}`}>
                 {renderItem({ item, index })}
               </View>
             );

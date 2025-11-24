@@ -362,7 +362,7 @@ const NetworkManager = () => {
         style={containerStyle}
         shouldNavigateBack
       >
-        <View accessibilityRole="none" accessible={false} style={styles.sheet}>
+        <View style={styles.sheet}>
           <Text
             variant={TextVariant.HeadingMD}
             style={styles.networkTabsSelectorTitle}
@@ -370,7 +370,7 @@ const NetworkManager = () => {
             {strings('wallet.networks')}
           </Text>
 
-          <View accessibilityRole="none" accessible={false} style={styles.networkTabsSelectorWrapper}>
+          <View style={styles.networkTabsSelectorWrapper}>
             <ScrollableTabView
               renderTabBar={renderTabBar}
               onChangeTab={onChangeTab}
@@ -398,7 +398,7 @@ const NetworkManager = () => {
             onClose={closeModal}
             shouldNavigateBack={false}
           >
-            <View accessibilityRole="none" accessible={false} style={styles.editNetworkMenu}>
+            <View style={styles.editNetworkMenu}>
               <AccountAction
                 actionTitle={strings('transaction.edit')}
                 iconName={IconName.Edit}
@@ -424,7 +424,7 @@ const NetworkManager = () => {
             <BottomSheetHeader>
               {`${strings('app_settings.delete')} ${showConfirmDeleteModal.networkName} ${strings('asset_details.network')}`}
             </BottomSheetHeader>
-            <View accessibilityRole="none" accessible={false} style={styles.containerDeleteText}>
+            <View style={styles.containerDeleteText}>
               <Text style={styles.textCentred}>
                 {strings('app_settings.network_delete')}
               </Text>

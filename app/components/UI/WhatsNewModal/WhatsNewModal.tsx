@@ -237,9 +237,9 @@ const WhatsNewModal = () => {
           );
         case SlideContentType.DESCRIPTIONS:
           return (
-            <View accessibilityRole="none" accessible={false} style={styles.descriptionsContainer}>
+            <View style={styles.descriptionsContainer}>
               {elementInfo.descriptions.map((descriptionKey, index) => (
-                <View accessibilityRole="none" accessible={false} key={index} style={styles.descriptionItem}>
+                <View key={index} style={styles.descriptionItem}>
                   <Icon
                     name={IconName.Check}
                     size={IconSize.Md}
@@ -259,7 +259,7 @@ const WhatsNewModal = () => {
           );
         case SlideContentType.IMAGE:
           return (
-            <View accessibilityRole="none" accessible={false} style={styles.slideImageContainer}>
+            <View style={styles.slideImageContainer}>
               <Image
                 source={(elementInfo as { image: ImageSourcePropType }).image}
                 style={styles.previewImage}
@@ -289,7 +289,7 @@ const WhatsNewModal = () => {
                     imageInfo: { image: ImageSourcePropType; alt: string },
                     index: number,
                   ) => (
-                    <View accessibilityRole="none" accessible={false} key={index} style={styles.carouselImageContainer}>
+                    <View key={index} style={styles.carouselImageContainer}>
                       <Image
                         source={imageInfo.image}
                         style={styles.previewImage}
@@ -300,7 +300,7 @@ const WhatsNewModal = () => {
                 )}
               </ScrollView>
               {elementInfo.images.length > 1 && (
-                <View accessibilityRole="none" accessible={false} style={styles.imageProgressContainer}>
+                <View style={styles.imageProgressContainer}>
                   {elementInfo.images.map(
                     (
                       _: { image: ImageSourcePropType; alt: string },
@@ -355,7 +355,7 @@ const WhatsNewModal = () => {
           );
         case SlideContentType.BUTTON:
           return (
-            <View accessibilityRole="none" accessible={false} style={styles.button}>
+            <View style={styles.button}>
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
@@ -381,13 +381,13 @@ const WhatsNewModal = () => {
     (slideInfo: SlideContent[], index: number) => {
       const key = `slide-info-${index}`;
       return (
-        <View accessibilityRole="none" accessible={false} key={key} style={styles.slideItemContainer}>
+        <View key={key} style={styles.slideItemContainer}>
           <TouchableWithoutFeedback>
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               {slideInfo.map((elementInfo: SlideContent, elIndex: number) => {
                 const elKey = `${key}-${elIndex}`;
                 return (
-                  <View accessibilityRole="none" accessible={false} key={elKey}>{renderSlideElement(elementInfo)}</View>
+                  <View key={elKey}>{renderSlideElement(elementInfo)}</View>
                 );
               })}
             </View>
@@ -418,13 +418,13 @@ const WhatsNewModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} onClose={recordSeenModal}>
-      <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
+      <View style={styles.headerContainer}>
         <Text variant={TextVariant.HeadingMD} style={styles.header}>
           {strings('whats_new.remove_gns_new_ui_update.title')}
         </Text>
       </View>
-      <View accessibilityRole="none" accessible={false} testID={WhatsNewModalSelectorsIDs.CONTAINER}>
-        <View accessibilityRole="none" accessible={false} style={styles.slideContent}>
+      <View testID={WhatsNewModalSelectorsIDs.CONTAINER}>
+        <View style={styles.slideContent}>
           <ScrollView
             ref={scrollViewRef}
             style={styles.horizontalScrollView}

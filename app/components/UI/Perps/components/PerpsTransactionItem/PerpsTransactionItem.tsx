@@ -181,7 +181,7 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
             : styles.transactionContentCentered
         }
       >
-        <View accessibilityRole="none" accessible={false} style={styles.fillTag}>
+        <View style={styles.fillTag}>
           <Text
             style={
               item.subtitle
@@ -198,7 +198,7 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
           <Text style={styles.transactionSubtitle}>{item.subtitle}</Text>
         )}
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.rightContent}>{renderRightContent(item)}</View>
+      <View style={styles.rightContent}>{renderRightContent(item)}</View>
     </TouchableOpacity>
   );
 };

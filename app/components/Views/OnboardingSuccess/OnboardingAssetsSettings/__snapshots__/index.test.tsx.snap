@@ -16,7 +16,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
     }
   }
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       style={
         {
@@ -382,7 +382,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
           }
         >
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <ActivityIndicator
               size="small"
             />

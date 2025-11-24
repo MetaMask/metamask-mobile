@@ -204,8 +204,8 @@ export const Fallback = (props) => {
   const onSecondary = isOnboardingError ? navigateToOnboarding : handleTryAgain;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
-      <View accessibilityRole="none" accessible={false} style={styles.header}>
+    <View style={styles.wrapper}>
+      <View style={styles.header}>
         <Icon
           name={IconName.Danger}
           size={IconSize.Xl}
@@ -254,8 +254,8 @@ export const Fallback = (props) => {
         </Text>
       )}
 
-      <View accessibilityRole="none" accessible={false}>
-        <View accessibilityRole="none" accessible={false} style={styles.errorContentWrapper}>
+      <View>
+        <View style={styles.errorContentWrapper}>
           <Text variant={TextVariant.BodyMDMedium} color={colors.text.default}>
             {errorMessage}
           </Text>
@@ -276,7 +276,7 @@ export const Fallback = (props) => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.errorMessageContainer}>
+        <View style={styles.errorMessageContainer}>
           <ScrollView>
             <Text variant={TextVariant.BodyMD} color={colors.error.default}>
               {props.errorMessage}
@@ -285,7 +285,7 @@ export const Fallback = (props) => {
         </View>
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+      <View style={styles.buttonsContainer}>
         {dataCollectionForMarketing && (
           <Button
             onPress={toggleModal}
@@ -326,9 +326,9 @@ export const Fallback = (props) => {
           behavior={'padding'}
           style={styles.keyboardViewContainer}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.modalWrapper}>
-            <View accessibilityRole="none" accessible={false} style={styles.modalTopContainer}>
-              <View accessibilityRole="none" accessible={false} style={styles.modalTitleWrapper}>
+          <View style={styles.modalWrapper}>
+            <View style={styles.modalTopContainer}>
+              <View style={styles.modalTitleWrapper}>
                 <Text onPress={toggleModal} variant={TextVariant.HeadingMD}>
                   {strings('error_screen.modal_title')}
                 </Text>
@@ -356,7 +356,7 @@ export const Fallback = (props) => {
               />
             </View>
 
-            <View accessibilityRole="none" accessible={false} style={styles.modalButtonsWrapper}>
+            <View style={styles.modalButtonsWrapper}>
               <Button
                 onPress={toggleModal}
                 variant={ButtonVariants.Secondary}

@@ -81,7 +81,7 @@ export const SDKSessionAccountListItem = ({
   }, [connection.originatorInfo, connection.id]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <BadgeWrapper
         badgeElement={
           connected ? (

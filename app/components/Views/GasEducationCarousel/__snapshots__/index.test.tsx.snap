@@ -33,7 +33,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
         }
       }
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <View
           style={
             {
@@ -87,7 +87,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               scrollsToTop={false}
               showsHorizontalScrollIndicator={false}
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   style={
                     {
@@ -337,7 +337,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                     }
                   }
                 >
-                  <View accessibilityRole="none" accessible={false} />
+                  <View />
                 </View>
                 <View
                   style={
@@ -346,7 +346,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                     }
                   }
                 >
-                  <View accessibilityRole="none" accessible={false} />
+                  <View />
                 </View>
               </View>
             </RCTScrollView>

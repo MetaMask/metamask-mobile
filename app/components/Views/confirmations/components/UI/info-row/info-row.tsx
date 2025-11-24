@@ -79,7 +79,7 @@ const InfoRow = ({
         testID={testID ?? 'info-row'}
       >
         {Boolean(label) && (
-          <View accessibilityRole="none" accessible={false} style={styles.labelContainer}>
+          <View style={styles.labelContainer}>
             <Text variant={labelVariant} color={variant}>
               {label}
             </Text>
@@ -117,7 +117,7 @@ const InfoRow = ({
         )}
       </View>
       {valueOnNewLine ? (
-        <View accessibilityRole="none" accessible={false} style={styles.valueOnNewLineContainer}>{ValueComponent}</View>
+        <View style={styles.valueOnNewLineContainer}>{ValueComponent}</View>
       ) : null}
     </>
   );

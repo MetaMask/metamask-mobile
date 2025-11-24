@@ -29,11 +29,11 @@ import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selec
  *
  * Known compatibility issue:
  * - On Android, the PerpsBottomSheetTooltip is not rendered correctly when wrapped in a <Modal> component.
- * Fixed by wrapping the <Modal> in a plain <View accessibilityRole="none" accessible={false}> component.
+ * Fixed by wrapping the <Modal> in a plain <View> component.
  *
  * Example:
  * {isEligibilityModalVisible && (
- *   <View accessibilityRole="none" accessible={false}>
+ *   <View>
  *     <Modal visible transparent animationType="fade">
  *       <PerpsBottomSheetTooltip isVisible onClose={() => setIsEligibilityModalVisible(false)} contentKey={'geo_block'} />
  *     </Modal>
@@ -135,7 +135,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
             </Text>
           </BottomSheetHeader>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>{renderContent()}</View>
+        <View style={styles.contentContainer}>{renderContent()}</View>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}
           buttonPropsArray={footerButtons}

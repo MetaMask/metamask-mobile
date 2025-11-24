@@ -63,7 +63,7 @@ const NetworkDetails = (props: NetworkDetailsProps) => {
   const renderDetailsView = () => (
     <>
       {DisplayData.map((item, index) => (
-        <View accessibilityRole="none" accessible={false} key={index}>
+        <View key={index}>
           <Text black>{item.title}</Text>
           <Text black bold style={styles.bottomSpace}>
             {item.value}
@@ -74,12 +74,12 @@ const NetworkDetails = (props: NetworkDetailsProps) => {
   );
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <ConnectHeader
         action={goBack}
         title={strings('networks.network_details')}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.accountInformation}>{renderDetailsView()}</View>
+      <View style={styles.accountInformation}>{renderDetailsView()}</View>
     </View>
   );
 };

@@ -69,7 +69,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
           style={tw.style('flex-1 w-full')}
           initialPage={0}
         >
-          <View accessibilityRole="none" accessible={false} key="search" style={tw.style('flex-1 w-full')}>
+          <View key="search" style={tw.style('flex-1 w-full')}>
             <MarketListContent
               category="trending"
               q={searchQuery}

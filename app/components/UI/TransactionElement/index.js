@@ -745,7 +745,7 @@ class TransactionElement extends PureComponent {
               </DetailsModal.Title>
               <DetailsModal.CloseIcon onPress={this.onCloseImportWalletModal} />
             </DetailsModal.Header>
-            <View accessibilityRole="none" accessible={false} style={styles.summaryWrapper}>
+            <View style={styles.summaryWrapper}>
               <Text style={styles.fromDeviceText}>
                 {strings('transactions.import_wallet_tip')}
               </Text>

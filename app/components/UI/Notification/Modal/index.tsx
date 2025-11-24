@@ -52,7 +52,7 @@ const ModalContent = ({
   const styles = createStyles(colors);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <Icon
         name={iconName}
         color={iconColor}
@@ -65,7 +65,7 @@ const ModalContent = ({
       <Text variant={TextVariant.BodyMD} style={styles.description}>
         {message}
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.bottom}>
+      <View style={styles.bottom}>
         {hascheckBox && (
           <Checkbox
             label={checkBoxLabel}
@@ -73,7 +73,7 @@ const ModalContent = ({
             onPress={() => setIsChecked(!isChecked)}
           />
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+        <View style={styles.buttonsContainer}>
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
@@ -83,7 +83,7 @@ const ModalContent = ({
             label={btnLabelCancel}
             onPress={handleCancel}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.spacer} />
+          <View style={styles.spacer} />
           <Button
             variant={ButtonVariants.Primary}
             isDisabled={hascheckBox ? !isChecked : false}

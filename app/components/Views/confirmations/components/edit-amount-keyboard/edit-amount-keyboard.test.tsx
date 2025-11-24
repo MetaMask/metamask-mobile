@@ -120,7 +120,7 @@ describe('EditAmountKeyboard', () => {
         value={'0'}
         showAdditionalKeyboard={false}
         additionalRow={
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <Text>Additional Row</Text>
           </View>
         }

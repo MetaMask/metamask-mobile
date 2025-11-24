@@ -47,11 +47,11 @@ const SocialNotLinked = () => {
   });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.box}>
+    <View style={styles.box}>
       <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
         {strings('protect_your_wallet.login_with_social')}
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.boxRight}>
+      <View style={styles.boxRight}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Error}>
           {strings('protect_your_wallet.setup')}
         </Text>
@@ -146,10 +146,10 @@ const SocialLinked = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.socialDetailsBoxRoot}>
-      <View accessibilityRole="none" accessible={false} style={styles.socialBoxContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>{getSocialIcon()}</View>
-        <View accessibilityRole="none" accessible={false} style={styles.socialDetailsBoxContent}>
+    <View style={styles.socialDetailsBoxRoot}>
+      <View style={styles.socialBoxContainer}>
+        <View style={styles.iconContainer}>{getSocialIcon()}</View>
+        <View style={styles.socialDetailsBoxContent}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('protect_your_wallet.social_recovery_enable')}
           </Text>
@@ -282,9 +282,9 @@ const WalletRecovery = () => {
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
       <ScrollView>
-        <View accessibilityRole="none" accessible={false} style={styles.root}>
+        <View style={styles.root}>
           {authConnection && (
-            <View accessibilityRole="none" accessible={false} style={styles.socialContainer}>
+            <View style={styles.socialContainer}>
               <Text
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Alternative}
@@ -312,12 +312,12 @@ const WalletRecovery = () => {
           )}
 
           {authConnection && (
-            <View accessibilityRole="none" accessible={false} style={styles.lineBreakContainer}>
-              <View accessibilityRole="none" accessible={false} style={styles.lineBreak} />
+            <View style={styles.lineBreakContainer}>
+              <View style={styles.lineBreak} />
             </View>
           )}
 
-          <View accessibilityRole="none" accessible={false} style={styles.srpContainer}>
+          <View style={styles.srpContainer}>
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}

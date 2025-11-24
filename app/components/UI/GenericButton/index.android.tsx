@@ -45,7 +45,7 @@ const GenericButton: React.FC<GenericButtonProps> = ({
     background={TouchableNativeFeedback.SelectableBackground()} // eslint-disable-line new-cap
     onPress={onPress}
   >
-    <View accessibilityRole="none" accessible={false} style={style}>{children}</View>
+    <View style={style}>{children}</View>
   </TouchableNativeFeedback>
 );
 

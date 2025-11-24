@@ -86,7 +86,7 @@ const VerifyContractDetails = ({
   const hasBlockExplorer = showBlockExplorerIcon();
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <ConnectHeader
         action={closeVerifyContractView}
         title={strings(
@@ -98,7 +98,7 @@ const VerifyContractDetails = ({
           {strings('contract_allowance.token_allowance.protect_from_scams')}
         </Text>
       </Text>
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <Text variant={TextVariant.BodySM} style={styles.title}>
           {tokenStandard === ERC20
             ? strings('contract_allowance.token_allowance.token_contract')
@@ -106,7 +106,7 @@ const VerifyContractDetails = ({
               ? strings('contract_allowance.token_allowance.nft_contract')
               : strings('contract_allowance.token_allowance.address')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.contractSection}>
+        <View style={styles.contractSection}>
           <ContractBox
             contractAddress={tokenAddress}
             contractPetName={tokenNickname}
@@ -132,7 +132,7 @@ const VerifyContractDetails = ({
             },
           )}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.contractSection}>
+        <View style={styles.contractSection}>
           <ContractBox
             contractAddress={contractAddress}
             contractPetName={contractNickname}

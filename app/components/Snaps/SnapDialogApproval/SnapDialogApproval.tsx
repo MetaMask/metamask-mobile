@@ -134,7 +134,7 @@ const SnapDialogApproval = () => {
       onCancel={onCancel}
       avoidKeyboard
     >
-      <View accessibilityRole="none" accessible={false} style={styles.root}>
+      <View style={styles.root}>
         <SnapUIRenderer
           snapId={snapId}
           interfaceId={interfaceId}

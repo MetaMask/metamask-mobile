@@ -22,7 +22,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
       }
     }
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         accessibilityState={
           {
@@ -43,7 +43,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -167,7 +167,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               󰋼
             </Text>
           </View>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <Text
               accessibilityRole="text"
               style={
@@ -251,7 +251,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 }
               }
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   style={
                     {
@@ -613,7 +613,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 }
               }
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   style={
                     {
@@ -902,7 +902,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               </View>
             </View>
           </View>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}
@@ -962,7 +962,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             </TouchableOpacity>
           </View>
         </View>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </View>
     </View>
   </RCTScrollView>

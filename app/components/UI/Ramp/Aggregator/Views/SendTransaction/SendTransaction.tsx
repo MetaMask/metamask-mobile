@@ -250,9 +250,9 @@ function SendTransaction() {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
-          <View accessibilityRole="none" accessible={false} style={styles.content}>
+          <View style={styles.content}>
             <Row>
-              <View accessibilityRole="none" accessible={false} style={styles.textRow}>
+              <View style={styles.textRow}>
                 <Text variant={TextVariant.HeadingMD} style={styles.normal}>
                   {strings('fiat_on_ramp_aggregator.send_transaction.send')}
                 </Text>
@@ -311,7 +311,7 @@ function SendTransaction() {
                 </Row>
 
                 <Row>
-                  <View accessibilityRole="none" accessible={false} style={styles.paymentMethodDestination}>
+                  <View style={styles.paymentMethodDestination}>
                     <PaymentMethodIcon
                       paymentMethodIcons={orderData.paymentMethod.icons}
                       paymentMethodType={orderData.paymentMethod.paymentType}

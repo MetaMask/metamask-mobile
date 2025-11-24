@@ -129,25 +129,25 @@ export default class TransactionReviewDetailsCard extends Component {
     const styles = createStyles(colors);
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.section}>
+      <View style={styles.section}>
         <ConnectHeader
           action={toggleViewDetails}
           title={strings('spend_limit_edition.transaction_details')}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.transactionDetails}>
+        <View style={styles.transactionDetails}>
           {host ? (
-            <View accessibilityRole="none" accessible={false} style={styles.transactionDetailsRow}>
+            <View style={styles.transactionDetailsRow}>
               <Text style={styles.transactionDetailsTextLeft}>
                 {strings('spend_limit_edition.site_url')}
               </Text>
               <Text style={styles.transactionDetailsTextRight}>{host}</Text>
             </View>
           ) : null}
-          <View accessibilityRole="none" accessible={false} style={styles.transactionDetailsRow}>
+          <View style={styles.transactionDetailsRow}>
             <Text style={styles.transactionDetailsTextLeft}>
               {strings('spend_limit_edition.contract_address')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.transactionDetailsTextRight}>
+            <View style={styles.transactionDetailsTextRight}>
               {nicknameExists ? (
                 <Text numberOfLines={1} style={styles.address}>
                   {nickname}
@@ -166,7 +166,7 @@ export default class TransactionReviewDetailsCard extends Component {
               />
             </View>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.transactionDetailsRow}>
+          <View style={styles.transactionDetailsRow}>
             <Text style={styles.transactionDetailsTextLeft}>
               {tokenStandard === ERC20
                 ? strings('spend_limit_edition.spending_cap')
@@ -179,12 +179,12 @@ export default class TransactionReviewDetailsCard extends Component {
             </Text>
           </View>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.viewData}>
+        <View style={styles.viewData}>
           <TouchableOpacity style={styles.viewDataRow} onPress={toggleViewData}>
             <Text style={styles.viewDataTitle}>
               {strings('spend_limit_edition.view_data')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.viewDataArrow}>
+            <View style={styles.viewDataArrow}>
               <IonicIcon
                 name={`arrow-${displayViewData ? 'up' : 'down'}`}
                 size={16}

@@ -58,7 +58,7 @@ const createStyles = (colors) =>
     },
   });
 
-const QuotesSummary = (props) => <View accessibilityRole="none" accessible={false} {...props} />;
+const QuotesSummary = (props) => <View {...props} />;
 
 const Header = ({ style, savings, children, ...props }) => {
   const { colors } = useTheme();
@@ -70,7 +70,7 @@ const Header = ({ style, savings, children, ...props }) => {
     >
       {savings && (
         <>
-          <View accessibilityRole="none" accessible={false} style={styles.piggyBar} />
+          <View style={styles.piggyBar} />
           <Image style={styles.piggyBank} source={piggyBank} />
         </>
       )}
@@ -82,7 +82,7 @@ const Header = ({ style, savings, children, ...props }) => {
 const Body = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View accessibilityRole="none" accessible={false} style={[styles.body, style]} {...props} />;
+  return <View style={[styles.body, style]} {...props} />;
 };
 const HeaderText = ({ style, ...props }) => {
   const { colors } = useTheme();
@@ -92,7 +92,7 @@ const HeaderText = ({ style, ...props }) => {
 const Separator = ({ style }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View accessibilityRole="none" accessible={false} style={[styles.separator, style]} />;
+  return <View style={[styles.separator, style]} />;
 };
 
 QuotesSummary.Body = Body;

@@ -158,12 +158,12 @@ function HorizontalSelector({
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} {...props}>
+    <View {...props}>
       {hasTopLabels && (
-        <View accessibilityRole="none" accessible={false} style={styles.selector}>
+        <View style={styles.selector}>
           {options.map((option) =>
             option.topLabel ? (
-              <View accessibilityRole="none" accessible={false} key={option.name} style={styles.option}>
+              <View key={option.name} style={styles.option}>
                 {typeof option.topLabel === 'string' ? (
                   <Text noMargin bold link small centered>
                     {option.topLabel}
@@ -176,15 +176,15 @@ function HorizontalSelector({
                 ) : (
                   option.topLabel
                 )}
-                <View accessibilityRole="none" accessible={false} style={styles.topVerticalLine} />
+                <View style={styles.topVerticalLine} />
               </View>
             ) : (
-              <View accessibilityRole="none" accessible={false} key={option.name} style={styles.option} />
+              <View key={option.name} style={styles.option} />
             ),
           )}
         </View>
       )}
-      <View accessibilityRole="none" accessible={false} style={styles.selector}>
+      <View style={styles.selector}>
         {options.map((option) => (
           <Option
             key={option.name}
@@ -200,17 +200,17 @@ function HorizontalSelector({
               disabled={option.disabled || disabled}
               error={option.error}
             />
-            <View accessibilityRole="none" accessible={false} style={styles.verticalLine} />
+            <View style={styles.verticalLine} />
           </Option>
         ))}
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.line}>
+      <View style={styles.line}>
         {options.map((option, index, array) => (
           <Fragment key={option.name}>
             <View
               style={[styles.lineFill, index !== 0 && styles.lineVisible]}
             />
-            <View accessibilityRole="none" accessible={false} style={[styles.lineHolder, styles.lineFill]}>
+            <View style={[styles.lineHolder, styles.lineFill]}>
               <View
                 style={[styles.lineFill, index !== 0 && styles.lineVisible]}
               />
@@ -230,7 +230,7 @@ function HorizontalSelector({
           </Fragment>
         ))}
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.labels}>
+      <View style={styles.labels}>
         {options.map((option) => (
           <Option
             key={option.name}

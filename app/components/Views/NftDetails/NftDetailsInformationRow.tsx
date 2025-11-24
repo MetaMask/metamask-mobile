@@ -34,10 +34,10 @@ const NftDetailsInformationRow = ({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.inputWrapper]}>
+    <View style={[styles.inputWrapper]}>
       <Text style={titleStyle}>{title}</Text>
       {icon ? (
-        <View accessibilityRole="none" accessible={false} style={styles.valueWithIcon}>
+        <View style={styles.valueWithIcon}>
           {onValuePress ? (
             <TouchableOpacity onPress={onValuePress}>
               <Text style={valueStyle}>{value}</Text>

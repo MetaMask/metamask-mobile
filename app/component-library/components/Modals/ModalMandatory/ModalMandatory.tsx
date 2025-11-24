@@ -196,7 +196,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   const renderHeader = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.headerContainer}>
+    <View style={styles.headerContainer}>
       <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {headerTitle}
       </Text>
@@ -315,7 +315,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
 
   return (
     <BottomSheet ref={bottomSheetRef} shouldNavigateBack isInteractable={false}>
-      <View accessibilityRole="none" accessible={false} style={styles.modal} testID={containerTestId}>
+      <View style={styles.modal} testID={containerTestId}>
         {renderHeader()}
         <View
           style={styles.bodyContainer}

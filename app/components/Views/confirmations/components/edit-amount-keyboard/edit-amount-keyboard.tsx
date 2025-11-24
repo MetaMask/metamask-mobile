@@ -58,7 +58,7 @@ export function EditAmountKeyboard({
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+    <View style={styles.wrapper}>
       {additionalRow}
       {showAdditionalKeyboard && (
         <Box

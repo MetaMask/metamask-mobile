@@ -138,15 +138,15 @@ const AccountNetworkRow = ({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
-      <View accessibilityRole="none" accessible={false} style={styles.left_section}>
+    <View style={styles.wrapper}>
+      <View style={styles.left_section}>
         <Avatar
           variant={AvatarVariant.Network}
           size={AvatarSize.Lg}
           name={name}
           imageSource={networkImage}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.name_section}>
+        <View style={styles.name_section}>
           <Text
             variant={TextVariant.BodyMDBold}
             numberOfLines={1}
@@ -162,7 +162,7 @@ const AccountNetworkRow = ({
           </Text>
         </View>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.button_section}>
+      <View style={styles.button_section}>
         {hasPendingRequests || switchRequestSubmitted ? (
           <Spinner size={SpinnerSize.SM} />
         ) : (

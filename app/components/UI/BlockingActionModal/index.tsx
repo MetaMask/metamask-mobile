@@ -66,8 +66,8 @@ export default function BlockingActionModal({
       onModalShow={onAnimationCompleted}
       hideModalContentWhileAnimating
     >
-      <View accessibilityRole="none" accessible={false} style={styles.modalView}>
-        <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
+      <View style={styles.modalView}>
+        <View style={baseStyles.flexGrow}>
           {children}
           {isLoadingAction && (
             <ActivityIndicator style={styles.loader} size={'small'} />

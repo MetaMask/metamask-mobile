@@ -62,7 +62,7 @@ describe('NavigationProvider', () => {
   it('dispatches navigation ready action when ready', async () => {
     render(
       <NavigationProvider>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </NavigationProvider>,
     );
 
@@ -74,7 +74,7 @@ describe('NavigationProvider', () => {
 
     render(
       <NavigationProvider>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </NavigationProvider>,
     );
 
@@ -95,7 +95,7 @@ describe('NavigationProvider', () => {
 
     render(
       <NavigationProvider>
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       </NavigationProvider>,
     );
 

@@ -12,7 +12,7 @@ import PredictMarket from './';
 jest.mock('../PredictMarketSingle', () => {
   const { View, Text } = jest.requireActual('react-native');
   return jest.fn(({ market }) => (
-    <View accessibilityRole="none" accessible={false} testID="predict-market-single">
+    <View testID="predict-market-single">
       <Text>PredictMarketSingle: {market.title}</Text>
     </View>
   ));
@@ -21,7 +21,7 @@ jest.mock('../PredictMarketSingle', () => {
 jest.mock('../PredictMarketMultiple', () => {
   const { View, Text } = jest.requireActual('react-native');
   return jest.fn(({ market }) => (
-    <View accessibilityRole="none" accessible={false} testID="predict-market-multiple">
+    <View testID="predict-market-multiple">
       <Text>PredictMarketMultiple: {market.title}</Text>
     </View>
   ));

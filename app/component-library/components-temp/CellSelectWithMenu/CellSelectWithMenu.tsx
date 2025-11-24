@@ -48,7 +48,7 @@ const CellSelectWithMenu = ({
       testID={CellComponentSelectorsIDs.MULTISELECT}
       {...props}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.cellBase}>
+      <View style={styles.cellBase}>
         {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
         {withAvatar ? (
           <Avatar
@@ -59,7 +59,7 @@ const CellSelectWithMenu = ({
           />
         ) : null}
 
-        <View accessibilityRole="none" accessible={false} style={styles.cellBaseInfo}>
+        <View style={styles.cellBaseInfo}>
           {title === undefined || typeof title === 'string' ? (
             <Text
               numberOfLines={1}
@@ -96,7 +96,7 @@ const CellSelectWithMenu = ({
                 </TouchableOpacity>
               </TouchableWithoutFeedback>
             ) : (
-              <View accessibilityRole="none" accessible={false} style={styles.containerRow}>
+              <View style={styles.containerRow}>
                 <Text
                   numberOfLines={1}
                   variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
@@ -125,7 +125,7 @@ const CellSelectWithMenu = ({
             />
           )}
         </View>
-        {children && <View accessibilityRole="none" accessible={false} style={styles.optionalAccessory}>{children}</View>}
+        {children && <View style={styles.optionalAccessory}>{children}</View>}
       </View>
     </ListItemMultiSelectButton>
   );

@@ -32,8 +32,8 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
   }, [riveRef]);
 
   return (
-    <View accessibilityRole="none" accessible={false} testID="fox-rive-loader-animation" style={styles.animationContainer}>
-      <View accessibilityRole="none" accessible={false} style={styles.animationWrapper}>
+    <View testID="fox-rive-loader-animation" style={styles.animationContainer}>
+      <View style={styles.animationWrapper}>
         <Rive
           ref={riveRef}
           source={onboardingRiveFile}
@@ -43,7 +43,7 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
           alignment={Alignment.Center}
         />
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.textWrapper}>
+      <View style={styles.textWrapper}>
         <ActivityIndicator size="large" color={colors.text.default} />
       </View>
     </View>

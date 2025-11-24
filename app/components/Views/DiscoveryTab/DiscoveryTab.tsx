@@ -152,8 +152,8 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
             activeUrl=""
             connectedAccounts={[]}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
-            <View accessibilityRole="none" accessible={false} style={styles.webview}>
+          <View style={styles.wrapper}>
+            <View style={styles.webview}>
               <TokenDiscovery />
             </View>
             <UrlAutocomplete

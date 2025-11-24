@@ -217,7 +217,7 @@ describe('CardSDK Context', () => {
       // When: provider renders
       render(
         <CardSDKProvider>
-          <View accessibilityRole="none" accessible={false}>Test Child</View>
+          <View>Test Child</View>
         </CardSDKProvider>,
       );
 
@@ -235,7 +235,7 @@ describe('CardSDK Context', () => {
       // When: provider renders
       render(
         <CardSDKProvider>
-          <View accessibilityRole="none" accessible={false}>Test Child</View>
+          <View>Test Child</View>
         </CardSDKProvider>,
       );
 
@@ -258,7 +258,7 @@ describe('CardSDK Context', () => {
       const TestComponent = () => {
         const context = useCardSDK();
         expect(context).toEqual(providedValue);
-        return <View accessibilityRole="none" accessible={false}>Test Child</View>;
+        return <View>Test Child</View>;
       };
 
       render(

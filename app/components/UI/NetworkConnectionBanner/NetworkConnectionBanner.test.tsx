@@ -34,7 +34,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     // We can't import this at the top because the mock gets hoisted before any imports.
     const { View, Text } = jest.requireActual('react-native');
     return (
-      <View accessibilityRole="none" accessible={false} testID="icon">
+      <View testID="icon">
         <Text testID="icon-size">{size}</Text>
       </View>
     );

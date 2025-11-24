@@ -34,7 +34,7 @@ const StakeEarningsHistoryView = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.mainContainer}>
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <EarningsHistory asset={asset} />
       </View>
     </ScrollView>

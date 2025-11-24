@@ -14,7 +14,7 @@ describe('AnimatedTransactionModal', () => {
     render(
       <ThemeContext.Provider value={mockTheme}>
         <AnimatedTransactionModal>
-          <View accessibilityRole="none" accessible={false} />
+          <View />
         </AnimatedTransactionModal>
       </ThemeContext.Provider>,
     );

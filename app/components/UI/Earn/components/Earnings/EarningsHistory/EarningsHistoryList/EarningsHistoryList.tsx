@@ -27,9 +27,9 @@ const EarningsHistoryList = ({
         earning.groupHeader.length > 0 && isFirstEarningInGroup;
       if (!filterByGroupLabel || earning.groupLabel === filterByGroupLabel) {
         return (
-          <View accessibilityRole="none" accessible={false} key={`earning-history-list-item-${index}`}>
+          <View key={`earning-history-list-item-${index}`}>
             {isGroupHeaderVisible && (
-              <View accessibilityRole="none" accessible={false} style={styles.lineItemGroupHeaderContainer}>
+              <View style={styles.lineItemGroupHeaderContainer}>
                 <Label
                   variant={TextVariant.BodyMDMedium}
                   color={colors.text.default}
@@ -38,8 +38,8 @@ const EarningsHistoryList = ({
                 </Label>
               </View>
             )}
-            <View accessibilityRole="none" accessible={false} style={styles.lineItemContainer}>
-              <View accessibilityRole="none" accessible={false} style={styles.leftLineItemBox}>
+            <View style={styles.lineItemContainer}>
+              <View style={styles.leftLineItemBox}>
                 <Label
                   variant={TextVariant.BodyMDMedium}
                   color={colors.text.default}
@@ -47,8 +47,8 @@ const EarningsHistoryList = ({
                   {earning.label}
                 </Label>
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.rightLineItemContainer}>
-                <View accessibilityRole="none" accessible={false} style={styles.rightLineItemBox}>
+              <View style={styles.rightLineItemContainer}>
+                <View style={styles.rightLineItemBox}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
                     color={colors.success.default}
@@ -56,7 +56,7 @@ const EarningsHistoryList = ({
                     + {earning.amount} {earning.ticker}
                   </Label>
                 </View>
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <Text
                     variant={TextVariant.BodySM}
                     color={colors.text.alternative}
@@ -91,7 +91,7 @@ const EarningsHistoryList = ({
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.earningsHistoryListContainer}>
+    <View style={styles.earningsHistoryListContainer}>
       {earnings ? (
         <>
           <Label variant={TextVariant.BodyMDBold} color={colors.text.default}>

@@ -72,7 +72,7 @@ export const DepositKeyboard = memo(
     );
 
     return (
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <Box
           testID="deposit-keyboard"
           flexDirection={FlexDirection.Row}

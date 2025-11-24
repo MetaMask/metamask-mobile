@@ -305,13 +305,13 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         {/* Limit price input section */}
         <Text style={styles.inputLabel}>
           {strings('perps.order.limit_price')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.limitPriceDisplay}>
-          <View accessibilityRole="none" accessible={false} style={tw.style('flex-row items-center flex-1')}>
+        <View style={styles.limitPriceDisplay}>
+          <View style={tw.style('flex-row items-center flex-1')}>
             <Text style={getLimitPriceTextStyle(limitPrice)}>
               {formatLimitPriceValue(limitPrice)}
             </Text>
@@ -334,7 +334,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         </Text>
 
         {/* Quick percentage buttons - Direction-specific presets using config */}
-        <View accessibilityRole="none" accessible={false} style={styles.percentageButtonsRow}>
+        <View style={styles.percentageButtonsRow}>
           {direction === 'long' ? (
             // For long orders: buy below market using LONG_PRESETS
             <>
@@ -380,7 +380,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         </View>
 
         {/* Keypad */}
-        <View accessibilityRole="none" accessible={false} style={styles.keypadContainer}>
+        <View style={styles.keypadContainer}>
           <Keypad
             value={limitPrice}
             // This is intentionaly not a real currecy
@@ -392,7 +392,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         </View>
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.footerContainer}>
+      <View style={styles.footerContainer}>
         <BottomSheetFooter buttonPropsArray={footerButtonProps} />
       </View>
     </BottomSheet>

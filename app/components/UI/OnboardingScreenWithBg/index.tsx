@@ -71,7 +71,7 @@ const OnboardingScreenWithBg: React.FC<OnboardingScreenWithBgProps> = ({
   const backgroundImage = images[screen];
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.flex, { backgroundColor }]}>
+    <View style={[styles.flex, { backgroundColor }]}>
       {backgroundImage && (
         <ImageBackground
           source={backgroundImage}

@@ -60,11 +60,11 @@ const BodyText = ({ assetSymbol, protocol }: BodyTextProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.bodyTextContainer}>
-      <View accessibilityRole="none" accessible={false} style={styles.row}>
+    <View style={styles.bodyTextContainer}>
+      <View style={styles.row}>
         <Icon name={IconName.Plant} />
         {/* Text Container */}
-        <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
+        <View style={styles.textContainer}>
           <Text variant={TextVariant.HeadingSM}>
             {strings(
               'earn.market_historic_apr_modal.earn_rewards_on_your_token',
@@ -79,9 +79,9 @@ const BodyText = ({ assetSymbol, protocol }: BodyTextProps) => {
           </Text>
         </View>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.row}>
+      <View style={styles.row}>
         <Icon name={IconName.Clock} style={styles.icon} />
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text variant={TextVariant.HeadingSM}>
             {strings(
               'earn.market_historic_apr_modal.withdraw_whenever_you_want',

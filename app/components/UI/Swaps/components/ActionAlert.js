@@ -117,10 +117,10 @@ function ActionAlert({ type, style, action, onInfoPress, onPress, children }) {
     >
       {(textStyle) => (
         <>
-          <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
-            <View accessibilityRole="none" accessible={false} style={[styles.content]}>{children(textStyle)}</View>
+          <View style={styles.wrapper}>
+            <View style={[styles.content]}>{children(textStyle)}</View>
             {Boolean(action) && (
-              <View accessibilityRole="none" accessible={false} style={[styles.action]}>
+              <View style={[styles.action]}>
                 <Button onPress={onPress} type={type}>
                   {action}
                 </Button>

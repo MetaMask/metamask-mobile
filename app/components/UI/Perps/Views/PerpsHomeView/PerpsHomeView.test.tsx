@@ -187,7 +187,7 @@ jest.mock('../../components/PerpsHomeHeader', () => {
   }: MockPerpsHomeHeaderProps) {
     if (isSearchVisible) {
       return (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <TextInput
             value={searchQuery}
             onChangeText={onSearchQueryChange}
@@ -204,10 +204,10 @@ jest.mock('../../components/PerpsHomeHeader', () => {
     }
 
     return (
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <TouchableOpacity testID={`${testID}-back-button`} onPress={onBack}>
           {/* Also provide back-button for backward compatibility with tests */}
-          <View accessibilityRole="none" accessible={false} testID="back-button" />
+          <View testID="back-button" />
           <Text>Back</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -244,7 +244,7 @@ jest.mock('../../components/PerpsHomeSection', () => {
   }: MockPerpsHomeSectionProps) {
     if (isEmpty && !showWhenEmpty) return null;
     return (
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         {title && <Text>{title}</Text>}
         {children}
         {(actionLabel || showActionIcon) && onActionPress && (
@@ -270,13 +270,13 @@ jest.mock(
 jest.mock('../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView', () => {
   const { View } = jest.requireActual('react-native');
   return function PerpsCloseAllPositionsView() {
-    return <View accessibilityRole="none" accessible={false} testID="perps-close-all-positions-view" />;
+    return <View testID="perps-close-all-positions-view" />;
   };
 });
 jest.mock('../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView', () => {
   const { View } = jest.requireActual('react-native');
   return function PerpsCancelAllOrdersView() {
-    return <View accessibilityRole="none" accessible={false} testID="perps-cancel-all-orders-view" />;
+    return <View testID="perps-cancel-all-orders-view" />;
   };
 });
 jest.mock(

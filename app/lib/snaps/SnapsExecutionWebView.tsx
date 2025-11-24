@@ -108,7 +108,7 @@ export class SnapsExecutionWebView extends Component {
 
   render() {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         {Object.entries(this.webViews).map(([key, { props }]) => (
           <WebView
             testID={key}

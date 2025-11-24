@@ -210,14 +210,14 @@ class AccountInfoCard extends PureComponent {
         sdkDappMetadata={sdkDappMetadata}
       />
     ) : (
-      <View accessibilityRole="none" accessible={false} style={styles.accountInformation}>
+      <View style={styles.accountInformation}>
         <Identicon
           address={fromAddress}
           diameter={40}
           customStyle={styles.identicon}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.accountInfoRow}>
-          <View accessibilityRole="none" accessible={false} style={styles.accountNameAndAddress}>
+        <View style={styles.accountInfoRow}>
+          <View style={styles.accountNameAndAddress}>
             <Text
               numberOfLines={1}
               style={[
@@ -229,7 +229,7 @@ class AccountInfoCard extends PureComponent {
               {renderShortAccountName(accountLabel)}
             </Text>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.accountNameAndAddress}>
+          <View style={styles.accountNameAndAddress}>
             <Text
               numberOfLines={1}
               style={[
@@ -240,7 +240,7 @@ class AccountInfoCard extends PureComponent {
               {address}
             </Text>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.accountNameAndAddress}>
+          <View style={styles.accountNameAndAddress}>
             <Text
               numberOfLines={1}
               style={[
@@ -256,7 +256,7 @@ class AccountInfoCard extends PureComponent {
           </View>
         </View>
         {accountLabelTag && (
-          <View accessibilityRole="none" accessible={false} style={styles.tag}>
+          <View style={styles.tag}>
             <Text variant={TextVariant.BodySMBold} style={styles.tagText}>
               {accountLabelTag}
             </Text>

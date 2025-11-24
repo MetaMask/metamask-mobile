@@ -27,7 +27,7 @@ export const SmartAccountUpdateModal = () => {
     <BottomSheet style={styles.bottomSheet}>
       {acknowledged && <SmartAccountUpdateSuccess />}
       {!acknowledged && (
-        <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+        <View style={styles.wrapper}>
           <SmartAccountUpdateContent />
           <Button
             variant={ButtonVariants.Primary}

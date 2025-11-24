@@ -43,9 +43,9 @@ const SelectOptionSheet = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
+    <View style={baseStyles.flexGrow}>
       <TouchableOpacity onPress={showPicker} testID={SELECT_DROP_DOWN}>
-        <View accessibilityRole="none" accessible={false} style={styles.dropdown}>
+        <View style={styles.dropdown}>
           <Text style={styles.selectedOption} numberOfLines={1}>
             {renderDisplayValue()}
           </Text>

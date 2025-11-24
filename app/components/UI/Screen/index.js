@@ -16,7 +16,7 @@ export default class Screen extends PureComponent {
 
   render() {
     return (
-      <View accessibilityRole="none" accessible={false} style={baseStyles.flexGrow}>
+      <View style={baseStyles.flexGrow}>
         <SafeAreaView style={baseStyles.flexGrow}>
           {this.props.children}
         </SafeAreaView>

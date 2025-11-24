@@ -165,7 +165,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('stake.gas_cost_impact')}

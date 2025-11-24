@@ -32,13 +32,13 @@ const styles = StyleSheet.create({
 
 export const ButtonToggle = {
   render: () => (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <Title>ButtonToggle Component</Title>
       <Text variant={TextVariant.BodySM}>
         A button that can be toggled between active and inactive states.
       </Text>
 
-      <View accessibilityRole="none" accessible={false} style={styles.section}>
+      <View style={styles.section}>
         <Text variant={TextVariant.BodyMDBold}>Default (Inactive)</Text>
         <ButtonToggleComponent
           label="Mode 1"
@@ -47,12 +47,12 @@ export const ButtonToggle = {
         />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.section}>
+      <View style={styles.section}>
         <Text variant={TextVariant.BodyMDBold}>Active</Text>
         <ButtonToggleComponent label="Mode 1" isActive onPress={handlePress} />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.section}>
+      <View style={styles.section}>
         <Text variant={TextVariant.BodyMDBold}>With Icons</Text>
         <ButtonToggleComponent
           label="Mode 1"

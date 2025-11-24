@@ -9,18 +9,18 @@ const NftGridSkeleton = () => {
   const tw = useTailwind();
 
   return (
-    <View accessibilityRole="none" accessible={false} style={tw.style('flex-1 p-1')}>
+    <View style={tw.style('flex-1 p-1')}>
       <SkeletonPlaceholder
         backgroundColor={colors.background.section}
         highlightColor={colors.background.subsection}
       >
-        <View accessibilityRole="none" accessible={false} style={tw.style('flex-row flex-wrap justify-between gap-2')}>
+        <View style={tw.style('flex-row flex-wrap justify-between gap-2')}>
           {Array.from({ length: 18 }, (_, index) => (
-            <View accessibilityRole="none" accessible={false} key={index} style={tw.style('w-[30%] mb-2')}>
-              <View accessibilityRole="none" accessible={false} style={tw.style('w-full aspect-square rounded-xl mb-3')} />
-              <View accessibilityRole="none" accessible={false}>
-                <View accessibilityRole="none" accessible={false} style={tw.style('h-4 rounded-lg mb-1 w-[60%]')} />
-                <View accessibilityRole="none" accessible={false} style={tw.style('h-3.5 rounded-md w-full')} />
+            <View key={index} style={tw.style('w-[30%] mb-2')}>
+              <View style={tw.style('w-full aspect-square rounded-xl mb-3')} />
+              <View>
+                <View style={tw.style('h-4 rounded-lg mb-1 w-[60%]')} />
+                <View style={tw.style('h-3.5 rounded-md w-full')} />
               </View>
             </View>
           ))}

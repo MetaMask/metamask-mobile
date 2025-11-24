@@ -82,7 +82,7 @@ export default function NetworkListBottomSheet({
 
       <ScrollView>
         {Object.values(filteredNetworkConfigurations).map((network) => (
-          <View accessibilityRole="none" accessible={false} style={styles.bottomSheetWrapper} key={network.chainId}>
+          <View style={styles.bottomSheetWrapper} key={network.chainId}>
             <Cell
               variant={CellVariant.Select}
               title={network.name}

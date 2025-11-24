@@ -22,8 +22,8 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
     }
   >
     <TouchableWithoutFeedback>
-      <View accessibilityRole="none" accessible={false}>
-        <View accessibilityRole="none" accessible={false}>
+      <View>
+        <View>
           <View
             style={
               {
@@ -251,7 +251,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             </View>
           </View>
         </FadeAnimationView>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <StyledButton
             disabledContainerStyle={
               {
@@ -271,7 +271,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
         </View>
         <InfoModal
           body={
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <Text
                 grey={true}
                 infoModal={true}

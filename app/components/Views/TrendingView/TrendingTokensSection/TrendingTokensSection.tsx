@@ -18,7 +18,7 @@ const TrendingTokensSection = () => {
   }, []);
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <SectionHeader sectionId="tokens" />
       <SectionCard>
         {isLoading || trendingTokens.length === 0 ? (

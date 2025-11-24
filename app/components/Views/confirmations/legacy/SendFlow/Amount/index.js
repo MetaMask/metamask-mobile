@@ -1126,7 +1126,7 @@ class Amount extends PureComponent {
         // eslint-disable-next-line react/jsx-no-bind
         onPress={() => this.pickSelectedAsset(token)}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.assetElement}>
+        <View style={styles.assetElement}>
           {isNativeToken(token) ? (
             <NetworkMainAssetLogo big />
           ) : (
@@ -1136,9 +1136,9 @@ class Amount extends PureComponent {
               containerStyle={styles.tokenImage}
             />
           )}
-          <View accessibilityRole="none" accessible={false} style={styles.assetInformationWrapper}>
+          <View style={styles.assetInformationWrapper}>
             <Text style={styles.textAssetTitle}>{symbol}</Text>
-            <View accessibilityRole="none" accessible={false} style={styles.assetBalanceWrapper}>
+            <View style={styles.assetBalanceWrapper}>
               <Text style={styles.textAssetBalance}>{balance}</Text>
               {!!balanceFiat && (
                 <Text style={styles.textAssetFiat}>{balanceFiat}</Text>
@@ -1162,14 +1162,14 @@ class Amount extends PureComponent {
         // eslint-disable-next-line react/jsx-no-bind
         onPress={() => this.pickSelectedAsset(collectible)}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.assetElement}>
+        <View style={styles.assetElement}>
           <CollectibleMedia
             small
             collectible={collectible}
             iconStyle={styles.tokenImage}
             containerStyle={styles.tokenImage}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.assetInformationWrapper}>
+          <View style={styles.assetInformationWrapper}>
             <Text style={styles.textAssetTitle}>{name}</Text>
           </View>
         </View>
@@ -1230,8 +1230,8 @@ class Amount extends PureComponent {
         backdropOpacity={1}
       >
         <SafeAreaView style={styles.assetsModalWrapper}>
-          <View accessibilityRole="none" accessible={false} style={styles.titleWrapper}>
-            <View accessibilityRole="none" accessible={false} style={styles.dragger} />
+          <View style={styles.titleWrapper}>
+            <View style={styles.dragger} />
           </View>
           <FlatList
             data={[...this.tokens, ...tradableCollectibles]}
@@ -1325,9 +1325,9 @@ class Amount extends PureComponent {
     };
 
     return (
-      <View accessibilityRole="none" accessible={false}>
-        <View accessibilityRole="none" accessible={false} style={styles.inputContainerWrapper}>
-          <View accessibilityRole="none" accessible={false} style={styles.inputContainer}>
+      <View>
+        <View style={styles.inputContainerWrapper}>
+          <View style={styles.inputContainer}>
             {!internalPrimaryCurrencyIsCrypto && !!inputValue && (
               <Text style={styles.inputCurrencyText}>{`${getCurrencySymbol(
                 currentCurrency,
@@ -1347,8 +1347,8 @@ class Amount extends PureComponent {
           </View>
         </View>
         {hasExchangeRate && (
-          <View accessibilityRole="none" accessible={false} style={styles.actionsWrapper}>
-            <View accessibilityRole="none" accessible={false} style={styles.action}>
+          <View style={styles.actionsWrapper}>
+            <View style={styles.action}>
               <TouchableOpacity
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
@@ -1363,7 +1363,7 @@ class Amount extends PureComponent {
                 >
                   {renderableInputValueConversion}
                 </Text>
-                <View accessibilityRole="none" accessible={false} styles={styles.switchWrapper}>
+                <View styles={styles.switchWrapper}>
                   <MaterialCommunityIcons
                     name="swap-vertical"
                     size={16}
@@ -1375,7 +1375,7 @@ class Amount extends PureComponent {
             </View>
           </View>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.balanceWrapper}>
+        <View style={styles.balanceWrapper}>
           <Text style={styles.balanceText}>{`${strings(
             'transaction.balance',
           )}: ${currentBalance}`}</Text>
@@ -1433,8 +1433,8 @@ class Amount extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.collectibleInputWrapper}>
-        <View accessibilityRole="none" accessible={false} style={styles.collectibleInputImageWrapper}>
+      <View style={styles.collectibleInputWrapper}>
+        <View style={styles.collectibleInputImageWrapper}>
           <CollectibleMedia
             small
             containerStyle={styles.CollectibleMedia}
@@ -1442,7 +1442,7 @@ class Amount extends PureComponent {
             collectible={selectedAsset}
           />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.collectibleInputInformationWrapper}>
+        <View style={styles.collectibleInputInformationWrapper}>
           <Text style={styles.collectibleName}>{selectedAsset.name}</Text>
           <Text style={styles.collectibleId}>{`#${renderShortText(
             selectedAsset.tokenId,
@@ -1497,7 +1497,7 @@ class Amount extends PureComponent {
               style={styles.warningContainer}
             >
               {() => (
-                <View accessibilityRole="none" accessible={false} style={styles.warningTextContainer}>
+                <View style={styles.warningTextContainer}>
                   <Text
                     red
                     style={styles.warningText}
@@ -1509,10 +1509,10 @@ class Amount extends PureComponent {
               )}
             </Alert>
           ) : null}
-          <View accessibilityRole="none" accessible={false} style={styles.inputWrapper}>
-            <View accessibilityRole="none" accessible={false} style={styles.actionsWrapper}>
-              <View accessibilityRole="none" accessible={false} style={styles.actionBorder} />
-              <View accessibilityRole="none" accessible={false} style={styles.action}>
+          <View style={styles.inputWrapper}>
+            <View style={styles.actionsWrapper}>
+              <View style={styles.actionBorder} />
+              <View style={styles.action}>
                 <TouchableOpacity
                   style={styles.actionDropdown}
                   disabled={isPaymentRequest}
@@ -1521,7 +1521,7 @@ class Amount extends PureComponent {
                   <Text style={styles.textDropdown}>
                     {selectedAsset.symbol || strings('wallet.collectible')}
                   </Text>
-                  <View accessibilityRole="none" accessible={false} styles={styles.arrow}>
+                  <View styles={styles.arrow}>
                     <Ionicons
                       name="arrow-down"
                       size={16}
@@ -1531,7 +1531,7 @@ class Amount extends PureComponent {
                   </View>
                 </TouchableOpacity>
               </View>
-              <View accessibilityRole="none" accessible={false} style={[styles.actionBorder, styles.actionMax]}>
+              <View style={[styles.actionBorder, styles.actionMax]}>
                 {!selectedAsset.tokenId && !disableMax && (
                   <TouchableOpacity
                     testID={AmountViewSelectorsIDs.MAX_BUTTON}
@@ -1558,7 +1558,7 @@ class Amount extends PureComponent {
           keyboardVerticalOffset={KEYBOARD_OFFSET}
           enabled={Device.isIos()}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.buttonNextWrapper}>
+          <View style={styles.buttonNextWrapper}>
             <StyledButton
               type={'confirm'}
               containerStyle={styles.buttonNext}

@@ -134,26 +134,26 @@ function ErrorView({
   }, [description, location, trackEvent]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.screen}>
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
-        <View accessibilityRole="none" accessible={false} style={styles.row}>
+    <View style={styles.screen}>
+      <View style={styles.content}>
+        <View style={styles.row}>
           <ErrorIcon icon={icon} />
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.row}>
+        <View style={styles.row}>
           <Title centered>
             {title || strings('fiat_on_ramp_aggregator.error')}
           </Title>
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.row}>
+        <View style={styles.row}>
           <Text centered grey>
             {description}
           </Text>
         </View>
 
         {ctaOnPress && (
-          <View accessibilityRole="none" accessible={false} style={styles.ctaContainer}>
+          <View style={styles.ctaContainer}>
             <StyledButton type="confirm" onPress={ctaOnPressCallback}>
               {ctaLabel || strings('fiat_on_ramp_aggregator.try_again')}
             </StyledButton>

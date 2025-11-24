@@ -67,7 +67,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ testID }: { testID?: string }) => <View accessibilityRole="none" accessible={false} testID={testID} />,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
     IconName: {
       Search: 'Search',
       ArrowLeft: 'ArrowLeft',

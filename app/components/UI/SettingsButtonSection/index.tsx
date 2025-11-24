@@ -53,7 +53,7 @@ const SettingsButtonSection = ({
 
   return (
     <>
-      <View accessibilityRole="none" accessible={false} style={styles.setting}>
+      <View style={styles.setting}>
         <Text variant={TextVariant.BodyLGMedium}>{sectionTitle}</Text>
         <Text
           variant={TextVariant.BodyMD}
@@ -62,7 +62,7 @@ const SettingsButtonSection = ({
         >
           {descriptionText}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.accessory}>
+        <View style={styles.accessory}>
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
@@ -83,7 +83,7 @@ const SettingsButtonSection = ({
           onRequestClose={updateShowModalState}
           onConfirmPress={onModalConfirmPress}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.modalView}>
+          <View style={styles.modalView}>
             <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
               {modalTitleText}
             </Text>

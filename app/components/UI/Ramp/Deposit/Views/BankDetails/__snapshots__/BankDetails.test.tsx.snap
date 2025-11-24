@@ -564,7 +564,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                           testID="bank-details-refresh-control-scrollview"
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -907,7 +907,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                             </View>
                           </View>
                         </RCTScrollView>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -1674,7 +1674,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                           testID="bank-details-refresh-control-scrollview"
                         >
                           <RCTRefreshControl />
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 [
@@ -2230,7 +2230,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                             </View>
                           </View>
                         </RCTScrollView>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [

@@ -103,7 +103,7 @@ const InfoView: React.FC<InfoViewProps> = ({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={style.infoContainer}>
+    <View style={style.infoContainer}>
       <Text style={style.messageLimit}>
         <Text>{message} </Text>
         {urlText && (
@@ -145,7 +145,7 @@ function InfoModal({
       testID={testID}
     >
       <SafeAreaView style={styles.modalView}>
-        <View accessibilityRole="none" accessible={false} style={styles.title}>
+        <View style={styles.title}>
           {title && <Title>{title}</Title>}
           <InfoView
             message={message}
@@ -155,7 +155,7 @@ function InfoModal({
             style={styles}
           />
         </View>
-        {body && <View accessibilityRole="none" accessible={false} style={styles.body}>{body}</View>}
+        {body && <View style={styles.body}>{body}</View>}
       </SafeAreaView>
     </Modal>
   );

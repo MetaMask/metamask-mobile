@@ -22,7 +22,7 @@ const FooterLegalLinks = () => {
     });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.termsOfServiceButtonGroup}>
+    <View style={styles.termsOfServiceButtonGroup}>
       <TouchableOpacity
         activeOpacity={0.5}
         onPress={() =>

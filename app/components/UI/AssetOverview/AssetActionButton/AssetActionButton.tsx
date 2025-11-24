@@ -89,7 +89,7 @@ const AssetActionButton = ({
       style={[styles.button, disabled && styles.disabledButton]}
       disabled={disabled}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.buttonIconWrapper}>
+      <View style={styles.buttonIconWrapper}>
         {icon && (typeof icon === 'string' ? getIcon(icon) : icon)}
       </View>
       {label && (

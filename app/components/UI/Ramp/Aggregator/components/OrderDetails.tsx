@@ -95,12 +95,12 @@ interface PropsStage {
 const Row: React.FC<{ children: React.ReactNode }> = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View accessibilityRole="none" accessible={false} style={styles.row} {...props} />;
+  return <View style={styles.row} {...props} />;
 };
 const Group: React.FC<{ children: React.ReactNode }> = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return <View accessibilityRole="none" accessible={false} style={styles.group} {...props} />;
+  return <View style={styles.group} {...props} />;
 };
 
 const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
@@ -111,7 +111,7 @@ const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
   switch (order.state) {
     case FIAT_ORDER_STATES.COMPLETED: {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.stage}>
+        <View style={styles.stage}>
           <Feather
             name="check-circle"
             size={32}
@@ -137,7 +137,7 @@ const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
     case FIAT_ORDER_STATES.CANCELLED:
     case FIAT_ORDER_STATES.FAILED: {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.stage}>
+        <View style={styles.stage}>
           <Image source={failedIcon} />
           <Group>
             <Text variant={TextVariant.BodyLGMedium} style={styles.textCenter}>
@@ -161,7 +161,7 @@ const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
     }
     case FIAT_ORDER_STATES.CREATED:
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.stage}>
+        <View style={styles.stage}>
           <Spinner />
           <Group>
             <Text variant={TextVariant.BodyLGMedium} style={styles.textCenter}>
@@ -196,7 +196,7 @@ const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
     case FIAT_ORDER_STATES.PENDING:
     default: {
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.stage}>
+        <View style={styles.stage}>
           <Spinner />
           <Group>
             <Text variant={TextVariant.BodyLGMedium} style={styles.textCenter}>
@@ -288,7 +288,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   const orderLink = orderData?.providerOrderLink;
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Group>
         <Stage order={order} isTransacted={Boolean(order.sellTxHash)} />
         <Group>
@@ -538,7 +538,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
             </ListItem>
           </Row>
 
-          <View accessibilityRole="none" accessible={false} style={styles.line} />
+          <View style={styles.line} />
           <Row>
             <ListItem style={styles.listItem}>
               <ListItemColumn widthType={WidthType.Fill}>

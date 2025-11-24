@@ -56,7 +56,7 @@ function EligibilityFailedModal() {
         </Text>
       </BottomSheetHeader>
 
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
+      <View style={styles.content}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings(
             'fiat_on_ramp_aggregator.eligibility_failed_modal.description',
@@ -64,7 +64,7 @@ function EligibilityFailedModal() {
         </Text>
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.footer}>
+      <View style={styles.footer}>
         <Button
           size={ButtonSize.Lg}
           onPress={navigateToContactSupport}

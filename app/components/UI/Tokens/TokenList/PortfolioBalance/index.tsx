@@ -58,14 +58,14 @@ export const PortfolioBalance = React.memo(() => {
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.portfolioBalance}>
-      <View accessibilityRole="none" accessible={false}>
+    <View style={styles.portfolioBalance}>
+      <View>
         {selectedAccountMultichainBalance?.displayBalance ? (
           <TouchableOpacity
             onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
             testID="balance-container"
           >
-            <View accessibilityRole="none" accessible={false} style={styles.balanceContainer}>
+            <View style={styles.balanceContainer}>
               <SensitiveText
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Long}
@@ -79,7 +79,7 @@ export const PortfolioBalance = React.memo(() => {
             {renderAggregatedPercentage()}
           </TouchableOpacity>
         ) : (
-          <View accessibilityRole="none" accessible={false} style={styles.loaderWrapper}>
+          <View style={styles.loaderWrapper}>
             <Skeleton width={100} height={40} />
             <Skeleton width={100} height={20} />
           </View>

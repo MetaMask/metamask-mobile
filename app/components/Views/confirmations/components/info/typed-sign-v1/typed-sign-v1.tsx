@@ -15,7 +15,7 @@ const TypedSignV1 = () => {
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} testID={ConfirmationInfoComponentIDs.SIGN_TYPED_DATA_V1}>
+    <View testID={ConfirmationInfoComponentIDs.SIGN_TYPED_DATA_V1}>
       <AccountNetworkInfoRow />
       <NetworkAndOriginRow />
       <Message />

@@ -538,7 +538,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                             onGestureHandlerStateChange={[Function]}
                             showsHorizontalScrollIndicator={false}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
@@ -894,7 +894,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <TouchableOpacity
                                 disabled={true}
                                 style={
@@ -1550,7 +1550,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -2652,7 +2652,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             onGestureHandlerStateChange={[Function]}
                             showsHorizontalScrollIndicator={false}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
@@ -3010,7 +3010,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             }
                             viewabilityConfigCallbackPairs={[]}
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -3065,7 +3065,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -3307,7 +3307,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -3522,7 +3522,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -3737,7 +3737,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {
@@ -3952,7 +3952,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           }
                                           testID="badge-wrapper-badge"
                                         >
-                                          <View accessibilityRole="none" accessible={false}>
+                                          <View>
                                             <View
                                               style={
                                                 {

@@ -241,7 +241,7 @@ export const BridgeTokenSelectorBase: React.FC<
       </Box>
 
       {/* Need this extra View to fix tokens not being reliably pressable on Android hardware, no idea why */}
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <ListComponent
           style={styles.tokensList}
           key={scrollResetKey}

@@ -110,7 +110,7 @@ const NetworkConnectMultiSelector = ({
     };
 
     return (
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <Checkbox
           style={styles.selectAllContainer}
           label={strings('networks.select_all')}
@@ -135,8 +135,8 @@ const NetworkConnectMultiSelector = ({
 
   const renderCtaButtons = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.updateButtonContainer}>
+      <View style={styles.buttonsContainer}>
+        <View style={styles.updateButtonContainer}>
           {areAnyNetworksSelected && (
             <Button
               variant={ButtonVariants.Primary}
@@ -155,15 +155,15 @@ const NetworkConnectMultiSelector = ({
           )}
         </View>
         {areNoNetworksSelected && (
-          <View accessibilityRole="none" accessible={false} style={styles.disconnectAll}>
-            <View accessibilityRole="none" accessible={false} style={styles.helpText}>
+          <View style={styles.disconnectAll}>
+            <View style={styles.helpText}>
               <HelpText severity={HelpTextSeverity.Error}>
                 {strings('common.disconnect_you_from', {
                   dappUrl: hostname,
                 })}
               </HelpText>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.disconnectAllButton}>
+            <View style={styles.disconnectAllButton}>
               <Button
                 variant={ButtonVariants.Primary}
                 label={strings('common.disconnect')}
@@ -195,18 +195,18 @@ const NetworkConnectMultiSelector = ({
   const renderNetworkConnectMultiSelector = useCallback(
     () => (
       <SafeAreaView>
-        <View accessibilityRole="none" accessible={false} style={styles.bottomSheetContainer}>
+        <View style={styles.bottomSheetContainer}>
           <SheetHeader
             title={strings('networks.edit_networks_title')}
             onBack={onBack}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.bodyContainer}>{renderSelectAllCheckbox()}</View>
+          <View style={styles.bodyContainer}>{renderSelectAllCheckbox()}</View>
           <NetworkSelectorList
             networks={networks}
             selectedChainIds={selectedChainIds}
             onSelectNetwork={onSelectNetwork}
           ></NetworkSelectorList>
-          <View accessibilityRole="none" accessible={false} style={styles.bodyContainer}>{renderCtaButtons()}</View>
+          <View style={styles.bodyContainer}>{renderCtaButtons()}</View>
         </View>
       </SafeAreaView>
     ),

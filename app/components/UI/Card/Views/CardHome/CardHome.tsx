@@ -442,7 +442,7 @@ const CardHome = () => {
       }
 
       return (
-        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+        <View style={styles.buttonsContainer}>
           <Button
             variant={ButtonVariants.Primary}
             style={
@@ -566,7 +566,7 @@ const CardHome = () => {
 
   if (cardError) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.errorContainer}>
+      <View style={styles.errorContainer}>
         <Icon
           name={IconName.Forest}
           size={IconSize.Xl}
@@ -586,7 +586,7 @@ const CardHome = () => {
           {strings('card.card_home.error_description')}
         </Text>
         {retries < 3 && !isAuthenticationError(cardError) && (
-          <View accessibilityRole="none" accessible={false} style={styles.tryAgainButtonContainer}>
+          <View style={styles.tryAgainButtonContainer}>
             <Button
               variant={ButtonVariants.Primary}
               label={strings('card.card_home.try_again')}
@@ -635,7 +635,7 @@ const CardHome = () => {
           }}
         />
       )}
-      <View accessibilityRole="none" accessible={false} style={styles.cardBalanceContainer}>
+      <View style={styles.cardBalanceContainer}>
         <View
           style={[
             styles.balanceTextContainer,

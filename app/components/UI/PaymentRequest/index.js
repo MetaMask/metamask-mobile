@@ -498,13 +498,13 @@ class PaymentRequest extends PureComponent {
         style={baseStyles.flexGrow}
         testID={RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text style={styles.title}>
             {strings('payment_request.choose_asset')}
           </Text>
         </View>
         {isTDSupportedForNetwork && (
-          <View accessibilityRole="none" accessible={false} style={styles.searchWrapper}>
+          <View style={styles.searchWrapper}>
             <FeatherIcon
               name="search"
               size={18}
@@ -559,7 +559,7 @@ class PaymentRequest extends PureComponent {
           />
         </View>
         {userTokens.length > 0 && (
-          <View accessibilityRole="none" accessible={false} style={styles.assetsWrapper}>
+          <View style={styles.assetsWrapper}>
             <Text style={styles.assetsTitle}>
               {strings('payment_request.your_tokens')}
             </Text>
@@ -806,16 +806,16 @@ class PaymentRequest extends PureComponent {
         style={styles.enterAmountWrapper}
         testID={RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text style={styles.title}>
             {strings('payment_request.enter_amount')}
           </Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.amountWrapper}>
-          <View accessibilityRole="none" accessible={false} style={styles.container}>
-            <View accessibilityRole="none" accessible={false} style={styles.ethContainer}>
-              <View accessibilityRole="none" accessible={false} style={styles.amounts}>
-                <View accessibilityRole="none" accessible={false} style={styles.split}>
+        <View style={styles.amountWrapper}>
+          <View style={styles.container}>
+            <View style={styles.ethContainer}>
+              <View style={styles.amounts}>
+                <View style={styles.split}>
                   {internalPrimaryCurrency !== 'ETH' && (
                     <Text style={styles.currencySymbol}>{currencySymbol}</Text>
                   )}
@@ -844,7 +844,7 @@ class PaymentRequest extends PureComponent {
                     {symbol}
                   </Text>
                 </View>
-                <View accessibilityRole="none" accessible={false} style={styles.secondaryAmount}>
+                <View style={styles.secondaryAmount}>
                   {secondaryAmount && internalPrimaryCurrency === 'ETH' && (
                     <Text style={styles.currencySymbolSmall}>
                       {currencySymbol}
@@ -858,7 +858,7 @@ class PaymentRequest extends PureComponent {
                 </View>
               </View>
               {switchable && (
-                <View accessibilityRole="none" accessible={false} style={styles.switchContainer}>
+                <View style={styles.switchContainer}>
                   <TouchableOpacity
                     onPress={this.switchPrimaryCurrency}
                     style={styles.switchTouchable}
@@ -875,7 +875,7 @@ class PaymentRequest extends PureComponent {
             </View>
           </View>
           {showError && (
-            <View accessibilityRole="none" accessible={false} style={styles.errorWrapper}>
+            <View style={styles.errorWrapper}>
               <Text style={styles.errorText}>
                 {strings('payment_request.request_error')}
               </Text>
@@ -888,7 +888,7 @@ class PaymentRequest extends PureComponent {
           keyboardVerticalOffset={KEYBOARD_OFFSET}
           enabled={Device.isIos()}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+          <View style={styles.buttonsContainer}>
             <StyledButton
               type={'normal'}
               onPress={this.onReset}
@@ -935,7 +935,7 @@ class PaymentRequest extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper}>
         {isRemoveGlobalNetworkSelectorEnabled() && (
-          <View accessibilityRole="none" accessible={false} style={styles.pickerNetworkContainer}>
+          <View style={styles.pickerNetworkContainer}>
             <PickerNetwork
               onPress={this.handleNetworkPickerPress}
               label={networkName}

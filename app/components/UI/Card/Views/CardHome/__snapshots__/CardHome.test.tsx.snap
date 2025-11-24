@@ -341,7 +341,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                       }
                     >
                       <RCTRefreshControl />
-                      <View accessibilityRole="none" accessible={false}>
+                      <View>
                         <View
                           style={
                             {
@@ -1523,7 +1523,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                       }
                     >
                       <RCTRefreshControl />
-                      <View accessibilityRole="none" accessible={false}>
+                      <View>
                         <View
                           style={
                             {

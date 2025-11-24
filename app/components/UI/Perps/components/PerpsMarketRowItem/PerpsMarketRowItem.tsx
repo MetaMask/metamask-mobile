@@ -154,8 +154,8 @@ const PerpsMarketRowItem = ({
       onPress={handlePress}
       testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.leftSection}>
-        <View accessibilityRole="none" accessible={false} style={styles.perpIcon}>
+      <View style={styles.leftSection}>
+        <View style={styles.perpIcon}>
           <PerpsTokenLogo
             symbol={displayMarket.symbol}
             size={iconSize}
@@ -166,14 +166,14 @@ const PerpsMarketRowItem = ({
           />
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.tokenInfo}>
-          <View accessibilityRole="none" accessible={false} style={styles.tokenHeader}>
+        <View style={styles.tokenInfo}>
+          <View style={styles.tokenHeader}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.secondRow}>
+          <View style={styles.secondRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {getDisplayValue}
             </Text>
@@ -189,8 +189,8 @@ const PerpsMarketRowItem = ({
         </View>
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.rightSection}>
-        <View accessibilityRole="none" accessible={false} style={styles.priceInfo}>
+      <View style={styles.rightSection}>
+        <View style={styles.priceInfo}>
           <Text
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Default}

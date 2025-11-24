@@ -131,8 +131,8 @@ class TransactionReviewData extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View accessibilityRole="none" accessible={false} style={[styles.root, this.applyRootHeight()]}>
-        <View accessibilityRole="none" accessible={false} style={styles.dataHeader}>
+      <View style={[styles.root, this.applyRootHeight()]}>
+        <View style={styles.dataHeader}>
           <TouchableOpacity onPress={toggleDataView}>
             <IonicIcon
               name={'arrow-back'}
@@ -152,9 +152,9 @@ class TransactionReviewData extends PureComponent {
         <Text style={styles.dataDescription}>
           {strings('transaction.data_description')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.dataBox}>
+        <View style={styles.dataBox}>
           {actionKey !== strings('transactions.tx_review_confirm') && (
-            <View accessibilityRole="none" accessible={false} style={styles.label}>
+            <View style={styles.label}>
               <Text style={[styles.labelText, styles.boldLabel]}>
                 {strings('transaction.review_function')}:{' '}
               </Text>
@@ -164,7 +164,7 @@ class TransactionReviewData extends PureComponent {
           <Text style={[styles.labelText, styles.boldLabel]}>
             {strings('transaction.review_hex_data')}:{' '}
           </Text>
-          <View accessibilityRole="none" accessible={false} style={styles.scrollView}>
+          <View style={styles.scrollView}>
             <KeyboardAwareScrollView style={styles.scrollView}>
               <TouchableOpacity
                 activeOpacity={0.8}

@@ -76,7 +76,7 @@ jest.mock('@metamask/react-native-actionsheet', () => {
       const { View, Text, TouchableOpacity } =
         jest.requireActual('react-native');
       return (
-        <View accessibilityRole="none" accessible={false} testID={testID || 'action-sheet'}>
+        <View testID={testID || 'action-sheet'}>
           <Text>{title}</Text>
           {options.map((option: string, index: number) => (
             <TouchableOpacity

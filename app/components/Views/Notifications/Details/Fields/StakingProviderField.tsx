@@ -16,7 +16,7 @@ function StakingProviderField(props: StakingProviderFieldProps) {
   const { styles } = useStyles();
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.row}>
+    <View style={styles.row}>
       <RemoteImage
         source={{
           uri: tokenIconUrl,
@@ -24,7 +24,7 @@ function StakingProviderField(props: StakingProviderFieldProps) {
         style={styles.circleLogo}
         placeholderStyle={styles.circleLogoPlaceholder}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.boxLeft}>
+      <View style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('notifications.staking_provider')}
         </Text>

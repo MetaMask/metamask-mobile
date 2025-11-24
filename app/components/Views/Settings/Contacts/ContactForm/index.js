@@ -465,7 +465,7 @@ class ContactForm extends PureComponent {
         testID={AddContactViewSelectorsIDs.CONTAINER}
       >
         <KeyboardAwareScrollView style={styles.informationWrapper}>
-          <View accessibilityRole="none" accessible={false} style={styles.scrollWrapper}>
+          <View style={styles.scrollWrapper}>
             <Text style={styles.label}>{strings('address_book.name')}</Text>
             <TextInput
               editable={this.state.editable}
@@ -490,7 +490,7 @@ class ContactForm extends PureComponent {
             <View
               style={[styles.input, editable ? {} : styles.textInputDisaled]}
             >
-              <View accessibilityRole="none" accessible={false} style={styles.inputWrapper}>
+              <View style={styles.inputWrapper}>
                 <TextInput
                   editable={
                     (editable &&
@@ -548,7 +548,7 @@ class ContactForm extends PureComponent {
             <View
               style={[styles.input, editable ? {} : styles.textInputDisaled]}
             >
-              <View accessibilityRole="none" accessible={false} style={styles.inputWrapper}>
+              <View style={styles.inputWrapper}>
                 <TextInput
                   multiline
                   editable={editable}
@@ -591,7 +591,7 @@ class ContactForm extends PureComponent {
                   }}
                   testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
                 >
-                  <View accessibilityRole="none" accessible={false} style={styles.networkSelectorNetworkName}>
+                  <View style={styles.networkSelectorNetworkName}>
                     <Avatar
                       variant={AvatarVariant.Network}
                       size={AvatarSize.Sm}
@@ -631,9 +631,9 @@ class ContactForm extends PureComponent {
           )}
 
           {!!editable && (
-            <View accessibilityRole="none" accessible={false} style={styles.buttonsWrapper}>
-              <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
-                <View accessibilityRole="none" accessible={false} style={styles.actionButton}>
+            <View style={styles.buttonsWrapper}>
+              <View style={styles.buttonsContainer}>
+                <View style={styles.actionButton}>
                   <StyledButton
                     type={'confirm'}
                     disabled={!addressReady || !name || !!addressError}
@@ -644,7 +644,7 @@ class ContactForm extends PureComponent {
                   </StyledButton>
                 </View>
                 {mode === EDIT && (
-                  <View accessibilityRole="none" accessible={false} style={styles.actionButton}>
+                  <View style={styles.actionButton}>
                     <StyledButton
                       style={styles.actionButton}
                       type={'warning-empty'}

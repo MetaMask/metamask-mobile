@@ -73,9 +73,9 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   }, [liveFunding, marketStats.fundingRate]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.statisticsGrid}>
+    <View style={styles.statisticsGrid}>
       {/* Row 1: 24h High/Low */}
-      <View accessibilityRole="none" accessible={false} style={styles.statisticsRow}>
+      <View style={styles.statisticsRow}>
         <View
           style={styles.statisticsItem}
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_LOW_24H}
@@ -101,7 +101,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       </View>
 
       {/* Row 2: Volume and Open Interest */}
-      <View accessibilityRole="none" accessible={false} style={styles.statisticsRow}>
+      <View style={styles.statisticsRow}>
         <View
           style={styles.statisticsItem}
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_VOLUME_24H}
@@ -117,7 +117,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           style={styles.statisticsItem}
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_OPEN_INTEREST}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.statisticsLabelContainer}>
+          <View style={styles.statisticsLabelContainer}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.market.open_interest')}
             </Text>
@@ -139,12 +139,12 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       </View>
 
       {/* Row 3: Funding Rate */}
-      <View accessibilityRole="none" accessible={false} style={styles.statisticsRow}>
+      <View style={styles.statisticsRow}>
         <View
           style={styles.statisticsItem}
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_RATE}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.statisticsLabelContainer}>
+          <View style={styles.statisticsLabelContainer}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.market.funding_rate')}
             </Text>
@@ -159,7 +159,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               />
             </TouchableOpacity>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.fundingRateContainer}>
+          <View style={styles.fundingRateContainer}>
             <Text
               variant={TextVariant.BodyMDBold}
               color={fundingRateData.color}

@@ -23,7 +23,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
     }
     testID="account-backup-step-4-screen"
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         onLayout={[Function]}
         style={
@@ -80,7 +80,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
           update={[Function]}
           viewIsInsideTabBar={false}
         >
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <View
               style={
                 {

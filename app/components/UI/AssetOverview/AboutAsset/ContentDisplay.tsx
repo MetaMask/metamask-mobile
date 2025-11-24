@@ -31,7 +31,7 @@ const ContentDisplay = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text
         numberOfLines={isExpanded ? undefined : numberOfLines}
         color={TextColor.Alternative}

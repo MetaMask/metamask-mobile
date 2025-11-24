@@ -360,7 +360,7 @@ class OptinMetrics extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
+      <View style={styles.actionContainer}>
         <Button
           variant={ButtonVariants.Primary}
           onPress={this.onConfirm}
@@ -434,7 +434,7 @@ class OptinMetrics extends PureComponent {
           onScroll={this.onScroll}
           testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+          <View style={styles.wrapper}>
             <Text
               variant={TextVariant.DisplayMD}
               color={TextColor.Default}
@@ -443,7 +443,7 @@ class OptinMetrics extends PureComponent {
             >
               {strings('privacy_policy.description_title')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.imageContainer}>
+            <View style={styles.imageContainer}>
               <Image
                 source={PrivacyIllustration}
                 style={styles.illustration}
@@ -459,7 +459,7 @@ class OptinMetrics extends PureComponent {
             >
               {strings('privacy_policy.description_content_1')}
             </Text>
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <TouchableOpacity
                 style={styles.sectionContainer}
                 onPress={this.handleBasicUsageToggle}
@@ -468,14 +468,14 @@ class OptinMetrics extends PureComponent {
                 }
                 activeOpacity={0.7}
               >
-                <View accessibilityRole="none" accessible={false} style={styles.checkbox}>
+                <View style={styles.checkbox}>
                   <Checkbox
                     onPress={this.handleBasicUsageToggle}
                     isChecked={this.state.isBasicUsageChecked}
                     accessibilityRole={'checkbox'}
                     accessible
                   />
-                  <View accessibilityRole="none" accessible={false} style={styles.flexContainer}>
+                  <View style={styles.flexContainer}>
                     <Text
                       variant={TextVariant.BodySMMedium}
                       color={TextColor.Default}
@@ -512,7 +512,7 @@ class OptinMetrics extends PureComponent {
                 activeOpacity={this.isMarketingDisabled ? 1 : 0.7}
                 disabled={this.isMarketingDisabled}
               >
-                <View accessibilityRole="none" accessible={false} style={styles.checkbox}>
+                <View style={styles.checkbox}>
                   <Checkbox
                     onPress={this.handleMarketingToggle}
                     isChecked={this.state.isMarketingChecked}
@@ -520,7 +520,7 @@ class OptinMetrics extends PureComponent {
                     accessible
                     disabled={this.isMarketingDisabled}
                   />
-                  <View accessibilityRole="none" accessible={false} style={styles.flexContainer}>
+                  <View style={styles.flexContainer}>
                     <Text
                       variant={TextVariant.BodySMMedium}
                       color={

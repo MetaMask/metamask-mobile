@@ -12,7 +12,7 @@ exports[`Accordion - Snapshot should render a proper expanded state 1`] = `
   <View
     testID="accordion-content"
   >
-    <View accessibilityRole="none" accessible={false} />
+    <View />
   </View>
 </Fragment>
 `;

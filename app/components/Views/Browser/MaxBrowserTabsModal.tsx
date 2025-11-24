@@ -31,7 +31,7 @@ const MaxBrowserTabsModal = () => {
 
   return (
     <BottomSheet ref={modalRef}>
-      <View accessibilityRole="none" accessible={false} style={styles.infoIconWrap}>
+      <View style={styles.infoIconWrap}>
         <Icon
           size={IconSize.Lg}
           name={IconName.Info}
@@ -39,7 +39,7 @@ const MaxBrowserTabsModal = () => {
         />
       </View>
       <SheetHeader title={strings('browser.max_tabs_title')} />
-      <View accessibilityRole="none" accessible={false} style={styles.sheet}>
+      <View style={styles.sheet}>
         <Text style={styles.dialogDescription}>
           {strings('browser.max_tabs_desc')}
         </Text>

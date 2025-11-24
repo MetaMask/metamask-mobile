@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Tooltip should match snapshot 1`] = `
-<View accessibilityRole="none" accessible={false}>
+<View>
   <TouchableOpacity
     accessible={true}
     activeOpacity={1}
@@ -35,6 +35,6 @@ exports[`Tooltip should match snapshot 1`] = `
       width={16}
     />
   </TouchableOpacity>
-  <View accessibilityRole="none" accessible={false} />
+  <View />
 </View>
 `;

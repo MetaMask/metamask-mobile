@@ -108,7 +108,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
           }
         }
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text
             style={
               {
@@ -364,7 +364,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
       </View>
     </View>
   </View>,
-  <View accessibilityRole="none" accessible={false} />,
-  <View accessibilityRole="none" accessible={false} />,
+  <View />,
+  <View />,
 ]
 `;

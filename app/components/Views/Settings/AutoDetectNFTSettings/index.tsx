@@ -58,12 +58,12 @@ const AutoDetectNFTSettings = () => {
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.setting}>
-      <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
+    <View style={styles.setting}>
+      <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {strings('app_settings.nft_autodetect_mode')}
         </Text>
-        <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
+        <View style={styles.switchElement}>
           <Switch
             value={useNftDetection}
             onValueChange={toggleNftAutodetect}

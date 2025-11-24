@@ -37,7 +37,7 @@ const SnapElement = (snap: Snap) => {
         name: IconName.Snaps,
       }}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.arrowContainer}>
+      <View style={styles.arrowContainer}>
         <Icon name={IconName.ArrowRight} />
       </View>
     </Cell>

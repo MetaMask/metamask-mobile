@@ -9,7 +9,7 @@ exports[`AssetOverview should render correctly 1`] = `
   }
   testID="token-asset-overview"
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       style={
         {
@@ -881,7 +881,7 @@ exports[`AssetOverview should render correctly 1`] = `
         </View>
       </View>
     </View>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text
         testID="tokenDetailsName"
       >
@@ -933,7 +933,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
   }
   testID="token-asset-overview"
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       style={
         {
@@ -1805,7 +1805,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         </View>
       </View>
     </View>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text
         testID="tokenDetailsName"
       >
@@ -1857,7 +1857,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
   }
   testID="token-asset-overview"
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       style={
         {
@@ -2674,7 +2674,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         </View>
       </View>
     </View>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text
         testID="tokenDetailsName"
       >
@@ -2712,7 +2712,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           }
         }
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text
             accessibilityRole="text"
             style={

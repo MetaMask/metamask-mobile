@@ -686,7 +686,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -736,7 +736,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -1807,7 +1807,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -2560,7 +2560,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -2610,7 +2610,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -3681,7 +3681,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -4434,7 +4434,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -4484,7 +4484,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -5555,7 +5555,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -6308,7 +6308,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -6375,7 +6375,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -7368,7 +7368,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -8121,7 +8121,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -8188,7 +8188,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -9181,7 +9181,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -9933,7 +9933,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -10000,7 +10000,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -10993,7 +10993,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -11746,7 +11746,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -11813,7 +11813,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -12899,7 +12899,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -13652,7 +13652,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -13719,7 +13719,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -14667,7 +14667,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -15420,7 +15420,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -15487,7 +15487,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -16480,7 +16480,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -17233,7 +17233,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -17300,7 +17300,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -18293,7 +18293,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -19046,7 +19046,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -19113,7 +19113,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -20106,7 +20106,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -20859,7 +20859,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -20926,7 +20926,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -21919,7 +21919,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -22672,7 +22672,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -22739,7 +22739,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -23825,7 +23825,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -24578,7 +24578,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -24643,7 +24643,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -25636,7 +25636,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -26389,7 +26389,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -26454,7 +26454,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -27540,7 +27540,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -28293,7 +28293,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -28360,7 +28360,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -29446,7 +29446,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [
@@ -30199,7 +30199,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <Text
                                   accessibilityRole="text"
                                   adjustsFontSizeToFit={true}
@@ -30266,7 +30266,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           {
@@ -31259,7 +31259,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                             </View>
                           </View>
                         </View>
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               [

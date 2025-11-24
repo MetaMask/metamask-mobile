@@ -14,12 +14,12 @@ interface SessionHeaderProps {
 
 const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
   <>
-    <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
+    <View style={styles.switchElement}>
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
         {title}
       </Text>
     </View>
-    <View accessibilityRole="none" accessible={false} style={styles.setting}>
+    <View style={styles.setting}>
       <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
         {description}
       </Text>

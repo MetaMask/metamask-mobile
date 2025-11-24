@@ -10,7 +10,7 @@ const ConfirmationFooter = ({ valueWei, action }: ConfirmationFooterProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.footerContainer}>
+    <View style={styles.footerContainer}>
       <FooterLegalLinks />
       <FooterButtonGroup valueWei={valueWei} action={action} />
     </View>

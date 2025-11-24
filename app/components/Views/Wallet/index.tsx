@@ -485,7 +485,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   ]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.tabContainer}>
+    <View style={styles.tabContainer}>
       <TabsList
         key={tabsKey}
         ref={tabsListRef}
@@ -1330,7 +1330,7 @@ const Wallet = ({
   const content = (
     <>
       <AssetPollingProvider />
-      <View accessibilityRole="none" accessible={false} style={styles.banner}>
+      <View style={styles.banner}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
@@ -1380,7 +1380,7 @@ const Wallet = ({
   );
   const renderLoader = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.loader}>
+      <View style={styles.loader}>
         <ActivityIndicator size="small" />
       </View>
     ),

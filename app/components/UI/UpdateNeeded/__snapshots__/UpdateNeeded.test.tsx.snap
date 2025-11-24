@@ -497,7 +497,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                         >
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <View
                               style={
                                 {

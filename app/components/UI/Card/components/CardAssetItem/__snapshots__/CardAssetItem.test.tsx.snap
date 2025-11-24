@@ -336,7 +336,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                         }
                         testID="badge-wrapper-badge"
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <RemoteImage
                             fadeIn={true}
                             onError={[Function]}
@@ -868,7 +868,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                         }
                         testID="badge-wrapper-badge"
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               {
@@ -1344,7 +1344,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                         }
                         testID="badge-wrapper-badge"
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <RemoteImage
                             fadeIn={true}
                             onError={[Function]}
@@ -1815,7 +1815,7 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                         }
                         testID="badge-wrapper-badge"
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <RemoteImage
                             fadeIn={true}
                             onError={[Function]}
@@ -2286,7 +2286,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                         }
                         testID="badge-wrapper-badge"
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <RemoteImage
                             fadeIn={true}
                             onError={[Function]}

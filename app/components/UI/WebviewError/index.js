@@ -91,15 +91,15 @@ export default class WebviewError extends PureComponent {
     const styles = createStyles(colors);
 
     return error ? (
-      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
-        <View accessibilityRole="none" accessible={false} style={styles.foxWrapper}>
+      <View style={styles.wrapper}>
+        <View style={styles.foxWrapper}>
           <Image
             source={require('../../../images/branding/fox.png')}
             style={styles.image}
             resizeMethod={'auto'}
           />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.textWrapper}>
+        <View style={styles.textWrapper}>
           <Text
             style={styles.errorTitle}
             {...generateTestId(Platform, ERROR_PAGE_TITLE)}

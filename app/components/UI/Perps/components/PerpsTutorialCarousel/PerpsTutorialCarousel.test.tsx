@@ -31,7 +31,7 @@ jest.mock('rive-react-native', () => {
   }) => {
     const { View, Text } = jest.requireActual('react-native');
     return (
-      <View accessibilityRole="none" accessible={false} testID={testID || 'mock-rive-animation'}>
+      <View testID={testID || 'mock-rive-animation'}>
         <Text testID="mock-rive-artboard">
           {artboardName || 'default-artboard'}
         </Text>
@@ -138,7 +138,7 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
 
         // Only render the current page's child
         const childrenArray = MockReact.Children.toArray(children);
-        return <View accessibilityRole="none" accessible={false}>{childrenArray[currentPage]}</View>;
+        return <View>{childrenArray[currentPage]}</View>;
       },
     ),
   };

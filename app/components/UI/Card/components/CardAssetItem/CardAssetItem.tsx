@@ -63,8 +63,8 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
       >
         <AssetLogo asset={asset} />
       </BadgeWrapper>
-      <View accessibilityRole="none" accessible={false} style={styles.balances}>
-        <View accessibilityRole="none" accessible={false} style={styles.assetName}>
+      <View style={styles.balances}>
+        <View style={styles.assetName}>
           <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
             {asset.name || asset.symbol}
           </Text>

@@ -126,7 +126,7 @@ const KycProcessing = () => {
         <ScreenLayout.Body>
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
-            <View accessibilityRole="none" accessible={false} style={styles.container}>
+            <View style={styles.container}>
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Xl}
@@ -164,8 +164,8 @@ const KycProcessing = () => {
         <ScreenLayout.Body>
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
-            <View accessibilityRole="none" accessible={false} style={styles.container}>
-              <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
+            <View style={styles.container}>
+              <View style={styles.iconContainer}>
                 <Icon
                   name={IconName.CheckBold}
                   size={IconSize.Xl}
@@ -204,7 +204,7 @@ const KycProcessing = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={3} />
-          <View accessibilityRole="none" accessible={false} style={styles.container}>
+          <View style={styles.container}>
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}

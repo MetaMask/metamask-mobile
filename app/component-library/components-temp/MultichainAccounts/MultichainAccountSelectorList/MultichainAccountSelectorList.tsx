@@ -375,7 +375,7 @@ const MultichainAccountSelectorList = ({
 
   return (
     <>
-      <View accessibilityRole="none" accessible={false} style={styles.searchContainer}>
+      <View style={styles.searchContainer}>
         <TextFieldSearch
           value={searchText}
           onChangeText={setSearchText}
@@ -386,7 +386,7 @@ const MultichainAccountSelectorList = ({
           style={styles.searchTextField}
         />
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.listContainer} testID={testID}>
+      <View style={styles.listContainer} testID={testID}>
         {flattenedData.length === 0 ? (
           <View
             style={styles.emptyState}

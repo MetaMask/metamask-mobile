@@ -138,9 +138,9 @@ class CollectibleContractOverview extends PureComponent {
           strings('asset_overview.send_button')
         : strings('asset_overview.send_button');
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.wrapper} testID={'collectible-overview-screen'}>
-        <View accessibilityRole="none" accessible={false} style={styles.assetLogo}>{this.renderLogo()}</View>
-        <View accessibilityRole="none" accessible={false} style={styles.information}>
+      <View style={styles.wrapper} testID={'collectible-overview-screen'}>
+        <View style={styles.assetLogo}>{this.renderLogo()}</View>
+        <View style={styles.information}>
           <Text
             style={styles.name}
             testID={WalletViewSelectorsIDs.NFT_CONTAINER}
@@ -149,7 +149,7 @@ class CollectibleContractOverview extends PureComponent {
           </Text>
         </View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.actions}>
+        <View style={styles.actions}>
           <AssetActionButton
             icon="send"
             onPress={this.onSend}

@@ -26,8 +26,8 @@ export default function BasicFunctionalityComponent({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.setting}>
-      <View accessibilityRole="none" accessible={false} style={styles.heading}>
+    <View style={styles.setting}>
+      <View style={styles.heading}>
         <Text variant={TextVariant.HeadingSM}>
           {strings('default_settings.basic_functionality')}
         </Text>

@@ -207,7 +207,7 @@ const PerpsHomeView = () => {
           onActionPress={handleCloseAllPress}
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.sectionContent}>
+          <View style={styles.sectionContent}>
             {positions.map((position, index) => (
               <PerpsCard
                 key={`${position.coin}-${index}`}
@@ -228,7 +228,7 @@ const PerpsHomeView = () => {
           onActionPress={handleCancelAllPress}
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.sectionContent}>
+          <View style={styles.sectionContent}>
             {orders.map((order) => (
               <PerpsCard
                 key={order.orderId}
@@ -277,12 +277,12 @@ const PerpsHomeView = () => {
           isLoading={isLoading.activity}
         />
 
-        <View accessibilityRole="none" accessible={false} style={styles.sectionContent}>
+        <View style={styles.sectionContent}>
           <PerpsNavigationCard items={navigationItems} />
         </View>
 
         {/* Bottom spacing for tab bar */}
-        <View accessibilityRole="none" accessible={false} style={styles.bottomSpacer} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       {/* Close All Positions Bottom Sheet */}

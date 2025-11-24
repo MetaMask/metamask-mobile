@@ -155,7 +155,7 @@ export const BaseWalletDetails = ({
     ];
 
     return (
-      <View accessibilityRole="none" accessible={false} style={accountBoxStyle}>
+      <View style={accountBoxStyle}>
         <AccountCell
           accountGroup={accountGroup}
           avatarAccountType={avatarAccountType}
@@ -184,7 +184,7 @@ export const BaseWalletDetails = ({
         style={styles.container}
         testID={WalletDetailsIds.WALLET_DETAILS_CONTAINER}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.walletName}>
+        <View style={styles.walletName}>
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.wallet_details.wallet_name')}
           </Text>
@@ -199,7 +199,7 @@ export const BaseWalletDetails = ({
             </Text>
           </Box>
         </View>
-        <View accessibilityRole="none" accessible={false} testID={WalletDetailsIds.WALLET_BALANCE} style={styles.balance}>
+        <View testID={WalletDetailsIds.WALLET_BALANCE} style={styles.balance}>
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.wallet_details.balance')}
           </Text>
@@ -259,7 +259,7 @@ export const BaseWalletDetails = ({
           style={styles.accountsList}
           testID={WalletDetailsIds.ACCOUNTS_LIST}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.listContainer}>
+          <View style={styles.listContainer}>
             <FlashList
               data={accountGroupsWithAddItem}
               keyExtractor={(item, index) =>

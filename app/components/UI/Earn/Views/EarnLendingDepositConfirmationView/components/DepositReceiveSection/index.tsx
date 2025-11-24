@@ -40,8 +40,8 @@ const DepositReceiveSection = ({
 
   return (
     <InfoSection testID={DEPOSIT_RECEIVE_SECTION_TEST_ID}>
-      <View accessibilityRole="none" accessible={false} style={styles.infoSectionContent}>
-        <View accessibilityRole="none" accessible={false} style={styles.receiveRow}>
+      <View style={styles.infoSectionContent}>
+        <View style={styles.receiveRow}>
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('earn.receive')}
           </Text>
@@ -59,8 +59,8 @@ const DepositReceiveSection = ({
             }
           />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.receiptTokenRow}>
-          <View accessibilityRole="none" accessible={false} style={styles.receiptTokenRowLeft}>
+        <View style={styles.receiptTokenRow}>
+          <View style={styles.receiptTokenRowLeft}>
             <AvatarToken
               name={token.symbol}
               imageSource={{
@@ -72,7 +72,7 @@ const DepositReceiveSection = ({
             />
             <Text variant={TextVariant.BodyMD}>{receiptTokenName}</Text>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.receiptTokenRowRight}>
+          <View style={styles.receiptTokenRowRight}>
             <Text>{receiptTokenAmount}</Text>
             <Text color={TextColor.Alternative}>{receiptTokenAmountFiat}</Text>
           </View>

@@ -167,7 +167,7 @@ const PermissionsSummary = ({
     const iconTitle = getHost(currentEnsName || url);
 
     return isAlreadyConnected && !showPermissionsOnly ? (
-      <View accessibilityRole="none" accessible={false} style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
+      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}
           testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
@@ -211,8 +211,8 @@ const PermissionsSummary = ({
 
   function renderHeader() {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.header}>
-        <View accessibilityRole="none" accessible={false} style={styles.startAccessory}>
+      <View style={styles.header}>
+        <View style={styles.startAccessory}>
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
@@ -231,7 +231,7 @@ const PermissionsSummary = ({
         >
           {renderTopIcon()}
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.endAccessory}>
+        <View style={styles.endAccessory}>
           {!isRenderedAsBottomSheet && (
             <ButtonIcon
               size={ButtonIconSizes.Sm}
@@ -261,11 +261,11 @@ const PermissionsSummary = ({
   }
 
   const renderEndAccessory = () => (
-    <View accessibilityRole="none" accessible={false} testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}>
+    <View testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}>
       {isAlreadyConnected ? (
         <Icon size={IconSize.Md} name={IconName.ArrowRight} />
       ) : (
-        <View accessibilityRole="none" accessible={false} style={styles.editTextContainer}>
+        <View style={styles.editTextContainer}>
           <TextComponent
             color={TextColor.Primary}
             variant={TextVariant.BodyMDMedium}
@@ -374,12 +374,12 @@ const PermissionsSummary = ({
             backgroundColor={colors.shadow.default}
             iconColor={colors.icon.alternative}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.accountPermissionRequestDetails}>
+          <View style={styles.accountPermissionRequestDetails}>
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('permissions.see_your_accounts')}
             </TextComponent>
-            <View accessibilityRole="none" accessible={false} style={styles.permissionRequestAccountInfo}>
-              <View accessibilityRole="none" accessible={false} style={styles.permissionRequestAccountName}>
+            <View style={styles.permissionRequestAccountInfo}>
+              <View style={styles.permissionRequestAccountName}>
                 <TextComponent
                   testID={
                     PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
@@ -392,7 +392,7 @@ const PermissionsSummary = ({
                   </TextComponent>
                 </TextComponent>
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.avatarGroup}>
+              <View style={styles.avatarGroup}>
                 <AvatarGroup
                   avatarPropsList={accountAddresses.map((caipAccountId) => {
                     const { address } = parseCaipAccountId(caipAccountId);
@@ -420,7 +420,7 @@ const PermissionsSummary = ({
           ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON
         }
       >
-        <View accessibilityRole="none" accessible={false} style={styles.networkPermissionRequestInfoCard}>
+        <View style={styles.networkPermissionRequestInfoCard}>
           <Avatar
             style={styles.dataIcon}
             variant={AvatarVariant.Icon}
@@ -429,14 +429,14 @@ const PermissionsSummary = ({
             backgroundColor={colors.shadow.default}
             iconColor={colors.icon.alternative}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.networkPermissionRequestDetails}>
+          <View style={styles.networkPermissionRequestDetails}>
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('permissions.use_enabled_networks')}
             </TextComponent>
-            <View accessibilityRole="none" accessible={false} style={styles.permissionRequestNetworkInfo}>
+            <View style={styles.permissionRequestNetworkInfo}>
               {(isNetworkSwitch || isNonDappNetworkSwitch) && (
                 <>
-                  <View accessibilityRole="none" accessible={false} style={styles.permissionRequestNetworkName}>
+                  <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
                       <TextComponent variant={TextVariant.BodySM}>
                         {strings('permissions.requesting_for')}
@@ -468,14 +468,14 @@ const PermissionsSummary = ({
               )}
               {!isNetworkSwitch && !isNonDappNetworkSwitch && (
                 <>
-                  <View accessibilityRole="none" accessible={false} style={styles.permissionRequestNetworkName}>
+                  <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
                       <TextComponent variant={TextVariant.BodySM}>
                         {getNetworkLabel()}
                       </TextComponent>
                     </TextComponent>
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.avatarGroup}>
+                  <View style={styles.avatarGroup}>
                     <AvatarGroup
                       avatarPropsList={networkAvatars.map((avatar) => ({
                         ...avatar,
@@ -619,8 +619,8 @@ const PermissionsSummary = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View accessibilityRole="none" accessible={false} style={[styles.mainContainer, { minHeight: bottomSheetHeight }]}>
-        <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+      <View style={[styles.mainContainer, { minHeight: bottomSheetHeight }]}>
+        <View style={styles.contentContainer}>
           {renderHeader()}
           <View
             style={styles.title}
@@ -653,17 +653,17 @@ const PermissionsSummary = ({
             </TextComponent>
           )}
           {!nonTabView ? (
-            <View accessibilityRole="none" accessible={false} style={styles.tabsContainer}>{renderTabsContent()}</View>
+            <View style={styles.tabsContainer}>{renderTabsContent()}</View>
           ) : (
-            <View accessibilityRole="none" accessible={false} style={styles.container}>
+            <View style={styles.container}>
               {showAccountsOnly && renderAccountPermissionsRequestInfoCard()}
               {showPermissionsOnly && renderNetworkPermissionsRequestInfoCard()}
             </View>
           )}
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.bottomButtonsContainer}>
+        <View style={styles.bottomButtonsContainer}>
           {isAlreadyConnected && isDisconnectAllShown && (
-            <View accessibilityRole="none" accessible={false} style={styles.disconnectAllContainer}>
+            <View style={styles.disconnectAllContainer}>
               <Button
                 variant={ButtonVariants.Secondary}
                 testID={
@@ -681,7 +681,7 @@ const PermissionsSummary = ({
             </View>
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
-            <View accessibilityRole="none" accessible={false} style={styles.actionButtonsContainer}>
+            <View style={styles.actionButtonsContainer}>
               <StyledButton
                 type={'cancel'}
                 onPress={cancel}
@@ -710,8 +710,8 @@ const PermissionsSummary = ({
             </View>
           )}
           {isNonDappNetworkSwitch && (
-            <View accessibilityRole="none" accessible={false} style={styles.nonDappNetworkSwitchButtons}>
-              <View accessibilityRole="none" accessible={false} style={styles.actionButtonsContainer}>
+            <View style={styles.nonDappNetworkSwitchButtons}>
+              <View style={styles.actionButtonsContainer}>
                 <Button
                   variant={ButtonVariants.Primary}
                   label={strings('permissions.add_this_network')}
@@ -725,7 +725,7 @@ const PermissionsSummary = ({
                   }}
                 />
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.actionButtonsContainer}>
+              <View style={styles.actionButtonsContainer}>
                 <Button
                   variant={ButtonVariants.Secondary}
                   label={strings('permissions.choose_from_permitted_networks')}

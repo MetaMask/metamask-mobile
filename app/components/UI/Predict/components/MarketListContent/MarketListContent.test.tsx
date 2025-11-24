@@ -35,14 +35,14 @@ const mockUsePredictMarketData = usePredictMarketData as jest.MockedFunction<
 jest.mock('../PredictMarket', () => {
   const { View } = jest.requireActual('react-native');
   return jest.fn(({ market }) => (
-    <View accessibilityRole="none" accessible={false} testID={`predict-market-${market.id}`}>PredictMarket</View>
+    <View testID={`predict-market-${market.id}`}>PredictMarket</View>
   ));
 });
 
 jest.mock('../PredictOffline', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return jest.fn(({ onRetry }) => (
-    <View accessibilityRole="none" accessible={false} testID="predict-error-state">
+    <View testID="predict-error-state">
       <Text>Unable to connect to predictions</Text>
       <Text>
         Prediction markets are temporarily offline. Please check you have a

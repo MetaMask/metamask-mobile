@@ -9,7 +9,7 @@ exports[`TokenDetails should render correctly 1`] = `
     }
   }
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <Text
       accessibilityRole="text"
       style={
@@ -187,7 +187,7 @@ exports[`TokenDetails should render correctly 1`] = `
       </View>
     </View>
   </View>
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <Text
       accessibilityRole="text"
       style={

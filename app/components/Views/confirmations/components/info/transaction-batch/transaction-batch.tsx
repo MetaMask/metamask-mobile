@@ -22,7 +22,7 @@ const TransactionBatch = () => {
   const isWalletInitiated = transactionBatchesMetadata?.origin === MMM_ORIGIN;
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <AccountNetworkInfo />
       {!isWalletInitiated && <OriginRow />}
       <GasFeesDetailsRow disableUpdate />

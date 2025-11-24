@@ -41,7 +41,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
         showsVerticalScrollIndicator={false}
         style={{}}
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -502,7 +502,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
               </View>
             </View>
           </View>
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             <TouchableOpacity
               onPress={[MockFunction]}
               style={

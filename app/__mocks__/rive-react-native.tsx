@@ -54,7 +54,7 @@ const RiveMock = forwardRef<RiveRef, MockRiveProps>(
 
     useImperativeHandle(ref, () => methods, [methods]);
 
-    return <View accessibilityRole="none" accessible={false} testID={testID} {...viewProps} />;
+    return <View testID={testID} {...viewProps} />;
   },
 );
 

@@ -72,16 +72,16 @@ const TrendingTokensSkeleton: React.FC<TrendingTokensSkeletonProps> = ({
   return (
     <>
       {rows.map((index) => (
-        <View accessibilityRole="none" accessible={false} key={index} style={[styles.container, style]}>
-          <View accessibilityRole="none" accessible={false}>
+        <View key={index} style={[styles.container, style]}>
+          <View>
             <Skeleton
               height={iconSize}
               width={iconSize}
               style={styles.iconSkeleton}
             />
           </View>
-          <View accessibilityRole="none" accessible={false} style={[styles.leftContainer, { minHeight: iconSize }]}>
-            <View accessibilityRole="none" accessible={false} style={styles.tokenHeaderRow}>
+          <View style={[styles.leftContainer, { minHeight: iconSize }]}>
+            <View style={styles.tokenHeaderRow}>
               <Skeleton
                 height={16}
                 width="60%"
@@ -94,7 +94,7 @@ const TrendingTokensSkeleton: React.FC<TrendingTokensSkeletonProps> = ({
               style={styles.marketStatsSkeleton}
             />
           </View>
-          <View accessibilityRole="none" accessible={false} style={[styles.rightContainer, { minHeight: iconSize }]}>
+          <View style={[styles.rightContainer, { minHeight: iconSize }]}>
             <Skeleton height={16} width={80} style={styles.priceSkeleton} />
             <Skeleton
               height={14}

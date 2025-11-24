@@ -40,7 +40,7 @@ describe('BadgeNetwork', () => {
     };
     const sampleSize = AvatarSize.Md;
     const { getByTestId } = render(
-      <View accessibilityRole="none" accessible={false} style={containerSize}>
+      <View style={containerSize}>
         <BadgeNetwork
           {...SAMPLE_BADGENETWORK_PROPS}
           isScaled
@@ -66,7 +66,7 @@ describe('BadgeNetwork', () => {
     };
     const sampleSize = AvatarSize.Md;
     const { getByTestId } = render(
-      <View accessibilityRole="none" accessible={false} style={containerSize}>
+      <View style={containerSize}>
         <BadgeNetwork
           {...SAMPLE_BADGENETWORK_PROPS}
           isScaled={false}

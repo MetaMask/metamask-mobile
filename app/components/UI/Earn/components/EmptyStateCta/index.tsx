@@ -125,7 +125,7 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container} testID={EARN_EMPTY_STATE_CTA_TEST_ID}>
+    <View style={styles.container} testID={EARN_EMPTY_STATE_CTA_TEST_ID}>
       <Text variant={TextVariant.HeadingMD} style={styles.heading}>
         {strings('earn.empty_state_cta.heading', { tokenSymbol: token.symbol })}
       </Text>

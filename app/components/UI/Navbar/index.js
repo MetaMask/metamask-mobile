@@ -336,7 +336,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
           </Text>
         </TouchableOpacity>
       ) : (
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
@@ -379,7 +379,7 @@ export function getPaymentRequestOptionsTitle(
   return {
     headerTitleAlign: 'center',
     headerTitle: () => (
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
       </View>
     ),
@@ -398,7 +398,7 @@ export function getPaymentRequestOptionsTitle(
           />
         </TouchableOpacity>
       ) : (
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       ),
     headerRight: () => (
       <ButtonIcon
@@ -435,7 +435,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
   return {
     headerStyle: innerStyles.headerStyle,
     title: null,
-    headerLeft: () => <View accessibilityRole="none" accessible={false} />,
+    headerLeft: () => <View />,
     headerRight: () => (
       <TouchableOpacity
         // eslint-disable-next-line react/jsx-no-bind
@@ -517,7 +517,7 @@ export function getTransactionOptionsTitle(
           </Text>
         </TouchableOpacity>
       ) : (
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       ),
     headerRight: () =>
       name === 'Send' ? (
@@ -530,7 +530,7 @@ export function getTransactionOptionsTitle(
           <Text style={innerStyles.headerButtonText}>{rightText}</Text>
         </TouchableOpacity>
       ) : (
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
@@ -540,8 +540,8 @@ export function getTransactionOptionsTitle(
 export function getApproveNavbar(title) {
   return {
     headerTitle: () => <NavbarTitle title={title} disableNetwork />,
-    headerLeft: () => <View accessibilityRole="none" accessible={false} />,
-    headerRight: () => <View accessibilityRole="none" accessible={false} />,
+    headerLeft: () => <View />,
+    headerRight: () => <View />,
   };
 }
 
@@ -637,7 +637,7 @@ export function getSendFlowTitle({
           </Text>
         </TouchableOpacity>
       ) : (
-        <View accessibilityRole="none" accessible={false} />
+        <View />
       ),
     headerStyle: innerStyles.headerStyle,
   };
@@ -670,9 +670,9 @@ export function getOnboardingNavbarOptions(
   showLogo = true,
 ) {
   const headerLeftHide =
-    headerLeft || route.params?.headerLeft || (() => <View accessibilityRole="none" accessible={false} />);
+    headerLeft || route.params?.headerLeft || (() => <View />);
   const headerRightHide =
-    headerRight || route.params?.headerRight || (() => <View accessibilityRole="none" accessible={false} />);
+    headerRight || route.params?.headerRight || (() => <View />);
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -690,7 +690,7 @@ export function getOnboardingNavbarOptions(
     headerStyle: innerStyles.headerStyle,
     headerTitle: showLogo
       ? () => (
-          <View accessibilityRole="none" accessible={false} style={styles.metamaskNameTransparentWrapper}>
+          <View style={styles.metamaskNameTransparentWrapper}>
             <Image
               source={metamask_name}
               style={innerStyles.metamaskName}
@@ -735,7 +735,7 @@ export function getTransparentOnboardingNavbarOptions(
   return {
     headerTitle: () =>
       showLogo ? (
-        <View accessibilityRole="none" accessible={false} style={styles.metamaskNameTransparentWrapper}>
+        <View style={styles.metamaskNameTransparentWrapper}>
           <Image
             source={metamask_name}
             style={innerStyles.metamaskName}
@@ -743,8 +743,8 @@ export function getTransparentOnboardingNavbarOptions(
           />
         </View>
       ) : null,
-    headerLeft: () => <View accessibilityRole="none" accessible={false} />,
-    headerRight: () => <View accessibilityRole="none" accessible={false} />,
+    headerLeft: () => <View />,
+    headerRight: () => <View />,
     headerStyle: innerStyles.headerStyle,
   };
 }
@@ -770,7 +770,7 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
   });
   return {
     headerTitle: () => (
-      <View accessibilityRole="none" accessible={false} style={styles.metamaskNameTransparentWrapper}>
+      <View style={styles.metamaskNameTransparentWrapper}>
         <Image
           source={metamask_name}
           style={innerStyles.metamaskName}
@@ -779,7 +779,7 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
       </View>
     ),
     headerBackTitle: strings('navigation.back'),
-    headerRight: () => <View accessibilityRole="none" accessible={false} />,
+    headerRight: () => <View />,
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
@@ -807,7 +807,7 @@ export function getOptinMetricsNavbarOptions(themeColors, showLogo = true) {
   return {
     headerTitle: () =>
       showLogo ? (
-        <View accessibilityRole="none" accessible={false} style={styles.metamaskNameTransparentWrapper}>
+        <View style={styles.metamaskNameTransparentWrapper}>
           <Image
             source={metamask_name}
             style={innerStyles.metamaskName}
@@ -816,8 +816,8 @@ export function getOptinMetricsNavbarOptions(themeColors, showLogo = true) {
         </View>
       ) : null,
     headerBackTitle: strings('navigation.back'),
-    headerRight: () => <View accessibilityRole="none" accessible={false} />,
-    headerLeft: () => <View accessibilityRole="none" accessible={false} />,
+    headerRight: () => <View />,
+    headerLeft: () => <View />,
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
@@ -1089,7 +1089,7 @@ export function getWalletNavbarOptions(
         variant={HeaderBaseVariant.Display}
         startAccessory={
           !isFeatureFlagEnabled && (
-            <View accessibilityRole="none" accessible={false} style={innerStyles.startAccessoryContainer}>
+            <View style={innerStyles.startAccessoryContainer}>
               <PickerNetwork
                 onPress={onPressTitle}
                 label={networkName}
@@ -1103,9 +1103,9 @@ export function getWalletNavbarOptions(
           )
         }
         endAccessory={
-          <View accessibilityRole="none" accessible={false} style={innerStyles.endAccessoryContainer}>
+          <View style={innerStyles.endAccessoryContainer}>
             {
-              <View accessibilityRole="none" accessible={false} style={innerStyles.actionButtonsContainer}>
+              <View style={innerStyles.actionButtonsContainer}>
                 <View
                   testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
                 >
@@ -1252,7 +1252,7 @@ export function getNftDetailsNavbarOptions(
             />
           </TouchableOpacity>
         )
-      : () => <View accessibilityRole="none" accessible={false} />,
+      : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
       contentOffset && innerStyles.headerShadow,
@@ -1298,7 +1298,7 @@ export function getNftFullImageNavbarOptions(
         />
       </TouchableOpacity>
     ),
-    headerLeft: () => <View accessibilityRole="none" accessible={false} />,
+    headerLeft: () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
       contentOffset && innerStyles.headerShadow,
@@ -1352,7 +1352,7 @@ export function getNetworkNavbarOptions(
             />
           ) : (
             // Empty View to maintain layout spacing without showing a button
-            <View accessibilityRole="none" accessible={false} style={styles.headerRightButton} />
+            <View style={styles.headerRightButton} />
           )
         }
       >
@@ -1470,7 +1470,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
         {strings('fiat_on_ramp.purchase_method')}
       </Text>
     ),
-    headerLeft: () => <View accessibilityRole="none" accessible={false} />,
+    headerLeft: () => <View />,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
@@ -1645,7 +1645,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
         showSelectedNetwork={!isRemoveGlobalNetworkSelectorEnabled()}
       />
     ),
-    headerLeft: () => <View accessibilityRole="none" accessible={false} />,
+    headerLeft: () => <View />,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
@@ -1801,7 +1801,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     // This allows us to center align the title on Android devices.
     headerLeft: Device.isAndroid()
       ? () => (
-          <View accessibilityRole="none" accessible={false} style={[styles.closeButton, styles.hidden]}>
+          <View style={[styles.closeButton, styles.hidden]}>
             <Icon
               name={IconName.Close}
               size={IconSize.Lg}
@@ -1876,7 +1876,7 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
         size={ButtonIconSize.Lg}
       />
     ),
-    headerRight: () => <View accessibilityRole="none" accessible={false} style={innerStyles.rightSpacer} />,
+    headerRight: () => <View style={innerStyles.rightSpacer} />,
   };
 }
 
@@ -2158,12 +2158,12 @@ export function getStakingNavbar(
 
   return {
     headerTitle: () => (
-      <View accessibilityRole="none" accessible={false} style={innerStyles.headerTitle}>
+      <View style={innerStyles.headerTitle}>
         <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
         {
           ///: BEGIN:ONLY_INCLUDE_IF(tron)
           earnToken && (
-            <View accessibilityRole="none" accessible={false} style={innerStyles.headerTitleBalanceAndAPR}>
+            <View style={innerStyles.headerTitleBalanceAndAPR}>
               <MorphText
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Alternative}
@@ -2262,7 +2262,7 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
       <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
     ),
     headerLeft: () => (
-      <View accessibilityRole="none" accessible={false} style={innerStyles.headerLeft}>
+      <View style={innerStyles.headerLeft}>
         <ButtonIcon
           testID={testID}
           iconName={IconName.ArrowLeft}

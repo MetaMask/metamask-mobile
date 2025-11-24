@@ -17,7 +17,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
@@ -270,7 +270,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
@@ -523,7 +523,7 @@ exports[`TokenNetworkFilterBar renders correctly with partial networks selected 
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
@@ -774,7 +774,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
   onGestureHandlerStateChange={[Function]}
   showsHorizontalScrollIndicator={false}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}

@@ -409,11 +409,11 @@ const SearchTokenAutocomplete = ({
   ]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       {renderTokenDetectionBanner()}
 
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
-        <View accessibilityRole="none" accessible={false} style={styles.searchInput}>
+      <View style={styles.content}>
+        <View style={styles.searchInput}>
           <AssetSearch
             onSearch={handleSearch}
             onFocus={() => {
@@ -435,7 +435,7 @@ const SearchTokenAutocomplete = ({
         />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={styles.button}>
+      <View style={styles.button}>
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}

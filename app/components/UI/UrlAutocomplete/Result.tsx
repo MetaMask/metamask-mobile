@@ -56,7 +56,7 @@ export const Result: React.FC<ResultProps> = memo(
 
     return (
       <TouchableOpacity style={styles.item} onPress={onPress}>
-        <View accessibilityRole="none" accessible={false} style={styles.itemWrapper}>
+        <View style={styles.itemWrapper}>
           {result.category === UrlAutocompleteCategory.Tokens ? (
             <BadgeWrapper
               badgeElement={
@@ -81,7 +81,7 @@ export const Result: React.FC<ResultProps> = memo(
               textStyle={styles.fallbackTextStyle}
             />
           )}
-          <View accessibilityRole="none" accessible={false} style={styles.textContent}>
+          <View style={styles.textContent}>
             <Text style={styles.name} numberOfLines={1}>
               {result.name}
             </Text>
@@ -100,7 +100,7 @@ export const Result: React.FC<ResultProps> = memo(
             />
           )}
           {result.category === UrlAutocompleteCategory.Tokens && (
-            <View accessibilityRole="none" accessible={false} style={styles.priceContainer}>
+            <View style={styles.priceContainer}>
               <Text style={styles.price}>
                 {addCurrencySymbol(result.price, currentCurrency, true)}
               </Text>

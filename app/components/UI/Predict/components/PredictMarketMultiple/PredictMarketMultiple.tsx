@@ -154,7 +154,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         });
       }}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.marketContainer}>
+      <View style={styles.marketContainer}>
         <Box>
           <Box
             flexDirection={BoxFlexDirection.Row}

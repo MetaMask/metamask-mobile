@@ -328,7 +328,7 @@ exports[`NftDetails should render correctly 1`] = `
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             style={
                               {
@@ -372,7 +372,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     }
                                     testID="badge-wrapper-badge"
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         style={
                                           [
@@ -497,7 +497,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 </View>
                               </View>
                             </TouchableOpacity>
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   {
@@ -1243,7 +1243,7 @@ exports[`NftDetails should render correctly 1`] = `
                                   ]
                                 }
                               >
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -1260,7 +1260,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     Title
                                   </Text>
                                 </View>
-                                <View accessibilityRole="none" accessible={false}>
+                                <View>
                                   <Text
                                     accessibilityRole="text"
                                     style={

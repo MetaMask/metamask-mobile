@@ -10,7 +10,7 @@ exports[`AssetDetails renders correctly 1`] = `
     }
   }
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <Text
       style={
         [

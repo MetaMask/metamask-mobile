@@ -91,7 +91,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <View
                     style={
                       {
@@ -312,7 +312,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               stickyHeaderIndices={[]}
               viewabilityConfigCallbackPairs={[]}
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   onFocusCapture={[Function]}
                   onLayout={[Function]}
@@ -1226,7 +1226,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <View
                     style={
                       {
@@ -1443,7 +1443,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               stickyHeaderIndices={[]}
               viewabilityConfigCallbackPairs={[]}
             >
-              <View accessibilityRole="none" accessible={false} />
+              <View />
             </RCTScrollView>
           </View>
           <TouchableOpacity
@@ -1946,7 +1946,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <View
                     style={
                       {
@@ -3186,7 +3186,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <View
                     style={
                       {
@@ -3407,7 +3407,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
               stickyHeaderIndices={[]}
               viewabilityConfigCallbackPairs={[]}
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   onFocusCapture={[Function]}
                   onLayout={[Function]}
@@ -4321,7 +4321,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 }
                 testID="badge-wrapper-badge"
               >
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   <View
                     style={
                       {
@@ -4542,7 +4542,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
               stickyHeaderIndices={[]}
               viewabilityConfigCallbackPairs={[]}
             >
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <View
                   onFocusCapture={[Function]}
                   onLayout={[Function]}

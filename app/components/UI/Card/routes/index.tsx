@@ -48,7 +48,7 @@ export const cardDefaultNavigationOptions = ({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }): StackNavigationOptions => ({
-  headerLeft: () => <View accessibilityRole="none" accessible={false} />,
+  headerLeft: () => <View />,
   headerTitle: () => (
     <Text
       variant={TextVariant.HeadingSM}
@@ -90,7 +90,7 @@ export const cardAuthenticationNavigationOptions = ({
       {strings('card.card')}
     </Text>
   ),
-  headerRight: () => <View accessibilityRole="none" accessible={false} />,
+  headerRight: () => <View />,
 });
 
 export const cardSpendingLimitNavigationOptions = ({
@@ -124,7 +124,7 @@ export const cardSpendingLimitNavigationOptions = ({
         {strings(titleKey)}
       </Text>
     ),
-    headerRight: () => <View accessibilityRole="none" accessible={false} />,
+    headerRight: () => <View />,
   };
 };
 

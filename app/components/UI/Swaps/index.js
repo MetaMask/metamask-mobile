@@ -729,8 +729,8 @@ function SwapsAmountView({
           onPress={onNetworkSelectorPress}
         />
       ) : null}
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
-        <View accessibilityRole="none" accessible={false} style={styles.accountSelector}>
+      <View style={styles.content}>
+        <View style={styles.accountSelector}>
           <AccountSelector />
         </View>
         <View
@@ -812,13 +812,13 @@ function SwapsAmountView({
           ]}
           pointerEvents={disabledView ? 'none' : 'auto'}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.horizontalRule} />
+          <View style={styles.horizontalRule} />
           <TouchableOpacity onPress={handleFlipTokens}>
             <IonicIcon style={styles.arrowDown} name="arrow-down" />
           </TouchableOpacity>
-          <View accessibilityRole="none" accessible={false} style={styles.horizontalRule} />
+          <View style={styles.horizontalRule} />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.tokenButtonContainer}>
+        <View style={styles.tokenButtonContainer}>
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
           ) : (
@@ -849,7 +849,7 @@ function SwapsAmountView({
             excludeAddresses={[sourceToken?.address]}
           />
         </View>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           {Boolean(destinationToken) &&
           !isSwapsNativeAsset(destinationToken) ? (
             destinationTokenHasEnoughOcurrances ? (
@@ -952,8 +952,8 @@ function SwapsAmountView({
             currency="native"
           />
         </AnimatableView>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
-          <View accessibilityRole="none" accessible={false} style={styles.column}>
+        <View style={styles.buttonsContainer}>
+          <View style={styles.column}>
             <TouchableOpacity
               onPress={toggleSlippageModal}
               hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
@@ -970,8 +970,8 @@ function SwapsAmountView({
               </Text>
             </TouchableOpacity>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.column}>
-            <View accessibilityRole="none" accessible={false} style={styles.ctaContainer}>
+          <View style={styles.column}>
+            <View style={styles.ctaContainer}>
               <StyledButton
                 type="blue"
                 onPress={handleGetQuotesPress}

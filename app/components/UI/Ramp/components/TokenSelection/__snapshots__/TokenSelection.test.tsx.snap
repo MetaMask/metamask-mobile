@@ -351,7 +351,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                           onGestureHandlerStateChange={[Function]}
                           showsHorizontalScrollIndicator={false}
                         >
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
@@ -771,7 +771,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                         }
                         viewabilityConfigCallbackPairs={[]}
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <TouchableOpacity
                             disabled={true}
                             style={
@@ -1183,7 +1183,7 @@ exports[`TokenSelection Component marks token as selected when selectedCryptoAss
                           onGestureHandlerStateChange={[Function]}
                           showsHorizontalScrollIndicator={false}
                         >
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
@@ -1606,7 +1606,7 @@ exports[`TokenSelection Component marks token as selected when selectedCryptoAss
                         }
                         viewabilityConfigCallbackPairs={[]}
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
@@ -1661,7 +1661,7 @@ exports[`TokenSelection Component marks token as selected when selectedCryptoAss
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {
@@ -1903,7 +1903,7 @@ exports[`TokenSelection Component marks token as selected when selectedCryptoAss
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {
@@ -2118,7 +2118,7 @@ exports[`TokenSelection Component marks token as selected when selectedCryptoAss
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {
@@ -2333,7 +2333,7 @@ exports[`TokenSelection Component marks token as selected when selectedCryptoAss
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {
@@ -2548,7 +2548,7 @@ exports[`TokenSelection Component marks token as selected when selectedCryptoAss
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {
@@ -3075,7 +3075,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                           onGestureHandlerStateChange={[Function]}
                           showsHorizontalScrollIndicator={false}
                         >
-                          <View accessibilityRole="none" accessible={false}>
+                          <View>
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
@@ -3497,7 +3497,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                         }
                         viewabilityConfigCallbackPairs={[]}
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
@@ -3552,7 +3552,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {
@@ -3767,7 +3767,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {
@@ -3982,7 +3982,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {
@@ -4197,7 +4197,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {
@@ -4412,7 +4412,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       }
                                       testID="badge-wrapper-badge"
                                     >
-                                      <View accessibilityRole="none" accessible={false}>
+                                      <View>
                                         <View
                                           style={
                                             {

@@ -347,16 +347,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         activeOpacity={expanded ? 1 : 0.2}
       >
         {/* Header - Always shown */}
-        <View accessibilityRole="none" accessible={false} style={[styles.header, expanded && styles.headerExpanded]}>
+        <View style={[styles.header, expanded && styles.headerExpanded]}>
           {/* Icon Section - Conditionally shown (only in collapsed mode) */}
           {showIcon && !expanded && (
-            <View accessibilityRole="none" accessible={false} style={styles.perpIcon}>
+            <View style={styles.perpIcon}>
               <PerpsTokenLogo symbol={position.coin} size={40} />
             </View>
           )}
 
-          <View accessibilityRole="none" accessible={false} style={styles.headerLeft}>
-            <View accessibilityRole="none" accessible={false} style={styles.headerRow}>
+          <View style={styles.headerLeft}>
+            <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {getPerpsDisplaySymbol(position.coin)} {position.leverage.value}
                 x{' '}
@@ -367,7 +367,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
               </Text>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.headerRow}>
+            <View style={styles.headerRow}>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {formatPositionSize(absoluteSize.toString())}{' '}
                 {getPerpsDisplaySymbol(position.coin)}
@@ -375,15 +375,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </View>
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.headerRight}>
-            <View accessibilityRole="none" accessible={false} style={styles.headerRow}>
+          <View style={styles.headerRight}>
+            <View style={styles.headerRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPerpsFiat(position.positionValue, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,
                 })}
               </Text>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.headerRow}>
+            <View style={styles.headerRow}>
               <Text
                 variant={TextVariant.BodySM}
                 color={pnlNum >= 0 ? TextColor.Success : TextColor.Error}
@@ -396,15 +396,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           {/* Right Accessory - Conditionally shown */}
           {rightAccessory && (
-            <View accessibilityRole="none" accessible={false} style={styles.rightAccessory}>{rightAccessory}</View>
+            <View style={styles.rightAccessory}>{rightAccessory}</View>
           )}
         </View>
 
         {/* Body - Only shown when expanded */}
         {expanded && (
-          <View accessibilityRole="none" accessible={false} style={styles.body}>
-            <View accessibilityRole="none" accessible={false} style={styles.bodyRow}>
-              <View accessibilityRole="none" accessible={false} style={styles.bodyItem}>
+          <View style={styles.body}>
+            <View style={styles.bodyRow}>
+              <View style={styles.bodyItem}>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -417,7 +417,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   })}
                 </Text>
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.bodyItem}>
+              <View style={styles.bodyItem}>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -433,7 +433,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                     : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
                 </Text>
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.bodyItem}>
+              <View style={styles.bodyItem}>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -448,8 +448,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </View>
             </View>
 
-            <View accessibilityRole="none" accessible={false} style={[styles.bodyRow, styles.bodyRowLast]}>
-              <View accessibilityRole="none" accessible={false} style={styles.bodyItem}>
+            <View style={[styles.bodyRow, styles.bodyRowLast]}>
+              <View style={styles.bodyItem}>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -458,7 +458,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
                 <>{renderTakeProfitText}</>
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.bodyItem}>
+              <View style={styles.bodyItem}>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -467,8 +467,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
                 <>{renderStopLossText}</>
               </View>
-              <View accessibilityRole="none" accessible={false} style={styles.bodyItem}>
-                <View accessibilityRole="none" accessible={false} style={styles.fundingCostLabelFlex}>
+              <View style={styles.bodyItem}>
+                <View style={styles.fundingCostLabelFlex}>
                   <Text
                     variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
@@ -501,7 +501,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         {/* Footer - Only shown when expanded */}
         {expanded && (
-          <View accessibilityRole="none" accessible={false} style={styles.footer}>
+          <View style={styles.footer}>
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
@@ -541,8 +541,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         )}
       </TouchableOpacity>
       {isTPSLCountWarningVisible && (
-        // Android Compatibility: Wrap the <Modal> in a plain <View accessibilityRole="none" accessible={false}> component to prevent rendering issues and freezing.
-        <View accessibilityRole="none" accessible={false}>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
           <Modal visible transparent animationType="fade">
             <PerpsBottomSheetTooltip
               isVisible
@@ -575,8 +575,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         </View>
       )}
       {isEligibilityModalVisible && (
-        // Android Compatibility: Wrap the <Modal> in a plain <View accessibilityRole="none" accessible={false}> component to prevent rendering issues and freezing.
-        <View accessibilityRole="none" accessible={false}>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
           <Modal visible transparent animationType="fade">
             <PerpsBottomSheetTooltip
               isVisible

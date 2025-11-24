@@ -55,7 +55,7 @@ export const NetworkAndOriginRow = () => {
         label={strings('transactions.network')}
         style={styles.infoRowOverride}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.networkRowContainer}>
+        <View style={styles.networkRowContainer}>
           {networkImage && (
             <AvatarNetwork
               size={AvatarSize.Xs}

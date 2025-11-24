@@ -34,7 +34,7 @@ exports[`Onboarding renders correctly 1`] = `
       }
     }
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -193,7 +193,7 @@ exports[`Onboarding renders correctly 1`] = `
     }
     testID="fox-animation-mock"
   />
-  <View accessibilityRole="none" accessible={false} />
+  <View />
 </RNCSafeAreaView>
 `;
 
@@ -231,7 +231,7 @@ exports[`Onboarding renders correctly with android 1`] = `
       }
     }
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -390,7 +390,7 @@ exports[`Onboarding renders correctly with android 1`] = `
     }
     testID="fox-animation-mock"
   />
-  <View accessibilityRole="none" accessible={false} />
+  <View />
 </RNCSafeAreaView>
 `;
 
@@ -428,7 +428,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
       }
     }
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -587,7 +587,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
     }
     testID="fox-animation-mock"
   />
-  <View accessibilityRole="none" accessible={false} />
+  <View />
 </RNCSafeAreaView>
 `;
 
@@ -625,7 +625,7 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
       }
     }
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -784,6 +784,6 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
     }
     testID="fox-animation-mock"
   />
-  <View accessibilityRole="none" accessible={false} />
+  <View />
 </RNCSafeAreaView>
 `;

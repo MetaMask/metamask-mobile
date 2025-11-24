@@ -33,7 +33,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem}>
-        <View accessibilityRole="none" accessible={false} pointerEvents={'auto'}>
+        <View pointerEvents={'auto'}>
           <Checkbox
             style={styles.checkbox}
             isChecked={isSelected}
@@ -43,7 +43,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
         {children}
       </ListItem>
       {isSelected && (
-        <View accessibilityRole="none" accessible={false} style={styles.underlay} accessibilityRole="checkbox" accessible />
+        <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
     </TouchableOpacity>
   );

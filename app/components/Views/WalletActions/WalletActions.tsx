@@ -168,7 +168,7 @@ const WalletActions = () => {
   }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
   return (
     <BottomSheet ref={sheetRef}>
-      <View accessibilityRole="none" accessible={false} style={styles.actionsContainer}>
+      <View style={styles.actionsContainer}>
         {AppConstants.SWAPS.ACTIVE && (
           <ActionListItem
             label={strings('asset_overview.swap')}

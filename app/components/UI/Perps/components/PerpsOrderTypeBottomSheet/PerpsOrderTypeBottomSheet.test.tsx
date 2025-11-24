@@ -101,7 +101,7 @@ jest.mock(
         }));
 
         return (
-          <View accessibilityRole="none" accessible={false} testID="bottom-sheet" onTouchStart={onClose}>
+          <View testID="bottom-sheet" onTouchStart={onClose}>
             {children}
           </View>
         );
@@ -122,7 +122,7 @@ jest.mock(
       children: React.ReactNode;
       onClose: () => void;
     }) => (
-      <View accessibilityRole="none" accessible={false} testID="bottom-sheet-header">
+      <View testID="bottom-sheet-header">
         <TouchableOpacity testID="header-close-button" onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>

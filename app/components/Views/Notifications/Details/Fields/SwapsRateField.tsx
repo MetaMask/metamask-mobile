@@ -22,7 +22,7 @@ function SwapsRateField(props: SwapsRateFieldProps) {
   const { styles, theme } = useStyles();
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.row}>
+    <View style={styles.row}>
       <Avatar
         variant={AvatarVariant.Icon}
         size={AvatarSize.Md}
@@ -31,7 +31,7 @@ function SwapsRateField(props: SwapsRateFieldProps) {
         backgroundColor={theme.colors.info.muted}
         iconColor={IconColor.Info}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.boxLeft}>
+      <View style={styles.boxLeft}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('notifications.rate')}
         </Text>

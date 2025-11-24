@@ -179,13 +179,13 @@ const ImportPrivateKey = () => {
             style={styles.navbarRightButton}
             testID={ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.top}>
+          <View style={styles.top}>
             <Icon
               name={IconName.Download}
               size={IconSize.XXL}
               color={IconColor.Default}
             />
-            <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
+            <View style={styles.textContainer}>
               <Text style={styles.title}>
                 {strings('import_private_key.title')}
               </Text>
@@ -219,7 +219,7 @@ const ImportPrivateKey = () => {
               )}
             </View>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.bottom}>
+          <View style={styles.bottom}>
             <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
               {strings('import_private_key.subtitle')}
             </Text>
@@ -238,7 +238,7 @@ const ImportPrivateKey = () => {
               autoCapitalize={'none'}
               keyboardAppearance={themeAppearance}
             />
-            <View accessibilityRole="none" accessible={false} style={styles.scanPkeyRow}>
+            <View style={styles.scanPkeyRow}>
               <Button
                 onPress={scanPkey}
                 label={strings('import_private_key.or_scan_a_qr_code')}
@@ -248,7 +248,7 @@ const ImportPrivateKey = () => {
             </View>
           </View>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
+        <View style={styles.buttonWrapper}>
           <Button
             onPress={() => goNext()}
             label={strings('import_private_key.cta_text')}

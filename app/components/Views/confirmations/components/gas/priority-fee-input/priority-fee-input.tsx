@@ -84,7 +84,7 @@ export const PriorityFeeInput = ({
   const feeRangesExists = latestPriorityFeeRange && historicalPriorityFeeRange;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <TextFieldWithLabel
         endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
         error={error}
@@ -96,7 +96,7 @@ export const PriorityFeeInput = ({
         value={value}
       />
       {feeRangesExists && (
-        <View accessibilityRole="none" accessible={false} style={styles.infoContainer} testID="info-container">
+        <View style={styles.infoContainer} testID="info-container">
           <InfoLabel>
             {strings('transactions.gas_modal.current_priority_fee', {
               min: limitToMaximumDecimalPlaces(

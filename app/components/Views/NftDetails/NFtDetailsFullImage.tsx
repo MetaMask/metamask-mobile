@@ -27,7 +27,7 @@ const NftDetailsFullImage = () => {
 
   return (
     <SafeAreaView style={[styles.fullImageContainer]}>
-      <View accessibilityRole="none" accessible={false} style={[styles.fullImageItem]}>
+      <View style={[styles.fullImageItem]}>
         <CollectibleMedia cover renderAnimation collectible={collectible} />
       </View>
     </SafeAreaView>

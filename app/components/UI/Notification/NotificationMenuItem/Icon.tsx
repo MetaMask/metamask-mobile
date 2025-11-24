@@ -46,7 +46,7 @@ function MenuIcon(props: NotificationIconProps) {
   }, [props.image?.url]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[menuIconStyles.style, tw`p-1`]} testID={TEST_IDS.ICON}>
+    <View style={[menuIconStyles.style, tw`p-1`]} testID={TEST_IDS.ICON}>
       <Image source={source} style={tw`m-auto size-full`} />
     </View>
   );
@@ -79,7 +79,7 @@ function NotificationIcon(props: NotificationIconProps) {
 
   return (
     <React.Fragment>
-      <View accessibilityRole="none" accessible={false} style={styles.itemLogoSize} testID={TEST_IDS.CONTAINER}>
+      <View style={styles.itemLogoSize} testID={TEST_IDS.CONTAINER}>
         <MaybeBadgeContainer>
           <MenuIcon {...props} />
         </MaybeBadgeContainer>

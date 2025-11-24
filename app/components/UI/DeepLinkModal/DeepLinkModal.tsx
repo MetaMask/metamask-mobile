@@ -57,13 +57,13 @@ import {
 const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
   if (linkType === DeepLinkModalLinkType.INVALID) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.pageNotFoundImageContainer}>
+      <View style={styles.pageNotFoundImageContainer}>
         <Image source={pageNotFound} style={styles.pageNotFoundImage} />
       </View>
     );
   }
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.foxImageContainer}>
+    <View style={styles.foxImageContainer}>
       <Image source={foxLogo} style={styles.foxImage} />
     </View>
   );
@@ -83,7 +83,7 @@ const ModalDescription = memo<{
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.description}>
+    <View style={styles.description}>
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}

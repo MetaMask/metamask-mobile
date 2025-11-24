@@ -44,13 +44,13 @@ const NftDetailsBox = (props: NftDetailsBoxProps) => {
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.inputWrapper]}>
+    <View style={[styles.inputWrapper]}>
       {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
-      <View accessibilityRole="none" accessible={false} style={titleStyle}>
+      <View style={titleStyle}>
         <Text style={titleTextStyle}>{title}</Text>
       </View>
       {icon ? (
-        <View accessibilityRole="none" accessible={false} style={styles.valueWithIcon}>
+        <View style={styles.valueWithIcon}>
           {onValuePress ? (
             <TouchableOpacity onPress={onValuePress}>
               <Text style={valueTextStyle}>{value}</Text>

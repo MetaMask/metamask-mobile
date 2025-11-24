@@ -63,7 +63,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
   }, [children, hideChildren]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.base} {...props}>
+    <View style={styles.base} {...props}>
       {/* Animated background always present */}
       <Animated.View
         style={[styles.background, { opacity: opacityAnim }]}

@@ -96,7 +96,7 @@ const ProgressStepper = ({
             size={AvatarSize.Sm}
             testID={PROGRESS_STEPPER_TEST_IDS.STEP_ICON.LOADING}
           >
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <Loader color={theme.colors.primary.inverse} size={'small'} />
             </View>
           </AvatarBase>
@@ -133,7 +133,7 @@ const ProgressStepper = ({
   );
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Svg height={height} width={'100%'}>
         <Line
           x1="0"
@@ -153,7 +153,7 @@ const ProgressStepper = ({
           strokeWidth={strokeWidth}
         />
       </Svg>
-      <View accessibilityRole="none" accessible={false} style={styles.allStepsContainer}>
+      <View style={styles.allStepsContainer}>
         {steps.map(({ label, isLoading }, index) => (
           <View
             style={styles.stepContainer}

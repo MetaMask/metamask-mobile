@@ -110,7 +110,7 @@ const TextField = React.forwardRef<
 
     return (
       <TouchableWithoutFeedback onPress={onInputFocus}>
-        <View accessibilityRole="none" accessible={false} style={styles.base} testID={TEXTFIELD_TEST_ID}>
+        <View style={styles.base} testID={TEXTFIELD_TEST_ID}>
           {startAccessory && (
             <View
               style={styles.startAccessory}
@@ -119,7 +119,7 @@ const TextField = React.forwardRef<
               {startAccessory}
             </View>
           )}
-          <View accessibilityRole="none" accessible={false} style={[styles.input, styles.inputContainer]}>
+          <View style={[styles.input, styles.inputContainer]}>
             {inputElement ?? (
               <Input
                 textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}

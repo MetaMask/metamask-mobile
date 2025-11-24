@@ -46,7 +46,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Box: ({ children, testID, ...props }: any) => (
-      <View accessibilityRole="none" accessible={false} testID={testID} {...props}>
+      <View testID={testID} {...props}>
         {children}
       </View>
     ),

@@ -44,9 +44,9 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
     : undefined;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.accountItem}>
-      {isSelected && <View accessibilityRole="none" accessible={false} style={styles.selectedIndicator} />}
-      <View accessibilityRole="none" accessible={false} style={styles.accountCellWrapper}>
+    <View style={styles.accountItem}>
+      {isSelected && <View style={styles.selectedIndicator} />}
+      <View style={styles.accountCellWrapper}>
         <TouchableOpacity
           onPress={onPress}
           style={styles.externalAccountContainer}
@@ -56,7 +56,7 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
             type={avatarAccountType}
             size={AvatarSize.Md}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.textContainer}>
+          <View style={styles.textContainer}>
             <Text
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Default}
@@ -73,7 +73,7 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
             </Text>
           </View>
           {networkImageSource && (
-            <View accessibilityRole="none" accessible={false} style={styles.networkAvatarContainer}>
+            <View style={styles.networkAvatarContainer}>
               <Avatar
                 variant={AvatarVariant.Network}
                 size={AvatarSize.Xs}

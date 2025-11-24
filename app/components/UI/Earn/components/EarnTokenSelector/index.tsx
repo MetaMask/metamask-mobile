@@ -103,7 +103,7 @@ const EarnTokenSelector = ({
   };
 
   const renderStartAccessory = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.startAccessoryContainer}>
+    <View style={styles.startAccessoryContainer}>
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
@@ -131,7 +131,7 @@ const EarnTokenSelector = ({
   );
 
   const renderEndAccessory = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.endAccessoryContainer}>
+    <View style={styles.endAccessoryContainer}>
       {apr ? (
         <Text
           variant={TextVariant.BodyMDMedium}

@@ -62,8 +62,8 @@ const PerpsNotificationBottomSheet: React.FC<
       onClose={onClose}
       testID={testID}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
-        <View accessibilityRole="none" accessible={false} style={styles.header}>
+      <View style={styles.container}>
+        <View style={styles.header}>
           <Text variant={TextVariant.HeadingMD} style={styles.title}>
             {strings('perps.tooltips.notifications.title')}
           </Text>

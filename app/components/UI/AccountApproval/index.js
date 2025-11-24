@@ -328,7 +328,7 @@ class AccountApproval extends PureComponent {
             </Text>
           </>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.accountCardWrapper}>
+        <View style={styles.accountCardWrapper}>
           <AccountInfoCard fromAddress={selectedAddress} />
         </View>
         {currentPageInformation.reconnect && (
@@ -339,7 +339,7 @@ class AccountApproval extends PureComponent {
           </Text>
         )}
         {this.state.otp && (
-          <View accessibilityRole="none" accessible={false} style={styles.otpContainer}>
+          <View style={styles.otpContainer}>
             {this.state.otps.map((otpValue, index) => (
               <TouchableOpacity
                 key={`otp${index}`}
@@ -362,7 +362,7 @@ class AccountApproval extends PureComponent {
           </View>
         )}
         {hasRememberMe && (
-          <View accessibilityRole="none" accessible={false} style={styles.rememberme}>
+          <View style={styles.rememberme}>
             <CheckBox
               style={styles.rememberCheckbox}
               value={this.state.noPersist}
@@ -380,7 +380,7 @@ class AccountApproval extends PureComponent {
             </Text>
           </View>
         )}
-        <View accessibilityRole="none" accessible={false} style={styles.actionContainer}>
+        <View style={styles.actionContainer}>
           <StyledButton
             type={'cancel'}
             onPress={this.onCancel}

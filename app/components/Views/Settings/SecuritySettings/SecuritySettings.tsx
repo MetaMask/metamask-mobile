@@ -89,7 +89,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <View accessibilityRole="none" accessible={false} style={[styles.setting, first && styles.firstSetting]}>
+    <View style={[styles.setting, first && styles.firstSetting]}>
       <Text variant={TextVariant.HeadingLG} style={styles.heading}>
         {children}
       </Text>
@@ -116,7 +116,7 @@ const Settings: React.FC = () => {
   );
 
   const scrollViewRef = useRef<ScrollView>(null);
-  const detectNftComponentRef = useRef<View accessibilityRole="none" accessible={false}>(null);
+  const detectNftComponentRef = useRef<View>(null);
   const {
     disableNotifications,
     loading: disableNotificationsLoading,
@@ -351,7 +351,7 @@ const Settings: React.FC = () => {
   };
 
   const renderSDKSettings = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.halfSetting} testID={SDK_SECTION}>
+    <View style={styles.halfSetting} testID={SDK_SECTION}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.manage_sdk_connections_title')}
       </Text>
@@ -362,7 +362,7 @@ const Settings: React.FC = () => {
       >
         {strings('app_settings.manage_sdk_connections_text')}
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.accessory}>
+      <View style={styles.accessory}>
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Lg}
@@ -379,7 +379,7 @@ const Settings: React.FC = () => {
   };
 
   const renderClearBrowserHistorySection = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.setting} testID={CLEAR_BROWSER_HISTORY_SECTION}>
+    <View style={styles.setting} testID={CLEAR_BROWSER_HISTORY_SECTION}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.clear_browser_history_desc')}
       </Text>
@@ -390,7 +390,7 @@ const Settings: React.FC = () => {
       >
         {strings('app_settings.clear_history_desc')}
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.accessory}>
+      <View style={styles.accessory}>
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Lg}
@@ -417,7 +417,7 @@ const Settings: React.FC = () => {
       onRequestClose={toggleClearBrowserHistoryModal}
       onConfirmPress={clearBrowserHistory}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.modalView}>
+      <View style={styles.modalView}>
         <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
           {strings('app_settings.clear_browser_history_modal_title')}
         </Text>
@@ -435,12 +435,12 @@ const Settings: React.FC = () => {
 
   const renderUseTransactionSimulations = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.halfSetting}>
-        <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
+      <View style={styles.halfSetting}>
+        <View style={styles.titleContainer}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
             {strings('app_settings.simulation_details')}
           </Text>
-          <View accessibilityRole="none" accessible={false} style={styles.switchElement}>
+          <View style={styles.switchElement}>
             <Switch
               value={useTransactionSimulations}
               onValueChange={toggleUseTransactionSimulations}
@@ -511,7 +511,7 @@ const Settings: React.FC = () => {
 
   if (loading) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.loader}>
+      <View style={styles.loader}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -526,7 +526,7 @@ const Settings: React.FC = () => {
       testID={SECURITY_PRIVACY_VIEW_ID}
       ref={scrollViewRef}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.inner}>
+      <View style={styles.inner}>
         <Heading first>{strings('app_settings.security_heading')}</Heading>
         <ProtectYourWallet
           srpBackedup={seedphraseBackedUp}
@@ -539,13 +539,13 @@ const Settings: React.FC = () => {
           onSignWithBiometricsOptionUpdated={onSingInWithBiometrics}
           onSignWithPasscodeOptionUpdated={onSignInWithPasscode}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.setting}>
+        <View style={styles.setting}>
           <RememberMeOptionSection />
         </View>
         {!isMultichainAccountsState2Enabled ? <RevealPrivateKey /> : null}
         <BlockaidSettings />
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text
             variant={TextVariant.BodyLGMedium}
             color={TextColor.Alternative}
@@ -596,7 +596,7 @@ const Settings: React.FC = () => {
         </Text>
         <DisplayNFTMediaSettings />
         {isMainnet && (
-          <View accessibilityRole="none" accessible={false} ref={detectNftComponentRef}>
+          <View ref={detectNftComponentRef}>
             <AutoDetectNFTSettings />
           </View>
         )}

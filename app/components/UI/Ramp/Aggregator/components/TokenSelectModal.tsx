@@ -140,7 +140,7 @@ function TokenSelectModal({
           </ListItemColumn>
 
           <ListItemColumn>
-            <View accessibilityRole="none" accessible={false} style={styles.networkLabel}>
+            <View style={styles.networkLabel}>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {item.network.shortName}
               </Text>
@@ -156,7 +156,7 @@ function TokenSelectModal({
 
   const renderEmptyList = useMemo(
     () => (
-      <View accessibilityRole="none" accessible={false} style={modalStyles.emptyList}>
+      <View style={modalStyles.emptyList}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('fiat_on_ramp_aggregator.no_tokens_match', { searchString })}
         </Text>
@@ -200,7 +200,7 @@ function TokenSelectModal({
             descriptionStyle={modalStyles.headerDescription}
           >
             <TouchableWithoutFeedback onPress={handleSearchPress}>
-              <View accessibilityRole="none" accessible={false} style={modalStyles.inputWrapper}>
+              <View style={modalStyles.inputWrapper}>
                 <Icon name="search" size={20} style={modalStyles.searchIcon} />
                 <TextInput
                   ref={searchInput}
@@ -228,7 +228,7 @@ function TokenSelectModal({
           </ScreenLayout.Header>
 
           <ScreenLayout.Body>
-            <View accessibilityRole="none" accessible={false} style={modalStyles.resultsView}>
+            <View style={modalStyles.resultsView}>
               <FlatList
                 ref={list}
                 style={modalStyles.resultsView}

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`WebsiteIcon renders correctly when only title is provided 1`] = `
-<View accessibilityRole="none" accessible={false}>
+<View>
   <View
     placeholderStyle={
       {
@@ -51,7 +51,7 @@ exports[`WebsiteIcon renders correctly when only title is provided 1`] = `
 `;
 
 exports[`WebsiteIcon renders correctly when title and url are null 1`] = `
-<View accessibilityRole="none" accessible={false}>
+<View>
   <View
     placeholderStyle={
       {
@@ -101,7 +101,7 @@ exports[`WebsiteIcon renders correctly when title and url are null 1`] = `
 `;
 
 exports[`WebsiteIcon renders correctly when title and url are provided 1`] = `
-<View accessibilityRole="none" accessible={false}>
+<View>
   <View
     placeholderStyle={
       {
@@ -151,7 +151,7 @@ exports[`WebsiteIcon renders correctly when title and url are provided 1`] = `
 `;
 
 exports[`WebsiteIcon renders correctly when title is null and url is provided 1`] = `
-<View accessibilityRole="none" accessible={false}>
+<View>
   <View
     placeholderStyle={
       {
@@ -201,7 +201,7 @@ exports[`WebsiteIcon renders correctly when title is null and url is provided 1`
 `;
 
 exports[`WebsiteIcon renders correctly when title is null and url is undefined 1`] = `
-<View accessibilityRole="none" accessible={false}>
+<View>
   <View
     placeholderStyle={
       {

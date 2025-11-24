@@ -283,7 +283,7 @@ const AssetDetails = (props: InnerProps) => {
   );
 
   const renderTokenSymbol = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.descriptionContainer}>
+    <View style={styles.descriptionContainer}>
       <TokenImage
         asset={asset}
         containerStyle={styles.tokenImage}
@@ -337,7 +337,7 @@ const AssetDetails = (props: InnerProps) => {
     }
 
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.descriptionContainer}>
+      <View style={styles.descriptionContainer}>
         <Text style={styles.descriptionLabel}>{balanceDisplay}</Text>
       </View>
     );

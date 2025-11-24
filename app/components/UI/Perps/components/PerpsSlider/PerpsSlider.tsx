@@ -230,8 +230,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <View accessibilityRole="none" accessible={false} style={styles.sliderContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.trackContainer} onLayout={handleLayout}>
+      <View style={styles.sliderContainer}>
+        <View style={styles.trackContainer} onLayout={handleLayout}>
           <GestureDetector gesture={composed}>
             <Animated.View style={styles.track}>
               {progressColor === 'gradient' ? (
@@ -326,7 +326,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       </View>
 
       {quickValues && (
-        <View accessibilityRole="none" accessible={false} style={styles.quickValuesRow}>
+        <View style={styles.quickValuesRow}>
           {quickValues.map((val) => (
             <TouchableOpacity
               key={val}

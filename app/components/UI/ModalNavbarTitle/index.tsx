@@ -27,7 +27,7 @@ export default class ModalNavbarTitle extends PureComponent<ModalNavbarTitleProp
   render = () => {
     const { title } = this.props;
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
+      <View style={styles.wrapper}>
         <Text style={styles.title}>{title}</Text>
       </View>
     );

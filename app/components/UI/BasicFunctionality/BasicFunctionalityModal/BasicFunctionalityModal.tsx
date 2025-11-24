@@ -110,7 +110,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   };
 
   const renderTurnOffContent = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <Icon
         name={IconName.Danger}
         color={IconColor.Error}
@@ -139,13 +139,13 @@ const BasicFunctionalityModal = ({ route }: Props) => {
           {strings('default_settings.sheet.description_off2_related_features2')}
         </Text>
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.bottom}>
+      <View style={styles.bottom}>
         <Checkbox
           label={strings('default_settings.sheet.checkbox_label')}
           isChecked={isChecked}
           onPress={() => setIsChecked(!isChecked)}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+        <View style={styles.buttonsContainer}>
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
@@ -155,7 +155,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
             label={strings('default_settings.sheet.buttons.cancel')}
             onPress={handleCancel}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.spacer} />
+          <View style={styles.spacer} />
           <Button
             variant={ButtonVariants.Primary}
             isDisabled={!isChecked}
@@ -173,14 +173,14 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   );
 
   const renderTurnOnContent = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('default_settings.sheet.title_on')}
       </Text>
       <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
         {strings('default_settings.sheet.description_on')}
       </Text>
-      <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+      <View style={styles.buttonsContainer}>
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Lg}
@@ -190,7 +190,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
           label={strings('default_settings.sheet.buttons.cancel')}
           onPress={handleCancel}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.spacer} />
+        <View style={styles.spacer} />
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}

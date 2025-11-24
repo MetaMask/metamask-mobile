@@ -5,7 +5,7 @@ import { Text, View } from 'react-native';
 
 const ActionViewComponent = () => (
   <ActionView>
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Text>Confirm</Text>
     </View>
   </ActionView>

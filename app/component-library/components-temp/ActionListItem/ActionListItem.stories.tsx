@@ -119,7 +119,7 @@ const EnabledVsDisabledComponent = () => {
   const tw = useTailwind();
 
   return (
-    <View accessibilityRole="none" accessible={false} style={tw.style('p-4 gap-1')}>
+    <View style={tw.style('p-4 gap-1')}>
       <Text style={tw.style('p-2 text-base font-medium')}>
         Enabled vs Disabled Comparison
       </Text>
@@ -154,8 +154,8 @@ const AllVariationsComponent = () => {
   const tw = useTailwind();
 
   return (
-    <View accessibilityRole="none" accessible={false} style={tw.style('p-4')}>
-      <View accessibilityRole="none" accessible={false} style={tw.style('mb-4 rounded-lg overflow-hidden')}>
+    <View style={tw.style('p-4')}>
+      <View style={tw.style('mb-4 rounded-lg overflow-hidden')}>
         <Text style={tw.style('p-4')}>Basic Examples</Text>
         <ActionListItemComponent
           label="Basic item"
@@ -169,7 +169,7 @@ const AllVariationsComponent = () => {
         <ActionListItemComponent label="Label only" iconName={IconName.Apps} />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={tw.style('mb-4 rounded-lg overflow-hidden')}>
+      <View style={tw.style('mb-4 rounded-lg overflow-hidden')}>
         <Text style={tw.style('p-4')}>With Accessories</Text>
         <ActionListItemComponent
           label="Custom start accessory"
@@ -190,7 +190,7 @@ const AllVariationsComponent = () => {
         />
       </View>
 
-      <View accessibilityRole="none" accessible={false} style={tw.style('mb-4 rounded-lg overflow-hidden')}>
+      <View style={tw.style('mb-4 rounded-lg overflow-hidden')}>
         <Text style={tw.style('p-4')}>Disabled State</Text>
         <ActionListItemComponent
           label="Disabled item"

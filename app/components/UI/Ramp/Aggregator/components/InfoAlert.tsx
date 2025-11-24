@@ -141,7 +141,7 @@ const InfoAlert: React.FC<Props> = ({
         >
           <IonicIcon name="close" size={30} color={colors.icon.default} />
         </TouchableOpacity>
-        <View accessibilityRole="none" accessible={false} style={styles.title}>
+        <View style={styles.title}>
           {logos?.[themeAppearance] ? (
             <RemoteImage
               style={{
@@ -154,13 +154,13 @@ const InfoAlert: React.FC<Props> = ({
             <Title centered>{providerName}</Title>
           )}
           {Boolean(subtitle) && (
-            <View accessibilityRole="none" accessible={false} style={styles.row}>
+            <View style={styles.row}>
               <Text small grey centered>
                 {subtitle}
               </Text>
             </View>
           )}
-          <View accessibilityRole="none" accessible={false} style={styles.row}>{Boolean(body) && <Text>{body}</Text>}</View>
+          <View style={styles.row}>{Boolean(body) && <Text>{body}</Text>}</View>
           {Boolean(providerWebsite) && (
             <TouchableOpacity
               onPress={() =>

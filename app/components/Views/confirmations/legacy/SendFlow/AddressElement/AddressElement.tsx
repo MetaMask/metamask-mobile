@@ -105,9 +105,9 @@ const AddressElement: React.FC<AddressElementProps> = ({
       style={styles.addressElementWrapper}
       {...props}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.addressIdenticon}>{renderIdenticon()}</View>
-      <View accessibilityRole="none" accessible={false} style={styles.addressElementInformation}>
-        <View accessibilityRole="none" accessible={false} style={styles.accountNameLabel}>
+      <View style={styles.addressIdenticon}>{renderIdenticon()}</View>
+      <View style={styles.addressElementInformation}>
+        <View style={styles.accountNameLabel}>
           <Text
             variant={TextVariant.BodyMD}
             style={styles.addressTextNickname}

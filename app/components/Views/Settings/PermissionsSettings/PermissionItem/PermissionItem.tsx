@@ -29,14 +29,14 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
   const faviconUrl = useFavicon(item.dappHostName);
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <View accessibilityRole="none" accessible={false} style={styles.iconContainer}>
+      <View style={styles.iconContainer}>
         <WebsiteIcon style={styles.icon} icon={faviconUrl} />
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.row}>
+      <View style={styles.contentContainer}>
+        <View style={styles.row}>
           <Text variant={TextVariant.BodyLGMedium}>{item.dappHostName}</Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.row}>
+        <View style={styles.row}>
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
             {item.numberOfAccountPermissions}{' '}
             {item.numberOfAccountPermissions > 1
@@ -52,7 +52,7 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
           </Text>
         </View>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.chevronContainer}>
+      <View style={styles.chevronContainer}>
         <Icon size={IconSize.Md} name={IconName.ArrowRight} />
       </View>
     </TouchableOpacity>

@@ -82,23 +82,23 @@ const SeedphraseModal = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <View accessibilityRole="none" accessible={false} style={styles.modalContainer}>
-        <View accessibilityRole="none" accessible={false} style={styles.titleContainer}>
+      <View style={styles.modalContainer}>
+        <View style={styles.titleContainer}>
           <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {strings('account_backup_step_1.what_is_seedphrase_title')}
           </Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.explanationTextContainer}>
+        <View style={styles.explanationTextContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {strings('account_backup_step_1.what_is_seedphrase_text_1')}
           </Text>
-          <View accessibilityRole="none" accessible={false} style={styles.list}>
+          <View style={styles.list}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {strings('account_backup_step_1.what_is_seedphrase_text_4')}
             </Text>
-            <View accessibilityRole="none" accessible={false} style={styles.listContainer}>
+            <View style={styles.listContainer}>
               {seedPhrasePoints.map((point) => (
-                <View accessibilityRole="none" accessible={false} style={styles.listItem} key={point}>
+                <View style={styles.listItem} key={point}>
                   <Text style={styles.bullet}>{'\u2022'}</Text>
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {point}
@@ -108,7 +108,7 @@ const SeedphraseModal = () => {
             </View>
           </View>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           <Button
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}

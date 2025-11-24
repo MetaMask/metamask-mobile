@@ -24,7 +24,7 @@ export default function NFTImageHeader(props: NFTImageHeaderProps) {
   }, [props.networkBadgeUrl]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.headerImageContainer}>
+    <View style={styles.headerImageContainer}>
       {/* Collection Icon + Network Badge */}
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}

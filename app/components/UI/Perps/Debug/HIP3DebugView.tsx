@@ -483,7 +483,7 @@ const HIP3DebugView: React.FC = () => {
         style={styles.container}
         edges={['bottom', 'left', 'right']}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.section}>
+        <View style={styles.section}>
           <Text variant={TextVariant.HeadingLG}>Debug Tools</Text>
           <Text variant={TextVariant.BodySM} style={styles.subtitle}>
             Only available in development builds
@@ -499,7 +499,7 @@ const HIP3DebugView: React.FC = () => {
         style={styles.container}
         edges={['bottom', 'left', 'right']}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.section}>
+        <View style={styles.section}>
           <Text variant={TextVariant.HeadingLG}>HIP-3 Debug Tools</Text>
           <Text variant={TextVariant.BodySM} style={styles.subtitle}>
             Provider not initialized
@@ -513,7 +513,7 @@ const HIP3DebugView: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView style={styles.scrollView}>
         {/* DEX Selector Section */}
-        <View accessibilityRole="none" accessible={false} style={styles.section}>
+        <View style={styles.section}>
           <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
             Step 1: Select HIP-3 DEX
           </Text>
@@ -529,7 +529,7 @@ const HIP3DebugView: React.FC = () => {
             </Text>
           )}
           {!loadingDexs && availableDexs.length > 0 && (
-            <View accessibilityRole="none" accessible={false}>
+            <View>
               <Text variant={TextVariant.BodySM} style={styles.subtitle}>
                 Selected: {selectedDex || 'None'}
               </Text>
@@ -562,7 +562,7 @@ const HIP3DebugView: React.FC = () => {
 
         {/* Market Selector Section */}
         {selectedDex && (
-          <View accessibilityRole="none" accessible={false} style={styles.section}>
+          <View style={styles.section}>
             <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
               Step 2: Select Market
             </Text>
@@ -577,7 +577,7 @@ const HIP3DebugView: React.FC = () => {
               </Text>
             )}
             {!loadingMarkets && markets.length > 0 && (
-              <View accessibilityRole="none" accessible={false}>
+              <View>
                 <Text variant={TextVariant.BodySM} style={styles.subtitle}>
                   Selected: {selectedMarket || 'None'}
                 </Text>
@@ -610,7 +610,7 @@ const HIP3DebugView: React.FC = () => {
         )}
 
         {/* Balance Check Section */}
-        <View accessibilityRole="none" accessible={false} style={styles.section}>
+        <View style={styles.section}>
           <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
             Balance Check
           </Text>
@@ -627,7 +627,7 @@ const HIP3DebugView: React.FC = () => {
 
           {/* Display balance info if available */}
           {balanceInfo && (
-            <View accessibilityRole="none" accessible={false} style={styles.successBox}>
+            <View style={styles.successBox}>
               <Text
                 variant={TextVariant.BodySMMedium}
                 style={styles.successText}
@@ -651,7 +651,7 @@ const HIP3DebugView: React.FC = () => {
               {/* Display per-sub-account balances if available */}
               {balanceInfo.subAccountBreakdown &&
                 Object.keys(balanceInfo.subAccountBreakdown).length > 0 && (
-                  <View accessibilityRole="none" accessible={false} style={styles.subAccountSection}>
+                  <View style={styles.subAccountSection}>
                     <Text
                       variant={TextVariant.BodySMMedium}
                       style={styles.successText}
@@ -660,7 +660,7 @@ const HIP3DebugView: React.FC = () => {
                     </Text>
                     {Object.entries(balanceInfo.subAccountBreakdown).map(
                       ([subAccount, breakdown]) => (
-                        <View accessibilityRole="none" accessible={false} key={subAccount} style={styles.subAccountItem}>
+                        <View key={subAccount} style={styles.subAccountItem}>
                           <Text
                             variant={TextVariant.BodySM}
                             style={styles.successText}
@@ -689,7 +689,7 @@ const HIP3DebugView: React.FC = () => {
         </View>
 
         {/* Manual Transfer Testing */}
-        <View accessibilityRole="none" accessible={false} style={styles.section}>
+        <View style={styles.section}>
           <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
             Manual Transfer Testing
           </Text>
@@ -722,7 +722,7 @@ const HIP3DebugView: React.FC = () => {
           )}
 
           {transferResult.status === 'error' && (
-            <View accessibilityRole="none" accessible={false} style={styles.errorBox}>
+            <View style={styles.errorBox}>
               <Text variant={TextVariant.BodySM} style={styles.errorText}>
                 ❌ {transferResult.error}
               </Text>
@@ -730,7 +730,7 @@ const HIP3DebugView: React.FC = () => {
           )}
 
           {transferResult.status === 'success' && (
-            <View accessibilityRole="none" accessible={false} style={styles.successBox}>
+            <View style={styles.successBox}>
               <Text variant={TextVariant.BodySM} style={styles.successText}>
                 {transferResult.data}
               </Text>
@@ -739,7 +739,7 @@ const HIP3DebugView: React.FC = () => {
         </View>
 
         {/* Auto-Transfer Testing */}
-        <View accessibilityRole="none" accessible={false} style={styles.section}>
+        <View style={styles.section}>
           <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
             Auto-Transfer Testing
           </Text>
@@ -758,7 +758,7 @@ const HIP3DebugView: React.FC = () => {
           )}
 
           {orderResult.status === 'error' && (
-            <View accessibilityRole="none" accessible={false} style={styles.errorBox}>
+            <View style={styles.errorBox}>
               <Text variant={TextVariant.BodySM} style={styles.errorText}>
                 ❌ {orderResult.error}
               </Text>
@@ -766,7 +766,7 @@ const HIP3DebugView: React.FC = () => {
           )}
 
           {orderResult.status === 'success' && (
-            <View accessibilityRole="none" accessible={false} style={styles.successBox}>
+            <View style={styles.successBox}>
               <Text variant={TextVariant.BodySM} style={styles.successText}>
                 {orderResult.data}
               </Text>
@@ -790,7 +790,7 @@ const HIP3DebugView: React.FC = () => {
           )}
 
           {closeResult.status === 'error' && (
-            <View accessibilityRole="none" accessible={false} style={styles.errorBox}>
+            <View style={styles.errorBox}>
               <Text variant={TextVariant.BodySM} style={styles.errorText}>
                 ❌ {closeResult.error}
               </Text>
@@ -798,7 +798,7 @@ const HIP3DebugView: React.FC = () => {
           )}
 
           {closeResult.status === 'success' && (
-            <View accessibilityRole="none" accessible={false} style={styles.successBox}>
+            <View style={styles.successBox}>
               <Text variant={TextVariant.BodySM} style={styles.successText}>
                 {closeResult.data}
               </Text>
@@ -807,7 +807,7 @@ const HIP3DebugView: React.FC = () => {
         </View>
 
         {/* Debug Info */}
-        <View accessibilityRole="none" accessible={false} style={styles.section}>
+        <View style={styles.section}>
           <Text variant={TextVariant.BodyXS} style={styles.subtitle}>
             Check DevLogger console for detailed logs
           </Text>

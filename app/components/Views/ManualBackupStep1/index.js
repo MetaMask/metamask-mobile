@@ -237,7 +237,7 @@ const ManualBackupStep1 = ({
   };
 
   const renderSeedPhraseConcealer = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.seedPhraseConcealerContainer}>
+    <View style={styles.seedPhraseConcealerContainer}>
       <TouchableOpacity
         onPress={revealSeedPhrase}
         style={styles.blurContainer}
@@ -252,7 +252,7 @@ const ManualBackupStep1 = ({
           style={styles.blurView}
           resizeMode="cover"
         />
-        <View accessibilityRole="none" accessible={false} style={styles.seedPhraseConcealer}>
+        <View style={styles.seedPhraseConcealer}>
           <Icon
             name={IconName.EyeSlash}
             size={IconSize.Xl}
@@ -275,14 +275,14 @@ const ManualBackupStep1 = ({
       behavior={'padding'}
     >
       <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
-        <View accessibilityRole="none" accessible={false} style={styles.confirmPasswordWrapper}>
-          <View accessibilityRole="none" accessible={false} style={[styles.content, styles.passwordRequiredContent]}>
-            <View accessibilityRole="none" accessible={false} style={styles.text}>
+        <View style={styles.confirmPasswordWrapper}>
+          <View style={[styles.content, styles.passwordRequiredContent]}>
+            <View style={styles.text}>
               <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('manual_backup_step_1.before_continiuing')}
               </Label>
             </View>
-            <View accessibilityRole="none" accessible={false} style={styles.field}>
+            <View style={styles.field}>
               <TextField
                 placeholder={strings('manual_backup_step_1.password')}
                 value={password}
@@ -303,7 +303,7 @@ const ManualBackupStep1 = ({
               )}
             </View>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.buttonWrapper}>
+          <View style={styles.buttonWrapper}>
             <Button
               variant={ButtonVariants.Primary}
               onPress={tryUnlock}
@@ -320,8 +320,8 @@ const ManualBackupStep1 = ({
   );
 
   const renderSeedphraseView = () => (
-    <View accessibilityRole="none" accessible={false} style={styles.actionViewContainer}>
-      <View accessibilityRole="none" accessible={false} style={styles.actionView}>
+    <View style={styles.actionViewContainer}>
+      <View style={styles.actionView}>
         <View
           style={styles.wrapper}
           testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
@@ -329,7 +329,7 @@ const ManualBackupStep1 = ({
           <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
             {strings('manual_backup_step_1.action')}
           </Text>
-          <View accessibilityRole="none" accessible={false} style={styles.infoWrapper}>
+          <View style={styles.infoWrapper}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('manual_backup_step_1.info-1')}{' '}
               <Text
@@ -349,17 +349,17 @@ const ManualBackupStep1 = ({
             </Text>
           </View>
           {seedPhraseHidden ? (
-            <View accessibilityRole="none" accessible={false} style={styles.seedPhraseWrapper}>
+            <View style={styles.seedPhraseWrapper}>
               {renderSeedPhraseConcealer()}
             </View>
           ) : (
-            <View accessibilityRole="none" accessible={false} style={styles.seedPhraseContainer}>
+            <View style={styles.seedPhraseContainer}>
               <FlatList
                 data={words}
                 numColumns={3}
                 keyExtractor={(_, index) => index.toString()}
                 renderItem={({ item, index }) => (
-                  <View accessibilityRole="none" accessible={false} style={[styles.inputContainer]}>
+                  <View style={[styles.inputContainer]}>
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
@@ -388,7 +388,7 @@ const ManualBackupStep1 = ({
           )}
         </View>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.buttonContainer}>
+      <View style={styles.buttonContainer}>
         <Button
           variant={ButtonVariants.Primary}
           onPress={goNext}
@@ -421,7 +421,7 @@ const ManualBackupStep1 = ({
       }
       style={styles.mainWrapper}
     >
-      <View accessibilityRole="none" accessible={false} style={[styles.container]}>
+      <View style={[styles.container]}>
         {view === SEED_PHRASE
           ? renderSeedphraseView()
           : renderConfirmPassword()}
@@ -429,7 +429,7 @@ const ManualBackupStep1 = ({
       <ScreenshotDeterrent hasNavigation enabled isSRP />
     </SafeAreaView>
   ) : (
-    <View accessibilityRole="none" accessible={false} style={styles.loader}>
+    <View style={styles.loader}>
       <ActivityIndicator size="small" />
     </View>
   );

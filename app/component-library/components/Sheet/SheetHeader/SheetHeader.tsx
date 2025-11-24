@@ -28,8 +28,8 @@ const SheetHeader = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.base} {...props}>
-      <View accessibilityRole="none" accessible={false} style={styles.leftAccessory}>
+    <View style={styles.base} {...props}>
+      <View style={styles.leftAccessory}>
         {onBack && (
           <ButtonIcon
             testID={SHEET_HEADER_BACK_BUTTON_ID}
@@ -40,7 +40,7 @@ const SheetHeader = ({
         )}
       </View>
       <Text variant={TextVariant.HeadingMD}>{title}</Text>
-      <View accessibilityRole="none" accessible={false} style={styles.rightAccessory}>
+      <View style={styles.rightAccessory}>
         {actionButtonOptions && (
           <Button
             variant={ButtonVariants.Link}

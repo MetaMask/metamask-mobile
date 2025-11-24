@@ -54,7 +54,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
   }
   viewabilityConfigCallbackPairs={[]}
 >
-  <View accessibilityRole="none" accessible={false}>
+  <View>
     <View
       onFocusCapture={[Function]}
       onLayout={[Function]}

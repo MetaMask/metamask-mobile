@@ -36,7 +36,7 @@ describe('UnmountOnBlur', () => {
     it('renders complex children when focused', () => {
       const { getByTestId, getByText } = render(
         <UnmountOnBlur>
-          <View accessibilityRole="none" accessible={false} testID="test-container">
+          <View testID="test-container">
             <Text>Complex Content</Text>
             <Text>Multiple Children</Text>
           </View>

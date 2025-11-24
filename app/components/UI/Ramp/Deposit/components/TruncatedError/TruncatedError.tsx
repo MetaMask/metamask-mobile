@@ -43,7 +43,7 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   }, [error, navigation]);
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <BannerAlert
         description={
           <Text

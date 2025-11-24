@@ -18,7 +18,7 @@ const TokenDetailsListItem: React.FC<TokenDetailsListItemProps> = ({
   style,
   children,
 }) => (
-  <View accessibilityRole="none" accessible={false} style={style}>
+  <View style={style}>
     <Text color={TextColor.Alternative} variant={TextVariant.BodyMDMedium}>
       {label}
     </Text>

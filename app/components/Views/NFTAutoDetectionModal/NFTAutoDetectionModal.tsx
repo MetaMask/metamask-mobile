@@ -61,18 +61,18 @@ const NFTAutoDetectionModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <SheetHeader title={strings('enable_nft-auto-detection.title')} />
-      <View accessibilityRole="none" accessible={false} testID={NftDetectionModalSelectorsIDs.CONTAINER}>
-        <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View testID={NftDetectionModalSelectorsIDs.CONTAINER}>
+        <View style={styles.container}>
           <Image source={walletImage} style={styles.image} />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.description}>
+        <View style={styles.description}>
           <Text>{strings('enable_nft-auto-detection.description')}</Text>
 
           <Text> • {strings('enable_nft-auto-detection.immediateAccess')}</Text>
           <Text> • {strings('enable_nft-auto-detection.navigate')}</Text>
           <Text> • {strings('enable_nft-auto-detection.dive')}</Text>
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+        <View style={styles.buttonsContainer}>
           <Button
             testID={NftDetectionModalSelectorsIDs.ALLOW_BUTTON}
             variant={ButtonVariants.Primary}
@@ -81,7 +81,7 @@ const NFTAutoDetectionModal = () => {
             label={strings('enable_nft-auto-detection.allow')}
             onPress={() => enableNftDetectionAndDismissModal(true)}
           />
-          <View accessibilityRole="none" accessible={false} style={styles.spacer} />
+          <View style={styles.spacer} />
 
           <Button
             testID={NftDetectionModalSelectorsIDs.CANCEL_BUTTON}

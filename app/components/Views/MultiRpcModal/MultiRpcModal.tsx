@@ -77,16 +77,16 @@ const MultiRpcModal = () => {
         style={styles.textContainer}
       >
         <ScrollView style={styles.content}>
-          <View accessibilityRole="none" accessible={false} style={styles.description}>
+          <View style={styles.description}>
             <Text style={styles.textDescription}>
               {strings('multi_rpc_migration_modal.description')}
             </Text>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.container}>
+          <View style={styles.container}>
             <Image source={networkImage} style={styles.image} />
           </View>
 
-          <View accessibilityRole="none" accessible={false}>
+          <View>
             {Object.values(networkConfigurations).map(
               (networkConfiguration: NetworkConfiguration, index) =>
                 networkConfiguration?.rpcEndpoints?.length > 1 ? (
@@ -133,7 +133,7 @@ const MultiRpcModal = () => {
             )}
           </View>
         </ScrollView>
-        <View accessibilityRole="none" accessible={false} style={styles.buttonsContainer}>
+        <View style={styles.buttonsContainer}>
           <Button
             testID={NftDetectionModalSelectorsIDs.ALLOW_BUTTON}
             variant={ButtonVariants.Primary}

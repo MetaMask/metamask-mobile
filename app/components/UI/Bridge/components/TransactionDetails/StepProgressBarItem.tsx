@@ -43,7 +43,7 @@ const styleSheet = (params: { theme: Theme; vars: { color: IconColor } }) => {
 const VerticalLine = ({ color }: { color: IconColor }) => {
   const { styles } = useStyles(styleSheet, { color });
 
-  return <View accessibilityRole="none" accessible={false} style={styles.verticalLine} />;
+  return <View style={styles.verticalLine} />;
 };
 
 interface StepsProgressBarItemProps {
@@ -89,7 +89,7 @@ export default function StepProgressBarItem({
           <PulsingCircle color={IconColor.Primary} />
         )}
         {stepStatus === StatusTypes.COMPLETE && (
-          <View accessibilityRole="none" accessible={false} style={styles.filledCircle} />
+          <View style={styles.filledCircle} />
         )}
 
         {/* Description */}
@@ -103,7 +103,7 @@ export default function StepProgressBarItem({
       )}
 
       {/* Blank div to take up space to make sure everything is aligned */}
-      {!isLastItem && <View accessibilityRole="none" accessible={false} />}
+      {!isLastItem && <View />}
     </>
   );
 }

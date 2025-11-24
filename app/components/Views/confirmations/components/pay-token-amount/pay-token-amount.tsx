@@ -52,7 +52,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
   if (disabled) {
     return (
-      <View accessibilityRole="none" accessible={false} testID="pay-token-amount" style={styles.container}>
+      <View testID="pay-token-amount" style={styles.container}>
         <Text color={TextColor.Muted}>0 ETH</Text>
       </View>
     );
@@ -72,7 +72,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const formattedAmount = formatAmount(I18n.locale, payTokenAmount);
 
   return (
-    <View accessibilityRole="none" accessible={false} testID="pay-token-amount" style={styles.container}>
+    <View testID="pay-token-amount" style={styles.container}>
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {formattedAmount} {payToken?.symbol}
       </Text>
@@ -83,7 +83,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 export function PayTokenAmountSkeleton() {
   const { styles } = useStyles(styleSheet, {});
   return (
-    <View accessibilityRole="none" accessible={false} testID="pay-token-amount-skeleton" style={styles.skeleton}>
+    <View testID="pay-token-amount-skeleton" style={styles.skeleton}>
       <Skeleton height={25} width={90} style={styles.container} />
     </View>
   );

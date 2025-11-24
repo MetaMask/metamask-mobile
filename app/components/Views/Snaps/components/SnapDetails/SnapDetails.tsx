@@ -59,7 +59,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
   );
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.snapInfoContainer}>
+    <View style={styles.snapInfoContainer}>
       <Cell
         testID={SNAP_DETAILS_CELL}
         style={styles.snapCell}
@@ -71,7 +71,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
           name: IconName.Snaps,
         }}
       />
-      <View accessibilityRole="none" accessible={false} style={styles.detailsContainerWithBorder}>
+      <View style={styles.detailsContainerWithBorder}>
         <Label>{strings('app_settings.snaps.snap_details.enabled')}</Label>
         <Switch
           testID={SNAP_DETAILS_SWITCH}
@@ -84,11 +84,11 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
           ios_backgroundColor={colors.border.muted}
         />
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.detailsContainer}>
+      <View style={styles.detailsContainer}>
         <Label>
           {strings('app_settings.snaps.snap_details.install_origin')}
         </Label>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text
             testID={SNAP_DETAILS_INSTALL_ORIGIN}
             variant={TextVariant.BodyMD}
@@ -105,7 +105,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
           </Text>
         </View>
       </View>
-      <View accessibilityRole="none" accessible={false} style={styles.detailsContainer}>
+      <View style={styles.detailsContainer}>
         <Label>{strings('app_settings.snaps.snap_details.version')}</Label>
         <SnapVersionBadge version={snap.version} />
       </View>

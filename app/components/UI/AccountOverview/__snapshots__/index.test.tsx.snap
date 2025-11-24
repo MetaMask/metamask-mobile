@@ -21,7 +21,7 @@ exports[`AccountOverview should render correctly 1`] = `
       }
     }
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {

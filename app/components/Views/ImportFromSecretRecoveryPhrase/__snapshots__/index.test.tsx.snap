@@ -435,7 +435,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         update={[Function]}
                         viewIsInsideTabBar={false}
                       >
-                        <View accessibilityRole="none" accessible={false}>
+                        <View>
                           <Text
                             accessibilityRole="text"
                             style={
@@ -813,7 +813,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                           </View>
                         </View>
                       </RCTScrollView>
-                      <View accessibilityRole="none" accessible={false} />
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>

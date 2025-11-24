@@ -35,7 +35,7 @@ jest.mock('../../TrendingTokenLogo', () => {
       recyclingKey: string;
     }) {
       return (
-        <View accessibilityRole="none" accessible={false} testID={`trending-token-logo-${symbol}`} data-size={size}>
+        <View testID={`trending-token-logo-${symbol}`} data-size={size}>
           {symbol}
         </View>
       );

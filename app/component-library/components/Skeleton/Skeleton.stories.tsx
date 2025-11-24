@@ -48,7 +48,7 @@ export const WidthHeight = () => {
   });
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.container}>
+    <View style={styles.container}>
       <SkeletonComponent height={32} width={300} />
       <SkeletonComponent height={16} width={250} />
       <SkeletonComponent height={16} width={250} />
@@ -90,7 +90,7 @@ export const HideChildren = () => {
   });
 
   return (
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <Button
         variant={ButtonVariants.Secondary}
         label="Toggle Loading"

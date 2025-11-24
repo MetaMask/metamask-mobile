@@ -91,7 +91,7 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
       testID={testID}
     >
       {isSearchVisible ? (
-        <View accessibilityRole="none" accessible={false} style={styles.headerContainerWrapper}>
+        <View style={styles.headerContainerWrapper}>
           {/* Search Bar - Replaces back button and title */}
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -127,7 +127,7 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
           </TouchableOpacity>
         </View>
       ) : (
-        <View accessibilityRole="none" accessible={false} style={styles.headerContainerWrapper}>
+        <View style={styles.headerContainerWrapper}>
           {/* Back Button */}
           <TouchableOpacity
             style={styles.backButton}
@@ -138,7 +138,7 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
           </TouchableOpacity>
 
           {/* Title */}
-          <View accessibilityRole="none" accessible={false} style={styles.headerTitleContainer}>
+          <View style={styles.headerTitleContainer}>
             <Text
               variant={TextVariant.HeadingLG}
               color={TextColor.Default}
@@ -149,7 +149,7 @@ const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = ({
           </View>
 
           {/* Search Toggle Button */}
-          <View accessibilityRole="none" accessible={false} style={styles.titleButtonsRightContainer}>
+          <View style={styles.titleButtonsRightContainer}>
             <TouchableOpacity
               style={styles.searchButton}
               onPress={onSearchToggle}

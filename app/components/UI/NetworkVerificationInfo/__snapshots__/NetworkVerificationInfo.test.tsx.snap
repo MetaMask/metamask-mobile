@@ -55,7 +55,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       }
     }
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <TouchableOpacity
         disabled={true}
         style={
@@ -275,7 +275,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           ]
         }
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text
             accessibilityRole="text"
             style={
@@ -559,7 +559,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
       }
     }
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <TouchableOpacity
         disabled={true}
         style={
@@ -675,7 +675,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           ]
         }
       >
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <Text
             accessibilityRole="text"
             style={

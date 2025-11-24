@@ -183,19 +183,19 @@ export const TokenListItemBip44 = React.memo(
         >
           <AssetLogo asset={asset} />
         </BadgeWrapper>
-        <View accessibilityRole="none" accessible={false} style={styles.balances}>
+        <View style={styles.balances}>
           {/*
            * The name of the token must callback to the symbol
            * The reason for this is that the wallet_watchAsset doesn't return the name
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
-          <View accessibilityRole="none" accessible={false} style={styles.assetName}>
+          <View style={styles.assetName}>
             <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
             {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.percentageChange}>
+          <View style={styles.percentageChange}>
             {
               <SensitiveText
                 variant={TextVariant.BodySMMedium}

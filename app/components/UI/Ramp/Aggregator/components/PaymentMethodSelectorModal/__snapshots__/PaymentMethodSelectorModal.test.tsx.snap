@@ -529,7 +529,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                               }
                             }
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   {
@@ -1675,7 +1675,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                               }
                             }
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   {
@@ -2821,7 +2821,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                               }
                             }
                           >
-                            <View accessibilityRole="none" accessible={false}>
+                            <View>
                               <View
                                 style={
                                   {

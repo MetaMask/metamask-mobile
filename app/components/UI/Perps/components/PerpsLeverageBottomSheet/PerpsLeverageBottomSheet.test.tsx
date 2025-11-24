@@ -139,7 +139,7 @@ jest.mock(
           onCloseBottomSheet: jest.fn(),
         }));
 
-        return <View accessibilityRole="none" accessible={false} {...props}>{props.children}</View>;
+        return <View {...props}>{props.children}</View>;
       },
     );
 
@@ -157,7 +157,7 @@ jest.mock(
     return {
       __esModule: true,
       default: (props: { children: React.ReactNode }) => (
-        <View accessibilityRole="none" accessible={false} {...props}>{props.children}</View>
+        <View {...props}>{props.children}</View>
       ),
     };
   },
@@ -179,7 +179,7 @@ jest.mock(
           disabled?: boolean;
         }[];
       }) => (
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           {buttonPropsArray?.map((buttonProps, index) => (
             <TouchableOpacity
               key={index}
@@ -225,7 +225,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   return {
     __esModule: true,
     default: (props: { name: string; size: string; color: string }) => (
-      <View accessibilityRole="none" accessible={false} testID={`icon-${props.name}`} />
+      <View testID={`icon-${props.name}`} />
     ),
     IconName: {
       Danger: 'Danger',

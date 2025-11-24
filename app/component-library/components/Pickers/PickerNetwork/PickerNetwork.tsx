@@ -34,7 +34,7 @@ const PickerNetwork = ({
       disabled={isDisabled}
       {...props}
     >
-      <View accessibilityRole="none" accessible={false} style={hideNetworkName ? styles.networkIconContainer : null}>
+      <View style={hideNetworkName ? styles.networkIconContainer : null}>
         <Avatar
           variant={AvatarVariant.Network}
           size={AvatarSize.Xs}

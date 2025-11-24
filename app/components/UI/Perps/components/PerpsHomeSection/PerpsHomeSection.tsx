@@ -114,9 +114,9 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.section} testID={testID}>
+    <View style={styles.section} testID={testID}>
       {/* Section Header */}
-      <View accessibilityRole="none" accessible={false} style={styles.header}>
+      <View style={styles.header}>
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {title}
         </Text>
@@ -144,7 +144,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
       </View>
 
       {/* Section Content */}
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
+      <View style={styles.content}>
         {isLoading ? renderSkeleton() : children}
       </View>
     </View>

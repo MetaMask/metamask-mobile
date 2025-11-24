@@ -462,17 +462,17 @@ const EarnLendingWithdrawalConfirmationView = () => {
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.pageContainer}>
-      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+    <View style={styles.pageContainer}>
+      <View style={styles.contentContainer}>
         <Erc20TokenHero
           token={token}
           amountTokenMinimalUnit={amountTokenMinimalUnit}
           fiatValue={amountFiat}
         />
-        <View accessibilityRole="none" accessible={false} style={styles.infoSections}>
+        <View style={styles.infoSections}>
           {/* Withdrawal time */}
           <InfoSection>
-            <View accessibilityRole="none" accessible={false} style={styles.infoSectionContainer}>
+            <View style={styles.infoSectionContainer}>
               <KeyValueRow
                 field={{
                   label: {
@@ -495,7 +495,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
             </View>
           </InfoSection>
           <InfoSection>
-            <View accessibilityRole="none" accessible={false} style={styles.infoSectionContainer}>
+            <View style={styles.infoSectionContainer}>
               <KeyValueRow
                 field={{
                   label: {
@@ -540,7 +540,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
               />
             </View>
             <InfoRowDivider />
-            <View accessibilityRole="none" accessible={false} style={styles.infoSectionContainer}>
+            <View style={styles.infoSectionContainer}>
               <KeyValueRow
                 field={{
                   label: {
@@ -550,7 +550,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 }}
                 value={{
                   label: (
-                    <View accessibilityRole="none" accessible={false} style={styles.networkRowRight}>
+                    <View style={styles.networkRowRight}>
                       <Badge
                         variant={BadgeVariant.Network}
                         size={AvatarSize.Xs}
@@ -569,7 +569,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           {/* TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044 Add back in v1.1 */}
           {/* {healthFactorSimulation.before !== AAVE_V3_INFINITE_HEALTH_FACTOR && (
             <InfoSectionAccordion header={strings('stake.advanced_details')}>
-              <View accessibilityRole="none" accessible={false} style={styles.advancedDetailsContainer}>
+              <View style={styles.advancedDetailsContainer}>
                 <KeyValueRow
                   field={{
                     label: {
@@ -579,14 +579,14 @@ const EarnLendingWithdrawalConfirmationView = () => {
                     tooltip: {
                       title: strings('earn.health_factor'),
                       content: (
-                        <View accessibilityRole="none" accessible={false} style={styles.healthFactorTooltipContainer}>
+                        <View style={styles.healthFactorTooltipContainer}>
                           <Text>
                             {strings(
                               'earn.tooltip_content.health_factor.your_health_factor_measures_liquidation_risk',
                             )}
                           </Text>
-                          <View accessibilityRole="none" accessible={false} style={styles.healthFactorTooltipContent}>
-                            <View accessibilityRole="none" accessible={false} style={styles.healthFactorTooltipRow}>
+                          <View style={styles.healthFactorTooltipContent}>
+                            <View style={styles.healthFactorTooltipRow}>
                               <Text variant={TextVariant.BodyMDMedium}>
                                 •{' '}
                                 {strings(
@@ -599,7 +599,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                                 )}
                               </Text>
                             </View>
-                            <View accessibilityRole="none" accessible={false} style={styles.healthFactorTooltipRow}>
+                            <View style={styles.healthFactorTooltipRow}>
                               <Text variant={TextVariant.BodyMDMedium}>
                                 •{' '}
                                 {strings(
@@ -612,7 +612,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                                 )}
                               </Text>
                             </View>
-                            <View accessibilityRole="none" accessible={false} style={styles.healthFactorTooltipRow}>
+                            <View style={styles.healthFactorTooltipRow}>
                               <Text variant={TextVariant.BodyMDMedium}>
                                 •{' '}
                                 {strings(
@@ -633,7 +633,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   }}
                   value={{
                     label: (
-                      <View accessibilityRole="none" accessible={false} style={styles.healthFactorRight}>
+                      <View style={styles.healthFactorRight}>
                         <Text
                           variant={TextVariant.BodyMDMedium}
                           color={getHealthFactorValueColor(
@@ -664,7 +664,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   }}
                   value={{
                     label: (
-                      <View accessibilityRole="none" accessible={false}>
+                      <View>
                         <Text color={riskTextColor}>
                           {capitalize(healthFactorSimulation.risk)}
                         </Text>

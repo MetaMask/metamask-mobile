@@ -15,7 +15,7 @@ const PersonalSign = () => {
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} testID={ConfirmationInfoComponentIDs.PERSONAL_SIGN}>
+    <View testID={ConfirmationInfoComponentIDs.PERSONAL_SIGN}>
       <AccountNetworkInfoRow />
       <NetworkAndOriginRow />
       <Message />

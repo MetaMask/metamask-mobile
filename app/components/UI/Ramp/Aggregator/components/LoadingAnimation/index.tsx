@@ -155,21 +155,21 @@ function LoadingAnimation({
   }
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.screen}>
-      <View accessibilityRole="none" accessible={false} style={styles.content}>
+    <View style={styles.screen}>
+      <View style={styles.content}>
         <Title centered>{title}</Title>
 
-        <View accessibilityRole="none" accessible={false} style={styles.progressWrapper}>
+        <View style={styles.progressWrapper}>
           <Animated.View style={[styles.progressBar, progressStyle]} />
         </View>
-        <View accessibilityRole="none" accessible={false} style={styles.foxContainer} pointerEvents="none">
-          <View accessibilityRole="none" accessible={false} style={styles.foxWrapper}>
+        <View style={styles.foxContainer} pointerEvents="none">
+          <View style={styles.foxWrapper}>
             <Image
               source={foxImage}
               style={styles.foxImage}
               resizeMethod={'auto'}
             />
-            <View accessibilityRole="none" accessible={false} style={styles.backgroundShapes} pointerEvents="none">
+            <View style={styles.backgroundShapes} pointerEvents="none">
               <ShapesBackgroundAnimation
                 width={STAGE_SIZE * 0.8}
                 height={STAGE_SIZE * 0.8}

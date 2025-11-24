@@ -240,7 +240,7 @@ function QuotesModal({
       backdropOpacity={1}
     >
       <SafeAreaView style={styles.modalView}>
-        <View accessibilityRole="none" accessible={false} style={styles.title}>
+        <View style={styles.title}>
           {displayDetails ? (
             <TouchableOpacity
               onPress={toggleDetails}
@@ -264,10 +264,10 @@ function QuotesModal({
         </View>
         {displayDetails ? (
           <ScrollView key="details" style={styles.body}>
-            <View accessibilityRole="none" accessible={false} onStartShouldSetResponder={() => true}>
+            <View onStartShouldSetResponder={() => true}>
               {!!selectedDetailsQuote && !!selectedDetailsQuoteValues && (
                 <>
-                  <View accessibilityRole="none" accessible={false} style={styles.detailsRow}>
+                  <View style={styles.detailsRow}>
                     <Text small>{strings('swaps.rate')}</Text>
                     <Ratio
                       sourceAmount={selectedDetailsQuote.sourceAmount}
@@ -277,13 +277,13 @@ function QuotesModal({
                       boldSymbol
                     />
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.detailsRow}>
+                  <View style={styles.detailsRow}>
                     <Text small>
                       {strings('swaps.quote_details_max_slippage')}
                     </Text>
                     <Text primary>{selectedDetailsQuote.slippage}%</Text>
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.detailsRow}>
+                  <View style={styles.detailsRow}>
                     <Text small>{strings('swaps.guaranteed_amount')}</Text>
                     <Text primary>
                       {fromTokenMinimalUnitString(
@@ -313,7 +313,7 @@ function QuotesModal({
                         )}
                     </Text>
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.detailsRow}>
+                  <View style={styles.detailsRow}>
                     <Text small>{strings('swaps.estimated_network_fees')}</Text>
                     <Text primary>
                       {renderFromWei(toWei(selectedDetailsQuoteValuesEthFee))}{' '}
@@ -331,7 +331,7 @@ function QuotesModal({
                       </Text>
                     </Text>
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.detailsRow}>
+                  <View style={styles.detailsRow}>
                     <Text small>{strings('swaps.source')}</Text>
                     <Text primary>
                       {getQuotesSourceMessage(selectedDetailsQuote.aggType).map(
@@ -354,10 +354,10 @@ function QuotesModal({
           </ScrollView>
         ) : (
           <ScrollView key="list" style={styles.body}>
-            <View accessibilityRole="none" accessible={false} onStartShouldSetResponder={() => true}>
-              <View accessibilityRole="none" accessible={false} style={styles.body}>
-                <View accessibilityRole="none" accessible={false} style={styles.row}>
-                  <View accessibilityRole="none" accessible={false} style={styles.columnAmount}>
+            <View onStartShouldSetResponder={() => true}>
+              <View style={styles.body}>
+                <View style={styles.row}>
+                  <View style={styles.columnAmount}>
                     <Text small bold>
                       {destinationToken.symbol}
                     </Text>
@@ -365,12 +365,12 @@ function QuotesModal({
                       {strings('swaps.receiving')}
                     </Text>
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.columnFee}>
+                  <View style={styles.columnFee}>
                     <Text small primary bold>
                       {strings('swaps.estimated_gas_fee')}
                     </Text>
                   </View>
-                  <View accessibilityRole="none" accessible={false} style={styles.columnValue}>
+                  <View style={styles.columnValue}>
                     <Text small primary bold>
                       {strings('swaps.overall_value')}
                     </Text>
@@ -381,7 +381,7 @@ function QuotesModal({
                     size={20}
                   />
                 </View>
-                <View accessibilityRole="none" accessible={false}>
+                <View>
                   {quotes.length > 0 &&
                     quotes.map((quote, index) => {
                       const { aggregator } = quote;
@@ -404,7 +404,7 @@ function QuotesModal({
                             isSelected && styles.selectedQuoteRow,
                           ]}
                         >
-                          <View accessibilityRole="none" accessible={false} style={styles.columnAmount}>
+                          <View style={styles.columnAmount}>
                             <Text primary bold={isSelected}>
                               ~
                               {renderFromTokenMinimalUnit(
@@ -413,7 +413,7 @@ function QuotesModal({
                               )}
                             </Text>
                           </View>
-                          <View accessibilityRole="none" accessible={false} style={styles.columnFee}>
+                          <View style={styles.columnFee}>
                             <Text primary bold={isSelected}>
                               {weiToFiat(
                                 toWei(quoteEthFee),
@@ -422,7 +422,7 @@ function QuotesModal({
                               )}
                             </Text>
                           </View>
-                          <View accessibilityRole="none" accessible={false} style={styles.columnValue}>
+                          <View style={styles.columnValue}>
                             {showOverallValue ? (
                               <Text primary style={styles.red}>
                                 -

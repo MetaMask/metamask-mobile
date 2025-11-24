@@ -95,7 +95,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   // Header component
   const SectionHeader = useCallback(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.header}>
+      <View style={styles.header}>
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {title}
         </Text>
@@ -112,9 +112,9 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   // Show skeleton during initial load
   if (isLoading) {
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.section} testID={testID}>
+      <View style={styles.section} testID={testID}>
         <SectionHeader />
-        <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+        <View style={styles.contentContainer}>
           <PerpsRowSkeleton count={5} />
         </View>
       </View>
@@ -128,9 +128,9 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
 
   // Render market list
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.section} testID={testID}>
+    <View style={styles.section} testID={testID}>
       <SectionHeader />
-      <View accessibilityRole="none" accessible={false} style={styles.contentContainer}>
+      <View style={styles.contentContainer}>
         <PerpsMarketList
           markets={markets}
           sortBy={sortBy}

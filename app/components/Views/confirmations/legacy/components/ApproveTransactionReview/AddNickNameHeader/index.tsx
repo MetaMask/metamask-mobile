@@ -28,7 +28,7 @@ const Header = (props: HeaderProps) => {
   } = props;
 
   return (
-    <View accessibilityRole="none" accessible={false} style={headerWrapperStyle}>
+    <View style={headerWrapperStyle}>
       <Text style={headerTextStyle}>
         {nicknameExists
           ? strings('nickname.edit_nickname')

@@ -238,7 +238,7 @@ const usePerpsToasts = (): {
         backgroundColor: theme.colors.accent04.normal,
         hapticsType: NotificationFeedbackType.Warning,
         startAccessory: (
-          <View accessibilityRole="none" accessible={false} style={toastStyles.spinnerContainer}>
+          <View style={toastStyles.spinnerContainer}>
             <Spinner
               color={ReactNativeDsIconColor.PrimaryDefault}
               spinnerIconProps={{ size: ReactNativeDsIconSize.Xl }}

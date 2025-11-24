@@ -72,7 +72,7 @@ const StakingContractInteractionDetails = () => {
       </InfoRow>
       <InfoRowDivider />
       <InfoRow label={strings('confirm.label.network')}>
-        <View accessibilityRole="none" accessible={false} style={styles.networkContainer}>
+        <View style={styles.networkContainer}>
           <Badge
             size={AvatarSize.Xs}
             imageSource={images.ETHEREUM}

@@ -361,7 +361,7 @@ function TokenSelectModal({
 
   const renderEmptyList = useMemo(
     () => (
-      <View accessibilityRole="none" accessible={false} style={styles.emptyList}>
+      <View style={styles.emptyList}>
         <Text>{strings('swaps.no_tokens_result', { searchString })}</Text>
       </View>
     ),
@@ -398,7 +398,7 @@ function TokenSelectModal({
           {title}
         </Text>
         <TouchableWithoutFeedback onPress={handleSearchPress}>
-          <View accessibilityRole="none" accessible={false} style={styles.inputWrapper}>
+          <View style={styles.inputWrapper}>
             <Icon name="search" size={20} style={styles.searchIcon} />
             <TextInput
               ref={searchInput}
@@ -418,18 +418,18 @@ function TokenSelectModal({
           </View>
         </TouchableWithoutFeedback>
         {shouldFetchToken ? (
-          <View accessibilityRole="none" accessible={false} style={styles.resultsView}>
+          <View style={styles.resultsView}>
             {loadingTokenMetadata ? (
-              <View accessibilityRole="none" accessible={false} style={styles.loadingTokenView}>
+              <View style={styles.loadingTokenView}>
                 <ActivityIndicator style={styles.loadingIndicator} />
                 <Text>{strings('swaps.gathering_token_details')}</Text>
               </View>
             ) : tokenMetadata.error ? (
-              <View accessibilityRole="none" accessible={false} style={styles.emptyList}>
+              <View style={styles.emptyList}>
                 <Text>{strings('swaps.error_gathering_token_details')}</Text>
               </View>
             ) : tokenMetadata.valid ? (
-              <View accessibilityRole="none" accessible={false} style={styles.resultRow}>
+              <View style={styles.resultRow}>
                 <ListItem>
                   <ListItem.Content>
                     <ListItem.Icon>
@@ -469,7 +469,7 @@ function TokenSelectModal({
                 />
               </View>
             ) : (
-              <View accessibilityRole="none" accessible={false} style={styles.emptyList}>
+              <View style={styles.emptyList}>
                 <Text>
                   {strings('swaps.invalid_token_contract_address')}
                   {explorer.isValid && (

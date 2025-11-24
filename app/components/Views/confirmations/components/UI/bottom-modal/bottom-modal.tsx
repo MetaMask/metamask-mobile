@@ -58,8 +58,8 @@ const BottomModal = ({
       testID={testID}
       avoidKeyboard={avoidKeyboard}
     >
-      <View accessibilityRole="none" accessible={false} style={styles.wrapper}>
-        <View accessibilityRole="none" accessible={false} style={styles.topBar} />
+      <View style={styles.wrapper}>
+        <View style={styles.topBar} />
         {children}
       </View>
     </Modal>

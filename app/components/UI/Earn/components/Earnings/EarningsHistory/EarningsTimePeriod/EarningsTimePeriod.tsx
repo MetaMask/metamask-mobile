@@ -50,7 +50,7 @@ const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
     const buttonStyle = { ...styles.button, ...buttonSelectedStyle };
 
     return (
-      <View accessibilityRole="none" accessible={false} style={{ ...styles.buttonContainer, width }}>
+      <View style={{ ...styles.buttonContainer, width }}>
         <TouchableOpacity
           onPress={handlePress}
           onPressIn={handlePressIn}
@@ -66,7 +66,7 @@ const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
   };
 
   return (
-    <View accessibilityRole="none" accessible={false} style={styles.timePeriodButtonGroupContainer}>
+    <View style={styles.timePeriodButtonGroupContainer}>
       {initialTimePeriod ? (
         <>
           {renderButton(DateRange.DAILY, 50)}

@@ -131,7 +131,7 @@ const DataField = memo(
       fieldDisplay = <Text>{value}</Text>;
     }
     return (
-      <View accessibilityRole="none" accessible={false} style={styles.container}>
+      <View style={styles.container}>
         <InfoRow label={startCase(label)} style={styles.dataRow}>
           {fieldDisplay}
         </InfoRow>

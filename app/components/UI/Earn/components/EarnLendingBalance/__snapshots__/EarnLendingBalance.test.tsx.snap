@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
-<View accessibilityRole="none" accessible={false}>
+<View>
   <View
     style={
       {
@@ -62,7 +62,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
       }
     }
   >
-    <View accessibilityRole="none" accessible={false}>
+    <View>
       <View
         style={
           {
@@ -85,7 +85,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
         >
           Your earnings
         </Text>
-        <View accessibilityRole="none" accessible={false}>
+        <View>
           <View
             style={
               {
@@ -253,7 +253,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
 `;
 
 exports[`EarnLendingBalance renders balance and buttons when user has lending positions 1`] = `
-<View accessibilityRole="none" accessible={false}>
+<View>
   <TouchableOpacity
     disabled={false}
     onLongPress={[Function]}
@@ -277,7 +277,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
       }
       testID="badge-wrapper-badge"
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <View
           style={
             {
@@ -413,7 +413,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
       >
         ADAI
       </Text>
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <Text
           accessibilityRole="text"
           style={

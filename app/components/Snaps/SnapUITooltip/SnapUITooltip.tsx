@@ -30,7 +30,7 @@ export const SnapUITooltip: FunctionComponent<SnapUITooltipProps> = ({
     <>
       <TouchableOpacity onPress={handleOnOpen}>{children}</TouchableOpacity>
       <ApprovalModal isVisible={isOpen} onCancel={handleOnCancel} avoidKeyboard>
-        <View accessibilityRole="none" accessible={false} style={styles.modal}>
+        <View style={styles.modal}>
           <BottomSheetHeader onBack={handleOnCancel} />
           <ScrollView style={styles.content}>{content}</ScrollView>
         </View>

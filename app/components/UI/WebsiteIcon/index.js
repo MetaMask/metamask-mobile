@@ -120,8 +120,8 @@ class WebsiteIcon extends PureComponent {
 
     if (title && (!apiLogoUrl?.uri || renderIconUrlError)) {
       return (
-        <View accessibilityRole="none" accessible={false} style={viewStyle}>
-          <View accessibilityRole="none" accessible={false} style={[styles.fallback, style]}>
+        <View style={viewStyle}>
+          <View style={[styles.fallback, style]}>
             <Text style={[styles.fallbackText, textStyle]}>{title}</Text>
           </View>
         </View>
@@ -135,7 +135,7 @@ class WebsiteIcon extends PureComponent {
     }
 
     return (
-      <View accessibilityRole="none" accessible={false} style={viewStyle}>
+      <View style={viewStyle}>
         {imageSVG ? (
           <SvgUri
             uri={imageSVG}

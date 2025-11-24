@@ -61,7 +61,7 @@ exports[`AddBookmark should render correctly 1`] = `
       update={[Function]}
       viewIsInsideTabBar={false}
     >
-      <View accessibilityRole="none" accessible={false}>
+      <View>
         <View
           accessibilityState={
             {

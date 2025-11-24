@@ -312,7 +312,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <View accessibilityRole="none" accessible={false}>
+                    <View>
                       <View
                         style={
                           {
@@ -380,7 +380,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                               update={[Function]}
                               viewIsInsideTabBar={false}
                             >
-                              <View accessibilityRole="none" accessible={false}>
+                              <View>
                                 <View
                                   accessibilityState={
                                     {
@@ -409,7 +409,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                   <RCTScrollView
                                     nestedScrollEnabled={true}
                                   >
-                                    <View accessibilityRole="none" accessible={false}>
+                                    <View>
                                       <View
                                         onStartShouldSetResponder={[Function]}
                                         style={

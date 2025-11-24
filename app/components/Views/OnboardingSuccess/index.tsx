@@ -122,9 +122,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         style={styles.container}
         testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
       >
-        <View accessibilityRole="none" accessible={false} style={styles.animationSection}>{renderContent()}</View>
+        <View style={styles.animationSection}>{renderContent()}</View>
 
-        <View accessibilityRole="none" accessible={false} style={styles.buttonSection}>
+        <View style={styles.buttonSection}>
           <Button
             testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
             label={strings('onboarding_success.done')}

@@ -920,7 +920,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
         {/* Amount Slider - Hide when keypad is active */}
         {!isInputFocused && (
-          <View accessibilityRole="none" accessible={false} style={styles.sliderSection}>
+          <View style={styles.sliderSection}>
             <PerpsSlider
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) => {
@@ -939,13 +939,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
         {/* Order Details */}
         {!isInputFocused && (
-          <View accessibilityRole="none" accessible={false} style={styles.detailsWrapper}>
+          <View style={styles.detailsWrapper}>
             {/* Leverage */}
-            <View accessibilityRole="none" accessible={false} style={[styles.detailItem, styles.detailItemFirst]}>
+            <View style={[styles.detailItem, styles.detailItemFirst]}>
               <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
-                    <View accessibilityRole="none" accessible={false} style={styles.detailLeft}>
+                    <View style={styles.detailLeft}>
                       <Text
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
@@ -979,7 +979,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
             {/* Limit price - only show for limit orders */}
             {orderForm.type === 'limit' && (
-              <View accessibilityRole="none" accessible={false} style={styles.detailItem}>
+              <View style={styles.detailItem}>
                 <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                   <ListItem style={styles.detailItemWrapper}>
                     <ListItemColumn widthType={WidthType.Fill}>
@@ -1009,14 +1009,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
             )}
 
             {/* Combined TP/SL row */}
-            <View accessibilityRole="none" accessible={false} style={[styles.detailItem, styles.detailItemLast]}>
+            <View style={[styles.detailItem, styles.detailItemLast]}>
               <TouchableOpacity
                 onPress={handleTPSLPress}
                 testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
               >
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
-                    <View accessibilityRole="none" accessible={false} style={styles.detailLeft}>
+                    <View style={styles.detailLeft}>
                       <Text
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
@@ -1048,7 +1048,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </TouchableOpacity>
             </View>
             {doesStopLossRiskLiquidation && (
-              <View accessibilityRole="none" accessible={false} style={styles.stopLossLiquidationWarning}>
+              <View style={styles.stopLossLiquidationWarning}>
                 <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {strings('perps.tpsl.stop_loss_order_view_warning', {
                     direction:
@@ -1072,8 +1072,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
             { marginTop: isInputFocused ? 16 : 0 },
           ]}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.infoRow}>
-            <View accessibilityRole="none" accessible={false} style={styles.detailLeft}>
+          <View style={styles.infoRow}>
+            <View style={styles.detailLeft}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.order.margin')}
               </Text>
@@ -1098,8 +1098,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </Text>
           </View>
 
-          <View accessibilityRole="none" accessible={false} style={styles.infoRow}>
-            <View accessibilityRole="none" accessible={false} style={styles.detailLeft}>
+          <View style={styles.infoRow}>
+            <View style={styles.detailLeft}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.order.liquidation_price')}
               </Text>
@@ -1125,8 +1125,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
-          <View accessibilityRole="none" accessible={false} style={styles.infoRow}>
-            <View accessibilityRole="none" accessible={false} style={styles.detailLeft}>
+          <View style={styles.infoRow}>
+            <View style={styles.detailLeft}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.order.fees')}
               </Text>
@@ -1158,8 +1158,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
             rewardsState.estimatedPoints !== undefined && (
-              <View accessibilityRole="none" accessible={false} style={styles.infoRow}>
-                <View accessibilityRole="none" accessible={false} style={styles.detailLeft}>
+              <View style={styles.infoRow}>
+                <View style={styles.detailLeft}>
                   <Text
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
@@ -1177,7 +1177,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                     />
                   </TouchableOpacity>
                 </View>
-                <View accessibilityRole="none" accessible={false} style={styles.pointsRightContainer}>
+                <View style={styles.pointsRightContainer}>
                   <RewardsAnimations
                     value={rewardsState.estimatedPoints ?? 0}
                     bonusBips={rewardsState.bonusBips}
@@ -1201,7 +1201,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           style={styles.bottomSection}
           testID={PerpsOrderViewSelectorsIDs.KEYPAD}
         >
-          <View accessibilityRole="none" accessible={false} style={styles.percentageButtonsContainer}>
+          <View style={styles.percentageButtonsContainer}>
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
@@ -1247,12 +1247,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
       )}
       {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
       {!isInputFocused && !isAtOICap && (
-        <View accessibilityRole="none" accessible={false} style={fixedBottomContainerStyle}>
+        <View style={fixedBottomContainerStyle}>
           {filteredErrors.length > 0 &&
             !isLoadingMarketData &&
             currentPrice != null &&
             !orderValidation.isValidating && (
-              <View accessibilityRole="none" accessible={false} style={styles.validationContainer}>
+              <View style={styles.validationContainer}>
                 {filteredErrors.map((error) => (
                   <Text
                     key={error}
