@@ -1760,6 +1760,8 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
+        skipInitialGasEstimate: true,
         transactions,
       });
 

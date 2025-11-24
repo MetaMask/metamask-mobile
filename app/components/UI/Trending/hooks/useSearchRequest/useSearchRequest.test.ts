@@ -104,10 +104,14 @@ describe('useSearchRequest', () => {
       result.current.search();
       result.current.search();
 
-      jest.advanceTimersByTime(DEBOUNCE_WAIT - 100);
-      expect(spySearchTokens).not.toHaveBeenCalled();
-
-      jest.advanceTimersByTime(DEBOUNCE_WAIT + 200);
+      // Only test intermediate state if debounce wait is long enough
+      if (DEBOUNCE_WAIT > 100) {
+        jest.advanceTimersByTime(DEBOUNCE_WAIT - 100);
+        expect(spySearchTokens).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(200);
+      } else {
+        jest.advanceTimersByTime(DEBOUNCE_WAIT + 100);
+      }
       await Promise.resolve();
     });
 

@@ -265,5 +265,9 @@ function useButtonLabel() {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
   }
 
+  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
+    return strings('earn.musd_conversion.confirmation_button');
+  }
+
   return strings('confirm.deposit_edit_amount_done');
 }
