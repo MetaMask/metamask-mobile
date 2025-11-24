@@ -198,11 +198,6 @@ export async function scanAddress(
 ): Promise<void> {
   try {
     await phishingController.scanAddress(chainId, address);
-    // log cache
-    Logger.log(
-      `[scanAddress] Cache:`,
-      phishingController.state.addressScanCache,
-    );
   } catch (error) {
     Logger.log(`[scanAddress] Failed to scan address ${address}:`, error);
   }
