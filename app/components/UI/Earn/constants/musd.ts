@@ -2,7 +2,7 @@
  * mUSD Conversion Constants for Earn namespace
  */
 
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 
@@ -52,8 +52,3 @@ export const CONVERTIBLE_STABLECOINS_BY_CHAIN: Record<Hex, Hex[]> = (() => {
   }
   return result;
 })();
-
-// TODO: Remove this once we add to TransactionType. Requires updating transaction-controller package.
-// Similar to a swap except that output token is predetermined (e.g. mUSD) and the user cannot change it.
-export const MUSD_CONVERSION_TRANSACTION_TYPE =
-  'mUSDConversion' as TransactionType;
