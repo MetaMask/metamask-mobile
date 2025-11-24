@@ -203,7 +203,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           isPooledStakingEnabled && (
             <StakingCta
               chainId={asset.chainId as Hex}
-              style={styles.stakingCta}
               estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
                 inputFormat: CommonPercentageInputUnits.PERCENTAGE,
                 outputFormat: PercentageOutputFormat.PERCENT_SIGN,
