@@ -31,18 +31,16 @@ async function fetchJobIds(octokit, owner, repo, runId) {
     console.log(`Found ${allJobs.length} jobs in workflow run ${runId}`);
     console.log('All job names:', allJobs.map((job) => `"${job.name}"`).join(', '));
 
-    // Find jobs by name - reusable workflows may have composite names like:
-    // "Build Android APKs / Build Android E2E APKs" or just "Build Android E2E APKs"
-    // When reusable workflows are called, job names can be:
-    // 1. Exact match: "Build Android APKs" (caller job name)
-    // 2. Composite: "Build Android APKs / Build Android E2E APKs" (caller / reusable)
-    // 3. Reusable only: "Build Android E2E APKs" (from reusable workflow)
-    // Try multiple patterns for robustness
+    // Find jobs by name. Handles composite names from reusable workflows.
+    // Uses fallback patterns for robustness against naming changes.
     const androidJob =
       allJobs.find((job) => job.name === 'Build Android APKs') ||
       allJobs.find((job) => job.name.includes('Build Android APKs') && job.name.includes('Build Android E2E APKs') && !job.name.includes('Flask')) ||
       allJobs.find((job) => job.name === 'Build Android E2E APKs') ||
-      allJobs.find((job) => job.name.includes('Android') && job.name.includes('E2E') && job.name.includes('APK') && !job.name.includes('Flask'));
+      allJobs.find((job) => {
+        const nameLower = job.name.toLowerCase();
+        return job.name.includes('Android') && job.name.includes('E2E') && job.name.includes('APK') && !nameLower.includes('flask');
+      });
 
     const iosJob =
       allJobs.find((job) => job.name === 'Build iOS Apps') ||
@@ -109,9 +107,8 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
       console.log('✗ No iOS artifact found matching "MetaMask.app"');
     }
 
-    // Find Android artifacts
-    // Artifact names follow pattern: {build_type}-{environment}-release.apk
-    // Examples: main-e2e-release.apk, flask-e2e-release.apk
+    // Find Android artifacts (APK or AAB)
+    // Pattern: {build_type}-{environment}-release.{apk|aab}
     const androidArtifacts = allArtifacts.filter(
       (artifact) =>
         artifact.name.includes('-release.apk') ||
@@ -120,17 +117,12 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
 
     console.log(`Found ${androidArtifacts.length} potential Android artifacts:`, androidArtifacts.map((a) => a.name).join(', '));
 
-    // Find main Android artifact (main-e2e-release.apk)
-    // Priority: exact match > APK (excluding test/flask) > AAB (excluding flask)
-    // Use case-insensitive matching for exclusions
+    // Find main Android artifact.
+    // Priority: exact match 'main-e2e-release.apk' > first release APK/AAB (excluding test/flask).
     const androidArtifact = androidArtifacts.find((a) => a.name === 'main-e2e-release.apk') ||
       androidArtifacts.find((a) => {
         const nameLower = a.name.toLowerCase();
-        return a.name.includes('-release.apk') && !nameLower.includes('androidtest') && !nameLower.includes('flask');
-      }) ||
-      androidArtifacts.find((a) => {
-        const nameLower = a.name.toLowerCase();
-        return a.name.includes('-release.aab') && !nameLower.includes('flask') && !nameLower.includes('androidtest');
+        return !nameLower.includes('androidtest') && !nameLower.includes('flask');
       });
 
     if (androidArtifact) {
@@ -354,8 +346,7 @@ ${rows.join('\n')}
 `;
 
   // 5. Post or Update Comment
-  // This ensures that if new artifacts are created in the same PR (e.g., after a new commit),
-  // the comment will be updated with the latest artifact URLs
+  // Idempotent: updates existing bot comment if found, otherwise creates a new one.
   try {
     console.log(`\n=== Searching for existing comment on PR #${prNumber} ===`);
     const comments = await octokit.paginate(octokit.rest.issues.listComments, {
