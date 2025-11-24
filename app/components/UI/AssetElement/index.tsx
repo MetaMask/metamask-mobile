@@ -130,8 +130,6 @@ const AssetElement: React.FC<AssetElementProps> = ({
             isHidden={privacyMode && hideSecondaryBalanceInPrivacyMode}
             length={SensitiveTextLength.Short}
             testID={SECONDARY_BALANCE_TEST_ID}
-            accessibilityRole="none"
-            accessible={false}
           >
             {secondaryBalance === TOKEN_BALANCE_LOADING ||
             secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
