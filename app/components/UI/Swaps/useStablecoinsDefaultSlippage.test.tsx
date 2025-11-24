@@ -4,7 +4,7 @@ import {
   handleEvmStablecoinSlippage,
 } from './useStablecoinsDefaultSlippage';
 import { Hex } from '@metamask/utils';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import AppConstants from '../../../core/AppConstants';
 
 describe('useStablecoinsDefaultSlippage', () => {
@@ -40,7 +40,7 @@ describe('useStablecoinsDefaultSlippage', () => {
         useStablecoinsDefaultSlippage({
           sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
           destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+          chainId: CHAIN_IDS.MAINNET,
           setSlippage: mockSetSlippage,
         }),
       { state: initialState },
@@ -55,7 +55,7 @@ describe('useStablecoinsDefaultSlippage', () => {
         useStablecoinsDefaultSlippage({
           sourceTokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC (checksum)
           destTokenAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7', // USDT (checksum)
-          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+          chainId: CHAIN_IDS.MAINNET as Hex,
           setSlippage: mockSetSlippage,
         }),
       { state: initialState },
@@ -70,7 +70,7 @@ describe('useStablecoinsDefaultSlippage', () => {
         useStablecoinsDefaultSlippage({
           sourceTokenAddress: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', // USDC
           destTokenAddress: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f', // USDT
-          chainId: swapsUtils.POLYGON_CHAIN_ID as Hex,
+          chainId: CHAIN_IDS.POLYGON as Hex,
           setSlippage: mockSetSlippage,
         }),
       { state: initialState },
@@ -85,7 +85,7 @@ describe('useStablecoinsDefaultSlippage', () => {
         useStablecoinsDefaultSlippage({
           sourceTokenAddress: '0x123', // Non-stablecoin
           destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+          chainId: CHAIN_IDS.MAINNET as Hex,
           setSlippage: mockSetSlippage,
         }),
       { state: initialState },
@@ -100,7 +100,7 @@ describe('useStablecoinsDefaultSlippage', () => {
         useStablecoinsDefaultSlippage({
           sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
           destTokenAddress: '0x123', // Non-stablecoin
-          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+          chainId: CHAIN_IDS.MAINNET as Hex,
           setSlippage: mockSetSlippage,
         }),
       { state: initialState },
@@ -129,7 +129,7 @@ describe('useStablecoinsDefaultSlippage', () => {
       () =>
         useStablecoinsDefaultSlippage({
           destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+          chainId: CHAIN_IDS.MAINNET,
           setSlippage: mockSetSlippage,
         }),
       { state: initialState },
@@ -143,7 +143,7 @@ describe('useStablecoinsDefaultSlippage', () => {
       () =>
         useStablecoinsDefaultSlippage({
           sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-          chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+          chainId: CHAIN_IDS.MAINNET,
           setSlippage: mockSetSlippage,
         }),
       { state: initialState },
@@ -164,7 +164,7 @@ describe('handleStablecoinSlippage', () => {
     handleEvmStablecoinSlippage({
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
     });
 
@@ -177,7 +177,7 @@ describe('handleStablecoinSlippage', () => {
     handleEvmStablecoinSlippage({
       sourceTokenAddress: '0x123', // Non-stablecoin
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
     });
 
@@ -188,7 +188,7 @@ describe('handleStablecoinSlippage', () => {
     handleEvmStablecoinSlippage({
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       destTokenAddress: '0x123', // Non-stablecoin
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
     });
 
@@ -209,7 +209,7 @@ describe('handleStablecoinSlippage', () => {
   it('does not set slippage when source token address is missing', () => {
     handleEvmStablecoinSlippage({
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
     });
 
@@ -219,7 +219,7 @@ describe('handleStablecoinSlippage', () => {
   it('does not set slippage when destination token address is missing', () => {
     handleEvmStablecoinSlippage({
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
     });
 
@@ -230,7 +230,7 @@ describe('handleStablecoinSlippage', () => {
     handleEvmStablecoinSlippage({
       sourceTokenAddress: '0x123', // Non-stablecoin
       destTokenAddress: '0x456', // Non-stablecoin
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
       prevSourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       prevDestTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
@@ -245,7 +245,7 @@ describe('handleStablecoinSlippage', () => {
     handleEvmStablecoinSlippage({
       sourceTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
       destTokenAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', // WBTC
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
       prevSourceTokenAddress: '0x123', // Non-stablecoin
       prevDestTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
@@ -258,7 +258,7 @@ describe('handleStablecoinSlippage', () => {
     handleEvmStablecoinSlippage({
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
       prevSourceTokenAddress: '0x123', // Non-stablecoin
       prevDestTokenAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', // WBTC
@@ -273,7 +273,7 @@ describe('handleStablecoinSlippage', () => {
     handleEvmStablecoinSlippage({
       sourceTokenAddress: undefined,
       destTokenAddress: undefined,
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
       prevSourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       prevDestTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
@@ -286,7 +286,7 @@ describe('handleStablecoinSlippage', () => {
     handleEvmStablecoinSlippage({
       sourceTokenAddress: '0x123', // Non-stablecoin
       destTokenAddress: '0x456', // Non-stablecoin
-      chainId: swapsUtils.ETH_CHAIN_ID as Hex,
+      chainId: CHAIN_IDS.MAINNET,
       setSlippage: mockSetSlippage,
       prevSourceTokenAddress: undefined,
       prevDestTokenAddress: undefined,

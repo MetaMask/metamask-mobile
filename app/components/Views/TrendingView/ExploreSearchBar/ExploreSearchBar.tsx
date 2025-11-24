@@ -6,13 +6,13 @@ import {
   BoxAlignItems,
   Text,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../component-library/components/Icons/Icon';
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 
@@ -23,7 +23,6 @@ interface ExploreSearchBarButtonProps {
 
 interface ExploreSearchBarInteractiveProps {
   type: 'interactive';
-  isSearchFocused: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onCancel: () => void;
@@ -64,11 +63,11 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       <Icon
         name={IconName.Search}
         size={IconSize.Md}
-        color={IconColor.Muted}
+        color={IconColor.IconMuted}
         style={tw.style('mr-2')}
       />
       {isButtonMode ? (
-        <Text variant={TextVariant.BodyMd} style={tw.style('text-muted')}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('trending.search_placeholder')}
         </Text>
       ) : (
@@ -77,24 +76,28 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             value={props.searchQuery}
             onChangeText={props.onSearchChange}
             placeholder={strings('trending.search_placeholder')}
-            placeholderTextColor={colors.text.muted}
+            placeholderTextColor={colors.text.alternative}
             style={tw.style('flex-1 text-base text-default py-2.5')}
             testID="explore-view-search-input"
-            autoFocus={props.isSearchFocused}
+            autoFocus={props.type === 'interactive'}
+            autoCapitalize="none"
           />
-          {props.searchQuery && props.searchQuery.length > 0 && (
-            <TouchableOpacity
-              onPress={handleClear}
-              testID="explore-search-clear-button"
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Icon
-                name={IconName.CircleX}
-                size={IconSize.Md}
-                color={IconColor.Muted}
-              />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            onPress={handleClear}
+            testID="explore-search-clear-button"
+            disabled={!props.searchQuery || props.searchQuery.length === 0}
+            style={tw.style(
+              props.searchQuery && props.searchQuery.length > 0
+                ? 'opacity-100'
+                : 'opacity-0',
+            )}
+          >
+            <Icon
+              name={IconName.CircleX}
+              size={IconSize.Md}
+              color={IconColor.IconAlternative}
+            />
+          </TouchableOpacity>
         </>
       )}
     </Box>
@@ -118,19 +121,17 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       ) : (
         <>
           <Box twClassName="flex-1">{searchBarContent}</Box>
-          {props.isSearchFocused && (
-            <TouchableOpacity
-              onPress={handleCancel}
-              testID="explore-search-cancel-button"
+          <TouchableOpacity
+            onPress={handleCancel}
+            testID="explore-search-cancel-button"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              style={tw.style('text-default font-medium')}
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                style={tw.style('text-default font-medium')}
-              >
-                {strings('transaction.cancel')}
-              </Text>
-            </TouchableOpacity>
-          )}
+              {strings('transaction.cancel')}
+            </Text>
+          </TouchableOpacity>
         </>
       )}
     </Box>

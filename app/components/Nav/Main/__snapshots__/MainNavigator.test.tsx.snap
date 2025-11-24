@@ -78,6 +78,16 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="TrendingTokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="Webview"
   />
   <Screen
