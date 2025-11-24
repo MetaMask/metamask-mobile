@@ -78,20 +78,20 @@ export function extractSpenderFromApprovalData(data?: Hex): string | undefined {
 
     switch (fourByteCode) {
       case APPROVAL_4BYTE_SELECTORS.APPROVE:
-        spender = args[0] ?? args._spender;
+        spender = args._spender;
         break;
 
       case APPROVAL_4BYTE_SELECTORS.ERC20_INCREASE_ALLOWANCE:
       case APPROVAL_4BYTE_SELECTORS.ERC20_DECREASE_ALLOWANCE:
-        spender = args[0] ?? args._spender;
+        spender = args._spender;
         break;
 
       case APPROVAL_4BYTE_SELECTORS.SET_APPROVAL_FOR_ALL:
-        spender = args[0] ?? args._operator;
+        spender = args._operator;
         break;
 
       case APPROVAL_4BYTE_SELECTORS.PERMIT2_APPROVE:
-        spender = args[1] ?? args.spender;
+        spender = args.spender;
         break;
 
       default:
