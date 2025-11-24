@@ -1826,7 +1826,11 @@
       "danger_message": "Removing this amount brings your position very close to liquidation. Proceed with extreme caution.",
       "warning_title": "Increased Liquidation Risk",
       "warning_message": "Removing this margin will increase your leverage and move your liquidation price closer to the current price.",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "add_margin": "Add margin",
+      "add_margin_description": "Add collateral to reduce leverage and liquidation risk",
+      "reduce_margin": "Remove margin",
+      "reduce_margin_description": "Withdraw collateral to increase leverage"
     },
     "activity": {
       "flip_label": "Flip"

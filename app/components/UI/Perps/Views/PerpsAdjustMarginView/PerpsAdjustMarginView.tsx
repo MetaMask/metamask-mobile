@@ -58,10 +58,11 @@ const PerpsAdjustMarginView: React.FC = () => {
     });
 
   // Get market info for max leverage (needed for remove mode)
-  const { getMarketInfo } = usePerpsMarkets();
+  const { markets } = usePerpsMarkets();
   const marketInfo = useMemo(
-    () => (position?.coin ? getMarketInfo(position.coin) : null),
-    [position?.coin, getMarketInfo],
+    () =>
+      position?.coin ? markets.find((m) => m.coin === position.coin) : null,
+    [position?.coin, markets],
   );
   const maxLeverage = marketInfo?.maxLeverage || 50;
 
