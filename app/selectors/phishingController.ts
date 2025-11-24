@@ -1,3 +1,4 @@
+import type { TokenScanCacheData } from '@metamask/phishing-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 
@@ -25,25 +26,29 @@ export const selectMultipleTokenScanResults = createDeepEqualSelector(
 
     const tokenScanCache = phishingControllerState?.tokenScanCache || {};
 
-    return tokens
-      .map((token) => {
-        const { address, chainId } = token;
+    return tokens.reduce<
+      {
+        address: string;
+        chainId: string;
+        scanResult: TokenScanCacheData;
+      }[]
+    >((acc, token) => {
+      const { address, chainId } = token;
 
-        if (!address || !chainId) {
-          return null;
-        }
+      if (!address || !chainId) {
+        return acc;
+      }
 
-        const cacheKey = `${chainId}:${address.toLowerCase()}`;
-        const cacheEntry = tokenScanCache[cacheKey];
+      const cacheKey = `${chainId}:${address.toLowerCase()}`;
+      const cacheEntry = tokenScanCache[cacheKey];
 
-        return {
-          address: address.toLowerCase(),
-          chainId,
-          scanResult: cacheEntry?.data,
-        };
-      })
-      .filter(
-        (result): result is NonNullable<typeof result> => result !== null,
-      );
+      acc.push({
+        address: address.toLowerCase(),
+        chainId,
+        scanResult: cacheEntry?.data,
+      });
+
+      return acc;
+    }, []);
   },
 );
