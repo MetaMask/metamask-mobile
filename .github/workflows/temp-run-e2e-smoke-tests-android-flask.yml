@@ -52,6 +52,8 @@ jobs:
           aws-region: us-east-2
           platform: android
           target: qa
+        env:
+          ANDROID_KEYSTORE_PATH: android/keystores/internalRelease.keystore
 
       # Download APK from GitHub release instead of building
       - name: Download APK from GitHub Release
@@ -80,7 +82,7 @@ jobs:
           METAMASK_BUILD_TYPE: flask
           SOURCE_APK: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           CI: 'true'
-          ANDROID_KEYSTORE_PATH: android/keystores/qa.keystore
+          ANDROID_KEYSTORE_PATH: android/keystores/internalRelease.keystore
 
       - name: Ensure Repacked APK is in expected location
         run: |
