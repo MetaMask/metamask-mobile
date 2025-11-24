@@ -30,30 +30,46 @@ async function fetchJobIds(octokit, owner, repo, runId) {
     console.log(`Found ${allJobs.length} jobs in workflow run ${runId}`);
     console.log('All job names:', allJobs.map((job) => `"${job.name}"`).join(', '));
 
-    // Find jobs by name. Handles composite names from reusable workflows (e.g. "Caller / Reusable")
+    // Find jobs by name. Prioritizes actual build jobs from reusable workflows over caller jobs
+    // to ensure "View Job" links point to jobs with build logs, not just wrapper jobs.
+    // Handles composite names from reusable workflows (e.g. "Caller / Reusable")
     // by checking if the name includes both parts. Uses fallback patterns for robustness.
     const androidJob =
-      allJobs.find((job) => job.name === 'Build Android APKs') ||
-      allJobs.find((job) => job.name.includes('Build Android APKs') && job.name.includes('Build Android E2E APKs') && !job.name.includes('Flask')) ||
+      // Prioritize actual build job from reusable workflow (has build logs)
       allJobs.find((job) => job.name === 'Build Android E2E APKs') ||
+      // Check for composite name (caller / reusable)
+      allJobs.find((job) => job.name.includes('Build Android APKs') && job.name.includes('Build Android E2E APKs') && !job.name.includes('Flask')) ||
+      // Fallback to caller job (no build logs, but better than nothing)
+      allJobs.find((job) => job.name === 'Build Android APKs') ||
+      // Generic fallback
       allJobs.find((job) => {
         const nameLower = job.name.toLowerCase();
         return nameLower.includes('android') && nameLower.includes('e2e') && nameLower.includes('apk') && !nameLower.includes('flask');
       });
 
     const iosJob =
-      allJobs.find((job) => job.name === 'Build iOS Apps') ||
-      allJobs.find((job) => job.name.includes('Build iOS Apps') && job.name.includes('Build iOS E2E Apps')) ||
+      // Prioritize actual build job from reusable workflow (has build logs)
       allJobs.find((job) => job.name === 'Build iOS E2E Apps') ||
+      // Check for composite name (caller / reusable)
+      allJobs.find((job) => job.name.includes('Build iOS Apps') && job.name.includes('Build iOS E2E Apps')) ||
+      // Fallback to caller job (no build logs, but better than nothing)
+      allJobs.find((job) => job.name === 'Build iOS Apps') ||
+      // Generic fallback
       allJobs.find((job) => {
         const nameLower = job.name.toLowerCase();
         return nameLower.includes('ios') && nameLower.includes('e2e') && nameLower.includes('apps');
       });
 
     const androidFlaskJob =
-      allJobs.find((job) => job.name === 'Build Android Flask APKs') ||
+      // Prioritize actual build job from reusable workflow (has build logs)
       allJobs.find((job) => job.name.includes('Flask') && job.name.includes('Build Android E2E APKs')) ||
-      allJobs.find((job) => job.name.includes('Android') && job.name.includes('Flask') && job.name.includes('E2E'));
+      // Generic fallback for Flask jobs
+      allJobs.find((job) => {
+        const nameLower = job.name.toLowerCase();
+        return nameLower.includes('android') && nameLower.includes('flask') && nameLower.includes('e2e');
+      }) ||
+      // Fallback to caller job (no build logs, but better than nothing)
+      allJobs.find((job) => job.name === 'Build Android Flask APKs');
 
     const result = {
       androidJobId: androidJob ? String(androidJob.id) : null,
