@@ -409,6 +409,39 @@ describe('TrendingTokensFullView', () => {
     });
   });
 
+  it('updates price change filter when option is selected', async () => {
+    const mockTokens = [
+      createMockToken({ name: 'Token 1', assetId: 'eip155:1/erc20:0x123' }),
+      createMockToken({ name: 'Token 2', assetId: 'eip155:1/erc20:0x456' }),
+    ];
+
+    mockUseTrendingRequest.mockReturnValue({
+      results: mockTokens,
+      isLoading: false,
+      error: null,
+      fetch: jest.fn(),
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
+
+    // Open price change bottom sheet
+    const priceChangeButton = getByTestId('price-change-button');
+    fireEvent.press(priceChangeButton);
+
+    // Select Volume option (which maps to PriceChangeOption.Volume and ascending sort)
+    const volumeOption = getByTestId('price-change-select-volume');
+    await act(async () => {
+      fireEvent(volumeOption, 'touchEnd');
+    });
+
+    // Price change button label should update to "Volume"
+    expect(getByText('Volume')).toBeOnTheScreen();
+  });
+
   it('triggers section refetch on pull-to-refresh', async () => {
     mockUseTrendingRequest.mockReturnValueOnce({
       results: [
