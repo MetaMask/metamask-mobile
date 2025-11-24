@@ -39,6 +39,9 @@ import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/Add
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../hooks/useLatestBalance';
 
 if (
   Platform.OS === 'android' &&
@@ -78,12 +81,44 @@ const QuoteDetailsCard: React.FC = () => {
     isQuoteLoading,
   });
 
+  const gasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
+
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+  });
+
+  const insufficientBal = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;
     if (!chainId) return undefined;
     const native = getNativeSourceToken(chainId);
     return native?.symbol ?? sourceToken?.symbol ?? '';
   }, [sourceToken?.chainId, sourceToken?.symbol]);
+
+  const isCurrentNetworkGasSponsored = useMemo(() => {
+    if (!sourceToken?.chainId || !gasFeesSponsoredNetworkEnabled) {
+      return false;
+    }
+    return gasFeesSponsoredNetworkEnabled(sourceToken.chainId);
+  }, [sourceToken?.chainId, gasFeesSponsoredNetworkEnabled]);
+
+  const shouldShowGasSponsored = useMemo(() => {
+    const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
+    return gasSponsored || (insufficientBal && isCurrentNetworkGasSponsored);
+  }, [
+    activeQuote?.quote?.gasSponsored,
+    insufficientBal,
+    isCurrentNetworkGasSponsored,
+  ]);
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -102,8 +137,6 @@ const QuoteDetailsCard: React.FC = () => {
   }
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
-
-  const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
 
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
 
@@ -152,7 +185,7 @@ const QuoteDetailsCard: React.FC = () => {
             ),
           }}
         />
-        {gasSponsored ? (
+        {shouldShowGasSponsored ? (
           <KeyValueRow
             field={{
               label: {
