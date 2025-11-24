@@ -18,6 +18,7 @@ import {
 } from './networks';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 import { base58 } from 'ethers/lib/utils';
+import Logger from '../../util/Logger';
 
 /**
  * Returns whether an account is an EVM account.
@@ -191,6 +192,7 @@ export function isTronAddress(address: string): boolean {
     const decoded = base58.decode(address);
     return decoded.length === 25 && decoded[0] === 0x41;
   } catch (error) {
+    Logger.error(new Error('Error decoding Tron address'), { error });
     return false;
   }
 }
