@@ -24,7 +24,6 @@ import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 
 export function BridgeFeeRow() {
@@ -111,7 +110,7 @@ function Tooltip({
     message = strings('confirm.tooltip.predict_deposit.transaction_fee');
   }
 
-  if (hasTransactionType(transactionMeta, [MUSD_CONVERSION_TRANSACTION_TYPE])) {
+  if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
     message = strings('confirm.tooltip.musd_conversion.transaction_fee');
   }
 
