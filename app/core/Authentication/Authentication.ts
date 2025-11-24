@@ -19,6 +19,7 @@ import {
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
+import { isUserCancellation } from './biometricErrorUtils';
 import {
   AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
   AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
@@ -86,7 +87,11 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private async dispatchLogin(
+  /**
+   * Dispatches login action and initializes account services
+   * @param options - Options for account tree initialization
+   */
+  async dispatchLogin(
     options: {
       clearAccountTreeState: boolean;
     } = {
@@ -237,7 +242,12 @@ class AuthenticationService {
     });
   };
 
-  private postLoginAsyncOperations = async (): Promise<void> => {
+  /**
+   * Runs post-login operations in the background
+   * - Re-syncs multichain accounts
+   * - Runs account discovery for all entropy sources
+   */
+  postLoginAsyncOperations = async (): Promise<void> => {
     if (isMultichainAccountsState2Enabled()) {
       // READ THIS CAREFULLY:
       // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
@@ -342,32 +352,64 @@ class AuthenticationService {
     const passcodePreviouslyDisabled =
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
-    if (
-      availableBiometryType &&
-      !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
-    ) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType,
-      };
-    } else if (
-      availableBiometryType &&
-      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
-    ) {
-      return {
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        availableBiometryType,
-      };
-    }
-    const existingUser = selectExistingUser(ReduxService.store.getState());
-    if (existingUser) {
-      if (await SecureKeychain.getGenericPassword()) {
+    // Remember Me should take precedence when explicitly enabled
+    const state = ReduxService.store.getState();
+    const existingUser = selectExistingUser(state);
+    const rememberMeEnabled = state.security?.allowLoginWithRememberMe;
+
+    Logger.log(
+      `Authentication: existingUser = ${existingUser}, rememberMeEnabled = ${rememberMeEnabled}`,
+    );
+
+    // If Remember Me is explicitly enabled, check for stored credentials first
+    if (existingUser && rememberMeEnabled) {
+      const hasGenericPassword = await SecureKeychain.getGenericPassword();
+
+      if (hasGenericPassword) {
+        Logger.log(
+          'Authentication: ✅ Returning REMEMBER_ME (Remember Me enabled with credentials)',
+        );
         return {
           currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
           availableBiometryType,
         };
       }
     }
+
+    if (
+      availableBiometryType &&
+      !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
+    ) {
+      Logger.log('Authentication: Returning BIOMETRIC');
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType,
+      };
+    }
+
+    if (
+      availableBiometryType &&
+      !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
+    ) {
+      Logger.log('Authentication: Returning PASSCODE');
+      return {
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType,
+      };
+    }
+
+    // Fallback: Check generic password for Remember Me (without explicit toggle)
+    if (existingUser) {
+      if (await SecureKeychain.getGenericPassword()) {
+        Logger.log('Authentication: Returning REMEMBER_ME (fallback)');
+        return {
+          currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
+          availableBiometryType,
+        };
+      }
+    }
+
+    Logger.log('Authentication: Returning PASSWORD (default)');
     return {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
       availableBiometryType,
@@ -397,33 +439,58 @@ class AuthenticationService {
     authType: AUTHENTICATION_TYPE,
   ): Promise<void> => {
     try {
+      Logger.log(
+        `Authentication: storePassword called with authType: ${authType}`,
+      );
+
       switch (authType) {
         case AUTHENTICATION_TYPE.BIOMETRIC:
+          Logger.log('Authentication: Storing with BIOMETRIC protection');
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.BIOMETRICS,
           );
           break;
         case AUTHENTICATION_TYPE.PASSCODE:
+          Logger.log('Authentication: Storing with PASSCODE protection');
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.PASSCODE,
           );
           break;
         case AUTHENTICATION_TYPE.REMEMBER_ME:
+          Logger.log(
+            'Authentication: Storing with REMEMBER_ME (no biometric protection)',
+          );
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.REMEMBER_ME,
           );
+          Logger.log(
+            'Authentication: ✅ Password stored with REMEMBER_ME type successfully',
+          );
           break;
         case AUTHENTICATION_TYPE.PASSWORD:
+          Logger.log(
+            'Authentication: Storing with PASSWORD type (no protection)',
+          );
           await SecureKeychain.setGenericPassword(password, undefined);
           break;
         default:
+          Logger.log(
+            'Authentication: Storing with default type (no protection)',
+          );
           await SecureKeychain.setGenericPassword(password, undefined);
           break;
       }
+      Logger.log(
+        `Authentication: storePassword completed successfully for type: ${authType}`,
+      );
     } catch (error) {
+      Logger.error(
+        error as Error,
+        `Authentication: Failed to store password with type: ${authType}`,
+      );
       throw new AuthenticationError(
         (error as Error).message,
         AUTHENTICATION_STORE_PASSWORD_FAILED,
@@ -488,6 +555,10 @@ class AuthenticationService {
     biometryChoice: boolean,
     rememberMe: boolean,
   ): Promise<AuthData> => {
+    Logger.log(
+      `Authentication: componentAuthenticationType - biometryChoice: ${biometryChoice}, rememberMe: ${rememberMe}`,
+    );
+
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
@@ -498,33 +569,54 @@ class AuthenticationService {
     const passcodePreviouslyDisabled =
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
+    const rememberMeEnabledInRedux =
+      ReduxService.store.getState().security.allowLoginWithRememberMe;
+
+    Logger.log(
+      `Authentication: componentAuthenticationType - availableBiometry: ${availableBiometryType}, rememberMeInRedux: ${rememberMeEnabledInRedux}`,
+    );
+
     if (
       availableBiometryType &&
       biometryChoice &&
       !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)
     ) {
+      Logger.log(
+        'Authentication: componentAuthenticationType returning BIOMETRIC',
+      );
       return {
         currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
         availableBiometryType,
       };
-    } else if (
-      rememberMe &&
-      ReduxService.store.getState().security.allowLoginWithRememberMe
-    ) {
+    }
+
+    if (rememberMe && rememberMeEnabledInRedux) {
+      Logger.log(
+        'Authentication: componentAuthenticationType returning REMEMBER_ME',
+      );
       return {
         currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
         availableBiometryType,
       };
-    } else if (
+    }
+
+    if (
       availableBiometryType &&
       biometryChoice &&
       !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
     ) {
+      Logger.log(
+        'Authentication: componentAuthenticationType returning PASSCODE',
+      );
       return {
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType,
       };
     }
+
+    Logger.log(
+      'Authentication: componentAuthenticationType returning PASSWORD (default)',
+    );
     return {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
       availableBiometryType,
@@ -613,6 +705,10 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
+      Logger.log(
+        `Authentication: userEntryAuth START - authType: ${authData.currentAuthType}`,
+      );
+
       trace({
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
@@ -631,7 +727,12 @@ class AuthenticationService {
 
       endTrace({ name: TraceName.VaultCreation });
 
+      Logger.log(
+        `Authentication: Storing password with type: ${authData.currentAuthType}`,
+      );
       await this.storePassword(password, authData.currentAuthType);
+      Logger.log('Authentication: Password stored successfully');
+
       await this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
@@ -719,7 +820,9 @@ class AuthenticationService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const errorMessage = (e as Error)?.message || '';
-      const isUserCancelled = errorMessage.includes('code: 13');
+
+      // Use utility to detect user cancellation
+      const isUserCancelled = isUserCancellation(e);
 
       if (!isUserCancelled) {
         // Track authentication failures that could indicate vault/keychain issues to Segment

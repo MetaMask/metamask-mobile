@@ -22,7 +22,6 @@ export enum AuthenticationState {
   LOCKED = 'LOCKED',
   AUTHENTICATING = 'AUTHENTICATING',
   AUTHENTICATION_FAILED = 'AUTHENTICATION_FAILED',
-  MAX_ATTEMPTS_REACHED = 'MAX_ATTEMPTS_REACHED',
   BACKGROUND_TIMER_ACTIVE = 'BACKGROUND_TIMER_ACTIVE',
   LOGGING_OUT = 'LOGGING_OUT',
   NO_USER = 'NO_USER',
@@ -43,8 +42,6 @@ export enum AuthenticationMethod {
  * Authentication Context
  */
 export interface AuthenticationContext {
-  failedAttempts: number;
-  maxAttempts: number;
   biometricAvailable: boolean;
   devicePasscodeAvailable: boolean;
   rememberMeEnabled: boolean;
@@ -75,7 +72,6 @@ export interface AuthenticationSuccessPayload {
 export interface AuthenticationFailurePayload {
   method: AuthenticationMethod;
   error: string;
-  attemptNumber: number;
 }
 
 export interface LockAppPayload {
@@ -92,7 +88,6 @@ export interface RequestAuthenticationPayload {
   method: AuthenticationMethod;
   password?: string;
   showBiometric?: boolean;
-  skipMaxAttemptsCheck?: boolean;
 }
 
 export interface InitializationCompletePayload {
@@ -108,8 +103,6 @@ const initialState: AuthenticationSliceState = {
   currentState: AuthenticationState.INITIALIZING,
   previousState: undefined,
   context: {
-    failedAttempts: 0,
-    maxAttempts: 5,
     biometricAvailable: false,
     devicePasscodeAvailable: false,
     rememberMeEnabled: false,
@@ -167,7 +160,6 @@ const authenticationSlice = createSlice({
     ) => {
       state.previousState = state.currentState;
       state.currentState = AuthenticationState.AUTHENTICATED;
-      state.context.failedAttempts = 0;
       state.context.lastAuthenticationTime = action.payload.timestamp;
       state.context.error = undefined;
       state.stateChangedAt = Date.now();
@@ -178,17 +170,8 @@ const authenticationSlice = createSlice({
     ) => {
       state.previousState = state.currentState;
       state.currentState = AuthenticationState.AUTHENTICATION_FAILED;
-      state.context.failedAttempts = action.payload.attemptNumber;
       state.context.error = action.payload.error;
       state.stateChangedAt = Date.now();
-
-      if (state.context.failedAttempts >= state.context.maxAttempts) {
-        state.currentState = AuthenticationState.MAX_ATTEMPTS_REACHED;
-      }
-    },
-    resetFailedAttempts: (state) => {
-      state.context.failedAttempts = 0;
-      state.context.error = undefined;
     },
 
     // Lock/Unlock
@@ -208,7 +191,6 @@ const authenticationSlice = createSlice({
     appUnlocked: (state) => {
       state.previousState = state.currentState;
       state.currentState = AuthenticationState.AUTHENTICATED;
-      state.context.failedAttempts = 0;
       state.context.error = undefined;
       state.stateChangedAt = Date.now();
     },
@@ -269,22 +251,7 @@ const authenticationSlice = createSlice({
     logoutComplete: (state) => {
       state.previousState = state.currentState;
       state.currentState = AuthenticationState.LOCKED;
-      state.context.failedAttempts = 0;
       state.context.lastAuthenticationTime = undefined;
-      state.stateChangedAt = Date.now();
-    },
-
-    // Max Attempts
-    maxAttemptsReached: (state) => {
-      state.previousState = state.currentState;
-      state.currentState = AuthenticationState.MAX_ATTEMPTS_REACHED;
-      state.stateChangedAt = Date.now();
-    },
-    clearMaxAttemptsLockout: (state) => {
-      state.previousState = state.currentState;
-      state.currentState = AuthenticationState.LOCKED;
-      state.context.failedAttempts = 0;
-      state.context.error = undefined;
       state.stateChangedAt = Date.now();
     },
 
@@ -316,7 +283,6 @@ export const {
   requestAuthentication,
   authenticationSuccess,
   authenticationFailed,
-  resetFailedAttempts,
   lockApp,
   appLocked,
   unlockApp,
@@ -331,8 +297,6 @@ export const {
   attemptRememberMeLogin,
   logout,
   logoutComplete,
-  maxAttemptsReached,
-  clearMaxAttemptsLockout,
   navigateToLogin,
   navigateToHome,
   authenticationError,
@@ -373,8 +337,7 @@ export const selectIsLocked = createSelector(
   selectCurrentAuthState,
   (state) =>
     state === AuthenticationState.LOCKED ||
-    state === AuthenticationState.AUTHENTICATION_FAILED ||
-    state === AuthenticationState.MAX_ATTEMPTS_REACHED,
+    state === AuthenticationState.AUTHENTICATION_FAILED,
 );
 
 export const selectIsAuthenticating = createSelector(
@@ -392,30 +355,9 @@ export const selectIsFirstTimeUser = createSelector(
   (context) => context.isFirstTimeUser,
 );
 
-export const selectHasMaxAttemptsReached = createSelector(
-  selectCurrentAuthState,
-  (state) => state === AuthenticationState.MAX_ATTEMPTS_REACHED,
-);
-
 export const selectIsBackgroundTimerActive = createSelector(
   selectCurrentAuthState,
   (state) => state === AuthenticationState.BACKGROUND_TIMER_ACTIVE,
-);
-
-export const selectFailedAttempts = createSelector(
-  selectAuthContext,
-  (context) => context.failedAttempts,
-);
-
-export const selectMaxAttempts = createSelector(
-  selectAuthContext,
-  (context) => context.maxAttempts,
-);
-
-export const selectRemainingAttempts = createSelector(
-  selectFailedAttempts,
-  selectMaxAttempts,
-  (failed, max) => Math.max(0, max - failed),
 );
 
 export const selectIsBiometricAvailable = createSelector(
@@ -469,16 +411,6 @@ export const selectShouldShowLogin = createSelector(
   (state, isFirstTime) =>
     !isFirstTime &&
     (state === AuthenticationState.LOCKED ||
-      state === AuthenticationState.AUTHENTICATION_FAILED ||
-      state === AuthenticationState.MAX_ATTEMPTS_REACHED),
-);
-
-export const selectCanAttemptAuth = createSelector(
-  selectCurrentAuthState,
-  selectHasMaxAttemptsReached,
-  (state, maxReached) =>
-    !maxReached &&
-    (state === AuthenticationState.LOCKED ||
       state === AuthenticationState.AUTHENTICATION_FAILED),
 );
 
@@ -495,10 +427,7 @@ export const selectAuthStateSummary = createSelector(
       current === AuthenticationState.BACKGROUND_TIMER_ACTIVE,
     isLocked:
       current === AuthenticationState.LOCKED ||
-      current === AuthenticationState.AUTHENTICATION_FAILED ||
-      current === AuthenticationState.MAX_ATTEMPTS_REACHED,
-    failedAttempts: context.failedAttempts,
-    maxAttempts: context.maxAttempts,
+      current === AuthenticationState.AUTHENTICATION_FAILED,
     biometricAvailable: context.biometricAvailable,
     rememberMeEnabled: context.rememberMeEnabled,
     error: context.error,

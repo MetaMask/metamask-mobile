@@ -22,12 +22,14 @@ import {
 } from 'redux-saga/effects';
 import { eventChannel, EventChannel } from 'redux-saga';
 import { PayloadAction } from '@reduxjs/toolkit';
+import { InteractionManager } from 'react-native';
 import { Authentication } from '../../../';
 import { AppStateService } from '../../../AppStateService/AppStateService';
 import NavigationService from '../../../NavigationService';
 import SecureKeychain from '../../../SecureKeychain';
 import Engine from '../../../Engine';
 import Logger from '../../../../util/Logger';
+import { isUserCancellation } from '../../../Authentication/biometricErrorUtils';
 import {
   // Actions
   initializeAuthentication,
@@ -35,7 +37,6 @@ import {
   requestAuthentication,
   authenticationSuccess,
   authenticationFailed,
-  resetFailedAttempts,
   lockApp,
   appLocked,
   unlockApp,
@@ -49,16 +50,12 @@ import {
   attemptRememberMeLogin,
   logout,
   logoutComplete,
-  maxAttemptsReached,
-  clearMaxAttemptsLockout,
   navigateToLogin,
   navigateToHome,
   authenticationError,
   // Selectors
   selectCurrentAuthState,
   selectIsAuthenticated,
-  selectFailedAttempts,
-  selectCanAttemptAuth,
   selectIsRememberMeEnabled,
   selectLockTime,
   // Enums/Types
@@ -72,7 +69,6 @@ import { selectExistingUser } from '../../../../reducers/user/selectors';
 import {
   UserActionType,
   lockApp as lockAppAction,
-  logIn,
 } from '../../../../actions/user';
 import ReduxService from '../../../redux';
 
@@ -83,7 +79,6 @@ const actions = {
   requestAuthentication,
   authenticationSuccess,
   authenticationFailed,
-  resetFailedAttempts,
   lockApp,
   appLocked,
   unlockApp,
@@ -97,8 +92,6 @@ const actions = {
   attemptRememberMeLogin,
   logout,
   logoutComplete,
-  maxAttemptsReached,
-  clearMaxAttemptsLockout,
   navigateToLogin,
   navigateToHome,
   authenticationError,
@@ -107,8 +100,6 @@ const actions = {
 const selectors = {
   selectCurrentAuthState,
   selectIsAuthenticated,
-  selectFailedAttempts,
-  selectCanAttemptAuth,
   selectIsRememberMeEnabled,
   selectLockTime,
 };
@@ -118,8 +109,24 @@ const selectors = {
 // ==========================================================================
 
 const DEFAULT_LOCK_TIMER_DURATION = 30000; // 30 seconds
-const MAX_AUTH_ATTEMPTS = 5;
 const BIOMETRIC_TIMEOUT = 30000; // 30 seconds for biometric prompt
+
+// ==========================================================================
+// Helper Functions
+// ==========================================================================
+
+/**
+ * Wait for all interactions/animations to complete before proceeding
+ * This is the proper React Native way to ensure the UI is ready
+ * Much better than fixed delays - it runs immediately when ready!
+ */
+function waitForInteractions(): Promise<void> {
+  return new Promise((resolve) => {
+    InteractionManager.runAfterInteractions(() => {
+      resolve();
+    });
+  });
+}
 
 // ==========================================================================
 // Initialization Saga
@@ -232,9 +239,6 @@ function* initializeAuthenticationSaga() {
         `AuthSaga: Credentials exist but no auto-login - authType: ${authData.currentAuthType}, isBiometric: ${isBiometricAuth}`,
       );
 
-      // Reset failed attempts on fresh app launch
-      yield put(actions.resetFailedAttempts());
-
       yield put(
         actions.initializationComplete({
           hasUser: true,
@@ -249,12 +253,16 @@ function* initializeAuthenticationSaga() {
           'AuthSaga: Biometric auth configured, triggering biometric prompt on app launch (before showing Login)',
         );
 
+        // PERFORMANCE FIX: Wait for interactions to complete
+        // InteractionManager ensures all animations/interactions are done before proceeding
+        // Critical for Android release builds with Hermes optimization
+        yield call(waitForInteractions);
+
         // Trigger biometric authentication
         yield put(
           actions.requestAuthentication({
             method: AuthenticationMethod.BIOMETRIC,
             showBiometric: true,
-            skipMaxAttemptsCheck: true,
           }),
         );
 
@@ -321,26 +329,12 @@ function* requestAuthenticationSaga(
     method: AuthenticationMethod;
     password?: string;
     showBiometric?: boolean;
-    skipMaxAttemptsCheck?: boolean;
   }>,
 ) {
-  const { method, password, showBiometric, skipMaxAttemptsCheck } =
-    action.payload;
+  const { method, password, showBiometric } = action.payload;
 
   try {
     Logger.log(`AuthSaga: Authentication requested with method: ${method}`);
-
-    // Check if we can attempt authentication (skip for initialization biometrics)
-    if (!skipMaxAttemptsCheck) {
-      const canAttempt: boolean = yield select(selectors.selectCanAttemptAuth);
-      if (!canAttempt) {
-        Logger.log('AuthSaga: Cannot attempt auth - max attempts reached');
-        return;
-      }
-    }
-
-    const failedAttempts: number = yield select(selectors.selectFailedAttempts);
-    const attemptNumber = failedAttempts + 1;
 
     // Generate bioStateMachineId for this authentication session
     const bioStateMachineId = Date.now().toString();
@@ -354,7 +348,6 @@ function* requestAuthenticationSaga(
             actions.authenticationFailed({
               method,
               error: 'Password is required',
-              attemptNumber,
             }),
           );
           return;
@@ -433,7 +426,6 @@ function* requestAuthenticationSaga(
         actions.authenticationFailed({
           method,
           error: 'Authentication failed',
-          attemptNumber,
         }),
       );
 
@@ -446,28 +438,15 @@ function* requestAuthenticationSaga(
           routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
         });
       }
-
-      // Check if max attempts reached
-      if (attemptNumber >= MAX_AUTH_ATTEMPTS) {
-        yield put(actions.maxAttemptsReached());
-      }
     }
   } catch (error) {
-    const failedAttempts: number = yield select(selectors.selectFailedAttempts);
-    const attemptNumber = failedAttempts + 1;
-
     Logger.error(error as Error, 'AuthSaga: Error during authentication');
     yield put(
       actions.authenticationFailed({
         method,
         error: (error as Error).message,
-        attemptNumber,
       }),
     );
-
-    if (attemptNumber >= MAX_AUTH_ATTEMPTS) {
-      yield put(actions.maxAttemptsReached());
-    }
   }
 }
 
@@ -564,10 +543,8 @@ function* authenticateWithBiometric(bioStateMachineId: string) {
     Logger.log('AuthSaga: No matching race result - returning false');
     return false;
   } catch (error) {
-    const errorMessage = (error as Error)?.message || '';
-    const isUserCancelled = errorMessage.includes('code: 13');
-
-    if (isUserCancelled) {
+    // Use utility to detect user cancellation
+    if (isUserCancellation(error)) {
       Logger.log('AuthSaga: Biometric authentication cancelled by user');
       return 'cancelled' as const;
     }
@@ -658,10 +635,8 @@ function* attemptRememberMeLoginSaga() {
     try {
       credentials = yield call([Authentication, 'getPassword']);
     } catch (getPasswordError) {
-      const errorMessage = (getPasswordError as Error)?.message || '';
-      const isUserCancelled = errorMessage.includes('code: 13');
-
-      if (isUserCancelled) {
+      // Use utility to detect user cancellation
+      if (isUserCancellation(getPasswordError)) {
         Logger.log(
           'AuthSaga: User cancelled biometric during Remember Me - showing login',
         );
@@ -712,8 +687,11 @@ function* attemptRememberMeLoginSaga() {
     const { KeyringController } = Engine.context;
     yield call([KeyringController, 'submitPassword'], credentials.password);
 
-    // Dispatch LOGIN action for other sagas
-    ReduxService.store.dispatch(logIn());
+    // Initialize account services (AccountTreeInitService, MultichainAccountService)
+    // and dispatch LOGIN action
+    yield call([Authentication, 'dispatchLogin'], {
+      clearAccountTreeState: false,
+    });
 
     // Update authentication state
     yield put(
@@ -734,6 +712,12 @@ function* attemptRememberMeLoginSaga() {
       index: 0,
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
+
+    // Run post-login operations in background (re-sync, discovery)
+    // NOTE: We do not await on purpose, to run those operations in the background.
+    // This matches the behavior in userEntryAuth
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    Authentication.postLoginAsyncOperations();
 
     Logger.log('AuthSaga: Remember Me auto-login successful');
   } catch (error) {
@@ -953,6 +937,11 @@ function* appForegroundedSaga() {
           index: 0,
           routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
         });
+
+        // Performance fix
+        // On Android release builds, this ensures the BiometricPrompt API has a ready Activity context
+        // Critical for Hermes bytecode optimizations that execute code very quickly
+        yield call(waitForInteractions);
       }
 
       // If biometric auth is configured, trigger biometric authentication
@@ -964,7 +953,6 @@ function* appForegroundedSaga() {
           actions.requestAuthentication({
             method: AuthenticationMethod.BIOMETRIC,
             showBiometric: true,
-            skipMaxAttemptsCheck: true,
           }),
         );
       }

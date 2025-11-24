@@ -45,6 +45,7 @@ import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
+import { isUserCancellation } from '../../../core/Authentication/biometricErrorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
@@ -99,6 +100,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
+import { RootState } from '../../../reducers';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -147,6 +149,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     (enabled: boolean) => setAllowLoginWithRememberMeUtil(enabled),
     [],
   );
+
+  const allowLoginWithRememberMeFromRedux = useSelector(
+    (state: RootState) => state.security.allowLoginWithRememberMe,
+  );
+
   // coming from vault recovery flow flag
   const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
@@ -216,18 +223,33 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const passcodePreviouslyDisabled =
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
-    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+    // This ensures that if user enabled Remember Me toggle, we use it even if
+    // the auth type hasn't been updated to REMEMBER_ME yet
+    if (allowLoginWithRememberMeFromRedux) {
+      Logger.log(
+        'Login: ✅ Remember Me enabled in Redux - setting Remember Me UI state',
+      );
+      setRememberMe(true);
+      setAllowLoginWithRememberMe(true);
+      // Don't show biometric button when Remember Me is enabled
+      setHasBiometricCredentials(false);
+    } else if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+      Logger.log('Login: Detected PASSCODE auth type');
       setBiometryType(passcodeType(authData.currentAuthType));
       setHasBiometricCredentials(!route?.params?.locked);
       setBiometryChoice(
         !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
       );
     } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
+      Logger.log('Login: ✅ Detected REMEMBER_ME auth type - setting UI');
       setHasBiometricCredentials(false);
       setRememberMe(true);
       setAllowLoginWithRememberMe(true);
+      Logger.log(
+        'Login: REMEMBER_ME state set - hasBiometricCredentials: false, rememberMe: true',
+      );
     } else if (authData.availableBiometryType) {
-      Logger.log('authData', authData);
+      Logger.log('Login: Detected biometry available:', authData);
       setBiometryType(authData.availableBiometryType);
       setHasBiometricCredentials(
         authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
@@ -238,7 +260,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     Logger.log(
       `Login: Auth preferences loaded - authType: ${authData.currentAuthType}, locked: ${route?.params?.locked}`,
     );
-  }, [route?.params?.locked, setAllowLoginWithRememberMe]);
+  }, [
+    route?.params?.locked,
+    setAllowLoginWithRememberMe,
+    allowLoginWithRememberMeFromRedux,
+  ]);
 
   useEffect(() => {
     getUserAuthPreferences();
@@ -465,10 +491,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setHasBiometricCredentials(true);
       setLoading(false);
 
-      const errorMessage = (tryBiometricError as Error)?.message || '';
-      const isUserCancelled = errorMessage.includes('code: 13');
-
-      if (isUserCancelled) {
+      // Use utility to detect user cancellation
+      if (isUserCancellation(tryBiometricError)) {
         Logger.log(
           'Login: Biometric cancelled by user - disabling biometry choice for this session',
         );

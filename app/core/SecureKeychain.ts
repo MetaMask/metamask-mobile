@@ -12,6 +12,7 @@ import {
   TRUE,
 } from '../constants/storage';
 import Device from '../util/device';
+import { isUserCancellation } from './Authentication/biometricErrorUtils';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor({
@@ -141,7 +142,7 @@ const SecureKeychain = {
         instance.isAuthenticating = false;
       } catch (error) {
         instance.isAuthenticating = false;
-        throw new Error((error as Error).message);
+        throw error;
       }
     }
     return null;
@@ -174,7 +175,7 @@ const SecureKeychain = {
         instance.isAuthenticating = false;
       } catch (error) {
         instance.isAuthenticating = false;
-        throw new Error((error as Error).message);
+        throw error;
       }
     }
     return null;
@@ -227,8 +228,8 @@ const SecureKeychain = {
         try {
           await this.getGenericPassword();
         } catch (error) {
-          // Specifically check for user cancellation
-          if ((error as Error).message === 'User canceled the operation.') {
+          // Check for user cancellation
+          if (isUserCancellation(error)) {
             // Store password without biometrics
             const encryptedPasswordWithoutBiometrics =
               await instance.encryptPassword(password);
