@@ -127,14 +127,14 @@ jobs:
     # if: ${{ needs.needs_e2e_build.outputs.android_changed == 'true' }}
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: main-android-smoke-${{ matrix.split }}
+      test-suite-name: flask-android-smoke-${{ matrix.split }}
       platform: android
-      test_suite_tag: 'MainBuildTests'
+      test_suite_tag: 'FlaskBuildTests'
       split_number: ${{ matrix.split }}
       total_splits: 3
       # changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       changed_files: ''
-      build_type: 'main'
+      build_type: 'flask'
       metamask_environment: 'e2e'
     secrets: inherit
 
