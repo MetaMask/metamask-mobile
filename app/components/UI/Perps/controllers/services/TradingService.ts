@@ -89,10 +89,10 @@ export class TradingService {
         result?.filledSize || params.size,
       ),
       [PerpsEventProperties.COMPLETION_DURATION]: duration,
-      ...(params.trackingData?.marginUsed && {
+      ...(params.trackingData?.marginUsed != null && {
         [PerpsEventProperties.MARGIN_USED]: params.trackingData.marginUsed,
       }),
-      ...(params.trackingData?.totalFee && {
+      ...(params.trackingData?.totalFee != null && {
         [PerpsEventProperties.FEES]: params.trackingData.totalFee,
       }),
       ...((result?.averagePrice || params.trackingData?.marketPrice) && {
@@ -109,18 +109,18 @@ export class TradingService {
     // Add success-specific properties
     if (status === PerpsEventValues.STATUS.EXECUTED) {
       eventBuilder.addProperties({
-        ...(params.trackingData?.metamaskFee && {
+        ...(params.trackingData?.metamaskFee != null && {
           [PerpsEventProperties.METAMASK_FEE]: params.trackingData.metamaskFee,
         }),
-        ...(params.trackingData?.metamaskFeeRate && {
+        ...(params.trackingData?.metamaskFeeRate != null && {
           [PerpsEventProperties.METAMASK_FEE_RATE]:
             params.trackingData.metamaskFeeRate,
         }),
-        ...(params.trackingData?.feeDiscountPercentage && {
+        ...(params.trackingData?.feeDiscountPercentage != null && {
           [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
             params.trackingData.feeDiscountPercentage,
         }),
-        ...(params.trackingData?.estimatedPoints && {
+        ...(params.trackingData?.estimatedPoints != null && {
           [PerpsEventProperties.ESTIMATED_REWARDS]:
             params.trackingData.estimatedPoints,
         }),
@@ -492,21 +492,21 @@ export class TradingService {
         [PerpsEventProperties.PNL_PERCENT]:
           parseFloat(position.returnOnEquity) * 100,
       }),
-      ...(params.trackingData?.totalFee && {
+      ...(params.trackingData?.totalFee != null && {
         [PerpsEventProperties.FEE]: params.trackingData.totalFee,
       }),
-      ...(params.trackingData?.metamaskFee && {
+      ...(params.trackingData?.metamaskFee != null && {
         [PerpsEventProperties.METAMASK_FEE]: params.trackingData.metamaskFee,
       }),
-      ...(params.trackingData?.metamaskFeeRate && {
+      ...(params.trackingData?.metamaskFeeRate != null && {
         [PerpsEventProperties.METAMASK_FEE_RATE]:
           params.trackingData.metamaskFeeRate,
       }),
-      ...(params.trackingData?.feeDiscountPercentage && {
+      ...(params.trackingData?.feeDiscountPercentage != null && {
         [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
           params.trackingData.feeDiscountPercentage,
       }),
-      ...(params.trackingData?.estimatedPoints && {
+      ...(params.trackingData?.estimatedPoints != null && {
         [PerpsEventProperties.ESTIMATED_REWARDS]:
           params.trackingData.estimatedPoints,
       }),
@@ -519,7 +519,7 @@ export class TradingService {
         params.price && {
           [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
         }),
-      ...(params.trackingData?.receivedAmount && {
+      ...(params.trackingData?.receivedAmount != null && {
         [PerpsEventProperties.RECEIVED_AMOUNT]:
           params.trackingData.receivedAmount,
       }),
