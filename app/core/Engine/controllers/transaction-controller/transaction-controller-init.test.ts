@@ -610,6 +610,19 @@ describe('Transaction Controller Init', () => {
 
       expect(await optionFn?.(mockTransactionMeta)).toBe(false);
     });
+
+    it('returns true if isGasFeeTokenIgnoredIfBalance', async () => {
+      const mockTransactionMeta = {
+        id: '123',
+        status: 'approved',
+        chainId: '0x13',
+        isGasFeeTokenIgnoredIfBalance: true,
+      } as unknown as TransactionMeta;
+
+      const optionFn = testConstructorOption('isEIP7702GasFeeTokensEnabled');
+
+      expect(await optionFn?.(mockTransactionMeta)).toBe(true);
+    });
   });
 
   it('calls getNonceLock and releaseLock via Delegation7702PublishHook getNextNonce', async () => {
@@ -651,5 +664,32 @@ describe('Transaction Controller Init', () => {
     expect(getNonceLockMock).toHaveBeenCalledWith('0xabc', 'testNetwork');
     expect(releaseLockMock).toHaveBeenCalled();
     expect(resultNonce).toBe(toHex(99));
+  });
+
+  it('calls 7702 publish hook if isGasFeeTokenIgnoredIfBalance', async () => {
+    const delegation7702Mock: jest.MockedFn<PublishHook> = jest.fn();
+
+    jest.mocked(Delegation7702PublishHook).mockImplementation(
+      () =>
+        ({
+          getHook: () => delegation7702Mock,
+        }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
+    );
+
+    delegation7702Mock.mockResolvedValue({ transactionHash: '0xde702' });
+
+    const hooks = testConstructorOption('hooks');
+
+    const transactionMetaWithGasFeeTokenIgnored = {
+      ...MOCK_TRANSACTION_META,
+      isGasFeeTokenIgnoredIfBalance: true,
+    } as TransactionMeta;
+
+    const result = await hooks?.publish?.(
+      transactionMetaWithGasFeeTokenIgnored,
+    );
+
+    expect(delegation7702Mock).toHaveBeenCalled();
+    expect(result).toEqual({ transactionHash: '0xde702' });
   });
 });
