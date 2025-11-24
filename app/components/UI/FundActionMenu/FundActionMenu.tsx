@@ -31,6 +31,7 @@ import type {
 } from './FundActionMenu.types';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
+import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -49,6 +50,7 @@ const FundActionMenu = () => {
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const { goToBuy, goToAggregator, goToSell, goToDeposit } =
     useRampNavigation();
+  const depositButtonClickData = useRampsButtonClickData();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -140,6 +142,10 @@ const FundActionMenu = () => {
             chain_id_destination: getDecimalChainId(chainId),
             ramp_type: 'DEPOSIT',
             region: rampGeodetectedRegion,
+            ramp_routing: depositButtonClickData.ramp_routing,
+            is_authenticated: depositButtonClickData.is_authenticated,
+            preferred_provider: depositButtonClickData.preferred_provider,
+            order_count: depositButtonClickData.order_count,
           },
           traceName: TraceName.LoadDepositExperience,
           navigationAction: () => goToDeposit(),
@@ -202,6 +208,7 @@ const FundActionMenu = () => {
       goToAggregator,
       goToSell,
       goToDeposit,
+      depositButtonClickData,
     ],
   );
 
