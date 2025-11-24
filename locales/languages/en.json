@@ -94,7 +94,8 @@
       "title": "Insufficient funds"
     },
     "no_pay_token_quotes": {
-      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
+      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+      "title": "No quotes"
     },
     "perps_hardware_account": {
       "title": "Wallet not supported",
@@ -939,6 +940,9 @@
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
     "add_funds": "Add funds",
+    "trade_perps": "Trade perps",
+    "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
+    "available": "available to trade",
     "deposit_in_progress": "Deposit in progress",
     "withdraw_in_progress": "Withdraw in progress",
     "multiple_transactions_in_progress": "Transactions in progress",
