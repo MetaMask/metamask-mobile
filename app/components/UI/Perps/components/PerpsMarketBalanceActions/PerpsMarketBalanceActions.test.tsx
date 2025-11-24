@@ -310,6 +310,11 @@ describe('PerpsMarketBalanceActions', () => {
           ...getDefaultPerpsControllerState(),
           ...perpsControllerOverrides,
         },
+        MultichainNetworkController: {
+          multichainNetworkConfigurationsByChainId: {},
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: 'eip155:42161', // Arbitrum (Perps network)
+        },
       },
     },
   });
