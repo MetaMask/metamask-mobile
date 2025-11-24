@@ -483,14 +483,8 @@ function decodeTransferFromTx(args) {
   let addressFrom, addressTo, tokenId;
 
   // Try to decode from data first if it's complete (4 bytes selector + 3×32 bytes params = 202 chars)
-  if (data && data.length >= 202) {
-    // Data is complete, decode the actual addresses from it
-    [addressFrom, addressTo, tokenId] = decodeTransferData(
-      'transferFrom',
-      data,
-    );
-  } else if (transferInformation) {
-    // Data is truncated, use transferInformation
+  if (data && data.length < 202 && transferInformation) {
+    // Data is truncated, use transferInformation as fallback
     tokenId =
       transferInformation.tokenId ||
       transferInformation.tokenAmount ||
@@ -502,7 +496,7 @@ function decodeTransferFromTx(args) {
     // Use txParams for direction logic, but this won't show the correct recipient in UI
     addressTo = txParams.to;
   } else {
-    // No transferInformation and no complete data - fallback to decoding attempt
+    // Data is complete or no transferInformation available - decode from data
     [addressFrom, addressTo, tokenId] = decodeTransferData(
       'transferFrom',
       data,

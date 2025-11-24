@@ -973,7 +973,7 @@ describe('Transactions utils :: getActionKey', () => {
     const sender = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
     const recipient = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
     const tokenContract = '0x6b175474e89094c44da98b954eedeac495271d0f';
-    
+
     // transferFrom(from, to, amount) calldata
     const transferFromData =
       '0x23b872dd' + // transferFrom signature
@@ -992,12 +992,7 @@ describe('Transactions utils :: getActionKey', () => {
     };
 
     // User is the recipient - should show received
-    const result = await getActionKey(
-      tx,
-      recipient,
-      undefined,
-      MOCK_CHAIN_ID,
-    );
+    const result = await getActionKey(tx, recipient, undefined, MOCK_CHAIN_ID);
 
     expect(result).toBe(strings('transactions.received_tokens'));
   });
@@ -1007,7 +1002,7 @@ describe('Transactions utils :: getActionKey', () => {
     const sender = '0x1440ec793ae50fa046b95bfeca5af475b6003f9e';
     const recipient = '0x77648f1407986479fb1fa5cc3597084b5dbdb057';
     const tokenContract = '0x6b175474e89094c44da98b954eedeac495271d0f';
-    
+
     const transferFromData =
       '0x23b872dd' +
       '000000000000000000000000' +
@@ -1025,12 +1020,7 @@ describe('Transactions utils :: getActionKey', () => {
     };
 
     // User is the sender - should show sent
-    const result = await getActionKey(
-      tx,
-      sender,
-      undefined,
-      MOCK_CHAIN_ID,
-    );
+    const result = await getActionKey(tx, sender, undefined, MOCK_CHAIN_ID);
 
     expect(result).toBe(strings('transactions.sent_tokens'));
   });

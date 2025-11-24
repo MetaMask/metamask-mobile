@@ -18,10 +18,7 @@ import {
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
-import {
-  safeToChecksumAddress,
-  toChecksumAddress,
-} from '../address';
+import { safeToChecksumAddress, toChecksumAddress } from '../address';
 import {
   balanceToFiatNumber,
   BNToHex,
