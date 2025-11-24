@@ -223,7 +223,7 @@ const UnifiedTransactionsView = ({
     // Network filtering for confirmed EVM txs
     const allConfirmedFiltered: TransactionMetaWithImport[] =
       allConfirmed.filter((tx) =>
-        isTransactionOnChains(tx, enabledEVMChainIds, allConfirmed),
+        isTransactionOnChains(tx, enabledEVMChainIds, transactionMetaPool),
       );
     // Deduplicate submitted by (address + chain + nonce) and drop if already confirmed
     const seenSubmittedNonces = new Set<string>();

@@ -6,9 +6,6 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarGroup from '../../../../../../component-library/components/Avatars/AvatarGroup';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
   TextVariant,
@@ -23,6 +20,8 @@ import { PredictPosition } from '../../../../../UI/Predict';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
+import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
+import { ButtonBaseSize } from '@metamask/design-system-react-native';
 
 export interface PredictClaimFooterProps {
   onPress: () => void;
@@ -51,15 +50,14 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
       ) : (
         <SingleWin wonPositions={wonPositions} />
       )}
-      <Button
-        variant={ButtonVariants.Primary}
-        labelTextVariant={TextVariant.BodyLGMedium}
-        style={styles.button}
-        label={strings('confirm.predict_claim.button_label')}
-        onPress={onPress}
-        isInverse
+      <ButtonHero
         testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}
-      />
+        onPress={onPress}
+        size={ButtonBaseSize.Lg}
+        isFullWidth
+      >
+        {strings('confirm.predict_claim.button_label')}
+      </ButtonHero>
       <Text
         variant={TextVariant.BodyXS}
         color={TextColor.Alternative}
