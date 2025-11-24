@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
@@ -7,29 +7,20 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../../../UI/Earn/constants/musd';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
-import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import {
   areValidAllowedPaymentTokens,
   MusdConversionConfig,
 } from '../../../../../UI/Earn/hooks/useMusdConversion';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const MusdConversionInfo = () => {
   const route =
     useRoute<RouteProp<Record<string, MusdConversionConfig>, string>>();
-  const navigation = useNavigation();
   // TEMP: Will be brought back in subsequent PR.
   // const preferredPaymentToken = route.params?.preferredPaymentToken;
-  const outputChainId = route.params?.outputChainId;
+  const outputChainId = route.params?.outputChainId ?? CHAIN_IDS.MAINNET;
   const rawAllowedPaymentTokens = route.params?.allowedPaymentTokens;
-
-  useEffect(() => {
-    if (!outputChainId) {
-      console.error(
-        '[mUSD Conversion] outputChainId is required but was not provided in route params. Navigating back.',
-      );
-      navigation.goBack();
-    }
-  }, [outputChainId, navigation]);
 
   const allowedPaymentTokens = useMemo(() => {
     if (!rawAllowedPaymentTokens) {
@@ -53,12 +44,16 @@ export const MusdConversionInfo = () => {
 
   const { decimals, name, symbol } = MUSD_TOKEN;
 
+  const tokenToAddAddress =
+    MUSD_TOKEN_ADDRESS_BY_CHAIN[outputChainId] ??
+    MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+
   useAddToken({
     chainId: outputChainId,
     decimals,
     name,
     symbol,
-    tokenAddress: MUSD_TOKEN_ADDRESS_BY_CHAIN[outputChainId],
+    tokenAddress: tokenToAddAddress,
   });
 
   if (!outputChainId) {

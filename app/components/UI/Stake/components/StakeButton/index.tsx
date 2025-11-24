@@ -43,10 +43,10 @@ import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 ///: END:ONLY_INCLUDE_IF
-import { ETHEREUM_MAINNET_CHAIN_ID } from '../../../Earn/constants/musd';
 import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -240,7 +240,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       }
 
       await initiateConversion({
-        outputChainId: ETHEREUM_MAINNET_CHAIN_ID,
+        outputChainId: CHAIN_IDS.MAINNET,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),

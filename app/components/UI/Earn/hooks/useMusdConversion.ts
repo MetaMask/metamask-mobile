@@ -76,10 +76,10 @@ export interface MusdConversionConfig {
  * const { initiateConversion } = useMusdConversion();
  *
  * await initiateConversion({
- *   outputChainId: ETHEREUM_MAINNET_CHAIN_ID,
+ *   outputChainId: CHAIN_IDS.MAINNET,
  *   preferredPaymentToken: {
  *     address: USDC_ADDRESS_ARBITRUM,
- *     chainId: ETHEREUM_MAINNET_CHAIN_ID,
+ *     chainId: CHAIN_IDS.MAINNET,
  *   },
  *   allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
  *   navigationStack: Routes.EARN.ROOT,

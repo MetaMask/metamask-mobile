@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MusdConversionInfo } from './musd-conversion-info';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CustomAmountInfo } from '../custom-amount-info';
 
@@ -26,11 +26,6 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useRoute: jest.fn(() => mockRoute),
-    useNavigation: jest.fn(() => ({
-      navigate: jest.fn(),
-      setOptions: jest.fn(),
-      goBack: jest.fn(),
-    })),
   };
 });
 
@@ -38,7 +33,6 @@ describe('MusdConversionInfo', () => {
   const mockUseNavbar = jest.mocked(useNavbar);
   const mockUseAddToken = jest.mocked(useAddToken);
   const mockUseRoute = jest.mocked(useRoute);
-  const mockUseNavigation = jest.mocked(useNavigation);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -222,43 +216,6 @@ describe('MusdConversionInfo', () => {
         }),
         expect.anything(),
       );
-    });
-  });
-
-  describe('error handling', () => {
-    it('navigates back and logs error when outputChainId missing', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const mockGoBack = jest.fn();
-
-      mockUseNavigation.mockReturnValue({
-        navigate: jest.fn(),
-        goBack: mockGoBack,
-        setOptions: jest.fn(),
-      } as unknown as ReturnType<typeof useNavigation>);
-
-      mockRoute.params = {
-        preferredPaymentToken: {
-          address: '0xdef' as Hex,
-          chainId: '0x1' as Hex,
-        },
-        // outputChainId is missing
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      const { toJSON } = renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'outputChainId is required but was not provided',
-        ),
-      );
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(toJSON()).toBeNull();
-
-      consoleErrorSpy.mockRestore();
     });
   });
 });

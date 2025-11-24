@@ -18,9 +18,6 @@ export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
 
 export const MUSD_CURRENCY = 'MUSD';
 
-// Ethereum mainnet chain ID
-export const ETHEREUM_MAINNET_CHAIN_ID = '0x1';
-
 export const STABLECOIN_SYMBOL_TO_ADDRESS_BY_CHAIN: Record<
   Hex,
   Record<string, Hex>
