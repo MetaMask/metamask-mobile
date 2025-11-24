@@ -75,7 +75,7 @@ export function createLoggerMiddleware(opts) {
   ) {
     next((/** @type {Function} */ cb) => {
       if (res.error) {
-        const { error, ...resWithoutError } = res;
+        const { error } = res;
         if (error) {
           if (containsUserRejectedError(error.message, error.code)) {
             trackErrorAsAnalytics(
