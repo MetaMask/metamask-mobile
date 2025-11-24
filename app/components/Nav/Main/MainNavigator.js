@@ -28,6 +28,7 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
+import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -100,13 +101,9 @@ import {
   PerpsScreenStack,
   PerpsModalStack,
   PerpsTutorialCarousel,
-  selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import {
-  PredictScreenStack,
-  PredictModalStack,
-  selectPredictEnabledFlag,
-} from '../../UI/Predict';
+import { PredictScreenStack, PredictModalStack } from '../../UI/Predict';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -921,17 +918,23 @@ const SampleFeatureFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
-  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const perpsEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  );
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
+  const predictEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
+  );
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
   );
 
   return (
@@ -1013,6 +1016,25 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen
+        name="TrendingTokensFullView"
+        component={TrendingTokensFullView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
@@ -1081,7 +1103,19 @@ const MainNavigator = () => {
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
             options={{
-              animationEnabled: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
             }}
           />
           <Stack.Screen

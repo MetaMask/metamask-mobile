@@ -55,84 +55,72 @@ jest.mock('@react-navigation/stack', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    Box: View,
-    BoxFlexDirection: {
-      Row: 'row',
-      Column: 'column',
-    },
-    BoxAlignItems: {
-      Center: 'center',
-    },
-    BoxJustifyContent: {
-      Between: 'space-between',
-    },
-    ButtonSize: {
-      Lg: 'lg',
-      Md: 'md',
-      Sm: 'sm',
-    },
-  };
-});
-
-const mockUseTheme = jest.fn(() => ({
-  colors: {
-    background: {
-      default: '#ffffff',
-    },
-    text: {
-      default: '#121314',
-      muted: '#666666',
-    },
-    icon: {
-      default: '#121314',
-    },
-    primary: {
-      default: '#037DD6',
-    },
-    success: {
-      default: '#28A745',
-    },
-    error: {
-      default: '#DC3545',
-    },
-  },
-}));
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: mockUseTheme,
-}));
-
 jest.mock('react-native-safe-area-context', () => {
   const { View } = jest.requireActual('react-native');
   return {
-    SafeAreaView: ({
-      children,
-      style,
-      testID,
-    }: {
-      children: React.ReactNode;
-      style?: React.ComponentProps<typeof View>['style'];
-      testID?: string;
-    }) => (
-      <View style={style} testID={testID}>
-        {children}
-      </View>
-    ),
+    SafeAreaView: View,
+    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
     useSafeAreaInsets: jest.fn(() => ({
       top: 0,
       right: 0,
       bottom: 0,
       left: 0,
     })),
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
+  };
+});
+
+// Minimal mock to add testID pattern for icon assertions
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const ActualIcon = jest.requireActual(
+    '../../../../../component-library/components/Icons/Icon',
+  );
+  return {
+    ...ActualIcon,
+    __esModule: true,
+    default: ({
+      name,
+      testID,
+      ...props
+    }: {
+      name: string;
+      testID?: string;
+      [key: string]: unknown;
+    }) => {
+      const Icon = ActualIcon.default;
+      return <Icon {...props} name={name} testID={testID || `icon-${name}`} />;
+    },
+  };
+});
+
+// Minimal mock to add testID pattern for button assertions
+jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+  const ActualButton = jest.requireActual(
+    '../../../../../component-library/components/Buttons/Button',
+  );
+  return {
+    ...ActualButton,
+    __esModule: true,
+    default: ({
+      testID,
+      ...props
+    }: {
+      testID?: string;
+      [key: string]: unknown;
+    }) => {
+      const Button = ActualButton.default;
+      return <Button {...props} testID={testID || 'button'} />;
+    },
   };
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
+  strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
+    if (key === 'predict.position_info' && vars) {
+      return `${vars.initialValue} on ${vars.outcome} to win ${vars.shares}`;
+    }
+    return key;
+  }),
 }));
 
 jest.mock('../../../Navbar', () => ({
@@ -166,6 +154,12 @@ jest.mock('../../utils/format', () => ({
     }
     return `${cents.toFixed(1)}¢`;
   }),
+  formatPositionSize: jest.fn(
+    (
+      value: number,
+      options?: { minimumDecimals?: number; maximumDecimals?: number },
+    ) => value.toFixed(options?.maximumDecimals || 2),
+  ),
 }));
 
 jest.mock('../../hooks/usePredictMarket', () => ({
@@ -284,141 +278,6 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
         {children}
       </View>
     );
-  };
-});
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: Text,
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMD: 'BodyMD',
-      BodyMDMedium: 'BodyMDMedium',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-      Success: 'Success',
-      Error: 'Error',
-      Primary: 'Primary',
-    },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockButton({
-      onPress,
-      style,
-      children,
-      label,
-      testID,
-    }: {
-      onPress: () => void;
-      label: string | React.ReactNode;
-      variant: string;
-      size: string;
-      width: string;
-      style: object;
-      children?: React.ReactNode;
-      testID?: string;
-    }) {
-      return (
-        <TouchableOpacity
-          onPress={onPress}
-          testID={testID || 'button'}
-          style={style}
-        >
-          <Text>{label || children}</Text>
-        </TouchableOpacity>
-      );
-    },
-    ButtonVariants: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-    },
-    ButtonSize: {
-      Lg: 'Lg',
-    },
-    ButtonWidthTypes: {
-      Full: 'Full',
-    },
-  };
-});
-
-jest.mock(
-  '../../../../../component-library/components-temp/Buttons/ButtonHero',
-  () => {
-    const { TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: function MockButtonHero({
-        onPress,
-        style,
-        children,
-        testID,
-      }: {
-        onPress?: () => void;
-        style?: object;
-        children?: React.ReactNode;
-        size?: string;
-        testID?: string;
-      }) {
-        return (
-          <TouchableOpacity
-            onPress={onPress}
-            testID={testID || 'button-hero'}
-            style={style}
-          >
-            {children}
-          </TouchableOpacity>
-        );
-      },
-    };
-  },
-);
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockIcon({
-      name,
-    }: {
-      name: string;
-      size?: string;
-      color?: string;
-    }) {
-      return <View testID={`icon-${name}`} />;
-    },
-    IconName: {
-      ArrowLeft: 'ArrowLeft',
-      ArrowDown: 'ArrowDown',
-      ArrowUp: 'ArrowUp',
-      Flash: 'Flash',
-      Chart: 'Chart',
-      Clock: 'Clock',
-      Bank: 'Bank',
-      Export: 'Export',
-      Apps: 'Apps',
-      CheckBold: 'CheckBold',
-    },
-    IconSize: {
-      Sm: 'Sm',
-      Md: 'Md',
-    },
-    IconColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-      Success: 'Success',
-      Error: 'Error',
-      Primary: 'Primary',
-    },
   };
 });
 
@@ -1527,7 +1386,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('predict.cash_out')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
+        screen.getByText('$65.00 on Yes to win $100.00', {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
       expect(screen.getByText('+7.70%')).toBeOnTheScreen();
     });
@@ -1705,7 +1566,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('Yes Option')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
+        screen.getByText('$65.00 on Yes to win $100.00', {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
     });
 
@@ -1736,7 +1599,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('Yes')).toBeOnTheScreen();
       expect(
-        screen.getByText('$65.00 on Yes • 65¢', { exact: false }),
+        screen.getByText('$65.00 on Yes to win $100.00', {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
     });
 

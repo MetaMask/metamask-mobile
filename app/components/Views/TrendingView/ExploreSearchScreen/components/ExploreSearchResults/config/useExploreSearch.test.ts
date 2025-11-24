@@ -25,11 +25,16 @@ const mockPredictionMarkets = [
 ];
 
 const mockUseTrendingRequest = jest.fn();
+const mockUseSearchRequest = jest.fn();
 const mockUsePerpsMarkets = jest.fn();
 const mockUsePredictMarketData = jest.fn();
 
-jest.mock('../../../../../../UI/Assets/hooks/useTrendingRequest', () => ({
+jest.mock('../../../../../../UI/Trending/hooks/useTrendingRequest', () => ({
   useTrendingRequest: () => mockUseTrendingRequest(),
+}));
+
+jest.mock('../../../../../../UI/Trending/hooks/useSearchRequest', () => ({
+  useSearchRequest: () => mockUseSearchRequest(),
 }));
 
 jest.mock('../../../../../../UI/Perps/hooks/usePerpsMarkets', () => ({
@@ -46,6 +51,11 @@ describe('useExploreSearch', () => {
     jest.useFakeTimers();
 
     mockUseTrendingRequest.mockReturnValue({
+      results: mockTrendingTokens,
+      isLoading: false,
+    });
+
+    mockUseSearchRequest.mockReturnValue({
       results: mockTrendingTokens,
       isLoading: false,
     });
