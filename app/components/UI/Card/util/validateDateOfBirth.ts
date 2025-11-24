@@ -4,7 +4,12 @@
  * @returns boolean - true if the person is 18 or older, false otherwise
  */
 export const validateDateOfBirth = (dateOfBirthTimestamp: number): boolean => {
-  if (!dateOfBirthTimestamp || dateOfBirthTimestamp <= 0) {
+  // Check for invalid/missing timestamp (but allow negative timestamps for dates before 1970)
+  if (
+    dateOfBirthTimestamp === null ||
+    dateOfBirthTimestamp === undefined ||
+    isNaN(dateOfBirthTimestamp)
+  ) {
     return false;
   }
 

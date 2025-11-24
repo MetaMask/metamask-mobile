@@ -101,7 +101,7 @@ export type PredictControllerState = {
   // Account balances
   balances: { [providerId: string]: { [address: string]: PredictBalance } };
 
-  // Claim management
+  // Claim management (this should always be ALL claimable positions)
   claimablePositions: { [address: string]: PredictPosition[] };
 
   // Deposit management
@@ -1760,6 +1760,8 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
+        skipInitialGasEstimate: true,
         transactions,
       });
 
