@@ -611,12 +611,12 @@ describe('Transaction Controller Init', () => {
       expect(await optionFn?.(mockTransactionMeta)).toBe(false);
     });
 
-    it('returns true if isGasFeeTokenIgnoredIfBalance', async () => {
+    it('returns true if isExternalSign', async () => {
       const mockTransactionMeta = {
         id: '123',
         status: 'approved',
         chainId: '0x13',
-        isGasFeeTokenIgnoredIfBalance: true,
+        isExternalSign: true,
       } as unknown as TransactionMeta;
 
       const optionFn = testConstructorOption('isEIP7702GasFeeTokensEnabled');
@@ -666,7 +666,7 @@ describe('Transaction Controller Init', () => {
     expect(resultNonce).toBe(toHex(99));
   });
 
-  it('calls 7702 publish hook if isGasFeeTokenIgnoredIfBalance', async () => {
+  it('calls 7702 publish hook if isExternalSign', async () => {
     const delegation7702Mock: jest.MockedFn<PublishHook> = jest.fn();
 
     jest.mocked(Delegation7702PublishHook).mockImplementation(
@@ -680,14 +680,12 @@ describe('Transaction Controller Init', () => {
 
     const hooks = testConstructorOption('hooks');
 
-    const transactionMetaWithGasFeeTokenIgnored = {
+    const transactionMeta = {
       ...MOCK_TRANSACTION_META,
-      isGasFeeTokenIgnoredIfBalance: true,
+      isExternalSign: true,
     } as TransactionMeta;
 
-    const result = await hooks?.publish?.(
-      transactionMetaWithGasFeeTokenIgnored,
-    );
+    const result = await hooks?.publish?.(transactionMeta);
 
     expect(delegation7702Mock).toHaveBeenCalled();
     expect(result).toEqual({ transactionHash: '0xde702' });

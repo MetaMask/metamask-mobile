@@ -131,7 +131,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           updateTransactions: true,
         },
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
-          const { chainId, isGasFeeTokenIgnoredIfBalance } = transactionMeta;
+          const { chainId, isExternalSign } = transactionMeta;
           const state = getState();
 
           const isSmartTransactionEnabled = selectShouldUseSmartTransaction(
@@ -148,7 +148,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           return (
             !isSmartTransactionEnabled ||
             !isSendBundleSupportedChain ||
-            Boolean(isGasFeeTokenIgnoredIfBalance)
+            Boolean(isExternalSign)
           );
         },
         isSimulationEnabled: () =>
@@ -219,13 +219,9 @@ async function publishHook({
     return payResult;
   }
 
-  const { isGasFeeTokenIgnoredIfBalance } = transactionMeta;
+  const { isExternalSign } = transactionMeta;
 
-  if (
-    !shouldUseSmartTransaction ||
-    !sendBundleSupport ||
-    isGasFeeTokenIgnoredIfBalance
-  ) {
+  if (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
         transactionController,
