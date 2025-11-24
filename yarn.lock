@@ -21457,7 +21457,7 @@ __metadata:
 
 "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=7499a8#~/.yarn/patches/appwright-patch-bd36f2d657.patch":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=7499a8#~/.yarn/patches/appwright-patch-bd36f2d657.patch::version=0.1.45&hash=8503d7"
+  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=7499a8#~/.yarn/patches/appwright-patch-bd36f2d657.patch::version=0.1.45&hash=4a3b2a"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -21473,7 +21473,7 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/bbb2e0317501a25f3371d150a7a64d78511a2e6ebd49ec411da9bb58354402eb7878540cb2ca4e9eb332e683c853d0a26b6a34ae6701a055f1d54f71da0f90f6
+  checksum: 10/f1cd5304a013183f29816990cabd9128c35f6839a57b69a731229b47d193ee71034facb0018c0517e1eb10eee16724ef7c3399070f938fe77558bfb521d79ca6
   languageName: node
   linkType: hard
 

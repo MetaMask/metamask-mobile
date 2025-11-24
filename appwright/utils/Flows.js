@@ -15,6 +15,8 @@ import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 import RewardsGTMModal from '../../wdio/screen-objects/Modals/RewardsGTMModal.js';
+import AppwrightGestures from 'e2e/framework/AppwrightGestures.js';
+import AppwrightSelectors from 'e2e/framework/AppwrightSelectors.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -62,8 +64,17 @@ export async function onboardingFlowImportSRP(device, srp) {
 
 export async function dissmissAllModals(device) {
   await dismissMultichainAccountsIntroModal(device);
-  await tapPerpsBottomSheetGotItButton(device);
-  await dismissRewardsBottomSheetModal(device);
+  await dissmissPredictionsModal(device);
+}
+
+export async function dissmissPredictionsModal(device) {
+  const notNowPredictionsModalButton = await AppwrightSelectors.getElementByID(
+    device,
+    'predict-gtm-not-now-button',
+  );
+  if (await notNowPredictionsModalButton.isVisible({ timeout: 5000 })) {
+    await AppwrightGestures.tap(notNowPredictionsModalButton);
+  }
 }
 
 export async function importSRPFlow(device, srp) {
@@ -118,12 +129,16 @@ export async function login(device, options = {}) {
   const { scenarioType = 'login' } = options;
 
   const password = getPasswordForScenario(scenarioType);
-
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
-
+  await AppwrightGestures.wait(5000);
+  const cancelButton = await AppwrightSelectors.getElementByID(
+    device,
+    'snap-account-custom-name-approval-cancel-button',
+  );
+  await AppwrightGestures.tap(cancelButton);
   await dismissMultichainAccountsIntroModal(device);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {

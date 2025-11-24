@@ -120,14 +120,14 @@ class LoginScreen {
   }
 
   async typePassword(password) {
-    await this.isLoginScreenVisible();
+    //await this.isLoginScreenVisible();
     if (!this._device) {
       await Gestures.typeText(this.passwordInput, password);
     } else {
-      const screenTitle = await this.title
       const element = await this.getPasswordInputElement;
       await AppwrightGestures.typeText(element, password);
-      await screenTitle.tap()
+      await AppwrightGestures.hideKeyboard(this._device);
+
     }
   }
 

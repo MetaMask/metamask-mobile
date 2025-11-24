@@ -199,7 +199,7 @@ class WalletMainScreen {
         let tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`); // for some reason by Id does not work sometimeselse {
         await AppwrightGestures.tap(tokenName);
       } else { // if ios, click on any token that is visible
-        const anyToken = await AppwrightSelectors.getElementByXpath(this._device, `//*[@name="token-list"]//XCUIElementTypeOther[1]`);
+        const anyToken = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
         await AppwrightGestures.tap(anyToken);
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
