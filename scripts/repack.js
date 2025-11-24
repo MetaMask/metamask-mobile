@@ -37,11 +37,12 @@ function getKeystoreConfig() {
     process.exit(1);
   }
 
+  // apksigner requires 'pass:' prefix for passwords (especially those with special characters)
   const config = {
     keyStorePath: keystorePath || 'android/app/debug.keystore',
-    keyStorePassword: `pass:${keystorePassword || 'android'}`,
+    keyStorePassword: keystorePassword ? `pass:${keystorePassword}` : 'pass:android',
     keyAlias: keyAlias || 'androiddebugkey',
-    keyPassword: `pass:${keyPassword || 'android'}`,
+    keyPassword: keyPassword ? `pass:${keyPassword}` : 'pass:android',
   };
 
   logger.info(`Using keystore: ${config.keyStorePath}`);
@@ -73,12 +74,13 @@ async function repackAndroid() {
     // Ensure directories exist
     fs.mkdirSync(path.dirname(sourcemapPath), { recursive: true });
     fs.mkdirSync(workingDir, { recursive: true });
+    fs.mkdirSync(path.dirname(repackedApk), { recursive: true });
+    fs.mkdirSync(path.dirname(finalApk), { recursive: true });
 
     // Dynamic import for ES module compatibility
     const { repackAppAndroidAsync } = await import('@expo/repack-app');
+    const keystoreConfig = getKeystoreConfig();
 
-    // Repack APK (without signing - will use unsigned apktool-packed.apk)
-    logger.info('⏱️  Repacking APK with updated JavaScript...');
     await repackAppAndroidAsync({
       platform: 'android',
       projectRoot: process.cwd(),
@@ -86,17 +88,12 @@ async function repackAndroid() {
       outputPath: repackedApk,
       workingDirectory: workingDir,
       verbose: true,
-      androidSigningOptions: getKeystoreConfig(),
+      androidSigningOptions: keystoreConfig,
       exportEmbedOptions: {
         sourcemapOutput: sourcemapPath,
       },
       env: process.env,
     });
-
-    // Verify repacked APK exists
-    if (!fs.existsSync(repackedApk)) {
-      throw new Error(`Repacked APK not found: ${repackedApk}`);
-    }
 
     // Copy to final location
     fs.copyFileSync(repackedApk, finalApk);
@@ -116,9 +113,6 @@ async function repackAndroid() {
 
   } catch (error) {
     logger.error(`Android repack failed: ${error.message}`);
-    if (error.stack) {
-      logger.error(`Stack trace: ${error.stack}`);
-    }
     throw error;
   }
 }
