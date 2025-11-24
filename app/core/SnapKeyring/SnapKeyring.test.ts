@@ -175,6 +175,11 @@ jest.mock('../Analytics/helpers/SnapKeyring/trackSnapAccountEvent', () => ({
   trackSnapAccountEvent: jest.fn(),
 }));
 
+// Mock the isMultichainAccountsState2Enabled function
+jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: jest.fn().mockReturnValue(false),
+}));
+
 describe('Snap Keyring Methods', () => {
   afterEach(() => {
     jest.resetAllMocks();
