@@ -2,15 +2,15 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { getNetworkImageSource, isTestNet } from '../../util/networks';
-import { PopularList } from '../../util/networks/customNetworks';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
-import { ProcessedNetwork } from './useNetworksByNamespace/useNetworksByNamespace';
 import {
   NetworkConfiguration,
   RpcEndpointType,
 } from '@metamask/network-controller';
+import { getNetworkImageSource, isTestNet } from '../../../../../util/networks';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { PopularList } from '../../../../../util/networks/customNetworks';
 
 /**
  * Hook to get popular networks, combining networks from Redux state and PopularList.

@@ -19,10 +19,7 @@ import SectionCard from '../components/SectionCard/SectionCard';
 import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
 import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
-import {
-  PriceChangeOption,
-  SortDirection,
-} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
+import { PriceChangeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
@@ -39,7 +36,7 @@ interface SectionData {
   refetch?: () => void;
 }
 
-interface TokensSectionParams {
+interface SectionParams {
   searchQuery?: string;
   sortBy?: SortTrendingBy;
   chainIds?: CaipChainId[] | null;
@@ -58,7 +55,7 @@ interface SectionConfig {
   getSearchableText: (item: unknown) => string;
   keyExtractor: (item: unknown) => string;
   Section: React.ComponentType;
-  useSectionData: (params?: unknown) => {
+  useSectionData: (params?: SectionParams) => {
     data: unknown[];
     isLoading: boolean;
     refetch?: () => void;
@@ -97,9 +94,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
     keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
     Section: () => <SectionCard sectionId="tokens" />,
-    useSectionData: (params?: unknown) => {
-      const { searchQuery, sortBy, chainIds } = (params ??
-        {}) as TokensSectionParams;
+    useSectionData: (params?: SectionParams) => {
+      const { searchQuery, sortBy, chainIds } = params ?? {};
       // Trending will return tokens that have just been created which wont be picked up by search API
       // so if you see a token on trending and search on omnisearch which uses the search endpoint...
       // There is a chance you will get 0 results
@@ -123,7 +119,6 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         const sortedResults = sortTrendingTokens(
           trendingResults,
           PriceChangeOption.PriceChange,
-          SortDirection.Descending,
         );
         return {
           data: sortedResults,
@@ -215,8 +210,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       (item as PredictMarketType).title.toLowerCase(),
     keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
     Section: () => <SectionCarrousel sectionId="predictions" />,
-    useSectionData: (params?: unknown) => {
-      const searchQuery = params as string | undefined;
+    useSectionData: (params?: SectionParams) => {
+      const { searchQuery } = params ?? {};
       const { marketData, isFetching } = usePredictMarketData({
         category: 'trending',
         pageSize: searchQuery ? 20 : 6,
@@ -254,11 +249,11 @@ export const useSectionsData = (
   searchQuery?: string,
 ): Record<SectionId, SectionData> => {
   const { data: trendingTokens, isLoading: isTokensLoading } =
-    SECTIONS_CONFIG.tokens.useSectionData(searchQuery);
+    SECTIONS_CONFIG.tokens.useSectionData({ searchQuery });
   const { data: perpsMarkets, isLoading: isPerpsLoading } =
     SECTIONS_CONFIG.perps.useSectionData();
   const { data: predictionMarkets, isLoading: isPredictionsLoading } =
-    SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
+    SECTIONS_CONFIG.predictions.useSectionData({ searchQuery });
 
   return {
     tokens: {

@@ -19,7 +19,7 @@ import Avatar, {
 import { strings } from '../../../../../../locales/i18n';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
-import { usePopularNetworks } from '../../../../hooks/usePopularNetworks';
+import { usePopularNetworks } from '../../hooks/usePopularNetworks';
 
 export enum NetworkOption {
   AllNetworks = 'all',

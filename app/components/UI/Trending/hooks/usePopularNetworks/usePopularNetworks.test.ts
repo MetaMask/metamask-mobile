@@ -1,19 +1,19 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
-import { isTestNet } from '../../util/networks';
-import { usePopularNetworks } from './usePopularNetworks';
+import { isTestNet } from '../../../../../util/networks';
+import { usePopularNetworks } from '.';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../util/networks', () => ({
+jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(),
   isTestNet: jest.fn(),
 }));
 
-jest.mock('../../util/networks/customNetworks', () => ({
+jest.mock('../../../../../util/networks/customNetworks', () => ({
   PopularList: [
     {
       chainId: '0xa86a',
