@@ -29,6 +29,19 @@ jest.mock('./usePredictPositions', () => ({
   })),
 }));
 
+// Mock usePredictBalance
+const mockLoadBalance = jest.fn().mockResolvedValue(undefined);
+jest.mock('./usePredictBalance', () => ({
+  usePredictBalance: jest.fn(() => ({
+    balance: 100,
+    hasNoBalance: false,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadBalance: mockLoadBalance,
+  })),
+}));
+
 // Create a mock toast ref
 const mockToastRef = {
   current: {
@@ -145,6 +158,8 @@ describe('usePredictClaimToasts', () => {
     jest.clearAllMocks();
     mockToastRef.current.showToast.mockClear();
     mockClaim.mockClear();
+    mockLoadBalance.mockClear();
+    mockLoadPositions.mockClear();
 
     // Capture the subscribe callback
     mockSubscribeCallback = null;
@@ -410,6 +425,66 @@ describe('usePredictClaimToasts', () => {
 
       // Assert
       expect(onPressRetry).toEqual(expect.any(Function));
+    });
+  });
+
+  describe('onConfirmed callback', () => {
+    it('calls loadBalance when transaction is confirmed', async () => {
+      // Arrange
+      renderHook(() => usePredictClaimToasts(), { wrapper });
+
+      // Act
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [{ type: TransactionType.predictClaim }],
+          },
+        });
+      });
+
+      // Assert
+      expect(mockLoadBalance).toHaveBeenCalled();
+    });
+
+    it('calls loadPositions with isRefresh when transaction is confirmed', async () => {
+      // Arrange
+      renderHook(() => usePredictClaimToasts(), { wrapper });
+
+      // Act
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [{ type: TransactionType.predictClaim }],
+          },
+        });
+      });
+
+      // Assert
+      expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
+    });
+
+    it('calls confirmClaim on PredictController when transaction is confirmed', async () => {
+      // Arrange
+      renderHook(() => usePredictClaimToasts(), { wrapper });
+
+      // Act
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.confirmed,
+            nestedTransactions: [{ type: TransactionType.predictClaim }],
+          },
+        });
+      });
+
+      // Assert
+      expect(
+        Engine.context.PredictController.confirmClaim,
+      ).toHaveBeenCalledWith({
+        providerId: 'polymarket',
+      });
     });
   });
 

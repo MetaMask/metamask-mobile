@@ -1,30 +1,31 @@
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import {
-  PredictPosition as PredictPositionType,
   PredictMarket,
   PredictMarketStatus,
+  PredictPosition as PredictPositionType,
 } from '../../types';
-import { formatCents, formatPercentage, formatPrice } from '../../utils/format';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Routes from '../../../../../constants/navigation/Routes';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
-import { strings } from '../../../../../../locales/i18n';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { formatPercentage, formatPrice } from '../../utils/format';
+import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -39,37 +40,41 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 }: PredictPositionProps) => {
   const tw = useTailwind();
 
+  const currentPosition = usePredictOptimisticPositionRefresh({
+    position,
+  });
+
   const {
     icon,
     initialValue,
     percentPnl,
     outcome,
-    avgPrice,
     currentValue,
     title,
     optimistic,
-  } = position;
+    size,
+  } = currentPosition;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: position.providerId,
+    providerId: currentPosition.providerId,
     navigation,
   });
 
   const groupItemTitle = market?.outcomes.find(
-    (o) => o.id === position.outcomeId && o.groupItemTitle,
+    (o) => o.id === currentPosition.outcomeId && o.groupItemTitle,
   )?.groupItemTitle;
 
   const onCashOut = () => {
     executeGuardedAction(
       () => {
         const _outcome = market?.outcomes.find(
-          (o) => o.id === position.outcomeId,
+          (o) => o.id === currentPosition.outcomeId,
         );
         navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
           market,
-          position,
+          position: currentPosition,
           outcome: _outcome,
           entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
@@ -133,8 +138,15 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            {formatPrice(initialValue, { maximumDecimals: 2 })} on {outcome} •{' '}
-            {formatCents(avgPrice)}
+            {strings('predict.position_info', {
+              initialValue: formatPrice(initialValue, {
+                maximumDecimals: 2,
+              }),
+              outcome,
+              shares: formatPrice(size, {
+                maximumDecimals: 2,
+              }),
+            })}
           </Text>
         </Box>
         <Box twClassName="items-end justify-end ml-auto shrink-0">

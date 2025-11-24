@@ -24,6 +24,7 @@ import {
   shortenTransactionId,
   getAddressUrl,
   getTransactionUrl,
+  isTronAddress,
 } from '../utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -58,6 +59,9 @@ const MOCK_ETH_ADDRESS_2 = '0x742d35Cc6634C0532925a3b8D1f9C0D5c5b8c5F5';
 
 const SOL_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 const SOL_ADDRESS_2 = 'DRpbCBMxVnDK7maPM5tGv6MvB3v1sRMC86PZ8okm21hy';
+
+const MOCK_TRON_ADDRESS = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
+const MOCK_TRON_ADDRESS_2 = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
 
 const mockEthEOAAccount: InternalAccount = {
   address: MOCK_ETH_ADDRESS,
@@ -219,6 +223,48 @@ describe('MultiChain utils', () => {
     });
   });
 
+  describe('isTronAddress', () => {
+    it('returns true for valid Tron addresses', () => {
+      expect(isTronAddress(MOCK_TRON_ADDRESS)).toBe(true);
+      expect(isTronAddress(MOCK_TRON_ADDRESS_2)).toBe(true);
+    });
+
+    it('returns false for ETH addresses', () => {
+      expect(isTronAddress(MOCK_ETH_ADDRESS)).toBe(false);
+    });
+
+    it('returns false for BTC addresses', () => {
+      expect(isTronAddress(MOCK_BTC_MAINNET_ADDRESS)).toBe(false);
+      expect(isTronAddress(MOCK_BTC_TESTNET_ADDRESS)).toBe(false);
+    });
+
+    it('returns false for SOL addresses', () => {
+      expect(isTronAddress(SOL_ADDRESS)).toBe(false);
+    });
+
+    it('returns false for invalid addresses', () => {
+      expect(isTronAddress('invalid')).toBe(false);
+      expect(isTronAddress('T12345')).toBe(false);
+      expect(isTronAddress('')).toBe(false);
+    });
+
+    it('returns false for null or undefined', () => {
+      expect(isTronAddress(null as unknown as string)).toBe(false);
+      expect(isTronAddress(undefined as unknown as string)).toBe(false);
+    });
+
+    it('returns false for non-T prefix addresses', () => {
+      expect(isTronAddress('ANPeeaaFhwdYaBjwE6tz8N6Vp1y66i5NjE')).toBe(false);
+    });
+
+    it('returns false for addresses with incorrect length', () => {
+      expect(isTronAddress('T123')).toBe(false);
+      expect(
+        isTronAddress('TNPeeaaFhwdYaBjwE6tz8N6Vp1y66i5NjEExtraChars'),
+      ).toBe(false);
+    });
+  });
+
   describe('isSolanaAccount', () => {
     it('returns true for Solana accounts', () => {
       expect(isSolanaAccount(mockSolAccount)).toBe(true);
@@ -257,6 +303,13 @@ describe('MultiChain utils', () => {
     describe('Bitcoin regtest addresses', () => {
       it('returns true for Bitcoin regtest addresses', () => {
         expect(isNonEvmAddress(MOCK_BTC_REGTEST_ADDRESS)).toBe(true);
+      });
+    });
+
+    describe('Tron addresses', () => {
+      it('returns true for valid Tron addresses', () => {
+        expect(isNonEvmAddress(MOCK_TRON_ADDRESS)).toBe(true);
+        expect(isNonEvmAddress(MOCK_TRON_ADDRESS_2)).toBe(true);
       });
     });
 
