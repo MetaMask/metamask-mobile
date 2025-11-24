@@ -720,16 +720,20 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
     setState((prevState) => ({ ...prevState, startFoxAnimation: 'Start' }));
   }, []);
 
-  const renderLoader = useCallback((): React.ReactElement => (
+  const renderLoader = useCallback(
+    (): React.ReactElement => (
       <View style={styles.loaderWrapper}>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
           <Text style={styles.loadingText}>{loadingMsg}</Text>
         </View>
       </View>
-    ), [styles, loadingMsg]);
+    ),
+    [styles, loadingMsg],
+  );
 
-  const renderContent = useCallback((): React.ReactElement => (
+  const renderContent = useCallback(
+    (): React.ReactElement => (
       <View style={styles.ctas}>
         <OnboardingAnimation
           startOnboardingAnimation={state.startOnboardingAnimation}
@@ -771,12 +775,14 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
           />
         </OnboardingAnimation>
       </View>
-    ), [
-    styles,
-    state.startOnboardingAnimation,
-    setStartFoxAnimation,
-    handleCtaActions,
-  ]);
+    ),
+    [
+      styles,
+      state.startOnboardingAnimation,
+      setStartFoxAnimation,
+      handleCtaActions,
+    ],
+  );
 
   const handleSimpleNotification =
     useCallback((): React.ReactElement | null => {
