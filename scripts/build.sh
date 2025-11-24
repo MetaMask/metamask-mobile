@@ -543,8 +543,6 @@ generateAndroidBinary() {
 	local checkSumCommand="build:android:checksum:${lowercaseFlavor}"
 	# Create assemble test APK task
 	local assembleTestApkTask=""
-	# Define React Native Architecture arg
-	local reactNativeArchitecturesArg=""
 	# Define Test build type arg
 	local testBuildTypeArg=""
 
@@ -567,25 +565,19 @@ generateAndroidBinary() {
 		assembleTestApkTask="app:assemble${flavor}${configuration}AndroidTest"
 		# Define test build type arg
 		testBuildTypeArg="-DtestBuildType=${lowercaseConfiguration}"
-
-		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
-		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
-			# Only build for x86_64 for E2E builds
-			reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
-		fi
 	fi
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
 	# Disable parallel builds and set max workers for E2E builds to reduce memory pressure in CI
 	# Note: Memory error usually appears as with error (Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed))
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg --build-cache --no-parallel --max-workers=2 --info --stacktrace
+	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg --build-cache --no-parallel --max-workers=2 --info --stacktrace
 
 	if [ "$configuration" = "Release" ] ; then		
 		# Generate AAB bundle (not needed for E2E)
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
-		./gradlew $bundleConfiguration --build-cache --no-parallel --max-workers=2
+		./gradlew $bundleConfiguration
 
 		# Generate checksum
 		echo "Generating checksum for ($flavor) flavor with ($configuration) configuration"
