@@ -11,37 +11,19 @@ import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
-import { useSendType } from './useSendType';
 
 export function useAccountTokens({
   includeNoBalance = false,
+}: {
+  includeNoBalance?: boolean;
 } = {}): AssetType[] {
   const assets = useSelector(selectFilteredAssetsBySelectedAccountGroup);
-  const { isEvmSendType, isSolanaSendType, isTronSendType, isBitcoinSendType } =
-    useSendType();
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
 
-    const accountTypeMap: Record<string, boolean> = {
-      eip155: !!isEvmSendType,
-      solana: !!isSolanaSendType,
-      tron: !!isTronSendType,
-      bip122: !!isBitcoinSendType,
-    };
-
-    const matchedAccountType = Object.entries(accountTypeMap).find(
-      ([, isType]) => isType,
-    )?.[0];
-
-    const filteredAssets = matchedAccountType
-      ? flatAssets.filter((asset) =>
-          asset.accountType.includes(matchedAccountType),
-        )
-      : flatAssets;
-
-    const assetsWithBalance = filteredAssets.filter((asset) => {
+    const assetsWithBalance = flatAssets.filter((asset) => {
       if (includeNoBalance) {
         return true;
       }
@@ -89,13 +71,5 @@ export function useAccountTokens({
           new BigNumber(a.fiat?.balance || 0),
         ) || 0,
     );
-  }, [
-    assets,
-    includeNoBalance,
-    isEvmSendType,
-    isSolanaSendType,
-    isTronSendType,
-    isBitcoinSendType,
-    fiatCurrency,
-  ]) as unknown as AssetType[];
+  }, [assets, includeNoBalance, fiatCurrency]) as unknown as AssetType[];
 }

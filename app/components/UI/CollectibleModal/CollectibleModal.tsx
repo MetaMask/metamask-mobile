@@ -83,7 +83,10 @@ const CollectibleModal = () => {
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
-    navigateToSendPage(InitSendLocation.CollectibleModal, collectible);
+    navigateToSendPage({
+      location: InitSendLocation.CollectibleModal,
+      asset: collectible,
+    });
   }, [contractName, collectible, dispatch, navigateToSendPage]);
 
   const isTradable = useCallback(

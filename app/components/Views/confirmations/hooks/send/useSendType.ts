@@ -24,15 +24,13 @@ export const useSendType = () => {
       predefinedRecipient: PredefinedRecipient;
     }>() || {};
 
-  const {
-    isEvm: isPredefinedEvm,
-    isBitcoin: isPredefinedBitcoin,
-    isSolana: isPredefinedSolana,
-    isTron: isPredefinedTron,
-  } = predefinedRecipient || {};
+  const isPredefinedEvm = predefinedRecipient?.chainType === 'evm';
+  const isPredefinedBitcoin = predefinedRecipient?.chainType === 'bitcoin';
+  const isPredefinedSolana = predefinedRecipient?.chainType === 'solana';
+  const isPredefinedTron = predefinedRecipient?.chainType === 'tron';
 
   const isPredefinedNonEvm =
-    isPredefinedSolana || isPredefinedBitcoin || isPredefinedTron;
+    predefinedRecipient?.chainType && predefinedRecipient.chainType !== 'evm';
 
   const isEvmSendType = useMemo(
     () =>

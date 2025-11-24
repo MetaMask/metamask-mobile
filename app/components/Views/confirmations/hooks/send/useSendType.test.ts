@@ -170,10 +170,8 @@ describe('useSendType', () => {
     it('identifies predefined EVM recipient as EVM send type', () => {
       mockUseParams.mockReturnValue({
         predefinedRecipient: {
-          isEvm: true,
-          isBitcoin: false,
-          isSolana: false,
-          isTron: false,
+          address: '0x1234567890123456789012345678901234567890',
+          chainType: 'evm',
         },
       });
 
@@ -185,10 +183,8 @@ describe('useSendType', () => {
     it('identifies predefined Solana recipient as Solana send type', () => {
       mockUseParams.mockReturnValue({
         predefinedRecipient: {
-          isEvm: false,
-          isBitcoin: false,
-          isSolana: true,
-          isTron: false,
+          address: '7W54AwGDYRF7Xmoi6phjTnrQhruYtoUdCKJMYAXP7VWC',
+          chainType: 'solana',
         },
       });
 
@@ -296,10 +292,8 @@ describe('useSendType', () => {
     it('prioritizes predefined EVM over asset address', () => {
       mockUseParams.mockReturnValue({
         predefinedRecipient: {
-          isEvm: true,
-          isBitcoin: false,
-          isSolana: false,
-          isTron: false,
+          address: '0x1234567890123456789012345678901234567890',
+          chainType: 'evm',
         },
       });
       mockUseSendContext.mockReturnValue({
@@ -323,10 +317,8 @@ describe('useSendType', () => {
     it('prioritizes predefined Solana over asset chainId', () => {
       mockUseParams.mockReturnValue({
         predefinedRecipient: {
-          isEvm: false,
-          isBitcoin: false,
-          isSolana: true,
-          isTron: false,
+          address: '7W54AwGDYRF7Xmoi6phjTnrQhruYtoUdCKJMYAXP7VWC',
+          chainType: 'solana',
         },
       });
       mockUseSendContext.mockReturnValue({

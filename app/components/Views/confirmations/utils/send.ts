@@ -30,20 +30,24 @@ import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
 
-type OneOf<T, Keys extends keyof T = keyof T> = Keys extends keyof T
-  ? { [K in Keys]: T[K] } & { [K in Exclude<keyof T, Keys>]?: never }
-  : never;
-
-interface ChainType {
-  isEvm: true;
-  isSolana: true;
-  isBitcoin: true;
-  isTron: true;
+export enum ChainType {
+  EVM = 'evm',
+  SOLANA = 'solana',
+  BITCOIN = 'bitcoin',
+  TRON = 'tron',
 }
 
-export type PredefinedRecipient = {
+export interface PredefinedRecipient {
   address: string;
-} & OneOf<ChainType>;
+  chainType: ChainType;
+}
+
+export interface SendNavigationParams {
+  location: string;
+  isSendRedesignEnabled: boolean;
+  asset?: AssetType | Nft;
+  predefinedRecipient?: PredefinedRecipient;
+}
 
 const captureSendStartedEvent = (location: string) => {
   const { trackEvent } = MetaMetrics.getInstance();
@@ -76,21 +80,13 @@ export function isValidPositiveNumericString(str: string) {
  * - Other assets: starts at amount screen
  *
  * @param navigate - Navigation function that accepts a screen name and optional params object
- * @param location - Analytics identifier for where the send flow was initiated (e.g., 'wallet', 'token_details')
- * @param isSendRedesignEnabled - Feature flag indicating whether to use the new send flow or legacy SendFlowView
- * @param asset - Optional preselected asset (token or NFT) to send. When provided, skips the asset selection screen.
- * @param predefinedRecipient - Optional recipient with chain information. Should be an object containing:
+ * @param params - Object containing the navigation parameters
+ * @param params.location - Analytics identifier for where the send flow was initiated (e.g., 'wallet', 'token_details')
+ * @param params.isSendRedesignEnabled - Feature flag indicating whether to use the new send flow or legacy SendFlowView
+ * @param params.asset - Optional preselected asset (token or NFT) to send. When provided, skips the asset selection screen.
+ * @param params.predefinedRecipient - Optional recipient with chain information. Should be an object containing:
  * - `address`: The recipient's address string
- * - Exactly ONE of the following chain type flags set to `true`: `isEvm`, `isSolana`, `isBitcoin`, or `isTron`
- *
- * Example usage:
- * ```typescript
- * const recipient = {
- *   address: '0x1234...',
- *   isEvm: true,
- * };
- * handleSendPageNavigation(navigate, 'QRCode', true, undefined, recipient);
- * ```
+ * - `chainType`: One of 'evm', 'solana', 'bitcoin', or 'tron'
  *
  * @remarks
  * The predefinedRecipient is passed through navigation params and can be used by downstream screens
@@ -98,13 +94,14 @@ export function isValidPositiveNumericString(str: string) {
  *
  * @example
  * ```typescript
- * handleSendPageNavigation(
- *   navigation.navigate,
- *   'QRCode',
- *   true,
- *   undefined,
- *   { address: '7W54AwGDYRF7X...', isSolana: true }
- * );
+ * handleSendPageNavigation(navigation.navigate, {
+ *   location: 'QRCode',
+ *   isSendRedesignEnabled: true,
+ *   predefinedRecipient: {
+ *     address: '7W54AwGDYRF7X...',
+ *     chainType: 'solana'
+ *   }
+ * });
  * ```
  */
 export const handleSendPageNavigation = (
@@ -112,11 +109,10 @@ export const handleSendPageNavigation = (
     screenName: RouteName,
     params?: object,
   ) => void,
-  location: string,
-  isSendRedesignEnabled: boolean,
-  asset?: AssetType | Nft,
-  predefinedRecipient?: PredefinedRecipient,
+  params: SendNavigationParams,
 ) => {
+  const { location, isSendRedesignEnabled, asset, predefinedRecipient } =
+    params;
   if (isSendRedesignEnabled) {
     captureSendStartedEvent(location);
     let screen = Routes.SEND.ASSET;

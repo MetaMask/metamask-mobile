@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 
 import { useAccountTokens } from './useAccountTokens';
-import { useSendType } from './useSendType';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { TokenStandard } from '../../types/token';
@@ -12,10 +11,6 @@ import { isTestNet } from '../../../../../util/networks';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('./useSendType', () => ({
-  useSendType: jest.fn(),
 }));
 
 jest.mock('../../utils/network', () => ({
@@ -44,7 +39,6 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseSendType = jest.mocked(useSendType);
 const mockGetNetworkBadgeSource = jest.mocked(getNetworkBadgeSource);
 const mockGetIntlNumberFormatter = jest.mocked(getIntlNumberFormatter);
 const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
@@ -103,15 +97,6 @@ describe('useAccountTokens', () => {
       return undefined;
     });
 
-    mockUseSendType.mockReturnValue({
-      isEvmSendType: undefined,
-      isEvmNativeSendType: undefined,
-      isNonEvmSendType: undefined,
-      isNonEvmNativeSendType: undefined,
-      isSolanaSendType: undefined,
-      isBitcoinSendType: undefined,
-      isTronSendType: undefined,
-    });
     mockGetNetworkBadgeSource.mockReturnValue('network-badge-source');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockGetIntlNumberFormatter.mockReturnValue(mockFormatter as any);
@@ -119,65 +104,27 @@ describe('useAccountTokens', () => {
     mockIsTestNet.mockReturnValue(false);
   });
 
-  describe('when no scope filter is applied', () => {
-    it('returns all assets with balance', () => {
-      const { result } = renderHook(() => useAccountTokens());
+  it('returns all assets with balance', () => {
+    const { result } = renderHook(() => useAccountTokens());
 
-      expect(result.current).toHaveLength(2);
-      expect(result.current[0].symbol).toBe('TOKEN1');
-      expect(result.current[1].symbol).toBe('SOLTOKEN1');
-    });
-
-    it('filters out assets with zero balance', () => {
-      const { result } = renderHook(() => useAccountTokens());
-
-      const symbols = result.current.map((asset) => asset.symbol);
-      expect(symbols).not.toContain('TOKEN2');
-    });
+    expect(result.current).toHaveLength(2);
+    expect(result.current[0].symbol).toBe('TOKEN1');
+    expect(result.current[1].symbol).toBe('SOLTOKEN1');
   });
 
-  describe('when EVM only scope is applied', () => {
-    beforeEach(() => {
-      mockUseSendType.mockReturnValue({
-        isEvmSendType: true,
-        isEvmNativeSendType: undefined,
-        isNonEvmSendType: undefined,
-        isNonEvmNativeSendType: undefined,
-        isSolanaSendType: undefined,
-        isBitcoinSendType: undefined,
-        isTronSendType: undefined,
-      });
-    });
+  it('filters out assets with zero balance', () => {
+    const { result } = renderHook(() => useAccountTokens());
 
-    it('returns only EVM assets', () => {
-      const { result } = renderHook(() => useAccountTokens());
-
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].symbol).toBe('TOKEN1');
-      expect(result.current[0].accountType).toContain('eip155');
-    });
+    const symbols = result.current.map((asset) => asset.symbol);
+    expect(symbols).not.toContain('TOKEN2');
   });
 
-  describe('when Solana only scope is applied', () => {
-    beforeEach(() => {
-      mockUseSendType.mockReturnValue({
-        isEvmSendType: undefined,
-        isEvmNativeSendType: undefined,
-        isNonEvmSendType: true,
-        isNonEvmNativeSendType: undefined,
-        isSolanaSendType: true,
-        isBitcoinSendType: undefined,
-        isTronSendType: undefined,
-      });
-    });
+  it('returns all asset types without filtering by account type', () => {
+    const { result } = renderHook(() => useAccountTokens());
 
-    it('returns only Solana assets', () => {
-      const { result } = renderHook(() => useAccountTokens());
-
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].symbol).toBe('SOLTOKEN1');
-      expect(result.current[0].accountType).toContain('solana');
-    });
+    const accountTypes = result.current.map((asset) => asset.accountType);
+    expect(accountTypes).toContain('eip155:1/erc20:0xtoken1');
+    expect(accountTypes).toContain('solana:mainnet/spl:0xsoltoken1');
   });
 
   describe('asset processing', () => {

@@ -203,10 +203,7 @@ describe('Amount', () => {
     mockUseParams.mockReturnValue({
       predefinedRecipient: {
         address: predefinedRecipientAddress,
-        isEvm: true,
-        isBitcoin: false,
-        isSolana: false,
-        isTron: false,
+        chainType: 'evm',
       },
     });
     mockUseSendContext.mockReturnValue({
