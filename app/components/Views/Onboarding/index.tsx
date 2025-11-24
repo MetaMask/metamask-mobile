@@ -1,7 +1,6 @@
 import React, {
   useState,
   useEffect,
-  useLayoutEffect,
   useRef,
   useCallback,
   useContext,
@@ -47,6 +46,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 import {
   useNavigation,
+  useRoute,
   RouteProp,
   ParamListBase,
 } from '@react-navigation/native';
@@ -113,16 +113,10 @@ interface OnboardingRouteParams {
   delete?: string;
 }
 
-interface OnboardingProps {
-  route?: RouteProp<{ params: OnboardingRouteParams }, 'params'>;
-}
-
-const Onboarding = (props: OnboardingProps = {}) => {
-  const {
-    route = {} as RouteProp<{ params: OnboardingRouteParams }, 'params'>,
-  } = props;
-
+const Onboarding = () => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const route =
+    useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const metrics = useMetrics();
 
@@ -784,7 +778,7 @@ const Onboarding = (props: OnboardingProps = {}) => {
       );
     }, [route?.params?.delete, styles, notificationAnimated]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     onboardingTraceCtx.current = trace({
       name: TraceName.OnboardingJourneyOverall,
       op: TraceOperation.OnboardingUserJourney,
@@ -814,15 +808,8 @@ const Onboarding = (props: OnboardingProps = {}) => {
       unsetLoading();
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     };
-  }, [
-    unsetLoading,
-    updateNavBar,
-    checkIfExistingUser,
-    disableNewPrivacyPolicyToast,
-    checkForMigrationFailureAndVaultBackup,
-    route?.params?.delete,
-    showNotification,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     updateNavBar();
