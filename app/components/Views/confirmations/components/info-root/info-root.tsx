@@ -24,6 +24,7 @@ import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
+import { MusdConversionInfo } from '../info/musd-conversion-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -89,6 +90,13 @@ const Info = ({ route }: InfoProps) => {
 
   if (isSigningQRObject) {
     return <QRInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
+  ) {
+    return <MusdConversionInfo />;
   }
 
   if (
