@@ -5,7 +5,7 @@ import {
   SignatureControllerMessenger,
 } from '@metamask/signature-controller';
 import type { Hex, Json } from '@metamask/utils';
-import { keccak256 } from 'ethereumjs-util';
+import { bufferToHex, keccak256 } from 'ethereumjs-util';
 import { CowSwapQuoteResponse } from '../../components/UI/Bridge/types';
 import Engine from '../../core/Engine';
 import { getSignatureControllerMessenger } from '../../core/Engine/messengers/signature-controller-messenger';
@@ -72,7 +72,7 @@ export async function signIntent({
     domain: {
       name: 'Gnosis Protocol',
       version: 'v2',
-      chainId: String(chainId),
+      chainId,
       verifyingContract,
     },
     message: orderForSign as unknown as Json,
@@ -92,10 +92,8 @@ function normalizeAppData(appData: string): Hex {
   if (isBytes32Hex(appData)) {
     return appData as Hex;
   }
-  // Hash JSON/string appData to bytes32 per CoW spec
-  // Use Buffer for compatibility with keccak256
   const bytes = Buffer.from(appData, 'utf8');
-  return keccak256(bytes) as unknown as Hex;
+  return bufferToHex(keccak256(bytes)) as Hex;
 }
 
 function isBytes32Hex(value: string): boolean {
@@ -161,8 +159,19 @@ export async function handleIntentTransaction(
       messenger: signatureControllerMessenger,
     });
 
+    const normalizedQuoteResponse = {
+      ...quoteResponse,
+      quote: {
+        ...quoteResponse.quote,
+        intent: {
+          ...intent,
+          order: message, // ← important: override with normalized order
+        },
+      },
+    };
+
     const txResult = await Engine.context.BridgeStatusController.submitIntent({
-      quoteResponse,
+      quoteResponse: normalizedQuoteResponse,
       signature,
       accountAddress: accountAddress as Hex,
     });

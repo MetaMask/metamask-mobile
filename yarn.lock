@@ -7100,7 +7100,7 @@ __metadata:
 
 "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller::locator=metamask%40workspace%3A.":
   version: 60.1.0
-  resolution: "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller#../core/packages/bridge-status-controller::hash=a6349f&locator=metamask%40workspace%3A."
+  resolution: "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller#../core/packages/bridge-status-controller::hash=342124&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.15.0"
@@ -7118,7 +7118,7 @@ __metadata:
     "@metamask/network-controller": ^25.0.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^61.0.0
-  checksum: 10/4f5c20869fce7bb7a9e5e71bac8e7c17f8f7b34a806af31b4a130345358fd1008c02c3fa880705208ea0280af3c63a6f0f0fb862bb01b9e64982d15e187a065e
+  checksum: 10/29eae0cbabd05102b733fa3d37f20809a860e73ed81854a3a4a4d2334385058b86d547afc829baa1a63f8ab030e3d61af57b063c8b76dc233ef51aae043a5d8d
   languageName: node
   linkType: hard
 
@@ -7754,9 +7754,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/intent-manager@file:../Intent-manager::locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3Da6349f%26locator%3Dmetamask%2540workspace%253A.":
+"@metamask/intent-manager@file:../Intent-manager::locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3D342124%26locator%3Dmetamask%2540workspace%253A.":
   version: 1.0.0
-  resolution: "@metamask/intent-manager@file:../Intent-manager#../Intent-manager::hash=824c79&locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3Da6349f%26locator%3Dmetamask%2540workspace%253A."
+  resolution: "@metamask/intent-manager@file:../Intent-manager#../Intent-manager::hash=824c79&locator=%40metamask%2Fbridge-status-controller%40file%3A..%2Fcore%2Fpackages%2Fbridge-status-controller%23..%2Fcore%2Fpackages%2Fbridge-status-controller%3A%3Ahash%3D342124%26locator%3Dmetamask%2540workspace%253A."
   dependencies:
     "@metamask/base-controller": "npm:^8.3.0"
     "@metamask/controller-utils": "npm:^11.12.0"
