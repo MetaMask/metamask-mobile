@@ -562,10 +562,6 @@ generateAndroidBinary() {
 		exit 1
 	fi
 
-	if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
-		cp ./gradle.properties.github ./gradle.properties
-	fi
-
 	if [ "$configuration" = "Debug" ] || [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
 		# Define assemble test APK task
 		assembleTestApkTask="app:assemble${flavor}${configuration}AndroidTest"
