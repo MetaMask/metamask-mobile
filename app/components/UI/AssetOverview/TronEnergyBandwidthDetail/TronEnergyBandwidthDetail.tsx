@@ -8,6 +8,7 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   IconName,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
@@ -109,16 +110,32 @@ const TronEnergyBandwidthDetail = () => {
             <Text variant={TextVariant.BodyLg}>
               {strings('asset_overview.tron.energy')}
             </Text>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {strings('asset_overview.tron.sufficient_to_cover_usdt', {
-                amount: usdtTransfersCovered,
-              })}
-            </Text>
+            {usdtTransfersCovered === 1 ? (
+              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+                {strings(
+                  'asset_overview.tron.sufficient_to_cover_usdt_transfer',
+                )}
+              </Text>
+            ) : (
+              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+                {strings(
+                  'asset_overview.tron.sufficient_to_cover_usdt_transfers',
+                  {
+                    amount: usdtTransfersCovered,
+                  },
+                )}
+              </Text>
+            )}
           </Box>
         </Box>
-        <Text variant={TextVariant.BodyLg}>
-          {energyValue ? energyValue.toLocaleString() : '0'}
-        </Text>
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+          <Text variant={TextVariant.BodyLg}>
+            {energyValue ? energyValue.toLocaleString() : '0'}
+          </Text>
+          <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
+            /{ENERGY_MAX.toLocaleString()}
+          </Text>
+        </Box>
       </Box>
 
       <Box
@@ -137,16 +154,30 @@ const TronEnergyBandwidthDetail = () => {
             <Text variant={TextVariant.BodyLg}>
               {strings('asset_overview.tron.bandwidth')}
             </Text>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {strings('asset_overview.tron.sufficient_to_cover_trx', {
-                amount: trxTxsCovered,
-              })}
-            </Text>
+            {trxTxsCovered === 1 ? (
+              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+                {strings(
+                  'asset_overview.tron.sufficient_to_cover_trx_transfer',
+                )}
+              </Text>
+            ) : (
+              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+                {strings(
+                  'asset_overview.tron.sufficient_to_cover_trx_transfers',
+                  { amount: trxTxsCovered },
+                )}
+              </Text>
+            )}
           </Box>
         </Box>
-        <Text variant={TextVariant.BodyLg}>
-          {bandwidthValue ? bandwidthValue.toLocaleString() : '0'}
-        </Text>
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+          <Text variant={TextVariant.BodyLg}>
+            {bandwidthValue ? bandwidthValue.toLocaleString() : '0'}
+          </Text>
+          <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
+            /{BANDWIDTH_MAX.toLocaleString()}
+          </Text>
+        </Box>
       </Box>
     </Box>
   );
