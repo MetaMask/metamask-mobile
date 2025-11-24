@@ -11,12 +11,12 @@ jest.mock('../../../Nav/Main/MainNavigator', () => ({
 }));
 
 jest.mock('./SiteRowItem/SiteRowItem', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
   return {
     __esModule: true,
     default: jest.fn(({ onPress, site, isViewAll }) => (
-      <Pressable testID="site-row-item" onPress={onPress}>
+      <TouchableOpacity testID="site-row-item" onPress={onPress}>
         <Text testID="site-id">{site.id}</Text>
         <Text testID="site-name">{site.name}</Text>
         <Text testID="site-url">{site.url}</Text>
@@ -24,7 +24,7 @@ jest.mock('./SiteRowItem/SiteRowItem', () => {
         <Text testID="is-view-all">{String(isViewAll)}</Text>
         {site.logoUrl && <Text testID="site-logo-url">{site.logoUrl}</Text>}
         {site.featured && <Text testID="site-featured">Featured</Text>}
-      </Pressable>
+      </TouchableOpacity>
     )),
   };
 });

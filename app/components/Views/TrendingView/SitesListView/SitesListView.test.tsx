@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Keyboard } from 'react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import SitesListView from './SitesListView';
 import { useSitesData } from '../SectionSites/hooks/useSitesData';
 import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
@@ -62,29 +61,60 @@ jest.mock('../SectionSites/SiteSkeleton/SiteSkeleton', () =>
   }),
 );
 
+jest.mock('../../../../component-library/components/HeaderBase', () => ({
+  __esModule: true,
+  default: jest.fn(({ children, startAccessory, endAccessory }) => {
+    const ReactNative = jest.requireActual('react-native');
+    return (
+      <ReactNative.View testID="header-base">
+        {startAccessory}
+        {children}
+        {endAccessory}
+      </ReactNative.View>
+    );
+  }),
+  HeaderBaseVariant: {
+    Display: 'Display',
+  },
+}));
+
+jest.mock(
+  '../../../../component-library/components/Buttons/ButtonIcon',
+  () => ({
+    __esModule: true,
+    default: jest.fn(({ onPress, iconName, testID }) => {
+      const ReactNative = jest.requireActual('react-native');
+      return (
+        <ReactNative.TouchableOpacity testID={testID} onPress={onPress}>
+          <ReactNative.Text>{iconName}</ReactNative.Text>
+        </ReactNative.TouchableOpacity>
+      );
+    }),
+    ButtonIconSizes: {
+      Lg: 'Lg',
+    },
+  }),
+);
+
 jest.mock('../ExploreSearchBar/ExploreSearchBar', () => {
   const ReactNative = jest.requireActual('react-native');
-  return jest.fn(
-    ({ searchQuery, onSearchChange, onCancel, isSearchFocused, type }) => (
-      <ReactNative.View testID="explore-search-bar">
-        <ReactNative.TextInput
-          testID="search-input"
-          value={searchQuery}
-          onChangeText={onSearchChange}
-          placeholder="Search"
-          autoFocus={isSearchFocused}
-        />
-        <ReactNative.TouchableOpacity testID="cancel-button" onPress={onCancel}>
-          <ReactNative.Text>Cancel</ReactNative.Text>
-        </ReactNative.TouchableOpacity>
-        <ReactNative.Text testID="search-type">{type}</ReactNative.Text>
-      </ReactNative.View>
-    ),
-  );
+  return jest.fn(({ searchQuery, onSearchChange, onCancel }) => (
+    <ReactNative.View testID="explore-search-bar">
+      <ReactNative.TextInput
+        testID="explore-view-search-input"
+        value={searchQuery}
+        onChangeText={onSearchChange}
+        placeholder="Search"
+      />
+      <ReactNative.TouchableOpacity
+        testID="explore-search-cancel-button"
+        onPress={onCancel}
+      >
+        <ReactNative.Text>Cancel</ReactNative.Text>
+      </ReactNative.TouchableOpacity>
+    </ReactNative.View>
+  ));
 });
-
-const mockKeyboardDismiss = jest.fn();
-jest.spyOn(Keyboard, 'dismiss').mockImplementation(mockKeyboardDismiss);
 
 const mockUseSitesData = useSitesData as jest.Mock;
 
@@ -121,23 +151,35 @@ describe('SitesListView', () => {
   });
 
   describe('Rendering', () => {
-    it('should render all basic components', () => {
+    it('renders header with back and search buttons', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
         error: null,
       });
 
-      const { getByTestId, getByText } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesListView />);
 
-      expect(getByTestId('explore-search-bar')).toBeTruthy();
-      expect(getByText('Popular sites')).toBeTruthy();
-      expect(getByTestId('site-item-1')).toBeTruthy();
-      expect(getByTestId('site-item-2')).toBeTruthy();
-      expect(getByTestId('site-item-3')).toBeTruthy();
+      expect(getByTestId('header-base')).toBeOnTheScreen();
+      expect(getByTestId('back-button')).toBeOnTheScreen();
+      expect(getByTestId('search-button')).toBeOnTheScreen();
     });
 
-    it('should render skeletons when loading', () => {
+    it('renders all site items', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = render(<SitesListView />);
+
+      expect(getByTestId('site-item-1')).toBeOnTheScreen();
+      expect(getByTestId('site-item-2')).toBeOnTheScreen();
+      expect(getByTestId('site-item-3')).toBeOnTheScreen();
+    });
+
+    it('renders skeletons when loading', () => {
       mockUseSitesData.mockReturnValue({
         sites: [],
         isLoading: true,
@@ -150,7 +192,7 @@ describe('SitesListView', () => {
       expect(skeletons.length).toBe(10);
     });
 
-    it('should render empty state when no sites found', () => {
+    it('renders empty state when no sites available', () => {
       mockUseSitesData.mockReturnValue({
         sites: [],
         isLoading: false,
@@ -159,90 +201,7 @@ describe('SitesListView', () => {
 
       const { getByText } = render(<SitesListView />);
 
-      expect(getByText('No sites found')).toBeTruthy();
-    });
-  });
-
-  describe('Search Functionality', () => {
-    it('should filter sites by name', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
-      const searchInput = getByTestId('search-input');
-
-      fireEvent.changeText(searchInput, 'Meta');
-
-      expect(getByTestId('site-item-1')).toBeTruthy();
-      expect(queryByTestId('site-item-2')).toBeNull();
-      expect(queryByTestId('site-item-3')).toBeNull();
-    });
-
-    it('should filter sites by URL', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
-      const searchInput = getByTestId('search-input');
-
-      fireEvent.changeText(searchInput, 'opensea');
-
-      expect(queryByTestId('site-item-1')).toBeNull();
-      expect(getByTestId('site-item-2')).toBeTruthy();
-      expect(queryByTestId('site-item-3')).toBeNull();
-    });
-
-    it('should be case-insensitive', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(<SitesListView />);
-      const searchInput = getByTestId('search-input');
-
-      fireEvent.changeText(searchInput, 'METAMASK');
-
-      expect(getByTestId('site-item-1')).toBeTruthy();
-    });
-
-    it('should show all sites when search is empty or whitespace', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(<SitesListView />);
-      const searchInput = getByTestId('search-input');
-
-      fireEvent.changeText(searchInput, '   ');
-
-      expect(getByTestId('site-item-1')).toBeTruthy();
-      expect(getByTestId('site-item-2')).toBeTruthy();
-      expect(getByTestId('site-item-3')).toBeTruthy();
-    });
-
-    it('should show empty state when no results match', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId, getByText } = render(<SitesListView />);
-      const searchInput = getByTestId('search-input');
-
-      fireEvent.changeText(searchInput, 'nonexistent');
-
-      expect(getByText('No sites found')).toBeTruthy();
+      expect(getByText('No sites found')).toBeOnTheScreen();
     });
   });
 
@@ -251,7 +210,7 @@ describe('SitesListView', () => {
       jest.clearAllMocks();
     });
 
-    it('should clear search, dismiss keyboard and navigate back on cancel', async () => {
+    it('navigates back when back button is pressed', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -259,22 +218,373 @@ describe('SitesListView', () => {
       });
 
       const { getByTestId } = render(<SitesListView />);
-      const searchInput = getByTestId('search-input');
-      const cancelButton = getByTestId('cancel-button');
+      const backButton = getByTestId('back-button');
 
-      fireEvent.changeText(searchInput, 'test');
-      fireEvent.press(cancelButton);
+      fireEvent.press(backButton);
 
-      await waitFor(() => {
-        expect(searchInput.props.value).toBe('');
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('activates search mode when search button is pressed', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
       });
 
-      expect(mockGoBack).toHaveBeenCalled();
+      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const searchButton = getByTestId('search-button');
+
+      expect(queryByTestId('explore-search-bar')).toBeNull();
+
+      fireEvent.press(searchButton);
+
+      expect(getByTestId('explore-search-bar')).toBeOnTheScreen();
+    });
+
+    it('closes search mode when cancel button is pressed', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+      expect(getByTestId('explore-search-bar')).toBeOnTheScreen();
+
+      // Press cancel
+      fireEvent.press(getByTestId('explore-search-cancel-button'));
+
+      // Search should be closed
+      expect(queryByTestId('explore-search-bar')).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Search Functionality', () => {
+    it('filters sites by name', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+      const searchInput = getByTestId('explore-view-search-input');
+
+      // Search for "Meta"
+      fireEvent.changeText(searchInput, 'Meta');
+
+      // Only MetaMask should be visible
+      expect(getByTestId('site-item-1')).toBeOnTheScreen();
+      expect(queryByTestId('site-item-2')).toBeNull();
+      expect(queryByTestId('site-item-3')).toBeNull();
+    });
+
+    it('filters sites by URL', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+      const searchInput = getByTestId('explore-view-search-input');
+
+      // Search for "opensea"
+      fireEvent.changeText(searchInput, 'opensea');
+
+      // Only OpenSea should be visible
+      expect(queryByTestId('site-item-1')).toBeNull();
+      expect(getByTestId('site-item-2')).toBeOnTheScreen();
+      expect(queryByTestId('site-item-3')).toBeNull();
+    });
+
+    it('shows all sites when search query is empty', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+      const searchInput = getByTestId('explore-view-search-input');
+
+      // Empty search
+      fireEvent.changeText(searchInput, '');
+
+      // All sites should be visible
+      expect(getByTestId('site-item-1')).toBeOnTheScreen();
+      expect(getByTestId('site-item-2')).toBeOnTheScreen();
+      expect(getByTestId('site-item-3')).toBeOnTheScreen();
+    });
+
+    it('shows cancel button when search is active', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesListView />);
+
+      // Initially no cancel button
+      expect(queryByTestId('explore-search-cancel-button')).toBeNull();
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+
+      // Cancel button should appear
+      expect(getByTestId('explore-search-cancel-button')).toBeOnTheScreen();
+    });
+
+    it('clears search and closes search mode when cancel button is pressed', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesListView />);
+
+      // Activate search and type
+      fireEvent.press(getByTestId('search-button'));
+      const searchInput = getByTestId('explore-view-search-input');
+      fireEvent.changeText(searchInput, 'test');
+
+      // Cancel
+      fireEvent.press(getByTestId('explore-search-cancel-button'));
+
+      // Search should be closed
+      expect(queryByTestId('explore-search-bar')).toBeNull();
+    });
+
+    it('shows search on Google option when there is a search query', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+
+      // Initially no Google search option
+      expect(queryByTestId('search-on-google-button')).toBeNull();
+
+      // Type any search query
+      fireEvent.changeText(getByTestId('explore-view-search-input'), 'test');
+
+      // Google search option should appear
+      expect(getByTestId('search-on-google-button')).toBeOnTheScreen();
+    });
+
+    it('navigates to Google search when search on Google button is pressed', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = render(<SitesListView />);
+
+      // Activate search and type
+      fireEvent.press(getByTestId('search-button'));
+      fireEvent.changeText(
+        getByTestId('explore-view-search-input'),
+        'test query',
+      );
+
+      // Press Google search button
+      fireEvent.press(getByTestId('search-on-google-button'));
+
+      // Should navigate to TrendingBrowser with Google search URL
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'TrendingBrowser',
+        expect.objectContaining({
+          newTabUrl: 'https://www.google.com/search?q=test%20query',
+          fromTrending: true,
+        }),
+      );
+    });
+
+    it('displays URL item when search query is a valid URL', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: [],
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+
+      // Type a valid URL
+      fireEvent.changeText(
+        getByTestId('explore-view-search-input'),
+        'example.com',
+      );
+
+      // Should show the URL item
+      expect(getByTestId('url-item')).toBeOnTheScreen();
+    });
+
+    it('displays URL item with https protocol', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: [],
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+
+      // Type a valid URL with protocol
+      fireEvent.changeText(
+        getByTestId('explore-view-search-input'),
+        'https://example.com',
+      );
+
+      // Should show the URL item
+      expect(getByTestId('url-item')).toBeOnTheScreen();
+    });
+
+    it('shows URL item separately from matching sites', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+
+      // Type a URL that also matches existing sites
+      fireEvent.changeText(
+        getByTestId('explore-view-search-input'),
+        'metamask.io',
+      );
+
+      // URL item should appear
+      expect(getByTestId('url-item')).toBeOnTheScreen();
+      // Original matching sites should still appear
+      expect(getByTestId('site-item-1')).toBeOnTheScreen();
+    });
+
+    it('shows both URL item and Google search option for valid URLs', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: [],
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+
+      // Type a valid URL
+      fireEvent.changeText(
+        getByTestId('explore-view-search-input'),
+        'example.com',
+      );
+
+      // Should show both URL item
+      expect(getByTestId('url-item')).toBeOnTheScreen();
+
+      // AND Google search option
+      expect(getByTestId('search-on-google-button')).toBeOnTheScreen();
+    });
+
+    it('navigates to URL when URL item is pressed', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: [],
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = render(<SitesListView />);
+
+      // Activate search and type URL
+      fireEvent.press(getByTestId('search-button'));
+      fireEvent.changeText(
+        getByTestId('explore-view-search-input'),
+        'example.com',
+      );
+
+      // Press URL item
+      fireEvent.press(getByTestId('url-item'));
+
+      // Should navigate to the URL
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'TrendingBrowser',
+        expect.objectContaining({
+          newTabUrl: 'https://example.com',
+          fromTrending: true,
+        }),
+      );
+    });
+
+    it('does not show URL item for non-URL search queries', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+
+      // Type a non-URL query
+      fireEvent.changeText(getByTestId('explore-view-search-input'), 'meta');
+
+      // URL item should not appear
+      expect(queryByTestId('url-item')).toBeNull();
+
+      // But matching sites should appear
+      expect(getByTestId('site-item-1')).toBeOnTheScreen();
+    });
+
+    it('hides Google search option when search query is empty', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesListView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('search-button'));
+
+      // Google search should not appear with empty query
+      expect(queryByTestId('search-on-google-button')).toBeNull();
     });
   });
 
   describe('Data Fetching', () => {
-    it('should fetch sites with limit of 100', () => {
+    it('fetches sites with limit of 100', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -286,7 +596,7 @@ describe('SitesListView', () => {
       expect(mockUseSitesData).toHaveBeenCalledWith({ limit: 100 });
     });
 
-    it('should pass isViewAll prop to child components', () => {
+    it('passes isViewAll prop to child components', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -309,7 +619,7 @@ describe('SitesListView', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle transition from loading to loaded', () => {
+    it('handles transition from loading to loaded', () => {
       mockUseSitesData.mockReturnValue({
         sites: [],
         isLoading: true,
@@ -331,10 +641,10 @@ describe('SitesListView', () => {
       rerender(<SitesListView />);
 
       expect(queryByTestId('site-skeleton')).toBeNull();
-      expect(getByTestId('site-item-1')).toBeTruthy();
+      expect(getByTestId('site-item-1')).toBeOnTheScreen();
     });
 
-    it('should handle sites with missing optional fields', () => {
+    it('handles sites with missing optional fields', () => {
       const minimalSites: SiteData[] = [
         {
           id: '1',
@@ -352,7 +662,7 @@ describe('SitesListView', () => {
 
       const { getByTestId } = render(<SitesListView />);
 
-      expect(getByTestId('site-item-1')).toBeTruthy();
+      expect(getByTestId('site-item-1')).toBeOnTheScreen();
     });
   });
 });

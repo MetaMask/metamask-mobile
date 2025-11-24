@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Pressable, Image } from 'react-native';
+import { TouchableOpacity, Image } from 'react-native';
 import {
   Box,
   Text,
@@ -39,16 +39,10 @@ const SiteRowItem = ({
   }, [site.id, site.logoUrl]);
 
   return (
-    <Pressable
+    <TouchableOpacity
       testID="site-row-item"
       onPress={onPress}
-      style={({ pressed }) =>
-        tw.style(
-          'flex-row items-center justify-between py-2',
-          isViewAll && 'pl-4',
-          pressed && 'bg-pressed',
-        )
-      }
+      style={tw.style('flex-row items-center py-2', isViewAll && 'px-4')}
     >
       {/* Logo */}
       <Box twClassName="flex-row items-center flex-1">
@@ -81,10 +75,10 @@ const SiteRowItem = ({
         </Box>
       </Box>
       {/* Arrow Icon */}
-      <Box style={tw.style(isViewAll && 'pr-4')}>
+      <Box twClassName="ml-3">
         <Icon name={IconName.Arrow2UpRight} size={IconSize.Md} />
       </Box>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 
