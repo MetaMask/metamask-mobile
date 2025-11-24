@@ -156,12 +156,13 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
             </Text>
           </Box>
           <BadgeWrapper
-            style={tw.style('self-center border-bg-muted')}
+            style={tw.style('self-center')}
             badgePosition={BadgePosition.BottomRight}
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={images.POL}
+                style={tw.style('border-background-muted')}
                 name="Polygon"
               />
             }
