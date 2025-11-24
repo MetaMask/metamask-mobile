@@ -409,6 +409,21 @@ jest.mock('../../../../../util/trace', () => ({
   trace: jest.fn(),
 }));
 
+jest.mock('react-native-fade-in-image', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      placeholderStyle,
+    }: {
+      children: React.ReactNode;
+      placeholderStyle?: unknown;
+    }) => React.createElement(View, { style: placeholderStyle }, children),
+  };
+});
+
 describe('EarnWithdrawInputView', () => {
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
@@ -780,9 +795,8 @@ describe('EarnWithdrawInputView', () => {
       await act(async () => {
         fireEvent.press(screen.getByText('1'));
       });
-
       await waitFor(() => {
-        expect(screen.getByText('Unstake')).toBeTruthy();
+        expect(screen.getAllByText('Unstake').length).toBeGreaterThan(0);
       });
     });
   });

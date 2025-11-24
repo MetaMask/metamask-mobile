@@ -987,6 +987,21 @@ const EarnInputView = () => {
     earnToken?.experience.type,
   ]);
 
+  const renderReviewButton = (isDisabled: boolean) => (
+    <View style={styles.reviewButtonContainer}>
+      <Button
+        label={buttonLabel}
+        size={ButtonSize.Lg}
+        labelTextVariant={TextVariant.BodyMDMedium}
+        variant={ButtonVariants.Primary}
+        loading={isSubmittingStakeDepositTransaction}
+        isDisabled={isDisabled}
+        width={ButtonWidthTypes.Full}
+        onPress={handleEarnPress}
+      />
+    </View>
+  );
+
   return (
     <ScreenLayout style={styles.container}>
       {
@@ -1080,24 +1095,29 @@ const EarnInputView = () => {
           />
         </>
       )}
-      <View style={styles.reviewButtonContainer}>
-        <Button
-          label={buttonLabel}
-          size={ButtonSize.Lg}
-          labelTextVariant={TextVariant.BodyMDMedium}
-          variant={ButtonVariants.Primary}
-          loading={isSubmittingStakeDepositTransaction}
-          isDisabled={
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled &&
+          isTronNative &&
+          isPreviewVisible &&
+          isNonZeroAmount &&
+          renderReviewButton(
             isOverMaximum.isOverMaximumToken ||
+              isOverMaximum.isOverMaximumEth ||
+              !isNonZeroAmount ||
+              (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
+              isSubmittingStakeDepositTransaction,
+          )
+        ///: END:ONLY_INCLUDE_IF
+      }
+      {!isTronNative &&
+        renderReviewButton(
+          isOverMaximum.isOverMaximumToken ||
             isOverMaximum.isOverMaximumEth ||
             !isNonZeroAmount ||
             (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
-            isSubmittingStakeDepositTransaction
-          }
-          width={ButtonWidthTypes.Full}
-          onPress={handleEarnPress}
-        />
-      </View>
+            isSubmittingStakeDepositTransaction,
+        )}
     </ScreenLayout>
   );
 };
