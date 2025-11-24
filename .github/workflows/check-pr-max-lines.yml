@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check PR lines changed
-        uses: MetaMask/github-tools/.github/actions/pr-line-check@072c900e2447470ad7ad5d8a74c14f253d583d9f
+        uses: MetaMask/github-tools/.github/actions/pr-line-check@v1.0.0
         with:
           max-lines: '1000'
           ignore-patterns: '(\.lock|\.snap)$'
