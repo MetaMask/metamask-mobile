@@ -581,7 +581,7 @@ generateAndroidBinary() {
 	./gradlew --stop || true
 	# Disable parallel builds and set max workers for E2E builds to reduce memory pressure in CI
 	# Note: Memory error usually appears as with error (Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed))
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg --build-cache --no-parallel --max-workers=2
+	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg --no-parallel --max-workers=2
 
 	if [ "$configuration" = "Release" ] ; then		
 		# Generate AAB bundle (not needed for E2E)
