@@ -6995,6 +6995,7 @@
     "no_results": "No results found",
     "sites": "Sites",
     "popular_sites": "Popular sites",
-    "no_sites_found": "No sites found"
+    "no_sites_found": "No sites found",
+    "search_sites": "Search sites"
   }
 }

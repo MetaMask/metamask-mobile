@@ -185,6 +185,7 @@ const SitesListView: React.FC = () => {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onCancel={handleCancelSearch}
+            placeholder={strings('trending.search_sites')}
           />
         ) : (
           <HeaderBase

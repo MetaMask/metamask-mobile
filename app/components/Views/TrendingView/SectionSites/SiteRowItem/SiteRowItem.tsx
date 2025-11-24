@@ -47,11 +47,11 @@ const SiteRowItem = ({
       {/* Logo */}
       <Box twClassName="flex-row items-center flex-1">
         {site.logoUrl && !imageError ? (
-          <Box twClassName="w-10 h-10 rounded-full bg-white border border-muted mr-4 overflow-hidden items-center justify-center">
+          <Box twClassName="w-10 h-10 rounded-full bg-white border border-muted mr-4 overflow-hidden items-center justify-center p-0.1">
             <Image
               testID="site-logo-image"
               source={{ uri: site.logoUrl }}
-              style={tw.style('w-8 h-8')}
+              style={tw.style('w-full h-full')}
               resizeMode="contain"
               onError={() => setImageError(true)}
             />

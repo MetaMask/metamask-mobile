@@ -98,13 +98,13 @@ jest.mock(
 
 jest.mock('../ExploreSearchBar/ExploreSearchBar', () => {
   const ReactNative = jest.requireActual('react-native');
-  return jest.fn(({ searchQuery, onSearchChange, onCancel }) => (
+  return jest.fn(({ searchQuery, onSearchChange, onCancel, placeholder }) => (
     <ReactNative.View testID="explore-search-bar">
       <ReactNative.TextInput
         testID="explore-view-search-input"
         value={searchQuery}
         onChangeText={onSearchChange}
-        placeholder="Search"
+        placeholder={placeholder || 'Search'}
       />
       <ReactNative.TouchableOpacity
         testID="explore-search-cancel-button"
