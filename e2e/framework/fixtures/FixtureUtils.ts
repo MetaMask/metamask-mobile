@@ -54,6 +54,61 @@ function getFallbackPort(resourceType: ResourceType): number {
 }
 
 /**
+ * Removes specific test port bindings for the current device.
+ * This is called at the start of tests to clean up any stale bindings from previous failed tests.
+ *
+ * IMPORTANT: We only remove known fallback ports to avoid interfering with Detox's
+ * own port management. Using --remove-all would remove Detox's ports and cause errors.
+ */
+export async function cleanupAllAndroidPortForwarding(): Promise<void> {
+  // Only remove port forwarding on Android
+  if (device.getPlatform() !== 'android') {
+    return;
+  }
+
+  // Skip on BrowserStack
+  if (isBrowserStack()) {
+    return;
+  }
+
+  // Get device ID to target specific device (important for CI with multiple devices)
+  const deviceId = device.id || '';
+  const deviceFlag = deviceId ? `-s ${deviceId}` : '';
+
+  // Clean up only the specific fallback ports we use
+  // This prevents conflicts with Detox's own port management
+  const fallbackPorts = [
+    FALLBACK_FIXTURE_SERVER_PORT, // 12345
+    FALLBACK_COMMAND_QUEUE_SERVER_PORT, // 12346
+    FALLBACK_MOCKSERVER_PORT, // 8000
+    FALLBACK_GANACHE_PORT, // 8546
+    DEFAULT_ANVIL_PORT, // 8545
+    FALLBACK_DAPP_SERVER_PORT, // 8085
+    FALLBACK_DAPP_SERVER_PORT + 1, // 8086 (dapp-server-1)
+    FALLBACK_DAPP_SERVER_PORT + 2, // 8087 (dapp-server-2)
+  ];
+
+  logger.debug('Cleaning up test port forwards before test...');
+
+  for (const port of fallbackPorts) {
+    try {
+      const command = `adb ${deviceFlag} reverse --remove tcp:${port}`;
+      await execAsync(command);
+      logger.debug(`✓ Removed port forwarding for tcp:${port}`);
+    } catch (error) {
+      // Silently ignore "not found" errors - the port might not have been forwarded
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (!errorMessage.includes('not found')) {
+        logger.debug(`Note: Could not remove tcp:${port}: ${errorMessage}`);
+      }
+    }
+  }
+
+  logger.debug('✓ Cleaned up test port forwarding');
+}
+
+/**
  * Sets up adb reverse for Android to map fallback port to actual allocated port.
  *
  * WHY THIS IS NEEDED:

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useState,
-  useEffect,
-  useContext,
-  useRef,
-} from 'react';
+import React, { useCallback, useState, useEffect, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
@@ -38,14 +32,19 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { useTheme } from '../../../../../util/theme';
 import { useStyles } from '../../../../hooks/useStyles';
 import { createOTPStyles } from './ConfirmPhoneNumber';
-import { TextInput, View } from 'react-native';
+import { Platform, TextInput, TextInputProps, View } from 'react-native';
 import {
   CodeField,
   Cursor,
+  useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 
 const CELL_COUNT = 6;
+const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+  android: 'sms-otp',
+  default: 'one-time-code',
+});
 
 const ConfirmEmail = () => {
   const navigation = useNavigation();
@@ -56,7 +55,6 @@ const ConfirmEmail = () => {
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useMetrics();
   const { toastRef } = useContext(ToastContext);
-  const inputRef = useRef<TextInput>(null);
   const { styles } = useStyles(createOTPStyles, {});
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -114,8 +112,9 @@ const ConfirmEmail = () => {
         .build(),
     );
     try {
-      const { contactVerificationId } = await sendEmailVerification(email);
-      dispatch(setContactVerificationId(contactVerificationId));
+      const { contactVerificationId: newContactVerificationId } =
+        await sendEmailVerification(email);
+      dispatch(setContactVerificationId(newContactVerificationId));
       setResendCooldown(60); // 1 minute cooldown
     } catch {
       // Allow error message to display
@@ -214,6 +213,17 @@ const ConfirmEmail = () => {
     }
   }, [resendCooldown]);
 
+  const inputRef =
+    useBlurOnFulfill({
+      value: confirmCode,
+      cellCount: CELL_COUNT,
+    }) || null;
+
+  // Focus management
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [inputRef]);
+
   // Auto-submit when all digits are entered
   useEffect(() => {
     if (
@@ -224,11 +234,6 @@ const ConfirmEmail = () => {
       handleContinue();
     }
   }, [confirmCode, handleContinue, latestValueSubmitted]);
-
-  // Focus management
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
     value: confirmCode,
@@ -251,7 +256,7 @@ const ConfirmEmail = () => {
           {strings('card.card_onboarding.confirm_email.confirm_code_label')}
         </Label>
         <CodeField
-          ref={inputRef}
+          ref={inputRef as React.RefObject<TextInput>}
           {...props}
           value={confirmCode}
           onChangeText={handleConfirmCodeChange}
@@ -259,7 +264,7 @@ const ConfirmEmail = () => {
           rootStyle={styles.codeFieldRoot}
           keyboardType="number-pad"
           textContentType="oneTimeCode"
-          autoComplete="one-time-code"
+          autoComplete={autoComplete}
           renderCell={({ index, symbol, isFocused }) => (
             <View
               onLayout={getCellOnLayoutHandler(index)}

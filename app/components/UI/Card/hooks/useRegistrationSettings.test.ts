@@ -35,7 +35,7 @@ describe('useRegistrationSettings', () => {
   const mockCacheReturn = {
     data: null,
     isLoading: false,
-    error: false,
+    error: null,
     fetchData: jest.fn(),
   };
 
@@ -44,11 +44,8 @@ describe('useRegistrationSettings', () => {
 
     // Default mocks
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
     });
 
     mockUseWrapWithCache.mockReturnValue(mockCacheReturn);
@@ -93,11 +90,8 @@ describe('useRegistrationSettings', () => {
 
     it('should throw error when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       renderHook(() => useRegistrationSettings());
@@ -126,7 +120,7 @@ describe('useRegistrationSettings', () => {
       const mockReturn = {
         data: mockRegistrationSettingsResponse,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: jest.fn(),
       };
       mockUseWrapWithCache.mockReturnValue(mockReturn);
@@ -140,7 +134,7 @@ describe('useRegistrationSettings', () => {
       const mockReturn = {
         data: null,
         isLoading: true,
-        error: false,
+        error: null,
         fetchData: jest.fn(),
       };
       mockUseWrapWithCache.mockReturnValue(mockReturn);
@@ -155,14 +149,16 @@ describe('useRegistrationSettings', () => {
       const mockReturn = {
         data: null,
         isLoading: false,
-        error: true,
+        error: new Error('Registration settings error'),
         fetchData: jest.fn(),
       };
       mockUseWrapWithCache.mockReturnValue(mockReturn);
 
       const { result } = renderHook(() => useRegistrationSettings());
 
-      expect(result.current.error).toBe(true);
+      expect(result.current.error).toEqual(
+        new Error('Registration settings error'),
+      );
       expect(result.current.data).toBeNull();
     });
 
@@ -171,7 +167,7 @@ describe('useRegistrationSettings', () => {
       const mockReturn = {
         data: null,
         isLoading: false,
-        error: false,
+        error: null,
         fetchData: mockFetchData,
       };
       mockUseWrapWithCache.mockReturnValue(mockReturn);
@@ -186,11 +182,8 @@ describe('useRegistrationSettings', () => {
   describe('edge cases', () => {
     it('should handle undefined SDK gracefully', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       renderHook(() => useRegistrationSettings());

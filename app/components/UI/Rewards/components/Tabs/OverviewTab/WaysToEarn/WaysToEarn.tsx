@@ -31,7 +31,11 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
-import { selectPredictEnabledFlag } from '../../../../../Predict/selectors/featureFlags';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../../hooks/useFeatureFlag';
+import { PredictEventValues } from '../../../../../Predict/constants/eventNames';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -230,7 +234,9 @@ export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const isCardSpendEnabled = useSelector(selectRewardsCardSpendFeatureFlags);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -272,6 +278,9 @@ export const WaysToEarn = () => {
       case WayToEarnType.PREDICT:
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_LIST,
+          params: {
+            entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
+          },
         });
         break;
       case WayToEarnType.CARD:

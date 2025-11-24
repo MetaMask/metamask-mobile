@@ -1,6 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, View } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
@@ -26,17 +31,31 @@ import {
   PREDICT_GTM_MODAL_DECLINE,
   PREDICT_GTM_MODAL_ENGAGE,
   PREDICT_GTM_WHATS_NEW_MODAL,
+  PredictEventValues,
 } from '../../constants/eventNames';
 
 const PredictGTMModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
   const theme = useTheme();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const opacity = useSharedValue(0);
 
   const titleText = strings('predict.gtm_content.title');
   const subtitleText = strings('predict.gtm_content.title_description');
 
   const styles = createStyles(theme);
+
+  // Animate content fade-in when image loads
+  useEffect(() => {
+    if (imageLoaded) {
+      opacity.value = withTiming(1, { duration: 500 });
+    }
+  }, [imageLoaded, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, 'true');
@@ -73,13 +92,23 @@ const PredictGTMModal = () => {
 
     navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.GTM_MODAL,
+      },
     });
   };
 
   return (
-    <View style={styles.pageContainer} testID="predict-gtm-modal-container">
+    <Animated.View
+      style={[styles.pageContainer, animatedStyle]}
+      testID="predict-gtm-modal-container"
+    >
       {/* Background Image - Full Screen */}
-      <Image source={PredictMarketingImage} style={styles.backgroundImage} />
+      <Image
+        source={PredictMarketingImage}
+        style={styles.backgroundImage}
+        onLoad={() => setImageLoaded(true)}
+      />
 
       {/* Content Overlay */}
       <SafeAreaView style={styles.contentContainer}>
@@ -138,7 +167,7 @@ const PredictGTMModal = () => {
           />
         </View>
       </SafeAreaView>
-    </View>
+    </Animated.View>
   );
 };
 

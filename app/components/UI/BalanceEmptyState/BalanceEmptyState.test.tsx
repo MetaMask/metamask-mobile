@@ -5,25 +5,11 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import BalanceEmptyState from './BalanceEmptyState';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 
-// Mock navigation (component requires it)
-const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
+// Mock useRampNavigation hook
+const mockGoToBuy = jest.fn();
+jest.mock('../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
 }));
-
-// Mock buy navigation details
-const mockBuyNavigationDetails = ['RampBuy', { screen: 'GetStarted' }];
-jest.mock('../Ramp/Aggregator/routes/utils', () => ({
-  createBuyNavigationDetails: jest.fn(() => mockBuyNavigationDetails),
-}));
-
-// Get the mock function to verify calls
-const { createBuyNavigationDetails } = jest.requireMock(
-  '../Ramp/Aggregator/routes/utils',
-);
 
 describe('BalanceEmptyState', () => {
   beforeEach(() => {
@@ -60,15 +46,8 @@ describe('BalanceEmptyState', () => {
 
     expect(actionButton).toBeDefined();
 
-    // Press the button
     fireEvent.press(actionButton);
 
-    // Verify that buy navigation details are created
-    expect(createBuyNavigationDetails).toHaveBeenCalled();
-
-    // Verify that navigation was triggered with buy flow parameters
-    expect(mockNavigate).toHaveBeenCalledWith('RampBuy', {
-      screen: 'GetStarted',
-    });
+    expect(mockGoToBuy).toHaveBeenCalled();
   });
 });
