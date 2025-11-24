@@ -38,6 +38,9 @@ import {
 } from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
+import RewardsAnimations, {
+  RewardAnimationState,
+} from '../../../Rewards/components/RewardPointsAnimation';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
@@ -98,6 +101,14 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     orderAmount: usdAmount,
   });
 
+  // Determine reward animation state
+  let rewardAnimationState = RewardAnimationState.Idle;
+  if (feeResults.isLoadingMetamaskFee) {
+    rewardAnimationState = RewardAnimationState.Loading;
+  } else if (rewardsState.hasError) {
+    rewardAnimationState = RewardAnimationState.ErrorState;
+  }
+
   // Define close handler first to avoid hoisting issues
   const handleCloseInternal = useCallback(() => {
     if (externalSheetRef) {
@@ -157,43 +168,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       </BottomSheetHeader>
 
       <View style={styles.contentContainer}>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.description}
-        >
-          {strings('perps.flip_position.description', {
-            from:
-              currentDirection === 'long'
-                ? strings('perps.order.long_label')
-                : strings('perps.order.short_label'),
-            to:
-              oppositeDirection === 'long'
-                ? strings('perps.order.long_label')
-                : strings('perps.order.short_label'),
-          })}
-        </Text>
-
-        {/* Direction Display */}
-        <View style={styles.directionContainer}>
-          <Text variant={TextVariant.BodyLGMedium}>
-            {currentDirection === 'long'
-              ? strings('perps.order.long_label')
-              : strings('perps.order.short_label')}
-          </Text>
-          <Icon
-            name={IconName.Arrow2Right}
-            size={IconSize.Md}
-            color={IconColor.Default}
-            style={styles.directionText}
-          />
-          <Text variant={TextVariant.BodyLGMedium}>
-            {oppositeDirection === 'long'
-              ? strings('perps.order.long_label')
-              : strings('perps.order.short_label')}
-          </Text>
-        </View>
-
         {isFlipping ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator
@@ -210,14 +184,51 @@ const PerpsFlipPositionConfirmSheet: React.FC<
           </View>
         ) : (
           <>
-            {/* Est. Size */}
-            <View style={styles.infoRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.flip_position.est_size')}
-              </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {positionSize} {getPerpsDisplaySymbol(position.coin)}
-              </Text>
+            {/* Grouped Details: Direction and Est. Size */}
+            <View style={styles.detailsWrapper}>
+              {/* Direction Display */}
+              <View style={[styles.detailItem, styles.detailItemFirst]}>
+                <View style={[styles.infoRow, styles.detailItemWrapper]}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.flip_position.direction')}
+                  </Text>
+                  <View style={styles.directionContainer}>
+                    <Text variant={TextVariant.BodyMD}>
+                      {currentDirection === 'long'
+                        ? strings('perps.order.long_label')
+                        : strings('perps.order.short_label')}
+                    </Text>
+                    <Icon
+                      name={IconName.Arrow2Right}
+                      size={IconSize.Md}
+                      color={IconColor.Default}
+                    />
+                    <Text variant={TextVariant.BodyMD}>
+                      {oppositeDirection === 'long'
+                        ? strings('perps.order.long_label')
+                        : strings('perps.order.short_label')}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Est. Size */}
+              <View style={[styles.detailItem, styles.detailItemLast]}>
+                <View style={[styles.infoRow, styles.detailItemWrapper]}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.flip_position.est_size')}
+                  </Text>
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {positionSize} {getPerpsDisplaySymbol(position.coin)}
+                  </Text>
+                </View>
+              </View>
             </View>
 
             {/* Fees */}
@@ -249,9 +260,12 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                   >
                     {strings('perps.estimated_points')}
                   </Text>
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                    {rewardsState.estimatedPoints.toFixed(0)}
-                  </Text>
+                  <RewardsAnimations
+                    value={rewardsState.estimatedPoints ?? 0}
+                    bonusBips={rewardsState.bonusBips}
+                    shouldShow={rewardsState.shouldShowRewardsRow}
+                    state={rewardAnimationState}
+                  />
                 </View>
               )}
           </>

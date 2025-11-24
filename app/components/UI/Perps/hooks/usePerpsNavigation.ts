@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import type { PerpsMarketData, Position } from '../controllers/types';
+import type { PerpsMarketData, Position, Order } from '../controllers/types';
 
 /**
  * Navigation handler result interface
@@ -27,6 +27,7 @@ export interface PerpsNavigationHandlers {
   ) => void;
   navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
   navigateToClosePosition: (position: Position) => void;
+  navigateToOrderDetails: (order: Order) => void;
 
   // Utility navigation
   navigateBack: () => void;
@@ -151,6 +152,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const navigateToOrderDetails = useCallback(
+    (order: Order) => {
+      navigation.navigate(Routes.PERPS.ORDER_DETAILS, { order });
+    },
+    [navigation],
+  );
+
   // Utility navigation handlers
   const navigateBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -176,6 +184,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToTutorial,
     navigateToAdjustMargin,
     navigateToClosePosition,
+    navigateToOrderDetails,
 
     // Utility navigation
     navigateBack,

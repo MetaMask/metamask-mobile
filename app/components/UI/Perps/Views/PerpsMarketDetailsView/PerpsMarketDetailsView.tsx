@@ -126,6 +126,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     navigateToActivity,
     navigateToOrder,
     navigateToTutorial,
+    navigateToOrderDetails,
     navigateBack,
     canGoBack,
   } = usePerpsNavigation();
@@ -520,35 +521,43 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   }, [candleData, refreshCandleData]);
 
-  // Handle order selection for chart integration
+  // Handle order selection for chart integration and navigation
   const handleOrderSelect = useCallback(
     (orderId: string) => {
-      const selectedOrder = ordersWithTPSL.find(
+      // Check if this is a TP/SL order for chart visualization
+      const tpslOrder = ordersWithTPSL.find(
         (order) => order.orderId === orderId,
       );
 
-      if (selectedOrder) {
+      if (tpslOrder) {
+        // Handle TP/SL chart integration
         const hasBothTPSL =
-          selectedOrder.takeProfitPrice && selectedOrder.stopLossPrice;
+          tpslOrder.takeProfitPrice && tpslOrder.stopLossPrice;
 
         if (hasBothTPSL) {
           setActiveTPOrderId(orderId);
           setActiveSLOrderId(orderId);
-        } else if (selectedOrder.isTrigger && selectedOrder.detailedOrderType) {
-          const orderType = selectedOrder.detailedOrderType.toLowerCase();
+        } else if (tpslOrder.isTrigger && tpslOrder.detailedOrderType) {
+          const orderType = tpslOrder.detailedOrderType.toLowerCase();
           if (orderType.includes('take profit')) {
             setActiveTPOrderId(orderId);
           } else if (orderType.includes('stop')) {
             setActiveSLOrderId(orderId);
           }
-        } else if (selectedOrder.takeProfitPrice) {
+        } else if (tpslOrder.takeProfitPrice) {
           setActiveTPOrderId(orderId);
-        } else if (selectedOrder.stopLossPrice) {
+        } else if (tpslOrder.stopLossPrice) {
           setActiveSLOrderId(orderId);
+        }
+      } else {
+        // For non-TP/SL orders (limit orders), navigate to order details
+        const order = openOrders.find((o) => o.orderId === orderId);
+        if (order) {
+          navigateToOrderDetails(order);
         }
       }
     },
-    [ordersWithTPSL],
+    [ordersWithTPSL, openOrders, navigateToOrderDetails],
   );
 
   // Tooltip handlers for Position and Statistics cards

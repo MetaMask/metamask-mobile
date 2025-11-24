@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -16,7 +16,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
 import type { Position } from '../../controllers/types';
 import styleSheet from './PerpsAdjustMarginView.styles';
-import Slider from '@react-native-community/slider';
 import { useTheme } from '../../../../../util/theme';
 import Icon, {
   IconName,
@@ -28,10 +27,16 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { TraceName } from '../../../../../util/trace';
 import {
-  assessMarginRemovalRisk,
   calculateMaxRemovableMargin,
   calculateNewLiquidationPrice,
 } from '../../utils/marginUtils';
+import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsSlider from '../../components/PerpsSlider';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
 
 interface AdjustMarginRouteParams {
   position: Position;
@@ -98,11 +103,6 @@ const PerpsAdjustMarginView: React.FC = () => {
     [position],
   );
 
-  const currentLeverage = useMemo(
-    () => position?.leverage?.value || 1,
-    [position],
-  );
-
   const positionSize = useMemo(
     () => Math.abs(parseFloat(position?.size || '0')),
     [position],
@@ -152,12 +152,6 @@ const PerpsAdjustMarginView: React.FC = () => {
     return Math.max(0, currentMargin - marginAmount);
   }, [isAddMode, currentMargin, marginAmount]);
 
-  const newLeverage = useMemo(() => {
-    if (newMargin === 0) return currentLeverage;
-    const positionValue = positionSize * entryPrice;
-    return positionValue / newMargin;
-  }, [newMargin, positionSize, entryPrice, currentLeverage]);
-
   // Calculate new liquidation price
   const newLiquidationPrice = useMemo(() => {
     if (newMargin === 0 || positionSize === 0) return currentLiquidationPrice;
@@ -188,16 +182,28 @@ const PerpsAdjustMarginView: React.FC = () => {
     currentLiquidationPrice,
   ]);
 
-  // Risk assessment (only for remove mode)
-  const liquidationRisk = useMemo(() => {
-    if (isAddMode) return 'safe';
-    const { riskLevel } = assessMarginRemovalRisk({
-      newLiquidationPrice,
-      currentPrice,
-      isLong,
-    });
-    return riskLevel;
-  }, [isAddMode, newLiquidationPrice, currentPrice, isLong]);
+  // Calculate liquidation distance percentage
+  const calculateLiquidationDistance = useCallback(
+    (liquidationPrice: number) => {
+      if (currentPrice === 0 || !currentPrice || liquidationPrice === 0) {
+        return 0;
+      }
+      const percentageDistance =
+        (Math.abs(currentPrice - liquidationPrice) / currentPrice) * 100;
+      return percentageDistance >= 99.9 ? 100 : percentageDistance;
+    },
+    [currentPrice],
+  );
+
+  const currentLiquidationDistance = useMemo(
+    () => calculateLiquidationDistance(currentLiquidationPrice),
+    [calculateLiquidationDistance, currentLiquidationPrice],
+  );
+
+  const newLiquidationDistance = useMemo(
+    () => calculateLiquidationDistance(newLiquidationPrice),
+    [calculateLiquidationDistance, newLiquidationPrice],
+  );
 
   const handleSliderChange = useCallback((value: number) => {
     setMarginAmount(value);
@@ -232,13 +238,9 @@ const PerpsAdjustMarginView: React.FC = () => {
     ? strings('perps.adjust_margin.add_title')
     : strings('perps.adjust_margin.remove_title');
 
-  const availableLabel = isAddMode
-    ? strings('perps.adjust_margin.available_to_add')
-    : strings('perps.adjust_margin.available_to_withdraw');
-
-  const amountLabel = isAddMode
-    ? strings('perps.adjust_margin.amount_to_add')
-    : strings('perps.adjust_margin.amount_to_remove');
+  const buttonLabel = isAddMode
+    ? strings('perps.adjust_margin.add_margin')
+    : strings('perps.adjust_margin.reduce_margin');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -254,277 +256,119 @@ const PerpsAdjustMarginView: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Current Position Info */}
-        <View style={styles.section}>
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.adjust_margin.current_margin')}
-              </Text>
-              <Text variant={TextVariant.BodyMDBold}>
-                ${currentMargin.toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {availableLabel}
-              </Text>
-              <Text variant={TextVariant.BodyMDBold}>
-                ${maxAmount.toFixed(2)}
-              </Text>
-            </View>
-            {isAddMode && (
-              <View style={styles.infoRow}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.adjust_margin.current_liquidation_price')}
-                </Text>
-                <Text variant={TextVariant.BodyMDBold}>
-                  ${currentLiquidationPrice.toFixed(2)}
-                </Text>
-              </View>
-            )}
-          </View>
+        {/* Amount Display */}
+        <View style={styles.amountSection}>
+          <PerpsAmountDisplay
+            amount={marginAmount.toFixed(2)}
+            onPress={handleMaxPress}
+            isActive={false}
+            hasError={false}
+            isLoading={false}
+          />
         </View>
 
-        {/* Margin Amount Selector */}
-        <View style={styles.section}>
-          <View style={styles.labelRow}>
-            <Text variant={TextVariant.BodyMDBold}>{amountLabel}</Text>
-            <TouchableOpacity onPress={handleMaxPress} style={styles.maxButton}>
-              <Text variant={TextVariant.BodySMBold} color={TextColor.Primary}>
-                {strings('perps.adjust_margin.max')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.amountDisplay}>
-            <Text variant={TextVariant.HeadingLG}>
-              ${marginAmount.toFixed(2)}
-            </Text>
-          </View>
-
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={maxAmount}
+        {/* Slider */}
+        <View style={styles.sliderSection}>
+          <PerpsSlider
             value={marginAmount}
             onValueChange={handleSliderChange}
-            minimumTrackTintColor={colors.primary.default}
-            maximumTrackTintColor={colors.border.muted}
-            thumbTintColor={colors.primary.default}
+            minimumValue={0}
+            maximumValue={maxAmount}
             step={0.01}
+            showPercentageLabels
+            disabled={false}
           />
-
-          <View style={styles.sliderLabels}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              $0
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              ${maxAmount.toFixed(2)}
-            </Text>
-          </View>
         </View>
 
-        {/* Impact Preview */}
-        {marginAmount > 0 && (
-          <View style={styles.section}>
-            <View
-              style={[
-                styles.impactCard,
-                !isAddMode &&
-                  liquidationRisk === 'danger' &&
-                  styles.impactCardDanger,
-                !isAddMode &&
-                  liquidationRisk === 'warning' &&
-                  styles.impactCardWarning,
-              ]}
-            >
-              <View style={styles.impactHeader}>
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Md}
-                  color={
-                    !isAddMode && liquidationRisk === 'danger'
-                      ? colors.error.default
-                      : !isAddMode && liquidationRisk === 'warning'
-                        ? colors.warning.default
-                        : colors.icon.alternative
-                  }
-                />
-                <Text
-                  variant={TextVariant.BodyMDBold}
-                  style={styles.impactTitle}
-                >
-                  {strings('perps.adjust_margin.impact')}
-                </Text>
-              </View>
-
-              <View style={styles.impactRow}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.adjust_margin.new_margin')}
-                </Text>
-                <Text variant={TextVariant.BodyMDBold}>
-                  ${newMargin.toFixed(2)}
-                </Text>
-              </View>
-
-              <View style={styles.impactRow}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.adjust_margin.new_leverage')}
-                </Text>
-                <View style={styles.changeContainer}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.strikethrough}
-                  >
-                    {currentLeverage.toFixed(2)}x
-                  </Text>
-                  <Icon
-                    name={IconName.Arrow2Right}
-                    size={IconSize.Sm}
-                    color={colors.icon.alternative}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMDBold}
-                    color={
-                      isAddMode
-                        ? TextColor.Success
-                        : liquidationRisk === 'danger'
-                          ? TextColor.Error
-                          : liquidationRisk === 'warning'
-                            ? TextColor.Warning
-                            : TextColor.Default
-                    }
-                  >
-                    {newLeverage.toFixed(2)}x
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.impactRow}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.adjust_margin.new_liquidation_price')}
-                </Text>
-                <View style={styles.changeContainer}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.strikethrough}
-                  >
-                    ${currentLiquidationPrice.toFixed(2)}
-                  </Text>
-                  <Icon
-                    name={IconName.Arrow2Right}
-                    size={IconSize.Sm}
-                    color={colors.icon.alternative}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMDBold}
-                    color={
-                      isAddMode
-                        ? TextColor.Success
-                        : liquidationRisk === 'danger'
-                          ? TextColor.Error
-                          : liquidationRisk === 'warning'
-                            ? TextColor.Warning
-                            : TextColor.Default
-                    }
-                  >
-                    ${newLiquidationPrice.toFixed(2)}
-                  </Text>
-                </View>
-              </View>
-            </View>
+        {/* Info Section */}
+        <View style={styles.infoSection}>
+          {/* First row: Perps balance or Margin in position */}
+          <View style={styles.infoRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {isAddMode
+                ? strings('perps.adjust_margin.perps_balance')
+                : strings('perps.adjust_margin.margin_in_position')}
+            </Text>
+            <Text variant={TextVariant.BodyMD}>
+              {formatPerpsFiat(isAddMode ? availableBalance : currentMargin, {
+                ranges: PRICE_RANGES_MINIMAL_VIEW,
+              })}
+            </Text>
           </View>
-        )}
 
-        {/* Warnings */}
-        {marginAmount > 0 && (
-          <>
-            {/* Low amount warning for add mode */}
-            {isAddMode && marginAmount < 1 && (
-              <View style={styles.section}>
-                <View style={styles.warningCard}>
-                  <Icon
-                    name={IconName.Warning}
-                    size={IconSize.Md}
-                    color={colors.warning.default}
-                  />
-                  <Text variant={TextVariant.BodySM} style={styles.warningText}>
-                    {strings('perps.adjust_margin.low_amount_warning')}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Risk warning for remove mode */}
-            {!isAddMode && liquidationRisk !== 'safe' && (
-              <View style={styles.section}>
-                <View
-                  style={[
-                    styles.warningCard,
-                    liquidationRisk === 'danger' && styles.warningCardDanger,
-                  ]}
+          {/* Second row: Liquidation price with transition */}
+          <View style={styles.infoRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.adjust_margin.liquidation_price')}
+            </Text>
+            {marginAmount > 0 ? (
+              <View style={styles.changeContainer}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
                 >
-                  <Icon
-                    name={IconName.Danger}
-                    size={IconSize.Md}
-                    color={
-                      liquidationRisk === 'danger'
-                        ? colors.error.default
-                        : colors.warning.default
-                    }
-                  />
-                  <View style={styles.warningTextContainer}>
-                    <Text
-                      variant={TextVariant.BodyMDBold}
-                      color={
-                        liquidationRisk === 'danger'
-                          ? TextColor.Error
-                          : TextColor.Warning
-                      }
-                    >
-                      {liquidationRisk === 'danger'
-                        ? strings('perps.adjust_margin.danger_title')
-                        : strings('perps.adjust_margin.warning_title')}
-                    </Text>
-                    <Text variant={TextVariant.BodySM}>
-                      {liquidationRisk === 'danger'
-                        ? strings('perps.adjust_margin.danger_message')
-                        : strings('perps.adjust_margin.warning_message')}
-                    </Text>
-                  </View>
-                </View>
+                  {formatPerpsFiat(currentLiquidationPrice, {
+                    ranges: PRICE_RANGES_UNIVERSAL,
+                  })}
+                </Text>
+                <Icon
+                  name={IconName.Arrow2Right}
+                  size={IconSize.Sm}
+                  color={colors.icon.alternative}
+                />
+                <Text variant={TextVariant.BodyMD}>
+                  {formatPerpsFiat(newLiquidationPrice, {
+                    ranges: PRICE_RANGES_UNIVERSAL,
+                  })}
+                </Text>
               </View>
+            ) : (
+              <Text variant={TextVariant.BodyMD}>
+                {formatPerpsFiat(currentLiquidationPrice, {
+                  ranges: PRICE_RANGES_UNIVERSAL,
+                })}
+              </Text>
             )}
-          </>
-        )}
+          </View>
+
+          {/* Third row: Liquidation distance with transition */}
+          <View style={styles.infoRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.adjust_margin.liquidation_distance')}
+            </Text>
+            {marginAmount > 0 ? (
+              <View style={styles.changeContainer}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {currentLiquidationDistance.toFixed(0)}%
+                </Text>
+                <Icon
+                  name={IconName.Arrow2Right}
+                  size={IconSize.Sm}
+                  color={colors.icon.alternative}
+                />
+                <Text variant={TextVariant.BodyMD}>
+                  {newLiquidationDistance.toFixed(0)}%
+                </Text>
+              </View>
+            ) : (
+              <Text variant={TextVariant.BodyMD}>
+                {currentLiquidationDistance.toFixed(0)}%
+              </Text>
+            )}
+          </View>
+        </View>
       </ScrollView>
 
       {/* Footer Actions */}
       <View style={styles.footer}>
         <Button
-          variant={
-            !isAddMode && liquidationRisk === 'danger'
-              ? ButtonVariants.Secondary
-              : ButtonVariants.Primary
-          }
+          variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
-          label={strings('perps.adjust_margin.confirm')}
+          label={buttonLabel}
           onPress={handleConfirm}
           isDisabled={marginAmount <= 0 || isAdjusting}
           isLoading={isAdjusting}

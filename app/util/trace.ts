@@ -150,6 +150,7 @@ export enum TraceName {
   PerpsMarketListView = 'Perps Market List View',
   PerpsPositionDetailsView = 'Perps Position Details View',
   PerpsAdjustMarginView = 'Perps Adjust Margin View',
+  PerpsOrderDetailsView = 'Perps Order Details View',
   PerpsFlipPositionSheet = 'Perps Flip Position Sheet',
   PerpsTransactionsView = 'Perps Transactions View',
   PerpsOrderFillsFetch = 'Perps Order Fills Fetch',

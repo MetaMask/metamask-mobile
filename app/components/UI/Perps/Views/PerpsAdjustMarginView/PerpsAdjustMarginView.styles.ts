@@ -26,6 +26,17 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       padding: 24,
     },
+    amountSection: {
+      marginTop: 24,
+      marginBottom: 16,
+    },
+    sliderSection: {
+      marginBottom: 24,
+    },
+    infoSection: {
+      gap: 16,
+      marginTop: 40,
+    },
     infoCard: {
       backgroundColor: colors.background.alternative,
       borderRadius: 8,

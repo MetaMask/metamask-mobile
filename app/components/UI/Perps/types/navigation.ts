@@ -1,7 +1,7 @@
 import { ParamListBase } from '@react-navigation/native';
 import type {
   Position,
-  OrderResult,
+  Order,
   OrderType,
   PerpsMarketData,
   TPSLTrackingData,
@@ -127,7 +127,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsOrderHistory: undefined;
 
   PerpsOrderDetails: {
-    order: OrderResult;
+    order: Order;
     action?: 'view' | 'edit' | 'cancel';
   };
 

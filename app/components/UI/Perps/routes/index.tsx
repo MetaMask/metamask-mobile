@@ -23,6 +23,7 @@ import PerpsAdjustMarginView from '../Views/PerpsAdjustMarginView/PerpsAdjustMar
 import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
 import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
+import PerpsOrderDetailsView from '../Views/PerpsOrderDetailsView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
@@ -244,6 +245,16 @@ const PerpsScreenStack = () => (
           component={PerpsAdjustMarginView}
           options={{
             title: strings('perps.adjust_margin.title'),
+            headerShown: false,
+          }}
+        />
+
+        {/* Order Details View */}
+        <Stack.Screen
+          name={Routes.PERPS.ORDER_DETAILS}
+          component={PerpsOrderDetailsView}
+          options={{
+            title: strings('perps.order_details.title'),
             headerShown: false,
           }}
         />

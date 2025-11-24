@@ -10,15 +10,30 @@ const createStyles = (theme: Theme) =>
     description: {
       marginBottom: 24,
     },
+    detailsWrapper: {
+      gap: 1,
+      marginBottom: 16,
+    },
+    detailItem: {
+      backgroundColor: theme.colors.background.alternative,
+      overflow: 'hidden',
+    },
+    detailItemFirst: {
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
+    },
+    detailItemLast: {
+      borderBottomLeftRadius: 12,
+      borderBottomRightRadius: 12,
+    },
+    detailItemWrapper: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+    },
     directionContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 24,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      backgroundColor: theme.colors.background.alternative,
-      borderRadius: 8,
+      gap: 8,
     },
     directionText: {
       marginHorizontal: 8,
