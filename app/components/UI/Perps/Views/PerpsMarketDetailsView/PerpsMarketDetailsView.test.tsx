@@ -19,6 +19,25 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn(() => Promise.resolve(null)),
 }));
 
+jest.mock('react-native-modal', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  return ({
+    isVisible,
+    children,
+    ...props
+  }: {
+    isVisible: boolean;
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) =>
+    isVisible ? (
+      <View testID="modal-container" {...props}>
+        {children}
+      </View>
+    ) : null;
+});
+
 // Mock @consensys/native-ramps-sdk to provide missing enum
 jest.mock('@consensys/native-ramps-sdk', () => ({
   ...jest.requireActual('@consensys/native-ramps-sdk'),
@@ -57,6 +76,20 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
 // Mock Redux selectors for chart preferences
 jest.mock('../../selectors/chartPreferences', () => ({
   selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
+}));
+
+// Mock Logger
+const mockLoggerError = jest.fn();
+const mockLoggerLog = jest.fn();
+const mockLoggerWarn = jest.fn();
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: (...args: unknown[]) => mockLoggerError(...args),
+    log: (...args: unknown[]) => mockLoggerLog(...args),
+    warn: (...args: unknown[]) => mockLoggerWarn(...args),
+  },
 }));
 
 // Create mock functions that can be modified during tests
@@ -1428,8 +1461,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('handles error when opening TradingView URL fails', async () => {
-      // Mock console.error to avoid test output pollution
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockLoggerError.mockClear();
 
       // Mock Linking.openURL to reject
       (Linking.openURL as jest.Mock).mockRejectedValueOnce(
@@ -1449,15 +1481,97 @@ describe('PerpsMarketDetailsView', () => {
       const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
-      // Wait for the error to be logged
+      // Wait for the error to be logged using Logger.error
       await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          'Failed to open Trading View URL:',
+        expect(mockLoggerError).toHaveBeenCalledWith(
           expect.any(Error),
+          expect.objectContaining({
+            feature: 'perps',
+            message: 'Failed to open Trading View URL',
+          }),
         );
       });
+    });
+  });
 
-      consoleErrorSpy.mockRestore();
+  describe('Fullscreen chart functionality', () => {
+    it('opens fullscreen chart modal when fullscreen button is pressed', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Verify close button is not initially visible (modal is closed)
+      expect(queryByTestId('perps-chart-fullscreen-close-button')).toBeNull();
+
+      // Press fullscreen button
+      const fullscreenButton = getByTestId(
+        'perps-market-header-fullscreen-button',
+      );
+      fireEvent.press(fullscreenButton);
+
+      // Verify modal is now visible by checking for close button
+      await waitFor(() => {
+        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
+      });
+    });
+
+    it('closes fullscreen chart modal when close button is pressed', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Open the modal first
+      const fullscreenButton = getByTestId(
+        'perps-market-header-fullscreen-button',
+      );
+      fireEvent.press(fullscreenButton);
+
+      // Wait for modal to be visible
+      await waitFor(() => {
+        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
+      });
+
+      // Press close button
+      const closeButton = getByTestId('perps-chart-fullscreen-close-button');
+      fireEvent.press(closeButton);
+
+      // Verify modal is closed
+      await waitFor(() => {
+        expect(queryByTestId('perps-chart-fullscreen-close-button')).toBeNull();
+      });
+    });
+
+    it('renders fullscreen chart when modal is open', async () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Open the modal
+      const fullscreenButton = getByTestId(
+        'perps-market-header-fullscreen-button',
+      );
+      fireEvent.press(fullscreenButton);
+
+      // Wait for modal to be visible and verify chart is rendered
+      await waitFor(() => {
+        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
+        expect(getByTestId('fullscreen-chart')).toBeTruthy();
+      });
     });
   });
 

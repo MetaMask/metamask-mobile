@@ -17,3 +17,4 @@ export const SUPPORTED_ASSET_NETWORKS = ['linea', 'linea-us', 'solana'];
  * Format: Token symbols in uppercase
  */
 export const SPENDING_LIMIT_UNSUPPORTED_TOKENS = ['AUSDC'];
+export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';

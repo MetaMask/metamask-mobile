@@ -82,17 +82,6 @@ describe('SectionCarrousel', () => {
       expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
     });
 
-    it('renders pagination dots', () => {
-      const { getByTestId } = renderWithProvider(
-        <SectionCarrousel sectionId="predictions" />,
-        { state: initialState },
-      );
-
-      expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
-      expect(getByTestId('predictions-pagination-dot-1')).toBeOnTheScreen();
-      expect(getByTestId('predictions-pagination-dot-2')).toBeOnTheScreen();
-    });
-
     it('renders FlashList with sectionId as testID prefix', () => {
       const { getByTestId } = renderWithProvider(
         <SectionCarrousel sectionId="predictions" />,
@@ -116,9 +105,6 @@ describe('SectionCarrousel', () => {
       );
 
       expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
-      expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
-      expect(getByTestId('predictions-pagination-dot-1')).toBeOnTheScreen();
-      expect(getByTestId('predictions-pagination-dot-2')).toBeOnTheScreen();
     });
 
     it('renders actual data when isLoading is false', () => {
@@ -131,19 +117,6 @@ describe('SectionCarrousel', () => {
     });
   });
 
-  describe('pagination interaction', () => {
-    it('renders pressable pagination dot without errors', () => {
-      const { getByTestId } = renderWithProvider(
-        <SectionCarrousel sectionId="predictions" />,
-        { state: initialState },
-      );
-
-      const dot = getByTestId('predictions-pagination-dot-1');
-
-      expect(dot).toBeOnTheScreen();
-    });
-  });
-
   describe('empty data', () => {
     it('renders without items when data is empty and not loading', () => {
       mockUsePredictMarketData.mockReturnValue({
@@ -151,18 +124,17 @@ describe('SectionCarrousel', () => {
         isFetching: false,
       });
 
-      const { queryByTestId, getByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <SectionCarrousel sectionId="predictions" />,
         { state: initialState },
       );
 
       expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
-      expect(queryByTestId('predictions-pagination-dot-0')).toBeNull();
     });
   });
 
   describe('single item', () => {
-    it('renders pagination dot for single item', () => {
+    it('renders FlashList with single item', () => {
       const singleItem = [createMockPredictMarket('1', 'Single Market')];
       mockUsePredictMarketData.mockReturnValue({
         marketData: singleItem,
@@ -174,7 +146,7 @@ describe('SectionCarrousel', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('predictions-pagination-dot-0')).toBeOnTheScreen();
+      expect(getByTestId('predictions-flash-list')).toBeOnTheScreen();
     });
   });
 

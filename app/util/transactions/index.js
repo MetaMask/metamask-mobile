@@ -163,6 +163,9 @@ const reviewActionKeys = {
   [TransactionType.lendingWithdraw]: strings(
     'transactions.tx_review_lending_withdraw',
   ),
+  [TransactionType.musdConversion]: strings(
+    'transactions.tx_review_musd_conversion',
+  ),
 };
 
 /**
@@ -214,6 +217,9 @@ const actionKeys = {
   ),
   [TransactionType.predictWithdraw]: strings(
     'transactions.tx_review_predict_withdraw',
+  ),
+  [TransactionType.musdConversion]: strings(
+    'transactions.tx_review_musd_conversion',
   ),
 };
 
@@ -544,6 +550,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
       TransactionType.perpsDeposit,
+      TransactionType.musdConversion,
     ].includes(type)
   ) {
     return type;
@@ -739,6 +746,7 @@ export async function getTransactionReviewActionKey(transaction, chainId) {
   if (transactionReviewActionKey) {
     return transactionReviewActionKey;
   }
+
   return actionKey;
 }
 
