@@ -22,15 +22,16 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { isHardwareAccount } from '../../../../../../util/address';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { useTransactionPayFiat } from '../../../hooks/pay/useTransactionPayFiat';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { formatFiat } = useTransactionPayFiat();
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
 
   const {
@@ -46,8 +47,8 @@ export function PayWithRow() {
   }, [canEdit, navigation]);
 
   const balanceUsdFormatted = useMemo(
-    () => formatFiat(new BigNumber(payToken?.balanceFiat ?? '0')),
-    [formatFiat, payToken?.balanceFiat],
+    () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
+    [formatFiat, payToken?.balanceUsd],
   );
 
   if (!payToken) {
@@ -60,7 +61,7 @@ export function PayWithRow() {
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.center}
-        gap={8}
+        gap={12}
         style={styles.container}
       >
         <TokenIcon address={payToken.address} chainId={payToken.chainId} />
@@ -68,13 +69,14 @@ export function PayWithRow() {
           {`${strings('confirm.label.pay_with')} ${payToken.symbol}`}
         </Text>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
-          •
-        </Text>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
           {balanceUsdFormatted}
         </Text>
         {canEdit && from && (
-          <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
         )}
       </Box>
     </TouchableOpacity>

@@ -22,8 +22,7 @@ import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
-import { useRampNavigation, RampMode } from '../Ramp/hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../Ramp/Aggregator/types';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 
 // Types
 import type {
@@ -48,7 +47,8 @@ const FundActionMenu = () => {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy, goToAggregator, goToSell, goToDeposit } =
+    useRampNavigation();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -122,15 +122,7 @@ const FundActionMenu = () => {
             if (customOnBuy) {
               customOnBuy();
             } else {
-              goToRamps({
-                mode: RampMode.AGGREGATOR,
-                params: {
-                  rampType: AggregatorRampType.BUY,
-                  intent: assetContext?.assetId
-                    ? { assetId: assetContext.assetId }
-                    : undefined,
-                },
-              });
+              goToBuy({ assetId: assetContext?.assetId });
             }
           },
         },
@@ -150,7 +142,7 @@ const FundActionMenu = () => {
             region: rampGeodetectedRegion,
           },
           traceName: TraceName.LoadDepositExperience,
-          navigationAction: () => goToRamps({ mode: RampMode.DEPOSIT }),
+          navigationAction: () => goToDeposit(),
         },
         {
           type: 'buy',
@@ -172,15 +164,7 @@ const FundActionMenu = () => {
             if (customOnBuy) {
               customOnBuy();
             } else {
-              goToRamps({
-                mode: RampMode.AGGREGATOR,
-                params: {
-                  rampType: AggregatorRampType.BUY,
-                  intent: assetContext?.assetId
-                    ? { assetId: assetContext.assetId }
-                    : undefined,
-                },
-              });
+              goToAggregator({ assetId: assetContext?.assetId });
             }
           },
         },
@@ -201,11 +185,7 @@ const FundActionMenu = () => {
           },
           traceName: TraceName.LoadRampExperience,
           traceProperties: { tags: { rampType: RampType.SELL } },
-          navigationAction: () =>
-            goToRamps({
-              mode: RampMode.AGGREGATOR,
-              params: { rampType: AggregatorRampType.SELL },
-            }),
+          navigationAction: () => goToSell({ assetId: assetContext?.assetId }),
         },
       ] as ActionConfig[],
     [
@@ -218,7 +198,10 @@ const FundActionMenu = () => {
       canSignTransactions,
       customOnBuy,
       assetContext,
-      goToRamps,
+      goToBuy,
+      goToAggregator,
+      goToSell,
+      goToDeposit,
     ],
   );
 

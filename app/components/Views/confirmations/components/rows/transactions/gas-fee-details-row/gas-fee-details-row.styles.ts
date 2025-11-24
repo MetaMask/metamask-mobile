@@ -42,6 +42,17 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'left',
       flex: 1,
     },
+    skeletonBorderRadius: {
+      borderRadius: 4,
+    },
+    skeletonRowContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      minHeight: 24,
+      paddingBottom: 8,
+      paddingHorizontal: 8,
+    },
   });
 };
 

@@ -294,7 +294,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('1061.72');
+      expect(result.current.amountFiat).toBe('530.86');
     });
 
     it('minus buffers if 100', async () => {
