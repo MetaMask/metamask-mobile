@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useLayoutEffect,
   useRef,
   useCallback,
   useContext,
@@ -21,8 +22,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { connect, ConnectedProps } from 'react-redux';
-import { Dispatch } from 'redux';
+import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
@@ -46,10 +46,11 @@ import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 import {
-  NavigationProp,
-  ParamListBase,
+  useNavigation,
   RouteProp,
+  ParamListBase,
 } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   TraceName,
   TraceOperation,
@@ -78,9 +79,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
-import { withMetricsAwareness } from '../../hooks/useMetrics';
-import type { IUseMetricsHook } from '../../hooks/useMetrics/useMetrics.types';
-import type { IWithMetricsAwarenessProps } from '../../hooks/useMetrics/withMetricsAwareness.types';
+import { useMetrics } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
@@ -114,61 +113,35 @@ interface OnboardingRouteParams {
   delete?: string;
 }
 
-const mapStateToProps = (state: RootState) => ({
-  passwordSet: state.user.passwordSet,
-  existingUser: selectExistingUser(state),
-  loading: state.user.loadingSet,
-  loadingMsg: state.user.loadingMsg || '',
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  setLoading: (msg?: string) => dispatch(loadingSet(msg || '')),
-  unsetLoading: () => dispatch(loadingUnset()),
-  disableNewPrivacyPolicyToast: () =>
-    dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(saveEvent(eventArgs)),
-});
-
-const connector = connect(mapStateToProps, mapDispatchToProps);
-
-type PropsFromRedux = ConnectedProps<typeof connector>;
-
-interface OwnProps {
-  /**
-   * Navigation object required to push new views
-   */
-  navigation: NavigationProp<ParamListBase> & {
-    replace: (name: string, params?: object) => void;
-  };
-  /**
-   * Object that represents the current route info like params passed to it
-   */
+interface OnboardingProps {
   route: RouteProp<{ params: OnboardingRouteParams }, 'params'>;
-  /**
-   * Metrics injected by withMetricsAwareness HOC
-   */
-  metrics: IUseMetricsHook;
 }
 
-type OnboardingProps = PropsFromRedux & OwnProps;
+const Onboarding: React.FC<OnboardingProps> = ({ route }) => {
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const dispatch = useDispatch();
+  const metrics = useMetrics();
 
-export type OnboardingComponentProps = Omit<OwnProps, 'metrics'>;
+  const passwordSet = useSelector((state: RootState) => state.user.passwordSet);
+  const existingUserProp = useSelector(selectExistingUser);
+  const loading = useSelector((state: RootState) => state.user.loadingSet);
+  const loadingMsg = useSelector(
+    (state: RootState) => state.user.loadingMsg || '',
+  );
 
-const Onboarding: React.FC<OnboardingProps> = (props) => {
-  const {
-    navigation,
-    route,
-    passwordSet,
-    existingUser: existingUserProp,
-    loading,
-    loadingMsg,
-    setLoading,
-    unsetLoading,
-    disableNewPrivacyPolicyToast,
-    saveOnboardingEvent,
-    metrics,
-  } = props;
+  const setLoading = useCallback(
+    (msg?: string) => dispatch(loadingSet(msg || '')),
+    [dispatch],
+  );
+  const unsetLoading = useCallback(() => dispatch(loadingUnset()), [dispatch]);
+  const disableNewPrivacyPolicyToast = useCallback(
+    () => dispatch(storePrivacyPolicyClickedOrClosedAction()),
+    [dispatch],
+  );
+  const saveOnboardingEvent = useCallback(
+    (...eventArgs: [ITrackingEvent]) => dispatch(saveEvent(eventArgs)),
+    [dispatch],
+  );
 
   const themeContext = useContext(ThemeContext);
   const colors = themeContext.colors || mockTheme.colors;
@@ -807,7 +780,7 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
       );
     }, [route, styles, notificationAnimated]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     onboardingTraceCtx.current = trace({
       name: TraceName.OnboardingJourneyOverall,
       op: TraceOperation.OnboardingUserJourney,
@@ -837,8 +810,15 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
       unsetLoading();
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    unsetLoading,
+    updateNavBar,
+    checkIfExistingUser,
+    disableNewPrivacyPolicyToast,
+    checkForMigrationFailureAndVaultBackup,
+    route.params?.delete,
+    showNotification,
+  ]);
 
   useEffect(() => {
     updateNavBar();
@@ -927,11 +907,4 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
   );
 };
 
-const ConnectedOnboarding = connector(Onboarding);
-const OnboardingWithMetrics = withMetricsAwareness(
-  ConnectedOnboarding as unknown as React.ComponentType<IWithMetricsAwarenessProps>,
-);
-
-export default OnboardingWithMetrics as React.ComponentType<
-  Partial<OnboardingComponentProps>
->;
+export default Onboarding;
