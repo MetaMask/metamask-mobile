@@ -369,6 +369,13 @@ const EarnInputView = () => {
       _earnToken: EarnTokenDetails,
       _activeAccount: InternalAccount,
     ) => {
+      if (!networkClientId) {
+        console.error(
+          'Cannot create lending deposit confirmation - networkClientId is undefined',
+        );
+        return;
+      }
+
       const approveTxParams = generateLendingAllowanceIncreaseTransaction(
         amountTokenMinimalUnit.toString(),
         _activeAccount.address,
