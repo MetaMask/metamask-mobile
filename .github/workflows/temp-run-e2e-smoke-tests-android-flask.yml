@@ -76,11 +76,27 @@ jobs:
         run: |
           mkdir -p android/app/build/outputs/apk/prod/release/
           mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
-          # Artifacts are downloaded as folders, each containing the APK file
-          # Copy main APK from artifact folder to expected location
-          cp artifacts/main-e2e-release.apk/app-prod-release.apk android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          # Artifacts are downloaded as folders - try both possible structures
+          # Try full path first (if artifact preserves directory structure)
+          if [ -f artifacts/main-e2e-release.apk/android/app/build/outputs/apk/prod/release/app-prod-release.apk ]; then
+            cp artifacts/main-e2e-release.apk/android/app/build/outputs/apk/prod/release/app-prod-release.apk android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          elif [ -f artifacts/main-e2e-release.apk/app-prod-release.apk ]; then
+            cp artifacts/main-e2e-release.apk/app-prod-release.apk android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          else
+            echo "❌ Main APK not found in artifact folder"
+            ls -la artifacts/main-e2e-release.apk/ || echo "Artifact folder does not exist"
+            exit 1
+          fi
           # Copy main test APK from artifact folder to expected location
-          cp artifacts/main-e2e-release-androidTest.apk/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          if [ -f artifacts/main-e2e-release-androidTest.apk/android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk ]; then
+            cp artifacts/main-e2e-release-androidTest.apk/android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          elif [ -f artifacts/main-e2e-release-androidTest.apk/app-prod-release-androidTest.apk ]; then
+            cp artifacts/main-e2e-release-androidTest.apk/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          else
+            echo "❌ Test APK not found in artifact folder"
+            ls -la artifacts/main-e2e-release-androidTest.apk/ || echo "Artifact folder does not exist"
+            exit 1
+          fi
 
       - name: Repack Main APK
         run: node scripts/repack.js
