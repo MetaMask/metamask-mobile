@@ -11,10 +11,12 @@ permissions:
 
 jobs:
   flaky-test-report:
-    uses: MetaMask/github-tools/.github/workflows/flaky-test-report.yml@main
-    with:
-      repository: ${{ github.event.repository.name }}
-      workflow_id: ci.yml
-    secrets:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
-      slack-webhook-flaky-tests: ${{ secrets.SLACK_WEBHOOK_FLAKY_TESTS }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate flaky test report
+        uses: MetaMask/github-tools/.github/actions/flaky-test-report@main
+        with:
+          repository: ${{ github.event.repository.name }}
+          workflow-id: ci.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          slack-webhook-flaky-tests: ${{ secrets.SLACK_WEBHOOK_FLAKY_TESTS }}
