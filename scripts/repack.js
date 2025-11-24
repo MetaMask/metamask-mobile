@@ -16,34 +16,12 @@ const logger = {
   warn: (msg) => console.warn(`⚠️  ${msg}`),
 };
 
-const isFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
-const isMain = process.env.METAMASK_BUILD_TYPE === 'main';
-
-/**
- * Get Android keystore configuration
- * Currently supports 'flask' and 'main' build types
- */
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
   const keystorePath = process.env.ANDROID_KEYSTORE_PATH;
-
-  // Determine keystore credentials based on build type
-  let keystorePassword, keyAlias, keyPassword;
-  if (isFlask) {
-    keystorePassword = process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD;
-    keyAlias = process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS;
-    keyPassword = process.env.BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD;
-  } else if (isMain) {
-    // Main keystore uses standard naming (without FLASK_UAT or QA prefix)
-    keystorePassword = process.env.BITRISEIO_ANDROID_KEYSTORE_PASSWORD;
-    keyAlias = process.env.BITRISEIO_ANDROID_KEYSTORE_ALIAS;
-    keyPassword = process.env.BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD;
-  } else {
-    // Default to QA for backward compatibility
-    keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
-    keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
-    keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
-  }
+  const keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+  const keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+  const keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
 
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
     logger.error(
@@ -72,9 +50,9 @@ function getKeystoreConfig() {
  */
 async function repackAndroid() {
   const startTime = Date.now();
-  const sourceApk = process.env.SOURCE_APK || (isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release.apk');
-  const repackedApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release-repack.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
-  const finalApk = isFlask ? 'android/app/build/outputs/apk/flask/release/app-flask-release.apk' : 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const sourceApk = process.env.SOURCE_APK ||  'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const repackedApk = 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
+  const finalApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
   const sourcemapPath = 'sourcemaps/android/index.android.bundle.map';
   const workingDir = 'android/app/build/repack-working-main';
 

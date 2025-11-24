@@ -68,9 +68,11 @@ jobs:
         run: node scripts/repack.js
         env:
           PLATFORM: android
-          METAMASK_BUILD_TYPE: main
+          # will be used to metroTransform 
+          METAMASK_BUILD_TYPE: flask
           SOURCE_APK: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           CI: 'true'
+
       - name: Ensure Repacked APK is in expected location
         run: |
           # The repack tool may write to working directory instead of outputPath
