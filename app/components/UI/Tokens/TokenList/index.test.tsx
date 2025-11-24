@@ -257,7 +257,7 @@ describe('TokenList', () => {
       expect.objectContaining({
         name: 'View All Assets Clicked',
         properties: expect.objectContaining({
-          asset_type: 'TOKEN',
+          asset_type: 'Token',
         }),
       }),
     );

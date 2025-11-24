@@ -81,7 +81,7 @@ const TokenListComponent = ({
   const handleViewAllTokens = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.VIEW_ALL_ASSETS_CLICKED)
-        .addProperties({ asset_type: 'TOKEN' })
+        .addProperties({ asset_type: 'Token' })
         .build(),
     );
     navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
