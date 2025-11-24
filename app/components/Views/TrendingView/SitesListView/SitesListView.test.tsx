@@ -191,18 +191,6 @@ describe('SitesListView', () => {
       const skeletons = getAllByTestId('site-skeleton');
       expect(skeletons.length).toBe(10);
     });
-
-    it('renders empty state when no sites available', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: [],
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByText } = render(<SitesListView />);
-
-      expect(getByText('No sites found')).toBeOnTheScreen();
-    });
   });
 
   describe('Navigation', () => {

@@ -5,8 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   Box,
-  Text,
-  TextVariant,
   Icon,
   IconName,
   IconSize,
@@ -24,6 +22,10 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName as IconNameType } from '../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import ExploreSearchBar from '../ExploreSearchBar/ExploreSearchBar';
 
@@ -116,19 +118,15 @@ const SitesListView: React.FC = () => {
           >
             <Box twClassName="flex-1">
               <Text
-                variant={TextVariant.BodyMd}
-                twClassName="text-primary"
+                variant={TextVariant.BodyMD}
+                color={TextColor.Primary}
                 numberOfLines={1}
               >
                 {searchQuery}
               </Text>
             </Box>
             <Box twClassName="ml-3">
-              <Icon
-                name={IconName.Arrow2UpRight}
-                size={IconSize.Md}
-                twClassName="text-primary"
-              />
+              <Icon name={IconName.Arrow2UpRight} size={IconSize.Md} />
             </Box>
           </TouchableOpacity>
         )}
@@ -143,32 +141,23 @@ const SitesListView: React.FC = () => {
           testID="search-on-google-button"
         >
           <Box twClassName="flex-1 flex-row items-center">
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary shrink-0"
-            >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
               Search for {'"'}
             </Text>
             <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary shrink"
+              variant={TextVariant.BodyMD}
+              color={TextColor.Primary}
               numberOfLines={1}
+              style={tw.style('shrink')}
             >
               {searchQuery}
             </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary shrink-0"
-            >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
               {'"'} on Google
             </Text>
           </Box>
           <Box twClassName="ml-3">
-            <Icon
-              name={IconName.Arrow2UpRight}
-              size={IconSize.Md}
-              twClassName="text-primary"
-            />
+            <Icon name={IconName.Arrow2UpRight} size={IconSize.Md} />
           </Box>
         </TouchableOpacity>
       </Box>
@@ -206,8 +195,9 @@ const SitesListView: React.FC = () => {
                 testID="search-button"
               />
             }
+            style={tw.style('flex-row items-center gap-1')}
           >
-            <Text variant={TextVariant.HeadingMd}>
+            <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
               {strings('trending.popular_sites')}
             </Text>
           </HeaderBase>
@@ -225,18 +215,6 @@ const SitesListView: React.FC = () => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={tw.style('pb-4')}
             showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              !searchQuery.trim() ? (
-                <Box twClassName="px-2 py-8 items-center">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-alternative"
-                  >
-                    {strings('trending.no_sites_found')}
-                  </Text>
-                </Box>
-              ) : null
-            }
             ListFooterComponent={renderFooter}
           />
         )}
