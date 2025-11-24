@@ -136,7 +136,7 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
     const androidFlaskArtifact = androidArtifacts.find((a) => a.name === 'flask-e2e-release.apk') ||
       androidArtifacts.find((a) => {
         const nameLower = a.name.toLowerCase();
-        return nameLower.includes('flask') && a.name.includes('-release.apk');
+        return nameLower.includes('flask') && nameLower.includes('-release.apk');
       });
 
     if (androidFlaskArtifact) {
@@ -189,6 +189,18 @@ async function start() {
   if (!GITHUB_TOKEN?.trim() || !GITHUB_REPOSITORY?.trim() || !PR_NUMBER?.trim() || !GITHUB_RUN_ID?.trim()) {
     console.error(
       'Missing or empty required environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, GITHUB_RUN_ID',
+    );
+    process.exit(1);
+  }
+
+  // Validate build success flags are present (even if 'false') to ensure CI is configured correctly
+  if (
+    ANDROID_BUILD_SUCCESS === undefined ||
+    IOS_BUILD_SUCCESS === undefined ||
+    ANDROID_FLASK_BUILD_SUCCESS === undefined
+  ) {
+    console.error(
+      'Missing build success status variables: ANDROID_BUILD_SUCCESS, IOS_BUILD_SUCCESS, ANDROID_FLASK_BUILD_SUCCESS',
     );
     process.exit(1);
   }
