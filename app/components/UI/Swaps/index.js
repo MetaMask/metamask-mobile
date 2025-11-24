@@ -46,10 +46,10 @@ import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import {
   setQuotesNavigationsParams,
-  isSwapsNativeAsset,
   isDynamicToken,
   shouldShowMaxBalanceLink,
 } from './utils';
+import { isSwapsNativeAsset } from '../../../util/bridge';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import useModalHandler from '../../Base/hooks/useModalHandler';
@@ -88,7 +88,6 @@ import {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
 import { selectNetworkImageSourceByChainId } from '../../../selectors/networkInfos';
 import ContextualNetworkPicker from '../ContextualNetworkPicker/ContextualNetworkPicker';
 import Routes from '../../../constants/navigation/Routes';
@@ -97,6 +96,7 @@ import { useChainRedirect } from './useChainRedirect';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { useStablecoinsDefaultSlippage } from '../Bridge/hooks/useStablecoinsDefaultSlippage';
 ///: END:ONLY_INCLUDE_IF
 
 const createStyles = (colors) =>
