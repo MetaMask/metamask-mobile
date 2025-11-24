@@ -15,9 +15,26 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
-const mockUseTrendingRequest = jest.fn();
+const mockFetchTrendingTokens = jest.fn();
+const mockUseTrendingRequest = jest.fn().mockReturnValue({
+  results: [],
+  isLoading: false,
+  error: null,
+  fetch: mockFetchTrendingTokens,
+});
 jest.mock('../../../UI/Trending/hooks/useTrendingRequest', () => ({
   useTrendingRequest: (options: unknown) => mockUseTrendingRequest(options),
+}));
+
+// Mock search request used inside tokens section config
+const mockUseSearchRequest = jest.fn().mockReturnValue({
+  results: [],
+  isLoading: false,
+  error: null,
+  search: jest.fn(),
+});
+jest.mock('../../../UI/Trending/hooks/useSearchRequest', () => ({
+  useSearchRequest: (options: unknown) => mockUseSearchRequest(options),
 }));
 
 jest.mock(
@@ -27,11 +44,12 @@ jest.mock(
     return ({
       trendingTokens,
       onTokenPress,
+      ...rest
     }: {
       trendingTokens: TrendingAsset[];
       onTokenPress: (token: TrendingAsset) => void;
     }) => (
-      <View testID="trending-tokens-list">
+      <View testID="trending-tokens-list" {...rest}>
         {trendingTokens.map((token, index) => (
           <View
             key={token.assetId || index}
@@ -153,104 +171,6 @@ jest.mock('../../../UI/Trending/components/TrendingTokensBottomSheet', () => {
     },
   };
 });
-
-jest.mock('../../../../component-library/components/HeaderBase', () => {
-  const { View } = jest.requireActual('react-native');
-  const MockHeaderBase = ({
-    children,
-    startAccessory,
-    endAccessory,
-  }: {
-    children: React.ReactNode;
-    startAccessory?: React.ReactNode;
-    endAccessory?: React.ReactNode;
-  }) => (
-    <View testID="header-base">
-      {startAccessory}
-      {children}
-      {endAccessory}
-    </View>
-  );
-  return {
-    __esModule: true,
-    default: MockHeaderBase,
-    HeaderBaseVariant: {
-      Display: 'display',
-      Compact: 'compact',
-    },
-  };
-});
-
-jest.mock('../../../../component-library/components/Buttons/ButtonIcon', () => {
-  const { TouchableOpacity } = jest.requireActual('react-native');
-  const MockButtonIcon = ({
-    onPress,
-    testID,
-  }: {
-    onPress?: () => void;
-    testID?: string;
-  }) => (
-    <TouchableOpacity testID={testID} onPress={onPress}>
-      ButtonIcon
-    </TouchableOpacity>
-  );
-  return {
-    __esModule: true,
-    default: MockButtonIcon,
-    ButtonIconSizes: {
-      Sm: '24',
-      Md: '28',
-      Lg: '32',
-    },
-  };
-});
-
-jest.mock('../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: Text,
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-    },
-    TextColor: {
-      Default: 'Default',
-    },
-  };
-});
-
-jest.mock('../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockIcon({ name }: { name: string }) {
-      return <View testID={`icon-${name}`}>{name}</View>;
-    },
-    IconName: {
-      ArrowLeft: 'ArrowLeft',
-      Search: 'Search',
-      ArrowDown: 'ArrowDown',
-    },
-    IconColor: {
-      Alternative: 'Alternative',
-    },
-    IconSize: {
-      Xs: 'Xs',
-    },
-  };
-});
-
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const translations: Record<string, string> = {
-      'trending.trending_tokens': 'Trending Tokens',
-      'trending.price_change': 'Price change',
-      'trending.all_networks': 'All networks',
-      'trending.24h': '24h',
-    };
-    return translations[key] || key;
-  },
-}));
 
 const createMockToken = (
   overrides: Partial<TrendingAsset> = {},
@@ -487,5 +407,37 @@ describe('TrendingTokensFullView', () => {
         chainIds: ['eip155:1'],
       });
     });
+  });
+
+  it('triggers section refetch on pull-to-refresh', async () => {
+    mockUseTrendingRequest.mockReturnValueOnce({
+      results: [
+        createMockToken({
+          assetId: 'eip155:1/erc20:0xabc',
+          name: 'Token 1',
+          symbol: 'TKN1',
+        }),
+      ],
+      isLoading: false,
+      error: null,
+      fetch: mockFetchTrendingTokens,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
+
+    const list = getByTestId('trending-tokens-list');
+
+    // Simulate pull-to-refresh via RefreshControl's onRefresh
+    const refreshControl = list.props.refreshControl;
+
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    expect(mockFetchTrendingTokens).toHaveBeenCalledTimes(1);
   });
 });
