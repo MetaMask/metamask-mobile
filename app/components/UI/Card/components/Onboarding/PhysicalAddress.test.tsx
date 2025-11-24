@@ -391,6 +391,7 @@ const createTestStore = (initialState = {}) =>
 
 // Mock functions
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -416,6 +417,7 @@ describe('PhysicalAddress Component', () => {
     // Mock navigation
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
     } as unknown as ReturnType<typeof useNavigation>);
 
     // Mock useRegisterPhysicalAddress
@@ -511,6 +513,7 @@ describe('PhysicalAddress Component', () => {
         id: 'user-id',
         email: 'test@example.com',
       },
+      fetchUserData: jest.fn(),
       setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
     });
@@ -1047,11 +1050,16 @@ describe('PhysicalAddress Component', () => {
         );
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.COMPLETE,
-        );
-      });
+      // Wait for token storage and Redux updates before navigation
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
+          });
+        },
+        { timeout: 3000 },
+      );
     });
   });
 
@@ -1303,11 +1311,16 @@ describe('PhysicalAddress Component', () => {
       expect(mockCreateOnboardingConsent).not.toHaveBeenCalled();
       expect(mockLinkUserToConsent).not.toHaveBeenCalled();
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.COMPLETE,
-        );
-      });
+      // Wait for token storage and Redux updates before navigation
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
+          });
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('uses existing consent set ID from Redux when available', async () => {
@@ -1418,11 +1431,16 @@ describe('PhysicalAddress Component', () => {
         );
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.COMPLETE,
-        );
-      });
+      // Wait for token storage and Redux updates before navigation
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
+          });
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('clears consent set ID from Redux after linking consent', async () => {
