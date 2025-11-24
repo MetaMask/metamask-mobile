@@ -55,6 +55,10 @@ export interface ComputeFeeParams {
   transaction: string;
   accountId: string;
   scope: string;
+  options: {
+    visible: boolean;
+    type: string;
+  };
 }
 
 export type ComputeFeeResult = {

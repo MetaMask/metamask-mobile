@@ -7,6 +7,7 @@ import {
   confirmTronStake,
   validateTronStakeAmount,
   TronStakeResult,
+  computeTronFee,
 } from '../utils/tron-staking';
 import { TronResourceType } from '../../../../core/Multichain/constants';
 
@@ -62,12 +63,17 @@ const useTronStake = (): UseTronStakeReturn => {
         rest && Object.keys(rest).length > 0 ? rest : undefined;
 
       try {
-        // const fee = await computeTronFee(selectedTronAccount, {
-        //   transaction: 'stake',
-        //   accountId: selectedTronAccount.id,
-        //   scope: chainId,
-        // });
-        const fee = {
+        const realFee = await computeTronFee(selectedTronAccount, {
+          transaction: 'stake',
+          accountId: selectedTronAccount.id,
+          scope: chainId,
+          options: {
+            visible: false,
+            type: 'TriggerSmartContract',
+          },
+        });
+
+        const mockedFee = {
           type: 'fee',
           asset: {
             unit: 'TRX',
@@ -76,7 +82,7 @@ const useTronStake = (): UseTronStakeReturn => {
             fungible: true,
           },
         };
-        nextPreview = { ...(nextPreview ?? {}), fee };
+        nextPreview = { ...(nextPreview ?? {}), fee: mockedFee };
       } catch {
         // ignore for now
       }
