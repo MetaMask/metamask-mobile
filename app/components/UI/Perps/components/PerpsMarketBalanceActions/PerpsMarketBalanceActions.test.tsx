@@ -313,7 +313,7 @@ describe('PerpsMarketBalanceActions', () => {
         MultichainNetworkController: {
           multichainNetworkConfigurationsByChainId: {},
           isEvmSelected: true,
-          selectedMultichainNetworkChainId: 'eip155:42161', // Arbitrum (Perps network)
+          selectedMultichainNetworkChainId: undefined, // EVM selected, non-EVM chain field is undefined
         },
       },
     },
