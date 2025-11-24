@@ -7,14 +7,16 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
-import { AssetType } from '../../types/token';
+import { AssetType, PreferredPaymentToken } from '../../types/token';
 
 const log = createProjectLogger('transaction-pay');
 
 export function useAutomaticTransactionPayToken({
   disable = false,
+  preferredPaymentToken,
 }: {
   disable?: boolean;
+  preferredPaymentToken?: PreferredPaymentToken;
 } = {}) {
   const isUpdated = useRef(false);
   const { setPayToken } = useTransactionPayToken();
@@ -52,6 +54,7 @@ export function useAutomaticTransactionPayToken({
       isHardwareWallet,
       targetToken,
       tokens: tokensWithBalance,
+      preferredPaymentToken,
     });
 
     if (!automaticToken) {
@@ -70,6 +73,7 @@ export function useAutomaticTransactionPayToken({
   }, [
     disable,
     isHardwareWallet,
+    preferredPaymentToken,
     requiredTokens,
     setPayToken,
     targetToken,
@@ -81,10 +85,12 @@ function getBestToken({
   isHardwareWallet,
   targetToken,
   tokens,
+  preferredPaymentToken,
 }: {
   isHardwareWallet: boolean;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
+  preferredPaymentToken?: PreferredPaymentToken;
 }): { address: Hex; chainId: Hex } | undefined {
   const targetTokenFallback = targetToken
     ? {
@@ -98,6 +104,18 @@ function getBestToken({
   }
 
   if (tokens?.length) {
+    if (preferredPaymentToken) {
+      const preferredTokenAvailable = tokens.find(
+        (token) =>
+          token.address === preferredPaymentToken.address &&
+          token.chainId === preferredPaymentToken.chainId,
+      );
+
+      if (preferredTokenAvailable) {
+        return preferredPaymentToken;
+      }
+    }
+
     return {
       address: tokens[0].address as Hex,
       chainId: tokens[0].chainId as Hex,

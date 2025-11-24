@@ -49,18 +49,23 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
+import { PreferredPaymentToken } from '../../../types/token';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
   hasMax?: boolean;
+  preferredPaymentToken?: PreferredPaymentToken;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay, hasMax }) => {
+  ({ children, currency, disablePay, hasMax, preferredPaymentToken }) => {
     useClearConfirmationOnBackSwipe();
-    useAutomaticTransactionPayToken({ disable: disablePay });
+    useAutomaticTransactionPayToken({
+      disable: disablePay,
+      preferredPaymentToken,
+    });
     useTransactionPayMetrics();
 
     const { styles } = useStyles(styleSheet, {});
