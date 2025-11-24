@@ -87,7 +87,15 @@ export function useInsufficientPayTokenBalanceAlert({
     const targetUsdValue = totalAmountUsd.minus(shortfall);
     const targetUsd = formatFiat(targetUsdValue);
 
-    return targetUsdValue.isLessThanOrEqualTo(0) ? undefined : targetUsd;
+    if (targetUsdValue.isLessThanOrEqualTo(0)) {
+      return undefined;
+    }
+
+    if (targetUsdValue.isGreaterThan(totalAmountUsd)) {
+      return formatFiat(totalAmountUsd);
+    }
+
+    return targetUsd;
   }, [balanceUsd, formatFiat, totalAmountUsd, totalSourceAmountUsd]);
 
   const totalSourceNetworkFeeRaw = useMemo(
