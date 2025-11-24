@@ -65,23 +65,23 @@ export type InputMethod =
   | 'max';
 
 // Unified tracking data interface for analytics events (never persisted in state)
-// Note: Numeric values are strings from API responses and must be parsed for analytics
+// Note: Numeric values are already parsed by hooks (usePerpsOrderFees, etc.) from API responses
 export interface TrackingData {
   // Common to all operations
-  totalFee: string; // Total fee for the operation (string from API)
-  marketPrice: string; // Market price at operation time (string from API)
-  metamaskFee?: string; // MetaMask fee amount (string from API)
-  metamaskFeeRate?: string; // MetaMask fee rate (string from API)
-  feeDiscountPercentage?: string; // Fee discount percentage (string from API)
-  estimatedPoints?: string; // Estimated reward points (string from API)
+  totalFee: number; // Total fee for the operation (parsed by hooks)
+  marketPrice: number; // Market price at operation time (parsed by hooks)
+  metamaskFee?: number; // MetaMask fee amount (parsed by hooks)
+  metamaskFeeRate?: number; // MetaMask fee rate (parsed by hooks)
+  feeDiscountPercentage?: number; // Fee discount percentage (parsed by hooks)
+  estimatedPoints?: number; // Estimated reward points (parsed by hooks)
 
   // Order-specific (used for trade operations)
-  marginUsed?: string; // Margin required for this order (string from API)
+  marginUsed?: number; // Margin required for this order (calculated by hooks)
   inputMethod?: InputMethod; // How user set the amount
 
   // Close-specific (used for position close operations)
-  receivedAmount?: string; // Amount user receives after close (string from API)
-  realizedPnl?: string; // Realized P&L from close (string from API)
+  receivedAmount?: number; // Amount user receives after close (calculated by hooks)
+  realizedPnl?: number; // Realized P&L from close (calculated by hooks)
 }
 
 // TP/SL-specific tracking data for analytics events

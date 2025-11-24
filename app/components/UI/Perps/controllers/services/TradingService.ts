@@ -90,17 +90,15 @@ export class TradingService {
       ),
       [PerpsEventProperties.COMPLETION_DURATION]: duration,
       ...(params.trackingData?.marginUsed && {
-        [PerpsEventProperties.MARGIN_USED]: parseFloat(
-          params.trackingData.marginUsed,
-        ),
+        [PerpsEventProperties.MARGIN_USED]: params.trackingData.marginUsed,
       }),
       ...(params.trackingData?.totalFee && {
-        [PerpsEventProperties.FEES]: parseFloat(params.trackingData.totalFee),
+        [PerpsEventProperties.FEES]: params.trackingData.totalFee,
       }),
       ...((result?.averagePrice || params.trackingData?.marketPrice) && {
-        [PerpsEventProperties.ASSET_PRICE]: parseFloat(
-          String(result?.averagePrice || params.trackingData?.marketPrice),
-        ),
+        [PerpsEventProperties.ASSET_PRICE]: result?.averagePrice
+          ? parseFloat(result.averagePrice)
+          : params.trackingData?.marketPrice,
       }),
       ...(params.orderType === 'limit' &&
         params.price && {
@@ -112,24 +110,19 @@ export class TradingService {
     if (status === PerpsEventValues.STATUS.EXECUTED) {
       eventBuilder.addProperties({
         ...(params.trackingData?.metamaskFee && {
-          [PerpsEventProperties.METAMASK_FEE]: parseFloat(
-            params.trackingData.metamaskFee,
-          ),
+          [PerpsEventProperties.METAMASK_FEE]: params.trackingData.metamaskFee,
         }),
         ...(params.trackingData?.metamaskFeeRate && {
-          [PerpsEventProperties.METAMASK_FEE_RATE]: parseFloat(
+          [PerpsEventProperties.METAMASK_FEE_RATE]:
             params.trackingData.metamaskFeeRate,
-          ),
         }),
         ...(params.trackingData?.feeDiscountPercentage && {
-          [PerpsEventProperties.DISCOUNT_PERCENTAGE]: parseFloat(
+          [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
             params.trackingData.feeDiscountPercentage,
-          ),
         }),
         ...(params.trackingData?.estimatedPoints && {
-          [PerpsEventProperties.ESTIMATED_REWARDS]: parseFloat(
+          [PerpsEventProperties.ESTIMATED_REWARDS]:
             params.trackingData.estimatedPoints,
-          ),
         }),
         ...(params.takeProfitPrice && {
           [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
@@ -500,41 +493,35 @@ export class TradingService {
           parseFloat(position.returnOnEquity) * 100,
       }),
       ...(params.trackingData?.totalFee && {
-        [PerpsEventProperties.FEE]: parseFloat(params.trackingData.totalFee),
+        [PerpsEventProperties.FEE]: params.trackingData.totalFee,
       }),
       ...(params.trackingData?.metamaskFee && {
-        [PerpsEventProperties.METAMASK_FEE]: parseFloat(
-          params.trackingData.metamaskFee,
-        ),
+        [PerpsEventProperties.METAMASK_FEE]: params.trackingData.metamaskFee,
       }),
       ...(params.trackingData?.metamaskFeeRate && {
-        [PerpsEventProperties.METAMASK_FEE_RATE]: parseFloat(
+        [PerpsEventProperties.METAMASK_FEE_RATE]:
           params.trackingData.metamaskFeeRate,
-        ),
       }),
       ...(params.trackingData?.feeDiscountPercentage && {
-        [PerpsEventProperties.DISCOUNT_PERCENTAGE]: parseFloat(
+        [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
           params.trackingData.feeDiscountPercentage,
-        ),
       }),
       ...(params.trackingData?.estimatedPoints && {
-        [PerpsEventProperties.ESTIMATED_REWARDS]: parseFloat(
+        [PerpsEventProperties.ESTIMATED_REWARDS]:
           params.trackingData.estimatedPoints,
-        ),
       }),
       ...((params.trackingData?.marketPrice || result?.averagePrice) && {
-        [PerpsEventProperties.ASSET_PRICE]: parseFloat(
-          String(params.trackingData?.marketPrice || result?.averagePrice),
-        ),
+        [PerpsEventProperties.ASSET_PRICE]: result?.averagePrice
+          ? parseFloat(result.averagePrice)
+          : params.trackingData?.marketPrice,
       }),
       ...(params.orderType === 'limit' &&
         params.price && {
           [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
         }),
       ...(params.trackingData?.receivedAmount && {
-        [PerpsEventProperties.RECEIVED_AMOUNT]: parseFloat(
+        [PerpsEventProperties.RECEIVED_AMOUNT]:
           params.trackingData.receivedAmount,
-        ),
       }),
     };
 
