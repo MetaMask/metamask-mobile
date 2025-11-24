@@ -1,16 +1,12 @@
 import { useSelector } from 'react-redux';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import {
   selectChainId,
-  selectIsPopularNetwork,
   selectProviderConfig,
   selectEvmTicker,
   selectEvmChainId,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { getChainIdsToPoll } from '../../../selectors/tokensController';
 import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
 import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCrossChains';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -43,28 +39,16 @@ const useSelectedAccountMultichainBalances =
     const chainId = useSelector(selectChainId);
     const evmChainId = useSelector(selectEvmChainId);
     const currentCurrency = useSelector(selectCurrentCurrency);
-    const allChainIDs = useSelector(getChainIdsToPoll);
 
     const enabledChains = useSelector(selectEVMEnabledNetworks);
-    const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
-      selectIsTokenNetworkFilterEqualCurrentNetwork,
-    );
-    const isPopularNetwork = useSelector(selectIsPopularNetwork);
+
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
 
-    const shouldAggregateAcrossChains = isRemoveGlobalNetworkSelectorEnabled()
-      ? true
-      : !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork;
-
-    const chainsToAggregateAcross = isRemoveGlobalNetworkSelectorEnabled()
-      ? enabledChains
-      : allChainIDs;
-
     const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
       [selectedInternalAccount as InternalAccount],
-      shouldAggregateAcrossChains,
-      chainsToAggregateAcross,
+      true,
+      enabledChains,
     );
 
     const totalFiatBalancesCrossEvmChain = useGetTotalFiatBalanceCrossChains(

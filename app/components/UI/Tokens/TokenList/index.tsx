@@ -100,6 +100,7 @@ const TokenListComponent = ({
         setShowScamWarningModal={setShowScamWarningModal}
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
+        isFullView={isFullView}
       />
     ),
     [
@@ -108,6 +109,7 @@ const TokenListComponent = ({
       privacyMode,
       showPercentageChange,
       TokenListItemComponent,
+      isFullView,
     ],
   );
 
@@ -125,6 +127,7 @@ const TokenListComponent = ({
             setShowScamWarningModal={setShowScamWarningModal}
             privacyMode={privacyMode}
             showPercentageChange={showPercentageChange}
+            isFullView={isFullView}
           />
         ))}
         {shouldShowViewAllButton && (

@@ -36,6 +36,8 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   toHexadecimal,
+  addCurrencySymbol,
+  balanceToFiatNumber,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
@@ -74,7 +76,7 @@ import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
@@ -183,7 +185,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     sourcePage: 'MainView',
     sourceToken: {
       ...asset,
-      address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      address: asset.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: asset.chainId as Hex,
       decimals: asset.decimals,
       symbol: asset.symbol,
@@ -489,7 +491,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 
-  if (isMultichainAccountsState2Enabled) {
+  if (isMultichainAccountsState2Enabled && asset.balance != null) {
+    // When state2 is enabled and asset has balance, use it directly
     balance = asset.balance;
   } else if (isMultichainAsset) {
     balance = asset.balance
@@ -515,19 +518,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     if (
       !isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)
     ) {
-      balance = asset.balance || 0;
+      balance = asset.balance ?? undefined;
     } else {
       balance =
         itemAddress && tokenBalanceHex
           ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
-          : 0;
+          : (asset.balance ?? undefined);
     }
   }
-
-  const mainBalance = asset.balanceFiat || '';
-  const secondaryBalance = `${balance} ${
-    asset.isETH ? asset.ticker : asset.symbol
-  }`;
 
   const convertedMultichainAssetRates =
     isNonEvmAsset && multichainAssetRates
@@ -562,6 +560,53 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     priceDiff = calculatedPriceDiff;
     comparePrice = calculatedComparePrice;
   }
+
+  // Calculate fiat balance if not provided in asset (e.g., when coming from trending view)
+  let mainBalance = asset.balanceFiat || '';
+  if (!mainBalance && balance != null) {
+    // Convert balance to number for calculations
+    const balanceNumber =
+      typeof balance === 'number' ? balance : parseFloat(String(balance));
+
+    if (balanceNumber > 0 && !isNaN(balanceNumber)) {
+      if (isNonEvmAsset && multichainAssetRates?.rate) {
+        // For non-EVM assets, use multichainAssetRates directly
+        const rate = Number(multichainAssetRates.rate);
+        const balanceFiatNumber = balanceNumber * rate;
+        mainBalance =
+          balanceFiatNumber >= 0.01 || balanceFiatNumber === 0
+            ? addCurrencySymbol(balanceFiatNumber, currentCurrency)
+            : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+      } else if (!isNonEvmAsset) {
+        // For EVM assets, calculate fiat balance directly using balance, market price, and conversion rate
+        const tickerConversionRate =
+          conversionRateByTicker?.[nativeCurrency]?.conversionRate;
+
+        if (
+          tickerConversionRate &&
+          marketDataRate !== undefined &&
+          isFinite(marketDataRate)
+        ) {
+          const balanceFiatNumber = balanceToFiatNumber(
+            balanceNumber,
+            tickerConversionRate,
+            marketDataRate,
+          );
+          if (isFinite(balanceFiatNumber)) {
+            mainBalance =
+              balanceFiatNumber >= 0.01 || balanceFiatNumber === 0
+                ? addCurrencySymbol(balanceFiatNumber, currentCurrency)
+                : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+          }
+        }
+      }
+    }
+  }
+
+  const secondaryBalance =
+    balance != null
+      ? `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`
+      : undefined;
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>

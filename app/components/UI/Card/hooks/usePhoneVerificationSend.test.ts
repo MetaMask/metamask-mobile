@@ -5,7 +5,6 @@ import {
   PhoneVerificationSendResponse,
   CardError,
   CardErrorType,
-  CardLocation,
 } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import usePhoneVerificationSend from './usePhoneVerificationSend';
@@ -36,7 +35,6 @@ const mockGetErrorMessage = getErrorMessage as jest.MockedFunction<
 
 describe('usePhoneVerificationSend', () => {
   const mockPhoneVerificationSend = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
 
   const mockSDK = {
     phoneVerificationSend: mockPhoneVerificationSend,
@@ -53,12 +51,8 @@ describe('usePhoneVerificationSend', () => {
   };
 
   const mockCardSDKReturn = {
+    ...jest.requireMock('../sdk'),
     sdk: mockSDK,
-    isLoading: false,
-    user: null,
-    setUser: jest.fn(),
-    logoutFromProvider: mockLogoutFromProvider,
-    userCardLocation: 'us' as CardLocation,
   };
 
   beforeEach(() => {
@@ -130,11 +124,8 @@ describe('usePhoneVerificationSend', () => {
 
     it('should throw error when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => usePhoneVerificationSend());
@@ -152,11 +143,8 @@ describe('usePhoneVerificationSend', () => {
 
     it('should handle undefined SDK gracefully', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => usePhoneVerificationSend());
@@ -337,11 +325,8 @@ describe('usePhoneVerificationSend', () => {
     it('should handle SDK method not available', async () => {
       const sdkWithoutMethod = {} as CardSDK;
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: sdkWithoutMethod,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       const { result } = renderHook(() => usePhoneVerificationSend());

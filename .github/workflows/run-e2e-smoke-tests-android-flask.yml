@@ -65,5 +65,5 @@ jobs:
       - name: Upload all test artifacts (XMLs + Screenshots)
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-smoke-android-all-test-artifacts
+          name: e2e-smoke-android-flask-all-test-artifacts
           path: all-test-artifacts/
