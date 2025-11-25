@@ -8,9 +8,6 @@ import { isValidHexAddress } from '../../../../util/address';
 jest.mock('../sdk/CardSDK');
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/address');
-jest.mock('@metamask/swaps-controller/dist/constants', () => ({
-  LINEA_CHAIN_ID: '0xe708',
-}));
 
 const MockedCardSDK = CardSDK as jest.MockedClass<typeof CardSDK>;
 const mockedLogger = Logger as jest.Mocked<typeof Logger>;

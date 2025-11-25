@@ -1,4 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   isFromOrToSelectedAddress,
   isFromCurrentChain,
@@ -6,6 +9,7 @@ import {
   filterByAddress as filterByAddressOriginal,
   filterByAddressAndNetwork as filterByAddressAndNetworkOriginal,
   PAY_TYPES,
+  isTransactionOnChains,
 } from '.';
 import { Token } from '../../components/UI/Swaps/utils/token-list-utils';
 import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
@@ -823,5 +827,104 @@ describe('Activity utils :: filterByAddress', () => {
     );
 
     expect(result).toEqual(false);
+  });
+});
+
+describe('Activity utils :: isTransactionOnChains', () => {
+  it('returns true if transaction chain ID matches', () => {
+    expect(
+      isTransactionOnChains(
+        { chainId: '0x1' as Hex } as TransactionMeta,
+        ['0x1', '0x2'],
+        [],
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true if required transaction has matching chain ID', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x3' as Hex,
+          requiredTransactionIds: ['123'],
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [
+          {
+            id: '123',
+            chainId: '0x1' as Hex,
+          } as TransactionMeta,
+        ],
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false if neither transaction nor required transaction match chain IDs', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x3' as Hex,
+          requiredTransactionIds: ['123'],
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [
+          {
+            id: '123',
+            chainId: '0x4' as Hex,
+          } as TransactionMeta,
+        ],
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false if perps deposit and required transaction chain does not match', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x1' as Hex,
+          type: TransactionType.perpsDeposit,
+          requiredTransactionIds: ['123'],
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [
+          {
+            id: '123',
+            chainId: '0x3' as Hex,
+          } as TransactionMeta,
+        ],
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true if perps deposit and required transaction chain does match', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x1' as Hex,
+          type: TransactionType.perpsDeposit,
+          requiredTransactionIds: ['123'],
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [
+          {
+            id: '123',
+            chainId: '0x2' as Hex,
+          } as TransactionMeta,
+        ],
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true if perps deposit and no required transactions', () => {
+    expect(
+      isTransactionOnChains(
+        {
+          chainId: '0x1' as Hex,
+          type: TransactionType.perpsDeposit,
+        } as TransactionMeta,
+        ['0x1', '0x2'],
+        [],
+      ),
+    ).toBe(true);
   });
 });

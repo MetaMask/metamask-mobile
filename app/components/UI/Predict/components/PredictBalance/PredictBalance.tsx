@@ -98,16 +98,16 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           </Box>
           <Skeleton width={48} height={48} style={tw.style('rounded-full')} />
         </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
           <Skeleton
             width="50%"
             height={40}
-            style={tw.style('rounded-full flex-1')}
+            style={tw.style('rounded-xl flex-1')}
           />
           <Skeleton
             width="50%"
             height={40}
-            style={tw.style('rounded-full flex-1')}
+            style={tw.style('rounded-xl flex-1')}
           />
         </Box>
       </Box>
@@ -145,11 +145,11 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           alignItems={BoxAlignItems.Center}
         >
           <Box>
-            <Text style={tw.style('text-heading-md font-bold')}>
+            <Text style={tw.style('text-body-md font-bold')}>
               {formatPrice(balance, { maximumDecimals: 2 })}
             </Text>
             <Text
-              style={tw.style('color-alternative')}
+              style={tw.style('color-alternative text-body-sm')}
               color={TextColor.Alternative}
             >
               {strings('predict.available_balance')}
@@ -162,6 +162,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={images.POL}
+                style={tw.style('border-background-muted')}
                 name="Polygon"
               />
             }
@@ -173,7 +174,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
             />
           </BadgeWrapper>
         </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
           <Button
             variant={
               hasBalance ? ButtonVariants.Secondary : ButtonVariants.Primary
