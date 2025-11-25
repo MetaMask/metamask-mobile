@@ -8783,7 +8783,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/phishing-controller@npm:^16.0.1":
+"@metamask/phishing-controller@npm:^16.1.0":
   version: 16.1.0
   resolution: "@metamask/phishing-controller@npm:16.1.0"
   dependencies:
@@ -35593,7 +35593,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^20.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^12.1.0"
-    "@metamask/phishing-controller": "npm:^16.0.1"
+    "@metamask/phishing-controller": "npm:^16.1.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^21.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.7.2"
