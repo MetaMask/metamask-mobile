@@ -8,7 +8,6 @@ import { useSelector } from 'react-redux';
 import {
   createProviderConfig,
   selectEvmNetworkConfigurationsByChainId,
-  selectProviderConfig,
 } from '../../../../../selectors/networkController';
 import { useMemo } from 'react';
 import { NetworkConfiguration } from '@metamask/network-controller';
@@ -43,7 +42,6 @@ export const useMultichainBlockExplorerTxUrl = ({
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
-  const providerConfig = useSelector(selectProviderConfig);
 
   // Format chainId based on whether it's EVM or not
   const isNonEvm = chainId ? isNonEvmChainId(chainId) : false;
@@ -64,8 +62,8 @@ export const useMultichainBlockExplorerTxUrl = ({
     () =>
       evmNetworkConfig
         ? getProviderConfigForNetwork(evmNetworkConfig)
-        : providerConfig,
-    [evmNetworkConfig, providerConfig],
+        : undefined,
+    [evmNetworkConfig],
   );
 
   const blockExplorer = useBlockExplorer();
@@ -86,7 +84,7 @@ export const useMultichainBlockExplorerTxUrl = ({
     // EVM
     const baseUrl =
       blockExplorer.getEvmBlockExplorerUrl(formatChainIdToHex(chainId)) ??
-      getEtherscanBaseUrl(evmProviderConfig.type);
+      getEtherscanBaseUrl(evmProviderConfig?.type ?? '');
 
     explorerTxUrl = etherscanLink.createCustomExplorerLink(txHash, baseUrl);
   }
