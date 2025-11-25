@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Logger from '../../../../../util/Logger';
-import type { SiteData } from '../SiteRowItem/SiteRowItem';
+import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 
 interface ApiDappResponse {
   id: string;

@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import SiteRowItemWrapper from './SiteRowItemWrapper';
-import { updateLastTrendingScreen } from '../../../Nav/Main/MainNavigator';
+import { updateLastTrendingScreen } from '../../../../Nav/Main/MainNavigator';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
-import type { SiteData } from './SiteRowItem/SiteRowItem';
+import type { SiteData } from '../SiteRowItem/SiteRowItem';
 
 // Mock the dependencies
 jest.mock('../../../Nav/Main/MainNavigator', () => ({

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
-import SiteRowItem, { type SiteData } from './SiteRowItem/SiteRowItem';
-import { updateLastTrendingScreen } from '../../../Nav/Main/MainNavigator';
+import SiteRowItem, { type SiteData } from '../SiteRowItem/SiteRowItem';
+import { updateLastTrendingScreen } from '../../../../Nav/Main/MainNavigator';
 
 interface SiteRowItemWrapperProps {
   site: SiteData;

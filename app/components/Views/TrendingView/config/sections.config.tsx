@@ -26,10 +26,10 @@ import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnec
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 import { useSearchRequest } from '../../../UI/Trending/hooks/useSearchRequest';
 import { Box, IconName } from '@metamask/design-system-react-native';
-import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
-import SiteRowItemWrapper from '../SectionSites/SiteRowItemWrapper';
-import SiteSkeleton from '../SectionSites/SiteSkeleton/SiteSkeleton';
-import { useSitesData } from '../SectionSites/hooks/useSitesData';
+import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import SiteRowItemWrapper from '../../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
+import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
+import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
 import { CaipChainId } from '@metamask/utils';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
@@ -232,7 +232,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     title: strings('trending.sites'),
     icon: IconName.Global,
     viewAllAction: (navigation) => {
-      navigation.navigate(Routes.SITES_LIST_VIEW);
+      navigation.navigate(Routes.SITES_FULL_VIEW);
     },
     RowItem: ({ item, navigation }) => (
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />

@@ -11,29 +11,29 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSitesData } from '../SectionSites/hooks/useSitesData';
-import SiteRowItemWrapper from '../SectionSites/SiteRowItemWrapper';
-import SiteSkeleton from '../SectionSites/SiteSkeleton/SiteSkeleton';
-import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
+import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
+import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
+import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
+import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import HeaderBase, {
   HeaderBaseVariant,
-} from '../../../../component-library/components/HeaderBase';
+} from '../../../component-library/components/HeaderBase';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName as IconNameType } from '../../../../component-library/components/Icons/Icon';
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import { IconName as IconNameType } from '../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../locales/i18n';
-import ExploreSearchBar from '../ExploreSearchBar/ExploreSearchBar';
+} from '../../../component-library/components/Texts/Text';
+import { strings } from '../../../../locales/i18n';
+import ExploreSearchBar from '../TrendingView/ExploreSearchBar/ExploreSearchBar';
 
 function looksLikeUrl(str: string): boolean {
   return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
 }
 
-const SitesListView: React.FC = () => {
+const SitesFullView: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
@@ -223,4 +223,4 @@ const SitesListView: React.FC = () => {
   );
 };
 
-export default SitesListView;
+export default SitesFullView;

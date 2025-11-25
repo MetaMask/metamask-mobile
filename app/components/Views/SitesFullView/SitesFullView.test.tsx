@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import SitesListView from './SitesListView';
-import { useSitesData } from '../SectionSites/hooks/useSitesData';
-import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
+import SitesFullView from './SitesFullView';
+import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
+import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 
 // Mock dependencies
 jest.mock('../SectionSites/hooks/useSitesData');
@@ -118,7 +118,7 @@ jest.mock('../ExploreSearchBar/ExploreSearchBar', () => {
 
 const mockUseSitesData = useSitesData as jest.Mock;
 
-describe('SitesListView', () => {
+describe('SitesFullView', () => {
   const mockSites: SiteData[] = [
     {
       id: '1',
@@ -158,7 +158,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       expect(getByTestId('header-base')).toBeOnTheScreen();
       expect(getByTestId('back-button')).toBeOnTheScreen();
@@ -172,7 +172,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
       expect(getByTestId('site-item-2')).toBeOnTheScreen();
@@ -186,7 +186,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getAllByTestId } = render(<SitesListView />);
+      const { getAllByTestId } = render(<SitesFullView />);
 
       const skeletons = getAllByTestId('site-skeleton');
       expect(skeletons.length).toBe(10);
@@ -205,7 +205,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
       const backButton = getByTestId('back-button');
 
       fireEvent.press(backButton);
@@ -220,7 +220,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
       const searchButton = getByTestId('search-button');
 
       expect(queryByTestId('explore-search-bar')).toBeNull();
@@ -237,7 +237,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -260,7 +260,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -282,7 +282,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -304,7 +304,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -326,7 +326,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Initially no cancel button
       expect(queryByTestId('explore-search-cancel-button')).toBeNull();
@@ -345,7 +345,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search and type
       fireEvent.press(getByTestId('search-button'));
@@ -366,7 +366,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -388,7 +388,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search and type
       fireEvent.press(getByTestId('search-button'));
@@ -417,7 +417,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -439,7 +439,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -461,7 +461,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -485,7 +485,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -510,7 +510,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search and type URL
       fireEvent.press(getByTestId('search-button'));
@@ -539,7 +539,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -561,7 +561,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesListView />);
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('search-button'));
@@ -579,7 +579,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      render(<SitesListView />);
+      render(<SitesFullView />);
 
       expect(mockUseSitesData).toHaveBeenCalledWith({ limit: 100 });
     });
@@ -595,7 +595,7 @@ describe('SitesListView', () => {
         '../SectionSites/SiteRowItemWrapper',
       );
 
-      render(<SitesListView />);
+      render(<SitesFullView />);
 
       expect(SiteRowItemWrapper).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -615,7 +615,7 @@ describe('SitesListView', () => {
       });
 
       const { rerender, getAllByTestId, queryByTestId, getByTestId } = render(
-        <SitesListView />,
+        <SitesFullView />,
       );
 
       expect(getAllByTestId('site-skeleton').length).toBe(10);
@@ -626,7 +626,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      rerender(<SitesListView />);
+      rerender(<SitesFullView />);
 
       expect(queryByTestId('site-skeleton')).toBeNull();
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
@@ -648,7 +648,7 @@ describe('SitesListView', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<SitesListView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
     });
