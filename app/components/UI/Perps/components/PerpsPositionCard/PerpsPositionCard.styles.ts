@@ -111,7 +111,7 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 1,
     },
     detailsTitle: {
-      marginBottom: 4,
+      marginBottom: 16,
     },
     detailRow: {
       padding: 12,

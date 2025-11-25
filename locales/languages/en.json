@@ -950,6 +950,10 @@
     "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
     "no_open_orders": "No open orders",
+    "auto_close": {
+      "title": "Auto close",
+      "description": "Protect your margin, lock in gains"
+    },
     "deposit": {
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
