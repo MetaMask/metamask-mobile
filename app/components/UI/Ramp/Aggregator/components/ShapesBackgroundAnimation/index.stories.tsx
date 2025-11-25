@@ -3,11 +3,12 @@
 // Third party dependencies.
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Device from '../../../../../util/device';
+
+import Device from '../../../../../../util/device';
 
 // Internal dependencies.
-import { default as ShapesBackgroundAnimationComponent } from './ShapesBackgroundAnimation';
-import { mockTheme } from '../../../../../util/theme';
+import { default as ShapesBackgroundAnimationComponent } from '.';
+import { mockTheme } from '../../../../../../util/theme';
 
 const IS_NARROW = Device.getDeviceWidth() <= 320;
 const STAGE_SIZE = IS_NARROW ? 240 : 260;

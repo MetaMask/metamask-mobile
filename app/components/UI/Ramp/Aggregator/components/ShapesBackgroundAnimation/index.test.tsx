@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import ShapesBackgroundAnimation from './ShapesBackgroundAnimation';
+import ShapesBackgroundAnimation from './';
 
 describe('ShapesBackgroundAnimation', () => {
   it('should render correctly with default props', () => {

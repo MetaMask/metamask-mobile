@@ -52,6 +52,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import TrendingView from '../../Views/TrendingView/TrendingView';
+import SitesListView from '../../Views/TrendingView/SitesListView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
@@ -289,6 +290,26 @@ const TrendingHome = () => (
       name={Routes.TRENDING_VIEW}
       component={TrendingView}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SITES_LIST_VIEW}
+      component={SitesListView}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
     />
   </Stack.Navigator>
 );
