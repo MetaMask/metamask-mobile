@@ -108,13 +108,20 @@ const TrendingFeed: React.FC = () => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
+  // Clean up timeout when component unmounts or refreshing changes
+  useEffect(() => {
+    if (refreshing) {
+      const timeoutId = setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [refreshing]);
+
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     setRefreshTrigger((prev) => prev + 1);
-    // Allow time for sections to refetch, then stop the refresh animation
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
   }, []);
 
   return (

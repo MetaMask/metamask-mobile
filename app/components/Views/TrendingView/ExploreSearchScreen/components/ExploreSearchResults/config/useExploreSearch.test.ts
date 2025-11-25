@@ -46,23 +46,15 @@ const mockSites = [
   },
 ];
 
-const mockUseTrendingRequest = jest.fn();
-const mockUseSearchRequest = jest.fn();
+const mockUseTrendingSearch = jest.fn();
 const mockUsePerpsMarkets = jest.fn();
 const mockUsePredictMarketData = jest.fn();
 const mockUseSitesData = jest.fn();
 
 jest.mock(
-  '../../../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
+  '../../../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch',
   () => ({
-    useTrendingRequest: () => mockUseTrendingRequest(),
-  }),
-);
-
-jest.mock(
-  '../../../../../../UI/Trending/hooks/useSearchRequest/useSearchRequest',
-  () => ({
-    useSearchRequest: () => mockUseSearchRequest(),
+    useTrendingSearch: () => mockUseTrendingSearch(),
   }),
 );
 
@@ -83,29 +75,29 @@ describe('useExploreSearch', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockUseTrendingRequest.mockReturnValue({
-      results: mockTrendingTokens,
+    mockUseTrendingSearch.mockReturnValue({
+      data: mockTrendingTokens,
       isLoading: false,
-    });
-
-    mockUseSearchRequest.mockReturnValue({
-      results: mockTrendingTokens,
-      isLoading: false,
+      refetch: jest.fn(),
     });
 
     mockUsePerpsMarkets.mockReturnValue({
       markets: mockPerpsMarkets,
       isLoading: false,
+      refresh: jest.fn(),
+      isRefreshing: false,
     });
 
     mockUsePredictMarketData.mockReturnValue({
       marketData: mockPredictionMarkets,
       isFetching: false,
+      refetch: jest.fn(),
     });
 
     mockUseSitesData.mockReturnValue({
       sites: mockSites,
       isLoading: false,
+      refetch: jest.fn(),
     });
   });
 
@@ -278,24 +270,29 @@ describe('useExploreSearch', () => {
   });
 
   it('returns loading states for each section', () => {
-    mockUseTrendingRequest.mockReturnValue({
-      results: [],
+    mockUseTrendingSearch.mockReturnValue({
+      data: [],
       isLoading: true,
+      refetch: jest.fn(),
     });
 
     mockUsePerpsMarkets.mockReturnValue({
       markets: [],
       isLoading: true,
+      refresh: jest.fn(),
+      isRefreshing: false,
     });
 
     mockUsePredictMarketData.mockReturnValue({
       marketData: [],
       isFetching: true,
+      refetch: jest.fn(),
     });
 
     mockUseSitesData.mockReturnValue({
       sites: [],
       isLoading: true,
+      refetch: jest.fn(),
     });
 
     const { result } = renderHook(() => useExploreSearch(''));
