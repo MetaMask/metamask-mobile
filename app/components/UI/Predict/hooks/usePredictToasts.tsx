@@ -136,13 +136,13 @@ export const usePredictToasts = ({
         ],
         iconName: IconName.Confirmation,
         iconColor: theme.colors.accent03.dark,
-        backgroundColor: theme.colors.accent03.normal,
+        backgroundColor: 'transparent',
         hasNoTimeout: false,
         startAccessory: (
           <View style={toastStyles?.spinnerContainer}>
             <Icon
               name={IconName.Confirmation}
-              color={theme.colors.accent03.normal}
+              color={theme.colors.success.default}
               size={IconSize.Lg}
             />
           </View>
@@ -153,7 +153,7 @@ export const usePredictToasts = ({
       confirmedToastConfig.description,
       confirmedToastConfig.title,
       theme.colors.accent03.dark,
-      theme.colors.accent03.normal,
+      theme.colors.success.default,
       toastRef,
     ],
   );
