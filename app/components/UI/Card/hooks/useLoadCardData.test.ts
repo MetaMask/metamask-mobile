@@ -4,10 +4,10 @@ import useLoadCardData from './useLoadCardData';
 import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 import useCardDetails from './useCardDetails';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
-import { useIsCardholder } from './useIsCardholder';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
+import useGetUserKYCStatus from './useGetUserKYCStatus';
 import {
   AllowanceState,
   CardTokenAllowance,
@@ -28,10 +28,10 @@ jest.mock('react-redux', () => ({
 jest.mock('./isBaanxLoginEnabled');
 jest.mock('./useCardDetails');
 jest.mock('./useGetPriorityCardToken');
-jest.mock('./useIsCardholder');
 jest.mock('./useGetCardExternalWalletDetails');
 jest.mock('./useGetDelegationSettings');
 jest.mock('./useGetLatestAllowanceForPriorityToken');
+jest.mock('./useGetUserKYCStatus');
 
 const mockUseIsBaanxLoginEnabled =
   useIsBaanxLoginEnabled as jest.MockedFunction<typeof useIsBaanxLoginEnabled>;
@@ -42,9 +42,6 @@ const mockUseGetPriorityCardToken =
   useGetPriorityCardToken as jest.MockedFunction<
     typeof useGetPriorityCardToken
   >;
-const mockUseIsCardholder = useIsCardholder as jest.MockedFunction<
-  typeof useIsCardholder
->;
 const mockUseGetCardExternalWalletDetails =
   useGetCardExternalWalletDetails as jest.MockedFunction<
     typeof useGetCardExternalWalletDetails
@@ -57,6 +54,9 @@ const mockUseGetLatestAllowanceForPriorityToken =
   useGetLatestAllowanceForPriorityToken as jest.MockedFunction<
     typeof useGetLatestAllowanceForPriorityToken
   >;
+const mockUseGetUserKYCStatus = useGetUserKYCStatus as jest.MockedFunction<
+  typeof useGetUserKYCStatus
+>;
 
 describe('useLoadCardData', () => {
   const mockPriorityToken: CardTokenAllowance = {
@@ -119,6 +119,7 @@ describe('useLoadCardData', () => {
   const mockFetchExternalWalletDetails = jest.fn();
   const mockFetchDelegationSettings = jest.fn();
   const mockPollCardStatusUntilProvisioned = jest.fn();
+  const mockFetchKYCStatus = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -127,8 +128,6 @@ describe('useLoadCardData', () => {
     mockUseSelector.mockReturnValue(false); // isAuthenticated = false by default
 
     mockUseIsBaanxLoginEnabled.mockReturnValue(true);
-
-    mockUseIsCardholder.mockReturnValue(true);
 
     mockUseGetDelegationSettings.mockReturnValue({
       data: mockDelegationSettings,
@@ -168,6 +167,13 @@ describe('useLoadCardData', () => {
       fetchCardDetails: mockFetchCardDetails,
       pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
       isLoadingPollCardStatusUntilProvisioned: false,
+    });
+
+    mockUseGetUserKYCStatus.mockReturnValue({
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      isLoading: false,
+      error: null,
+      fetchKYCStatus: mockFetchKYCStatus,
     });
   });
 
@@ -330,7 +336,6 @@ describe('useLoadCardData', () => {
 
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.isBaanxLoginEnabled).toBe(true);
-      expect(result.current.isCardholder).toBe(true);
     });
 
     it('calls fetchPriorityToken when fetchAllData is invoked', async () => {
@@ -499,7 +504,6 @@ describe('useLoadCardData', () => {
 
       expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.isBaanxLoginEnabled).toBe(true);
-      expect(result.current.isCardholder).toBe(true);
     });
   });
 
@@ -635,14 +639,6 @@ describe('useLoadCardData', () => {
       const { result } = renderHook(() => useLoadCardData());
 
       expect(result.current.isBaanxLoginEnabled).toBe(false);
-    });
-
-    it('handles non-cardholder state', () => {
-      mockUseIsCardholder.mockReturnValue(false);
-
-      const { result } = renderHook(() => useLoadCardData());
-
-      expect(result.current.isCardholder).toBe(false);
     });
   });
 
@@ -941,6 +937,342 @@ describe('useLoadCardData', () => {
       expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
       expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
       expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
+      expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
+    });
+
+    it('refetchAllData includes delegation settings fetch for authenticated mode', async () => {
+      mockUseSelector.mockReturnValue(true); // Authenticated
+
+      const { result } = renderHook(() => useLoadCardData());
+
+      await act(async () => {
+        await result.current.refetchAllData();
+      });
+
+      expect(mockFetchDelegationSettings).toHaveBeenCalledTimes(1);
+      expect(mockFetchExternalWalletDetails).toHaveBeenCalledTimes(1);
+      expect(mockFetchCardDetails).toHaveBeenCalledTimes(1);
+      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
+      expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
+    });
+
+    it('refetchAllData only fetches priority token in unauthenticated mode', async () => {
+      mockUseSelector.mockReturnValue(false); // Unauthenticated
+
+      const { result } = renderHook(() => useLoadCardData());
+
+      await act(async () => {
+        await result.current.refetchAllData();
+      });
+
+      expect(mockFetchPriorityToken).toHaveBeenCalledTimes(1);
+      expect(mockFetchDelegationSettings).not.toHaveBeenCalled();
+      expect(mockFetchExternalWalletDetails).not.toHaveBeenCalled();
+      expect(mockFetchCardDetails).not.toHaveBeenCalled();
+      expect(mockFetchKYCStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('KYC Status', () => {
+    describe('Authenticated Mode', () => {
+      beforeEach(() => {
+        mockUseSelector.mockReturnValue(true); // Authenticated
+      });
+
+      it('returns KYC status when user is verified', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.kycStatus).toEqual({
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+        });
+      });
+
+      it('returns KYC status when user verification is pending', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.kycStatus).toEqual({
+          verificationState: 'PENDING',
+          userId: 'user-123',
+        });
+      });
+
+      it('returns KYC status when user verification is rejected', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: { verificationState: 'REJECTED', userId: 'user-123' },
+          isLoading: false,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.kycStatus).toEqual({
+          verificationState: 'REJECTED',
+          userId: 'user-123',
+        });
+      });
+
+      it('returns null KYC status when fetch fails', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: null,
+          isLoading: false,
+          error: new Error('KYC fetch failed'),
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.kycStatus).toBeNull();
+      });
+
+      it('includes KYC status loading state in overall loading state', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: null,
+          isLoading: true,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.isLoading).toBe(true);
+      });
+
+      it('returns KYC error in combined error state', () => {
+        const kycError = new Error('KYC verification failed');
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: null,
+          isLoading: false,
+          error: kycError,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.error).toEqual(kycError);
+      });
+
+      it('returns null KYC status with null verification state', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: { verificationState: null, userId: 'user-123' },
+          isLoading: false,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.kycStatus).toEqual({
+          verificationState: null,
+          userId: 'user-123',
+        });
+      });
+
+      it('fetches KYC status when fetchAllData is called', async () => {
+        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        await act(async () => {
+          await result.current.fetchAllData();
+        });
+
+        expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
+      });
+
+      it('fetches KYC status when refetchAllData is called', async () => {
+        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
+        mockFetchDelegationSettings.mockReset().mockResolvedValue(undefined);
+        mockFetchExternalWalletDetails.mockReset().mockResolvedValue(undefined);
+        mockFetchCardDetails.mockReset().mockResolvedValue(undefined);
+        mockFetchPriorityToken.mockReset().mockResolvedValue(undefined);
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        await act(async () => {
+          await result.current.refetchAllData();
+        });
+
+        expect(mockFetchKYCStatus).toHaveBeenCalledTimes(1);
+      });
+
+      it('handles KYC status update when status changes', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+          isLoading: false,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result, rerender } = renderHook(() => useLoadCardData());
+
+        expect(result.current.kycStatus?.verificationState).toBe('PENDING');
+
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        rerender();
+
+        expect(result.current.kycStatus?.verificationState).toBe('VERIFIED');
+      });
+    });
+
+    describe('Unauthenticated Mode', () => {
+      beforeEach(() => {
+        mockUseSelector.mockReturnValue(false); // Unauthenticated
+      });
+
+      it('returns null KYC status', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.kycStatus).toBeNull();
+      });
+
+      it('excludes KYC loading state from overall loading state', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: null,
+          isLoading: true,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      it('excludes KYC error from combined error state', () => {
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: null,
+          isLoading: false,
+          error: new Error('KYC error'),
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        expect(result.current.error).toBeFalsy();
+      });
+
+      it('does not fetch KYC status when fetchAllData is called', async () => {
+        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        await act(async () => {
+          await result.current.fetchAllData();
+        });
+
+        expect(mockFetchKYCStatus).not.toHaveBeenCalled();
+      });
+
+      it('does not fetch KYC status when refetchAllData is called', async () => {
+        mockFetchKYCStatus.mockReset().mockResolvedValue(undefined);
+        mockFetchPriorityToken.mockReset().mockResolvedValue(undefined);
+
+        const { result } = renderHook(() => useLoadCardData());
+
+        await act(async () => {
+          await result.current.refetchAllData();
+        });
+
+        expect(mockFetchKYCStatus).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('Mode Switching', () => {
+      it('returns KYC status when switching from unauthenticated to authenticated', () => {
+        mockUseSelector.mockReturnValue(false); // Start unauthenticated
+
+        const { result, rerender } = renderHook(() => useLoadCardData());
+
+        expect(result.current.kycStatus).toBeNull();
+
+        mockUseSelector.mockReturnValue(true); // Switch to authenticated
+
+        rerender();
+
+        expect(result.current.kycStatus).toEqual({
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+        });
+      });
+
+      it('returns null KYC status when switching from authenticated to unauthenticated', () => {
+        mockUseSelector.mockReturnValue(true); // Start authenticated
+        mockUseGetUserKYCStatus.mockReturnValue({
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+          isLoading: false,
+          error: null,
+          fetchKYCStatus: mockFetchKYCStatus,
+        });
+
+        const { result, rerender } = renderHook(() => useLoadCardData());
+
+        expect(result.current.kycStatus).toEqual({
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+        });
+
+        mockUseSelector.mockReturnValue(false); // Switch to unauthenticated
+
+        rerender();
+
+        expect(result.current.kycStatus).toBeNull();
+      });
+    });
+  });
+
+  describe('Warning Priority', () => {
+    it('returns NoCard warning when both NoCard and NeedDelegation warnings exist', () => {
+      mockUseGetPriorityCardToken.mockReturnValue({
+        priorityToken: mockPriorityToken,
+        allTokensWithAllowances: mockAllTokens,
+        isLoading: false,
+        error: false,
+        warning: CardWarning.NeedDelegation,
+        fetchPriorityToken: mockFetchPriorityToken,
+      });
+
+      mockUseCardDetails.mockReturnValue({
+        cardDetails: mockCardDetails,
+        isLoading: false,
+        error: null,
+        warning: CardWarning.NoCard,
+        fetchCardDetails: mockFetchCardDetails,
+        pollCardStatusUntilProvisioned: mockPollCardStatusUntilProvisioned,
+        isLoadingPollCardStatusUntilProvisioned: false,
+      });
+
+      const { result } = renderHook(() => useLoadCardData());
+
+      expect(result.current.warning).toBe(CardWarning.NoCard);
     });
   });
 });
