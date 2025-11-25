@@ -6999,6 +6999,9 @@
     "cancel": "Cancel",
     "perps": "Perps",
     "predictions": "Predictions",
-    "no_results": "No results found"
+    "no_results": "No results found",
+    "sites": "Sites",
+    "popular_sites": "Popular Sites",
+    "search_sites": "Search sites"
   }
 }
