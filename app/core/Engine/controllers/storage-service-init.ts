@@ -10,6 +10,17 @@ import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 
 /**
+ * Wrapper for stored data with metadata.
+ * Each adapter defines its own wrapper structure.
+ */
+interface StoredDataWrapper<T = unknown> {
+  /** Timestamp when data was stored (milliseconds since epoch). */
+  timestamp: number;
+  /** The actual data being stored. */
+  data: T;
+}
+
+/**
  * Mobile-specific storage adapter using FilesystemStorage.
  * This provides persistent storage for large controller data.
  *
@@ -19,17 +30,24 @@ import Logger from '../../../util/Logger';
 const mobileStorageAdapter: StorageAdapter = {
   /**
    * Get an item from filesystem storage.
+   * Deserializes and unwraps the stored data.
    *
    * @param namespace - The controller namespace.
    * @param key - The data key.
-   * @returns The value as a string, or null if not found.
+   * @returns The unwrapped data, or null if not found.
    */
-  async getItem(namespace: string, key: string): Promise<string | null> {
+  async getItem(namespace: string, key: string): Promise<unknown> {
     try {
       // Build full key: storageService:namespace:key
       const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
-      const value = await FilesystemStorage.getItem(fullKey);
-      return value ?? null;
+      const serialized = await FilesystemStorage.getItem(fullKey);
+
+      if (!serialized) {
+        return null;
+      }
+
+      const wrapper: StoredDataWrapper = JSON.parse(serialized);
+      return wrapper.data;
     } catch (error) {
       Logger.error(error as Error, {
         message: `StorageService: Failed to get item: ${namespace}:${key}`,
@@ -40,16 +58,28 @@ const mobileStorageAdapter: StorageAdapter = {
 
   /**
    * Set an item in filesystem storage.
+   * Wraps with metadata and serializes to string.
    *
    * @param namespace - The controller namespace.
    * @param key - The data key.
-   * @param value - The string value to store.
+   * @param value - The value to store (will be wrapped and serialized).
    */
-  async setItem(namespace: string, key: string, value: string): Promise<void> {
+  async setItem(namespace: string, key: string, value: unknown): Promise<void> {
     try {
       // Build full key: storageService:namespace:key
       const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
-      await FilesystemStorage.setItem(fullKey, value, Device.isIos());
+
+      // Wrap with metadata
+      const wrapper: StoredDataWrapper = {
+        timestamp: Date.now(),
+        data: value,
+      };
+
+      await FilesystemStorage.setItem(
+        fullKey,
+        JSON.stringify(wrapper),
+        Device.isIos(),
+      );
     } catch (error) {
       Logger.error(error as Error, {
         message: `StorageService: Failed to set item: ${namespace}:${key}`,
