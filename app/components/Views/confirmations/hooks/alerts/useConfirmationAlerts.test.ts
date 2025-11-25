@@ -8,6 +8,7 @@ import {
   siweSignatureConfirmationState,
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
@@ -149,7 +150,13 @@ describe('useConfirmationAlerts', () => {
   });
 
   it('returns empty array if no alerts', () => {
-    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
     expect(result.current).toEqual([]);
   });
 

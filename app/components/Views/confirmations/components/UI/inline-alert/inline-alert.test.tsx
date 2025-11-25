@@ -49,6 +49,8 @@ describe('InlineAlert', () => {
   const mockTrackInlineAlertClicked = jest.fn();
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     const useAlertsBase = {
       alerts: mockAlerts,
       fieldAlerts: mockAlerts,
