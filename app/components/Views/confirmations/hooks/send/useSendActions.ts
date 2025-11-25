@@ -1,6 +1,6 @@
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useCallback } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Routes from '../../../../../constants/navigation/Routes';
@@ -12,14 +12,8 @@ import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
 import { ConfirmationLoader } from '../../components/confirm/confirm-component';
-import { InitSendLocation } from '../../constants/send';
 
 export const useSendActions = () => {
-  const route = useRoute();
-  // The location is nested in route.params.params.location due to navigation structure
-  const location = (route.params as { params: { location: string } })?.params
-    ?.location as string | undefined;
-
   const { asset, chainId, fromAccount, from, maxValueMode, to, value } =
     useSendContext();
   const navigation = useNavigation();
@@ -85,12 +79,9 @@ export const useSendActions = () => {
 
   const handleCancelPress = useCallback(() => {
     captureSendExit();
-    if (location === InitSendLocation.AssetOverview) {
-      navigation.goBack();
-    } else {
-      navigation.navigate(Routes.WALLET_VIEW);
-    }
-  }, [captureSendExit, location, navigation]);
+
+    navigation.goBack();
+  }, [captureSendExit, navigation]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();

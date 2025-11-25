@@ -1,5 +1,4 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   ACCOUNT_ADDRESS_MOCK_1,
   evmSendStateMock,
@@ -10,8 +9,6 @@ import * as SendUtils from '../../utils/send';
 // eslint-disable-next-line import/no-namespace
 import * as SendExitMetrics from './metrics/useSendExitMetrics';
 import { useSendActions } from './useSendActions';
-import { InitSendLocation } from '../../constants/send';
-import { useRoute } from '@react-navigation/native';
 
 jest.mock('../../context/send-context', () => ({
   useSendContext: jest.fn(),
@@ -38,8 +35,6 @@ jest.mock('@react-navigation/native', () => ({
     name: 'send_route',
   }),
 }));
-
-const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 
 const mockState = {
   state: evmSendStateMock,
@@ -91,37 +86,13 @@ describe('useSendActions', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('calls navigation.navigate with WALLET_VIEW when handleCancelPress is invoked and location is not AssetOverview', () => {
-    const { result } = renderHookWithProvider(
-      () => useSendActions(),
-      mockState,
-    );
-    result.current.handleCancelPress();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('calls navigation.goBack when handleCancelPress is invoked and location is AssetOverview', () => {
-    mockUseRoute.mockReturnValueOnce({
-      key: 'test-route-key',
-      params: {
-        params: {
-          location: InitSendLocation.AssetOverview,
-        },
-        asset: {
-          chainId: '0x1',
-        },
-      },
-      name: 'send_route',
-    } as ReturnType<typeof useRoute>);
-
+  it('calls navigation.goBack when handleCancelPress is invoked', () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
       mockState,
     );
     result.current.handleCancelPress();
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
 
   it('capture metrics when handleCancelPress is invoked', () => {
