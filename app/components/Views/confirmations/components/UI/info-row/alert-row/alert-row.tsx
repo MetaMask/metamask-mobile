@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import InlineAlert from '../../inline-alert';
 import { useAlerts } from '../../../../context/alert-system-context';
 import { Severity } from '../../../../types/alerts';
@@ -7,6 +7,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow, { InfoRowProps, InfoRowVariant } from '../info-row';
 import styleSheet from './alert-row.styles';
 import { IconColor } from '../../../../../../../component-library/components/Icons/Icon';
+import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
 
 function getAlertTextColors(severity?: Severity): TextColor {
   switch (severity) {
@@ -41,10 +42,18 @@ const AlertRow = ({
   isShownWithAlertsOnly,
   ...props
 }: AlertRowProps) => {
-  const { fieldAlerts } = useAlerts();
+  const { fieldAlerts, showAlertModal, setAlertKey } = useAlerts();
+  const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
   const alertSelected = fieldAlerts.find((a) => a.field === alertField);
   const { styles } = useStyles(styleSheet, {});
   const { rowVariant } = props;
+
+  const handleLabelClick = useCallback(() => {
+    if (!alertSelected) return;
+    setAlertKey(alertSelected.key);
+    showAlertModal();
+    trackInlineAlertClicked(alertSelected.field);
+  }, [alertSelected, setAlertKey, showAlertModal, trackInlineAlertClicked]);
 
   if (!alertSelected && isShownWithAlertsOnly) {
     return null;
@@ -58,6 +67,7 @@ const AlertRow = ({
     tooltipColor: isSmall
       ? getAlertIconColors(alertSelected?.severity)
       : undefined,
+    onLabelClick: alertSelected ? handleLabelClick : undefined,
   };
 
   const inlineAlert =
