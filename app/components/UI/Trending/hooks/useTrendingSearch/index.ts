@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import type { CaipChainId } from '@metamask/utils';
 import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
-import { useSearchRequest } from '../useSearchRequest';
+import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import { PriceChangeOption } from '../../components/TrendingTokensBottomSheet';
