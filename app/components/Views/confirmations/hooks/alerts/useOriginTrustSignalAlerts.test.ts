@@ -5,7 +5,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
-import { useUrlTrustSignalAlerts } from './useUrlTrustSignalAlerts';
+import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import useApprovalRequest from '../useApprovalRequest';
@@ -23,7 +23,7 @@ jest.mock('../useApprovalRequest', () => ({
   default: jest.fn(),
 }));
 
-describe('useUrlTrustSignalAlerts', () => {
+describe('useOriginTrustSignalAlerts', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -51,7 +51,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
     it('returns a malicious alert if the URL scan result is Block', () => {
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -73,7 +73,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
       expect(result.current).toEqual([
         {
-          key: AlertKeys.UrlTrustSignalMalicious,
+          key: AlertKeys.OriginTrustSignalMalicious,
           field: RowAlertKey.RequestFrom,
           message:
             'This has been identified as malicious. We recommend not interacting with this site.',
@@ -86,7 +86,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
     it('returns a warning alert if the URL scan result is Warn', () => {
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -108,7 +108,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
       expect(result.current).toEqual([
         {
-          key: AlertKeys.UrlTrustSignalWarning,
+          key: AlertKeys.OriginTrustSignalWarning,
           field: RowAlertKey.RequestFrom,
           message:
             'This has been identified as suspicious. We recommend not interacting with this site.',
@@ -121,7 +121,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
     it('returns no alerts if the URL scan result is None', () => {
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -146,7 +146,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
     it('returns no alerts if the URL scan result is Verified', () => {
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -171,7 +171,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
     it('returns no alerts if the URL scan result does not exist', () => {
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -216,7 +216,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
     it('returns a malicious alert using URL from signature request approval', () => {
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -238,7 +238,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
       expect(result.current).toEqual([
         {
-          key: AlertKeys.UrlTrustSignalMalicious,
+          key: AlertKeys.OriginTrustSignalMalicious,
           field: RowAlertKey.RequestFrom,
           message:
             'This has been identified as malicious. We recommend not interacting with this site.',
@@ -272,7 +272,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
     it('returns a malicious alert using origin from approval request', () => {
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -294,7 +294,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
       expect(result.current).toEqual([
         {
-          key: AlertKeys.UrlTrustSignalMalicious,
+          key: AlertKeys.OriginTrustSignalMalicious,
           field: RowAlertKey.RequestFrom,
           message:
             'This has been identified as malicious. We recommend not interacting with this site.',
@@ -309,7 +309,7 @@ describe('useUrlTrustSignalAlerts', () => {
   describe('with no origin', () => {
     it('returns no alerts when origin is undefined', () => {
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -361,7 +361,7 @@ describe('useUrlTrustSignalAlerts', () => {
       });
 
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -388,7 +388,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
       expect(result.current).toEqual([
         {
-          key: AlertKeys.UrlTrustSignalMalicious,
+          key: AlertKeys.OriginTrustSignalMalicious,
           field: RowAlertKey.RequestFrom,
           message:
             'This has been identified as malicious. We recommend not interacting with this site.',
@@ -421,7 +421,7 @@ describe('useUrlTrustSignalAlerts', () => {
       });
 
       const { result } = renderHookWithProvider(
-        () => useUrlTrustSignalAlerts(),
+        () => useOriginTrustSignalAlerts(),
         {
           state: {
             engine: {
@@ -448,7 +448,7 @@ describe('useUrlTrustSignalAlerts', () => {
 
       expect(result.current).toEqual([
         {
-          key: AlertKeys.UrlTrustSignalMalicious,
+          key: AlertKeys.OriginTrustSignalMalicious,
           field: RowAlertKey.RequestFrom,
           message:
             'This has been identified as malicious. We recommend not interacting with this site.',

@@ -13,7 +13,7 @@ import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBala
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
-import { useUrlTrustSignalAlerts } from './useUrlTrustSignalAlerts';
+import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -66,7 +66,7 @@ export default function useConfirmationAlerts(): Alert[] {
   const signatureAlerts = useSignatureAlerts();
   const transactionAlerts = useTransactionAlerts();
   const accountTypeUpgrade = useAccountTypeUpgrade();
-  const urlTrustSignalAlerts = useUrlTrustSignalAlerts();
+  const urlTrustSignalAlerts = useOriginTrustSignalAlerts();
 
   return useMemo(
     () => [

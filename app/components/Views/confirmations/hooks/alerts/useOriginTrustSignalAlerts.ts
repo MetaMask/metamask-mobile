@@ -9,7 +9,7 @@ import useApprovalRequest from '../useApprovalRequest';
 import { useOriginTrustSignals } from '../useOriginTrustSignals';
 import { TrustSignalDisplayState } from '../../types/trustSignals';
 
-export function useUrlTrustSignalAlerts(): Alert[] {
+export function useOriginTrustSignalAlerts(): Alert[] {
   const transactionMetadata = useTransactionMetadataRequest();
   const signatureRequest = useSignatureRequest();
   const { approvalRequest } = useApprovalRequest();
@@ -38,7 +38,7 @@ export function useUrlTrustSignalAlerts(): Alert[] {
 
     if (trustSignalState === TrustSignalDisplayState.Malicious) {
       alerts.push({
-        key: AlertKeys.UrlTrustSignalMalicious,
+        key: AlertKeys.OriginTrustSignalMalicious,
         field: RowAlertKey.RequestFrom,
         severity: Severity.Danger,
         message: strings('alert_system.url_trust_signal.malicious.message'),
@@ -47,7 +47,7 @@ export function useUrlTrustSignalAlerts(): Alert[] {
       });
     } else if (trustSignalState === TrustSignalDisplayState.Warning) {
       alerts.push({
-        key: AlertKeys.UrlTrustSignalWarning,
+        key: AlertKeys.OriginTrustSignalWarning,
         field: RowAlertKey.RequestFrom,
         severity: Severity.Warning,
         message: strings('alert_system.url_trust_signal.warning.message'),

@@ -124,8 +124,8 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
-  [AlertKeys.UrlTrustSignalMalicious]: 'url_trust_signal_malicious',
-  [AlertKeys.UrlTrustSignalWarning]: 'url_trust_signal_warning',
+  [AlertKeys.OriginTrustSignalMalicious]: 'origin_trust_signal_malicious',
+  [AlertKeys.OriginTrustSignalWarning]: 'origin_trust_signal_warning',
 };
 
 function getAlertName(alertKey: string): string {

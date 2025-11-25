@@ -17,6 +17,6 @@ export enum AlertKeys {
   SignedOrSubmitted = 'signed_or_submitted',
   TokenTrustSignalMalicious = 'token_trust_signal_malicious',
   TokenTrustSignalWarning = 'token_trust_signal_warning',
-  UrlTrustSignalMalicious = 'url_trust_signal_malicious',
-  UrlTrustSignalWarning = 'url_trust_signal_warning',
+  OriginTrustSignalMalicious = 'origin_trust_signal_malicious',
+  OriginTrustSignalWarning = 'origin_trust_signal_warning',
 }
