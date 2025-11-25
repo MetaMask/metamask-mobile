@@ -78,6 +78,7 @@ import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags'
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
+import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarning';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import PerpsNavigationCard, {
   type NavigationItem,
@@ -846,6 +847,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onMorePress={handleMorePress}
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
             />
+
+            {/* Price Deviation Warning - Shows when price has deviated too much from spot price */}
+            {market?.symbol && (
+              <PerpsPriceDeviationWarning
+                symbol={market.symbol}
+                testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
+              />
+            )}
           </View>
 
           {/* OI Cap Warning - Shows when market is at capacity */}
