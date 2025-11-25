@@ -10,6 +10,7 @@ import {
   selectNonEvmTransactions,
   selectMultichainHistoricalPrices,
   makeSelectNonEvmAssetById,
+  selectMultichainTokenListForAccountsAnyChain,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -22,7 +23,12 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
-import { BtcScope, SolAccountType, SolScope } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  SolAccountType,
+  SolScope,
+  TrxScope,
+} from '@metamask/keyring-api';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const BTC_NATIVE_CURRENCY =
@@ -560,6 +566,323 @@ describe('MultichainNonEvm Selectors', () => {
       expect(result.totalNativeTokenBalance?.unit).toEqual('SOL');
       // Expect total fiat balance: (10 SOL * $100) + (20 JUP * $2) = $1000 + $40 = $1040
       expect(result.totalBalanceFiat).toEqual(1040);
+    });
+  });
+
+  describe('selectMultichainTokenListForAccountsAnyChain', () => {
+    it('returns empty list when accounts array is empty', () => {
+      const state = getNonEvmState();
+
+      const result = selectMultichainTokenListForAccountsAnyChain(state, []);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns tokens with fiat balance for multiple accounts across chains', () => {
+      const state = getNonEvmState();
+      const accountMainnet = MOCK_ACCOUNT_BIP122_P2WPKH;
+      const accountTestnet = MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET;
+
+      const mainnetAssetId = BTC_NATIVE_CURRENCY;
+      const testnetAssetId = BTC_TESTNET_NATIVE_CURRENCY;
+
+      state.engine.backgroundState.MultichainBalancesController.balances = {
+        [accountMainnet.id]: {
+          [mainnetAssetId]: {
+            amount: '1.00000000',
+            unit: 'BTC',
+          },
+        },
+        [accountTestnet.id]: {
+          [testnetAssetId]: {
+            amount: '2.00000000',
+            unit: 'tBTC',
+          },
+        },
+      };
+
+      state.engine.backgroundState.MultichainAssetsController = {
+        accountsAssets: {
+          [accountMainnet.id]: [mainnetAssetId] as CaipAssetType[],
+          [accountTestnet.id]: [testnetAssetId] as CaipAssetType[],
+        },
+        assetsMetadata: {
+          [mainnetAssetId]: {
+            name: 'Bitcoin',
+            symbol: 'BTC',
+            fungible: true,
+            units: [
+              {
+                name: mainnetAssetId,
+                symbol: 'BTC',
+                decimals: 8,
+              },
+            ],
+          },
+          [testnetAssetId]: {
+            name: 'Bitcoin Testnet',
+            symbol: 'tBTC',
+            fungible: true,
+            units: [
+              {
+                name: testnetAssetId,
+                symbol: 'tBTC',
+                decimals: 8,
+              },
+            ],
+          },
+        },
+        allIgnoredAssets: {},
+      } as unknown as (typeof state.engine.backgroundState)['MultichainAssetsController'];
+
+      state.engine.backgroundState.MultichainAssetsRatesController = {
+        conversionRates: {
+          [mainnetAssetId]: { rate: '50000', conversionTime: 0 },
+          [testnetAssetId]: { rate: '25000', conversionTime: 0 },
+        },
+        assetsRates: {},
+        historicalPrices: {},
+      } as unknown as (typeof state.engine.backgroundState)['MultichainAssetsRatesController'];
+
+      const result = selectMultichainTokenListForAccountsAnyChain(state, [
+        accountMainnet,
+        accountTestnet,
+      ]);
+
+      expect(result).toHaveLength(2);
+
+      const btcToken = result.find((token) => token.address === mainnetAssetId);
+      const tbtcToken = result.find(
+        (token) => token.address === testnetAssetId,
+      );
+
+      expect(btcToken).toMatchObject({
+        name: 'Bitcoin',
+        symbol: 'BTC',
+        chainId: BtcScope.Mainnet,
+        isNative: true,
+        balance: '1.00000000',
+        balanceFiat: '50000',
+        accountType: accountMainnet.type,
+      });
+
+      expect(tbtcToken).toMatchObject({
+        name: 'Bitcoin Testnet',
+        symbol: 'tBTC',
+        chainId: BtcScope.Testnet,
+        isNative: true,
+        balance: '2.00000000',
+        balanceFiat: '50000',
+        accountType: accountTestnet.type,
+      });
+    });
+  });
+
+  describe('selectAccountTokensAcrossChainsUnified', () => {
+    it('returns EVM tokens when no account group is selected', () => {
+      jest.isolateModules(() => {
+        // eslint-disable-next-line prefer-const
+        let mockEvmTokensByChain: Record<string, unknown> | undefined;
+        // eslint-disable-next-line prefer-const
+        let mockSelectedGroupAccounts: InternalAccount[] | undefined;
+
+        jest.doMock('../multichain', () => ({
+          selectAccountTokensAcrossChains: () => mockEvmTokensByChain,
+        }));
+
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: () =>
+            mockSelectedGroupAccounts,
+        }));
+
+        const { selectAccountTokensAcrossChainsUnified } =
+          jest.requireActual('./multichain');
+
+        mockEvmTokensByChain = {
+          '0x1': [
+            {
+              address: '0xevm-token',
+              symbol: 'EVM',
+            },
+          ],
+        };
+        mockSelectedGroupAccounts = [];
+
+        const state = {} as RootState;
+
+        const result = selectAccountTokensAcrossChainsUnified(state);
+
+        expect(result).toEqual(mockEvmTokensByChain);
+      });
+    });
+
+    it('adds non-EVM tokens for selected accounts and filters Tron resources and non-mainnet Tron tokens', () => {
+      jest.isolateModules(() => {
+        // eslint-disable-next-line prefer-const
+        let mockEvmTokensByChain: Record<string, unknown> | undefined;
+        // eslint-disable-next-line prefer-const
+        let mockSelectedGroupAccounts: InternalAccount[] | undefined;
+
+        jest.doMock('../multichain', () => ({
+          selectAccountTokensAcrossChains: () => mockEvmTokensByChain,
+        }));
+
+        jest.doMock('../multichainAccounts/accountTreeController', () => ({
+          selectSelectedAccountGroupInternalAccounts: () =>
+            mockSelectedGroupAccounts,
+        }));
+
+        const { selectAccountTokensAcrossChainsUnified } =
+          jest.requireActual('./multichain');
+
+        const tronMainnetChainId = TrxScope.Mainnet;
+        const tronTestnetChainId = TrxScope.Nile;
+
+        const tronMainnetAssetId =
+          `${tronMainnetChainId}/slip44:195` as CaipAssetType;
+        const tronResourceAssetId =
+          `${tronMainnetChainId}/token:resource-energy` as CaipAssetType;
+        const tronTestnetAssetId =
+          `${tronTestnetChainId}/slip44:195` as CaipAssetType;
+
+        const accountMain = {
+          id: 'account-main',
+          type: 'main-account-type',
+        } as unknown as InternalAccount;
+
+        const accountSecondary = {
+          id: 'account-secondary',
+          type: 'secondary-account-type',
+        } as unknown as InternalAccount;
+
+        mockEvmTokensByChain = {
+          '0x1': [
+            {
+              address: '0xevm-token',
+              symbol: 'EVM',
+            },
+          ],
+        };
+
+        mockSelectedGroupAccounts = [accountMain, accountSecondary];
+
+        const state = {
+          engine: {
+            backgroundState: {
+              MultichainBalancesController: {
+                balances: {
+                  [accountMain.id]: {
+                    [tronMainnetAssetId]: {
+                      amount: '10',
+                      unit: 'TRX',
+                    },
+                    [tronResourceAssetId]: {
+                      amount: '5',
+                      unit: 'energy',
+                    },
+                    [tronTestnetAssetId]: {
+                      amount: '3',
+                      unit: 'TRX',
+                    },
+                  },
+                  [accountSecondary.id]: {
+                    [tronMainnetAssetId]: {
+                      amount: '20',
+                      unit: 'TRX',
+                    },
+                  },
+                },
+              },
+              MultichainAssetsController: {
+                accountsAssets: {
+                  [accountMain.id]: [
+                    tronMainnetAssetId,
+                    tronResourceAssetId,
+                    tronTestnetAssetId,
+                  ] as CaipAssetType[],
+                  [accountSecondary.id]: [
+                    tronMainnetAssetId,
+                  ] as CaipAssetType[],
+                },
+                assetsMetadata: {
+                  [tronMainnetAssetId]: {
+                    name: 'Tron',
+                    symbol: 'TRX',
+                    fungible: true,
+                    units: [
+                      {
+                        name: tronMainnetAssetId,
+                        symbol: 'TRX',
+                        decimals: 6,
+                      },
+                    ],
+                  },
+                  [tronResourceAssetId]: {
+                    name: 'Energy',
+                    symbol: 'energy',
+                    fungible: true,
+                    units: [
+                      {
+                        name: tronResourceAssetId,
+                        symbol: 'energy',
+                        decimals: 6,
+                      },
+                    ],
+                  },
+                  [tronTestnetAssetId]: {
+                    name: 'Tron Testnet',
+                    symbol: 'TRX',
+                    fungible: true,
+                    units: [
+                      {
+                        name: tronTestnetAssetId,
+                        symbol: 'TRX',
+                        decimals: 6,
+                      },
+                    ],
+                  },
+                },
+                allIgnoredAssets: {},
+              },
+              MultichainAssetsRatesController: {
+                conversionRates: {},
+                assetsRates: {
+                  [tronMainnetAssetId]: {
+                    rate: '1',
+                    conversionTime: 0,
+                  },
+                  [tronResourceAssetId]: {
+                    rate: '1',
+                    conversionTime: 0,
+                  },
+                  [tronTestnetAssetId]: {
+                    rate: '1',
+                    conversionTime: 0,
+                  },
+                },
+                historicalPrices: {},
+              },
+            },
+          },
+        } as unknown as RootState;
+
+        const result = selectAccountTokensAcrossChainsUnified(state);
+
+        expect(result['0x1']).toEqual(mockEvmTokensByChain['0x1']);
+        expect(result[tronMainnetChainId]).toHaveLength(1);
+
+        const tronToken = result[tronMainnetChainId][0] as {
+          address: string;
+          symbol: string;
+          balance: string;
+          accountType: string;
+        };
+
+        expect(tronToken.address).toBe(tronMainnetAssetId);
+        expect(tronToken.symbol).toBe('TRX');
+        expect(tronToken.balance).toBe('10');
+        expect(tronToken.accountType).toBe(accountMain.type);
+      });
     });
   });
 

@@ -3062,6 +3062,9 @@
     "earn": "Earn",
     "convert": "Convert",
     "tron": {
+      "daily_resource_new_energy": "New daily energy",
+      "sufficient_to_cover": "Sufficient to cover",
+      "transactions": "transactions",
       "daily_resource": "Daily resource",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
@@ -5498,8 +5501,17 @@
     "stake": "Stake",
     "earn": "Earn",
     "tron": {
+      "stake_completed": "Staking completed",
+      "stake_completed_description": "Your staking transaction has been completed successfully.",
+      "stake_failed": "Staking failed",
+      "unstake_completed": "Unstaking completed",
+      "unstake_completed_description": "Your unstaking transaction has been completed successfully.",
+      "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
-      "energy": "Energy"
+      "energy": "Energy",
+      "estimated_annual_reward": "Estimated annual reward",
+      "trx_locked_for": "TRX locked for",
+      "fee": "Fee"
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
