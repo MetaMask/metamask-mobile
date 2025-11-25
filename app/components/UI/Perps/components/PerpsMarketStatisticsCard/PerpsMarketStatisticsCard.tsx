@@ -131,7 +131,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               color: TextColor.Default,
             },
           }}
-          style={styles.statsRow}
+          style={[styles.statsRow, styles.statsRowFirst]}
         />
 
         {/* 24h high */}

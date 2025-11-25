@@ -1428,6 +1428,7 @@
         "error_message": "Market data not found. Please go back and try again."
       },
       "statistics": "Overview",
+      "stats": "Stats",
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",
