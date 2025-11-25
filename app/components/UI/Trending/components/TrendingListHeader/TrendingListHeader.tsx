@@ -1,12 +1,12 @@
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import ListHeaderWithSearch from '../../../shared/ListHeaderWithSearch';
-import type { PerpsMarketListHeaderProps } from './PerpsMarketListHeader.types';
+import type { TrendingListHeaderProps } from './TrendingListHeader.types';
 
 /**
- * PerpsMarketListHeader Component
+ * TrendingListHeader Component
  *
- * Header component for Perps Market List view with back button,
+ * Header component for Trending Tokens List view with back button,
  * title, and search toggle functionality
  *
  * Features:
@@ -17,8 +17,8 @@ import type { PerpsMarketListHeaderProps } from './PerpsMarketListHeader.types';
  *
  * @example
  * ```tsx
- * <PerpsMarketListHeader
- *   title="Markets"
+ * <TrendingListHeader
+ *   title="Trending Tokens"
  *   isSearchVisible={isSearchVisible}
  *   onSearchToggle={handleSearchToggle}
  * />
@@ -26,20 +26,20 @@ import type { PerpsMarketListHeaderProps } from './PerpsMarketListHeader.types';
  *
  * @example Custom back handler
  * ```tsx
- * <PerpsMarketListHeader
+ * <TrendingListHeader
  *   onBack={customBackHandler}
  *   isSearchVisible={false}
  *   onSearchToggle={toggleSearch}
  * />
  * ```
  */
-const PerpsMarketListHeader: React.FC<PerpsMarketListHeaderProps> = (props) => (
+const TrendingListHeader: React.FC<TrendingListHeaderProps> = (props) => (
   <ListHeaderWithSearch
     {...props}
-    defaultTitle={strings('perps.title')}
-    searchPlaceholder={strings('perps.search_by_token_symbol')}
-    cancelText={strings('perps.cancel')}
+    defaultTitle={strings('trending.trending_tokens')}
+    searchPlaceholder={strings('trending.search_placeholder')}
+    cancelText={strings('trending.cancel')}
   />
 );
 
-export default PerpsMarketListHeader;
+export default TrendingListHeader;
