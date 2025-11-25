@@ -12,6 +12,8 @@ import {
   IconName,
   Icon,
   IconSize,
+  Button,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -35,6 +37,7 @@ import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictB
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 const Stack = createStackNavigator();
 
@@ -86,6 +89,10 @@ const TrendingFeed: React.FC = () => {
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
+  // check if basic functionality toggle is on
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
 
   const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
     metamaskEntry: 'mobile',
@@ -101,6 +108,38 @@ const TrendingFeed: React.FC = () => {
       fromTrending: true,
     });
   }, [navigation, portfolioUrl.href]);
+
+  const handleEnableBasicFunctionality = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+    });
+  }, [navigation]);
+
+  const renderEmptyState = () => (
+    <Box twClassName="flex-col w-[393px] pt-9 pb-24 justify-center items-center gap-3 flex-1">
+      <Box twClassName="flex-col w-[337px] items-stretch">
+        <Text
+          variant={TextVariant.HeadingSm}
+          twClassName="text-default text-center self-stretch mb-2"
+        >
+          {strings('trending.basic_functionality_disabled_title')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="text-alternative text-center self-stretch font-medium"
+        >
+          {strings('trending.basic_functionality_disabled_description')}
+        </Text>
+        <Button
+          variant={ButtonVariant.Primary}
+          twClassName="h-[48px] self-stretch mt-6"
+          onPress={handleEnableBasicFunctionality}
+        >
+          {strings('trending.enable_basic_functionality')}
+        </Button>
+      </Box>
+    </Box>
+  );
 
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
@@ -144,19 +183,23 @@ const TrendingFeed: React.FC = () => {
         </TouchableOpacity>
       </Box>
 
-      <ScrollView
-        style={tw.style('flex-1 px-4')}
-        showsVerticalScrollIndicator={false}
-      >
-        <QuickActions />
+      {isBasicFunctionalityEnabled ? (
+        <ScrollView
+          style={tw.style('flex-1 px-4')}
+          showsVerticalScrollIndicator={false}
+        >
+          <QuickActions />
 
-        {HOME_SECTIONS_ARRAY.map((section) => (
-          <React.Fragment key={section.id}>
-            <SectionHeader sectionId={section.id} />
-            <section.Section />
-          </React.Fragment>
-        ))}
-      </ScrollView>
+          {HOME_SECTIONS_ARRAY.map((section) => (
+            <React.Fragment key={section.id}>
+              <SectionHeader sectionId={section.id} />
+              <section.Section />
+            </React.Fragment>
+          ))}
+        </ScrollView>
+      ) : (
+        renderEmptyState()
+      )}
     </Box>
   );
 };
