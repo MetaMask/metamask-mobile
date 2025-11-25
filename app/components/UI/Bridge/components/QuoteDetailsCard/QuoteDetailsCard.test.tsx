@@ -883,29 +883,5 @@ describe('QuoteDetailsCard', () => {
         expect(errorTooltip).toBeOnTheScreen();
       });
     });
-
-    it('does not display rewards row when accountOptedIn is false and rewardsAccountScope is null', async () => {
-      // Given user has not opted in and no account scope
-      (useRewards as jest.Mock).mockReturnValue({
-        estimatedPoints: null,
-        isLoading: false,
-        shouldShowRewardsRow: true,
-        hasError: false,
-        accountOptedIn: false,
-        rewardsAccountScope: null,
-      });
-
-      // When rendering the component
-      const { queryByText } = renderScreen(
-        QuoteDetailsCard,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
-      );
-
-      // Then the rewards row should not be displayed (condition: shouldShowRewardsRow && (accountOptedIn || rewardsAccountScope))
-      await waitFor(() => {
-        expect(queryByText(strings('bridge.points'))).toBeNull();
-      });
-    });
   });
 });

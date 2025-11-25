@@ -288,7 +288,7 @@ const QuoteDetailsCard: React.FC = () => {
         <QuoteDetailsRecipientKeyValueRow />
 
         {/* Estimated Points */}
-        {shouldShowRewardsRow && (accountOptedIn || rewardsAccountScope) && (
+        {shouldShowRewardsRow && (
           <Box testID="bridge-rewards-row">
             <KeyValueRow
               field={{

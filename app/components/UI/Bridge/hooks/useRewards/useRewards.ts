@@ -314,7 +314,8 @@ export const useRewards = ({
   }, [estimatePoints]);
 
   return {
-    shouldShowRewardsRow,
+    shouldShowRewardsRow:
+      shouldShowRewardsRow && (accountOptedIn || Boolean(selectedAccount)),
     isLoading: isLoading || isQuoteLoading,
     estimatedPoints,
     hasError,
