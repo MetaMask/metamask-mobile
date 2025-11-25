@@ -1,7 +1,10 @@
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { generateAddressCacheKey } from '../lib/address-scanning/address-scan-util';
-import { TokenScanCacheData } from '@metamask/phishing-controller';
+import {
+  TokenScanCacheData,
+  AddressScanResult,
+} from '@metamask/phishing-controller';
 
 const selectPhishingControllerState = (state: RootState) =>
   state.engine.backgroundState.PhishingController;
@@ -79,7 +82,7 @@ export const selectMultipleAddressScanResults = createDeepEqualSelector(
       {
         address: string;
         chainId: string;
-        scanResult: unknown;
+        scanResult: AddressScanResult | undefined;
       }[]
     >((acc, addressItem) => {
       const { address, chainId } = addressItem;
