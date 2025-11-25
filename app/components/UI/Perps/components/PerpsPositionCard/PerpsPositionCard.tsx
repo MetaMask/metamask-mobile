@@ -126,6 +126,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <Text
             variant={TextVariant.HeadingSM}
             color={pnlNum >= 0 ? TextColor.Success : TextColor.Error}
+            testID={PerpsPositionCardSelectorsIDs.PNL_VALUE}
           >
             {formatPnl(pnlNum)}
           </Text>
@@ -141,6 +142,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <Text
             variant={TextVariant.HeadingSM}
             color={roe >= 0 ? TextColor.Success : TextColor.Error}
+            testID={PerpsPositionCardSelectorsIDs.RETURN_VALUE}
           >
             {roe >= 0 ? '+' : ''}
             {roe.toFixed(2)}%
@@ -159,7 +161,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('perps.position.card.size_label')}
             </Text>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              testID={PerpsPositionCardSelectorsIDs.SIZE_VALUE}
+            >
               {showSizeInUSD && currentPrice
                 ? formatPerpsFiat(absoluteSize * currentPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
@@ -185,7 +191,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('perps.position.card.margin_label')}
             </Text>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              testID={PerpsPositionCardSelectorsIDs.MARGIN_VALUE}
+            >
               {formatPerpsFiat(position.marginUsed, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
@@ -307,7 +317,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('perps.position.card.direction_label')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            testID={PerpsPositionCardSelectorsIDs.DIRECTION_VALUE}
+          >
             {direction === 'long'
               ? strings('perps.market.long')
               : strings('perps.market.short')}{' '}

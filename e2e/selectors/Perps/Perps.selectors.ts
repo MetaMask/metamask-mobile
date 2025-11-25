@@ -71,13 +71,18 @@ export const PerpsPositionCardSelectorsIDs = {
   HEADER: 'position-card-header',
   SHARE_BUTTON: 'position-card-share',
   PNL_CARD: 'position-card-pnl',
+  PNL_VALUE: 'position-card-pnl-value',
   RETURN_CARD: 'position-card-return',
+  RETURN_VALUE: 'position-card-return-value',
   SIZE_CONTAINER: 'position-card-size',
+  SIZE_VALUE: 'position-card-size-value',
   FLIP_ICON: 'position-card-flip-icon',
   MARGIN_CONTAINER: 'position-card-margin',
+  MARGIN_VALUE: 'position-card-margin-value',
   MARGIN_CHEVRON: 'position-card-margin-chevron',
   AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
   DETAILS_SECTION: 'position-card-details',
+  DIRECTION_VALUE: 'position-card-direction-value',
 };
 
 // ========================================

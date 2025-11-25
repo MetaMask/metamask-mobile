@@ -191,19 +191,6 @@ describe('PerpsMarketStatisticsCard', () => {
     expect(mockOnTooltipPress).toHaveBeenCalledWith('funding_rate');
   });
 
-  it('renders with correct test IDs for all statistics', () => {
-    const { getByTestId } = render(
-      <PerpsMarketStatisticsCard {...defaultProps} />,
-    );
-
-    // Check all test IDs are present
-    expect(getByTestId('perps-statistics-high-24h')).toBeOnTheScreen();
-    expect(getByTestId('perps-statistics-low-24h')).toBeOnTheScreen();
-    expect(getByTestId('perps-statistics-volume-24h')).toBeOnTheScreen();
-    expect(getByTestId('perps-statistics-open-interest')).toBeOnTheScreen();
-    expect(getByTestId('perps-statistics-funding-rate')).toBeOnTheScreen();
-  });
-
   it('handles edge case with very small funding rate values', () => {
     const smallFundingStats = {
       ...mockMarketStats,

@@ -185,6 +185,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                 </Text>
                 <TouchableOpacity
                   onPress={() => onTooltipPress('open_interest')}
+                  testID="perps-market-details-open-interest-info-icon"
                 >
                   <Icon
                     name={IconName.Info}
@@ -218,6 +219,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                 </Text>
                 <TouchableOpacity
                   onPress={() => onTooltipPress('funding_rate')}
+                  testID="perps-market-details-funding-rate-info-icon"
                 >
                   <Icon
                     name={IconName.Info}

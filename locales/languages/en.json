@@ -1363,6 +1363,16 @@
     "position": {
       "title": "Positions",
       "card": {
+        "position_title": "Position",
+        "pnl_label": "P&L",
+        "return_label": "Return",
+        "size_label": "Size",
+        "margin_label": "Margin",
+        "direction_label": "Direction",
+        "entry_label": "Entry price",
+        "liquidation_price_label": "Liq. price",
+        "funding_payments_label": "Funding",
+        "details_title": "Details",
         "entry_price": "Entry price",
         "funding_cost": "Funding",
         "liquidation_price": "Liq. Price",
