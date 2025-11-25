@@ -288,24 +288,28 @@ describe('verifySignature', () => {
       );
     });
 
-    // it('includes only sig_params when sig_params is empty string', async () => {
-    //   const validSignature = Buffer.from(new Array(64).fill(0)).toString('base64');
-    //   // sig_params is EMPTY - means "sign only the base path"
-    //   // UTMs are added AFTER signing and should be ignored
-    //   const url = new URL(
-    //     `https://link.metamask.io/perps?sig_params=&sig=${validSignature}&utm_source=carousel&utm_medium=in-product`,
-    //   );
+    it('includes only sig_params when sig_params is empty string', async () => {
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      // sig_params is EMPTY - means "sign only the base path"
+      // UTMs are added AFTER signing and should be ignored
+      const url = new URL(
+        `https://link.metamask.io/perps?sig_params=&sig=${validSignature}&utm_source=carousel&utm_medium=in-product`,
+      );
 
-    //   mockSubtle.verify.mockResolvedValue(true);
-    //   await verifyDeeplinkSignature(url);
+      mockSubtle.verify.mockResolvedValue(true);
+      await verifyDeeplinkSignature(url);
 
-    //   const verifyCall = mockSubtle.verify.mock.calls[0];
-    //   const canonicalUrl = new TextDecoder().decode(verifyCall[3] as Uint8Array);
+      const verifyCall = mockSubtle.verify.mock.calls[0];
+      const canonicalUrl = new TextDecoder().decode(
+        verifyCall[3] as Uint8Array,
+      );
 
-    //   // ONLY sig_params should be in canonical URL
-    //   // UTMs should be EXCLUDED (they were added after signing)
-    //   expect(canonicalUrl).toBe('https://link.metamask.io/perps?sig_params=');
-    // });
+      // ONLY sig_params should be in canonical URL
+      // UTMs should be EXCLUDED (they were added after signing)
+      expect(canonicalUrl).toBe('https://link.metamask.io/perps?sig_params=');
+    });
 
     describe('with sig_params', () => {
       it('includes only parameters listed in sig_params for verification', async () => {
