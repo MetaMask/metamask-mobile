@@ -1574,7 +1574,7 @@ export class TradingService {
       endTrace({
         name: 'PerpsUpdateMargin' as TraceName,
         id: traceId,
-        data: { success: result.success, error: result.error },
+        data: { success: result.success, error: result.error || '' },
       });
 
       return result;
@@ -1650,8 +1650,10 @@ export class TradingService {
       const availableBalance = parseFloat(accountState.availableBalance);
 
       // Estimate fees (close + open, approximately 0.09% of notional)
+      // Flip requires 2x position size (1x to close, 1x to open opposite)
       const entryPrice = parseFloat(position.entryPrice);
-      const notionalValue = positionSize * entryPrice;
+      const flipSize = positionSize * 2;
+      const notionalValue = flipSize * entryPrice;
       const estimatedFees = notionalValue * 0.0009;
 
       if (estimatedFees > availableBalance) {
@@ -1661,10 +1663,11 @@ export class TradingService {
       }
 
       // Create order params for flip
+      // Use 2x position size: 1x to close current position + 1x to open opposite position
       const orderParams: OrderParams = {
         coin: position.coin,
         isBuy: oppositeDirection,
-        size: positionSize.toString(),
+        size: flipSize.toString(),
         orderType: 'market',
         leverage: position.leverage?.value,
         currentPrice: entryPrice,
@@ -1704,7 +1707,7 @@ export class TradingService {
       endTrace({
         name: 'PerpsFlipPosition' as TraceName,
         id: traceId,
-        data: { success: result.success, error: result.error },
+        data: { success: result.success ?? false, error: result.error || '' },
       });
 
       return result;
