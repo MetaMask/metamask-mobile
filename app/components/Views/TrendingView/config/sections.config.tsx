@@ -18,8 +18,6 @@ import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketS
 import SectionCard from '../components/SectionCard/SectionCard';
 import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
 import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
-import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
-import { PriceChangeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
@@ -110,22 +108,24 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
           chainIds: [],
         });
 
+      // If search query exists, call trending with no sortBy/chainIds (to get default trending tokens for merging)
+      // If no search query, use sortBy/chainIds to get filtered/sorted trending results
+      const trendingRequestParams = searchQuery
+        ? {} // Use defaults (popular networks) when searching
+        : {
+            ...(sortBy && { sortBy }), // Only include sortBy if it exists
+            ...(chainIds?.length && { chainIds }), // Only include chainIds if it has items
+          };
+
       const {
         results: trendingResults,
         isLoading: isTrendingLoading,
         fetch: fetchTrendingTokens,
-      } = useTrendingRequest({
-        sortBy,
-        chainIds: chainIds ?? undefined,
-      });
+      } = useTrendingRequest(trendingRequestParams);
 
       if (!searchQuery) {
-        const sortedResults = sortTrendingTokens(
-          trendingResults,
-          PriceChangeOption.PriceChange,
-        );
         return {
-          data: sortedResults,
+          data: trendingResults, // Already sorted by API based on sortBy param
           isLoading: isTrendingLoading,
           refetch: () => {
             fetchTrendingTokens();
@@ -133,6 +133,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         };
       }
 
+      // Merge trending and search results
       const resultMap = new Map(
         trendingResults.map((result) => [result.assetId, result]),
       );

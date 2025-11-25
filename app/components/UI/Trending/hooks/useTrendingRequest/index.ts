@@ -13,7 +13,7 @@ import {
 } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworksToUse } from '../../../../hooks/useNetworksToUse/useNetworksToUse';
 
-export const DEBOUNCE_WAIT = 500;
+export const DEBOUNCE_WAIT = 0;
 
 /**
  * Hook for handling trending tokens request
