@@ -66,8 +66,8 @@ export function useAddressTrustSignals(
  * @returns Trust signal result with state and label
  */
 export function useAddressTrustSignal(
-  address: string | undefined,
-  chainId: string | undefined,
+  address: string,
+  chainId: string,
 ): TrustSignalResult {
   const requests = useMemo(() => {
     if (!address || !chainId) {

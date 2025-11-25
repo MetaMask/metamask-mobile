@@ -237,28 +237,6 @@ describe('useAddressTrustSignals', () => {
       });
     });
 
-    it('returns Unknown state when both address and chainId are undefined', () => {
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignal(undefined, undefined),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {},
-                },
-              },
-            },
-          },
-        },
-      );
-
-      expect(result.current).toEqual({
-        state: TrustSignalDisplayState.Unknown,
-        label: null,
-      });
-    });
-
     it('returns Unknown state when no scan result exists for address', () => {
       const { result } = renderHookWithProvider(
         () => useAddressTrustSignal(TEST_ADDRESS_1, TEST_CHAIN_ID),
