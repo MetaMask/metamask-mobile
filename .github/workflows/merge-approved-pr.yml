@@ -8,7 +8,14 @@ on:
 jobs:
   merge-pr:
     # Only run if the comment is on a PR and the comment body matches exactly "Merge my PR"
-    if: github.event.issue.pull_request && github.event.comment.body == 'Merge my PR'
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.comment.body == 'Merge my PR' &&
+      (
+        github.event.comment.author_association == 'COLLABORATOR' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'OWNER'
+      )
     permissions:
       pull-requests: write # Required to merge PRs
       contents: write      # Required to update the repository content
