@@ -166,4 +166,22 @@ describe('GasFeeTokenToast', () => {
       }),
     );
   });
+
+  it('calls closeToast when close button is pressed', () => {
+    (useSelectedGasFeeToken as jest.Mock).mockReturnValue(GAS_FEE_TOKEN_MOCK);
+
+    renderToastHook(TOKENS_CONTROLLER_STATE, {
+      gasFeeToken: GAS_FEE_TOKEN_USDC_MOCK,
+    });
+
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+
+    const closeButtonOptions =
+      mockShowToast.mock.calls[0][0].closeButtonOptions;
+    expect(closeButtonOptions).toBeDefined();
+
+    closeButtonOptions.onPress();
+
+    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+  });
 });

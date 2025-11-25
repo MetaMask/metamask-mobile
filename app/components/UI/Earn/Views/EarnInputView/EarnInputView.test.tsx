@@ -1607,4 +1607,20 @@ describe('EarnInputView', () => {
       });
     });
   });
+
+  describe('Additional edge cases for coverage', () => {
+    it('navigates to MAX_INPUT modal for staking when max button pressed', () => {
+      const { getByText } = renderComponent();
+
+      const maxButton = getByText('Max');
+      fireEvent.press(maxButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'StakeModals',
+        expect.objectContaining({
+          screen: Routes.STAKING.MODALS.MAX_INPUT,
+        }),
+      );
+    });
+  });
 });
