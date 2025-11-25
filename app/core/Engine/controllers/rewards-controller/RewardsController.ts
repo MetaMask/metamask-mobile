@@ -649,6 +649,23 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Set the active account from a candidate account
+   */
+  setActiveAccountFromCandidate(candidate: InternalAccount | null): void {
+    if (!candidate) return;
+
+    const caipAccount = this.convertInternalAccountToCaipAccountId(candidate);
+    if (!caipAccount) return;
+
+    const accountState = this.#getAccountState(caipAccount);
+    if (!accountState) return;
+
+    this.update((state: RewardsControllerState) => {
+      state.activeAccount = accountState;
+    });
+  }
+
+  /**
    * Handle authentication triggers (account changes, keyring unlock)
    */
   async handleAuthenticationTrigger(reason?: string): Promise<void> {
@@ -700,19 +717,7 @@ export class RewardsController extends BaseController<
         // Set the active account to the first successful account or the first account in the sorted accounts array
         const activeAccountCandidate: InternalAccount =
           successAccount || sortedAccounts[0];
-        if (activeAccountCandidate) {
-          const caipAccount = this.convertInternalAccountToCaipAccountId(
-            activeAccountCandidate,
-          );
-          if (caipAccount) {
-            const accountState = this.#getAccountState(caipAccount);
-            if (accountState) {
-              this.update((state: RewardsControllerState) => {
-                state.activeAccount = accountState;
-              });
-            }
-          }
-        }
+        this.setActiveAccountFromCandidate(activeAccountCandidate);
       }
     } catch (error) {
       const errorMessage =
@@ -1076,7 +1081,7 @@ export class RewardsController extends BaseController<
       } else if (account?.startsWith('eip155')) {
         coercedAccount = account.toLowerCase() as CaipAccountId;
       } else {
-        coercedAccount = account as CaipAccountId;
+        coercedAccount = account;
       }
 
       this.update((state: RewardsControllerState) => {

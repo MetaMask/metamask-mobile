@@ -7074,6 +7074,203 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('setActiveAccountFromCandidate', () => {
+    const mockInternalAccount: InternalAccount = {
+      id: 'test-account-id',
+      address: '0x1234567890123456789012345678901234567890',
+      scopes: ['eip155:1'],
+      type: 'eip155:eoa',
+      options: {},
+      methods: [],
+      metadata: {
+        name: 'Test Account',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    };
+
+    const mockAccountState: RewardsAccountState = {
+      account: CAIP_ACCOUNT_1,
+      hasOptedIn: true,
+      subscriptionId: 'sub-123',
+      perpsFeeDiscount: 500,
+      lastPerpsDiscountRateFetched: Date.now(),
+    };
+
+    it('returns early when candidate is null', () => {
+      // Arrange
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      // Act
+      controller.setActiveAccountFromCandidate(null);
+
+      // Assert
+      expect(controller.state.activeAccount).toBeNull();
+    });
+
+    it('returns early when convertInternalAccountToCaipAccountId returns null', () => {
+      // Arrange
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(null);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      expect(controller.state.activeAccount).toBeNull();
+      expect(
+        controller.convertInternalAccountToCaipAccountId,
+      ).toHaveBeenCalledWith(mockInternalAccount);
+    });
+
+    it('returns early when account state is not found', () => {
+      // Arrange
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+        accounts: {},
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(CAIP_ACCOUNT_1);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      expect(controller.state.activeAccount).toBeNull();
+    });
+
+    it('sets activeAccount when candidate is valid and account state exists', () => {
+      // Arrange
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+        accounts: {
+          [CAIP_ACCOUNT_1]: mockAccountState,
+        },
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(CAIP_ACCOUNT_1);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      expect(controller.state.activeAccount).toEqual(mockAccountState);
+      expect(
+        controller.convertInternalAccountToCaipAccountId,
+      ).toHaveBeenCalledWith(mockInternalAccount);
+    });
+
+    it('updates activeAccount when it already exists', () => {
+      // Arrange
+      const existingActiveAccount: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: existingActiveAccount,
+        accounts: {
+          [CAIP_ACCOUNT_1]: mockAccountState,
+        },
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(CAIP_ACCOUNT_1);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      expect(controller.state.activeAccount).toEqual(mockAccountState);
+      expect(controller.state.activeAccount).not.toEqual(existingActiveAccount);
+    });
+
+    it('handles account state lookup with different CAIP format variations', () => {
+      // Arrange
+      const caipAccountLowercase =
+        'eip155:0:0x1234567890123456789012345678901234567890' as CaipAccountId;
+      const accountStateWithLowercase: RewardsAccountState = {
+        account: caipAccountLowercase,
+        hasOptedIn: true,
+        subscriptionId: 'sub-456',
+        perpsFeeDiscount: 300,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+        accounts: {
+          [caipAccountLowercase]: accountStateWithLowercase,
+        },
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      // Mock to return a CAIP account that should match via #getAccountState logic
+      const caipAccountWithChainId =
+        'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId;
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(caipAccountWithChainId);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      // The #getAccountState method should find the account state even with different CAIP format
+      expect(controller.state.activeAccount).toEqual(accountStateWithLowercase);
+    });
+  });
+
   describe('invalidateAccountsAndSubscriptions', () => {
     it('should correctly invalidate accounts and subscriptions', async () => {
       // Arrange
