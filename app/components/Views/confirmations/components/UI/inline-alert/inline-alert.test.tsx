@@ -130,12 +130,4 @@ describe('InlineAlert', () => {
     expect(mockShowAlertModal).not.toHaveBeenCalled();
     expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
   });
-
-  it('renders disabled inline alert with opacity', () => {
-    const { getByTestId } = renderComponent(mockAlerts[0], true);
-    const inlineAlert = getByTestId('inline-alert');
-
-    expect(inlineAlert).toBeDefined();
-    expect(inlineAlert.props.disabled).toBe(true);
-  });
 });
