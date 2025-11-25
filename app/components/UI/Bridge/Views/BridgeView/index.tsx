@@ -144,7 +144,7 @@ const BridgeView = () => {
   useIsGasIncludedSTXSendBundleSupported(sourceToken?.chainId);
 
   // Update isGasIncluded7702Supported state
-  useIsGasIncluded7702Supported(sourceToken?.chainId, selectedAddress);
+  useIsGasIncluded7702Supported(sourceToken?.chainId);
 
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;

@@ -26,7 +26,7 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   const sourceChainId = quote?.quote.srcChainId;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
-  if (sourceChainId && !gasIncluded) {
+  if (sourceChainId && !isGasless) {
     if (isNonEvmChainId(sourceChainId)) {
       hexOrCaipChainId = formatChainIdToCaip(sourceChainId);
     } else {
