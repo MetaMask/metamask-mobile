@@ -20,16 +20,19 @@ const mobileStorageAdapter: StorageAdapter = {
   /**
    * Get an item from filesystem storage.
    *
-   * @param key - The storage key.
+   * @param namespace - The controller namespace.
+   * @param key - The data key.
    * @returns The value as a string, or null if not found.
    */
-  async getItem(key: string): Promise<string | null> {
+  async getItem(namespace: string, key: string): Promise<string | null> {
     try {
-      const value = await FilesystemStorage.getItem(key);
+      // Build full key: storageService:namespace:key
+      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
+      const value = await FilesystemStorage.getItem(fullKey);
       return value ?? null;
     } catch (error) {
       Logger.error(error as Error, {
-        message: `StorageService: Failed to get item: ${key}`,
+        message: `StorageService: Failed to get item: ${namespace}:${key}`,
       });
       return null;
     }
@@ -38,15 +41,18 @@ const mobileStorageAdapter: StorageAdapter = {
   /**
    * Set an item in filesystem storage.
    *
-   * @param key - The storage key.
+   * @param namespace - The controller namespace.
+   * @param key - The data key.
    * @param value - The string value to store.
    */
-  async setItem(key: string, value: string): Promise<void> {
+  async setItem(namespace: string, key: string, value: string): Promise<void> {
     try {
-      await FilesystemStorage.setItem(key, value, Device.isIos());
+      // Build full key: storageService:namespace:key
+      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
+      await FilesystemStorage.setItem(fullKey, value, Device.isIos());
     } catch (error) {
       Logger.error(error as Error, {
-        message: `StorageService: Failed to set item: ${key}`,
+        message: `StorageService: Failed to set item: ${namespace}:${key}`,
       });
       throw error;
     }
@@ -55,14 +61,17 @@ const mobileStorageAdapter: StorageAdapter = {
   /**
    * Remove an item from filesystem storage.
    *
-   * @param key - The storage key.
+   * @param namespace - The controller namespace.
+   * @param key - The data key.
    */
-  async removeItem(key: string): Promise<void> {
+  async removeItem(namespace: string, key: string): Promise<void> {
     try {
-      await FilesystemStorage.removeItem(key);
+      // Build full key: storageService:namespace:key
+      const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
+      await FilesystemStorage.removeItem(fullKey);
     } catch (error) {
       Logger.error(error as Error, {
-        message: `StorageService: Failed to remove item: ${key}`,
+        message: `StorageService: Failed to remove item: ${namespace}:${key}`,
       });
       throw error;
     }
