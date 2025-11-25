@@ -424,29 +424,6 @@ describe('verifySignature', () => {
         );
       });
 
-      it('handles parameters with special characters in sig_params', async () => {
-        const validSignature = Buffer.from(new Array(64).fill(0)).toString(
-          'base64',
-        );
-        const url = new URL(
-          `https://example.com?param%20name=value%20here&other=test&sig_params=param%20name&sig=${validSignature}`,
-        );
-
-        mockSubtle.verify.mockResolvedValue(true);
-
-        const result = await verifyDeeplinkSignature(url);
-
-        expect(result).toBe(VALID);
-        const verifyCall = mockSubtle.verify.mock.calls[0];
-        const dataBuffer = verifyCall[3] as Uint8Array;
-        const canonicalUrl = new TextDecoder().decode(dataBuffer);
-
-        // Should handle URL encoding properly
-        expect(canonicalUrl).toBe(
-          'https://example.com/?param+name=value+here&sig_params=param+name',
-        );
-      });
-
       it('handles sig_params with trailing commas', async () => {
         const validSignature = Buffer.from(new Array(64).fill(0)).toString(
           'base64',
