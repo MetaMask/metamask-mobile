@@ -868,7 +868,7 @@ describe('NetworkSettings', () => {
         mockBuild.mockClear();
       });
 
-      it('should track RPC_ADDED event when adding RPC URL with chainId set', async () => {
+      it('tracks RPC_ADDED event when adding RPC URL with chainId set', async () => {
         const instance = wrapper.instance();
         const chainId = '0x1';
 
@@ -890,7 +890,7 @@ describe('NetworkSettings', () => {
         expect(mockTrackEvent).toHaveBeenCalled();
       });
 
-      it('should track RPC_ADDED event with correct rpc_url_index when adding multiple RPC URLs', async () => {
+      it('tracks RPC_ADDED event with correct rpc_url_index when adding multiple RPC URLs', async () => {
         const instance = wrapper.instance();
         const chainId = '0x64';
 
@@ -919,7 +919,7 @@ describe('NetworkSettings', () => {
         expect(mockTrackEvent).toHaveBeenCalled();
       });
 
-      it('should not track RPC_ADDED event when chainId is not set', async () => {
+      it('does not track RPC_ADDED event when chainId is not set', async () => {
         const instance = wrapper.instance();
 
         wrapper.setState({
@@ -934,7 +934,7 @@ describe('NetworkSettings', () => {
         expect(mockTrackEvent).not.toHaveBeenCalled();
       });
 
-      it('should track RPC_DELETED event when deleting RPC URL with chainId set', async () => {
+      it('tracks RPC_DELETED event when deleting RPC URL with chainId set', async () => {
         const instance = wrapper.instance();
         const chainId = '0x2';
         const rpcUrlToDelete = 'https://to-delete-url.com';
@@ -968,7 +968,7 @@ describe('NetworkSettings', () => {
         expect(mockTrackEvent).toHaveBeenCalled();
       });
 
-      it('should track RPC_DELETED event with correct rpc_url_index when deleting first RPC URL', async () => {
+      it('tracks RPC_DELETED event with correct rpc_url_index when deleting first RPC URL', async () => {
         const instance = wrapper.instance();
         const chainId = '0x3';
         const rpcUrlToDelete = 'https://first-rpc-url.com';
@@ -1002,7 +1002,7 @@ describe('NetworkSettings', () => {
         expect(mockTrackEvent).toHaveBeenCalled();
       });
 
-      it('should not track RPC_DELETED event when chainId is not set', async () => {
+      it('does not track RPC_DELETED event when chainId is not set', async () => {
         const instance = wrapper.instance();
         const rpcUrlToDelete = 'https://to-delete-url.com';
 
@@ -1024,7 +1024,7 @@ describe('NetworkSettings', () => {
         expect(mockTrackEvent).not.toHaveBeenCalled();
       });
 
-      it('should not track RPC_DELETED event when RPC URL is not found', async () => {
+      it('does not track RPC_DELETED event when RPC URL is not found', async () => {
         const instance = wrapper.instance();
         const chainId = '0x4';
 

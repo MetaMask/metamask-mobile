@@ -537,7 +537,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
   });
 
   describe('RPC Added event tracking', () => {
-    it('should track RPC_ADDED event with rpc_url_index: 0 when adding a new network', async () => {
+    it('tracks RPC_ADDED event with rpc_url_index: 0 when adding a new network', async () => {
       const spyOnAddNetwork = jest
         .spyOn(Engine.context.NetworkController, 'addNetwork')
         .mockReturnValue(networkConfigurationResult);
@@ -571,7 +571,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('should track RPC_ADDED event with correct rpc_url_index when adding a new RPC endpoint to existing network', async () => {
+    it('tracks RPC_ADDED event with correct rpc_url_index when adding a new RPC endpoint to existing network', async () => {
       const existingNetworkWithRpc = {
         id: 'test-network-configuration-id',
         chainId: '0x2',
@@ -648,7 +648,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('should not track RPC_ADDED event when updating existing RPC endpoint (not adding new one)', async () => {
+    it('does not track RPC_ADDED event when updating existing RPC endpoint (not adding new one)', async () => {
       const existingNetworkWithRpc = {
         id: 'test-network-configuration-id',
         chainId: '0x2',
