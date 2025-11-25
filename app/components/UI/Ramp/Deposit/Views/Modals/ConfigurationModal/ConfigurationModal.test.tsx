@@ -7,6 +7,18 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
 import { ToastContext } from '../../../../../../../component-library/components/Toast';
+import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
+}));
 
 const mockShowToast = jest.fn();
 const mockToastRef = {
@@ -141,11 +153,17 @@ describe('ConfigurationModal', () => {
   it('tracks event when more ways to buy is pressed', () => {
     const { getByText } = renderWithProvider(ConfigurationModal);
     const moreWaysToBuyButton = getByText('More ways to buy');
+
     fireEvent.press(moreWaysToBuyButton);
+
     expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
       location: 'Deposit Settings Modal',
       ramp_type: 'BUY',
       region: 'us',
+      ramp_routing: undefined,
+      is_authenticated: false,
+      preferred_provider: undefined,
+      order_count: 0,
     });
   });
 
