@@ -3,6 +3,8 @@ import { wallet_addEthereumChain } from './wallet_addEthereumChain';
 import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
+import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { flushPromises } from '../../util/test/utils';
 
 jest.mock('../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
@@ -80,19 +82,23 @@ jest.mock('../../store', () => ({
 }));
 
 jest.mock('../Analytics/MetaMetrics');
+jest.mock('../Analytics/MetricsEventBuilder');
 
 const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ name: 'test-event' });
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnThis(),
+  addProperties: mockAddProperties,
+  build: mockBuild,
 });
 const mockAddTraitsToUser = jest.fn();
 
 MetaMetrics.getInstance = jest.fn().mockReturnValue({
   trackEvent: mockTrackEvent,
-  createEventBuilder: mockCreateEventBuilder,
   addTraitsToUser: mockAddTraitsToUser,
 });
+
+MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
 const correctParams = {
   chainId: '0x64',
@@ -528,5 +534,179 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
     expect(spyOnUpdateNetwork).not.toHaveBeenCalled();
     expect(spyOnSetNetworkClientIdForDomain).toHaveBeenCalledTimes(1);
+  });
+
+  describe('RPC Added event tracking', () => {
+    it('should track RPC_ADDED event with rpc_url_index: 0 when adding a new network', async () => {
+      const spyOnAddNetwork = jest
+        .spyOn(Engine.context.NetworkController, 'addNetwork')
+        .mockReturnValue(networkConfigurationResult);
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      await wallet_addEthereumChain({
+        req: {
+          params: [correctParams],
+          origin: 'https://example.com',
+        },
+        ...otherOptions,
+      });
+      await flushPromises();
+
+      // Verify RPC_ADDED event was tracked
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RPC_ADDED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chain_id: '0x64',
+          source: 'Custom Network API',
+          symbol: 'xDai',
+          rpc_url_index: 0,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('should track RPC_ADDED event with correct rpc_url_index when adding a new RPC endpoint to existing network', async () => {
+      const existingNetworkWithRpc = {
+        id: 'test-network-configuration-id',
+        chainId: '0x2',
+        name: 'Test Chain',
+        ticker: 'TST',
+        rpcEndpoints: [
+          {
+            url: 'https://rpc.test-chain.com',
+            networkClientId: '1',
+          },
+        ],
+        defaultRpcEndpointIndex: 0,
+        blockExplorerUrls: ['https://explorer.test-chain.com'],
+        defaultBlockExplorerUrlIndex: 0,
+      };
+
+      const updatedNetworkResult = {
+        ...existingNetworkWithRpc,
+        rpcEndpoints: [
+          ...existingNetworkWithRpc.rpcEndpoints,
+          {
+            url: 'https://different-rpc-url.com',
+            networkClientId: '2',
+          },
+        ],
+        defaultRpcEndpointIndex: 1,
+      };
+
+      const spyOnUpdateNetwork = jest
+        .spyOn(Engine.context.NetworkController, 'updateNetwork')
+        .mockReturnValue(updatedNetworkResult);
+
+      otherOptions.hooks.getNetworkConfigurationByChainId = jest
+        .fn()
+        .mockReturnValue(existingNetworkWithRpc);
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      const existingParams = {
+        chainId: existingNetworkWithRpc.chainId,
+        rpcUrls: ['https://different-rpc-url.com'],
+        chainName: existingNetworkWithRpc.name,
+        nativeCurrency: {
+          name: existingNetworkWithRpc.ticker,
+          symbol: existingNetworkWithRpc.ticker,
+          decimals: 18,
+        },
+      };
+
+      await wallet_addEthereumChain({
+        req: {
+          params: [existingParams],
+          origin: 'https://example.com',
+        },
+        ...otherOptions,
+      });
+      await flushPromises();
+
+      // Verify RPC_ADDED event was tracked with correct index
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RPC_ADDED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chain_id: '0x2',
+          source: 'Custom Network API',
+          symbol: 'TST',
+          rpc_url_index: 1, // Second RPC endpoint (index 1)
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('should not track RPC_ADDED event when updating existing RPC endpoint (not adding new one)', async () => {
+      const existingNetworkWithRpc = {
+        id: 'test-network-configuration-id',
+        chainId: '0x2',
+        name: 'Test Chain',
+        ticker: 'TST',
+        rpcEndpoints: [
+          {
+            url: 'https://rpc.test-chain.com',
+            networkClientId: '1',
+          },
+        ],
+        defaultRpcEndpointIndex: 0,
+        blockExplorerUrls: ['https://explorer.test-chain.com'],
+        defaultBlockExplorerUrlIndex: 0,
+      };
+
+      const updatedNetworkResult = {
+        ...existingNetworkWithRpc,
+        defaultRpcEndpointIndex: 0,
+      };
+
+      const spyOnUpdateNetwork = jest
+        .spyOn(Engine.context.NetworkController, 'updateNetwork')
+        .mockReturnValue(updatedNetworkResult);
+
+      otherOptions.hooks.getNetworkConfigurationByChainId = jest
+        .fn()
+        .mockReturnValue(existingNetworkWithRpc);
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      // Use the same RPC URL that already exists
+      const existingParams = {
+        chainId: existingNetworkWithRpc.chainId,
+        rpcUrls: ['https://rpc.test-chain.com'],
+        chainName: existingNetworkWithRpc.name,
+        nativeCurrency: {
+          name: existingNetworkWithRpc.ticker,
+          symbol: existingNetworkWithRpc.ticker,
+          decimals: 18,
+        },
+      };
+
+      await wallet_addEthereumChain({
+        req: {
+          params: [existingParams],
+          origin: 'https://example.com',
+        },
+        ...otherOptions,
+      });
+      await flushPromises();
+
+      // Verify RPC_ADDED event was NOT tracked (only updating, not adding)
+      const rpcAddedCalls = mockCreateEventBuilder.mock.calls.filter(
+        (call) => call[0] === MetaMetricsEvents.RPC_ADDED,
+      );
+      expect(rpcAddedCalls).toHaveLength(0);
+    });
   });
 });
