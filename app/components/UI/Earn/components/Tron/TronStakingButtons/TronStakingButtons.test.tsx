@@ -1,8 +1,10 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import TronStakingButtons from './TronStakingButtons';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { selectAsset } from '../../../../../../selectors/assets/assets-list';
 
 const mockNavigate = jest.fn();
 
@@ -45,6 +47,10 @@ jest.mock('../../../../../../util/trace', () => ({
   },
 }));
 
+jest.mock('../../../../../../selectors/assets/assets-list', () => ({
+  selectAsset: jest.fn(),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -52,6 +58,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 describe('TronStakingButtons', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectAsset).mockReturnValue(undefined);
   });
 
   const baseAsset = {
@@ -64,7 +71,7 @@ describe('TronStakingButtons', () => {
   } as TokenI;
 
   it('navigates to stake screen with base asset TRX when not staked', () => {
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText } = renderWithProvider(
       <TronStakingButtons
         asset={baseAsset}
         hasStakedPositions={false}
@@ -92,7 +99,12 @@ describe('TronStakingButtons', () => {
       nativeAsset: undefined,
     } as TokenI;
 
-    const { getByTestId } = render(
+    jest.mocked(selectAsset).mockReturnValue({
+      ...baseAsset,
+      isStaked: false,
+    } as TokenI);
+
+    const { getByTestId } = renderWithProvider(
       <TronStakingButtons asset={stakedTrx} hasStakedPositions />,
     );
     fireEvent.press(getByTestId('stake-more-button'));
@@ -107,7 +119,7 @@ describe('TronStakingButtons', () => {
   });
 
   it('shows Unstake button when showUnstake is true and navigates on press', () => {
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <TronStakingButtons asset={baseAsset} showUnstake hasStakedPositions />,
     );
 

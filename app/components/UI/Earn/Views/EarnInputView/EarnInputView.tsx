@@ -77,6 +77,20 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import {
+  toTokenMinimalUnit,
+  normalizeToDotDecimal,
+} from '../../../../../util/number';
+import useTronStake from '../../hooks/useTronStake';
+import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
+import {
+  TRON_RESOURCE,
+  TronResourceType,
+} from '../../../../../core/Multichain/constants';
+import { ComputeFeeResult } from '../../utils/tron-staking';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
+///: END:ONLY_INCLUDE_IF
 
 const EarnInputView = () => {
   // navigation hooks
@@ -128,9 +142,17 @@ const EarnInputView = () => {
   const { getEarnToken } = useEarnTokens();
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const [resourceType, setResourceType] = useState<ResourceType>('energy');
-  const isTronNative =
-    token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
+  const [resourceType, setResourceType] = useState<ResourceType>(
+    TRON_RESOURCE.ENERGY,
+  );
+  const isTronNative = token.isNative && isTronChainId(String(token.chainId));
+
+  const {
+    validate: tronValidate,
+    confirm: tronConfirm,
+    validating: isTronStakeValidating,
+    preview: tronPreview,
+  } = useTronStake();
   ///: END:ONLY_INCLUDE_IF
 
   const earnTokenFromMap = getEarnToken(token);
@@ -140,11 +162,18 @@ const EarnInputView = () => {
 
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTrxStakingEnabled && isTronNative) {
+      const normalized = normalizeToDotDecimal(token.balance);
+      const balanceMinimalUnit = toTokenMinimalUnit(
+        normalized,
+        token.decimals ?? 0,
+      ).toString();
+
       const experiences = [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }];
+
       return {
         ...token,
         isETH: false,
-        balanceMinimalUnit: '0',
+        balanceMinimalUnit,
         balanceFormatted: token.balance ?? '0',
         balanceFiat: token.balanceFiat ?? '0',
         tokenUsdExchangeRate: 0,
@@ -203,6 +232,36 @@ const EarnInputView = () => {
       token,
       actionType: 'deposit',
     });
+
+  // Preview visibility: when true, hide keypad/quick amounts and show the Tron preview box
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+
+  // Build quick-amounts list, replacing the last "Max" with "Done" when editing and a value is entered
+  const quickAmounts = React.useMemo(() => {
+    // Only adjust for TRON staking flow; otherwise, use defaults
+    if (
+      isTrxStakingEnabled &&
+      isTronNative &&
+      !isPreviewVisible &&
+      isNonZeroAmount
+    ) {
+      const modified = [...percentageOptions];
+      modified[modified.length - 1] = {
+        ...modified[modified.length - 1],
+        label: strings('onboarding_success.done'),
+      };
+      return modified;
+    }
+    return percentageOptions;
+  }, [
+    isTrxStakingEnabled,
+    isTronNative,
+    isPreviewVisible,
+    isNonZeroAmount,
+    percentageOptions,
+  ]);
+
+  // (moved below after handleMaxPressWithTracking declaration)
 
   useEffect(() => {
     if (shouldLogStablecoinEvent()) {
@@ -479,7 +538,7 @@ const EarnInputView = () => {
   ]);
 
   const handlePooledStakingFlow = useCallback(async () => {
-    if (isHighGasCostImpact()) {
+    if (isHighGasCostImpact() && earnToken?.isETH) {
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.STAKE_GAS_COST_IMPACT_WARNING_TRIGGERED,
@@ -589,6 +648,7 @@ const EarnInputView = () => {
     attemptDepositTransaction,
     createEventBuilder,
     earnToken?.chainId,
+    earnToken?.isETH,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
@@ -598,6 +658,40 @@ const EarnInputView = () => {
   ]);
 
   const handleEarnPress = useCallback(async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTrxStakingEnabled && isTronNative) {
+      const result = await tronConfirm?.(
+        amountToken,
+        resourceType as TronResourceType,
+        String(token.chainId),
+      );
+      if (result?.valid && (!result.errors || result.errors.length === 0)) {
+        navigation.goBack();
+        requestAnimationFrame(() => {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: {
+              title: strings('stake.tron.stake_completed'),
+              description: strings('stake.tron.stake_completed_description'),
+              type: 'success',
+              closeOnPrimaryButtonPress: true,
+            },
+          });
+        });
+      } else {
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings('stake.tron.stake_failed'),
+            description: result?.errors?.join('\n') ?? '',
+            type: 'error',
+          },
+        });
+      }
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     // Stablecoin Lending Flow
     if (
       earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
@@ -612,6 +706,13 @@ const EarnInputView = () => {
   }, [
     earnToken?.experience?.type,
     isStablecoinLendingEnabled,
+    amountToken,
+    isTronNative,
+    isTrxStakingEnabled,
+    navigation,
+    resourceType,
+    token.chainId,
+    tronConfirm,
     handlePooledStakingFlow,
     handleLendingFlow,
   ]);
@@ -673,6 +774,26 @@ const EarnInputView = () => {
     isFiat,
   ]);
 
+  // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as Max
+  const onRightActionPress = React.useCallback(() => {
+    if (
+      isTrxStakingEnabled &&
+      isTronNative &&
+      isNonZeroAmount &&
+      !isPreviewVisible
+    ) {
+      setIsPreviewVisible(true);
+      return;
+    }
+    handleMaxPressWithTracking();
+  }, [
+    isTrxStakingEnabled,
+    isTronNative,
+    isNonZeroAmount,
+    isPreviewVisible,
+    handleMaxPressWithTracking,
+  ]);
+
   const handleCurrencySwitchWithTracking = useCallback(() => {
     // Call the original handler first
     handleCurrencySwitch();
@@ -716,7 +837,10 @@ const EarnInputView = () => {
   };
 
   const balanceText = strings('stake.balance');
-  const buttonLabel = getButtonLabel();
+  const buttonLabel =
+    isTrxStakingEnabled && isTronNative
+      ? strings('stake.stake')
+      : getButtonLabel();
 
   useFocusEffect(
     useCallback(() => {
@@ -863,6 +987,21 @@ const EarnInputView = () => {
     earnToken?.experience.type,
   ]);
 
+  const renderReviewButton = (isDisabled: boolean) => (
+    <View style={styles.reviewButtonContainer}>
+      <Button
+        label={buttonLabel}
+        size={ButtonSize.Lg}
+        labelTextVariant={TextVariant.BodyMDMedium}
+        variant={ButtonVariants.Primary}
+        loading={isSubmittingStakeDepositTransaction}
+        isDisabled={isDisabled}
+        width={ButtonWidthTypes.Full}
+        onPress={handleEarnPress}
+      />
+    </View>
+  );
+
   return (
     <ScreenLayout style={styles.container}>
       {
@@ -887,64 +1026,98 @@ const EarnInputView = () => {
           currentCurrency={currentCurrency}
           handleCurrencySwitch={handleCurrencySwitchWithTracking}
           currencyToggleValue={currencyToggleValue}
+          onPressAmount={() => {
+            // Re-open editing if preview mode is active
+            setIsPreviewVisible(false);
+          }}
         />
         <View style={styles.rewardsRateContainer}>
-          {isStablecoinLendingEnabled && !isTrxStakingEnabled ? (
-            <>
-              <View style={styles.spacer} />
-              <EarnTokenSelector
-                token={token}
-                action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+          {!isTrxStakingEnabled &&
+            (isStablecoinLendingEnabled ? (
+              <>
+                <View style={styles.spacer} />
+                <EarnTokenSelector
+                  token={token}
+                  action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+                />
+              </>
+            ) : (
+              <EstimatedAnnualRewardsCard
+                estimatedAnnualRewards={estimatedAnnualRewards}
+                onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+                  event: MetaMetricsEvents.TOOLTIP_OPENED,
+                  properties: {
+                    selected_provider: EVENT_PROVIDERS.CONSENSYS,
+                    text: 'Tooltip Opened',
+                    location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+                    tooltip_name: 'MetaMask Pool Estimated Rewards',
+                  },
+                })}
+                isLoading={isLoadingEarnMetadata}
               />
-            </>
-          ) : (
-            <EstimatedAnnualRewardsCard
-              estimatedAnnualRewards={estimatedAnnualRewards}
-              onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
-                event: MetaMetricsEvents.TOOLTIP_OPENED,
-                properties: {
-                  selected_provider: EVENT_PROVIDERS.CONSENSYS,
-                  text: 'Tooltip Opened',
-                  location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-                  tooltip_name: 'MetaMask Pool Estimated Rewards',
-                },
-              })}
-              isLoading={isLoadingEarnMetadata}
-            />
-          )}
+            ))}
         </View>
       </ScrollView>
-      <QuickAmounts
-        amounts={percentageOptions}
-        onAmountPress={handleQuickAmountPressWithTracking}
-        onMaxPress={handleMaxPressWithTracking}
-      />
-      <Keypad
-        value={!isFiat ? amountToken : amountFiatNumber}
-        // Debounce used to avoid error message flicker from recalculating gas fee estimate
-        onChange={debounce(handleKeypadChange, 1)}
-        style={styles.keypad}
-        currency={token.symbol}
-        decimals={!isFiat ? 5 : 2}
-      />
-      <View style={styles.reviewButtonContainer}>
-        <Button
-          label={buttonLabel}
-          size={ButtonSize.Lg}
-          labelTextVariant={TextVariant.BodyMDMedium}
-          variant={ButtonVariants.Primary}
-          loading={isSubmittingStakeDepositTransaction}
-          isDisabled={
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled &&
+          isTronNative &&
+          isPreviewVisible &&
+          isNonZeroAmount && (
+            <TronStakePreview
+              stakeAmount={amountToken}
+              fee={tronPreview?.fee as ComputeFeeResult}
+            />
+          )
+        ///: END:ONLY_INCLUDE_IF
+      }
+      {!isPreviewVisible && (
+        <>
+          <QuickAmounts
+            amounts={quickAmounts}
+            onAmountPress={handleQuickAmountPressWithTracking}
+            onMaxPress={onRightActionPress}
+          />
+          <Keypad
+            value={!isFiat ? amountToken : amountFiatNumber}
+            // Debounce used to avoid error message flicker from recalculating gas fee estimate
+            onChange={debounce((data) => {
+              handleKeypadChange(data);
+              ///: BEGIN:ONLY_INCLUDE_IF(tron)
+              if (isTrxStakingEnabled && isTronNative && !isFiat) {
+                tronValidate?.(String(data.value), String(token.chainId));
+              }
+              ///: END:ONLY_INCLUDE_IF
+            }, 1)}
+            style={styles.keypad}
+            currency={token.symbol}
+            decimals={!isFiat ? 5 : 2}
+          />
+        </>
+      )}
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled &&
+          isTronNative &&
+          isPreviewVisible &&
+          isNonZeroAmount &&
+          renderReviewButton(
             isOverMaximum.isOverMaximumToken ||
+              isOverMaximum.isOverMaximumEth ||
+              !isNonZeroAmount ||
+              (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
+              isSubmittingStakeDepositTransaction,
+          )
+        ///: END:ONLY_INCLUDE_IF
+      }
+      {!isTronNative &&
+        renderReviewButton(
+          isOverMaximum.isOverMaximumToken ||
             isOverMaximum.isOverMaximumEth ||
             !isNonZeroAmount ||
-            isLoadingEarnGasFee ||
-            isSubmittingStakeDepositTransaction
-          }
-          width={ButtonWidthTypes.Full}
-          onPress={handleEarnPress}
-        />
-      </View>
+            (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
+            isSubmittingStakeDepositTransaction,
+        )}
     </ScreenLayout>
   );
 };

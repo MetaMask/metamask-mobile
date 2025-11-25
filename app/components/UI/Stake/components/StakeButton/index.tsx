@@ -42,6 +42,7 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
+import { isTronChainId } from '../../../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 import {
   ETHEREUM_MAINNET_CHAIN_ID,
@@ -82,8 +83,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-  const isTronNative =
-    asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
+  const isTronNative = asset?.isNative && isTronChainId(asset.chainId as Hex);
   ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -291,6 +291,12 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     if (primaryExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    // Fallback for TRX (stake flag on) when no earnToken metadata is present yet
+    if (isTronNative && isTrxStakingEnabled) {
+      return handleStakeRedirect();
+    }
+    ///: END:ONLY_INCLUDE_IF
   };
 
   if (

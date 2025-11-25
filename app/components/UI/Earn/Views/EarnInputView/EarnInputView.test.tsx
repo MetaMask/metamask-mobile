@@ -583,7 +583,23 @@ describe('EarnInputView', () => {
       (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
 
       (useEarnTokens as jest.Mock).mockReturnValue({
-        getEarnToken: jest.fn(() => undefined),
+        getEarnToken: jest.fn(() => ({
+          name: 'TRON',
+          symbol: 'TRX',
+          ticker: 'TRX',
+          chainId: 'tron:728126428',
+          address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+          isNative: true,
+          isETH: false,
+          decimals: 6,
+          balance: '0',
+          balanceMinimalUnit: '0',
+          balanceFormatted: '0 TRX',
+          balanceFiat: '$0',
+          tokenUsdExchangeRate: 0,
+          experiences: [{ type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+        })),
         getOutputToken: jest.fn(() => undefined),
       });
 
@@ -591,8 +607,9 @@ describe('EarnInputView', () => {
         name: 'TRON',
         symbol: 'TRX',
         ticker: 'TRX',
-        chainId: 'tron:main',
-        address: 'T1111111111111111111111111111111111',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
         balance: '0',
         balanceFiat: '$0',
         isETH: false,
