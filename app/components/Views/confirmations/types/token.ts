@@ -41,4 +41,3 @@ export interface Nft {
   networkBadgeSource: ImageSourcePropType;
   balance?: string;
 }
-
