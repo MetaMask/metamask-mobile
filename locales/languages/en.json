@@ -6715,7 +6715,8 @@
       "points": "Points",
       "points_base": "Base",
       "points_boost": "Boost",
-      "points_total": "Total"
+      "points_total": "Total",
+      "description": "Description"
     },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
