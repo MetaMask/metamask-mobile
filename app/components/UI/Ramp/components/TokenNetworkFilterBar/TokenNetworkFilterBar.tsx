@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -38,14 +38,17 @@ function TokenNetworkFilterBar({
     networkFilter.length === 0 ||
     networkFilter.length === networks.length;
 
-  const handleAllPress = () => {
+  const handleAllPress = useCallback(() => {
     setNetworkFilter(null);
-  };
+  }, [setNetworkFilter]);
 
-  const handleNetworkPress = (chainId: CaipChainId) => {
-    // Radio button behavior: always set to single selection
-    setNetworkFilter([chainId]);
-  };
+  const handleNetworkPress = useCallback(
+    (chainId: CaipChainId) => {
+      // Radio button behavior: always set to single selection
+      setNetworkFilter([chainId]);
+    },
+    [setNetworkFilter],
+  );
 
   return (
     <ScrollView
