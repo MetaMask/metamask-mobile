@@ -52,9 +52,11 @@ interface NftGridProps {
 const NftRow = ({
   items,
   onLongPress,
+  source,
 }: {
   items: Nft[];
   onLongPress: (nft: Nft) => void;
+  source?: 'mobile-nft-list' | 'mobile-nft-list-page';
 }) => (
   <Box twClassName="flex-row gap-3 mb-3">
     {items.map((item, index) => {
@@ -62,7 +64,7 @@ const NftRow = ({
       const uniqueKey = `${item.address}-${item.tokenId}-${item.chainId}-${index}`;
       return (
         <Box key={uniqueKey} twClassName="flex-1">
-          <NftGridItem item={item} onLongPress={onLongPress} />
+          <NftGridItem item={item} onLongPress={onLongPress} source={source} />
         </Box>
       );
     })}
@@ -89,6 +91,8 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
   );
 
   const actionSheetRef = useRef<typeof ActionSheet>();
+
+  const nftSource = isFullView ? 'mobile-nft-list-page' : 'mobile-nft-list';
 
   const collectiblesByEnabledNetworks: Record<string, Nft[]> = useSelector(
     multichainCollectiblesByEnabledNetworksSelector,
@@ -157,6 +161,7 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
               key={`nft-row-${index}`}
               items={items}
               onLongPress={setLongPressedCollectible}
+              source={nftSource}
             />
           ))}
         </Box>
@@ -166,7 +171,11 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         ListHeaderComponent={<NftGridHeader />}
         data={groupedCollectibles}
         renderItem={({ item }) => (
-          <NftRow items={item} onLongPress={setLongPressedCollectible} />
+          <NftRow
+            items={item}
+            onLongPress={setLongPressedCollectible}
+            source={nftSource}
+          />
         )}
         keyExtractor={(_, index) => `nft-row-${index}`}
         testID={RefreshTestId}
@@ -175,6 +184,28 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
       />
     );
+
+  const renderNftContent = () => {
+    if (isNftFetchingProgress) {
+      return <NftGridSkeleton />;
+    }
+
+    if (allFilteredCollectibles.length > 0) {
+      return nftRowList;
+    }
+
+    return (
+      <CollectiblesEmptyState
+        onAction={goToAddCollectible}
+        actionButtonProps={{
+          testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+          isDisabled: !isAddNFTEnabled,
+        }}
+        twClassName="mx-auto mt-4"
+        testID="collectibles-empty-state"
+      />
+    );
+  };
 
   return (
     <>
@@ -193,21 +224,7 @@ const NftGrid = ({ isFullView = false }: NftGridProps) => {
         hideSort
         style={isFullView ? tw`px-4 pb-4` : tw`pb-3`}
       />
-      {isNftFetchingProgress ? (
-        <NftGridSkeleton />
-      ) : allFilteredCollectibles.length > 0 ? (
-        nftRowList
-      ) : (
-        <CollectiblesEmptyState
-          onAction={goToAddCollectible}
-          actionButtonProps={{
-            testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
-            isDisabled: !isAddNFTEnabled,
-          }}
-          twClassName="mx-auto mt-4"
-          testID="collectibles-empty-state"
-        />
-      )}
+      {renderNftContent()}
       {/* View all NFTs button - shown when there are more items than maxItems */}
       {maxItems && allFilteredCollectibles.length > maxItems && (
         <Box twClassName="pt-3 pb-9">

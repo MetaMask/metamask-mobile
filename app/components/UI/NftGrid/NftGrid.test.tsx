@@ -586,6 +586,65 @@ describe('NftGrid', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('NftDetails', {
         collectible: mockNft,
+        source: 'mobile-nft-list',
+      });
+    });
+  });
+
+  it('passes mobile-nft-list source when navigating from homepage view', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid isFullView={false} />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      const nftItem = getByTestId('collectible-Test NFT-456');
+      fireEvent.press(nftItem);
+
+      expect(mockNavigate).toHaveBeenCalledWith('NftDetails', {
+        collectible: mockNft,
+        source: 'mobile-nft-list',
+      });
+    });
+  });
+
+  it('passes mobile-nft-list-page source when navigating from full view', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    mockUseSelector
+      .mockReturnValueOnce(false) // isNftFetchingProgress
+      .mockReturnValueOnce(false) // selectHomepageRedesignV1Enabled
+      .mockReturnValueOnce(mockCollectibles); // multichainCollectiblesByEnabledNetworksSelector
+    const store = mockStore(initialState);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid isFullView />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      const nftItem = getByTestId('collectible-Test NFT-456');
+      fireEvent.press(nftItem);
+
+      expect(mockNavigate).toHaveBeenCalledWith('NftDetails', {
+        collectible: mockNft,
+        source: 'mobile-nft-list-page',
       });
     });
   });
