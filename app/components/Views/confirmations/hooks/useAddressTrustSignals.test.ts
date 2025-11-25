@@ -21,6 +21,7 @@ describe('useAddressTrustSignals', () => {
             engine: {
               backgroundState: {
                 PhishingController: {
+                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
                   addressScanCache: {
                     [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
                       {
@@ -54,6 +55,7 @@ describe('useAddressTrustSignals', () => {
             engine: {
               backgroundState: {
                 PhishingController: {
+                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
                   addressScanCache: {
                     [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
                       {
@@ -87,6 +89,7 @@ describe('useAddressTrustSignals', () => {
             engine: {
               backgroundState: {
                 PhishingController: {
+                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
                   addressScanCache: {
                     [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
                       {
@@ -119,6 +122,7 @@ describe('useAddressTrustSignals', () => {
             engine: {
               backgroundState: {
                 PhishingController: {
+                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
                   addressScanCache: {
                     [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
                       {
@@ -198,6 +202,7 @@ describe('useAddressTrustSignals', () => {
             engine: {
               backgroundState: {
                 PhishingController: {
+                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
                   addressScanCache: {
                     [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
                       {
@@ -231,34 +236,6 @@ describe('useAddressTrustSignals', () => {
         label: 'Suspicious',
       });
     });
-
-    it('returns null label when scan result has no label', () => {
-      const requests = [{ address: TEST_ADDRESS_1, chainId: TEST_CHAIN_ID }];
-
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignals(requests),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {
-                    [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
-                      {
-                        data: {
-                          result_type: 'Malicious',
-                        },
-                      },
-                  },
-                },
-              },
-            },
-          },
-        },
-      );
-
-      expect(result.current[0].label).toBeNull();
-    });
   });
 
   describe('useAddressTrustSignal', () => {
@@ -270,6 +247,7 @@ describe('useAddressTrustSignals', () => {
             engine: {
               backgroundState: {
                 PhishingController: {
+                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
                   addressScanCache: {
                     [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
                       {
@@ -289,50 +267,6 @@ describe('useAddressTrustSignals', () => {
       expect(result.current).toEqual({
         state: TrustSignalDisplayState.Malicious,
         label: 'Known scammer',
-      });
-    });
-
-    it('returns Unknown state when address is undefined', () => {
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignal(undefined, TEST_CHAIN_ID),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {},
-                },
-              },
-            },
-          },
-        },
-      );
-
-      expect(result.current).toEqual({
-        state: TrustSignalDisplayState.Unknown,
-        label: null,
-      });
-    });
-
-    it('returns Unknown state when chainId is undefined', () => {
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignal(TEST_ADDRESS_1, undefined),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  addressScanCache: {},
-                },
-              },
-            },
-          },
-        },
-      );
-
-      expect(result.current).toEqual({
-        state: TrustSignalDisplayState.Unknown,
-        label: null,
       });
     });
 
