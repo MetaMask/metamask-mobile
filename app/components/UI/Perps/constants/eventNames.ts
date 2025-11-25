@@ -244,7 +244,6 @@ export const PerpsEventValues = {
     ASSET_DETAILS: 'asset_details',
     TRADING: 'trading',
     HOMESCREEN: 'homescreen',
-    PERPS_HOME: 'perps_home',
     POSITION_CLOSE: 'position_close',
     LEVERAGE: 'leverage',
     TUTORIAL: 'tutorial',

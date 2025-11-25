@@ -75,6 +75,12 @@ export class TradingService {
         ? PerpsEventValues.STATUS.EXECUTED
         : PerpsEventValues.STATUS.FAILED;
 
+    // Determine perp_dex from provider
+    const perpDex =
+      context.tracingContext.provider === 'hyperliquid'
+        ? PerpsEventValues.PERP_DEX.HYPERLIQUID
+        : undefined;
+
     const eventBuilder = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
     ).addProperties({
@@ -94,6 +100,7 @@ export class TradingService {
       ...(params.orderType === 'limit' && {
         [PerpsEventProperties.LIMIT_PRICE]: params.price,
       }),
+      ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
     });
 
     // Add success-specific properties
@@ -732,6 +739,12 @@ export class TradingService {
 
       const completionDuration = performance.now() - startTime;
 
+      // Determine perp_dex from provider
+      const perpDex =
+        context.tracingContext.provider === 'hyperliquid'
+          ? PerpsEventValues.PERP_DEX.HYPERLIQUID
+          : undefined;
+
       if (result.success) {
         // Update state on success
         if (context.stateManager) {
@@ -760,6 +773,7 @@ export class TradingService {
                   params.newOrder.price,
                 ),
               }),
+              ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
             })
             .build(),
         );
@@ -783,6 +797,7 @@ export class TradingService {
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               [PerpsEventProperties.ERROR_MESSAGE]:
                 result.error || 'Unknown error',
+              ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
             })
             .build(),
         );
@@ -793,6 +808,12 @@ export class TradingService {
       return result;
     } catch (error) {
       const completionDuration = performance.now() - startTime;
+
+      // Determine perp_dex from provider
+      const perpDexException =
+        context.tracingContext.provider === 'hyperliquid'
+          ? PerpsEventValues.PERP_DEX.HYPERLIQUID
+          : undefined;
 
       // Track order edit exception
       context.analytics.trackEvent(
@@ -811,6 +832,9 @@ export class TradingService {
             [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
             [PerpsEventProperties.ERROR_MESSAGE]:
               error instanceof Error ? error.message : 'Unknown error',
+            ...(perpDexException && {
+              [PerpsEventProperties.PERP_DEX]: perpDexException,
+            }),
           })
           .build(),
       );
@@ -1481,6 +1505,12 @@ export class TradingService {
       const hasTakeProfit = !!params.takeProfitPrice;
       const hasStopLoss = !!params.stopLossPrice;
 
+      // Determine perp_dex from provider
+      const perpDex =
+        context.tracingContext.provider === 'hyperliquid'
+          ? PerpsEventValues.PERP_DEX.HYPERLIQUID
+          : undefined;
+
       // Build comprehensive event properties
       const eventProperties = {
         [PerpsEventProperties.STATUS]: result?.success
@@ -1492,6 +1522,7 @@ export class TradingService {
         [PerpsEventProperties.SCREEN_TYPE]: screenType,
         [PerpsEventProperties.HAS_TAKE_PROFIT]: hasTakeProfit,
         [PerpsEventProperties.HAS_STOP_LOSS]: hasStopLoss,
+        ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
         ...(direction && {
           [PerpsEventProperties.DIRECTION]:
             direction === 'long'
