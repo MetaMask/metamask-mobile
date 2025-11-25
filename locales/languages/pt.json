@@ -1,23 +1,23 @@
 {
   "sample_feature": {
-    "title": "Sample Feature",
-    "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
+    "title": "Recurso de amostra",
+    "description": "Esta tela demonstra como construir uma funcionalidade de amostra de ponta a ponta na MetaMask.",
     "counter": {
-      "title": "Counter",
-      "value": "Value: {{value}}",
-      "increment": "Increment Redux Counter"
+      "title": "Contador",
+      "value": "Valor: {{value}}",
+      "increment": "Incrementar contador do Redux"
     },
     "pet_name": {
-      "list_count_text": "Pet Names on this network",
-      "add_pet_name_button": "Add Pet Name",
-      "address": "Address",
+      "list_count_text": "Nomes afetuosos nesta rede",
+      "add_pet_name_button": "Adicionar nome afetuoso",
+      "address": "Endereço",
       "address_placeholder": "0x...",
-      "name": "Name",
-      "name_placeholder": "Name",
-      "duplicate_title": "Address already exists",
-      "duplicate_message": "This address already has a pet name. Do you want to update it?",
-      "cancel": "Cancel",
-      "update": "Update"
+      "name": "Nome",
+      "name_placeholder": "Nome",
+      "duplicate_title": "Endereço já existe",
+      "duplicate_message": "Este endereço já tem um nome afetuoso. Deseja atualizá-lo?",
+      "cancel": "Cancelar",
+      "update": "Atualizar"
     }
   },
   "alert_system": {
@@ -95,6 +95,10 @@
     "perps_hardware_account": {
       "title": "Não há suporte para esta carteira",
       "message": "Perps não oferecem suporte a carteiras de hardware.\nTroque de conta para continuar depositando."
+    },
+    "burn_address": {
+      "message": "Você está enviando seus ativos para um endereço de queima. Se continuar, você perderá seus ativos.",
+      "title": "Enviando ativos para endereço de queima"
     }
   },
   "blockaid_banner": {
@@ -241,7 +245,7 @@
     "remind_later_description": "Se não fizer o backup da sua Frase de Recuperação Secreta, você perderá acesso aos seus valores se ficar sem acesso ao app ou passar a usar um novo dispositivo.",
     "remind_later_description2": "Você pode fazer o backup das suas carteiras ou ver sua Frase de Recuperação Secreta em",
     "setting_security_privacy": "Configurações > Segurança e Privacidade",
-    "wallet_ready": "Your wallet is ready!"
+    "wallet_ready": "Sua carteira está pronta!"
   },
   "social_login_ios_user": {
     "new_user_title": "Você se inscreveu!",
@@ -617,8 +621,8 @@
       "quoteFetchError": "Falha ao buscar cotação.",
       "kycFormsFetchError": "Falha ao buscar formulários KYC.",
       "title": "Depositar",
-      "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
-      "limitError": "Failed to check your deposit limits. Please try again later."
+      "limitExceeded": "Este depósito pode exceder seu limite de {{period}}. Seu depósito, incluindo taxas, deve ser de até {{remaining}}.",
+      "limitError": "Falha ao verificar seus limites de depósito. Tente novamente mais tarde."
     },
     "token_modal": {
       "select_a_token": "Selecione um token",
@@ -694,13 +698,13 @@
       "bullet_3_title": "Mais rápido que nos bancos",
       "bullet_3_description": "Envie e receba em minutos, sem horário bancário nem atrasos internacionais.",
       "button": "Começar",
-      "title_musd": "Starting is easy with mUSD",
-      "bullet_1_title_musd": "Stable cryptocurrency",
-      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
-      "bullet_2_title_musd": "Low volatility",
-      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
-      "bullet_3_title_musd": "Faster than banks",
-      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
+      "title_musd": "É fácil começar com mUSD",
+      "bullet_1_title_musd": "Criptomoeda estável",
+      "bullet_1_description_musd": "O mUSD é um dólar digital com paridade de 1 para 1 com o dólar dos EUA.",
+      "bullet_2_title_musd": "Baixa volatilidade",
+      "bullet_2_description_musd": "O mUSD foi projetado para continuar estável, facilitando planejar, guardar e gastar.",
+      "bullet_3_title_musd": "Mais rápido que nos bancos",
+      "bullet_3_description_musd": "Envie e receba em minutos, sem horário bancário nem atrasos internacionais."
     },
     "enter_email": {
       "navbar_title": "Confirme sua identidade",
@@ -891,7 +895,7 @@
       "fetch_regions": "Ocorreu um problema ao obter as regiões.",
       "fetch_tokens": "Ocorreu um problema ao obter os tokens.",
       "fetch_payment_methods": "Ocorreu um problema ao obter os métodos de pagamento.",
-      "fetch_user_details": "There was an issue fetching the user details.",
+      "fetch_user_details": "Ocorreu um problema ao obter os dados do usuário.",
       "try_again": "Tentar novamente",
       "error_details_title": "Detalhes do erro",
       "see_more": "Ver mais"
@@ -909,7 +913,7 @@
       "title": "OS PERPS CHEGARAM",
       "title_description": "Opere long ou short com alavancagem de até 40x. Deposite em sua conta com apenas um clique.",
       "not_now": "Agora não",
-      "try_now": "Começar"
+      "try_now": "Comece já"
     },
     "today": "Hoje",
     "yesterday": "Ontem",
@@ -918,8 +922,8 @@
     "refresh_balance": "Atualizar saldo",
     "add_funds": "Adicionar fundos",
     "deposit_in_progress": "Depósito em andamento",
-    "withdraw_in_progress": "Withdraw in progress",
-    "multiple_transactions_in_progress": "Transactions in progress",
+    "withdraw_in_progress": "Saque em andamento",
+    "multiple_transactions_in_progress": "Transações em andamento",
     "your_positions": "Suas posições",
     "loading_positions": "Carregando posições...",
     "refreshing_positions": "Atualizando posições...",
@@ -935,13 +939,13 @@
       "get_usdc": "Obter USDC",
       "network_fee": "Taxa de rede",
       "estimated_time": "Tempo estimado",
-      "rate": "Preço",
+      "rate": "Avaliar",
       "slippage": "Slippage",
       "slippage_info": "A mudança no preço entre o momento em que sua ordem é realizada e confirmada é chamada de \"slippage\". Sua transação será automaticamente cancelada se o slippage exceder a tolerância que você definir aqui.",
       "slippage_auto": "Automático",
       "apply": "Aplicar",
       "max_button": "Máx.",
-      "done_button": "Feito",
+      "done_button": "Pronto",
       "metamask_fee": "Taxa da MetaMask",
       "metamask_fee_tooltip": "A MetaMask não cobra nenhuma taxa para depósitos na Hyperliquid",
       "minimum_deposit_error": "Valor mínimo de depósito: {{amount}} USDC",
@@ -1021,7 +1025,7 @@
       "total_fees": "Total de taxas",
       "receiving_amount": "Você receberá",
       "estimated_time": "Tempo estimado",
-      "done": "Feito",
+      "done": "Pronto",
       "initiated": "Saque iniciado",
       "wait_time_message": "Seus fundos devem chegar em 5 minutos",
       "submitting": "Enviando...",
@@ -1044,7 +1048,7 @@
     "quote": {
       "network_fee": "Taxa de rede",
       "estimated_time": "Tempo estimado",
-      "rate": "Preço",
+      "rate": "Avaliar",
       "metamask_fee": "Taxa da MetaMask",
       "metamask_fee_tooltip": "A MetaMask não cobra nenhuma taxa para transações da Hyperliquid",
       "metamask_fee_tooltip_deposit": "A MetaMask não cobra nenhuma taxa para depósitos na Hyperliquid",
@@ -1058,12 +1062,12 @@
       "trigger_price": "Preço de disparo",
       "liquidation_price": "Preço de liquidação",
       "fees": "Taxas",
-      "estimated_points": "Est. de pontos",
+      "estimated_points": "Pts. estimados",
       "market": "Mercado",
       "limit": "Limite",
       "open_orders": "Ordens",
       "max": "máx.",
-      "cancel_order": "Cancelar ordem",
+      "cancel_order": "Cancelar pedido",
       "filled": "executada",
       "reduce_only": "Reduzir apenas",
       "yes": "Sim",
@@ -1080,6 +1084,7 @@
         "insufficient_funds": "Fundos insuficientes",
         "insufficient_balance": "Saldo insuficiente. Obrigatório: ${{required}}, disponível: ${{available}}",
         "invalid_leverage": "A alavancagem deve estar entre {{min}}x e {{max}}x",
+        "leverage_below_position": "A alavancagem deve ser de pelo menos {{required}}x para corresponder à sua posição atual de (atual: {{provided}}x)",
         "max_order_value": "O tamanho da ordem deve ser inferior a ${{maxValue}}",
         "high_leverage_warning": "Uma alavancagem alta aumenta o risco de liquidação",
         "invalid_take_profit": "Take profit deve estar {{direction}} do preço atual para posições {{positionType}}",
@@ -1100,13 +1105,13 @@
         "go_back": "Voltar",
         "asset_not_tradable": "{{asset}} não é um ativo negociável"
       },
-      "off": "Desativado",
+      "off": "Off",
       "estimated_execution_time": "Tempo de execução estimado",
       "one_to_three_seconds": "1 a 3 segundos",
       "margin": "Margem",
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
-      "tp_sl": "Auto close",
+      "tp_sl": "Encerramento automático",
       "tp": "TP",
       "sl": "SL",
       "button": {
@@ -1220,12 +1225,14 @@
       "minimum_remaining_error": "Não é possível encerrar parcialmente: a posição restante (US$ {{remaining}}) ficaria abaixo do tamanho mínimo de (US$ {{minimum}}) da ordem. Em vez disso, encerre 100%.",
       "must_close_full_below_minimum": "O valor da posição está abaixo de US$ 10. Você deve encerrar 100% da posição.",
       "negative_receive_amount": "As taxas excedem o valor da sua posição",
+      "negative_receive_warning": "Encerrar esta posição lhe custará ${{amount}} devido a taxas e perdas.",
       "no_amount_selected": "Selecione um valor para encerrar",
       "order_type_reverted_to_market_order": "Alterado para ordem a mercado",
-      "you_need_set_price_limit_order": "É necessário definir um preço para uma ordem limitada."
+      "you_need_set_price_limit_order": "É necessário definir um preço para uma ordem limitada.",
+      "your_pnl_is": "Your P&L is"
     },
     "tpsl": {
-      "title": "Auto close",
+      "title": "Encerramento automático",
       "description": "Escolha um percentual de ganho ou perda ou insira um preço de disparo personalizado para encerrar sua posição automaticamente.",
       "off": "Off",
       "current_price": "Preço atual",
@@ -1238,10 +1245,10 @@
       "stop_loss_long": "Stop loss",
       "stop_loss_short": "Stop loss",
       "trigger_price_placeholder": "Preço de disparo",
-      "profit_percent_placeholder": "Lucro",
+      "profit_percent_placeholder": "de lucro",
       "loss_percent_placeholder": "Perda",
-      "profit_roe_placeholder": "% de lucro",
-      "loss_roe_placeholder": "% de perda",
+      "profit_roe_placeholder": "% Lucro",
+      "loss_roe_placeholder": "% Perda",
       "usd_label": "$",
       "take_profit_invalid_price": "O take profit deve ser um preço {{direction}} {{priceType}}",
       "stop_loss_invalid_price": "O stop loss deve ser um preço {{direction}} {{priceType}}",
@@ -1250,11 +1257,11 @@
       "above": "acima",
       "below": "abaixo",
       "done": "Pronto",
-      "cancel": "Cancel",
+      "cancel": "Cancelar",
       "set": "Definir",
-      "clear": "Clear",
-      "expected_profit": "Expected profit: {{amount}}",
-      "expected_loss": "Expected loss: {{amount}}"
+      "clear": "Limpar",
+      "expected_profit": "Lucro esperado: {{amount}}",
+      "expected_loss": "Perda esperada: {{amount}}"
     },
     "token_selector": {
       "no_tokens": "Nenhum token disponível"
@@ -1365,7 +1372,7 @@
         "available_balance": "Saldo disponível",
         "margin_used": "Margem usada",
         "total_unrealized_pnl": "Total P/L não realizado",
-        "unrealized_pnl": "P&L não realizado"
+        "unrealized_pnl": "P&L não realizados"
       },
       "tpsl": {
         "update_success": "TP/SL atualizado com sucesso",
@@ -1384,8 +1391,8 @@
       "24h_high": "Máxima em 24h",
       "24h_low": "Mínima em 24h",
       "24h_volume": "Volume em 24 horas",
-      "open_interest": "Contratos em aberto",
-      "funding_rate": "Taxa de depósito de fundos",
+      "open_interest": "Contrato em aberto",
+      "funding_rate": "Taxa de captação",
       "countdown": "Contagem regressiva",
       "long": "Long",
       "short": "Short",
@@ -1395,11 +1402,16 @@
       "add_funds_to_start_trading_perps": "Adicione fundos para começar a negociar perps",
       "position": "Posição",
       "orders": "Ordens",
+      "go_to_activity": "Acesse sua atividade",
+      "trading_24_7": "This asset may be traded 24/7",
+      "expect_more_volatility": "Expect more volatility outside of regular market hours",
+      "after_hours_trading_banner": "After-hours trading",
+      "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "badge": {
         "experimental": "EXPERIMENTAL",
-        "equity": "STOCK",
+        "equity": "AÇÃO",
         "commodity": "COMMODITY",
-        "crypto": "CRYPTO",
+        "crypto": "CRIPTOMOEDA",
         "forex": "FOREX"
       }
     },
@@ -1446,11 +1458,11 @@
         "content": "O preço específico pelo qual sua ordem limitada será executada. Para encerramento de posições long, a ordem é executada quando o preço sobe até esse nível. Para encerramento de posições short, a execução ocorre quando o preço cai até esse nível."
       },
       "open_interest": {
-        "title": "Contrato em aberto",
+        "title": "Contratos em aberto",
         "content": "O valor combinado de todas as posições em aberto para esse perp."
       },
       "funding_rate": {
-        "title": "Taxa de captação",
+        "title": "Taxa de depósito de fundos",
         "content": "Uma taxa horária paga entre traders para manter os preços alinhados com o mercado. Se a taxa for positiva, posições long pagam posições short. Se for negativa, posições short pagam posições long."
       },
       "geo_block": {
@@ -1488,6 +1500,16 @@
       "points": {
         "title": "Pontos",
         "content": "Os pontos são a forma de você ganhar MetaMask Rewards ao concluir transações, como quando você faz trocas, pontes ou negocia perps."
+      },
+      "market_hours": {
+        "title": "Market hours",
+        "closes_in": "Closes in {{time}}",
+        "content": "You're trading within regular market hours (9:30 am to 4pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
+      },
+      "after_hours_trading": {
+        "title": "After-hours trading",
+        "reopens_in": "Reopens in {{time}}",
+        "content": "You're trading outside of regular market hours (9:30 am to 4pm ET). When markets are closed, there's risk for wider spreads, price moves, and higher funding rates."
       }
     },
     "connection": {
@@ -1495,7 +1517,7 @@
       "error_message": "Não foi possível se conectar ao serviço de negociação de perps.",
       "retry_connection": "Tentar novamente",
       "retrying_connection": "Conectando...",
-      "connecting_to_perps": "Conectando-se à tela de perps",
+      "connecting_to_perps": "Conectando-se aos perps",
       "timeout_title": "A conexão está demorando mais do que o previsto"
     },
     "chart": {
@@ -1510,12 +1532,97 @@
         "days": "Dias"
       }
     },
+    "cancel": "Cancel",
+    "home": {
+      "close_all": "Encerrar tudo",
+      "cancel_all": "Cancelar tudo",
+      "no_markets": "Nenhum mercado disponível",
+      "recent_activity": "Activity",
+      "loading": "Carregando...",
+      "no_activity": "Nenhuma atividade recente",
+      "see_all": "Ver tudo",
+      "positions": "Your positions",
+      "orders": "Your orders",
+      "perps": "Perps",
+      "all": "All",
+      "crypto": "Explore crypto",
+      "stocks": "Ações",
+      "commodities": "Commodities",
+      "stocks_and_commodities": "Explore stocks and commodities",
+      "tabs": {
+        "all": "All",
+        "crypto": "Crypto",
+        "stocks_and_commodities": "Stocks"
+      },
+      "filter_by": "Filter by",
+      "forex": "Forex",
+      "watchlist": "Lista de acompanhamento",
+      "markets": "Mercados"
+    },
+    "learn_more": {
+      "title": "Saiba mais sobre Perps",
+      "description": "Entenda como funciona o trading perpétuo e como começar",
+      "cta": "Saiba mais"
+    },
+    "support": {
+      "title": "Contact support",
+      "description": "Contate o suporte da MetaMask para solicitar assistência"
+    },
+    "close_all_modal": {
+      "title": "Encerrar todas as posições",
+      "description": "Encerraremos todas as suas posições em aberto pelo preço de mercado atual.",
+      "margin": "Margem",
+      "includes_pnl": "inclui {{pnlAmount}}",
+      "fees": "Taxas",
+      "you_will_receive": "Você receberá",
+      "keep_positions": "Manter posições",
+      "close_all": "Encerrar tudo",
+      "closing": "Encerrando...",
+      "success_title": "Posições encerradas",
+      "success_message": "{{count}} posição(ões) encerrada(s) com sucesso",
+      "partial_success": "Encerradas {{successCount}} de {{totalCount}} posições",
+      "error_title": "Falha ao encerrar posições",
+      "error_message": "Falha ao encerrar {{count}} posição(ões)"
+    },
+    "cancel_all_modal": {
+      "title": "Cancelar todas as ordens",
+      "description": "Cancelaremos todas as suas ordens em aberto.",
+      "keep_orders": "Manter ordens",
+      "confirm": "Confirmar",
+      "canceling": "Cancelando...",
+      "success_title": "Ordens canceladas",
+      "success_message": "Ordem(ns) cancelada(s) com sucesso: {{count}}",
+      "partial_success": "Canceladas {{successCount}} de {{totalCount}} ordens",
+      "error_title": "Falha ao cancelar ordens",
+      "error_message": "Falha ao cancelar {{count}} ordem(ns)"
+    },
+    "sort": {
+      "volume": "Volume",
+      "price_change": "Variação de preço",
+      "funding_rate": "Taxa de depósito de fundos",
+      "open_interest": "Interesse em aberto",
+      "high_to_low": "Maior para menor",
+      "low_to_high": "Menor para maior",
+      "high": "Alta",
+      "low": "Baixa",
+      "sort_by": "Classificar por",
+      "sort_direction": "Classificar direção",
+      "favorites": "Lista de acompanhamento",
+      "price_change_high_to_low": "Variação de preço: maior para menor",
+      "price_change_low_to_high": "Variação de preço: menor para maior",
+      "past_hour": "Última hora",
+      "past_24_hours": "Últimas 24 horas",
+      "time": "Horário"
+    },
     "perps_markets": "Mercados de perps",
     "volume": "Volume",
     "price_24h_change": "Variação de preço em 24 horas",
     "failed_to_load_market_data": "Falha ao carregar dados de mercado",
+    "data_updates_automatically": "Dados são atualizados automaticamente a cada poucos segundos",
     "tap_to_retry": "Toque para tentar novamente",
     "search_by_token_symbol": "Pesquisar por símbolo de token",
+    "no_favorites_found": "Nenhum mercado na lista de acompanhamento",
+    "no_favorites_description": "Toque no ícone de estrela em qualquer mercado para adicioná-lo à sua lista de acompanhamento",
     "no_tokens_found": "Nenhum token encontrado",
     "no_tokens_found_description": "Não encontramos tokens com o nome \"{{searchQuery}}\". Tente outro termo de pesquisa.",
     "testnet": "Testnet",
@@ -1530,9 +1637,9 @@
         "trades": "Negociações",
         "orders": "Ordens",
         "funding": "Captação",
-        "withdraw": "Withdraw",
-        "deposit": "Deposit",
-        "deposits": "Deposits",
+        "withdraw": "Sacar",
+        "deposit": "Depositar",
+        "deposits": "Depósitos",
         "funding_description": "O histórico de captação é um resumo das taxas que você pagou ou recebeu, conforme determinado pelas taxas de captação em suas posições abertas."
       },
       "not_found": "Transação não encontrada",
@@ -1556,12 +1663,12 @@
         "liquidated": "Liquidado",
         "take_profit": "Take profit",
         "stop_loss": "Stop loss",
-        "auto_deleveraging": "Auto-Deleveraging"
+        "auto_deleveraging": "Desalavancagem automática"
       },
       "funding": {
         "date": "Data",
         "fee": "Taxa",
-        "rate": "Avaliar"
+        "rate": "Preço"
       },
       "view_on_explorer": "Ver no explorador de blocos",
       "empty_state": {
@@ -1611,41 +1718,56 @@
     "points_error": "Não é possível carregar pontos neste momento",
     "points_error_content": "Não se preocupe, você ainda está ganhando pontos. Eles aparecerão na sua conta em breve, ou você pode conferir a guia Recompensas mais tarde.",
     "tp_on_chart": "TP no gráfico",
-    "sl_on_chart": "SL no gráfico"
+    "sl_on_chart": "SL no gráfico",
+    "pnl_hero_card": {
+      "title": "PnL Hero Card",
+      "header_title": "Share your trade",
+      "share_button": "Share",
+      "share_message_with_referral_code": "Trade {{asset}} perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
+      "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
+      "share_failed": "Failed to export image",
+      "export_success": "Exported image",
+      "referral_code_text": "Use my referral code to earn extra rewards."
+    }
   },
   "predict": {
     "title": "MetaMask Predict",
     "prediction_markets": "Mercados de previsão",
     "market_list": "Lista de mercado",
-    "loading": "Loading...",
+    "loading": "Carregando...",
     "market_details": {
-      "title": "Market Details",
-      "market_ended_on": "Market ended on {{outcome}}",
-      "market_resulted_to": "Market resulted to {{outcome}}",
-      "waiting_for_final_resolution": "Waiting for final resolution",
-      "no_positions_found": "No positions found",
+      "title": "Detalhes do mercado",
+      "market_ended_on": "Mercado encerrado em {{outcome}}",
+      "market_resulted_to": "Mercado resultou em {{outcome}}",
+      "waiting_for_final_resolution": "Aguardando resolução final",
+      "no_positions_found": "Nenhuma posição encontrada",
       "volume": "Volume",
-      "end_date": "End date",
+      "end_date": "Data de encerramento",
       "resolver": "Resolver",
-      "powered_by": "Powered by",
-      "yes": "Yes",
-      "no": "No",
-      "on": "on",
-      "market_unavailable": "Market unavailable"
+      "powered_by": "Com tecnologia da",
+      "yes": "Sim",
+      "no": "Não",
+      "on": "sobre",
+      "won": "Ganhou",
+      "lost": "Perdeu",
+      "market_unavailable": "Mercado não disponível",
+      "amount_on_outcome": "${{amount}} sobre {{outcome}}",
+      "outcome_at_price": "{{outcome}} a {{price}}¢"
     },
     "tab": {
-      "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
-      "explore": "Browse markets",
+      "no_predictions_description": "Suas previsões serão exibidas aqui, mostrando seu staking e movimento de mercado.",
+      "explore": "Pesquisar mercados",
       "new_prediction": "Nova previsão",
-      "resolved_markets": "Resolved markets"
+      "resolved_markets": "Mercados resolvidos"
     },
     "tabs": {
-      "about": "About",
-      "positions": "Positions",
-      "outcomes": "Outcomes"
+      "about": "Sobre",
+      "positions": "Posições",
+      "outcomes": "Resultados"
     },
     "sell_position": "Posição de venda",
     "cash_out": "Sacar",
+    "cash_out_info": "Os fundos serão adicionados ao seu saldo disponível",
     "buy_yes": "Sim",
     "buy_no": "Não",
     "outcomes": "resultados",
@@ -1658,8 +1780,9 @@
       "yearly": "Anual",
       "quarterly": "Trimestral"
     },
-    "outcomes_singular": "mais resultado",
-    "outcomes_plural": "mais resultados",
+    "outcomes_singular": "resultado",
+    "outcomes_plural": "resultados",
+    "resolved_outcomes": "Resolved outcomes",
     "category": {
       "trending": "Tendência",
       "new": "Nova",
@@ -1672,87 +1795,118 @@
     "claim_button": "Resgatar",
     "markets_won": "Mercados ganhos",
     "won_markets_text": "Ganhou {{count}} mercado{{s}}",
-    "available_balance": "Available balance",
+    "available_balance": "Saldo disponível",
     "claim_amount_text": "Resgatar $ {{amount}}",
     "unrealized_pnl_label": "P&L não realizados",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
-    "unrealized_pnl_error": "Unable to load",
+    "unrealized_pnl_error": "Não foi possível carregar",
     "unavailable": {
-      "title": "Unavailable in your region",
-      "description": "Predictions aren't available in your region due to legal restrictions.",
-      "link": "See Polymarket terms",
-      "button": "Got it"
+      "title": "Não disponível em sua região",
+      "description": "Não há previsões disponíveis em sua região devido a restrições legais.",
+      "link": "Consulte os termos do Polymarket",
+      "button": "Entendi"
     },
     "deposit": {
-      "in_progress": "Deposit in progress",
-      "adding_funds": "Adding funds",
-      "adding_your_funds": "Adding your funds",
-      "add_funds": "Add funds",
-      "withdraw": "Withdraw",
-      "estimated_processing_time": "Est. {{time}} seconds",
-      "account_ready": "Your account is ready",
-      "account_ready_description": "{{amount}} added to your balance",
-      "error_title": "Something went wrong",
-      "error_description": "Your account wasn't funded",
-      "try_again": "Try again"
+      "in_progress": "Depósito em andamento",
+      "adding_funds": "Adicionando fundos",
+      "adding_your_funds": "Adicionando seus fundos",
+      "add_funds": "Adicionar fundos",
+      "withdraw": "Sacar",
+      "in_progress_description": "They'll be available in a moment",
+      "account_ready": "Sua conta está pronta",
+      "account_ready_description": "{{amount}} adicionado(s) ao seu saldo",
+      "error_title": "Ocorreu algum erro",
+      "error_description": "Sua conta não foi creditada",
+      "try_again": "Tentar novamente",
+      "in_progress_link": "View"
     },
     "add_funds_sheet": {
-      "title": "Add funds",
-      "description": "You'll need to add funds to your Predictions account to get started. You can add any token and make your first prediction in seconds."
+      "title": "Adicionar fundos",
+      "description": "Você precisará adicionar fundos à sua conta de Previsões para começar. Você pode adicionar qualquer token e fazer sua primeira previsão em segundos."
     },
     "transactions": {
-      "title": "Predictions",
-      "no_transactions": "No recent activity",
-      "buy_title": "Predicted",
-      "sell_title": "Cashed out",
-      "claim_title": "Claimed winnings",
-      "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
-      "sell_detail": "Sold at {{priceCents}} per share",
-      "claim_detail": "Claimed winnings",
-      "not_available": "N/A",
-      "date": "Date",
-      "market": "Market",
-      "outcome": "Outcome",
-      "predicted_amount": "Predicted amount",
-      "shares_bought": "Shares bought",
-      "shares_sold": "Shares sold",
-      "price_per_share": "Price per share",
-      "price_impact": "Price impact",
-      "net_pnl": "Net P&L",
-      "total_net_pnl": "Total Net P&L",
-      "market_net_pnl": "Market Net P&L",
-      "activity_details": "Activity details"
+      "title": "Previsões",
+      "no_transactions": "Nenhuma atividade recente",
+      "buy_title": "Previsto",
+      "sell_title": "Sacado",
+      "claim_title": "Ganhos resgatados",
+      "buy_detail": "Comprou {{amountUsd}} sobre {{outcome}} · {{priceCents}} por ação",
+      "sell_detail": "Vendido a {{priceCents}} por ação",
+      "claim_detail": "Ganhos resgatados",
+      "not_available": "N/D",
+      "date": "Data",
+      "market": "Mercado",
+      "outcome": "Resultado",
+      "predicted_amount": "Valor previsto",
+      "shares_bought": "Ações compradas",
+      "shares_sold": "Ações vendidas",
+      "price_per_share": "Preço por ação",
+      "price_impact": "Impacto do preço",
+      "net_pnl": "P&L líquido",
+      "total_net_pnl": "P&L líquido total",
+      "market_net_pnl": "P&L líquido de mercado",
+      "activity_details": "Detalhes da atividade"
     },
     "claim": {
       "toasts": {
         "pending": {
-          "title": "Claiming {{amount}}",
-          "description": "Est. {{time}} seconds"
+          "title": "Resgatando {{amount}}",
+          "description": "Estimativa: {{time}} segundos"
         },
         "confirmed": {
-          "title": "Claimed",
-          "description": "{{amount}} added to your balance"
+          "title": "Resgatada",
+          "description": "{{amount}} adicionado(s) ao seu saldo"
         },
         "error": {
-          "title": "Something went wrong",
-          "description": "Failed to proceed with claim",
-          "try_again": "Try again"
+          "title": "Ocorreu algum erro",
+          "description": "Falha ao continuar com o resgate",
+          "try_again": "Tentar novamente"
         }
       }
     },
     "order": {
-      "available": "Available",
-      "cashed_out": "Cashed out",
-      "cashed_out_subtitle": "{{amount}} added to your balance",
-      "cashing_out": "Cashing out {{amount}}",
-      "cashing_out_subtitle": "Estimated {{time}} seconds",
-      "placing_prediction": "Placing a prediction",
-      "prediction_placed": "Prediction placed",
-      "order_failed": "Order failed",
-      "payments_made_in_usdc": "All payments are made in USDC",
-      "prediction_insufficient_funds": "Insufficient funds. Lower the amount or add funds to continue.",
-      "prediction_minimum_bet": "Minimum bet is {{amount}}",
-      "to_win": "To win"
+      "available": "Disponível",
+      "cashed_out": "Sacado",
+      "cashed_out_subtitle": "{{amount}} adicionado(s) ao seu saldo",
+      "cashing_out": "Sacando {{amount}}",
+      "cashing_out_loading": "Sacando...",
+      "cashing_out_subtitle": "Estimado: {{time}} segundos",
+      "placing_prediction": "Colocando uma previsão",
+      "prediction_placed": "Previsão colocada",
+      "order_failed": "Falha na ordem",
+      "payments_made_in_usdc": "Todos os pagamentos são feitos em USDC",
+      "prediction_insufficient_funds": "Fundos insuficientes. Reduza o valor ou adicione fundos para continuar.",
+      "prediction_minimum_bet": "A aposta mínima é de {{amount}}",
+      "to_win": "Para ganhar",
+      "order_failed_generic": "A transação falhou. Tente novamente."
+    },
+    "withdraw": {
+      "withdrawing": "Retirando {{amount}} USDC",
+      "withdrawing_subtitle": "Estimativa: {{time}} segundos",
+      "withdraw_completed": "Saque concluído",
+      "withdraw_completed_subtitle": "{{amount}} USDC adicionados ao seu saldo",
+      "error_title": "Ocorreu algum erro",
+      "error_description": "Falha ao continuar com a retirada",
+      "try_again": "Tentar novamente"
+    },
+    "fee_summary": {
+      "provider_fee": "Taxa do provedor",
+      "metamask_fee": "Taxa da MetaMask",
+      "total": "Total"
+    },
+    "error": {
+      "title": "Não foi possível conectar-se às previsões",
+      "description": "Os mercados de previsão estão temporariamente indisponíveis. Verifique se sua conexão está estável e tente novamente.",
+      "retry": "Tentar novamente"
+    },
+    "error_messages": {
+      "place_order_failed": "Falha ao enviar a ordem",
+      "preview_failed": "Falha ao pré-visualizar a ordem",
+      "preview_no_order_book": "Livro de ordens não encontrado",
+      "preview_no_order_match_buy": "Nenhuma ordem correspondente de compra encontrada",
+      "preview_no_order_match_sell": "Nenhuma ordem correspondente de venda encontrada",
+      "claim_failed": "Falha ao reivindicar",
+      "unknown_error": "Ocorreu um erro desconhecido"
     }
   },
   "receive": {
@@ -1819,6 +1973,8 @@
   "wallet": {
     "title": "Carteira",
     "tokens": "Tokens",
+    "view_all_nfts": "Ver todos os NFTs",
+    "view_all_tokens": "Ver todos os tokens",
     "collectible": "Colecionáveis",
     "collectibles": "NFTs",
     "defi": "DeFi",
@@ -1863,9 +2019,8 @@
     "alphabetically": "Em ordem alfabética (A-Z)",
     "add_to_get_started": "Adicione criptomoedas para começar",
     "token_is_needed_to_continue": "É necessário {{tokenSymbol}} para continuar",
-    "fund_your_wallet": "Fund your wallet",
-    "get_ready_for_web3": "Get your wallet ready to use web3",
-    "fund_your_wallet_to_get_started": "Deposite fundos em sua carteira para começar na web3",
+    "fund_your_wallet": "Deposite fundos em sua carteira",
+    "get_ready_for_web3": "Prepare sua carteira para usar a web3",
     "add_funds": "Adicionar fundos",
     "next": "Avançar",
     "buy_asset": "Comprar {{asset}}",
@@ -2651,8 +2806,12 @@
       "title": "Opções para desenvolvedores",
       "generate_trace_test": "Gerar teste de rastreamento",
       "generate_trace_test_desc": "Gerar rastreamento de sentinela de teste de desenvolvedor.",
-      "navigate_to_sample_feature": "Navigate to Sample Feature",
-      "sample_feature_desc": "A sample feature as a template for developers."
+      "navigate_to_sample_feature": "Navegue até o recurso de exemplo",
+      "sample_feature_desc": "Um recurso de exemplo como modelo para desenvolvedores."
+    },
+    "feature_flag_override": {
+      "title": "Sobrescrever feature flags (alternância de recursos)",
+      "description": "Sobrescrever os feature flags (alternância de recursos) do app localmente."
     }
   },
   "aes_crypto_test_form": {
@@ -2812,12 +2971,12 @@
     "bridge": "Ponte",
     "earn": "Ganhe",
     "tron": {
-      "daily_resource": "Daily resource",
-      "bandwidth": "Bandwidth",
-      "energy": "Energy",
-      "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
-      "sufficient_to_cover_trx": "Sufficient to cover ~{{amount}} TRX transfers",
-      "sufficient_to_cover_usdt": "Sufficient to cover ~{{amount}} USDT"
+      "daily_resource": "Recurso diário",
+      "bandwidth": "Largura de banda",
+      "energy": "Energia",
+      "daily_resource_description": "Esta é a sua cota diária com base no seu TRX em staking. Você recebe 600 de largura de banda gratuitamente todos os dias.",
+      "sufficient_to_cover_trx": "Suficiente para cobrir cerca de {{amount}} em transferências TRX",
+      "sufficient_to_cover_usdt": "Suficiente para cobrir cerca de {{amount}} em USDT"
     },
     "disabled_button": {
       "buy": "Não há suporte para compras nesta conta",
@@ -2955,7 +3114,7 @@
     "native_toggle_metamask": "A MetaMask está complementando o saldo para realizar esta transação."
   },
   "gas_fee_token_toast": {
-    "message": "You're paying this network fee with "
+    "message": "Você está pagando esta taxa de rede com "
   },
   "transaction": {
     "transaction_id": "ID da transação",
@@ -3238,9 +3397,9 @@
     "tx_review_lending_deposit": "Depósito de empréstimo",
     "tx_review_lending_withdraw": "Saque de empréstimo",
     "tx_review_perps_deposit": "Perps creditados",
-    "tx_review_predict_deposit": "Funded Predictions",
-    "tx_review_predict_claim": "Claimed Wins",
-    "tx_review_predict_withdraw": "Predictions Withdraw",
+    "tx_review_predict_deposit": "Previsões creditadas",
+    "tx_review_predict_claim": "Ganhos resgatados",
+    "tx_review_predict_withdraw": "Previsões retiradas",
     "sent_ether": "Ethers enviados",
     "self_sent_ether": "Ethers enviados a si mesmo",
     "received_ether": "Ethers recebidos",
@@ -3314,7 +3473,7 @@
     "network_fee": "Taxa de rede",
     "network_fee_tooltip": "Valor pago para processar a transação na rede.",
     "confirm_gas_fee_token_tooltip": "Este valor é pago à rede para processar sua transação. Inclui uma taxa da MetaMask de {{metamaskFeeFiat}} para tokens não ETH ou ETH pré-financiado.",
-    "paid_by_metamask": "Paid by MetaMask",
+    "paid_by_metamask": "Pago pela MetaMask",
     "confirm_gas_fee_token_metamask_fee": "Inclui taxa de {{metamaskFeeFiat}}",
     "smart_account_upgrade": "Atualizar para conta inteligente",
     "smart_account_downgrade": "Mudar para a conta padrão",
@@ -3760,10 +3919,10 @@
   "manual_backup_step_1": {
     "steps": "Etapa {{currentStep}} de {{totalSteps}}",
     "action": "Salve sua Frase de Recuperação Secreta",
-    "info-1": "Essa é sua",
-    "info-2": "da sua carteira.",
-    "info-3": "Anote-a na ordem correta e guarde-a em segurança. Se alguém tiver sua Frase de Recuperação Secreta, conseguirá acessar sua carteira.",
-    "info-4": "Não a compartilhe com ninguém, nunca.",
+    "info-1": "Sua",
+    "info-2": "Frase de Recuperação Secreta",
+    "info-3": "permite acesso total à carteira.",
+    "info-4": "Anote na ordem correta e com os números certos. Guarde em segurança e nunca compartilhe.",
     "continue": "Continuar",
     "reveal": "Toque para revelar",
     "watching": "Certifique-se de que não há ninguém vendo sua tela.",
@@ -5204,6 +5363,10 @@
   "stake": {
     "stake": "Stake",
     "earn": "Ganhe",
+    "tron": {
+      "bandwidth": "Largura de banda",
+      "energy": "Energia"
+    },
     "stake_eth": "Fazer staking de ETH",
     "unstake_eth": "Retirar ETH do staking",
     "staked_balance": "Saldo em staking",
@@ -5449,8 +5612,8 @@
       "switch_account_type": "Atualização da conta",
       "approve": "Aprovar solicitação",
       "perps_deposit": "Adicionar fundos",
-      "predict_deposit": "Add Predict funds",
-      "predict_withdraw": "Withdraw"
+      "predict_deposit": "Adicionar fundos Predict",
+      "predict_withdraw": "Sacar"
     },
     "sub_title": {
       "permit": "Este site quer permissão para gastar seus tokens.",
@@ -5470,7 +5633,7 @@
         "transaction_fee": "Trocaremos seus tokens por USDC na HyperCore, a rede usada pelos perps. Os provedores de troca podem cobrar uma taxa, mas a MetaMask não cobra."
       },
       "predict_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "Trocaremos seus tokens por USDC.e na Polygon, a rede usada pela Predict. Provedores de Swaps talvez cobrem taxas, mas a MetaMask não cobra."
       },
       "title": {
         "transaction_fee": "Taxas"
@@ -5560,10 +5723,10 @@
       "title": "Editar limite de aprovação"
     },
     "predict_claim": {
-      "button_label": "Claim winnings",
-      "summary": "You won",
-      "footer_bottom": "Funds will be added to your available balance",
-      "footer_top": "Winnings from {{count}} markets"
+      "button_label": "Resgatar ganhos",
+      "summary": "Você ganhou",
+      "footer_bottom": "Os fundos serão adicionados ao seu saldo disponível",
+      "footer_top": "Ganhos de {{count}} mercados"
     },
     "unlimited": "Ilimitado",
     "all": "Tudo",
@@ -5633,9 +5796,9 @@
     "points_error_content": "Você ainda ganhará os pontos por essa transação. Notificaremos você assim que eles forem adicionados à sua conta. Você também poderá conferir sua guia de recompensas em cerca de uma hora.",
     "see_other_quotes": "Ver outras cotações",
     "receive_at": "Receber em",
-    "recipient": "Recipient",
-    "select_recipient": "Select recipient",
-    "external_account": "External account",
+    "recipient": "Destinatário",
+    "select_recipient": "Selecionar destinatário",
+    "external_account": "Conta externa",
     "error_banner_description": "Esta rota comercial não está disponível no momento. Experimente mudar o valor, a rede ou o token e encontraremos a melhor opção.",
     "insufficient_funds": "Fundos insuficientes",
     "insufficient_gas": "Gás insuficiente",
@@ -5647,9 +5810,9 @@
     "title": "Ponte",
     "submitting_transaction": "Enviando",
     "fetching_quote": "Buscando cotação",
-    "fee_disclaimer": "Includes {{feePercentage}}% MM fee.",
+    "fee_disclaimer": "Inclui {{feePercentage}}% de taxa de MM.",
     "no_mm_fee": "Sem taxa da MM",
-    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}.",
+    "no_mm_fee_disclaimer": "Sem taxa da MM ao trocar por {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Ainda não oferecemos suporte a carteiras de hardware. Use uma hot wallet para continuar.",
     "hardware_wallet_not_supported_solana": "Carteiras de hardware ainda não são compatíveis com Solana. Use uma hot wallet para continuar.",
     "price_impact_info_title": "Impacto no preço",
@@ -5659,12 +5822,20 @@
     "slippage_info_description": "A % de alteração no preço que você está disposto a permitir antes que sua transação seja cancelada.",
     "blockaid_error_title": "Esta transação será estornada",
     "max": "Máx.",
-    "approval_needed": "Approves token for swap.",
+    "approval_needed": "Aprova token para swap.",
     "approval_tooltip_title": "Conceder acesso exato",
     "approval_tooltip_content": "Você está permitindo o acesso ao valor especificado, {{amount}} {{symbol}}. O contrato não acessará nenhum fundo adicional.",
     "minimum_received": "Mínimo recebido",
     "minimum_received_tooltip_title": "Mínimo recebido",
-    "minimum_received_tooltip_content": "O valor mínimo que você receberá em caso de mudança do preço durante o processamento da sua transação, com base em sua tolerância ao slippage. Essa é uma estimativa dos nossos provedores de liquidez. Os valores finais podem ser diferentes."
+    "minimum_received_tooltip_content": "O valor mínimo que você receberá em caso de mudança do preço durante o processamento da sua transação, com base em sua tolerância ao slippage. Essa é uma estimativa dos nossos provedores de liquidez. Os valores finais podem ser diferentes.",
+    "verified_token": "Token verificado",
+    "price": "Preço",
+    "percent_change": "Variação percentual",
+    "volume": "Volume",
+    "market_cap_fdv": "Capitalização de mercado (FDV)",
+    "listed_on": "Listado em",
+    "centralized_exchanges": "Corretora centralizada",
+    "contract_address": "Endereço do contrato"
   },
   "quote_expired_modal": {
     "title": "Novas cotações estão disponíveis",
@@ -5699,8 +5870,8 @@
     "account_not_found_description": "Não foi possível encontrar uma carteira para \"{{accountName}}\". Deseja criar uma carteira com esse login?",
     "create_new_wallet": "Criar uma nova carteira",
     "use_different_login_method": "Usar um método de login diferente",
-    "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
-    "unlock_wallet": "Unlock wallet"
+    "account_already_exists_ios_new_user_description": "Já existe uma carteira com o nome \"{{accountName}}\". Deseja desbloquear esta carteira?",
+    "unlock_wallet": "Desbloquear carteira"
   },
   "error_sheet": {
     "still_there_title": "Ainda está aí?",
@@ -5799,14 +5970,14 @@
       "section_2_title": "Mesmo endereço, mais redes",
       "section_2_description": "Unificamos suas contas, mas continue usando a MetaMask normalmente. Seus fundos permanecem seguros e inalterados",
       "view_accounts_button": "Ver contas",
-      "learn_more_button": "Learn more",
+      "learn_more_button": "Saiba mais",
       "setting_up_accounts": "Configurando suas contas"
     },
     "learn_more": {
-      "title": "Learn more",
+      "title": "Saiba mais",
       "description": "Contas multicadeia agora são o padrão. Se preferir, você pode desativá-las desligando a funcionalidade básica.",
-      "checkbox_label": "Turn off basic functionality",
-      "confirm_button": "Confirm"
+      "checkbox_label": "Desativar funcionalidade básica",
+      "confirm_button": "Confirmar"
     },
     "add_wallet": "Adicionar carteira",
     "add_hardware_wallet": "Adicionar uma carteira de hardware",
@@ -5849,8 +6020,8 @@
     "wallet_details": {
       "wallet_name": "Nome da carteira",
       "balance": "Saldo",
-      "create_account": "Criar conta",
-      "creating_account": "Criando conta...",
+      "create_account": "Adicionar conta",
+      "creating_account": "Adicionando conta...",
       "discovering_accounts": "Descobrindo contas...",
       "back_up": "Fazer backup",
       "reveal_recovery_phrase_with_index": "Revelar Frase de Recuperação {{index}}"
@@ -5937,10 +6108,10 @@
       "well_take_you_to_right_place": " e nós levaremos você ao lugar certo."
     },
     "unsupported": {
-      "title": "This page is not supported in current version",
-      "description": "Update to the latest version to use this feature",
-      "update_to_store_link": "Update to the latest version of MetaMask",
-      "well_take_you_to_right_place": " and we'll take you to the right place."
+      "title": "Esta página não é suportada na versão atual",
+      "description": "Atualize para a versão mais recente para usar este recurso",
+      "update_to_store_link": "Atualize para a versão mais recente da MetaMask",
+      "well_take_you_to_right_place": " e nós levaremos você ao lugar certo."
     },
     "go_to_home_button": "Ir para a página inicial",
     "back_button": "Voltar",
@@ -5948,6 +6119,7 @@
   },
   "card": {
     "card": "Cartão MetaMask",
+    "card_button_enabled_toast": "You can now sign up for MetaMask Card!",
     "add_funds_bottomsheet": {
       "deposit": "Depositar fundos com dinheiro",
       "deposit_description": "Cartão ou transferência bancária de baixo custo",
@@ -5956,31 +6128,40 @@
       "select_method": "Selecionar método"
     },
     "card_onboarding": {
-      "title": "Bem-vindo ao cartão",
-      "description": "Para usar os recursos do cartão, será necessário verificar sua conta com o nosso parceiro.",
-      "verify_account_button": "Verificar conta",
+      "title": "Habilitar recursos do cartão MetaMask",
+      "description": "Para alterar seu token de gastos e sua rede, faça login usando seu e-mail e senha do Crypto Life.",
+      "verify_account_button": "Fazer login",
+      "non_cardholder_title": "Boas-vindas ao cartão MetaMask",
+      "non_cardholder_description": "O Cartão MetaMask é a maneira gratuita e simples de gastar suas criptomoedas, com recompensas atrativas on-chain.",
+      "non_cardholder_verify_account_button": "Comece já",
       "sign_up": {
-        "title": "Inscrever-me",
-        "description": "Registre seus dados com a Crypto Life, a provedora do cartão MetaMask. Você usará essa conta para acessar e gerenciar seu cartão.",
+        "title": "Inscrever-se",
+        "description": "Cadastre-se na Crypto Life, fornecedora do cartão MetaMask. Use estas credenciais para gerenciar seu cartão.",
+        "i_already_have_an_account": "Já tenho uma conta",
         "email_label": "E-mail",
         "password_label": "Senha",
-        "confirm_password_label": "Confirmar senha",
+        "confirm_password_label": "Insira sua senha novamente",
         "country_label": "País de residência",
         "email_placeholder": "Insira seu endereço de e-mail",
-        "password_placeholder": "Insira sua senha",
+        "password_placeholder": "Deve ter mais de 15 caracteres",
+        "confirm_password_placeholder": "Insira sua senha novamente",
         "country_placeholder": "Selecione seu país",
         "password_mismatch": "As senhas não coincidem",
-        "invalid_email": "Endereço de e-mail inválido"
+        "invalid_email": "Endereço de e-mail inválido",
+        "invalid_password": "A senha deve ter pelo menos 15 caracteres e não pode conter caracteres não imprimíveis ou espaços consecutivos"
       },
       "confirm_email": {
         "title": "Confirme seu e-mail",
         "description": "Enviamos um código de confirmação para: {{email}}",
         "confirm_code_label": "Código de confirmação",
-        "confirm_code_placeholder": "Insira o código de confirmação"
+        "confirm_code_placeholder": "Insira o código de 6 dígitos",
+        "resend_verification": "Reenviar código de verificação",
+        "resend_cooldown": "Reenvio disponível em {{seconds}} segundos",
+        "account_exists": "Faça login para prosseguir com sua integração"
       },
       "set_phone_number": {
         "title": "Número de telefone",
-        "description": "Insira seu número de telefone",
+        "description": "Enviaremos seu código de confirmação para este número",
         "phone_number_label": "Número de telefone",
         "phone_number_placeholder": "Insira seu número de telefone",
         "country_area_code_label": "Código de área do país",
@@ -5989,24 +6170,28 @@
       },
       "confirm_phone_number": {
         "title": "Confirme seu número de telefone",
-        "description": "Enviamos um código de confirmação para: {{phoneNumber}}",
-        "confirm_code_label": "Código de confirmação"
+        "description": "Enviamos um código de confirmação para:\n{{phoneNumber}}",
+        "confirm_code_label": "Código de confirmação",
+        "resend_verification": "Reenviar código de verificação",
+        "resend_cooldown": "Reenvio disponível em {{seconds}} segundos"
       },
       "verify_identity": {
-        "title": "Verificando sua identidade para receber seu cartão",
-        "description": "Para manter sua conta protegida e cumprir as regulamentações, precisamos verificar sua identidade.\n\nVocê precisará de um documento de identidade oficial e um comprovante de endereço (por exemplo, uma conta de serviço público ou extrato bancário).\n\nA verificação geralmente leva de 5 a 30 minutos, e você receberá uma notificação assim que ela for concluída.",
-        "verify_button": "Verificar agora com Veriff"
+        "title": "Em seguida, confirme sua identidade",
+        "description": "Para manter a segurança de sua conta, a Crypto Life precisa verificar sua identidade através do Veriff.\n\nSuas informações vão diretamente para a Veriff e para a Crypto Life, e nunca serão vistas ou armazenadas pela MetaMask.\n\nTenha em mãos sua identidade e comprovante de endereço. Isso geralmente leva 5 minutos.",
+        "verify_button": "Iniciar verificação",
+        "start_verification_error": "Erro ao iniciar a verificação. Tente novamente mais tarde."
       },
       "validating_kyc": {
-        "title": "Validando seu KYC..."
+        "title": "Validando seu KYC...",
+        "timeout_button": "Reiniciar verificação"
       },
       "kyc_failed": {
         "title": "Rejeitado",
         "description": "Seu KYC foi rejeitado. Por gentileza, tente novamente."
       },
       "personal_details": {
-        "title": "Dados pessoais",
-        "description": "Insira seus dados pessoais",
+        "title": "Agora, nosso parceiro precisa de algumas informações sobre você",
+        "description": "Não se preocupe, estas informações são privadas e nunca são vistas por nós",
         "first_name_label": "Nome",
         "last_name_label": "Sobrenome",
         "date_of_birth_label": "Data de nascimento",
@@ -6018,24 +6203,35 @@
         "nationality_placeholder": "Selecione sua nacionalidade",
         "ssn_placeholder": "Insira seu NSS",
         "invalid_ssn": "NSS inválido",
-        "invalid_date_of_birth": "Data de nascimento inválida",
-        "invalid_date_of_birth_underage": "Você deve ter pelo menos 18 anos de idade"
+        "invalid_date_of_birth": "Data de nascimento inválida. Você deve ter pelo menos 18 anos"
       },
       "physical_address": {
-        "title": "Endereço físico",
-        "description": "Informe seu endereço físico",
+        "title": "Endereço residencial",
+        "description": "Informe seu endereço de residência física à Crypto Life",
         "address_line_1_label": "Endereço linha 1",
         "address_line_2_label": "Endereço linha 2",
         "city_label": "Cidade",
         "state_label": "Estado",
-        "zip_code_label": "CEP",
-        "address_line_1_placeholder": "Insira a linha 1 do seu endereço",
-        "address_line_2_placeholder": "Insira a linha 2 do seu endereço",
+        "zip_code_label": "CEP ou Código postal",
+        "address_line_1_placeholder": "Endereço de rua",
+        "address_line_2_placeholder": "Número do andar, apartamento ou suíte",
         "city_placeholder": "Insira sua cidade",
         "state_placeholder": "Insira seu estado",
-        "zip_code_placeholder": "Insira seu CEP",
-        "same_mailing_address_label": "O endereço físico é o mesmo que o endereço postal",
-        "electronic_consent": "Concordo com o consentimento e divulgação conforme a Lei E-Sign (lei americana de assinaturas eletrônicas no comércio mundial e nacional) e em receber todas as comunicações por via eletrônica."
+        "zip_code_placeholder": "Insira seu CEP ou código postal",
+        "same_mailing_address_label": "O endereço residencial é o mesmo que o endereço postal",
+        "electronic_consent_1": "I agree to the ",
+        "electronic_consent_2": "E-Sign Act Consent and Disclosure",
+        "electronic_consent_3": " and to receive all communications electronically",
+        "terms_and_conditions_1": "I agree to the ",
+        "terms_and_conditions_2": "Terms and Conditions",
+        "terms_and_conditions_3": " of MetaMask Card",
+        "privacy_policy_1": "I agree to the data practices described in the ",
+        "privacy_policy_2": "Privacy Policy",
+        "right_to_information_1": "I have been informed of my ",
+        "right_to_information_2": "Right to Information",
+        "right_to_information_3": " as provided by law",
+        "account_opening_disclosure_1": "I agree to the terms, conditions, fees, and features outlined in the ",
+        "account_opening_disclosure_2": "Account Opening Disclosure"
       },
       "mailing_address": {
         "title": "Endereço postal",
@@ -6043,21 +6239,43 @@
       },
       "complete": {
         "title": "Aprovado!",
-        "description": "Seu KYC foi aprovado. Você já pode usar o seu cartão."
+        "description": "Seu KYC foi aprovado. Você já pode usar o seu cartão MetaMask."
       },
       "continue_button": "Avançar",
       "confirm_button": "Confirmar",
-      "retry_button": "Tentar novamente"
+      "retry_button": "Tentar novamente",
+      "errors": {
+        "email_already_exists": "Este e-mail já existe. Use um e-mail diferente.",
+        "invalid_email_format": "Formato de e-mail inválido. Verifique seu e-mail e tente novamente.",
+        "invalid_verification_code": "Código de verificação inválido. Verifique seu código e tente novamente.",
+        "verification_code_expired": "O código de verificação expirou. Solicite um novo código.",
+        "invalid_contact_verification_id": "ID de verificação de contato inválido ou expirado. Reinicie o processo de registro.",
+        "invalid_phone_format": "Formato de número de telefone inválido. Verifique seu número de telefone e tente novamente.",
+        "phone_already_exists": "Este número de telefone já existe. Use um número de telefone diferente.",
+        "phone_number_mismatch": "O número de telefone não corresponde à sessão de verificação. Verifique seu número de telefone e tente novamente.",
+        "invalid_zip_code": "Código postal inválido. Forneça um código postal válido e tente novamente.",
+        "us_state_required": "O nome do estado dos EUA é obrigatório para residentes nos EUA. Informe um estado válido e tente novamente.",
+        "consent_already_linked": "O usuário já está vinculado a um conjunto de consentimentos. Use outro usuário ou entre em contato com o suporte.",
+        "invalid_onboard_id": "ID de integração inválido. Reinicie o processo de registro.",
+        "create_user_failed": "Falha ao criar usuário. Tente novamente."
+      }
     },
     "card_home": {
-      "error_title": "Não é possível obter os dados",
+      "error_title": "Não é possível buscar dados",
       "error_description": "Parece haver um problema impedindo que você visualize o conteúdo desta página. Verifique sua conexão ou tente atualizar a página.",
       "try_again": "Tentar novamente",
       "limited_spending_warning": "Sua capacidade real de gastos pode estar limitada. Para ajustar seu limite, acesse {{manageCard}}",
       "add_funds": "Adicionar fundos",
       "change_asset": "Mudar ativo",
-      "enable_card_button_label": "Enable Card",
-      "enable_assets_button_label": "Enable Assets",
+      "enable_card_button_label": "Habilitar cartão",
+      "enable_assets_button_label": "Habilitar ativos",
+      "spending_limit_warning": "Você está perto de atingir seu limite de gastos. Atualize sua conta para evitar recusas.",
+      "logout": "Sair",
+      "logout_description": "Saia da sua conta do cartão MetaMask",
+      "logout_confirmation_title": "Sair do cartão?",
+      "logout_confirmation_message": "Tem certeza de que deseja sair da sua conta do cartão MetaMask?",
+      "logout_confirmation_cancel": "Cancelar",
+      "logout_confirmation_confirm": "Sair",
       "warnings": {
         "close_spending_limit": {
           "title": "Você está próximo do seu limite de gastos",
@@ -6065,33 +6283,75 @@
           "confirm_button_label": "Definir novo limite"
         },
         "need_delegation": {
-          "title": "Você precisa atribuir ativos",
-          "description": "Atribua ativos ao seu cartão para começar a gastar",
-          "confirm_button_label": "Atribuir ativos"
+          "title": "Você precisa habilitar seu cartão",
+          "description": "Escolha um ativo para começar a gastar",
+          "confirm_button_label": "Habilitar cartão"
         },
         "no_card": {
-          "title": "You don't have a Card",
-          "description": "Please enable your Card to start spending"
+          "title": "Você precisa habilitar seu cartão",
+          "description": "Habilite seu cartão para começar a gastar"
         },
         "frozen": {
-          "title": "Your Card is frozen",
-          "description": "Please contact support to unfreeze your Card"
+          "title": "Seu cartão está congelado",
+          "description": "Entre em contato com o suporte para descongelar seu cartão"
         },
         "blocked": {
-          "title": "Your Card is blocked",
-          "description": "Please contact support to unblock your Card"
+          "title": "Seu cartão está bloqueado",
+          "description": "Entre em contato com o suporte para desbloquear seu cartão"
         }
       },
       "manage_card_options": {
         "manage_spending_limit": "Gerenciar limite de gastos",
-        "manage_spending_limit_description_restricted": "O limite de gastos restrito está ativo",
-        "manage_spending_limit_description_full": "O acesso de gastos total está ativo",
+        "manage_spending_limit_description_restricted": "Limitação de gastos ativada",
+        "manage_spending_limit_description_full": "Acesso total está ativado",
         "manage_card": "Gerenciar cartão",
-        "advanced_card_management_description": "Transações detalhadas, congelamento de cartão e muito mais"
+        "advanced_card_management_description": "Veja detalhes do cartão, transações e muito mais"
       }
     },
+    "card_spending_limit": {
+      "title_change_token": "Alterar token e rede",
+      "title_enable_token": "Habilitar token",
+      "full_access_title": "Acesso total",
+      "full_access_description": "Seu cartão pode usar seus fundos automaticamente, sem precisar solicitar aprovação a cada vez.",
+      "restricted_limit_title": "Limitação de gastos",
+      "restricted_limit_description": "Sempre que quiser aumentar o limite, você precisará retornar e pagar uma taxa de rede.",
+      "edit_limit": "Editar limite",
+      "confirm_new_limit": "Confirmar",
+      "cancel": "Cancelar",
+      "set_new_limit": "Definir limite",
+      "dismiss": "Ignorar",
+      "update_success": "Limite de gastos atualizado com sucesso",
+      "update_error": "Falha ao atualizar limite de gastos",
+      "solana_not_supported": "Habilite tokens Solana em card.metamask.io"
+    },
+    "change_asset": {
+      "title": "Alterar token e rede",
+      "full_spending_access": "Acesso total aos gastos",
+      "full_spending_description": "Seu cartão pode usar seus fundos automaticamente, sem precisar solicitar aprovação a cada vez.",
+      "edit_limit": "Editar limite",
+      "enable_token": "Habilitar token",
+      "cancel": "Cancelar",
+      "done": "Pronto",
+      "confirm": "Confirmar",
+      "checking_allowance": "Verificando limite de tokens...",
+      "token_not_enabled": "Este token precisa ser ativado para gastos com cartão",
+      "token_enabled": "O token está ativado para gastos com cartão"
+    },
+    "select_asset": "Selecionar token e rede",
+    "search_tokens": "Pesquisar tokens",
+    "no_tokens_found": "Nenhum token encontrado",
+    "no_tokens_available": "Nenhum token disponível",
+    "asset_selection": {
+      "enabled": "Ativada",
+      "limited": "Limitado",
+      "not_enabled": "Não ativado",
+      "update_success": "Prioridade de gastos atualizada com sucesso",
+      "update_error": "Falha ao atualizar prioridade de gastos",
+      "solana_not_supported_button_title": "Outros tokens em Solana",
+      "solana_not_supported_button_description": "Ative em card.metamask.io"
+    },
     "card_authentication": {
-      "title": "Faça login na conta do seu cartão",
+      "title": "Faça login na conta do seu cartão MetaMask",
       "location_button_text": "Internacional",
       "location_button_text_us": "Conta nos EUA",
       "email_label": "E-mail",
@@ -6099,6 +6359,7 @@
       "email_placeholder": "Insira seu endereço de e-mail",
       "password_placeholder": "Insira sua senha",
       "login_button": "Fazer login",
+      "signup_button": "Inscrever-me",
       "errors": {
         "invalid_credentials": "Dados de login inválidos",
         "unknown_error": "Erro desconhecido. Tente novamente mais tarde",
@@ -6114,14 +6375,14 @@
       }
     },
     "card_otp_authentication": {
-      "title": "Confirm your phone number",
-      "description_with_phone_number": "We've sent a confirmation code to: {{maskedPhoneNumber}}",
-      "description_without_phone_number": "We've sent a confirmation code to your phone number. Please enter the code to continue.",
-      "confirm_code_label": "Confirmation code",
-      "confirm_button": "Confirm",
-      "back_to_login_button": "Back to Login",
-      "resend_timer": "Resend code in {{seconds}}s",
-      "resend_code": "Resend code"
+      "title": "Confirme seu número de telefone",
+      "description_with_phone_number": "Enviamos um código de confirmação para: {{maskedPhoneNumber}}",
+      "description_without_phone_number": "Enviamos um código de confirmação para o seu número de telefone. Insira o código para continuar.",
+      "confirm_code_label": "Código de confirmação",
+      "confirm_button": "Confirmar",
+      "back_to_login_button": "Voltar para a opção de login",
+      "resend_timer": "Reenviar código em {{seconds}} segundos",
+      "resend_code": "Reenviar código"
     }
   },
   "onboarding_error_fallback": {
@@ -6312,8 +6573,8 @@
       "link_account_unknown_error": "Ocorreu um erro desconhecido"
     },
     "optout": {
-      "title": "Sair do Rewards",
-      "description": "Isso removerá suas contas do programa de recompensas e apagará seus pontos e progresso. Essa ação não poderá ser desfeita.",
+      "title": "Sair do programa de recompensas",
+      "description": "Essa ação removerá suas contas do programa de recompensas e apagará seus pontos e progresso. Essa ação não poderá ser desfeita.",
       "confirm": "Cancelar participação",
       "modal": {
         "confirmation_title": "Tem certeza?",
@@ -6358,11 +6619,11 @@
       },
       "perps": {
         "title": "Perps",
-        "description": "10 pontos a cada US$ 100",
+        "description": "10 pontos por cada $100 em valor de ordem",
         "sheet": {
           "title": "Negocie perps",
-          "points": "10 pontos a cada US$ 100",
-          "description": "Ganhe pontos em cada negociação, incluindo aberturas e encerramentos, ordens de stop loss e take profit, e ajustes de margem.",
+          "points": "10 pontos por cada $100 em valor de ordem",
+          "description": "Ganhe pontos em todas as negociações, incluindo aberturas e encerramentos, ordens de stop loss e take profit, e ajustes de margem. O valor da ordem é baseado no tamanho com alavancagem.",
           "cta_label": "Iniciar uma negociação"
         }
       },
@@ -6406,7 +6667,8 @@
       "info": {
         "title": "Compartilhe seu código para ganhar mais",
         "description": "Seus amigos ganham um bônus de inscrição x2. Você ganha 10 pontos para cada 50 que eles ganharem com negociações."
-      }
+      },
+      "referral_code_copied": "Referral code copied to clipboard"
     },
     "link_account_group": {
       "link_account": "Adicionar conta",
@@ -6443,27 +6705,27 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Conta de perps creditada",
-      "predict_deposit": "Funded Predict account",
+      "perps_deposit": "Depósito de fundos na conta de perps",
+      "predict_deposit": "Conta Predict creditada",
       "default": "Dados da transação"
     },
     "label": {
       "bridge_fee": "Taxa de ponte",
       "network_fee": "Taxa de rede",
       "paid_with": "Paga com",
-      "retry_button": "Try again",
+      "retry_button": "Tentar novamente",
       "total": "Total"
     },
     "summary_title": {
       "bridge_approval": "Aprovar {{approveSymbol}}",
       "bridge_approval_loading": "Aprovar",
-      "bridge_send": "Bridge {{sourceSymbol}} from {{sourceChain}}",
-      "bridge_send_loading": "Bridge Send",
-      "bridge_receive": "Receive {{targetSymbol}} on {{targetChain}}",
-      "bridge_receive_loading": "Bridge Receive",
+      "bridge_send": "Fazer ponte de {{sourceSymbol}} a partir de {{sourceChain}}",
+      "bridge_send_loading": "Envio de ponte",
+      "bridge_receive": "Receber {{targetSymbol}} sobre {{targetChain}}",
+      "bridge_receive_loading": "Recebimento em ponte",
       "default": "Transação",
       "perps_deposit": "Adicionar fundos",
-      "predict_deposit": "Add funds",
+      "predict_deposit": "Adicionar fundos",
       "swap": "Trocar tokens",
       "swap_approval": "Aprovar tokens"
     },
@@ -6471,21 +6733,23 @@
   },
   "sdk_connect_v2": {
     "show_loading": {
-      "title": "Connecting to dApp",
-      "description": "Establishing connection with {{dappName}}..."
+      "title": "Conectando ao dApp",
+      "description": "Estabelecendo conexão com {{dappName}}..."
     },
     "show_error": {
-      "title": "Connection Error",
-      "description": "Failed to establish connection. Please try again."
+      "title": "Erro de conexão",
+      "description": "Não foi possível estabelecer a conexão. Tente novamente."
     },
     "show_return_to_app": {
-      "title": "Success",
-      "description": "Return to the app to continue."
+      "title": "Sucesso",
+      "description": "Volte ao aplicativo para continuar."
     }
   },
   "network_connection_banner": {
     "still_connecting_network": "Ainda conectando-se à {{networkName}}...",
     "unable_to_connect_network": "Não é possível conectar-se à {{networkName}}.",
-    "update_rpc": "Atualizar RPC"
+    "update_rpc": "Atualizar RPC",
+    "check_network_connectivity": "Verifique a conexão de sua rede.",
+    "check_network_connectivity_or": "Verifique a conexão de sua rede ou"
   }
 }

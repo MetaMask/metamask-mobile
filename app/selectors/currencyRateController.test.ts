@@ -243,7 +243,7 @@ describe('CurrencyRateController Selectors', () => {
             },
           },
         },
-      } as unknown as RootState);
+      }) as unknown as RootState;
 
     it('returns the correct USD conversion rate for a valid chain ID and native currency', () => {
       jest

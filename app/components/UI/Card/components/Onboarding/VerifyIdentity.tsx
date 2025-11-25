@@ -11,7 +11,7 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
@@ -25,7 +25,7 @@ const VerifyIdentity = () => {
 
   const { sessionUrl } = verificationResponse || {};
 
-  const handleContinue = useCallback(() => {
+  const handleContinue = useCallback(async () => {
     if (sessionUrl) {
       navigation.navigate(Routes.CARD.ONBOARDING.WEBVIEW, {
         url: sessionUrl,
@@ -33,9 +33,9 @@ const VerifyIdentity = () => {
     }
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
-          action: OnboardingActions.VERIFY_IDENTITY_BUTTON_CLICKED,
+          action: CardActions.VERIFY_IDENTITY_BUTTON,
         })
         .build(),
     );
@@ -43,9 +43,9 @@ const VerifyIdentity = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.VERIFY_IDENTITY,
+          screen: CardScreens.VERIFY_IDENTITY,
         })
         .build(),
     );

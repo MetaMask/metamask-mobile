@@ -132,12 +132,37 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   /**
    * Format limit price with proper decimal handling
+   * Shows raw input during typing (preserves ".", "0.", "0.00", etc.)
+   * Only formats complete numbers
    * @param price - Price string to format
-   * @returns Formatted price string
+   * @returns Formatted price string with proper currency symbol
    */
   const formatLimitPriceValue = useCallback((price: string) => {
     if (!price || price === '0') {
       return '';
+    }
+
+    // Preserve raw input if it ends with a decimal point or has trailing zeros after decimal
+    // Format the base number to get proper currency symbol, then append the typed decimal part
+    if (price.endsWith('.') || /\.\d*0$/.test(price)) {
+      const parts = price.split('.');
+      const integerPart = parts[0] || '0';
+      const decimalPart = parts.length > 1 ? `.${parts[1]}` : '.';
+
+      // Format the integer part to get proper currency formatting
+      const formatted = formatPerpsFiat(integerPart, {
+        ranges: [
+          {
+            condition: () => true,
+            threshold: 0,
+            maximumDecimals: 0,
+            minimumDecimals: 0,
+          },
+        ],
+      });
+
+      // Append the decimal part as typed by user
+      return `${formatted}${decimalPart}`;
     }
 
     const formatConfig = {

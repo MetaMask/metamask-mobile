@@ -7,7 +7,10 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
 
 jest.mock('../../../selectors/defiPositionsController', () => ({
@@ -190,17 +193,20 @@ describe('DeFiPositionsList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    const allPositions =
+      mockInitialState.engine.backgroundState.DeFiPositionsController
+        .allDeFiPositions[MOCK_ADDRESS_1] || {};
+
     const defiPositionsModule = jest.requireMock(
       '../../../selectors/defiPositionsController',
     );
     defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
-      mockInitialState.engine.backgroundState.DeFiPositionsController
-        .allDeFiPositions[MOCK_ADDRESS_1],
+      allPositions,
     );
-    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-      mockInitialState.engine.backgroundState.DeFiPositionsController
-        .allDeFiPositions[MOCK_ADDRESS_1],
-    );
+    // Network Manager is now always enabled, so mock returns only enabled chain (0x1)
+    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue({
+      [MOCK_CHAIN_ID_1]: allPositions[MOCK_CHAIN_ID_1],
+    });
   });
 
   it('renders protocol name and aggregated value for selected account and chain', async () => {
@@ -214,16 +220,28 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
     ).toBeOnTheScreen();
-    expect(await findByText('Protocol 1')).toBeOnTheScreen();
-    expect(await findByText('$100.00')).toBeOnTheScreen();
 
-    const flatList = await findByTestId(
+    const listContainer = await findByTestId(
       WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
     );
-    expect(flatList.props.data.length).toEqual(1);
+    expect(listContainer).toBeOnTheScreen();
+
+    expect(await findByText('Protocol 1')).toBeOnTheScreen();
+    expect(await findByText('$100.00')).toBeOnTheScreen();
   });
 
   it('renders protocol name and aggregated value for all chains when all networks is selected', async () => {
+    // Override mock to return all enabled chains
+    const allPositions =
+      mockInitialState.engine.backgroundState.DeFiPositionsController
+        .allDeFiPositions[MOCK_ADDRESS_1] || {};
+    const defiPositionsModule = jest.requireMock(
+      '../../../selectors/defiPositionsController',
+    );
+    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+      allPositions,
+    );
+
     const { findByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
@@ -254,14 +272,16 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
     ).toBeOnTheScreen();
+
+    const listContainer = await findByTestId(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+    );
+    expect(listContainer).toBeOnTheScreen();
+
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(await findByText('Protocol 2')).toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
     expect(await findByText('$10.00')).toBeOnTheScreen();
-    const flatList = await findByTestId(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
-    );
-    expect(flatList.props.data.length).toEqual(2);
   });
 
   it('renders the loading positions message when positions are not yet available', async () => {
@@ -337,13 +357,8 @@ describe('DeFiPositionsList', () => {
     expect(await findByText(`Explore DeFi`)).toBeOnTheScreen();
   });
 
-  describe('when isRemoveGlobalNetworkSelectorEnabled is true', () => {
-    beforeEach(() => {
-      const networksModule = jest.requireMock('../../../util/networks');
-      networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-    });
-
-    it('uses defiPositionsByEnabledNetworks selector when feature flag is enabled', async () => {
+  describe('Network Manager Integration', () => {
+    it('uses defiPositionsByEnabledNetworks selector', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
       );
@@ -414,14 +429,13 @@ describe('DeFiPositionsList', () => {
         await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
       ).toBeOnTheScreen();
 
-      // Should show the filtered protocol name
-      expect(await findByText('Protocol 1 (Filtered)')).toBeOnTheScreen();
-      expect(await findByText('$100.00')).toBeOnTheScreen();
-
-      const flatList = await findByTestId(
+      const listContainer = await findByTestId(
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
-      expect(flatList.props.data.length).toEqual(1);
+      expect(listContainer).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1 (Filtered)')).toBeOnTheScreen();
+      expect(await findByText('$100.00')).toBeOnTheScreen();
     });
 
     it('shows no positions when defiPositionsByEnabledNetworks returns empty data', async () => {
@@ -457,7 +471,7 @@ describe('DeFiPositionsList', () => {
       expect(await findByText(`Explore DeFi`)).toBeOnTheScreen();
     });
 
-    it('shows control bar with enabled networks text when feature flag is enabled', async () => {
+    it('shows control bar with enabled networks text', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
       );
@@ -531,13 +545,173 @@ describe('DeFiPositionsList', () => {
         ),
       ).toBeOnTheScreen();
 
-      expect(await findByText('Protocol 1')).toBeOnTheScreen();
-      expect(await findByText('$100.00')).toBeOnTheScreen();
-
-      const flatList = await findByTestId(
+      const listContainer = await findByTestId(
         WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
       );
-      expect(flatList.props.data.length).toEqual(1);
+      expect(listContainer).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1')).toBeOnTheScreen();
+      expect(await findByText('$100.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Homepage Redesign V1 Feature', () => {
+    it('removes scrolling container in favour of global scroll container when isHomepageRedesignV1Enabled is true', async () => {
+      const { findByTestId, queryByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const container = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+      );
+      expect(container).toBeOnTheScreen();
+
+      const listContainer = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(listContainer).toBeOnTheScreen();
+
+      const scrollView = queryByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      expect(scrollView).toBeNull();
+    });
+
+    it('renders empty state without scroll container when isHomepageRedesignV1Enabled is true', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue({});
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        {},
+      );
+
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const container = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+      );
+      expect(container).toBeOnTheScreen();
+    });
+
+    it('renders multiple positions without scroll container when isHomepageRedesignV1Enabled is true', async () => {
+      // Override mock to return both enabled chains
+      const allPositions =
+        mockInitialState.engine.backgroundState.DeFiPositionsController
+          .allDeFiPositions[MOCK_ADDRESS_1] || {};
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue({
+        [MOCK_CHAIN_ID_1]: allPositions[MOCK_CHAIN_ID_1],
+        [MOCK_CHAIN_ID_2]: allPositions[MOCK_CHAIN_ID_2],
+      });
+
+      const { findByTestId, findByText, queryByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                PreferencesController: {
+                  ...mockInitialState.engine.backgroundState
+                    .PreferencesController,
+                  tokenNetworkFilter: {
+                    [MOCK_CHAIN_ID_1]: true,
+                    [MOCK_CHAIN_ID_2]: true,
+                  },
+                },
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    homepageRedesignV1: {
+                      enabled: true,
+                      minimumVersion: '1.0.0',
+                    },
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const listContainer = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(listContainer).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1')).toBeOnTheScreen();
+      expect(await findByText('Protocol 2')).toBeOnTheScreen();
+
+      const scrollView = queryByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      expect(scrollView).toBeNull();
+    });
+
+    it('renders scroll container when isHomepageRedesignV1Enabled is false', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const listContainer = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(listContainer).toBeOnTheScreen();
+
+      const scrollView = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      expect(scrollView).toBeOnTheScreen();
     });
   });
 });

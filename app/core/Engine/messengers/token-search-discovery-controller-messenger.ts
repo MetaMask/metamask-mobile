@@ -1,22 +1,29 @@
-import { Messenger } from '@metamask/base-controller';
-
-export type TokenSearchDiscoveryControllerMessenger = ReturnType<
-  typeof getTokenSearchDiscoveryControllerMessenger
->;
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { type TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
+import { RootMessenger } from '../types';
 
 /**
- * Get a messenger restricted to the actions and events that the
- * token search discovery controller is allowed to handle.
+ * Get the messenger for the token search discovery controller. This is scoped to the
+ * actions and events that the token search discovery controller is allowed to handle.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param rootMessenger - The root messenger.
+ * @returns The TokenSearchDiscoveryControllerMessenger.
  */
 export function getTokenSearchDiscoveryControllerMessenger(
-  messenger: Messenger<never, never>,
-) {
-  return messenger.getRestricted({
-    name: 'TokenSearchDiscoveryController',
-    allowedActions: [],
-    allowedEvents: [],
+  rootMessenger: RootMessenger,
+): TokenSearchDiscoveryControllerMessenger {
+  const messenger = new Messenger<
+    'TokenSearchDiscoveryController',
+    MessengerActions<TokenSearchDiscoveryControllerMessenger>,
+    MessengerEvents<TokenSearchDiscoveryControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: 'TokenSearchDiscoveryController',
+    parent: rootMessenger,
   });
+  return messenger;
 }

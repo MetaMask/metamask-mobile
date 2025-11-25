@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -11,7 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 
@@ -23,9 +23,9 @@ const Complete = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.COMPLETE,
+          screen: CardScreens.COMPLETE,
         })
         .build(),
     );
@@ -34,20 +34,21 @@ const Complete = () => {
   const handleContinue = async () => {
     setIsLoading(true);
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
-          action: OnboardingActions.COMPLETE_BUTTON_CLICKED,
+          action: CardActions.COMPLETE_BUTTON,
         })
         .build(),
     );
 
     try {
-      dispatch(resetOnboardingState());
       const token = await getCardBaanxToken();
       if (token.success && token.tokenData?.accessToken) {
-        navigation.navigate(Routes.CARD.HOME);
+        dispatch(resetOnboardingState());
+        navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
       } else {
-        navigation.navigate(Routes.CARD.AUTHENTICATION);
+        dispatch(resetOnboardingState());
+        navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
       }
     } catch (error) {
       Logger.log('Complete::handleContinue error', error);

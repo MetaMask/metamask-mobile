@@ -70,10 +70,11 @@ describe('usePerpsTransactionHistory', () => {
 
   const mockOrders = [
     {
-      orderId: 'order2',
+      orderId: 'order1',
       symbol: 'BTC',
       side: 'buy',
       orderType: 'Limit',
+      detailedOrderType: 'Market',
       size: '0.5',
       originalSize: '1',
       price: '50000',
@@ -248,10 +249,67 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Verify accountId is passed to all provider methods
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
+        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        aggregateByTime: false,
+      });
+      expect(mockProvider.getOrders).toHaveBeenCalledWith({
+        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+      });
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
         startTime: 1640995200000,
         endTime: 1640995300000,
+      });
+    });
+
+    it('passes accountId to useUserHistory hook', async () => {
+      const accountId =
+        'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
+
+      renderHook(() =>
+        usePerpsTransactionHistory({
+          accountId,
+        }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Verify useUserHistory was called with accountId
+      expect(mockUseUserHistory).toHaveBeenCalledWith({
+        startTime: undefined,
+        endTime: undefined,
+        accountId,
+      });
+    });
+
+    it('handles undefined accountId correctly', async () => {
+      renderHook(() => usePerpsTransactionHistory({ accountId: undefined }));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Verify all methods are called with undefined accountId
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
+        accountId: undefined,
+        aggregateByTime: false,
+      });
+      expect(mockProvider.getOrders).toHaveBeenCalledWith({
+        accountId: undefined,
+      });
+      expect(mockProvider.getFunding).toHaveBeenCalledWith({
+        accountId: undefined,
+        startTime: 0,
+        endTime: undefined,
+      });
+      expect(mockUseUserHistory).toHaveBeenCalledWith({
+        startTime: undefined,
+        endTime: undefined,
+        accountId: undefined,
       });
     });
 
@@ -559,6 +617,250 @@ describe('usePerpsTransactionHistory', () => {
         'Combined transactions:',
         expect.any(Array),
       );
+    });
+  });
+
+  describe('fill enrichment with detailedOrderType', () => {
+    it('enriches fills with detailedOrderType when matching order exists', async () => {
+      const fillsWithoutDetailedType = [
+        {
+          direction: 'Open Long',
+          orderId: 'order-123',
+          symbol: 'ETH',
+          size: '1',
+          price: '2000',
+          fee: '10',
+          timestamp: 1640995200000,
+          feeToken: 'USDC',
+          pnl: '0',
+          liquidation: false,
+        },
+      ];
+
+      const ordersWithDetailedType = [
+        {
+          orderId: 'order-123',
+          symbol: 'ETH',
+          side: 'buy',
+          orderType: 'Limit',
+          detailedOrderType: 'Take Profit',
+          size: '1',
+          originalSize: '1',
+          price: '2000',
+          status: 'filled',
+          timestamp: 1640995200000,
+        },
+      ];
+
+      mockProvider.getOrderFills.mockResolvedValue(fillsWithoutDetailedType);
+      mockProvider.getOrders.mockResolvedValue(ordersWithDetailedType);
+
+      renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
+        {
+          ...fillsWithoutDetailedType[0],
+          detailedOrderType: 'Take Profit',
+        },
+      ]);
+    });
+
+    it('leaves detailedOrderType as undefined when no matching order exists', async () => {
+      const fillsWithoutMatch = [
+        {
+          direction: 'Open Long',
+          orderId: 'fill-order-456',
+          symbol: 'ETH',
+          size: '1',
+          price: '2000',
+          fee: '10',
+          timestamp: 1640995200000,
+          feeToken: 'USDC',
+          pnl: '0',
+          liquidation: false,
+        },
+      ];
+
+      const unrelatedOrders = [
+        {
+          orderId: 'different-order-789',
+          symbol: 'BTC',
+          side: 'sell',
+          orderType: 'Market',
+          detailedOrderType: 'Stop Loss',
+          size: '0.5',
+          originalSize: '0.5',
+          price: '50000',
+          status: 'filled',
+          timestamp: 1640995201000,
+        },
+      ];
+
+      mockProvider.getOrderFills.mockResolvedValue(fillsWithoutMatch);
+      mockProvider.getOrders.mockResolvedValue(unrelatedOrders);
+
+      renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
+        {
+          ...fillsWithoutMatch[0],
+          detailedOrderType: undefined,
+        },
+      ]);
+    });
+
+    it('leaves detailedOrderType as undefined when matching order has no detailedOrderType', async () => {
+      const fills = [
+        {
+          direction: 'Open Short',
+          orderId: 'order-999',
+          symbol: 'BTC',
+          size: '0.5',
+          price: '45000',
+          fee: '5',
+          timestamp: 1640995300000,
+          feeToken: 'USDC',
+          pnl: '0',
+          liquidation: false,
+        },
+      ];
+
+      const ordersWithoutDetailedType = [
+        {
+          orderId: 'order-999',
+          symbol: 'BTC',
+          side: 'sell',
+          orderType: 'Market',
+          size: '0.5',
+          originalSize: '0.5',
+          price: '45000',
+          status: 'filled',
+          timestamp: 1640995300000,
+        },
+      ];
+
+      mockProvider.getOrderFills.mockResolvedValue(fills);
+      mockProvider.getOrders.mockResolvedValue(ordersWithoutDetailedType);
+
+      renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
+        {
+          ...fills[0],
+          detailedOrderType: undefined,
+        },
+      ]);
+    });
+
+    it('enriches all fills from same order with matching detailedOrderType when order has multiple partial fills', async () => {
+      const partialFills = [
+        {
+          direction: 'Open Long',
+          orderId: 'partial-order-123',
+          symbol: 'ETH',
+          size: '0.5',
+          price: '2000',
+          fee: '5',
+          timestamp: 1640995200000,
+          feeToken: 'USDC',
+          pnl: '0',
+          liquidation: false,
+        },
+        {
+          direction: 'Open Long',
+          orderId: 'partial-order-123',
+          symbol: 'ETH',
+          size: '0.3',
+          price: '2001',
+          fee: '3',
+          timestamp: 1640995201000,
+          feeToken: 'USDC',
+          pnl: '0',
+          liquidation: false,
+        },
+        {
+          direction: 'Open Long',
+          orderId: 'partial-order-123',
+          symbol: 'ETH',
+          size: '0.2',
+          price: '2002',
+          fee: '2',
+          timestamp: 1640995202000,
+          feeToken: 'USDC',
+          pnl: '0',
+          liquidation: false,
+        },
+      ];
+
+      const singleOrder = [
+        {
+          orderId: 'partial-order-123',
+          symbol: 'ETH',
+          side: 'buy',
+          orderType: 'Limit',
+          detailedOrderType: 'Stop Loss',
+          size: '1',
+          originalSize: '1',
+          price: '2000',
+          status: 'filled',
+          timestamp: 1640995200000,
+        },
+      ];
+
+      mockProvider.getOrderFills.mockResolvedValue(partialFills);
+      mockProvider.getOrders.mockResolvedValue(singleOrder);
+
+      renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
+        { ...partialFills[0], detailedOrderType: 'Stop Loss' },
+        { ...partialFills[1], detailedOrderType: 'Stop Loss' },
+        { ...partialFills[2], detailedOrderType: 'Stop Loss' },
+      ]);
+    });
+
+    it('handles empty fills array', async () => {
+      mockProvider.getOrderFills.mockResolvedValue([]);
+      mockProvider.getOrders.mockResolvedValue(mockOrders);
+
+      renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([]);
+    });
+
+    it('handles empty orders array', async () => {
+      mockProvider.getOrderFills.mockResolvedValue(mockFills);
+      mockProvider.getOrders.mockResolvedValue([]);
+
+      renderHook(() => usePerpsTransactionHistory());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
+        { ...mockFills[0], detailedOrderType: undefined },
+      ]);
     });
   });
 });

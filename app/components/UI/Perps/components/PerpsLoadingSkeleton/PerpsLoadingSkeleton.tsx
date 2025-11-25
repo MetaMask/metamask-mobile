@@ -15,6 +15,8 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import { usePerpsConnection } from '../../hooks/usePerpsConnection';
+import { useSelector } from 'react-redux';
+import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 
 interface PerpsLoadingSkeletonProps {
   testID?: string;
@@ -32,6 +34,9 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
 }) => {
   const { colors } = useTheme();
   const { reconnectWithNewContext } = usePerpsConnection();
+  const isHomepageRedesignV1Enabled = useSelector(
+    selectHomepageRedesignV1Enabled,
+  );
   const [showTimeout, setShowTimeout] = useState(false);
 
   // Set timeout to show retry option after CONNECTION_TIMEOUT_MS
@@ -62,7 +67,11 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
   return (
     <Box
       testID={testID}
-      twClassName="flex-1 bg-default pt-20"
+      twClassName={
+        isHomepageRedesignV1Enabled
+          ? 'bg-default pt-20'
+          : 'flex-1 bg-default pt-20'
+      }
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Start}
     >

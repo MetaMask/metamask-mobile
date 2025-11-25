@@ -56,6 +56,7 @@ jest.mock('@shopify/flash-list', () => {
       data,
       renderItem,
       keyExtractor,
+      getItemType,
       ListHeaderComponent,
       ListEmptyComponent,
       ListFooterComponent,
@@ -67,6 +68,7 @@ jest.mock('@shopify/flash-list', () => {
         index: number;
       }) => React.ReactElement;
       keyExtractor: (item: unknown, index: number) => string;
+      getItemType?: (item: unknown) => string;
       ListHeaderComponent?: () => React.ReactElement;
       ListEmptyComponent?: () => React.ReactElement;
       ListFooterComponent?: () => React.ReactElement;
@@ -84,9 +86,15 @@ jest.mock('@shopify/flash-list', () => {
         data && Array.isArray(data) && data.length > 0
           ? data.map((item: unknown, index: number) => {
               const key = keyExtractor ? keyExtractor(item, index) : index;
+              const itemType = getItemType ? getItemType(item) : undefined;
               return ReactActual.createElement(
                 View,
-                { key, testID: `flash-list-item-${key}` },
+                {
+                  key,
+                  testID: `flash-list-item-${key}`,
+                  // Store item type as accessibility label for testing
+                  accessibilityLabel: itemType,
+                },
                 renderItem({
                   item,
                   index,
@@ -140,31 +148,37 @@ jest.mock('@metamask/design-system-react-native', () => {
       onPress,
       testID,
       disabled,
+      isDisabled,
       ...props
     }: {
       children?: React.ReactNode;
       onPress?: () => void;
       testID?: string;
       disabled?: boolean;
+      isDisabled?: boolean;
       [key: string]: unknown;
-    }) =>
-      ReactActual.createElement(
+    }) => {
+      const isButtonDisabled = disabled || isDisabled;
+      return ReactActual.createElement(
         TouchableOpacity,
         {
           onPress,
           testID,
-          disabled,
+          disabled: isButtonDisabled,
           ...props,
         },
         ReactActual.createElement(
           RNText,
           {
-            disabled,
-            accessibilityState: disabled ? { disabled: true } : undefined,
+            disabled: isButtonDisabled,
+            accessibilityState: isButtonDisabled
+              ? { disabled: true }
+              : undefined,
           },
           children,
         ),
-      ),
+      );
+    },
     TextVariant: {
       BodyMd: 'BodyMd',
       BodySm: 'BodySm',
@@ -366,6 +380,7 @@ describe('RewardSettingsAccountGroupList', () => {
     jest.clearAllMocks();
 
     // Mock selectInternalAccountsByGroupId to return accounts for each group
+    // This selector returns a function that takes state and returns accounts
     mockSelectInternalAccountsByGroupId.mockImplementation(
       (groupId: string) => {
         const mockAccounts: Record<string, { address: string }[]> = {
@@ -379,20 +394,33 @@ describe('RewardSettingsAccountGroupList', () => {
             { address: '0x1111111111111111111111111111111111111111' },
           ],
         };
-        return mockAccounts[groupId] || [];
+        // Return a selector function that returns the accounts for this group
+        return () => mockAccounts[groupId] || [];
       },
     );
 
     // Mock useSelector calls
-    mockUseSelector.mockImplementation((selector) => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
       // Mock selectAvatarAccountType selector
       if (selector === selectAvatarAccountType) {
         return 'default';
       }
 
-      // For the allAddresses selector, let it execute normally since we've mocked selectInternalAccountsByGroupId
-      // The selector will now work correctly with our mocked data
-      return selector({});
+      // For the allAddresses selector, it will call selectInternalAccountsByGroupId
+      // for each group and build the addresses object
+      // We need to handle this by executing the selector with a mock state
+      if (typeof selector === 'function') {
+        try {
+          const mockState = {} as never;
+          return (selector as (state: never) => unknown)(mockState);
+        } catch {
+          // If selector fails, return empty object
+          return {};
+        }
+      }
+
+      // Fallback for unknown selector types
+      return undefined;
     });
 
     // Mock useRewardOptinSummary hook
@@ -736,6 +764,70 @@ describe('RewardSettingsAccountGroupList', () => {
     it('should handle fallback keys for unknown item types', () => {
       // This would be tested by passing invalid data, but our mock doesn't support that
       // The keyExtractor function handles this case with the fallback `item-${index}`
+    });
+  });
+
+  describe('getItemType', () => {
+    it('should return correct item type for wallet items', () => {
+      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // The FlashList mock stores item type in accessibilityLabel when getItemType is provided
+      const walletItem1 = getByTestId('flash-list-item-wallet-wallet-1');
+      const walletItem2 = getByTestId('flash-list-item-wallet-wallet-2');
+
+      expect(walletItem1).toBeOnTheScreen();
+      expect(walletItem1.props.accessibilityLabel).toBe('wallet');
+      expect(walletItem2).toBeOnTheScreen();
+      expect(walletItem2.props.accessibilityLabel).toBe('wallet');
+    });
+
+    it('should return correct item type for account group items', () => {
+      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      const accountGroup1 = getByTestId('flash-list-item-accountGroup-group-1');
+      const accountGroup2 = getByTestId('flash-list-item-accountGroup-group-2');
+      const accountGroup3 = getByTestId('flash-list-item-accountGroup-group-3');
+
+      expect(accountGroup1).toBeOnTheScreen();
+      expect(accountGroup1.props.accessibilityLabel).toBe('accountGroup');
+      expect(accountGroup2).toBeOnTheScreen();
+      expect(accountGroup2.props.accessibilityLabel).toBe('accountGroup');
+      expect(accountGroup3).toBeOnTheScreen();
+      expect(accountGroup3.props.accessibilityLabel).toBe('accountGroup');
+    });
+  });
+
+  describe('allAddresses Data', () => {
+    it('should pass allAddresses to account group items', () => {
+      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Verify account groups are rendered (they receive allAddresses as prop)
+      expect(getByTestId('account-group-group-1')).toBeOnTheScreen();
+      expect(getByTestId('account-group-group-2')).toBeOnTheScreen();
+      expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
+    });
+
+    it('should handle empty addresses for account groups', () => {
+      // Mock selector to return empty array for a group
+      mockSelectInternalAccountsByGroupId.mockImplementation(
+        (groupId: string) => {
+          const mockAccounts: Record<string, { address: string }[]> = {
+            'group-1': [],
+            'group-2': [
+              { address: '0x0987654321098765432109876543210987654321' },
+            ],
+            'group-3': [
+              { address: '0x1111111111111111111111111111111111111111' },
+            ],
+          };
+          return () => mockAccounts[groupId] || [];
+        },
+      );
+
+      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+
+      // Should still render even with empty addresses
+      expect(getByTestId('account-group-group-1')).toBeOnTheScreen();
     });
   });
 

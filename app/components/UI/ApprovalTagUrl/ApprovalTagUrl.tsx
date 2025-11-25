@@ -63,10 +63,10 @@ const ApprovalTagUrl = ({
   const imageSource = faviconSource?.uri
     ? faviconSource
     : sdkDappMetadata?.icon
-    ? { uri: sdkDappMetadata.icon }
-    : {
-        uri: '',
-      };
+      ? { uri: sdkDappMetadata.icon }
+      : {
+          uri: '',
+        };
 
   const showOrigin =
     origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);

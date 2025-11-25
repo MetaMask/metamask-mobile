@@ -81,8 +81,16 @@ export const usePerpsTransactionHistory = ({
 
       DevLogger.log('Transaction data fetched:', { fills, orders, funding });
 
+      const orderMap = new Map(orders.map((order) => [order.orderId, order]));
+
+      // Attaching detailedOrderType allows us to display the TP/SL pill in the trades history list.
+      const enrichedFills = fills.map((fill) => ({
+        ...fill,
+        detailedOrderType: orderMap.get(fill.orderId)?.detailedOrderType,
+      }));
+
       // Transform each data type to PerpsTransaction format
-      const fillTransactions = transformFillsToTransactions(fills);
+      const fillTransactions = transformFillsToTransactions(enrichedFills);
       const orderTransactions = transformOrdersToTransactions(orders);
       const fundingTransactions = transformFundingToTransactions(funding);
       const userHistoryTransactions =

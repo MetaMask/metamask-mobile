@@ -3,7 +3,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useOpenSwaps } from './useOpenSwaps';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
-import { setDestToken } from '../../../../core/redux/slices/bridge';
+import {
+  setDestToken,
+  selectSelectedSourceChainIds,
+} from '../../../../core/redux/slices/bridge';
 import { SwapBridgeNavigationLocation } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import { CardTokenAllowance } from '../types';
 import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
@@ -33,6 +36,7 @@ jest.mock('../util/getHighestFiatToken', () => ({
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({
   setDestToken: jest.fn(),
+  selectSelectedSourceChainIds: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/multichain', () => ({
@@ -60,6 +64,8 @@ describe('useOpenSwaps', () => {
   const mockGoToSwaps = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
+
+  const mockChainIds = ['0xe708'];
 
   const mockTokensWithBalance = [
     {
@@ -89,6 +95,9 @@ describe('useOpenSwaps', () => {
     decimals: 6,
     name: 'USD Coin',
     chainId: '0xe708',
+    caipChainId: 'eip155:59144' as const,
+    allowanceState: 'enabled' as const,
+    allowance: '1000000',
   };
 
   const mockTopToken = {
@@ -112,6 +121,9 @@ describe('useOpenSwaps', () => {
     (
       selectAllPopularNetworkConfigurations as unknown as jest.Mock
     ).mockReturnValue(mockPopularNetworks);
+    (selectSelectedSourceChainIds as unknown as jest.Mock).mockReturnValue(
+      mockChainIds,
+    );
     (useTokensWithBalance as jest.Mock).mockReturnValue(mockTokensWithBalance);
 
     (useSelector as jest.Mock).mockImplementation((selector) => selector());
@@ -154,9 +166,7 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
     expect(mockDispatch).toHaveBeenCalledWith({
@@ -187,9 +197,7 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
     // The sourceToken should be created from the ethToken
@@ -211,7 +219,6 @@ describe('useOpenSwaps', () => {
 
     act(() => {
       result.current.openSwaps({
-        chainId: '0xe708',
         beforeNavigate,
       });
     });
@@ -234,9 +241,7 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
     expect(mockDispatch).toHaveBeenCalledWith({
@@ -259,9 +264,7 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
     // goToSwaps is now called without arguments
@@ -291,9 +294,7 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
     expect(mockDispatch).not.toHaveBeenCalled();
@@ -306,12 +307,10 @@ describe('useOpenSwaps', () => {
     );
 
     act(() => {
-      result.current.openSwaps({
-        chainId: '0xe708',
-      });
+      result.current.openSwaps({});
     });
 
-    expect(buildTokenIconUrl).toHaveBeenCalledWith('0xe708', '0xdead');
+    expect(buildTokenIconUrl).toHaveBeenCalledWith('eip155:59144', '0xdead');
   });
 
   it('uses tokens with balance correctly', () => {
@@ -320,5 +319,13 @@ describe('useOpenSwaps', () => {
     // The hook should use useTokensWithBalance hook
     expect(result.current).toBeDefined();
     expect(typeof result.current.openSwaps).toBe('function');
+  });
+
+  it('calls useTokensWithBalance with chain IDs from selector', () => {
+    renderHook(() => useOpenSwaps());
+
+    expect(useTokensWithBalance).toHaveBeenCalledWith({
+      chainIds: mockChainIds,
+    });
   });
 });

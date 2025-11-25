@@ -28,8 +28,14 @@ describe('useCardAuthenticationVerification', () => {
     mockUseThunkDispatch.mockReturnValue(mockDispatch);
   });
 
-  const setupMocks = (userLoggedIn: boolean, isBaanxLoginEnabled: boolean) => {
-    mockUseSelector.mockReturnValue(userLoggedIn);
+  const setupMocks = (
+    userLoggedIn: boolean,
+    isBaanxLoginEnabled: boolean,
+    isAuthenticated: boolean = false,
+  ) => {
+    mockUseSelector
+      .mockReturnValueOnce(userLoggedIn)
+      .mockReturnValueOnce(isAuthenticated);
     mockUseIsBaanxLoginEnabled.mockReturnValue(isBaanxLoginEnabled);
   };
 

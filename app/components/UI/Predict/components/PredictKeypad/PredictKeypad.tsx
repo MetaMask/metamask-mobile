@@ -54,8 +54,20 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     );
 
     const handleDonePress = useCallback(() => {
+      // Clean up trailing decimal point if user finished with just a dot
+      let cleanedValue = currentValueUSDString;
+      if (cleanedValue.endsWith('.')) {
+        cleanedValue = cleanedValue.slice(0, -1);
+        setCurrentValueUSDString(cleanedValue);
+        setCurrentValue(parseFloat(cleanedValue) || 0);
+      }
       setIsInputFocused(false);
-    }, [setIsInputFocused]);
+    }, [
+      setIsInputFocused,
+      currentValueUSDString,
+      setCurrentValueUSDString,
+      setCurrentValue,
+    ]);
 
     useImperativeHandle(ref, () => ({
       handleAmountPress,
@@ -114,7 +126,9 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
 
         // Update all states in batch to prevent race conditions
         setCurrentValueUSDString(formattedUSDString);
-        setCurrentValue(parseFloat(formattedUSDString));
+        // parseFloat handles "2." correctly (returns 2), and handles empty/"." as NaN
+        const numericValue = parseFloat(formattedUSDString);
+        setCurrentValue(isNaN(numericValue) ? 0 : numericValue);
       },
       [
         currentValue,
@@ -128,7 +142,7 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     if (!isInputFocused) return null;
 
     return (
-      <View style={tw.style('pt-4 bg-background-section pb-8 rounded-t-3xl')}>
+      <View style={tw.style('py-4')}>
         <View style={tw.style('px-4 mb-3')}>
           {hasInsufficientFunds && onAddFunds ? (
             <Button
@@ -145,28 +159,28 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
                 size={ButtonSize.Md}
                 label="$20"
                 onPress={() => handleKeypadAmountPress(20)}
-                style={tw.style('flex-1')}
+                style={tw.style('flex-1 h-12')}
               />
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Md}
                 label="$50"
                 onPress={() => handleKeypadAmountPress(50)}
-                style={tw.style('flex-1')}
+                style={tw.style('flex-1 h-12')}
               />
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Md}
                 label="$100"
                 onPress={() => handleKeypadAmountPress(100)}
-                style={tw.style('flex-1')}
+                style={tw.style('flex-1 h-12')}
               />
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Md}
                 label="Done"
                 onPress={handleDonePress}
-                style={tw.style('flex-1')}
+                style={tw.style('flex-1 h-12')}
               />
             </View>
           )}

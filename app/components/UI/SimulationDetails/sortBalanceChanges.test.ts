@@ -4,7 +4,7 @@ import { AssetType, BalanceChange } from './types';
 describe('sortBalanceChanges', () => {
   // Create a mock balance change object.
   const bc = (type: AssetType): BalanceChange =>
-    ({ asset: { type } } as BalanceChange);
+    ({ asset: { type } }) as BalanceChange;
 
   it.each([
     {

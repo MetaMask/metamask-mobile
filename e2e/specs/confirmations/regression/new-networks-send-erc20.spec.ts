@@ -36,9 +36,8 @@ describe.skip(RegressionConfirmations('ERC20 tokens'), () => {
           testSpecificMock: networkConfig.testSpecificMock,
         },
         async ({ contractRegistry }) => {
-          const hstAddress = await contractRegistry?.getContractAddress(
-            HST_CONTRACT,
-          );
+          const hstAddress =
+            await contractRegistry?.getContractAddress(HST_CONTRACT);
 
           await loginToApp();
 

@@ -10,7 +10,8 @@ import { useMemo } from 'react';
 import { useDeepMemo } from '../useDeepMemo';
 import { toChecksumAddress } from '../../../../../util/address';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
+import { ARBITRUM_USDC } from '../../constants/perps';
+import { POLYGON_USDCE } from '../../constants/predict';
 
 export interface TokenFiatRateRequest {
   address: Hex;
@@ -29,12 +30,17 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
     () =>
       safeRequests.map(({ address, chainId, currency: currencyOverride }) => {
         const currency = currencyOverride ?? selectedCurrency;
+        const isUsd = currency.toLowerCase() === 'usd';
 
-        if (
-          currency.toLowerCase() === 'usd' &&
-          address.toLowerCase() === ARBITRUM_USDC_ADDRESS.toLowerCase() &&
-          chainId === CHAIN_IDS.ARBITRUM
-        ) {
+        const isArbitrumUSDC =
+          address.toLowerCase() === ARBITRUM_USDC.address.toLowerCase() &&
+          chainId === CHAIN_IDS.ARBITRUM;
+
+        const isPolygonUSDCE =
+          address.toLowerCase() === POLYGON_USDCE.address.toLowerCase() &&
+          chainId === CHAIN_IDS.POLYGON;
+
+        if (isUsd && (isArbitrumUSDC || isPolygonUSDCE)) {
           return 1;
         }
 

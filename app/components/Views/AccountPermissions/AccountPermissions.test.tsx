@@ -286,16 +286,19 @@ const mockInitialState = (
       },
       AccountsController: {
         internalAccounts: {
-          accounts: accounts.reduce((acc, account, index) => {
-            const mockAccount = MOCK_INTERNAL_ACCOUNTS[index];
-            if (mockAccount) {
-              acc[mockAccount.id] = {
-                ...mockAccount,
-                address: account,
-              };
-            }
-            return acc;
-          }, {} as Record<string, InternalAccount>),
+          accounts: accounts.reduce(
+            (acc, account, index) => {
+              const mockAccount = MOCK_INTERNAL_ACCOUNTS[index];
+              if (mockAccount) {
+                acc[mockAccount.id] = {
+                  ...mockAccount,
+                  address: account,
+                };
+              }
+              return acc;
+            },
+            {} as Record<string, InternalAccount>,
+          ),
           selectedAccount: 'mock-id-1',
         },
       },

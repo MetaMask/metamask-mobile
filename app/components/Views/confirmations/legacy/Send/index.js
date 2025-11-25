@@ -460,9 +460,8 @@ class Send extends PureComponent {
     const { AssetsContractController } = Engine.context;
     const token = { address };
     try {
-      const decimals = await AssetsContractController.getERC20TokenDecimals(
-        address,
-      );
+      const decimals =
+        await AssetsContractController.getERC20TokenDecimals(address);
       token.decimals = parseInt(String(decimals));
     } catch (e) {
       // Drop tx since we don't have any form to get decimals and send the correct tx
@@ -475,9 +474,8 @@ class Send extends PureComponent {
       this.onCancel();
     }
     try {
-      token.symbol = await AssetsContractController.getERC721AssetSymbol(
-        address,
-      );
+      token.symbol =
+        await AssetsContractController.getERC721AssetSymbol(address);
     } catch (e) {
       token.symbol = 'ERC20';
     }

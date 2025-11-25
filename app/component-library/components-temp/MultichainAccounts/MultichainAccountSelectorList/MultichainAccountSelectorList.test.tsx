@@ -725,7 +725,7 @@ describe('MultichainAccountSelectorList', () => {
 
       // Verify the component renders correctly with AccountListFooter
       expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Create account')).toBeTruthy();
+      expect(getByText('Add account')).toBeTruthy();
     });
 
     it('handles multiple wallets with AccountListFooter', () => {
@@ -757,8 +757,8 @@ describe('MultichainAccountSelectorList', () => {
         { state: createMockState([wallet1, wallet2], internalAccounts) },
       );
 
-      // Should have multiple "Create account" buttons (one per wallet)
-      const createAccountButtons = getAllByText('Create account');
+      // Should have multiple "Add account" buttons (one per wallet)
+      const createAccountButtons = getAllByText('Add account');
       expect(createAccountButtons.length).toBe(2);
     });
 
@@ -783,7 +783,7 @@ describe('MultichainAccountSelectorList', () => {
 
       // Verify the component renders correctly
       expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Create account')).toBeTruthy();
+      expect(getByText('Add account')).toBeTruthy();
     });
 
     it('positions the list so the first selected account is initially visible', () => {

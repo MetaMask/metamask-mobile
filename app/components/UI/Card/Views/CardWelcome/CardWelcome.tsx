@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { Image, useWindowDimensions, View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -18,17 +18,31 @@ import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useIsCardholder } from '../../hooks/useIsCardholder';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { CardActions, CardScreens } from '../../util/metrics';
+import { selectHasCardholderAccounts } from '../../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 
 const CardWelcome = () => {
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
-  const isCardholder = useIsCardholder();
+  const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const theme = useTheme();
   const deviceWidth = useWindowDimensions().width;
   const styles = createStyles(theme, deviceWidth);
 
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.WELCOME,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
   const cardWelcomeCopies = useMemo(() => {
-    if (isCardholder) {
+    if (hasCardholderAccounts) {
       return {
         title: strings('card.card_onboarding.title'),
         description: strings('card.card_onboarding.description'),
@@ -45,15 +59,23 @@ const CardWelcome = () => {
         'card.card_onboarding.non_cardholder_verify_account_button',
       ),
     };
-  }, [isCardholder]);
+  }, [hasCardholderAccounts]);
 
   const handleButtonPress = useCallback(() => {
-    if (isCardholder) {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VERIFY_ACCOUNT_BUTTON,
+        })
+        .build(),
+    );
+
+    if (hasCardholderAccounts) {
       navigate(Routes.CARD.AUTHENTICATION);
     } else {
       navigate(Routes.CARD.ONBOARDING.ROOT);
     }
-  }, [isCardholder, navigate]);
+  }, [hasCardholderAccounts, navigate, trackEvent, createEventBuilder]);
 
   return (
     <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>

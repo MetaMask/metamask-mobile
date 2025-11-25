@@ -11,9 +11,9 @@ jest.mock('../../../../hooks/useMetrics', () => {
     useMetrics: () => ({
       trackEvent: jest.fn(),
       createEventBuilder: jest.fn(() => ({
-        build: jest
-          .fn()
-          .mockReturnValue({ event: actual.MetaMetricsEvents.CARD_VIEWED }),
+        build: jest.fn().mockReturnValue({
+          event: actual.MetaMetricsEvents.CARD_BUTTON_VIEWED,
+        }),
       })),
     }),
   };

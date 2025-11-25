@@ -4,33 +4,25 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
-import { SolScope, BtcScope } from '@metamask/keyring-api';
-
-const {
-  ETH_CHAIN_ID,
-  BSC_CHAIN_ID,
+import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  NATIVE_SWAPS_TOKEN_ADDRESS,
   SWAPS_TESTNET_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  ARBITRUM_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-  ZKSYNC_ERA_CHAIN_ID,
-  LINEA_CHAIN_ID,
-  BASE_CHAIN_ID,
-  SEI_CHAIN_ID,
-} = swapsUtils;
+} from '../../../../constants/bridge';
 
 const allowedChainIds = [
-  ETH_CHAIN_ID,
-  BSC_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  ARBITRUM_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-  ZKSYNC_ERA_CHAIN_ID,
-  LINEA_CHAIN_ID,
-  BASE_CHAIN_ID,
-  SEI_CHAIN_ID,
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.BSC,
+  CHAIN_IDS.POLYGON,
+  CHAIN_IDS.AVALANCHE,
+  CHAIN_IDS.ARBITRUM,
+  CHAIN_IDS.OPTIMISM,
+  CHAIN_IDS.ZKSYNC_ERA,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.BASE,
+  CHAIN_IDS.SEI,
+  CHAIN_IDS.MONAD,
   SWAPS_TESTNET_CHAIN_ID,
 ];
 
@@ -51,7 +43,11 @@ export function isSwapsAllowed(chainId) {
     allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
   }
 
-  if (chainId === SolScope.Mainnet || chainId === BtcScope.Mainnet) {
+  if (
+    chainId === SolScope.Mainnet ||
+    chainId === BtcScope.Mainnet ||
+    chainId === TrxScope.Mainnet
+  ) {
     return true;
   }
 
@@ -59,9 +55,7 @@ export function isSwapsAllowed(chainId) {
 }
 
 export function isSwapsNativeAsset(token) {
-  return (
-    Boolean(token) && token?.address === swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
-  );
+  return Boolean(token) && token?.address === NATIVE_SWAPS_TOKEN_ADDRESS;
 }
 
 export function isDynamicToken(token) {

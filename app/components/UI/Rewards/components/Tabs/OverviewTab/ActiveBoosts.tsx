@@ -38,6 +38,7 @@ import { Skeleton } from '../../../../../../component-library/components/Skeleto
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { handleDeeplink } from '../../../../../../core/DeeplinkManager/handleDeeplink';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
@@ -75,10 +76,14 @@ const BoostCard: React.FC<BoostCardProps> = ({
     return formatTimeRemaining(new Date(boost.endDate));
   }, [boost.endDate]);
 
-  // Go to swap view with Linea asset atm.
-  // TODO: coordinate backend changes to support other default assets, or go to perps
   const handleBoostTap = () => {
-    goToSwaps();
+    //Use deeplink if provided, otherwise fallback to goToSwaps
+    if (boost.deeplink) {
+      handleDeeplink({ uri: boost.deeplink });
+    } else {
+      goToSwaps();
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_ACTIVE_BOOST_CLICKED)
         .addProperties({
@@ -108,7 +113,11 @@ const BoostCard: React.FC<BoostCardProps> = ({
     if (boost.endDate) {
       return (
         <Box twClassName="flex-row items-center gap-2">
-          <Icon name={IconName.Clock} size={IconSize.Sm} />
+          <Icon
+            name={IconName.Clock}
+            size={IconSize.Sm}
+            twClassName="text-white"
+          />
           <Text variant={TextVariant.BodySm} twClassName="text-white">
             {timeRemaining}
           </Text>

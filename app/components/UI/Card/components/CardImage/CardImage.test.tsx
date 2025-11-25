@@ -5,9 +5,12 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../util/truncateAddress', () => ({
-  truncateAddress: jest.fn(
-    (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`,
-  ),
+  truncateAddress: jest.fn((address: string | undefined) => {
+    if (address) {
+      return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+    return undefined;
+  }),
 }));
 
 function renderWithProvider(component: React.ComponentType) {

@@ -1,82 +1,77 @@
 import { buildTokenIconUrl } from './buildTokenIconUrl';
 
 describe('buildTokenIconUrl', () => {
-  it('should return empty string when chainId is not provided', () => {
+  it('returns empty string when chainId is not provided', () => {
     const result = buildTokenIconUrl(undefined, '0x1234567890abcdef');
+
     expect(result).toBe('');
   });
 
-  it('should return empty string when address is not provided', () => {
-    const result = buildTokenIconUrl('1', undefined);
+  it('returns empty string when address is not provided', () => {
+    const result = buildTokenIconUrl('eip155:1', undefined);
+
     expect(result).toBe('');
   });
 
-  it('should return empty string when both chainId and address are not provided', () => {
+  it('returns empty string when both chainId and address are not provided', () => {
     const result = buildTokenIconUrl(undefined, undefined);
+
     expect(result).toBe('');
   });
 
-  it('should return correct URL when chainId is a decimal string', () => {
-    const chainId = '1';
+  it('returns correct URL for Ethereum mainnet', () => {
+    const chainId = 'eip155:1';
     const address = '0x1234567890abcdef';
-    const expected = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/${address}.png`;
 
     const result = buildTokenIconUrl(chainId, address);
-    expect(result).toBe(expected);
+
+    expect(result).toBe(
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x1234567890abcdef.png',
+    );
   });
 
-  it('should convert hex chainId to decimal and return correct URL', () => {
-    const chainId = '0x1'; // hex for 1
-    const address = '0x1234567890abcdef';
-    const expected = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/${address}.png`;
-
-    const result = buildTokenIconUrl(chainId, address);
-    expect(result).toBe(expected);
-  });
-
-  it('should handle larger hex chainId values', () => {
-    const chainId = '0x89'; // hex for 137 (Polygon)
+  it('returns correct URL for Polygon', () => {
+    const chainId = 'eip155:137';
     const address = '0xabcdef1234567890';
-    const expected = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/erc20/${address}.png`;
 
     const result = buildTokenIconUrl(chainId, address);
-    expect(result).toBe(expected);
+
+    expect(result).toBe(
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/erc20/0xabcdef1234567890.png',
+    );
   });
 
-  it('should handle chainId with leading zeros', () => {
-    const chainId = '0x01'; // hex for 1 with leading zero
-    const address = '0x1234567890abcdef';
-    const expected = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/${address}.png`;
-
-    const result = buildTokenIconUrl(chainId, address);
-    expect(result).toBe(expected);
-  });
-
-  it('should handle different address formats', () => {
-    const chainId = '1';
+  it('converts address to lowercase for EVM chains', () => {
+    const chainId = 'eip155:1';
     const address = '0xA0b86a33E6441C8bbA8418Db9f4aD4d0d0e01a23';
-    const expected = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/${address.toLowerCase()}.png`;
 
     const result = buildTokenIconUrl(chainId, address);
-    expect(result).toBe(expected);
+
+    expect(result).toBe(
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86a33e6441c8bba8418db9f4ad4d0d0e01a23.png',
+    );
   });
 
-  it('should work with BSC mainnet', () => {
-    const chainId = '0x38'; // BSC mainnet
+  it('returns correct URL for BSC mainnet', () => {
+    const chainId = 'eip155:56';
     const address = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82';
-    const expected = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/erc20/${address.toLowerCase()}.png`;
 
     const result = buildTokenIconUrl(chainId, address);
-    expect(result).toBe(expected);
+
+    expect(result).toBe(
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/erc20/0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82.png',
+    );
   });
 
-  it('should work with Arbitrum One', () => {
-    const chainId = '0xa4b1'; // hex for 42161 (Arbitrum One)
+  it('returns correct URL for Arbitrum One', () => {
+    const chainId = 'eip155:42161';
     const address = '0x912CE59144191C1204E64559FE8253a0e49E6548';
-    const expected = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/42161/erc20/${address.toLowerCase()}.png`;
 
     const result = buildTokenIconUrl(chainId, address);
-    expect(result).toBe(expected);
+
+    expect(result).toBe(
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/42161/erc20/0x912ce59144191c1204e64559fe8253a0e49e6548.png',
+    );
   });
 
   describe('Solana chains', () => {

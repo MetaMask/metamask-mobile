@@ -58,6 +58,10 @@ export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
 export const HYPERLIQUID_ASSET_ICONS_BASE_URL =
   'https://app.hyperliquid.xyz/coins/';
 
+// HIP-3 asset icons base URL (for assets with dex:symbol format)
+export const HIP3_ASSET_ICONS_BASE_URL =
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155%3A999/';
+
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
   USDC: {
@@ -95,7 +99,6 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
   marginPercent: 10, // 10% fixed margin default
   takeProfitPercent: 0.3, // 30% take profit
   stopLossPercent: 0.1, // 10% stop loss
-  slippage: 0.05, // 5% max slippage protection
   amount: {
     mainnet: 10, // $10 minimum order size
     testnet: 10, // $10 minimum order size
@@ -109,6 +112,38 @@ export const FEE_RATES: FeeRatesConfig = {
   taker: 0.00045, // 0.045% - Market orders and aggressive limit orders
   maker: 0.00015, // 0.015% - Limit orders that add liquidity
 };
+
+/**
+ * HIP-3 fee multiplier configuration
+ *
+ * HIP-3 (builder-deployed) perpetual markets charge 2x base fees compared to
+ * validator-operated markets. This covers a 50/50 split between the protocol
+ * and the builder/deployer.
+ *
+ * Reference: HIP-3.md line 45 - "From the user perspective, fees are 2x the
+ * usual fees on validator-operated perp markets."
+ *
+ * Applied to:
+ * - Base fee rates (taker/maker)
+ * - User-specific discounted rates
+ * - All fee calculations for HIP-3 assets (identified by dex:SYMBOL format)
+ *
+ * Example: For xyz:TSLA (HIP-3 asset):
+ * - Base taker rate: 0.045%
+ * - After HIP-3 multiplier: 0.045% × 2 = 0.090%
+ * - Protocol receives: 0.045% (same as regular markets)
+ * - Builder receives: 0.045% (deployed market incentive)
+ *
+ * @see HIP-3.md for detailed protocol specification
+ * @see parseAssetName() in HyperLiquidProvider for HIP-3 asset detection
+ */
+export const HIP3_FEE_CONFIG = {
+  /**
+   * Fee multiplier for HIP-3 assets (2x base rate)
+   * Covers 50% deployer share + 50% protocol share
+   */
+  FEE_MULTIPLIER: 2,
+} as const;
 
 const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
 
@@ -246,24 +281,36 @@ export const HIP3_ASSET_ID_CONFIG = {
 export const BASIS_POINTS_DIVISOR = 10000;
 
 /**
- * HIP-3 DEX market type classifications
- * Maps DEX identifiers to their asset category for badge display
+ * HIP-3 asset market type classifications (PRODUCTION DEFAULT)
+ *
+ * This is the production default configuration, can be overridden via feature flag
+ * (remoteFeatureFlags.perpsAssetMarketTypes) for dynamic control.
+ *
+ * Maps asset symbols (e.g., "xyz:TSLA") to their market type for badge display.
  *
  * Market type determines the badge shown in the UI:
- * - 'equity': STOCK badge (for stock markets like xyz)
- * - 'forex': FOREX badge (for forex markets)
- * - 'commodity': COMMODITY badge (for commodity markets)
- * - 'crypto': CRYPTO badge (for crypto-only DEXs)
- * - undefined: Falls back to 'experimental' badge for HIP-3 DEXs
+ * - 'equity': STOCK badge (stocks like TSLA, NVDA)
+ * - 'commodity': COMMODITY badge (commodities like GOLD)
+ * - 'forex': FOREX badge (forex pairs)
+ * - undefined: No badge for crypto or unmapped assets
  *
- * DEXs not listed here will show the 'experimental' badge by default.
- * Main DEX (no prefix) shows no badge.
+ * Format: 'dex:SYMBOL' → MarketType
+ * This allows flexible per-asset classification.
+ * Assets not listed here will have no market type (undefined).
  */
-export const HIP3_DEX_MARKET_TYPES = {
-  xyz: 'equity' as const, // xyz DEX offers stock trading
-  // Future DEX classifications:
-  // abc: 'forex' as const,
-  // commodity_dex: 'commodity' as const,
+export const HIP3_ASSET_MARKET_TYPES: Record<
+  string,
+  'equity' | 'commodity' | 'forex' | 'crypto'
+> = {
+  // xyz DEX - Equities
+  'xyz:TSLA': 'equity',
+  'xyz:NVDA': 'equity',
+  'xyz:XYZ100': 'equity',
+
+  // xyz DEX - Commodities
+  'xyz:GOLD': 'commodity',
+
+  // Future asset mappings as xyz adds more markets
 } as const;
 
 /**

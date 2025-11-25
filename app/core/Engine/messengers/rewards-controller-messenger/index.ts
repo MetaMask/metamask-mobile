@@ -1,4 +1,8 @@
-import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
 
 import {
   KeyringControllerSignPersonalMessageAction,
@@ -40,8 +44,9 @@ import {
   RewardsDataServiceGetDiscoverSeasonsAction,
   RewardsDataServiceGetSeasonMetadataAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
+import { RootMessenger } from '../../types';
 
-const name = 'RewardsController';
+const name = 'RewardsController' as const;
 
 // Don't reexport as per guidelines
 type AllowedActions =
@@ -74,23 +79,28 @@ type AllowedEvents =
   | AccountTreeControllerSelectedAccountGroupChangeEvent
   | KeyringControllerUnlockEvent;
 
-export type RewardsControllerMessenger = RestrictedMessenger<
+export type RewardsControllerMessenger = Messenger<
   typeof name,
   RewardsControllerActions | AllowedActions,
-  RewardsControllerEvents | AllowedEvents,
-  AllowedActions['type'],
-  AllowedEvents['type'] // ← This was wrong!
+  RewardsControllerEvents | AllowedEvents
 >;
 
 export function getRewardsControllerMessenger(
-  messenger: Messenger<
-    RewardsControllerActions | AllowedActions,
-    RewardsControllerEvents | AllowedEvents
-  >,
+  rootMessenger: RootMessenger,
 ): RewardsControllerMessenger {
-  return messenger.getRestricted({
-    name,
-    allowedActions: [
+  const messenger = new Messenger<
+    typeof name,
+    MessengerActions<RewardsControllerMessenger>,
+    MessengerEvents<RewardsControllerMessenger>,
+    RootMessenger
+  >({
+    namespace: name,
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    messenger,
+    actions: [
       'AccountsController:getSelectedMultichainAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AccountsController:listMultichainAccounts',
@@ -115,9 +125,11 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getDiscoverSeasons',
       'RewardsDataService:getSeasonMetadata',
     ],
-    allowedEvents: [
+    events: [
       'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
     ],
   });
+
+  return messenger;
 }

@@ -6,6 +6,7 @@ import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { PredictMarketListSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import TabBar from '../../../../Base/TabBar';
+import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
 import MarketListContent from '../MarketListContent';
 import { PredictCategory } from '../../types';
@@ -15,19 +16,20 @@ interface PredictMarketListProps {
   isSearchVisible: boolean;
   searchQuery: string;
   scrollCoordinator?: ScrollCoordinator;
+  onTabChange?: (tab: PredictCategory) => void;
 }
 
 const PredictMarketList: React.FC<PredictMarketListProps> = ({
   isSearchVisible,
   searchQuery,
   scrollCoordinator,
+  onTabChange,
 }) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
 
   const handleTabChange = useCallback(
     (changeInfo: { i: number; ref: unknown; from?: number }) => {
-      if (!scrollCoordinator) return;
-
       const categories: PredictCategory[] = [
         'trending',
         'new',
@@ -37,10 +39,15 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
       ];
       const category = categories[changeInfo.i];
       if (category) {
-        scrollCoordinator.setCurrentCategory(category);
+        // Update scroll coordinator
+        if (scrollCoordinator) {
+          scrollCoordinator.setCurrentCategory(category);
+        }
+        // Notify parent for analytics
+        onTabChange?.(category);
       }
     },
-    [scrollCoordinator],
+    [scrollCoordinator, onTabChange],
   );
 
   const tabsAnimatedStyle = useAnimatedStyle(() => {
@@ -76,7 +83,11 @@ const PredictMarketList: React.FC<PredictMarketListProps> = ({
         <Animated.View style={[tw.style('flex-1 w-full'), tabsAnimatedStyle]}>
           <ScrollableTabView
             renderTabBar={() => (
-              <TabBar textStyle={tw.style('text-base font-bold')} />
+              <TabBar
+                activeTextColor={colors.text.default}
+                underlineStyle={tw.style('h-[2px] bg-text-default')}
+                underlineHeight={2}
+              />
             )}
             style={tw.style('flex-1 w-full')}
             initialPage={0}

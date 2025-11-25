@@ -17,8 +17,8 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 import { formatAddress } from '../../../../../../util/address';
 import styleSheet from './recipient.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { accountTypeLabel } from '../../../constants/network';
 import { AccountTypeLabel } from '../account-type-label';
+import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
 
 export interface RecipientType {
   address: string;
@@ -51,7 +51,7 @@ export function Recipient({
   }, [recipient, onPress]);
 
   const typeLabel =
-    accountTypeLabel[recipient.accountType as KeyringAccountType];
+    ACCOUNT_TYPE_LABELS[recipient.accountType as KeyringAccountType];
 
   return (
     <ButtonBase

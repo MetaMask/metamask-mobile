@@ -1,6 +1,5 @@
 import React from 'react';
 import SpendingLimitProgressBar from './SpendingLimitProgressBar';
-import { ethers } from 'ethers';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
@@ -26,13 +25,12 @@ describe('SpendingLimitProgressBar', () => {
   const USDC = 'USDC';
 
   it('renders with full remaining allowance', () => {
-    const totalAllowance = ethers.BigNumber.from('200');
-    const remainingAllowance = ethers.BigNumber.from('200');
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="200"
         symbol={USDC}
       />
     ));
@@ -42,13 +40,12 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('renders with partial allowance consumed', () => {
-    const totalAllowance = ethers.BigNumber.from('200');
-    const remainingAllowance = ethers.BigNumber.from('150');
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="150"
         symbol={USDC}
       />
     ));
@@ -58,13 +55,12 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('renders with most of allowance consumed', () => {
-    const totalAllowance = ethers.BigNumber.from('200');
-    const remainingAllowance = ethers.BigNumber.from('40');
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="40"
         symbol={USDC}
       />
     ));
@@ -74,13 +70,12 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('renders with full allowance consumed', () => {
-    const totalAllowance = ethers.BigNumber.from('200');
-    const remainingAllowance = ethers.BigNumber.from('0');
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="0"
         symbol={USDC}
       />
     ));
@@ -90,13 +85,12 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('handles zero total allowance', () => {
-    const totalAllowance = ethers.BigNumber.from('0');
-    const remainingAllowance = ethers.BigNumber.from('0');
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="0"
+        remainingAllowance="0"
         symbol={USDC}
       />
     ));
@@ -107,55 +101,56 @@ describe('SpendingLimitProgressBar', () => {
 
   it('handles undefined allowance values', () => {
     const { getByText } = renderWithProvider(() => (
-      <SpendingLimitProgressBar symbol={USDC} />
+      <SpendingLimitProgressBar
+        isLoading={false}
+        decimals={6}
+        totalAllowance={undefined as unknown as string}
+        remainingAllowance={undefined as unknown as string}
+        symbol={USDC}
+      />
     ));
 
     expect(getByText('Spending Limit')).toBeOnTheScreen();
     expect(getByText(`0/0 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('handles large BigNumber values', () => {
-    const totalAllowance = ethers.BigNumber.from('1000000000000000000');
-    const remainingAllowance = ethers.BigNumber.from('500000000000000000');
-
+  it('handles small decimal values', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="1"
+        remainingAllowance="0.5"
         symbol={USDC}
       />
     ));
 
     expect(getByText('Spending Limit')).toBeOnTheScreen();
-    expect(
-      getByText(`500000000000000000/1000000000000000000 ${USDC}`),
-    ).toBeOnTheScreen();
+    expect(getByText(`0.5/1 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('handles remaining allowance exceeding total allowance', () => {
-    const totalAllowance = ethers.BigNumber.from('100');
-    const remainingAllowance = ethers.BigNumber.from('150');
-
+  it('handles consumed exceeding total allowance', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="100"
+        remainingAllowance="-50"
         symbol={USDC}
       />
     ));
 
     expect(getByText('Spending Limit')).toBeOnTheScreen();
-    expect(getByText(`-50/100 ${USDC}`)).toBeOnTheScreen();
+    expect(getByText(`150/100 ${USDC}`)).toBeOnTheScreen();
   });
 
   it('renders with different symbol', () => {
-    const totalAllowance = ethers.BigNumber.from('1000');
-    const remainingAllowance = ethers.BigNumber.from('500');
-
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={18}
+        totalAllowance="1000"
+        remainingAllowance="500"
         symbol="ETH"
       />
     ));
@@ -165,13 +160,12 @@ describe('SpendingLimitProgressBar', () => {
   });
 
   it('renders progress bar component', () => {
-    const totalAllowance = ethers.BigNumber.from('200');
-    const remainingAllowance = ethers.BigNumber.from('100');
-
     const { toJSON } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance="100"
         symbol={USDC}
       />
     ));
@@ -179,34 +173,28 @@ describe('SpendingLimitProgressBar', () => {
     expect(toJSON()).toBeTruthy();
   });
 
-  it('handles serialized BigNumber objects', () => {
-    const serializedTotal = JSON.parse(
-      JSON.stringify(ethers.BigNumber.from('200')),
-    );
-    const serializedRemaining = JSON.parse(
-      JSON.stringify(ethers.BigNumber.from('100')),
-    );
-
+  it('handles null allowance values', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={serializedTotal}
-        remainingAllowance={serializedRemaining}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="200"
+        remainingAllowance={null as unknown as string}
         symbol={USDC}
       />
     ));
 
     expect(getByText('Spending Limit')).toBeOnTheScreen();
-    expect(getByText(`100/200 ${USDC}`)).toBeOnTheScreen();
+    expect(getByText(`200/200 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('calculates consumed amount correctly for 25% consumption', () => {
-    const totalAllowance = ethers.BigNumber.from('400');
-    const remainingAllowance = ethers.BigNumber.from('300');
-
+  it('calculates consumed amount for 25% consumption', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="400"
+        remainingAllowance="300"
         symbol={USDC}
       />
     ));
@@ -214,14 +202,13 @@ describe('SpendingLimitProgressBar', () => {
     expect(getByText(`100/400 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('calculates consumed amount correctly for 75% consumption', () => {
-    const totalAllowance = ethers.BigNumber.from('400');
-    const remainingAllowance = ethers.BigNumber.from('100');
-
+  it('calculates consumed amount for 75% consumption', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="400"
+        remainingAllowance="100"
         symbol={USDC}
       />
     ));
@@ -229,14 +216,13 @@ describe('SpendingLimitProgressBar', () => {
     expect(getByText(`300/400 ${USDC}`)).toBeOnTheScreen();
   });
 
-  it('calculates consumed amount correctly for 99% consumption', () => {
-    const totalAllowance = ethers.BigNumber.from('100');
-    const remainingAllowance = ethers.BigNumber.from('1');
-
+  it('calculates consumed amount for 99% consumption', () => {
     const { getByText } = renderWithProvider(() => (
       <SpendingLimitProgressBar
-        totalAllowance={totalAllowance}
-        remainingAllowance={remainingAllowance}
+        isLoading={false}
+        decimals={6}
+        totalAllowance="100"
+        remainingAllowance="1"
         symbol={USDC}
       />
     ));

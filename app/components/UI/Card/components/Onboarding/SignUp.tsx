@@ -32,7 +32,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { validatePassword } from '../../util/validatePassword';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { OnboardingActions, OnboardingScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 import { TouchableOpacity } from 'react-native';
 
 const SignUp = () => {
@@ -51,9 +51,9 @@ const SignUp = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_PAGE_VIEWED)
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
         .addProperties({
-          page: OnboardingScreens.SIGN_UP,
+          screen: CardScreens.SIGN_UP,
         })
         .build(),
     );
@@ -77,6 +77,7 @@ const SignUp = () => {
     }
     return [...registrationSettings.countries]
       .sort((a, b) => a.name.localeCompare(b.name))
+      .filter((country) => country.canSignUp)
       .map((country) => ({
         key: country.iso3166alpha2,
         value: country.iso3166alpha2,
@@ -105,73 +106,85 @@ const SignUp = () => {
     setIsConfirmPasswordError(debouncedConfirmPassword !== debouncedPassword);
   }, [debouncedConfirmPassword, debouncedPassword]);
 
-  const isDisabled = useMemo(
-    () =>
-      !debouncedEmail ||
-      !debouncedPassword ||
-      !debouncedConfirmPassword ||
+  const isDisabled = useMemo(() => {
+    // Check the actual values, not the debounced ones
+    const isEmailValid = email ? validateEmail(email) : false;
+    const isPasswordValid = password ? validatePassword(password) : false;
+    const isConfirmPasswordValid = confirmPassword
+      ? confirmPassword === password
+      : false;
+
+    return (
+      !email ||
+      !password ||
+      !confirmPassword ||
       !selectedCountry ||
-      isPasswordError ||
-      isConfirmPasswordError ||
-      isEmailError ||
+      !isEmailValid ||
+      !isPasswordValid ||
+      !isConfirmPasswordValid ||
       emailVerificationIsError ||
-      emailVerificationIsLoading,
-    [
-      debouncedEmail,
-      debouncedPassword,
-      debouncedConfirmPassword,
-      selectedCountry,
-      isPasswordError,
-      isConfirmPasswordError,
-      isEmailError,
-      emailVerificationIsError,
-      emailVerificationIsLoading,
-    ],
-  );
+      emailVerificationIsLoading
+    );
+  }, [
+    email,
+    password,
+    confirmPassword,
+    selectedCountry,
+    emailVerificationIsError,
+    emailVerificationIsLoading,
+  ]);
 
   const handleEmailChange = useCallback(
-    (email: string) => {
+    (emailText: string) => {
       resetEmailVerificationSend();
-      setEmail(email);
+      setEmail(emailText);
     },
     [resetEmailVerificationSend],
   );
 
   const handlePasswordChange = useCallback(
-    (password: string) => {
+    (passwordText: string) => {
       resetEmailVerificationSend();
-      setPassword(password);
+      setPassword(passwordText);
     },
     [resetEmailVerificationSend],
   );
 
   const handleContinue = useCallback(async () => {
-    if (
-      !debouncedEmail ||
-      !debouncedPassword ||
-      !debouncedConfirmPassword ||
-      !selectedCountry
-    ) {
+    // Use actual values, not debounced ones
+    if (!email || !password || !confirmPassword || !selectedCountry) {
       return;
     }
+
+    // Validate current values before submitting
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    const isConfirmPasswordValid = confirmPassword === password;
+
+    if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+      // Set error states
+      setIsEmailError(!isEmailValid);
+      setIsPasswordError(!isPasswordValid);
+      setIsConfirmPasswordError(!isConfirmPasswordValid);
+      return;
+    }
+
     try {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ONBOARDING_BUTTON_CLICKED)
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: OnboardingActions.SIGN_UP_BUTTON_CLICKED,
+            action: CardActions.SIGN_UP_BUTTON,
           })
           .build(),
       );
-      const { contactVerificationId } = await sendEmailVerification(
-        debouncedEmail,
-      );
+      const { contactVerificationId } = await sendEmailVerification(email);
 
       dispatch(setContactVerificationId(contactVerificationId));
 
       if (contactVerificationId) {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
-          email: debouncedEmail,
-          password: debouncedConfirmPassword,
+          email,
+          password: confirmPassword,
         });
       } else {
         // If no contactVerificationId, assume user is registered or email not valid
@@ -181,9 +194,9 @@ const SignUp = () => {
       // Allow error message to display
     }
   }, [
-    debouncedConfirmPassword,
-    debouncedEmail,
-    debouncedPassword,
+    confirmPassword,
+    email,
+    password,
     dispatch,
     navigation,
     selectedCountry,
@@ -224,7 +237,7 @@ const SignUp = () => {
           isError={debouncedEmail.length > 0 && isEmailError}
           testID="signup-email-input"
         />
-        {debouncedEmail.length > 0 && emailVerificationIsError ? (
+        {email.length > 0 && emailVerificationIsError ? (
           <Text
             testID="signup-email-error-text"
             variant={TextVariant.BodySm}
@@ -343,7 +356,7 @@ const SignUp = () => {
           testID="signup-i-already-have-an-account-text"
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="text-primary-default text-center p-4 underline"
+          twClassName="text-default text-center p-4"
         >
           {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
         </Text>

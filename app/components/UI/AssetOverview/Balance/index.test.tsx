@@ -19,6 +19,9 @@ import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockDa
 import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { TokenI } from '../../Tokens/types';
 import { NetworkBadgeSource } from './Balance';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { ACCOUNT_TYPE_LABEL_TEST_ID } from '../../Tokens/TokenList/TokenListItem/TokenListItemBip44';
+import { BtcAccountType } from '@metamask/keyring-api';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) =>
@@ -522,6 +525,24 @@ describe('Balance', () => {
       expect(queryByTestId('secondary-balance-test-id')).toBeNull();
       expect(queryByText(/\+.*%/)).toBeNull();
       expect(queryByText(/-.*%/)).toBeNull();
+    });
+  });
+
+  describe('Account Type Label', () => {
+    it('renders the correct account type label', () => {
+      const { queryByTestId } = renderWithProvider(
+        <Balance
+          asset={{ ...mockETH, accountType: BtcAccountType.P2wpkh }}
+          mainBalance="123"
+          secondaryBalance="456"
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toHaveTextContent(
+        'Native SegWit',
+      );
     });
   });
 

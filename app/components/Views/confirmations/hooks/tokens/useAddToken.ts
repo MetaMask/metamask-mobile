@@ -9,11 +9,13 @@ const log = createProjectLogger('add-token');
 export function useAddToken({
   chainId,
   decimals,
+  name,
   symbol,
   tokenAddress,
 }: {
   chainId: Hex;
   decimals: number;
+  name: string;
   symbol: string;
   tokenAddress: Hex;
 }) {
@@ -38,6 +40,7 @@ export function useAddToken({
     await TokensController.addToken({
       address: tokenAddress,
       decimals,
+      name,
       networkClientId,
       symbol,
     });

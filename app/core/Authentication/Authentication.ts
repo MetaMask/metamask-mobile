@@ -1,5 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
+import { Engine as EngineClass } from '../Engine/Engine';
 import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
@@ -96,6 +97,7 @@ class AuthenticationService {
       AccountTreeInitService.clearState();
     }
     await AccountTreeInitService.initializeAccountTree();
+
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
 
@@ -121,6 +123,16 @@ class AuthenticationService {
    */
   private getPrimaryEntropySourceId(): EntropySourceId {
     return Engine.context.KeyringController.state.keyrings[0].metadata.id;
+  }
+
+  /**
+   * This method gets the entropy source IDs for all HD wallets.
+   * @returns All known entropy source IDs.
+   */
+  private getEntropySourceIds(): EntropySourceId[] {
+    return Engine.context.KeyringController.state.keyrings
+      .filter((keyring) => keyring.type === KeyringTypes.hd)
+      .map((keyring) => keyring.metadata.id);
   }
 
   /**
@@ -164,7 +176,7 @@ class AuthenticationService {
     );
 
     if (!isMultichainAccountsState2Enabled()) {
-      await Promise.all(
+      Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
@@ -180,7 +192,7 @@ class AuthenticationService {
             await StorageWrapper.setItem(discoveryStorageId, TRUE);
           }
         }),
-      );
+      ).catch(console.error);
     }
 
     password = this.wipeSensitiveData();
@@ -225,12 +237,34 @@ class AuthenticationService {
     });
   };
 
-  private retryDiscoveryIfPending = async (): Promise<void> => {
+  private postLoginAsyncOperations = async (): Promise<void> => {
     if (isMultichainAccountsState2Enabled()) {
-      // We just re-run the same discovery here. Each wallets know their highest group index and restart
-      // the discovery from there, thus acting as a "retry".
-      await this.attemptMultichainAccountWalletDiscovery();
+      // READ THIS CAREFULLY:
+      // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
+      // automatically "fix" this corrupted state, we run this method which will re-sync
+      // MetaMask accounts and Snap accounts upon login.
+      try {
+        const { MultichainAccountService } = Engine.context;
+        await MultichainAccountService.resyncAccounts();
+      } catch (error) {
+        console.warn('Failed to resync accounts:', error);
+      }
+
+      // We just re-run the same discovery here.
+      // 1. Each wallets know their highest group index and restart the discovery from
+      // there, thus acting naturally as a "retry".
+      // 2. Running the discovery every time allow to auto-discover accounts that could
+      // have been added on external wallets.
+      // 3. We run the alignment at the end of the discovery, thus, automatically
+      // creating accounts for new account providers.
+      await Promise.allSettled(
+        this.getEntropySourceIds().map(
+          async (entropySource) =>
+            await this.attemptMultichainAccountWalletDiscovery(entropySource),
+        ),
+      );
     } else {
+      // Try to complete any pending account discovery
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -262,7 +296,7 @@ class AuthenticationService {
     await KeyringController.createNewVaultAndKeychain(password);
 
     if (!isMultichainAccountsState2Enabled()) {
-      await Promise.all(
+      Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
@@ -277,7 +311,7 @@ class AuthenticationService {
             await StorageWrapper.setItem(discoveryStorageId, TRUE);
           }
         }),
-      );
+      ).catch(console.error);
     }
 
     password = this.wipeSensitiveData();
@@ -305,9 +339,8 @@ class AuthenticationService {
     const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
       availableBiometryType &&
@@ -415,6 +448,31 @@ class AuthenticationService {
   };
 
   /**
+   * store password with fallback to password authType if the storePassword with non Password authType fails
+   * it should only apply for create wallet, import wallet and reset password flows for now
+   *
+   * @param password - password to store
+   * @param authData - authentication data
+   * @returns void
+   */
+  storePasswordWithFallback = async (password: string, authData: AuthData) => {
+    try {
+      await this.storePassword(password, authData.currentAuthType);
+      this.authData = authData;
+    } catch (error) {
+      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+        throw error;
+      }
+      // Fall back to password authType
+      await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+      this.authData = {
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: authData.availableBiometryType,
+      };
+    }
+  };
+
+  /**
    * Fetches the password from the keychain using the auth method it was originally stored
    */
   getPassword: () => Promise<false | UserCredentials | null> = async () =>
@@ -437,9 +495,8 @@ class AuthenticationService {
     const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
 
     if (
       availableBiometryType &&
@@ -491,14 +548,13 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
-      await this.storePassword(password, authData?.currentAuthType);
+      await this.storePasswordWithFallback(password, authData);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
       await this.dispatchLogin({
         clearAccountTreeState: true,
       });
-      this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -527,13 +583,12 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
-      await this.storePassword(password, authData.currentAuthType);
+      await this.storePasswordWithFallback(password, authData);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin({
         clearAccountTreeState: true,
       });
-      this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -581,8 +636,11 @@ class AuthenticationService {
       this.authData = authData;
       this.dispatchPasswordSet();
 
-      // Try to complete any pending account discovery
-      this.retryDiscoveryIfPending();
+      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
+      // discovery...).
+      // NOTE: We do not await on purpose, to run those operations in the background.
+      // eslint-disable-next-line no-void
+      void this.postLoginAsyncOperations();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -651,8 +709,11 @@ class AuthenticationService {
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
 
-      // Try to complete any pending account discovery
-      this.retryDiscoveryIfPending();
+      // We run some post-login operations asynchronously to make login feels smoother and faster (re-sync,
+      // discovery...).
+      // NOTE: We do not await on purpose, to run those operations in the background.
+      // eslint-disable-next-line no-void
+      void this.postLoginAsyncOperations();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -763,10 +824,21 @@ class AuthenticationService {
 
       this.dispatchOauthReset();
     } catch (error) {
-      await this.newWalletAndKeychain(`${Date.now()}`, {
-        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-      });
+      // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
+
+      // Disable automatic vault backups during OAuth error recovery
+      EngineClass.disableAutomaticVaultBackup = true;
+
+      try {
+        await this.newWalletAndKeychain(`${Date.now()}`, {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
+      } finally {
+        // ALWAYS re-enable automatic backups, even if error occurs
+        EngineClass.disableAutomaticVaultBackup = false;
+      }
+
       SeedlessOnboardingController.clearState();
       throw error;
     }
@@ -812,9 +884,8 @@ class AuthenticationService {
             const mnemonicToRestore = encodedSrp;
 
             // import the new mnemonic to the current vault
-            const keyringMetadata = await this.importSeedlessMnemonicToVault(
-              mnemonicToRestore,
-            );
+            const keyringMetadata =
+              await this.importSeedlessMnemonicToVault(mnemonicToRestore);
 
             // discover multichain accounts from imported srp
             if (isMultichainAccountsState2Enabled()) {
@@ -997,9 +1068,8 @@ class AuthenticationService {
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
         });
-        allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
-          password,
-        );
+        allSRPs =
+          await SeedlessOnboardingController.fetchAllSecretData(password);
         fetchSrpsSuccess = true;
       } catch (error) {
         const errorMessage =

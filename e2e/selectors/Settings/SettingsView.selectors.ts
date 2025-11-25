@@ -12,7 +12,6 @@ export const SettingsViewSelectorsIDs = {
   SECURITY: 'security-settings',
   ADVANCED: 'advanced-settings',
   CONTACTS: 'contacts-settings',
-  NETWORKS: 'networks-settings',
   ON_RAMP: 'on-ramp-settings',
   EXPERIMENTAL: 'experimental-settings',
   ABOUT_METAMASK: 'about-metamask-settings',

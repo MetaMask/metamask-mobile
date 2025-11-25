@@ -1,4 +1,4 @@
-import type { RestrictedMessenger } from '@metamask/base-controller';
+import type { Messenger } from '@metamask/messenger';
 import { getVersion } from 'react-native-device-info';
 import type {
   LoginResponseDto,
@@ -48,6 +48,16 @@ export class AuthorizationFailedError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'AuthorizationFailedError';
+  }
+}
+
+/**
+ * Custom error for season not found
+ */
+export class SeasonNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SeasonNotFoundError';
   }
 }
 
@@ -189,12 +199,10 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction;
 
-export type RewardsDataServiceMessenger = RestrictedMessenger<
+export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
   RewardsDataServiceActions,
-  never,
-  never['type'],
-  never['type']
+  never
 >;
 
 /**
@@ -644,6 +652,12 @@ export class RewardsDataService {
       if (errorData?.message?.includes('Rewards authorization failed')) {
         throw new AuthorizationFailedError(
           'Rewards authorization failed. Please login and try again.',
+        );
+      }
+
+      if (errorData?.message?.includes('Season not found')) {
+        throw new SeasonNotFoundError(
+          'Season not found. Please try again with a different season.',
         );
       }
 

@@ -2,7 +2,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
 
 // External dependencies.
-import { useMetrics } from '../../../hooks/useMetrics';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -13,13 +12,12 @@ import {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useResetNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import ModalContent from '../Modal';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+
 const ResetNotificationsModal = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
   const { resetNotifications, loading } = useResetNotifications();
@@ -42,11 +40,6 @@ const ResetNotificationsModal = () => {
   const handleCta = async () => {
     await resetNotifications().then(() => {
       showResultToast();
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.NOTIFICATION_STORAGE_KEY_DELETED)
-          .addProperties({ settings_type: 'delete_notifications_storage_key' })
-          .build(),
-      );
     });
   };
 

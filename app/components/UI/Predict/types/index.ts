@@ -93,7 +93,8 @@ export type PredictMarket = {
   image: string;
   status: 'open' | 'closed' | 'resolved';
   recurrence: Recurrence;
-  categories: PredictCategory[];
+  category: PredictCategory;
+  tags: string[];
   outcomes: PredictOutcome[];
   liquidity: number;
   volume: number;
@@ -210,6 +211,37 @@ export interface GetPriceHistoryParams {
   interval?: PredictPriceHistoryInterval;
 }
 
+/**
+ * Parameters for fetching prices from CLOB /prices endpoint
+ */
+export interface GetPriceParams {
+  providerId: string;
+  queries: PriceQuery[];
+}
+
+export interface PriceQuery {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+}
+
+export interface GetPriceResponse {
+  providerId: string;
+  results: PriceResult[];
+}
+
+export interface PriceResult {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  entry: PriceEntry;
+}
+
+export interface PriceEntry {
+  buy: number;
+  sell: number;
+}
+
 export enum PredictPositionStatus {
   OPEN = 'open',
   REDEEMABLE = 'redeemable',
@@ -240,6 +272,12 @@ export type PredictPosition = {
   avgPrice: number;
   endDate: string;
   negRisk?: boolean;
+  optimistic?: boolean;
+};
+
+export type PredictBalance = {
+  balance: number;
+  validUntil: number;
 };
 
 export interface ClaimParams {
@@ -288,4 +326,8 @@ export type PredictWithdraw = {
   predictAddress: Hex;
   transactionId: string;
   amount: number;
+};
+
+export type PredictAccountMeta = {
+  isOnboarded: boolean;
 };

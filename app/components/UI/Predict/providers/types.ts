@@ -1,6 +1,8 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import {
   GetPriceHistoryParams,
+  GetPriceParams,
+  GetPriceResponse,
   PredictActivity,
   PredictCategory,
   PredictMarket,
@@ -42,11 +44,14 @@ export interface PlaceOrderParams {
     marketId?: string;
     marketTitle?: string;
     marketCategory?: string;
+    marketTags?: string[];
     entryPoint?: string;
     transactionType?: string;
     sharePrice?: number;
     liquidity?: number;
     volume?: number;
+    marketType?: string;
+    outcome?: string;
   };
 }
 
@@ -57,7 +62,9 @@ export interface PreviewOrderParams {
   outcomeTokenId: string;
   side: Side;
   size: number;
-  signer?: Signer;
+  // For sell orders, we can store the position ID
+  // so we can perform optimistic updates
+  positionId?: string;
 }
 
 // Fees in US dollars
@@ -65,6 +72,11 @@ export interface PredictFees {
   metamaskFee: number;
   providerFee: number;
   totalFee: number;
+}
+
+export interface GeoBlockResponse {
+  isEligible: boolean;
+  country?: string;
 }
 
 /**
@@ -96,6 +108,9 @@ export interface OrderPreview {
   negRisk: boolean;
   fees?: PredictFees;
   rateLimited?: boolean;
+  // For sell orders, we can store the position ID
+  // so we can perform optimistic updates
+  positionId?: string;
 }
 
 export type OrderResult = Result<{
@@ -123,12 +138,13 @@ export interface ClaimOrderResponse {
 }
 
 export interface GetPositionsParams {
-  address?: string;
   providerId?: string;
-  limit?: number;
-  offset?: number;
+  address?: string;
   claimable?: boolean;
   marketId?: string;
+  outcomeId?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface PrepareDepositParams {
@@ -192,12 +208,19 @@ export interface SignWithdrawResponse {
 }
 
 export interface PredictProvider {
+  readonly providerId: string;
+  readonly name: string;
+  readonly chainId: number;
+
   // Market data
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;
+  getPrices(
+    params: Omit<GetPriceParams, 'providerId'>,
+  ): Promise<GetPriceResponse>;
 
   // User information
   getPositions(
@@ -209,16 +232,19 @@ export interface PredictProvider {
   }): Promise<import('../types').UnrealizedPnL>;
 
   // Order management
-  previewOrder(params: PreviewOrderParams): Promise<OrderPreview>;
+  previewOrder(
+    params: Omit<PreviewOrderParams, 'providerId'> & { signer: Signer },
+  ): Promise<OrderPreview>;
   placeOrder(
-    params: PlaceOrderParams & { signer: Signer },
+    params: Omit<PlaceOrderParams, 'providerId'> & { signer: Signer },
   ): Promise<OrderResult>;
 
   // Claim management
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
+  confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 
   // Eligibility (Geo-Blocking)
-  isEligible(): Promise<boolean>;
+  isEligible(): Promise<GeoBlockResponse>;
 
   // Predict wallet management
   prepareDeposit(

@@ -1,29 +1,26 @@
 'use strict';
 /* eslint-disable no-console */
-import { Mockttp } from 'mockttp';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Ganache from '../../../app/util/test/ganache';
+import { AnvilManager } from '../../seeder/anvil-manager';
 import {
   loadFixture,
-  stopFixtureServer,
-  startFixtureServer,
+  createMockAPIServer,
 } from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers.js';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
 import {
   getFixturesServerPort,
-  getMockServerPort,
+  AnvilPort,
 } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../framework/Assertions';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import QuoteView from '../../pages/swaps/QuoteView';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { Assertions as FrameworkAssertions } from '../../framework';
 import { testSpecificMock as swapTestSpecificMock } from '../swaps/helpers/swap-mocks';
-import { localNodeOptions } from '../swaps/helpers/constants';
+import MockServerE2E from '../../api-mocking/MockServerE2E';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
@@ -35,42 +32,47 @@ const SWAP_DEEPLINK_FULL = `${SWAP_DEEPLINK_BASE}?from=eip155:1/erc20:0xA0b86991
 describe(
   SmokeTrade('Swap Deep Link Tests - Unified Bridge Experience'),
   (): void => {
-    let mockServer: Mockttp;
-    let localNode: Ganache;
+    let localNode: AnvilManager;
+    let mockServerInstance: MockServerE2E;
 
     beforeAll(async (): Promise<void> => {
-      localNode = new Ganache();
-      await localNode.start(localNodeOptions);
+      localNode = new AnvilManager();
+      localNode.setStartOptions({ chainId: 1 });
+      localNode.setServerPort(AnvilPort());
+      await localNode.start();
 
-      const mockServerPort = getMockServerPort();
-      // Added to pass linting - this pattern is not recommended. Check other swaps test for new patter
-      mockServer = await startMockServer(
-        {},
-        mockServerPort,
-        swapTestSpecificMock,
-      );
+      mockServerInstance = (await createMockAPIServer(swapTestSpecificMock))
+        .mockServerInstance;
 
       await TestHelpers.reverseServerPort();
       const fixture = new FixtureBuilder()
-        .withGanacheNetwork('0x1')
+        .withNetworkController({
+          providerConfig: {
+            chainId: '0x1',
+            rpcUrl: `http://localhost:${AnvilPort()}`,
+            type: 'custom',
+            nickname: 'Localhost',
+            ticker: 'ETH',
+          },
+        })
         .withMetaMetricsOptIn()
         .build();
-      await startFixtureServer(fixtureServer);
+      await fixtureServer.start();
       await loadFixture(fixtureServer, { fixture });
       await TestHelpers.launchApp({
         permissions: { notifications: 'YES' },
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
-          mockServerPort: `${mockServerPort}`,
+          mockServerPort: `${mockServerInstance.getServerPort()}`,
         },
       });
       await loginToApp();
     });
 
     afterAll(async (): Promise<void> => {
-      await stopFixtureServer(fixtureServer);
-      if (mockServer) await stopMockServer(mockServer);
-      if (localNode) await localNode.quit();
+      await fixtureServer.stop();
+      if (mockServerInstance?.isStarted()) await mockServerInstance.stop();
+      if (localNode) await localNode.stop();
     });
 
     beforeEach(async (): Promise<void> => {

@@ -123,7 +123,7 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
         },
       },
     },
-  } as unknown as RootState);
+  }) as unknown as RootState;
 
 describe('multisrp selectors', () => {
   describe('selectHdKeyringIndexByIdOrDefault', () => {

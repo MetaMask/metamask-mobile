@@ -22,54 +22,19 @@ export const createStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: theme.colors.background.default,
-      paddingTop: 12,
     },
     button: {
       width: '100%',
     },
-    arrowContainer: {
-      position: 'relative',
-      alignItems: 'center',
-      height: 1,
-      backgroundColor: theme.colors.border.muted,
-    },
-    arrowCircle: {
-      position: 'absolute',
-      top: -22,
-      backgroundColor: theme.colors.background.alternative,
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    arrow: {
-      fontSize: 20,
-      color: theme.colors.text.default,
-      lineHeight: 20,
-      height: 20,
-      includeFontPadding: false,
-      textAlignVertical: 'center',
-      paddingTop: 1,
-    },
     quoteContainer: {
-      paddingHorizontal: 24,
-    },
-    keypadContainer: {
       flex: 1,
       justifyContent: 'flex-end',
-      paddingBottom: 8,
-    },
-    keypad: {
-      paddingHorizontal: 24,
     },
     destinationAccountSelectorContainer: {
       paddingBottom: 12,
     },
     dynamicContent: {
       flex: 1,
-      paddingBottom: 12,
       justifyContent: 'flex-start',
     },
     keypadContainerWithDestinationPicker: {
@@ -86,7 +51,7 @@ export const createStyles = (params: { theme: Theme }) => {
       textAlign: 'center',
     },
     destTokenArea: {
-      marginTop: 16,
+      // marginTop: 16,
     },
   });
 };

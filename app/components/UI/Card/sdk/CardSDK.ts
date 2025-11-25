@@ -5,24 +5,10 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { getDecimalChainId } from '../../../../util/networks';
 import { LINEA_DEFAULT_RPC_URL } from '../../../../constants/urls';
-import { BALANCE_SCANNER_ABI } from '../constants';
+import { BALANCE_SCANNER_ABI, SUPPORTED_ASSET_NETWORKS } from '../constants';
 import Logger from '../../../../util/Logger';
 import {
-  CardAuthorizeResponse,
-  CardDetailsResponse,
-  CardError,
-  CardErrorType,
-  CardExchangeTokenRawResponse,
-  CardExchangeTokenResponse,
-  CardExternalWalletDetail,
-  CardExternalWalletDetailsResponse,
-  CardLocation,
-  CardLoginInitiateResponse,
-  CardLoginResponse,
-  CardToken,
   CardType,
-  CardWalletExternalPriorityResponse,
-  CardWalletExternalResponse,
   EmailVerificationSendRequest,
   EmailVerificationSendResponse,
   EmailVerificationVerifyRequest,
@@ -42,12 +28,33 @@ import {
   LinkUserToConsentResponse,
   UserResponse,
   StartUserVerificationRequest,
+  CardAuthorizeResponse,
+  CardDetailsResponse,
+  CardError,
+  CardErrorType,
+  CardExchangeTokenRawResponse,
+  CardExchangeTokenResponse,
+  CardExternalWalletDetail,
+  CardExternalWalletDetailsResponse,
+  CardLocation,
+  CardLoginInitiateResponse,
+  CardLoginResponse,
+  CardToken,
+  CardWalletExternalPriorityResponse,
+  CardWalletExternalResponse,
+  CardNetwork,
+  DelegationSettingsResponse,
+  DelegationSettingsNetwork,
+  GetOnboardingConsentResponse,
 } from '../types';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import { CaipChainId } from '@metamask/utils';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { SolScope } from '@metamask/keyring-api';
+import { isZeroValue } from '../../../../util/number';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -77,7 +84,7 @@ export class CardSDK {
     this.enableLogs = enableLogs;
     this.cardBaanxApiBaseUrl = this.getBaanxApiBaseUrl();
     this.cardBaanxApiKey = process.env.MM_CARD_BAANX_API_CLIENT_KEY;
-    this.lineaChainId = `eip155:${getDecimalChainId(LINEA_CHAIN_ID)}`;
+    this.lineaChainId = `eip155:${getDecimalChainId(CHAIN_IDS.LINEA_MAINNET)}`;
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
@@ -118,12 +125,16 @@ export class CardSDK {
     };
   }
 
-  private get ethersProvider() {
+  private getEthersProvider() {
     // Default RPC URL for LINEA mainnet
-    return new ethers.providers.JsonRpcProvider(LINEA_DEFAULT_RPC_URL);
+    const provider = new ethers.providers.JsonRpcProvider(
+      LINEA_DEFAULT_RPC_URL,
+    );
+
+    return provider;
   }
 
-  private get balanceScannerInstance() {
+  private getBalanceScannerInstance() {
     const balanceScannerAddress =
       this.cardFeatureFlag.chains?.[this.lineaChainId]?.balanceScannerAddress;
 
@@ -133,10 +144,12 @@ export class CardSDK {
       );
     }
 
+    const ethersProvider = this.getEthersProvider();
+
     return new ethers.Contract(
       balanceScannerAddress,
       BALANCE_SCANNER_ABI,
-      this.ethersProvider,
+      ethersProvider,
     );
   }
 
@@ -309,7 +322,12 @@ export class CardSDK {
 
     const supportedTokensAddresses = this.getSupportedTokensByChainId(
       this.lineaChainId,
-    ).map((token) => token.address);
+    )
+      .map((token) => token.address)
+      // Ensure all addresses are valid Ethereum addresses
+      .filter(
+        (addr): addr is string => addr != null && ethers.utils.isAddress(addr),
+      );
 
     if (supportedTokensAddresses.length === 0) {
       return [];
@@ -323,8 +341,9 @@ export class CardSDK {
       foxConnectUsAddress,
     ]);
 
+    const balanceScannerInstance = this.getBalanceScannerInstance();
     const spendersAllowancesForTokens: [boolean, string][][] =
-      await this.balanceScannerInstance.spendersAllowancesForTokens(
+      await balanceScannerInstance.spendersAllowancesForTokens(
         address,
         supportedTokensAddresses,
         spenders,
@@ -568,6 +587,13 @@ export class CardSDK {
         // If we can't parse response, continue without it
       }
 
+      if (responseBody?.message?.includes('Your account has been disabled')) {
+        throw new CardError(
+          CardErrorType.ACCOUNT_DISABLED,
+          responseBody?.message,
+        );
+      }
+
       // Handle specific HTTP status codes
       if (
         response.status === 401 ||
@@ -649,8 +675,6 @@ export class CardSDK {
       );
       throw error;
     }
-
-    return;
   };
 
   authorize = async (body: {
@@ -792,6 +816,45 @@ export class CardSDK {
     } as CardExchangeTokenResponse;
   };
 
+  getUserDetails = async (): Promise<UserResponse> => {
+    const response = await this.makeRequest(
+      '/v1/user',
+      { method: 'GET' },
+      true,
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.json();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      this.logDebugInfo(
+        'getUserDetails::error',
+        `Status: ${response.status}, Message: ${JSON.stringify(responseBody, null, 2)}`,
+      );
+
+      if (response.status === 401 || response.status === 403) {
+        throw new CardError(
+          CardErrorType.INVALID_CREDENTIALS,
+          responseBody?.message ||
+            'Invalid credentials. Please try logging in again.',
+        );
+      }
+
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        responseBody?.message ||
+          'Failed to get user details. Please try again.',
+      );
+    }
+
+    const data = await response.json();
+    return data as UserResponse;
+  };
+
   getCardDetails = async (): Promise<CardDetailsResponse> => {
     const response = await this.makeRequest(
       '/v1/card/status',
@@ -825,86 +888,254 @@ export class CardSDK {
     return (await response.json()) as CardDetailsResponse;
   };
 
-  getCardExternalWalletDetails =
-    async (): Promise<CardExternalWalletDetailsResponse> => {
-      const promises = [
-        this.makeRequest('/v1/wallet/external', { method: 'GET' }, true),
-        this.makeRequest(
-          '/v1/wallet/external/priority',
-          { method: 'GET' },
-          true,
-        ),
-      ];
+  getCardExternalWalletDetails = async (
+    delegationSettings: DelegationSettingsNetwork[],
+  ): Promise<CardExternalWalletDetailsResponse> => {
+    const promises = [
+      this.makeRequest('/v1/wallet/external', { method: 'GET' }, true),
+      this.makeRequest('/v1/wallet/external/priority', { method: 'GET' }, true),
+    ];
 
-      const responses = await Promise.all(promises);
+    const responses = await Promise.all(promises);
 
-      if (!responses[0].ok || !responses[1].ok) {
-        try {
-          const errorResponse0 = await responses[0].json();
-          const errorResponse1 = await responses[1].json();
-          Logger.log(
-            errorResponse0,
-            'Failed to get card external wallet details. Please try again.',
-          );
-          Logger.log(
-            errorResponse1,
-            'Failed to get card priority wallet details. Please try again.',
-          );
-        } catch (error) {
-          // If we can't parse response, continue without it
-        }
-
-        throw new CardError(
-          CardErrorType.SERVER_ERROR,
+    if (!responses[0].ok || !responses[1].ok) {
+      try {
+        const errorResponse0 = await responses[0].json();
+        const errorResponse1 = await responses[1].json();
+        Logger.log(
+          errorResponse0,
           'Failed to get card external wallet details. Please try again.',
+        );
+        Logger.log(
+          errorResponse1,
+          'Failed to get card priority wallet details. Please try again.',
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Failed to get parse external wallet details.',
         );
       }
 
-      const externalWalletDetails =
-        (await responses[0].json()) as CardWalletExternalResponse[];
-      const priorityWalletDetails =
-        (await responses[1].json()) as CardWalletExternalPriorityResponse[];
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to get card external wallet details. Please try again.',
+      );
+    }
 
-      if (
-        externalWalletDetails.length === 0 ||
-        priorityWalletDetails.length === 0
-      ) {
-        return [];
-      }
+    const externalWalletDetails =
+      (await responses[0].json()) as CardWalletExternalResponse[];
+    const priorityWalletDetails =
+      (await responses[1].json()) as CardWalletExternalPriorityResponse[];
 
-      const combinedDetails = externalWalletDetails.map(
-        (wallet: CardWalletExternalResponse) => {
-          const priorityWallet = priorityWalletDetails.find(
-            (p: CardWalletExternalPriorityResponse) =>
-              p?.currency === wallet?.currency &&
-              p?.network?.toLowerCase() === wallet?.network?.toLowerCase(),
+    if (
+      externalWalletDetails.length === 0 ||
+      priorityWalletDetails.length === 0
+    ) {
+      return [];
+    }
+
+    const combinedDetails = externalWalletDetails
+      .map((wallet: CardWalletExternalResponse) => {
+        const networkLower = wallet.network?.toLowerCase();
+        if (
+          !SUPPORTED_ASSET_NETWORKS.includes(networkLower) ||
+          isNaN(parseInt(wallet.allowance)) ||
+          isZeroValue(parseInt(wallet.allowance))
+        ) {
+          return null;
+        }
+
+        const priorityWallet = priorityWalletDetails.find(
+          (p: CardWalletExternalPriorityResponse) =>
+            p?.address?.toLowerCase() === wallet?.address?.toLowerCase() &&
+            p?.currency === wallet?.currency &&
+            p?.network?.toLowerCase() === wallet?.network?.toLowerCase(),
+        );
+
+        // Debug logging to identify matching issues
+        if (!priorityWallet) {
+          Logger.log(
+            `CardSDK: No priority wallet found for address: ${wallet.address}, currency: ${wallet.currency}, network: ${wallet.network}`,
           );
-          const supportedTokens = this.getSupportedTokensByChainId(
-            this.mapAPINetworkToCaipChainId(wallet.network),
-          );
-          const tokenDetails = this.mapSupportedTokenToCardToken(
-            supportedTokens.find(
-              (token) =>
-                token.symbol?.toLowerCase() === wallet.currency?.toLowerCase(),
-            ) ?? supportedTokens[0],
+          Logger.log('Available priority wallets:', priorityWalletDetails);
+        }
+
+        const tokenDetails =
+          this.mapCardExternalWalletDetailsToDelegationSettings(
+            wallet,
+            delegationSettings,
           );
 
-          return {
-            id: priorityWallet?.id ?? 0,
-            walletAddress: wallet.address,
-            currency: wallet.currency,
-            balance: wallet.balance,
-            allowance: wallet.allowance,
-            priority: priorityWallet?.priority ?? 0,
-            chainId: this.mapAPINetworkToAssetChainId(wallet.network),
-            tokenDetails,
-          } as CardExternalWalletDetail;
-        },
+        // Determine caipChainId based on network type
+        // For Solana, use the proper Solana CAIP chain ID
+        // For EVM chains, convert the decimal chainId to CAIP format
+        const caipChainId = (() => {
+          if (networkLower === 'solana') {
+            return SolScope.Mainnet;
+          }
+
+          // For EVM chains, ensure we have valid tokenDetails before formatting
+          if (!tokenDetails?.decimalChainId) {
+            Logger.log(
+              `Missing decimalChainId for network ${wallet.network}, using network fallback`,
+            );
+            return this.mapAPINetworkToCaipChainId(wallet.network);
+          }
+
+          return formatChainIdToCaip(tokenDetails.decimalChainId);
+        })();
+
+        return {
+          id: priorityWallet?.id ?? 0,
+          walletAddress: wallet.address,
+          currency: wallet.currency,
+          balance: wallet.balance,
+          allowance: wallet.allowance,
+          priority: priorityWallet?.priority ?? 0,
+          caipChainId,
+          tokenDetails: {
+            address: tokenDetails?.address ?? '',
+            decimals: tokenDetails?.decimals ?? 0,
+            symbol: tokenDetails?.symbol ?? '',
+            name: tokenDetails?.name ?? '',
+          },
+          network: wallet.network,
+          totalAllowance: null, // Will be populated later for priority token only
+          delegationContractAddress:
+            tokenDetails?.delegationContractAddress ?? '',
+          stagingTokenAddress: tokenDetails?.stagingTokenAddress ?? '',
+        } as CardExternalWalletDetail;
+      })
+      .filter((detail): detail is CardExternalWalletDetail => detail !== null);
+
+    // Sort - lower number = higher priority
+    return combinedDetails.sort((a, b) => a.priority - b.priority);
+  };
+
+  mapCardExternalWalletDetailsToDelegationSettings = (
+    cardWalletExternal: CardWalletExternalResponse,
+    delegationSettings: DelegationSettingsNetwork[],
+  ) => {
+    const { network, currency } = cardWalletExternal;
+    const delegationSettingNetwork = delegationSettings.find(
+      (delegationSetting) =>
+        delegationSetting.network?.toLowerCase() === network?.toLowerCase(),
+    );
+
+    if (!delegationSettingNetwork) {
+      return null;
+    }
+
+    const delegationSettingToken =
+      delegationSettingNetwork.tokens[currency?.toLowerCase() ?? ''];
+
+    if (!delegationSettingToken) {
+      return null;
+    }
+
+    const supportedTokens = this.getSupportedTokensByChainId(
+      this.mapAPINetworkToCaipChainId(cardWalletExternal.network),
+    );
+    const tokenDetails = this.mapSupportedTokenToCardToken(
+      supportedTokens.find(
+        (token) =>
+          token.symbol?.toLowerCase() ===
+          delegationSettingToken.symbol?.toLowerCase(),
+      ) ?? supportedTokens[0],
+    );
+
+    if (delegationSettingNetwork.environment === 'staging') {
+      return {
+        symbol: tokenDetails.symbol,
+        address: tokenDetails.address,
+        decimals: delegationSettingToken.decimals,
+        decimalChainId: delegationSettingNetwork.chainId,
+        name: tokenDetails.name,
+        delegationContractAddress: delegationSettingNetwork.delegationContract,
+        // This is used for getting the allowance and delegation on the Staging environment
+        stagingTokenAddress: delegationSettingToken.address,
+      };
+    }
+
+    return {
+      symbol: tokenDetails.symbol,
+      address: delegationSettingToken.address,
+      decimals: delegationSettingToken.decimals,
+      decimalChainId: delegationSettingNetwork.chainId,
+      name: tokenDetails.name,
+      delegationContractAddress: delegationSettingNetwork.delegationContract,
+    };
+  };
+
+  /**
+   * Get the most recent user-initiated allowance amount from approval events for a specific token.
+   * This returns the last approval value set by the user, which represents their intended spending limit.
+   * Note: ERC20 spending does not create approval events, so all approval events are user-initiated.
+   *
+   * @param walletAddress - The user's wallet address
+   * @param tokenAddress - The ERC20 token contract address
+   * @param delegationContractAddress - The delegation/spender contract address
+   * @param currentAllowance - The current remaining allowance (from API) - unused but kept for API compatibility
+   * @returns The most recent user-initiated approval value as a string (in wei), or null if no logs found
+   */
+  getLatestAllowanceFromLogs = async (
+    walletAddress: string,
+    tokenAddress: string,
+    delegationContractAddress: string,
+  ): Promise<string | null> => {
+    try {
+      const approvalInterface = new ethers.utils.Interface([
+        'event Approval(address indexed owner, address indexed spender, uint256 value)',
+      ]);
+
+      const approvalTopic = approvalInterface.getEventTopic('Approval');
+      const ownerTopic = ethers.utils.hexZeroPad(
+        walletAddress.toLowerCase(),
+        32,
+      );
+      const spenderTopic = ethers.utils.hexZeroPad(
+        delegationContractAddress.toLowerCase(),
+        32,
       );
 
-      // Sort - lower number = higher priority
-      return combinedDetails.sort((a, b) => a.priority - b.priority);
-    };
+      const spendersDeployedBlock = 2715910; // Block where the delegation contracts were deployed
+      const ethersProvider = this.getEthersProvider();
+
+      // Get all approval logs for this specific wallet + token + spender combination
+      const logs = await ethersProvider.getLogs({
+        address: tokenAddress,
+        fromBlock: spendersDeployedBlock,
+        toBlock: 'latest',
+        topics: [approvalTopic, ownerTopic, spenderTopic],
+      });
+
+      if (logs.length === 0) {
+        return null;
+      }
+
+      // Sort chronologically (newest first)
+      logs.sort((a, b) =>
+        b.blockNumber === a.blockNumber
+          ? b.logIndex - a.logIndex
+          : b.blockNumber - a.blockNumber,
+      );
+
+      // Get the most recent approval event
+      // This represents the last limit the user set, regardless of how much has been spent
+      const latestLog = logs[0];
+      const parsedLog = approvalInterface.parseLog(latestLog);
+      const value = parsedLog.args.value as ethers.BigNumber;
+
+      return value.toString();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        `getLatestAllowanceFromLogs: Failed to get latest allowance for token ${tokenAddress}`,
+      );
+      return null;
+    }
+  };
 
   provisionCard = async (): Promise<{ success: boolean }> => {
     const response = await this.makeRequest(
@@ -923,7 +1154,10 @@ export class CardSDK {
         const errorResponse = await response.json();
         Logger.log(errorResponse, 'Failed to provision card.');
       } catch (error) {
-        // If we can't parse response, continue without it
+        Logger.error(
+          error as Error,
+          'Failed to parse provision card response.',
+        );
       }
 
       throw new CardError(
@@ -935,23 +1169,299 @@ export class CardSDK {
     return (await response.json()) as { success: boolean };
   };
 
-  private mapAPINetworkToCaipChainId(network: 'linea' | 'solana'): CaipChainId {
-    switch (network) {
-      case 'solana':
-        return SOLANA_MAINNET.chainId;
-      default:
-        return this.lineaChainId;
+  updateWalletPriority = async (
+    wallets: { id: number; priority: number }[],
+  ): Promise<void> => {
+    if (!this.isCardEnabled) {
+      throw new Error('Card feature is not enabled for this chain');
     }
-  }
 
-  private mapAPINetworkToAssetChainId(network: 'linea' | 'solana'): string {
-    switch (network) {
-      case 'solana':
-        return SOLANA_MAINNET.chainId;
-      default:
-        return LINEA_CHAIN_ID; // Asset only supports HEX chainId on EVM assets.
+    this.logDebugInfo('updateWalletPriority', { wallets });
+
+    const requestBody = { wallets };
+
+    const response = await this.makeRequest(
+      '/v1/wallet/external/priority',
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      },
+      true, // authenticated
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+        Logger.log('CardSDK: Priority update error response:', responseBody);
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to update wallet priority. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to update wallet priority. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
     }
-  }
+
+    this.logDebugInfo(
+      'updateWalletPriority',
+      'Successfully updated wallet priority',
+    );
+  };
+
+  /**
+   * Generate a delegation token for spending limit increase
+   * This is Step 1 of the delegation process
+   */
+  generateDelegationToken = async (
+    network: CardNetwork,
+    address: string,
+  ): Promise<{
+    token: string;
+    expiresAt: string;
+    nonce: string;
+  }> => {
+    // The endpoint only accepts linea or solana.
+    // linea-us can be mapped to linea.
+    const mapNetworkPropToEndpointParam =
+      network === 'solana' ? 'solana' : 'linea';
+    const response = await this.makeRequest(
+      `/v1/delegation/token?network=${mapNetworkPropToEndpointParam}&address=${address}`,
+      { method: 'GET' },
+      true, // authenticated
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to generate delegation token. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to generate delegation token. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const tokenData = await response.json();
+    this.logDebugInfo('generateDelegationToken', tokenData);
+
+    return {
+      token: tokenData.token,
+      expiresAt: tokenData.expiresAt,
+      nonce: tokenData.nonce,
+    };
+  };
+
+  /**
+   * Complete EVM wallet delegation for spending limit increase
+   * This is Step 3 of the delegation process (after user completes blockchain transaction)
+   */
+  completeEVMDelegation = async (params: {
+    address: string;
+    network: CardNetwork;
+    currency: string;
+    amount: string;
+    txHash: string;
+    sigHash: string;
+    sigMessage: string;
+    token: string;
+  }): Promise<{ success: boolean }> => {
+    // Validate address format (must be valid Ethereum address)
+    const addressRegex = /^0x[a-fA-F0-9]{40}$/;
+    if (!addressRegex.test(params.address)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid Ethereum address format',
+      );
+    }
+
+    // Validate signature format (must be valid EVM signature)
+    const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
+    if (!sigHashRegex.test(params.sigHash)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid signature format',
+      );
+    }
+
+    // Validate network
+    if (!['linea', 'solana'].includes(params.network)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid network. Must be "linea" or "solana"',
+      );
+    }
+
+    const response = await this.makeRequest(
+      '/v1/delegation/evm/post-approval',
+      {
+        method: 'POST',
+        body: JSON.stringify(params),
+      },
+      true, // authenticated
+    );
+
+    if (!response.ok) {
+      let responseBody = null;
+      try {
+        responseBody = await response.text();
+      } catch {
+        // If we can't parse response, continue without it
+      }
+
+      const error = new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to complete delegation. Please try again.',
+      );
+      Logger.log(
+        error,
+        `CardSDK: Failed to complete delegation. Status: ${response.status}`,
+        JSON.stringify(responseBody, null, 2),
+      );
+      throw error;
+    }
+
+    const result = await response.json();
+    this.logDebugInfo('completeEVMDelegation', result);
+
+    return result;
+  };
+
+  /**
+   * Get delegation settings for a specific network (optional)
+   * This fetches chain IDs, token contract addresses, and delegation contract addresses.
+   * This needs to be cached at hook level to avoid unnecessary API calls.
+   */
+  getDelegationSettings = async (
+    network?: CardNetwork,
+  ): Promise<DelegationSettingsResponse> => {
+    try {
+      const queryParams = network ? `?network=${network}` : '';
+      const response = await this.makeRequest(
+        `/v1/delegation/chain/config${queryParams}`,
+        { method: 'GET' },
+        true, // authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.text();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        const error = new CardError(
+          CardErrorType.SERVER_ERROR,
+          'Failed to get delegation settings. Please try again.',
+        );
+        Logger.log(
+          error,
+          `CardSDK: Failed to get delegation settings. Status: ${response.status}`,
+          JSON.stringify(responseBody, null, 2),
+        );
+        throw error;
+      }
+
+      const responseData = await response.json();
+      this.logDebugInfo('getDelegationSettings', {
+        source: 'api',
+        network,
+        responseData,
+      });
+
+      // Validate the response data
+      this.validateDelegationSettings(responseData);
+
+      return responseData;
+    } catch (error) {
+      Logger.log(error, 'CardSDK: Failed to get delegation settings from API');
+      throw new CardError(
+        CardErrorType.SERVER_ERROR,
+        'Failed to get delegation settings. Please try again.',
+        error instanceof Error ? error : new Error(String(error)),
+      );
+    }
+  };
+
+  encodeApproveTransaction = (spender: string, value: string): string => {
+    const approvalInterface = new ethers.utils.Interface([
+      'function approve(address spender, uint256 value)',
+    ]);
+    return approvalInterface.encodeFunctionData('approve', [spender, value]);
+  };
+
+  /**
+   * Validate delegation settings response
+   */
+  private validateDelegationSettings = (
+    responseData: DelegationSettingsResponse,
+  ): void => {
+    if (!responseData.networks || !Array.isArray(responseData.networks)) {
+      throw new CardError(
+        CardErrorType.VALIDATION_ERROR,
+        'Invalid delegation settings: networks array is missing or invalid',
+      );
+    }
+
+    const supportedNetworks = ['linea', 'linea-us', 'solana'];
+
+    for (const network of responseData.networks) {
+      if (!supportedNetworks.includes(network.network)) {
+        continue; // Skip unsupported networks
+      }
+
+      // Validate required fields
+      if (!network.chainId || !network.delegationContract) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          `Invalid delegation settings for ${network.network}: missing chainId or delegationContract`,
+        );
+      }
+
+      // Validate token addresses
+      if (!network.tokens) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          `Invalid delegation settings for ${network.network}: tokens object is missing`,
+        );
+      }
+
+      // Validate all tokens present in the configuration
+      for (const [tokenSymbol, token] of Object.entries(network.tokens)) {
+        if (
+          !token?.address ||
+          !token.symbol ||
+          typeof token.decimals !== 'number'
+        ) {
+          throw new CardError(
+            CardErrorType.VALIDATION_ERROR,
+            `Invalid delegation settings for ${network.network}: ${tokenSymbol} token is missing or invalid`,
+          );
+        }
+      }
+    }
+  };
+
   emailVerificationSend = async (
     request: EmailVerificationSendRequest,
   ): Promise<EmailVerificationSendResponse> => {
@@ -1540,17 +2050,78 @@ export class CardSDK {
     }
   };
 
+  getConsentSetByOnboardingId = async (
+    onboardingId: string,
+  ): Promise<GetOnboardingConsentResponse | null> => {
+    try {
+      const response = await this.makeRequest(
+        `/v2/consent/onboarding/${onboardingId}`,
+        {
+          method: 'GET',
+        },
+        false, // not authenticated
+      );
+
+      if (!response.ok) {
+        let responseBody = null;
+        try {
+          responseBody = await response.json();
+        } catch {
+          // If we can't parse response, continue without it
+        }
+
+        if (response.status === 404) {
+          return null;
+        }
+
+        if (response.status >= 400 && response.status < 500) {
+          throw new CardError(
+            CardErrorType.CONFLICT_ERROR,
+            responseBody?.message ||
+              'Failed to get consent set by onboarding id',
+          );
+        }
+
+        if (response.status >= 500) {
+          throw new CardError(
+            CardErrorType.SERVER_ERROR,
+            responseBody?.message ||
+              'Server error while getting consent set by onboarding id',
+          );
+        }
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('getConsentSetByOnboardingId response', data);
+      return data;
+    } catch (error) {
+      this.logDebugInfo('getConsentSetByOnboardingId error', error);
+      if (error instanceof CardError) {
+        throw error;
+      }
+      throw new CardError(
+        CardErrorType.UNKNOWN_ERROR,
+        'Failed to get consent set by onboarding id',
+        error as Error,
+      );
+    }
+  };
+
   createOnboardingConsent = async (
-    request: CreateOnboardingConsentRequest,
+    request: Omit<CreateOnboardingConsentRequest, 'tenantId'>,
   ): Promise<CreateOnboardingConsentResponse> => {
     this.logDebugInfo('createOnboardingConsent', { request });
+    const requestBody = {
+      ...request,
+      tenantId: this.cardBaanxApiKey || 'tenant_baanx_global',
+    } as CreateOnboardingConsentRequest;
 
     try {
       const response = await this.makeRequest(
         '/v2/consent/onboarding',
         {
           method: 'POST',
-          body: JSON.stringify(request),
+          body: JSON.stringify(requestBody),
           headers: {
             'Content-Type': 'application/json',
             'x-secret-key': this.cardBaanxApiKey || '',
@@ -1666,6 +2237,14 @@ export class CardSDK {
     }
   };
 
+  private mapAPINetworkToCaipChainId(network: CardNetwork): CaipChainId {
+    if (network === 'solana') {
+      return SOLANA_MAINNET.chainId;
+    }
+
+    return this.lineaChainId;
+  }
+
   private getFirstSupportedTokenOrNull(): CardToken | null {
     const lineaSupportedTokens = this.getSupportedTokensByChainId(
       this.lineaChainId,
@@ -1722,10 +2301,11 @@ export class CardSDK {
       ethers.utils.hexZeroPad(s.toLowerCase(), 32),
     );
     const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
+    const ethersProvider = this.getEthersProvider();
 
     const logsPerToken = await Promise.all(
       nonZeroBalanceTokensAddresses.map((tokenAddress) =>
-        this.ethersProvider
+        ethersProvider
           .getLogs({
             address: tokenAddress,
             fromBlock: spendersDeployedBlock,

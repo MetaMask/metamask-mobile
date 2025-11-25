@@ -6,11 +6,11 @@ import {
   StyleProp,
   TextInput,
   View,
-  ViewStyle,
   NativeSyntheticEvent,
   TextInputFocusEventData,
   TouchableWithoutFeedback,
   TextInputSelectionChangeEventData,
+  TextStyle,
 } from 'react-native';
 
 // External dependencies.
@@ -27,11 +27,12 @@ import {
   TEXTFIELD_STARTACCESSORY_TEST_ID,
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from '../../../component-library/components/Form/TextField/TextField.constants';
+import Device from '../../../util/device';
 
 const TextField = React.forwardRef<
   TextInput,
   TextFieldProps & {
-    inputStyle?: StyleProp<ViewStyle>;
+    inputStyle?: StyleProp<TextStyle>;
     onInputFocus?: () => void;
   }
 >(
@@ -74,7 +75,9 @@ const TextField = React.forwardRef<
           setIsFocused(false);
           onBlur?.(e);
         }
-        setInputSelection({ start: 0, end: 0 });
+        if (Device.isAndroid()) {
+          setInputSelection({ start: 0, end: 0 });
+        }
       },
       [isDisabled, setIsFocused, onBlur],
     );
@@ -85,10 +88,12 @@ const TextField = React.forwardRef<
           setIsFocused(true);
           onFocus?.(e);
 
-          setInputSelection({
-            start: value?.length ?? 0,
-            end: value?.length ?? 0,
-          });
+          if (Device.isAndroid()) {
+            setInputSelection({
+              start: value?.length ?? 0,
+              end: value?.length ?? 0,
+            });
+          }
         }
       },
       [isDisabled, setIsFocused, onFocus, value],
@@ -98,7 +103,9 @@ const TextField = React.forwardRef<
       event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
     ) => {
       // Update selection state when user manually changes cursor position
-      setInputSelection(event.nativeEvent.selection);
+      if (Device.isAndroid()) {
+        setInputSelection(event.nativeEvent.selection);
+      }
     };
 
     return (

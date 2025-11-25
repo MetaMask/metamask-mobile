@@ -43,6 +43,18 @@ jest.mock('./usePredictTrading', () => ({
   })),
 }));
 
+// Mock usePredictBalance
+jest.mock('./usePredictBalance', () => ({
+  usePredictBalance: jest.fn(() => ({
+    balance: 100,
+    hasNoBalance: false,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    loadBalance: jest.fn(),
+  })),
+}));
+
 // Mock usePredictWithdraw
 const mockWithdraw = jest.fn();
 jest.mock('./usePredictWithdraw', () => ({

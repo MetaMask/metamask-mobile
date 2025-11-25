@@ -10,25 +10,27 @@ function getFontSize(length: number) {
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { amountLength: number; hasAlert: boolean };
+  vars: { amountLength: number; hasAlert: boolean; disabled: boolean };
 }) =>
   StyleSheet.create({
     container: {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',
-      marginTop: 40,
-      marginBottom: 12,
-      minHeight: 100,
+      alignItems: 'center',
+      minHeight: 70,
       gap: 5,
     },
     input: {
       textAlign: 'center',
       fontSize: getFontSize(params.vars.amountLength),
+      lineHeight: getFontSize(params.vars.amountLength) * 1.1,
       fontWeight: '500',
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
-        : params.theme.colors.text.default,
+        : params.vars.disabled
+          ? params.theme.colors.text.muted
+          : params.theme.colors.text.default,
     },
     alertMessage: {
       textAlign: 'center',
