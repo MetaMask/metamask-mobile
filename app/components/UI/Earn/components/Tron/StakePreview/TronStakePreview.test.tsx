@@ -29,6 +29,8 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'stake.tron.trx_locked_for': 'TRX locked for',
       'stake.tron.trx_locked_for_minimum_time': 'minimum time',
       'stake.tron.fee': 'Fee',
+      'stake.tron.trx_released_in': 'TRX released in',
+      'stake.tron.trx_released_in_minimum_time': 'released in minimum time',
     };
     return map[key] ?? key;
   },
@@ -66,6 +68,17 @@ describe('TronStakePreview', () => {
 
     expect(getByText('Estimated annual reward')).toBeOnTheScreen();
     expect(getByText(/0[,.]670 TRX/)).toBeOnTheScreen();
+  });
+
+  it('shows release information without annual reward when mode is unstake', () => {
+    const { getByText, queryByText } = render(
+      <TronStakePreview stakeAmount="5" mode="unstake" />,
+    );
+
+    expect(getByText('TRX released in')).toBeOnTheScreen();
+    expect(getByText('released in minimum time')).toBeOnTheScreen();
+    expect(queryByText('Estimated annual reward')).toBeNull();
+    expect(queryByText('TRX locked for')).toBeNull();
   });
 
   it.each([

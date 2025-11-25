@@ -142,14 +142,24 @@ const TronStakePreview = ({
         twClassName="w-full bg-default pl-6 pr-6 rounded-lg"
         style={tw.style()}
       >
-        <Row
-          label={strings('stake.estimated_annual_reward')}
-          value={estimatedAnnualReward}
-        />
-        <Row
-          label={strings('stake.tron.trx_locked_for')}
-          value={strings('stake.tron.trx_locked_for_minimum_time')}
-        />
+        {mode === 'stake' && (
+          <Row
+            label={strings('stake.estimated_annual_reward')}
+            value={estimatedAnnualReward}
+          />
+        )}
+        {mode === 'stake' && (
+          <Row
+            label={strings('stake.tron.trx_locked_for')}
+            value={strings('stake.tron.trx_locked_for_minimum_time')}
+          />
+        )}
+        {mode === 'unstake' && (
+          <Row
+            label={strings('stake.tron.trx_released_in')}
+            value={strings('stake.tron.trx_released_in_minimum_time')}
+          />
+        )}
         <Row
           label={strings('stake.tron.fee')}
           value={feeItem ? `${feeItem.asset.amount} ${feeItem.asset.unit}` : ''}
