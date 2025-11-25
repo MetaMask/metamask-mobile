@@ -139,27 +139,31 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       <Box>
         {isUrl && (
           <TouchableOpacity
-            style={tw.style('flex-row items-center justify-center py-4 px-4')}
+            style={tw.style('flex-row items-center py-4')}
             onPress={() => handlePressFooterLink(searchQuery)}
             testID="trending-search-footer-url-link"
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="flex-1 text-primary"
-              numberOfLines={1}
-            >
-              {searchQuery}
-            </Text>
-            <Icon
-              name={IconName.Arrow2UpRight}
-              size={IconSize.Md}
-              twClassName="text-primary"
-            />
+            <Box twClassName="flex-1">
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-primary"
+                numberOfLines={1}
+              >
+                {searchQuery}
+              </Text>
+            </Box>
+            <Box twClassName="ml-3">
+              <Icon
+                name={IconName.Arrow2UpRight}
+                size={IconSize.Md}
+                twClassName="text-primary"
+              />
+            </Box>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity
-          style={tw.style('flex-row items-center justify-center py-4 px-4')}
+          style={tw.style('flex-row items-center py-4')}
           onPress={() =>
             handlePressFooterLink(
               `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`,
@@ -183,16 +187,18 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             </Text>
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="text-primary mr-2 shrink-0"
+              twClassName="text-primary shrink-0"
             >
               {'"'} on Google
             </Text>
           </Box>
-          <Icon
-            name={IconName.Arrow2UpRight}
-            size={IconSize.Md}
-            twClassName="text-primary"
-          />
+          <Box twClassName="ml-3">
+            <Icon
+              name={IconName.Arrow2UpRight}
+              size={IconSize.Md}
+              twClassName="text-primary"
+            />
+          </Box>
         </TouchableOpacity>
       </Box>
     );

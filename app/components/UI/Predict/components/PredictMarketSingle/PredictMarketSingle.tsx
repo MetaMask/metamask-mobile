@@ -235,10 +235,16 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
         <View style={styles.buttonContainer}>
           <Button
             variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
+            size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text style={tw.style('font-medium')} color={TextColor.Success}>
+              <Text
+                variant={
+                  isCarousel ? TextVariant.BodyXSMedium : TextVariant.BodySM
+                }
+                style={tw.style('font-medium')}
+                color={TextColor.Success}
+              >
                 {outcome.tokens[0].title}
               </Text>
             }
@@ -247,10 +253,14 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           />
           <Button
             variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
+            size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text style={tw.style('font-medium')} color={TextColor.Error}>
+              <Text
+                variant={isCarousel ? TextVariant.BodyXS : TextVariant.BodySM}
+                style={tw.style('font-medium')}
+                color={TextColor.Error}
+              >
                 {outcome.tokens[1].title}
               </Text>
             }
