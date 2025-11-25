@@ -233,13 +233,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
       }
     />
   </TouchableOpacity>
-  <View
-    style={
-      {
-        "paddingHorizontal": 16,
-      }
-    }
-  >
+  <View>
     <View
       style={
         {
@@ -1025,13 +1019,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
       }
     />
   </TouchableOpacity>
-  <View
-    style={
-      {
-        "paddingHorizontal": 16,
-      }
-    }
-  >
+  <View>
     <View
       style={
         {
