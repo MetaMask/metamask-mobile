@@ -88,9 +88,7 @@ describeForPlatforms('BridgeView', () => {
 
     // Assert amount and exact fiat conversion (9.5 * $2000 = $19,000.00)
     expect(await findByDisplayValue('9.5')).toBeOnTheScreen();
-    await waitFor(async () => {
-      expect(await findByText('$19,000.00')).toBeOnTheScreen();
-    });
+    expect(await findByText('$19,000.00')).toBeOnTheScreen();
   });
 
   it('renders enabled confirm button with tokens, amount and recommended quote', () => {

@@ -103,9 +103,9 @@ export function describeForPlatforms(
   filter?: PlatformFilter,
 ) {
   const targets = resolveTargetPlatforms(filter);
+  const originalOS = Platform.OS;
   for (const os of targets) {
     describe(`${name} [${os}]`, () => {
-      const originalOS = Platform.OS;
       beforeAll(() => {
         Platform.OS = os;
         (globalThis as Record<string, unknown>)[SCOPE_KEY] = os;
