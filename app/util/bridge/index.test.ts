@@ -1,5 +1,5 @@
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../constants/bridge';
 import { isSwapsNativeAsset } from './index';
-import { NATIVE_SWAPS_TOKEN_ADDRESS } from '@metamask/swaps-controller/dist/constants';
 
 describe('isSwapsNativeAsset', () => {
   describe('Native Token Detection', () => {
