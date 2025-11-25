@@ -71,37 +71,40 @@ export const selectMultipleAddressScanResults = createDeepEqualSelector(
     _state: RootState,
     params: { addresses: { address: string; chainId: string }[] },
   ) => params.addresses,
-  (phishingControllerState, addresses) => {
+  (
+    phishingControllerState,
+    addresses,
+  ): {
+    address: string;
+    chainId: string;
+    scanResult: AddressScanResult | undefined;
+  }[] => {
     if (!addresses || addresses.length === 0) {
       return [];
     }
 
     const addressScanCache = phishingControllerState?.addressScanCache || {};
 
-    return addresses.reduce<
-      {
-        address: string;
-        chainId: string;
-        scanResult: AddressScanResult | undefined;
-      }[]
-    >((acc, addressItem) => {
+    return addresses.map((addressItem) => {
       const { address, chainId } = addressItem;
 
       if (!address || !chainId) {
-        return acc;
+        return {
+          address: address?.toLowerCase() || '',
+          chainId: chainId || '',
+          scanResult: undefined,
+        };
       }
 
       const cacheKey = generateAddressCacheKey(chainId, address);
       const cacheEntry = addressScanCache[cacheKey];
 
-      acc.push({
+      return {
         address: address.toLowerCase(),
         chainId,
         scanResult: cacheEntry?.data,
-      });
-
-      return acc;
-    }, []);
+      };
+    });
   },
 );
 

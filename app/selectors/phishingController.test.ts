@@ -242,7 +242,7 @@ describe('PhishingController Selectors', () => {
       ]);
     });
 
-    it('skips addresses without address or chainId', () => {
+    it('returns result with undefined scanResult for addresses without address or chainId', () => {
       const state = createMockRootState({
         addressScanCache: {
           '0x1:0xabcdef1234567890abcdef1234567890abcdef12': {
@@ -269,6 +269,16 @@ describe('PhishingController Selectors', () => {
       });
 
       expect(result).toEqual([
+        {
+          address: '',
+          chainId: '0x1',
+          scanResult: undefined,
+        },
+        {
+          address: '0xabcdef1234567890abcdef1234567890abcdef12',
+          chainId: '',
+          scanResult: undefined,
+        },
         {
           address: '0xabcdef1234567890abcdef1234567890abcdef12',
           chainId: '0x1',
