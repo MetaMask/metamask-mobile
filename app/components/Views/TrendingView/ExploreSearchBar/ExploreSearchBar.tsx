@@ -19,6 +19,7 @@ import { strings } from '../../../../../locales/i18n';
 interface ExploreSearchBarButtonProps {
   type: 'button';
   onPress: () => void;
+  placeholder?: string;
 }
 
 interface ExploreSearchBarInteractiveProps {
@@ -26,6 +27,7 @@ interface ExploreSearchBarInteractiveProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onCancel: () => void;
+  placeholder?: string;
 }
 
 type ExploreSearchBarProps =
@@ -38,6 +40,8 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
 
   const isInteractiveMode = props.type === 'interactive';
   const isButtonMode = props.type === 'button';
+  const placeholder =
+    props.placeholder || strings('trending.search_placeholder');
 
   const handleCancel = () => {
     if (isInteractiveMode) {
@@ -68,14 +72,14 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       />
       {isButtonMode ? (
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('trending.search_placeholder')}
+          {placeholder}
         </Text>
       ) : (
         <>
           <TextInput
             value={props.searchQuery}
             onChangeText={props.onSearchChange}
-            placeholder={strings('trending.search_placeholder')}
+            placeholder={placeholder}
             placeholderTextColor={colors.text.alternative}
             style={tw.style('flex-1 text-base text-default py-2.5')}
             testID="explore-view-search-input"

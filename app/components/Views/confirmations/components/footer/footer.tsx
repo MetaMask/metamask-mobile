@@ -38,14 +38,13 @@ import {
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../UI/Earn/constants/musd';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
-  MUSD_CONVERSION_TRANSACTION_TYPE,
+  TransactionType.musdConversion,
 ];
 
 export const Footer = () => {
