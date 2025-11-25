@@ -298,7 +298,7 @@ const TrendingTokensFullView = () => {
           }
           style={styles.header}
         >
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
             {strings('trending.trending_tokens')}
           </Text>
         </HeaderBase>
