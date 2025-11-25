@@ -10,7 +10,6 @@
 
 import {
   takeLatest,
-  takeEvery,
   call,
   put,
   select,
@@ -134,7 +133,7 @@ function waitForInteractions(): Promise<void> {
  * Initialize the authentication system on app start
  * This determines the initial state based on stored credentials
  */
-function* initializeAuthenticationSaga() {
+export function* initializeAuthenticationSaga() {
   try {
     Logger.log('AuthSaga: Initializing authentication system');
 
@@ -644,7 +643,7 @@ function* authenticateAppTriggered(bioStateMachineId: string) {
  * Remember Me = No authentication prompt, direct unlock
  * Password must be stored with REMEMBER_ME type (no biometric protection)
  */
-function* attemptRememberMeLoginSaga() {
+export function* attemptRememberMeLoginSaga() {
   try {
     Logger.log('AuthSaga: Remember Me enabled - auto-unlocking without prompt');
 
@@ -929,7 +928,7 @@ export function* appBackgroundedSaga() {
 /**
  * App foregrounded - check if should lock
  */
-function* appForegroundedSaga() {
+export function* appForegroundedSaga() {
   try {
     Logger.log('AuthSaga: App foregrounded');
 
@@ -992,7 +991,7 @@ function* appForegroundedSaga() {
 /**
  * Background timer expired
  */
-function* backgroundTimerExpiredSaga() {
+export function* backgroundTimerExpiredSaga() {
   try {
     Logger.log('AuthSaga: Background timer expired - locking app');
 
@@ -1021,12 +1020,23 @@ function* backgroundTimerExpiredSaga() {
  * Watch for AppStateService events
  * This saga listens to AppStateService and dispatches appropriate actions
  */
-function* watchAppStateServiceSaga(): Generator {
+function* watchAppStateServiceSaga(): Generator<
+  unknown,
+  void,
+  | EventChannel<{ type: string; state?: string }>
+  | { type: string; state?: string }
+  | boolean
+> {
   let channel: EventChannel<{ type: string; state?: string }> | undefined;
 
   try {
     // Create proper event channel
-    channel = yield call(createAppStateChannel);
+    channel = (yield call(createAppStateChannel)) as
+      | EventChannel<{
+          type: string;
+          state?: string;
+        }>
+      | undefined;
 
     if (!channel) {
       Logger.error(
@@ -1037,7 +1047,7 @@ function* watchAppStateServiceSaga(): Generator {
     }
 
     while (true) {
-      const event: { type: string; state?: string } = yield take(channel);
+      const event = (yield take(channel)) as { type: string; state?: string };
 
       switch (event.type) {
         case 'background':
@@ -1053,7 +1063,7 @@ function* watchAppStateServiceSaga(): Generator {
   } catch (error) {
     Logger.error(error as Error, 'AuthSaga: Error in AppState watcher');
   } finally {
-    const isCancelled: boolean = yield cancelled();
+    const isCancelled = (yield cancelled()) as boolean;
     if (isCancelled && channel) {
       Logger.log('AuthSaga: AppState watcher cancelled');
       channel.close();
@@ -1098,7 +1108,7 @@ function createAppStateChannel(): EventChannel<{
  * Check biometric availability
  * Uses SecureKeychain directly - actual API method
  */
-function* checkBiometricAvailabilitySaga() {
+export function* checkBiometricAvailabilitySaga() {
   try {
     // Use actual SecureKeychain method
     const biometryType: string | null = yield call([
@@ -1304,7 +1314,7 @@ export function* authenticationSaga() {
       actions.initializeAuthentication.type,
       initializeAuthenticationSaga,
     );
-    yield takeEvery(
+    yield takeLatest(
       actions.requestAuthentication.type,
       requestAuthenticationSaga,
     );

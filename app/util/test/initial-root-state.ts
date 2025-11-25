@@ -17,6 +17,7 @@ import { initialState as initialSampleCounterState } from '../../features/Sample
 import { isTest } from './utils';
 import { initialState as initialRewardsState } from '../../reducers/rewards';
 import { initialState as initialNetworkConnectionBannerState } from '../../reducers/networkConnectionBanner';
+import { initialState as initialAuthenticationState } from '../../core/redux/slices/authentication';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -75,6 +76,7 @@ const initialRootState: RootState = {
   card: initialCardState,
   rewards: initialRewardsState,
   networkConnectionBanner: initialNetworkConnectionBannerState,
+  authentication: initialAuthenticationState,
 };
 
 if (isTest) {

@@ -100,7 +100,7 @@ export interface InitializationCompletePayload {
 // Initial State
 // ==========================================================================
 
-const initialState: AuthenticationSliceState = {
+export const initialState: AuthenticationSliceState = {
   currentState: AuthenticationState.INITIALIZING,
   previousState: undefined,
   context: {
