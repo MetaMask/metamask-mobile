@@ -8,7 +8,6 @@ import {
   siweSignatureConfirmationState,
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
@@ -18,6 +17,9 @@ import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBa
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
+import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
+import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
+import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useDomainMismatchAlerts');
@@ -30,6 +32,9 @@ jest.mock('./useInsufficientPayTokenBalanceAlert');
 jest.mock('./useNoPayTokenQuotesAlert');
 jest.mock('./useInsufficientPredictBalanceAlert');
 jest.mock('./useBurnAddressAlert');
+jest.mock('./useTokenTrustSignalAlerts');
+jest.mock('./useAddressTrustSignalAlerts');
+jest.mock('./useOriginTrustSignalAlerts');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -134,6 +139,31 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
+  const mockTokenTrustSignalAlerts: Alert[] = [
+    {
+      key: 'TokenTrustSignalAlert',
+      title: 'Test Token Trust Signal Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+
+  const mockOriginTrustSignalAlerts: Alert[] = [
+    {
+      key: 'OriginTrustSignalAlert',
+      title: 'Test Origin Trust Signal Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+  const mockAddressTrustSignalAlerts: Alert[] = [
+    {
+      key: 'AddressTrustSignalAlert',
+      title: 'Test Address Trust Signal Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
   beforeEach(() => {
     jest.clearAllMocks();
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
@@ -147,16 +177,13 @@ describe('useConfirmationAlerts', () => {
     (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
+    (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
+    (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
+    (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
-    const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    });
+    const { result } = renderHookWithProvider(() => useConfirmationAlerts());
     expect(result.current).toEqual([]);
   });
 
@@ -218,6 +245,15 @@ describe('useConfirmationAlerts', () => {
       mockInsufficientPredictBalanceAlert,
     );
     (useBurnAddressAlert as jest.Mock).mockReturnValue(mockBurnAddressAlert);
+    (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue(
+      mockTokenTrustSignalAlerts,
+    );
+    (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue(
+      mockAddressTrustSignalAlerts,
+    );
+    (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue(
+      mockOriginTrustSignalAlerts,
+    );
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -232,7 +268,10 @@ describe('useConfirmationAlerts', () => {
       ...mockNoPayTokenQuotesAlert,
       ...mockInsufficientPredictBalanceAlert,
       ...mockBurnAddressAlert,
+      ...mockTokenTrustSignalAlerts,
       ...mockUpgradeAccountAlert,
+      ...mockOriginTrustSignalAlerts,
+      ...mockAddressTrustSignalAlerts,
     ]);
   });
 });

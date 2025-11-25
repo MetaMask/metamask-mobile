@@ -203,7 +203,7 @@ describe('useAddressTrustSignalAlerts', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('handles transactions without to address', () => {
+  it('returns no alerts for transactions with no to address', () => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       txParams: {},
       chainId: '0x1',
