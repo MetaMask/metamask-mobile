@@ -42,6 +42,9 @@ jest.mock('../../../../../core/Engine', () => ({
       getGasFeeEstimatesAndStartPolling: jest.fn().mockResolvedValue(null),
       stopPolling: jest.fn(),
     },
+    TransactionController: {
+      getNonceLock: jest.fn().mockResolvedValue({ releaseLock: jest.fn() }),
+    },
   },
   controllerMessenger: {
     tryUnsubscribe: jest.fn(),
