@@ -1,9 +1,9 @@
 ---
 description: Integration tests local rules for the Mobile integration framework (Bridge/Wallet). Prefer presets/renderers and minimal overrides.
 globs:
-  - "app/util/test/integration/**"
-  - "app/components/UI/Bridge/**/BridgeView.integration.test.{ts,tsx}"
-  - "app/components/Views/Wallet/Wallet.integration.test.{ts,tsx}"
+  - "app/util/test/component-view/**"
+  - "app/components/UI/Bridge/**/BridgeView.view.test.{ts,tsx}"
+  - "app/components/Views/Wallet/Wallet.view.test.{ts,tsx}"
 alwaysApply: false
 ---
 

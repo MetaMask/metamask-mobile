@@ -128,6 +128,7 @@ jest.mock('react-native/index.js', () => {
     '../../../core/Engine',
     '../../../core/Engine/Engine',
     'react-native-device-info',
+    'react-native/Libraries/Animated/Easing',
   ]);
   const originalJestMock = jest.mock.bind(jest);
   // Patch after setup mocks to avoid blocking necessary global mocks defined above
