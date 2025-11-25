@@ -150,17 +150,3 @@ export const verifyDeeplinkSignature = async (
 };
 
 export const hasSignature = (url: URL): boolean => url.searchParams.has('sig');
-
-// before signatur:
-// https://link.metamask.io/perps?utm_source=carousel&utm_medium=in-product&utm_campaign=cmp-7232171-afbf08
-// after signature:
-// https://link.metamask.io/perps?sig_params=utm_campaign%2Cutm_medium%2Cutm_source&utm_campaign=cmp-7232171-afbf08&utm_medium=in-product&utm_source=carousel&sig=p_3eIUQz6vZf-FAA2o9BXBFkJHrp98FDEMqr4vbsNgzU5LGEtFP13cKCwUBnXQKWz7KqW_15PncL5xsuEp2yeA
-
-// improperly canonicalized (main):
-// https://link.metamask.io/perps?utm_campaign=cmp-7232171-afbf08&utm_medium=in-product&utm_source=carousel&sig_params=utm_campaign%2Cutm_medium%2Cutm_source
-
-// improperly canonicalized (kylan/chore/fix-sign-verify)
-// https://link.metamask.io/perps?utm_campaign=cmp-7232171-afbf08&utm_medium=in-product&utm_source=carousel&sig_params=utm_campaign%2Cutm_medium%2Cutm_source
-
-// propertly canonicalized (commit f010b4e7fb860b898d6cf46a623a92806a89afd4):
-// https://link.metamask.io/perps?sig_params=utm_campaign%2Cutm_medium%2Cutm_source&utm_campaign=cmp-7232171-afbf08&utm_medium=in-product&utm_source=carousel
