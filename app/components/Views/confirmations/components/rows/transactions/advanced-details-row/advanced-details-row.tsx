@@ -96,6 +96,7 @@ const AdvancedDetailsRow = () => {
                 <AlertRow
                   alertField={RowAlertKey.InteractingWith}
                   label={strings('stake.interacting_with')}
+                  disableAlertInteraction
                 >
                   {isBatched || isUpgrade ? (
                     <SmartContractWithLogo />

@@ -34,11 +34,14 @@ export interface AlertRowProps extends InfoRowProps {
   alertField: string;
   /** Determines whether to display the row only when an alert is present. */
   isShownWithAlertsOnly?: boolean;
+  /** Disable click interaction on the alert */
+  disableAlertInteraction?: boolean;
 }
 
 const AlertRow = ({
   alertField,
   isShownWithAlertsOnly,
+  disableAlertInteraction,
   ...props
 }: AlertRowProps) => {
   const { fieldAlerts } = useAlerts();
@@ -61,7 +64,12 @@ const AlertRow = ({
   };
 
   const inlineAlert =
-    alertSelected && !isSmall ? <InlineAlert alertObj={alertSelected} /> : null;
+    alertSelected && !isSmall ? (
+      <InlineAlert
+        alertObj={alertSelected}
+        disabled={disableAlertInteraction}
+      />
+    ) : null;
 
   return (
     <InfoRow

@@ -62,8 +62,8 @@ describe('InlineAlert', () => {
     });
   });
 
-  const renderComponent = (alertObj: Alert = mockAlerts[0]) =>
-    render(<InlineAlert alertObj={alertObj} />);
+  const renderComponent = (alertObj: Alert = mockAlerts[0], disabled = false) =>
+    render(<InlineAlert alertObj={alertObj} disabled={disabled} />);
 
   it('renders correctly with default props', () => {
     const { getByTestId, getByText } = renderComponent();
@@ -116,5 +116,24 @@ describe('InlineAlert', () => {
     expect(mockTrackInlineAlertClicked).toHaveBeenCalledWith(
       ALERT_FIELD_DANGER,
     );
+  });
+
+  it('does not call showAlertModal when inline alert is disabled and clicked', () => {
+    const { getByTestId } = renderComponent(mockAlerts[0], true);
+    const inlineAlert = getByTestId('inline-alert');
+
+    fireEvent.press(inlineAlert);
+
+    expect(mockSetAlertKey).not.toHaveBeenCalled();
+    expect(mockShowAlertModal).not.toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
+  });
+
+  it('renders disabled inline alert with opacity', () => {
+    const { getByTestId } = renderComponent(mockAlerts[0], true);
+    const inlineAlert = getByTestId('inline-alert');
+
+    expect(inlineAlert).toBeDefined();
+    expect(inlineAlert.props.disabled).toBe(true);
   });
 });
