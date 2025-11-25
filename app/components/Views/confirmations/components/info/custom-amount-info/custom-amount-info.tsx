@@ -52,6 +52,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import EngineService from '../../../../../../core/EngineService';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -91,8 +92,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingTokenAmount: amountHumanDebounced,
     });
 
-    const handleDone = useCallback(async () => {
-      await updateTokenAmount();
+    const handleDone = useCallback(() => {
+      updateTokenAmount();
+      EngineService.flushState();
       setIsKeyboardVisible(false);
     }, [updateTokenAmount]);
 
