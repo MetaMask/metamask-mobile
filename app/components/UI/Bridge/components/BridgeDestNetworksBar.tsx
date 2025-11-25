@@ -17,17 +17,7 @@ import {
   selectSelectedDestChainId,
   setSelectedDestChainId,
 } from '../../../../core/redux/slices/bridge';
-import {
-  ETH_CHAIN_ID,
-  BASE_CHAIN_ID,
-  BSC_CHAIN_ID,
-  LINEA_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  ARBITRUM_CHAIN_ID,
-  ZKSYNC_ERA_CHAIN_ID,
-} from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { Box } from '../../Box/Box';
@@ -73,25 +63,25 @@ const createStyles = (params: { theme: Theme }) => {
  * Infinity = least popular
  */
 export const ChainPopularity: Record<Hex | CaipChainId, number> = {
-  [ETH_CHAIN_ID]: 1,
-  [BSC_CHAIN_ID]: 2,
+  [CHAIN_IDS.MAINNET]: 1,
+  [CHAIN_IDS.BSC]: 2,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   [BtcScope.Mainnet]: 3,
   [SolScope.Mainnet]: 4,
   ///: END:ONLY_INCLUDE_IF
-  [BASE_CHAIN_ID]: 5,
-  [ARBITRUM_CHAIN_ID]: 6,
-  [LINEA_CHAIN_ID]: 7,
-  [POLYGON_CHAIN_ID]: 8,
-  [AVALANCHE_CHAIN_ID]: 9,
-  [OPTIMISM_CHAIN_ID]: 10,
-  [ZKSYNC_ERA_CHAIN_ID]: 11,
+  [CHAIN_IDS.BASE]: 5,
+  [CHAIN_IDS.ARBITRUM]: 6,
+  [CHAIN_IDS.LINEA_MAINNET]: 7,
+  [CHAIN_IDS.POLYGON]: 8,
+  [CHAIN_IDS.AVALANCHE]: 9,
+  [CHAIN_IDS.OPTIMISM]: 10,
+  [CHAIN_IDS.ZKSYNC_ERA]: 11,
   [NETWORKS_CHAIN_ID.SEI]: 12,
   [NETWORKS_CHAIN_ID.MONAD]: 13,
 };
 
 const ShortChainNames: Record<Hex | CaipChainId, string> = {
-  [ETH_CHAIN_ID]: 'Ethereum',
+  [CHAIN_IDS.MAINNET]: 'Ethereum',
 };
 
 export const BridgeDestNetworksBar = () => {
