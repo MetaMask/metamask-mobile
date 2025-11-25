@@ -16,7 +16,6 @@ import Text, {
 import styleSheet from './TokenNetworkFilterBar.styles';
 
 import { useStyles } from '../../../../hooks/useStyles';
-import { excludeFromArray } from '../../Deposit/utils';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -44,21 +43,8 @@ function TokenNetworkFilterBar({
   };
 
   const handleNetworkPress = (chainId: CaipChainId) => {
-    if (isAllSelected) {
-      setNetworkFilter([chainId]);
-      return;
-    }
-
-    const currentFilter = networkFilter || [];
-    const isSelected = currentFilter.includes(chainId);
-
-    if (isSelected) {
-      const newFilter = excludeFromArray(currentFilter, chainId);
-      setNetworkFilter(newFilter.length === networks.length ? null : newFilter);
-    } else {
-      const newFilter = [...currentFilter, chainId];
-      setNetworkFilter(newFilter.length === networks.length ? null : newFilter);
-    }
+    // Radio button behavior: always set to single selection
+    setNetworkFilter([chainId]);
   };
 
   return (
