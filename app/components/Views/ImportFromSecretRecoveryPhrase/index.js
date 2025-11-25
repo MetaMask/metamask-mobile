@@ -513,7 +513,7 @@ const ImportFromSecretRecoveryPhrase = ({
     if (!hasScrolledForSuggestionsRef.current && scrollViewRef.current) {
       hasScrolledForSuggestionsRef.current = true;
       setTimeout(() => {
-        scrollViewRef.current?.scrollToPosition(0, 80, true);
+        scrollViewRef.current?.scrollToPosition(0, 20, true);
       }, 100);
     }
   }, []);

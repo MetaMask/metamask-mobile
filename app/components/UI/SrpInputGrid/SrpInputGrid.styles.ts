@@ -106,7 +106,7 @@ export const createStyles = (colors: Colors) =>
     } satisfies TextStyle,
 
     suggestionContainer: {
-      paddingVertical: 8,
+      paddingVertical: 1,
     },
     suggestionListContent: {
       alignItems: 'center' as const,
