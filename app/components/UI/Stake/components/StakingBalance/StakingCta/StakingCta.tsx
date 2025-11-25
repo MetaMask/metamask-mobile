@@ -3,14 +3,13 @@ import { View, ViewProps } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './StakingCta.styles';
 import Text, {
-  TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
-import { useNavigation, useTheme } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../constants/events';
@@ -28,11 +27,7 @@ const StakingCta = ({
   style,
   chainId,
 }: StakingCtaProps) => {
-  const theme = useTheme();
-  const { colors } = theme;
-  const { styles } = useStyles(styleSheet, {
-    colors,
-  });
+  const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -57,10 +52,7 @@ const StakingCta = ({
   };
 
   return (
-    <View style={[style, styles.container]}>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
-        {strings('stake.stake_eth_and_earn')}
-      </Text>
+    <View style={style}>
       <View style={styles.contentMain}>
         <Text style={styles.rightPad}>
           {strings('stake.stake_your_eth_cta.base')}

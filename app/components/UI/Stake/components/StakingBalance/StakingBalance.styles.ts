@@ -1,7 +1,14 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = () =>
+const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
+    container: {
+      marginTop: 16,
+      padding: 16,
+      borderRadius: 12,
+      backgroundColor: params.theme.colors.background.section,
+    },
     stakingEarnings: {
       paddingHorizontal: 16,
       paddingTop: 16,
@@ -26,6 +33,9 @@ const styleSheet = () =>
     },
     buttonsContainer: {
       paddingTop: 8,
+    },
+    stakingCta: {
+      paddingBottom: 8,
     },
   });
 

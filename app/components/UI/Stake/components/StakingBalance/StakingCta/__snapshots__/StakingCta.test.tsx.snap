@@ -1,40 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`StakingCta render matches snapshot 1`] = `
-<View
-  style={
-    [
-      undefined,
-      {
-        "marginTop": 16,
-      },
-    ]
-  }
->
-  <Text
-    accessibilityRole="text"
-    style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist Bold",
-        "fontSize": 18,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginBottom": 16,
-      }
-    }
-  >
-    Stake ETH and earn
-  </Text>
+<View>
   <View
     style={
       {
-        "backgroundColor": "#f3f5f9",
         "borderRadius": 12,
         "flexDirection": "row",
         "flexWrap": "wrap",
-        "marginBottom": 16,
-        "padding": 16,
+        "marginBottom": 8,
       }
     }
   >

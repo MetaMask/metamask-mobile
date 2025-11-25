@@ -233,7 +233,16 @@ exports[`StakingBalance render matches snapshot 1`] = `
       }
     />
   </TouchableOpacity>
-  <View>
+  <View
+    style={
+      {
+        "backgroundColor": "#f3f5f9",
+        "borderRadius": 12,
+        "marginTop": 16,
+        "padding": 16,
+      }
+    }
+  >
     <View
       style={
         {
@@ -1019,7 +1028,16 @@ exports[`StakingBalance should match the snapshot 1`] = `
       }
     />
   </TouchableOpacity>
-  <View>
+  <View
+    style={
+      {
+        "backgroundColor": "#f3f5f9",
+        "borderRadius": 12,
+        "marginTop": 16,
+        "padding": 16,
+      }
+    }
+  >
     <View
       style={
         {
