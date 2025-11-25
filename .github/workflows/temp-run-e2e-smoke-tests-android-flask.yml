@@ -143,7 +143,6 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
-          SOURCE_APK: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           ANDROID_KEYSTORE_PATH: android/keystores/internalRelease.keystore
 
 
