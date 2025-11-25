@@ -158,3 +158,27 @@ export const POLYMARKET_PELICANS_ORDER_BOOK_RESPONSE = {
     { price: '0.43', size: '2500' },
   ],
 };
+
+// Celtics vs Nets order book (Celtics token)
+// Market condition ID: 0x81daa857b8fa34cd3627c8cdbe5d92ea98756bcbe1e5cfcfffb94754e4d5ed86
+// All asks at 0.84 to ensure consistent price regardless of order size
+export const POLYMARKET_CELTICS_ORDER_BOOK_RESPONSE = {
+  market: '0x81daa857b8fa34cd3627c8cdbe5d92ea98756bcbe1e5cfcfffb94754e4d5ed86',
+  asset_id:
+    '51851880223290407825872150827934296608070009371891114025629582819868766043137',
+  timestamp: '1761177638154',
+  hash: '97f541df6e9baa53e3583f8ebe69d06e86a2198c',
+  bids: [
+    { price: '0.83', size: '10000' }, // Best bid for selling
+    { price: '0.82', size: '5000' },
+    { price: '0.81', size: '3000' },
+    { price: '0.80', size: '2000' },
+  ],
+  asks: [
+    { price: '0.84', size: '1000000' }, // Single price level with massive liquidity - enough for any reasonable order size
+    // No higher-priced asks to prevent price increases for larger orders
+  ],
+  min_order_size: '5',
+  tick_size: '0.01',
+  neg_risk: false,
+};
