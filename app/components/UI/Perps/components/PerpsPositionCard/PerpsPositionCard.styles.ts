@@ -9,7 +9,6 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       backgroundColor: colors.background.default,
       borderRadius: 12,
-      // padding: 16,
     },
     header: {
       flexDirection: 'row',
