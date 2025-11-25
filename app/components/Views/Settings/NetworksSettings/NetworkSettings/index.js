@@ -86,6 +86,7 @@ import { CellComponentSelectorsIDs } from '../../../../../../e2e/selectors/walle
 import stripProtocol from '../../../../../util/stripProtocol';
 import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import {
   addItemToChainIdList,
   removeItemFromChainIdList,
@@ -978,6 +979,10 @@ export class NetworkSettings extends PureComponent {
       type: RpcEndpointType.Custom,
     };
 
+    // Calculate the index of the newly added RPC endpoint
+    // rpc_url_index: 0 means there is only 1 RPC URL for this network
+    const rpcUrlIndex = this.state.rpcUrls.length;
+
     await this.setState((prevState) => ({
       rpcUrls: [...prevState.rpcUrls, newRpcUrl],
     }));
@@ -987,6 +992,18 @@ export class NetworkSettings extends PureComponent {
       failoverRpcUrls: newRpcUrl.failoverUrls,
       rpcName: newRpcUrl.name,
     });
+
+    // Track RPC Added event
+    if (this.state.chainId) {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_ADDED)
+          .addProperties({
+            chain_id: toHex(this.state.chainId),
+            rpc_url_index: rpcUrlIndex,
+          })
+          .build(),
+      );
+    }
 
     this.closeAddRpcForm();
     this.closeRpcModal();
@@ -1083,10 +1100,27 @@ export class NetworkSettings extends PureComponent {
   };
 
   onRpcUrlDelete = async (url) => {
-    const { addMode } = this.state;
+    const { addMode, rpcUrls, chainId } = this.state;
+
+    // Find the index of the RPC being deleted before removal
+    const rpcUrlIndex = rpcUrls.findIndex((rpcUrl) => rpcUrl.url === url);
+
     await this.setState((prevState) => ({
       rpcUrls: prevState.rpcUrls.filter((rpcUrl) => rpcUrl.url !== url),
     }));
+
+    // Track RPC Deleted event
+    if (chainId && rpcUrlIndex !== -1) {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.RPC_DELETED)
+          .addProperties({
+            chain_id: toHex(chainId),
+            rpc_url_index: rpcUrlIndex,
+          })
+          .build(),
+      );
+    }
+
     this.validateName();
     if (addMode) {
       this.validateChainId();
