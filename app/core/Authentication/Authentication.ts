@@ -734,6 +734,8 @@ class AuthenticationService {
       Logger.log('Authentication: Password stored successfully');
 
       await this.dispatchLogin();
+
+      ReduxService.store.dispatch(authSuccess());
       this.authData = authData;
       this.dispatchPasswordSet();
 

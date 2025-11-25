@@ -39,19 +39,15 @@ import {
   authenticationFailed,
   lockApp,
   appLocked,
-  unlockApp,
   appUnlocked,
   checkBiometricAvailability,
   biometricAvailabilityChecked,
-  triggerBiometricAuthentication,
   appBackgrounded,
   appForegrounded,
   backgroundTimerExpired,
   attemptRememberMeLogin,
   logout,
   logoutComplete,
-  navigateToLogin,
-  navigateToHome,
   authenticationError,
   saveNavigationStateBeforeLock,
   clearNavigationStateBeforeLock,
@@ -84,19 +80,15 @@ const actions = {
   authenticationFailed,
   lockApp,
   appLocked,
-  unlockApp,
   appUnlocked,
   checkBiometricAvailability,
   biometricAvailabilityChecked,
-  triggerBiometricAuthentication,
   appBackgrounded,
   appForegrounded,
   backgroundTimerExpired,
   attemptRememberMeLogin,
   logout,
   logoutComplete,
-  navigateToLogin,
-  navigateToHome,
   authenticationError,
   saveNavigationStateBeforeLock,
   clearNavigationStateBeforeLock,
@@ -799,26 +791,6 @@ export function* lockAppSaga(
 
     // Update state
     yield put(actions.appLocked({ shouldNavigate }));
-
-    // If navigation happened and biometric is configured, trigger biometric
-    /*   if (shouldNavigate) {
-      const authData: Awaited<ReturnType<typeof Authentication.getType>> =
-        yield call([Authentication, 'getType']);
-      const isBiometricAuth = authData.currentAuthType === 'biometrics';
-
-      if (isBiometricAuth) {
-        Logger.log(
-          'AuthSaga: Manual lock - triggering biometric authentication',
-        );
-        yield put(
-          actions.requestAuthentication({
-            method: AuthenticationMethod.BIOMETRIC,
-            showBiometric: true,
-            skipMaxAttemptsCheck: true,
-          }),
-        );
-      }
-    } */
   } catch (error) {
     Logger.error(error as Error, 'AuthSaga: Error locking app');
     yield put(
@@ -827,23 +799,6 @@ export function* lockAppSaga(
         context: 'lock_app',
       }),
     );
-  }
-}
-
-/**
- * Unlock the app (after successful authentication)
- */
-function* unlockAppSaga() {
-  try {
-    Logger.log('AuthSaga: Unlocking app');
-
-    // Update state
-    yield put(actions.appUnlocked());
-
-    // Navigation to home is handled by existing biometricsStateMachine
-    // Don't navigate here to avoid conflicts
-  } catch (error) {
-    Logger.error(error as Error, 'AuthSaga: Error unlocking app');
   }
 }
 
@@ -888,8 +843,9 @@ export function* appBackgroundedSaga() {
     // Try to get navigation state using getRootState (correct React Navigation API)
     let navigationState: unknown;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      navigationState = (navRef as any)?.getRootState?.();
+      navigationState = (
+        navRef as unknown as { getRootState: () => unknown }
+      )?.getRootState?.();
     } catch (error) {
       Logger.error(error as Error, 'AuthSaga: Error getting navigation state');
     }
@@ -1173,18 +1129,6 @@ function* checkBiometricAvailabilitySaga() {
   }
 }
 
-/**
- * Trigger biometric authentication
- */
-function* triggerBiometricAuthenticationSaga() {
-  yield put(
-    actions.requestAuthentication({
-      method: AuthenticationMethod.BIOMETRIC,
-      showBiometric: true,
-    }),
-  );
-}
-
 // ==========================================================================
 // Logout Saga
 // ==========================================================================
@@ -1230,36 +1174,6 @@ export function* logoutSaga() {
 // Navigation Sagas
 // ==========================================================================
 
-/**
- * Navigate to Login
- */
-function* navigateToLoginSaga() {
-  try {
-    yield delay(0); // Make this a proper generator
-    NavigationService.navigation?.reset({
-      index: 0,
-      routes: [{ name: Routes.ONBOARDING.LOGIN }],
-    });
-  } catch (error) {
-    Logger.error(error as Error, 'AuthSaga: Error navigating to login');
-  }
-}
-
-/**
- * Navigate to Home
- */
-function* navigateToHomeSaga() {
-  try {
-    yield delay(0); // Make this a proper generator
-    NavigationService.navigation?.reset({
-      index: 0,
-      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-    });
-  } catch (error) {
-    Logger.error(error as Error, 'AuthSaga: Error navigating to home');
-  }
-}
-
 // ==========================================================================
 // Authentication Lifecycle Management (Using AppStateService)
 // ==========================================================================
@@ -1278,6 +1192,36 @@ function* manageAuthenticationLifecycleSaga() {
       Logger.log(
         'AuthSaga: User logged in, starting authentication management',
       );
+
+      // Check for saved navigation state (for background/foreground restoration flow)
+      const savedNavigationState: unknown = yield select(
+        selectors.selectNavigationStateBeforeLock,
+      );
+
+      Logger.log('AuthSaga: Checking for saved navigation state after LOGIN:', {
+        hasSavedState: !!savedNavigationState,
+      });
+
+      if (savedNavigationState) {
+        // Restore the full navigation state (background/foreground restoration)
+        // This takes precedence over component navigation
+        Logger.log('AuthSaga: Restoring saved navigation state after LOGIN');
+
+        // Use reset() to restore the full navigation stack
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        NavigationService.navigation?.reset(savedNavigationState as any);
+
+        // Clear the stored state
+        yield put(actions.clearNavigationStateBeforeLock());
+        Logger.log(
+          'AuthSaga: Navigation state restored and cleared after LOGIN',
+        );
+      } else {
+        // No saved state - component will handle navigation for normal login flow
+        Logger.log(
+          'AuthSaga: No saved navigation state after LOGIN - component will handle navigation',
+        );
+      }
 
       // Update state
       yield put(
@@ -1369,7 +1313,6 @@ export function* authenticationSaga() {
       attemptRememberMeLoginSaga,
     );
     yield takeLatest(actions.lockApp.type, lockAppSaga);
-    yield takeLatest(actions.unlockApp.type, unlockAppSaga);
     yield takeLatest(actions.appBackgrounded.type, appBackgroundedSaga);
     yield takeLatest(actions.appForegrounded.type, appForegroundedSaga);
     yield takeLatest(
@@ -1380,13 +1323,7 @@ export function* authenticationSaga() {
       actions.checkBiometricAvailability.type,
       checkBiometricAvailabilitySaga,
     );
-    yield takeLatest(
-      actions.triggerBiometricAuthentication.type,
-      triggerBiometricAuthenticationSaga,
-    );
     yield takeLatest(actions.logout.type, logoutSaga);
-    yield takeLatest(actions.navigateToLogin.type, navigateToLoginSaga);
-    yield takeLatest(actions.navigateToHome.type, navigateToHomeSaga);
 
     Logger.log(
       'AuthSaga: All watchers initialized - ready to handle authentication',

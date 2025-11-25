@@ -336,10 +336,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     // Skip navigation if there's a saved navigation state - the saga will handle restoration
     if (savedNavigationState) {
       Logger.log(
-        'Login: Skipping navigation to HOME - saga will restore previous screen',
+        'Login: Skipping navigation to HOME - saga will restore saved navigation state',
       );
       return;
     }
+    // Normal login flow - navigate to home
     navigation.replace(Routes.ONBOARDING.HOME_NAV);
   }, [navigation, savedNavigationState]);
 
@@ -349,10 +350,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     );
 
     if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
-      // Skip navigation if there's a saved navigation state
+      // Skip navigation if there's a saved navigation state - the saga will handle restoration
       if (savedNavigationState) {
         Logger.log(
-          'Login: Skipping metrics navigation - saga will restore previous screen',
+          'Login: Skipping metrics navigation - saga will restore saved navigation state',
         );
         return;
       }
