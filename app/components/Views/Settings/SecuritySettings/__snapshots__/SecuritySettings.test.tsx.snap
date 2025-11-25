@@ -2139,7 +2139,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 }
               }
             >
-              Privacy Policy.
+              Privacy policy.
             </Text>
           </Text>
         </Text>

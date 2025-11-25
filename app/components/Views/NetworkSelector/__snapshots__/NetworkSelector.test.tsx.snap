@@ -1496,7 +1496,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   }
                                 }
                               >
-                                Add Network
+                                Add network
                               </Text>
                             </TouchableOpacity>
                           </View>

@@ -542,7 +542,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                 }
                                 testID="privacy-policy-link-2"
                               >
-                                Privacy Policy
+                                Privacy policy
                               </Text>
                               .
                             </Text>

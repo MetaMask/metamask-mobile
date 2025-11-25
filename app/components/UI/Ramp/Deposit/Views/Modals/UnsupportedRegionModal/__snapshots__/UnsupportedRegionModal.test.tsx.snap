@@ -654,7 +654,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                   }
                                 }
                               >
-                                Buy Crypto
+                                Buy crypto
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -1331,7 +1331,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                   }
                                 }
                               >
-                                Buy Crypto
+                                Buy crypto
                               </Text>
                             </TouchableOpacity>
                           </View>

@@ -118,7 +118,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         }
       }
     >
-      3. Enable Bluetooth
+      3. Enable bluetooth
     </Text>
     <Text
       accessibilityRole="text"
@@ -311,7 +311,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         }
       }
     >
-      3. Enable Bluetooth
+      3. Enable bluetooth
     </Text>
     <Text
       accessibilityRole="text"

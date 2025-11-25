@@ -474,7 +474,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                   }
                                 }
                               >
-                                Select Region Currency
+                                Select region currency
                               </Text>
                             </View>
                             <View
@@ -1413,7 +1413,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   }
                                 }
                               >
-                                Select Region Currency
+                                Select region currency
                               </Text>
                             </View>
                             <View
@@ -2352,7 +2352,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   }
                                 }
                               >
-                                Select Region Currency
+                                Select region currency
                               </Text>
                             </View>
                             <View
@@ -3291,7 +3291,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                   }
                                 }
                               >
-                                Select Region Currency
+                                Select region currency
                               </Text>
                             </View>
                             <View

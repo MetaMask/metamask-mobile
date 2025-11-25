@@ -361,7 +361,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
           ]
         }
       >
-        3. Enable Bluetooth
+        3. Enable bluetooth
       </Text>
       <Text
         style={
@@ -833,7 +833,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
           ]
         }
       >
-        3. Enable Bluetooth
+        3. Enable bluetooth
       </Text>
       <Text
         style={
