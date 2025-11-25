@@ -353,14 +353,14 @@ import {
 } from '@metamask/base-controller';
 import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
 import {
-  UserProfileController,
-  UserProfileControllerActions,
-  UserProfileControllerEvents,
-  UserProfileControllerState,
-  UserProfileService,
-  UserProfileServiceActions,
-  UserProfileServiceEvents,
-} from '@metamask/user-profile-controller';
+  ProfileMetricsController,
+  ProfileMetricsControllerActions,
+  ProfileMetricsControllerEvents,
+  ProfileMetricsControllerState,
+  ProfileMetricsService,
+  ProfileMetricsServiceActions,
+  ProfileMetricsServiceEvents,
+} from '@metamask/profile-metrics-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
   'NftDetectionController',
@@ -496,8 +496,8 @@ type GlobalActions =
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
-  | UserProfileControllerActions
-  | UserProfileServiceActions;
+  | ProfileMetricsControllerActions
+  | ProfileMetricsServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -567,8 +567,8 @@ type GlobalEvents =
   | AccountTreeControllerEvents
   | DelegationControllerEvents
   | NftDetectionControllerEvents
-  | UserProfileControllerEvents
-  | UserProfileServiceEvents;
+  | ProfileMetricsControllerEvents
+  | ProfileMetricsServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -678,8 +678,8 @@ export type Controllers = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
-  UserProfileController: UserProfileController;
-  UserProfileService: UserProfileService;
+  ProfileMetricsController: ProfileMetricsController;
+  ProfileMetricsService: ProfileMetricsService;
 };
 
 /**
@@ -754,7 +754,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
-  UserProfileController: UserProfileControllerState;
+  ProfileMetricsController: ProfileMetricsControllerState;
 };
 
 /** Controller names */
@@ -855,8 +855,8 @@ export type ControllersToInitialize =
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'
-  | 'UserProfileController'
-  | 'UserProfileService';
+  | 'ProfileMetricsController'
+  | 'ProfileMetricsService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

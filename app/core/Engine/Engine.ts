@@ -173,8 +173,8 @@ import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
-import { userProfileControllerInit } from './controllers/user-profile-controller-init';
-import { userProfileServiceInit } from './controllers/user-profile-service-init';
+import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
+import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
@@ -363,8 +363,8 @@ export class Engine {
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
         AddressBookController: addressBookControllerInit,
-        UserProfileController: userProfileControllerInit,
-        UserProfileService: userProfileServiceInit,
+        ProfileMetricsController: profileMetricsControllerInit,
+        ProfileMetricsService: profileMetricsServiceInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -397,8 +397,8 @@ export class Engine {
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
     const addressBookController = controllersByName.AddressBookController;
-    const userProfileController = controllersByName.UserProfileController;
-    const userProfileService = controllersByName.UserProfileService;
+    const profileMetricsController = controllersByName.ProfileMetricsController;
+    const profileMetricsService = controllersByName.ProfileMetricsService;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -545,8 +545,8 @@ export class Engine {
       PredictController: predictController,
       RewardsController: rewardsController,
       DelegationController: delegationController,
-      UserProfileController: userProfileController,
-      UserProfileService: userProfileService,
+      ProfileMetricsController: profileMetricsController,
+      ProfileMetricsService: profileMetricsService,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1337,6 +1337,7 @@ export default {
       MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      ProfileMetricsController,
     } = instance.datamodel.state;
 
     return {
@@ -1398,6 +1399,7 @@ export default {
       MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
+      ProfileMetricsController,
     };
   },
 

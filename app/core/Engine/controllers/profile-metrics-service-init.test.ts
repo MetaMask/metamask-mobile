@@ -1,19 +1,19 @@
 import {
   Env,
-  UserProfileService,
-  UserProfileServiceMessenger,
-} from '@metamask/user-profile-controller';
+  ProfileMetricsService,
+  ProfileMetricsServiceMessenger,
+} from '@metamask/profile-metrics-controller';
 import { ControllerInitRequest } from '../types';
 import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { userProfileServiceInit } from './user-profile-service-init';
+import { profileMetricsServiceInit } from './profile-metrics-service-init';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { getUserProfileServiceMessenger } from '../messengers/user-profile-service-messenger';
+import { getProfileMetricsServiceMessenger } from '../messengers/profile-metrics-service-messenger';
 
-jest.mock('@metamask/user-profile-controller');
+jest.mock('@metamask/profile-metrics-controller');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<UserProfileServiceMessenger>
+  ControllerInitRequest<ProfileMetricsServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
@@ -21,23 +21,23 @@ function getInitRequestMock(): jest.Mocked<
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
-    controllerMessenger: getUserProfileServiceMessenger(baseMessenger),
+    controllerMessenger: getProfileMetricsServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };
 
   return requestMock;
 }
 
-describe('userProfileServiceInit', () => {
+describe('profileMetricsServiceInit', () => {
   it('initializes the service', () => {
-    const { controller } = userProfileServiceInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(UserProfileService);
+    const { controller } = profileMetricsServiceInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(ProfileMetricsService);
   });
 
   it('passes the proper arguments to the controller', () => {
-    userProfileServiceInit(getInitRequestMock());
+    profileMetricsServiceInit(getInitRequestMock());
 
-    const controllerMock = jest.mocked(UserProfileService);
+    const controllerMock = jest.mocked(ProfileMetricsService);
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       fetch: expect.any(Function),

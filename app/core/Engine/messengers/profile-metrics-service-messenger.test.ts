@@ -5,13 +5,13 @@ import {
   MessengerEvents,
   MockAnyNamespace,
 } from '@metamask/messenger';
-import { getUserProfileServiceMessenger } from './user-profile-service-messenger';
-import { UserProfileServiceMessenger } from '@metamask/user-profile-controller';
+import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
+import { ProfileMetricsServiceMessenger } from '@metamask/profile-metrics-controller';
 
 type RootMessenger = Messenger<
   MockAnyNamespace,
-  MessengerActions<UserProfileServiceMessenger>,
-  MessengerEvents<UserProfileServiceMessenger>
+  MessengerActions<ProfileMetricsServiceMessenger>,
+  MessengerEvents<ProfileMetricsServiceMessenger>
 >;
 
 const getRootMessenger = (): RootMessenger =>
@@ -19,11 +19,11 @@ const getRootMessenger = (): RootMessenger =>
     namespace: MOCK_ANY_NAMESPACE,
   });
 
-describe('getUserProfileServiceMessenger', () => {
+describe('getProfileMetricsServiceMessenger', () => {
   it('returns a restricted messenger', () => {
     const messenger = getRootMessenger();
     const userProfileServiceMessenger =
-      getUserProfileServiceMessenger(messenger);
+      getProfileMetricsServiceMessenger(messenger);
 
     expect(userProfileServiceMessenger).toBeInstanceOf(Messenger);
   });

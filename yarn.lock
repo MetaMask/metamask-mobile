@@ -8879,6 +8879,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/profile-metrics-controller@npm:@metamask-previews/profile-metrics-controller@0.0.0-preview-e540d3bf":
+  version: 0.0.0-preview-e540d3bf
+  resolution: "@metamask-previews/profile-metrics-controller@npm:0.0.0-preview-e540d3bf"
+  dependencies:
+    "@metamask/accounts-controller": "npm:^35.0.0"
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.16.0"
+    "@metamask/keyring-controller": "npm:^25.0.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/polling-controller": "npm:^16.0.0"
+    "@metamask/profile-sync-controller": "npm:^27.0.0"
+    "@metamask/utils": "npm:^11.8.1"
+    async-mutex: "npm:^0.5.0"
+  checksum: 10/45b6e401a9384ea6d2ba27eeb1f8573481d9e8d1cb304f8289b16f129cc70dc0705f0a582324a19a479b882e875414f5bb32c9d6bb4e5062a2905b4d0196c36f
+  languageName: node
+  linkType: hard
+
 "@metamask/profile-sync-controller@npm:^26.0.0":
   version: 26.0.0
   resolution: "@metamask/profile-sync-controller@npm:26.0.0"
@@ -9638,23 +9655,6 @@ __metadata:
   version: 1.10.0
   resolution: "@metamask/tron-wallet-snap@npm:1.10.0"
   checksum: 10/c9b2f9cae0a2f9dcfd43934bd4321ed029e395122b61f1f3a8c3780dd4b44ac8669139b382da8b9230123639bf7a7554206223e3127d3e3317dfb802190cda46
-  languageName: node
-  linkType: hard
-
-"@metamask/user-profile-controller@npm:@metamask-previews/user-profile-controller@0.0.0-preview-a2f1e6f9":
-  version: 0.0.0-preview-a2f1e6f9
-  resolution: "@metamask-previews/user-profile-controller@npm:0.0.0-preview-a2f1e6f9"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^35.0.0"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.16.0"
-    "@metamask/keyring-controller": "npm:^25.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/polling-controller": "npm:^16.0.0"
-    "@metamask/profile-sync-controller": "npm:^27.0.0"
-    "@metamask/utils": "npm:^11.8.1"
-    async-mutex: "npm:^0.5.0"
-  checksum: 10/7d8a723905822bc95bb7c02ccaf4b315ce3918fe803f6ec578b2a039adae00f34f332a2af93d2217a87d2cb91261c4fa6cca311aacab996279a0b6700284df66
   languageName: node
   linkType: hard
 
@@ -35652,6 +35652,7 @@ __metadata:
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^21.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.7.2"
+    "@metamask/profile-metrics-controller": "npm:^1.0.0"
     "@metamask/profile-sync-controller": "npm:^26.0.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/react-native-acm": "npm:^1.0.1"
@@ -35688,7 +35689,6 @@ __metadata:
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
     "@metamask/transaction-pay-controller": "npm:^10.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.10.0"
-    "@metamask/user-profile-controller": "npm:^1.0.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.25.9"

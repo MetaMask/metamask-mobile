@@ -1,12 +1,12 @@
 import {
-  UserProfileController,
-  UserProfileControllerMessenger,
-} from '@metamask/user-profile-controller';
+  ProfileMetricsController,
+  ProfileMetricsControllerMessenger,
+} from '@metamask/profile-metrics-controller';
 import { ControllerInitFunction } from '../types';
 import { MetaMetrics } from '../../Analytics';
 
 /**
- * Initialize the user profile controller.
+ * Initialize the profile metrics controller.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
@@ -15,9 +15,9 @@ import { MetaMetrics } from '../../Analytics';
  * @param request.getController - A function to get other initialized controllers.
  * @returns The initialized controller.
  */
-export const userProfileControllerInit: ControllerInitFunction<
-  UserProfileController,
-  UserProfileControllerMessenger
+export const profileMetricsControllerInit: ControllerInitFunction<
+  ProfileMetricsController,
+  ProfileMetricsControllerMessenger
 > = ({ controllerMessenger, persistedState, getController, metaMetricsId }) => {
   const remoteFeatureFlagController = getController(
     'RemoteFeatureFlagController',
@@ -26,9 +26,9 @@ export const userProfileControllerInit: ControllerInitFunction<
     remoteFeatureFlagController.state.remoteFeatureFlags.extensionUxPna25 ===
       true && MetaMetrics.getInstance().isEnabled() === true;
 
-  const controller = new UserProfileController({
+  const controller = new ProfileMetricsController({
     messenger: controllerMessenger,
-    state: persistedState.UserProfileController,
+    state: persistedState.ProfileMetricsController,
     assertUserOptedIn,
     getMetaMetricsId: () => metaMetricsId,
   });

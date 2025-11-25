@@ -540,7 +540,7 @@
   "TransactionPayController": {
     "transactionData": {}
   },
-  "UserProfileController": {
+  "ProfileMetricsController": {
     "firstSyncCompleted": false,
     "syncQueue": {}
   },
