@@ -519,7 +519,6 @@ const ImportFromSecretRecoveryPhrase = ({
         enableOnAndroid
         enableAutomaticScroll
         extraScrollHeight={150}
-        keyboardOpeningTime={0}
         showsVerticalScrollIndicator={false}
       >
         {currentStep === 0 && (

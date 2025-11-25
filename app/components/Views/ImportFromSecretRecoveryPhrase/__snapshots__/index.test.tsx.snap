@@ -420,7 +420,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
                         keyboardDismissMode="none"
-                        keyboardOpeningTime={0}
+                        keyboardOpeningTime={250}
                         keyboardShouldPersistTaps="always"
                         keyboardSpace={0}
                         onScroll={[Function]}
