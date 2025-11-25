@@ -23,7 +23,7 @@ import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowI
 import SiteRowItemWrapper from '../../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
-import { CaipChainId } from '@metamask/utils';
+import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
