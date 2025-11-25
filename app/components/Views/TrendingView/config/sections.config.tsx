@@ -1,7 +1,6 @@
 import React from 'react';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import TrendingTokenRowItem from '../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
@@ -25,9 +24,14 @@ import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 import { useSearchRequest } from '../../../UI/Trending/hooks/useSearchRequest';
-import { IconName } from '@metamask/design-system-react-native';
+import { Box, IconName } from '@metamask/design-system-react-native';
+import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
+import SiteRowItemWrapper from '../SectionSites/SiteRowItemWrapper';
+import SiteSkeleton from '../SectionSites/SiteSkeleton/SiteSkeleton';
+import { useSitesData } from '../SectionSites/hooks/useSitesData';
+import Routes from '../../../../constants/navigation/Routes';
 
-export type SectionId = 'predictions' | 'tokens' | 'perps';
+export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
 interface SectionData {
   data: unknown[];
@@ -182,7 +186,9 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       });
     },
     RowItem: ({ item }) => (
-      <PredictMarket market={item as PredictMarketType} isCarousel />
+      <Box twClassName="py-2">
+        <PredictMarket market={item as PredictMarketType} isCarousel />
+      </Box>
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
     getSearchableText: (item) =>
@@ -199,6 +205,26 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       return { data: marketData, isLoading: isFetching };
     },
   },
+  sites: {
+    id: 'sites',
+    title: strings('trending.sites'),
+    icon: IconName.Global,
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.SITES_LIST_VIEW);
+    },
+    RowItem: ({ item, navigation }) => (
+      <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
+    ),
+    Skeleton: () => <SiteSkeleton />,
+    getSearchableText: (item) =>
+      `${(item as SiteData).name} ${(item as SiteData).displayUrl}`.toLowerCase(),
+    keyExtractor: (item) => `site-${(item as SiteData).id}`,
+    Section: () => <SectionCard sectionId="sites" />,
+    useSectionData: () => {
+      const { sites, isLoading } = useSitesData({ limit: 100 });
+      return { data: sites, isLoading };
+    },
+  },
 };
 
 // Sorted by order on the main screen
@@ -206,6 +232,7 @@ export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.sites,
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
@@ -213,6 +240,7 @@ export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
+  SECTIONS_CONFIG.sites,
 ];
 
 /**
@@ -232,6 +260,8 @@ export const useSectionsData = (
     SECTIONS_CONFIG.perps.useSectionData();
   const { data: predictionMarkets, isLoading: isPredictionsLoading } =
     SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
+  const { data: sites, isLoading: isSitesLoading } =
+    SECTIONS_CONFIG.sites.useSectionData();
 
   return {
     tokens: {
@@ -245,6 +275,10 @@ export const useSectionsData = (
     predictions: {
       data: predictionMarkets,
       isLoading: isPredictionsLoading,
+    },
+    sites: {
+      data: sites,
+      isLoading: isSitesLoading,
     },
   };
 };
