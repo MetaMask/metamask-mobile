@@ -416,7 +416,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         enableOnAndroid={true}
                         enableResetScrollToCoords={true}
                         extraHeight={75}
-                        extraScrollHeight={20}
+                        extraScrollHeight={150}
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
                         keyboardDismissMode="none"
@@ -517,7 +517,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     "borderRadius": 10,
                                     "marginTop": 16,
                                     "maxHeight": "auto",
-                                    "minHeight": 264,
+                                    "minHeight": 210,
                                     "paddingTop": 16,
                                   }
                                 }
@@ -742,7 +742,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "paddingBottom": 1,
-                                    "paddingTop": 12,
+                                    "paddingTop": 8,
                                     "textAlign": "right",
                                   }
                                 }

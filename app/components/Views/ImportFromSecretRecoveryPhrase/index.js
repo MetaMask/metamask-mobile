@@ -115,7 +115,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const srpInputGridRef = useRef(null);
   const scrollViewRef = useRef(null);
-  const hasScrolledForSuggestionsRef = useRef(false);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -509,15 +508,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const uniqueId = useMemo(() => uuidv4(), []);
 
-  const handleInitialScroll = useCallback(() => {
-    if (!hasScrolledForSuggestionsRef.current && scrollViewRef.current) {
-      hasScrolledForSuggestionsRef.current = true;
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToPosition(0, 20, true);
-      }, 100);
-    }
-  }, []);
-
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
       <KeyboardAwareScrollView
@@ -528,7 +518,7 @@ const ImportFromSecretRecoveryPhrase = ({
         keyboardDismissMode="none"
         enableOnAndroid
         enableAutomaticScroll
-        extraScrollHeight={20}
+        extraScrollHeight={150}
         keyboardOpeningTime={0}
         showsVerticalScrollIndicator={false}
       >
@@ -571,7 +561,6 @@ const ImportFromSecretRecoveryPhrase = ({
                 testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
                 placeholderText={strings('import_from_seed.srp_placeholder')}
                 uniqueId={uniqueId}
-                onFirstFocus={handleInitialScroll}
               />
               <View style={styles.seedPhraseCtaContainer}>
                 <Button

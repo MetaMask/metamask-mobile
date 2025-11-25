@@ -43,10 +43,4 @@ export interface SrpInputGridProps {
    * Whether the inputs should be disabled
    */
   disabled?: boolean;
-
-  /**
-   * Callback triggered on first focus of any input
-   * Used for initial scroll positioning to show suggestion bar
-   */
-  onFirstFocus?: () => void;
 }

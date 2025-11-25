@@ -57,7 +57,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       placeholderText,
       uniqueId = uuidv4(),
       disabled = false,
-      onFirstFocus,
     },
     ref,
   ) => {
@@ -81,7 +80,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       number,
       { focus: () => void; blur: () => void }
     > | null>(null);
-    const hasCalledFirstFocusRef = useRef(false);
 
     // Calculate trimmed seed phrase length
     const trimmedSeedPhraseLength = useMemo(
@@ -252,17 +250,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         setNextSeedPhraseInputFocusedIndex(index);
         setFocusedInputIndex(index);
 
-        if (!hasCalledFirstFocusRef.current && onFirstFocus) {
-          hasCalledFirstFocusRef.current = true;
-          onFirstFocus();
-        }
-
         const currentWord = seedPhrase[index] || '';
         if (!currentWord.includes(' ')) {
           setCurrentInputWord(currentWord);
         }
       },
-      [seedPhrase, onFirstFocus],
+      [seedPhrase],
     );
 
     const handleOnBlur = useCallback(
