@@ -18,11 +18,7 @@ import {
 } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
-import {
-  hexToBN,
-  toChecksumHexAddress,
-  toHex,
-} from '@metamask/controller-utils';
+import { hexToBN, toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   selectConversionRate,
   selectCurrencyRates,
@@ -79,7 +75,7 @@ export const selectedAccountNativeTokenCachedBalanceByChainIdForAddress =
           result[chainId] = {
             balance: account.balance,
             stakedBalance: account.stakedBalance ?? '0x0',
-            isStaked: account.stakedBalance !== '0x0',
+            isStaked: false,
             name: '',
           };
         }
@@ -190,13 +186,7 @@ export const selectNativeTokensAcrossChainsForAddress = createSelector(
       // Non-staked tokens
       tokensByChain[nativeChainId].push(tokenByChain);
 
-      if (
-        nativeTokenInfoByChainId &&
-        nativeTokenInfoByChainId.isStaked &&
-        nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
-        nativeTokenInfoByChainId.stakedBalance !== toHex(0) &&
-        nativeTokenInfoByChainId.stakedBalance !== '0'
-      ) {
+      if (nativeTokenInfoByChainId && !nativeTokenInfoByChainId.isStaked) {
         // Staked tokens
         tokensByChain[nativeChainId].push({
           ...nativeTokenInfoByChainId,
