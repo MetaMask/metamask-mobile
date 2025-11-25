@@ -568,6 +568,39 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
+// Mock react-native-keyboard-controller for tests
+jest.mock('react-native-keyboard-controller', () => {
+  const React = require('react');
+  const { ScrollView } = require('react-native');
+
+  return {
+    KeyboardProvider: ({ children }) => children,
+    KeyboardAwareScrollView: React.forwardRef((props, ref) =>
+      React.createElement(ScrollView, { ...props, ref }),
+    ),
+    KeyboardAvoidingView: ({ children, ...props }) =>
+      React.createElement('View', props, children),
+    KeyboardStickyView: ({ children, ...props }) =>
+      React.createElement('View', props, children),
+    KeyboardToolbar: ({ children, ...props }) =>
+      React.createElement('View', props, children),
+    useKeyboardHandler: jest.fn(),
+    useReanimatedKeyboardAnimation: jest.fn(() => ({
+      height: { value: 0 },
+      progress: { value: 0 },
+    })),
+    useKeyboardAnimation: jest.fn(() => ({
+      height: 0,
+      progress: 0,
+    })),
+    useReanimatedFocusedInput: jest.fn(() => ({
+      input: { value: { x: 0, y: 0, width: 0, height: 0 } },
+      target: { value: { x: 0, y: 0, width: 0, height: 0 } },
+    })),
+    useFocusedInputHandler: jest.fn(),
+  };
+});
+
 afterEach(() => {
   jest.restoreAllMocks();
   global.gc && global.gc(true);
