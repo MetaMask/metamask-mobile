@@ -16,8 +16,9 @@ const styleSheet = (params: {
       ...(vars.isCarousel && { height: '100%' }),
       backgroundColor: theme.colors.background.section,
       borderRadius: 16,
-      padding: vars.isCarousel ? 12 : 16,
+      padding: 16,
       marginVertical: vars.isCarousel ? 0 : 8,
+      paddingVertical: vars.isCarousel ? 8 : 16,
     },
     marketHeader: {
       flexDirection: 'row',
@@ -36,7 +37,7 @@ const styleSheet = (params: {
       justifyContent: 'flex-end',
       alignItems: 'flex-end',
       width: '100%',
-      marginTop: 8,
+      marginTop: vars.isCarousel ? 0 : 8,
     },
     buttonContainer: {
       flexDirection: 'row',
