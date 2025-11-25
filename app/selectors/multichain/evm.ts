@@ -77,7 +77,7 @@ export const selectedAccountNativeTokenCachedBalanceByChainIdForAddress =
           result[chainId] = {
             balance: account.balance,
             stakedBalance: account.stakedBalance ?? '0x0',
-            isStaked: account.stakedBalance !== '0x0',
+            isStaked: false,
             name: '',
           };
         }
