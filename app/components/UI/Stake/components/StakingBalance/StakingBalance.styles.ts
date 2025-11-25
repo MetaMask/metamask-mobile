@@ -2,9 +2,6 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    container: {
-      // paddingHorizontal: 16,
-    },
     stakingEarnings: {
       paddingHorizontal: 16,
       paddingTop: 16,

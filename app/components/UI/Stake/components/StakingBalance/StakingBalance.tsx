@@ -260,7 +260,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         </AssetElement>
       )}
 
-      <View style={styles.container}>{renderStakingContent()}</View>
+      <View>{renderStakingContent()}</View>
       <View style={styles.stakingEarnings}>
         <StakingEarnings asset={asset} />
       </View>
