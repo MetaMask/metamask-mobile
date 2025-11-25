@@ -517,7 +517,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     "borderRadius": 10,
                                     "marginTop": 16,
                                     "maxHeight": "auto",
-                                    "minHeight": 264,
+                                    "minHeight": 210,
                                     "paddingTop": 16,
                                   }
                                 }

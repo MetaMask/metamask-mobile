@@ -17,7 +17,7 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
         "borderRadius": 10,
         "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -269,7 +269,7 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
         "borderRadius": 10,
         "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -521,7 +521,7 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
         "borderRadius": 10,
         "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }
@@ -773,7 +773,7 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
         "borderRadius": 10,
         "marginTop": 16,
         "maxHeight": "auto",
-        "minHeight": 264,
+        "minHeight": 210,
         "paddingTop": 16,
       }
     }

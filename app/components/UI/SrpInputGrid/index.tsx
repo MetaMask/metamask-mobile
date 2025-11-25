@@ -491,24 +491,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           </View>
         </View>
 
-        {/* Paste/Clear Button */}
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Primary}
-          style={styles.pasteText}
-          onPress={() => {
-            if (trimmedSeedPhraseLength >= 1) {
-              handleClear();
-            } else {
-              handlePaste();
-            }
-          }}
-        >
-          {trimmedSeedPhraseLength >= 1
-            ? strings('import_from_seed.clear_all')
-            : strings('import_from_seed.paste')}
-        </Text>
-
         {suggestions.length > 0 && (
           <View
             style={[
@@ -544,6 +526,24 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             />
           </View>
         )}
+
+        {/* Paste/Clear Button */}
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Primary}
+          style={styles.pasteText}
+          onPress={() => {
+            if (trimmedSeedPhraseLength >= 1) {
+              handleClear();
+            } else {
+              handlePaste();
+            }
+          }}
+        >
+          {trimmedSeedPhraseLength >= 1
+            ? strings('import_from_seed.clear_all')
+            : strings('import_from_seed.paste')}
+        </Text>
 
         {/* Error Text */}
         {Boolean(externalError || error) && (

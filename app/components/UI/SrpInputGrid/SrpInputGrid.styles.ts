@@ -19,7 +19,7 @@ export const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.section,
       borderRadius: 10,
       marginTop: 16,
-      minHeight: 264,
+      minHeight: 210,
       maxHeight: 'auto',
     },
     seedPhraseInnerContainer: {
@@ -106,7 +106,7 @@ export const createStyles = (colors: Colors) =>
     } satisfies TextStyle,
 
     suggestionContainer: {
-      paddingVertical: 1,
+      paddingVertical: 8,
     },
     suggestionListContent: {
       alignItems: 'center' as const,

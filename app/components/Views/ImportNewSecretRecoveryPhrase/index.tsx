@@ -267,7 +267,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     if (!hasScrolledForSuggestionsRef.current && scrollViewRef.current) {
       hasScrolledForSuggestionsRef.current = true;
       setTimeout(() => {
-        scrollViewRef.current?.scrollToPosition(0, 30, true);
+        scrollViewRef.current?.scrollToPosition(0, 90, true);
       }, 100);
     }
   }, []);
