@@ -1,14 +1,27 @@
 // Mock the Analytics module BEFORE any imports
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ name: 'test-event' });
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+});
+
 jest.mock('../../../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn(() => ({
       addTraitsToUser: jest.fn(),
+      trackEvent: mockTrackEvent,
     })),
   },
   MetaMetricsEvents: {
     NETWORK_REMOVED: 'Network Removed',
+    RPC_ADDED: { category: 'RPC Added' },
+    RPC_DELETED: { category: 'RPC Deleted' },
   },
 }));
+
+jest.mock('../../../../../core/Analytics/MetricsEventBuilder');
 
 import React from 'react';
 import { shallow } from 'enzyme';
@@ -24,7 +37,11 @@ import * as jsonRequest from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 const { PreferencesController } = Engine.context;
+
+// Set up MetricsEventBuilder mock after import
+MetricsEventBuilder.createEventBuilder = mockCreateEventBuilder;
 
 jest.mock(
   '../../../../../util/metrics/MultichainAPI/networkMetricUtils',
@@ -37,24 +54,6 @@ jest.mock(
     }),
   }),
 );
-
-const mockTrackEvent = jest.fn();
-
-const mockCreateEventBuilder = jest.fn((eventName) => {
-  let properties = {};
-  return {
-    addProperties(props: Record<string, unknown>) {
-      properties = { ...properties, ...props };
-      return this;
-    },
-    build() {
-      return {
-        name: eventName,
-        properties,
-      };
-    },
-  };
-});
 
 jest.mock('../../../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -852,6 +851,193 @@ describe('NetworkSettings', () => {
 
       await instance.onRpcUrlDelete('https://to-delete-url.com');
       expect(wrapper.state('rpcUrls').length).toBe(0);
+    });
+
+    describe('RPC event tracking', () => {
+      beforeEach(() => {
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+        mockAddProperties.mockClear();
+        mockBuild.mockClear();
+      });
+
+      it('should track RPC_ADDED event when adding RPC URL with chainId set', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x1';
+
+        wrapper.setState({
+          chainId,
+          rpcUrls: [],
+        });
+
+        await instance.onRpcItemAdd('https://new-rpc-url.com', 'New RPC');
+
+        // Verify RPC_ADDED event was tracked
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({ category: 'RPC Added' }),
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          chain_id: '0x1',
+          rpc_url_index: 0,
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      it('should track RPC_ADDED event with correct rpc_url_index when adding multiple RPC URLs', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x64';
+
+        wrapper.setState({
+          chainId,
+          rpcUrls: [
+            {
+              url: 'https://first-rpc-url.com',
+              name: 'First RPC',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        // Add second RPC URL
+        await instance.onRpcItemAdd('https://second-rpc-url.com', 'Second RPC');
+
+        // Verify RPC_ADDED event was tracked with index 1
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({ category: 'RPC Added' }),
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          chain_id: '0x64',
+          rpc_url_index: 1,
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      it('should not track RPC_ADDED event when chainId is not set', async () => {
+        const instance = wrapper.instance();
+
+        wrapper.setState({
+          chainId: undefined,
+          rpcUrls: [],
+        });
+
+        await instance.onRpcItemAdd('https://new-rpc-url.com', 'New RPC');
+
+        // Verify RPC_ADDED event was NOT tracked
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+
+      it('should track RPC_DELETED event when deleting RPC URL with chainId set', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x2';
+        const rpcUrlToDelete = 'https://to-delete-url.com';
+
+        wrapper.setState({
+          chainId,
+          rpcUrls: [
+            {
+              url: 'https://first-rpc-url.com',
+              name: 'First RPC',
+              type: RpcEndpointType.Custom,
+            },
+            {
+              url: rpcUrlToDelete,
+              name: 'RPC to delete',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        await instance.onRpcUrlDelete(rpcUrlToDelete);
+
+        // Verify RPC_DELETED event was tracked
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({ category: 'RPC Deleted' }),
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          chain_id: '0x2',
+          rpc_url_index: 1, // Second RPC URL (index 1)
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      it('should track RPC_DELETED event with correct rpc_url_index when deleting first RPC URL', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x3';
+        const rpcUrlToDelete = 'https://first-rpc-url.com';
+
+        wrapper.setState({
+          chainId,
+          rpcUrls: [
+            {
+              url: rpcUrlToDelete,
+              name: 'First RPC',
+              type: RpcEndpointType.Custom,
+            },
+            {
+              url: 'https://second-rpc-url.com',
+              name: 'Second RPC',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        await instance.onRpcUrlDelete(rpcUrlToDelete);
+
+        // Verify RPC_DELETED event was tracked with index 0
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          expect.objectContaining({ category: 'RPC Deleted' }),
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          chain_id: '0x3',
+          rpc_url_index: 0, // First RPC URL (index 0)
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      it('should not track RPC_DELETED event when chainId is not set', async () => {
+        const instance = wrapper.instance();
+        const rpcUrlToDelete = 'https://to-delete-url.com';
+
+        wrapper.setState({
+          chainId: undefined,
+          rpcUrls: [
+            {
+              url: rpcUrlToDelete,
+              name: 'RPC to delete',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        await instance.onRpcUrlDelete(rpcUrlToDelete);
+
+        // Verify RPC_DELETED event was NOT tracked
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+
+      it('should not track RPC_DELETED event when RPC URL is not found', async () => {
+        const instance = wrapper.instance();
+        const chainId = '0x4';
+
+        wrapper.setState({
+          chainId,
+          rpcUrls: [
+            {
+              url: 'https://existing-rpc-url.com',
+              name: 'Existing RPC',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+
+        await instance.onRpcUrlDelete('https://non-existent-url.com');
+
+        // Verify RPC_DELETED event was NOT tracked (rpcUrlIndex would be -1)
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
     });
 
     it('should correctly delete a Block Explorer URL and update state', async () => {
