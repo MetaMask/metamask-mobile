@@ -18,7 +18,8 @@ export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
 
 export const MUSD_CURRENCY = 'MUSD';
 
-export const STABLECOIN_SYMBOL_TO_ADDRESS_BY_CHAIN: Record<
+// All stablecoins that are supported in the mUSD conversion flow.
+export const MUSD_CONVERSION_STABLECOINS_BY_CHAIN_ID: Record<
   Hex,
   Record<string, Hex>
 > = {
@@ -41,7 +42,7 @@ export const STABLECOIN_SYMBOL_TO_ADDRESS_BY_CHAIN: Record<
 export const CONVERTIBLE_STABLECOINS_BY_CHAIN: Record<Hex, Hex[]> = (() => {
   const result: Record<Hex, Hex[]> = {};
   for (const [chainId, symbolMap] of Object.entries(
-    STABLECOIN_SYMBOL_TO_ADDRESS_BY_CHAIN,
+    MUSD_CONVERSION_STABLECOINS_BY_CHAIN_ID,
   )) {
     result[chainId as Hex] = Object.values(symbolMap);
   }

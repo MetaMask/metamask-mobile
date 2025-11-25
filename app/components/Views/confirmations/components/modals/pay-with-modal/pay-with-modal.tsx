@@ -7,22 +7,25 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { AllowedPaymentTokens, AssetType } from '../../../types/token';
+import { AssetType } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
-import { RouteProp, useRoute } from '@react-navigation/native';
-
-interface PayWithModalRouteParams {
-  allowedPaymentTokens?: AllowedPaymentTokens;
-}
+import { useSelector } from 'react-redux';
+import { selectMusdConversionPaymentTokensAllowlist } from '../../../../../UI/Earn/selectors/featureFlags';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../../utils/transaction';
+import { isMusdConversionPaymentToken } from '../../../../../UI/Earn/utils/musd';
 
 export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const route =
-    useRoute<RouteProp<Record<string, PayWithModalRouteParams>, string>>();
-  const allowedPaymentTokens = route.params?.allowedPaymentTokens;
+
+  const musdConversionPaymentTokensAllowlist = useSelector(
+    selectMusdConversionPaymentTokensAllowlist,
+  );
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -41,14 +44,34 @@ export function PayWithModal() {
   );
 
   const tokenFilter = useCallback(
-    (tokens: AssetType[]) =>
-      getAvailableTokens({
+    (tokens: AssetType[]) => {
+      const availableTokens = getAvailableTokens({
         payToken,
         requiredTokens,
         tokens,
-        allowedPaymentTokens,
-      }),
-    [payToken, requiredTokens, allowedPaymentTokens],
+      });
+
+      if (
+        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
+      ) {
+        return availableTokens.filter((token) => {
+          if (!token?.chainId) return false;
+          return isMusdConversionPaymentToken(
+            token.address,
+            token.chainId,
+            musdConversionPaymentTokensAllowlist,
+          );
+        });
+      }
+
+      return availableTokens;
+    },
+    [
+      musdConversionPaymentTokensAllowlist,
+      payToken,
+      requiredTokens,
+      transactionMeta,
+    ],
   );
 
   return (

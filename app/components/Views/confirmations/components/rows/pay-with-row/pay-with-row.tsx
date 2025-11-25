@@ -27,13 +27,8 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { AllowedPaymentTokens } from '../../../types/token';
 
-export interface PayWithRowProps {
-  allowedPaymentTokens?: AllowedPaymentTokens;
-}
-
-export function PayWithRow({ allowedPaymentTokens }: PayWithRowProps) {
+export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -48,10 +43,8 @@ export function PayWithRow({ allowedPaymentTokens }: PayWithRowProps) {
   const handleClick = useCallback(() => {
     if (!canEdit) return;
 
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      allowedPaymentTokens,
-    });
-  }, [canEdit, navigation, allowedPaymentTokens]);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+  }, [canEdit, navigation]);
 
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),

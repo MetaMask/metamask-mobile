@@ -1,4 +1,4 @@
-import { Hex, isHexString } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -12,29 +12,6 @@ import { EVM_SCOPE } from '../constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { TransactionType } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
-
-/**
- * Type guard to validate allowedPaymentTokens structure.
- * Checks if the value is a valid Record<Hex, Hex[]> mapping.
- * Validates that both keys (chain IDs) and values (token addresses) are hex strings.
- *
- * @param value - Value to validate
- * @returns true if valid, false otherwise
- */
-export const areValidAllowedPaymentTokens = (
-  value: unknown,
-): value is Record<Hex, Hex[]> => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return false;
-  }
-
-  return Object.entries(value).every(
-    ([key, val]) =>
-      isHexString(key) &&
-      Array.isArray(val) &&
-      val.every((addr) => isHexString(addr)),
-  );
-};
 
 /**
  * Configuration for mUSD conversion
@@ -51,12 +28,6 @@ export interface MusdConversionConfig {
     address: Hex;
     chainId: Hex;
   };
-  /**
-   * Optional allowlist of payment tokens that can be used to pay for the conversion, organized by chain ID.
-   * Maps chain IDs to arrays of allowed token addresses.
-   * If not provided, all tokens will be available for selection.
-   */
-  allowedPaymentTokens?: Record<Hex, Hex[]>;
   /**
    * Optional navigation stack to use (defaults to Routes.EARN.ROOT)
    */
@@ -141,7 +112,6 @@ export const useMusdConversion = () => {
             loader: ConfirmationLoader.CustomAmount,
             preferredPaymentToken,
             outputChainId,
-            allowedPaymentTokens: config.allowedPaymentTokens,
           },
         });
 

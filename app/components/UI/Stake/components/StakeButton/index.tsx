@@ -245,7 +245,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
-        allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
         navigationStack: Routes.EARN.ROOT,
       });
     } catch (error) {
@@ -262,12 +261,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [
-    asset?.address,
-    asset?.chainId,
-    initiateConversion,
-    musdConversionPaymentTokensAllowlist,
-  ]);
+  }, [asset.address, asset.chainId, initiateConversion]);
 
   const onEarnButtonPress = async () => {
     if (isConvertibleStablecoin) {

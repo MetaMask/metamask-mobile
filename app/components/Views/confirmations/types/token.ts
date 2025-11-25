@@ -41,11 +41,3 @@ export interface Nft {
   networkBadgeSource: ImageSourcePropType;
   balance?: string;
 }
-
-/**
- * Optional map of allowed payment token addresses by chain ID.
- * When provided, only tokens matching these addresses will be shown.
- */
-export interface AllowedPaymentTokens {
-  [chainId: string]: string[];
-}

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
@@ -8,10 +8,7 @@ import {
 } from '../../../../../UI/Earn/constants/musd';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import {
-  areValidAllowedPaymentTokens,
-  MusdConversionConfig,
-} from '../../../../../UI/Earn/hooks/useMusdConversion';
+import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const MusdConversionInfo = () => {
@@ -20,25 +17,6 @@ export const MusdConversionInfo = () => {
   // TEMP: Will be brought back in subsequent PR.
   // const preferredPaymentToken = route.params?.preferredPaymentToken;
   const outputChainId = route.params?.outputChainId ?? CHAIN_IDS.MAINNET;
-  const rawAllowedPaymentTokens = route.params?.allowedPaymentTokens;
-
-  const allowedPaymentTokens = useMemo(() => {
-    if (!rawAllowedPaymentTokens) {
-      // No allowlist provided - allow all tokens
-      return undefined;
-    }
-
-    if (!areValidAllowedPaymentTokens(rawAllowedPaymentTokens)) {
-      console.warn(
-        'Invalid allowedPaymentTokens structure in route params. ' +
-          'Expected Record<Hex, Hex[]>. Allowing all tokens.',
-        rawAllowedPaymentTokens,
-      );
-      return undefined;
-    }
-
-    return rawAllowedPaymentTokens;
-  }, [rawAllowedPaymentTokens]);
 
   useNavbar(strings('earn.musd_conversion.earn_rewards_with'));
 
@@ -60,11 +38,5 @@ export const MusdConversionInfo = () => {
     return null;
   }
 
-  return (
-    <CustomAmountInfo
-      allowedPaymentTokens={allowedPaymentTokens}
-      // TEMP: Will be brought back in subsequent PR.
-      // preferredPaymentToken={preferredPaymentToken}
-    />
-  );
+  return <CustomAmountInfo />;
 };
