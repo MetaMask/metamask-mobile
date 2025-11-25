@@ -48,6 +48,7 @@ interface TokenListItemProps {
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
+  isFullView?: boolean;
 }
 
 export const TokenListItemBip44 = React.memo(
@@ -57,6 +58,7 @@ export const TokenListItemBip44 = React.memo(
     setShowScamWarningModal,
     privacyMode,
     showPercentageChange = true,
+    isFullView = false,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
@@ -122,7 +124,7 @@ export const TokenListItemBip44 = React.memo(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
           .addProperties({
-            source: 'mobile-token-list',
+            source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
             chain_id: token.chainId,
             token_symbol: token.symbol,
           })
