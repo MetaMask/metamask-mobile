@@ -11,6 +11,12 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 import type { PerpsNavigationParamList } from '../controllers/types';
 import { ensureError } from '../utils/perpsErrorHandler';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  PerpsEventValues,
+  PerpsEventProperties,
+} from '../constants/eventNames';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -67,10 +73,20 @@ export const usePerpsHomeActions = (
     useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const { track } = usePerpsEventTracking();
 
   const { onAddFundsSuccess, onWithdrawSuccess, onError } = options || {};
 
   const handleAddFunds = useCallback(async () => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PerpsEventProperties.BUTTON_CLICKED]:
+        PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
+      [PerpsEventProperties.BUTTON_LOCATION]:
+        PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+    });
+
     if (!isEligible) {
       DevLogger.log('[usePerpsHomeActions] User not eligible for deposit');
       setIsEligibilityModalVisible(true);
@@ -119,9 +135,19 @@ export const usePerpsHomeActions = (
     depositWithConfirmation,
     onAddFundsSuccess,
     onError,
+    track,
   ]);
 
   const handleWithdraw = useCallback(async () => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PerpsEventProperties.BUTTON_CLICKED]:
+        PerpsEventValues.BUTTON_CLICKED.WITHDRAW,
+      [PerpsEventProperties.BUTTON_LOCATION]:
+        PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+    });
+
     if (!isEligible) {
       DevLogger.log('[usePerpsHomeActions] User not eligible for withdraw');
       setIsEligibilityModalVisible(true);
@@ -166,6 +192,7 @@ export const usePerpsHomeActions = (
     navigation,
     onWithdrawSuccess,
     onError,
+    track,
   ]);
 
   const closeEligibilityModal = useCallback(() => {

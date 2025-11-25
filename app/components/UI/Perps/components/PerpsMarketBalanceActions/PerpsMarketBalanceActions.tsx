@@ -39,12 +39,6 @@ import type {
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
 import { INITIAL_AMOUNT_UI_PROGRESS } from '../../constants/hyperLiquidConfig';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
 import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
@@ -145,12 +139,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     throttleMs: 1000,
   });
 
-  // Trading and network management hooks
-  const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
-  const { navigateToConfirmation } = useConfirmNavigation();
-  const { track } = usePerpsEventTracking();
-
   // Use the reusable hooks for balance animation
   const {
     startPulseAnimation: startBalancePulse,
@@ -196,72 +184,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   );
 
   const totalBalance = perpsAccount?.totalBalance || '0';
-  const handleAddFunds = useCallback(async () => {
-    // Track button click
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PerpsEventProperties.BUTTON_CLICKED]:
-        PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
-      [PerpsEventProperties.BUTTON_LOCATION]:
-        PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
-    });
-
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    try {
-      // Ensure the network exists before proceeding
-      await ensureArbitrumNetworkExists();
-
-      // Navigate immediately to confirmations screen for instant UI response
-      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-
-      // Initialize deposit in the background without blocking
-      depositWithConfirmation().catch((error) => {
-        console.error('Failed to initialize deposit:', error);
-      });
-    } catch (error) {
-      console.error('Failed to proceed with deposit:', error);
-    }
-  }, [
-    isEligible,
-    ensureArbitrumNetworkExists,
-    navigateToConfirmation,
-    depositWithConfirmation,
-    track,
-  ]);
-
-  const handleWithdraw = useCallback(async () => {
-    // Track button click
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]:
-        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PerpsEventProperties.BUTTON_CLICKED]:
-        PerpsEventValues.BUTTON_CLICKED.WITHDRAW,
-      [PerpsEventProperties.BUTTON_LOCATION]:
-        PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
-    });
-
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    try {
-      // Ensure the network exists before proceeding
-      await ensureArbitrumNetworkExists();
-
-      // Navigate to withdraw view
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.WITHDRAW,
-      });
-    } catch (error) {
-      console.error('Failed to proceed with withdraw:', error);
-    }
-  }, [navigation, isEligible, ensureArbitrumNetworkExists, track]);
 
   const availableBalance = perpsAccount?.availableBalance || '0';
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
