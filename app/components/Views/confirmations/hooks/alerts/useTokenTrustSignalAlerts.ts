@@ -44,6 +44,7 @@ export function useTokenTrustSignalAlerts(): Alert[] {
 
   const alerts = useMemo(() => {
     const alertsList: Alert[] = [];
+    let highestSeverity: Severity | null = null;
 
     tokenScanResults.forEach(({ scanResult }) => {
       if (!scanResult) {
@@ -63,7 +64,13 @@ export function useTokenTrustSignalAlerts(): Alert[] {
         return;
       }
 
-      const isDanger = severity === Severity.Danger;
+      if (!highestSeverity || severity === Severity.Danger) {
+        highestSeverity = severity;
+      }
+    });
+
+    if (highestSeverity) {
+      const isDanger = highestSeverity === Severity.Danger;
 
       const alertKey = isDanger
         ? AlertKeys.TokenTrustSignalMalicious
@@ -82,10 +89,10 @@ export function useTokenTrustSignalAlerts(): Alert[] {
         field: RowAlertKey.IncomingTokens,
         message,
         title,
-        severity,
+        severity: highestSeverity,
         isBlocking: false,
       });
-    });
+    }
 
     return alertsList;
   }, [tokenScanResults]);
