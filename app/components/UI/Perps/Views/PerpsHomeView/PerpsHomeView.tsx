@@ -118,7 +118,6 @@ const PerpsHomeView = () => {
     route.params?.source || PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON;
 
   // Get perp balance status and provider info for tracking
-  const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 5000 });
   const livePositions = usePerpsLivePositions({ throttleMs: 5000 });
   const hasPerpBalance =
     livePositions.positions.length > 0 ||
