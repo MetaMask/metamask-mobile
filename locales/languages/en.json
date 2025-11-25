@@ -2001,7 +2001,9 @@
       "preview_no_order_match_sell": "There isn't enough demand at market price to cash out right now.",
       "claim_failed": "Failed to claim",
       "unknown_error": "An unknown error occurred",
-      "order_not_fully_filled": "Failed to fill your order"
+      "order_not_fully_filled": "Failed to fill your order",
+      "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
+      "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now."
     }
   },
   "receive": {
