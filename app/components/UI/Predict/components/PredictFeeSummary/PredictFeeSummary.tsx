@@ -22,6 +22,7 @@ import RewardsAnimations, {
 } from '../../../Rewards/components/RewardPointsAnimation';
 import { formatPrice } from '../../utils/format';
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
@@ -30,6 +31,7 @@ interface PredictFeeSummaryProps {
   total: number;
   shouldShowRewardsRow?: boolean;
   accountOptedIn?: boolean | null;
+  rewardsAccountScope?: InternalAccount | null;
   estimatedPoints?: number | null;
   isLoadingRewards?: boolean;
   hasRewardsError?: boolean;
@@ -43,6 +45,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   total,
   shouldShowRewardsRow = false,
   accountOptedIn = null,
+  rewardsAccountScope = null,
   estimatedPoints = 0,
   isLoadingRewards = false,
   hasRewardsError = false,
@@ -90,7 +93,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       </Box>
 
       {/* Estimated Points Row */}
-      {shouldShowRewardsRow && (
+      {shouldShowRewardsRow && (accountOptedIn || rewardsAccountScope) && (
         <KeyValueRow
           field={{
             label: {
@@ -126,8 +129,10 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                           : RewardAnimationState.Idle
                     }
                   />
+                ) : rewardsAccountScope ? (
+                  <AddRewardsAccount account={rewardsAccountScope} />
                 ) : (
-                  <AddRewardsAccount />
+                  <></>
                 )}
               </Box>
             ),
