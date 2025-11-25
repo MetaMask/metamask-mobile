@@ -101,38 +101,40 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
   );
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-2"
-    >
-      {isButtonMode ? (
-        <TouchableOpacity
-          onPress={props.onPress}
-          testID="explore-view-search-button"
-          activeOpacity={0.7}
-          style={tw.style('flex-1')}
-        >
-          {searchBarContent}
-        </TouchableOpacity>
-      ) : (
-        <>
-          <Box twClassName="flex-1">{searchBarContent}</Box>
-          {props.isSearchFocused && (
-            <TouchableOpacity
-              onPress={handleCancel}
-              testID="explore-search-cancel-button"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                style={tw.style('text-default font-medium')}
+    <Box twClassName="px-4 pb-3">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+      >
+        {isButtonMode ? (
+          <TouchableOpacity
+            onPress={props.onPress}
+            testID="explore-view-search-button"
+            activeOpacity={0.7}
+            style={tw.style('flex-1')}
+          >
+            {searchBarContent}
+          </TouchableOpacity>
+        ) : (
+          <>
+            <Box twClassName="flex-1">{searchBarContent}</Box>
+            {props.isSearchFocused && (
+              <TouchableOpacity
+                onPress={handleCancel}
+                testID="explore-search-cancel-button"
               >
-                {strings('transaction.cancel')}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </>
-      )}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  style={tw.style('text-default font-medium')}
+                >
+                  {strings('transaction.cancel')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+      </Box>
     </Box>
   );
 };

@@ -23,7 +23,7 @@ import * as NavigationNative from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
-import { Linking, View as MockView } from 'react-native';
+import { Linking } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
@@ -31,7 +31,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -41,8 +40,6 @@ const initialState: DeepPartial<RootState> = {
     backgroundState,
   },
 };
-
-const MOCK_FOX_LOADER_ID = 'FOX_LOADER_ID';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -77,24 +74,6 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
     getMetaMetricsId: jest.fn(),
   }),
 }));
-
-jest.mock('../../hooks/useOTAUpdates', () => ({
-  useOTAUpdates: jest.fn().mockReturnValue({
-    isCheckingUpdates: false,
-  }),
-}));
-
-const mockUseOTAUpdates = useOTAUpdates as jest.MockedFunction<
-  typeof useOTAUpdates
->;
-
-jest.mock(
-  '../../UI/FoxLoader',
-  () =>
-    function MockFoxLoader() {
-      return <MockView testID={MOCK_FOX_LOADER_ID} />;
-    },
-);
 
 jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
@@ -264,9 +243,6 @@ describe('App', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseOTAUpdates.mockReturnValue({
-      isCheckingUpdates: false,
-    });
     mockNavigate.mockClear();
   });
 
@@ -277,20 +253,6 @@ describe('App', () => {
 
   afterAll(() => {
     jest.useRealTimers();
-  });
-
-  it('renders FoxLoader when OTA update check runs', () => {
-    mockUseOTAUpdates.mockReturnValue({
-      isCheckingUpdates: true,
-    });
-
-    const { getByTestId } = renderScreen(
-      App,
-      { name: 'App' },
-      { state: initialState },
-    );
-
-    expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
   });
 
   it('configures MetaMetrics instance and identifies user on startup', async () => {
@@ -1010,27 +972,7 @@ describe('App', () => {
       const { getByTestId } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByTestId('eligibility-failed-modal')).toBeOnTheScreen();
-      });
-    });
-
-    it('registers the ramp unsupported modal route', async () => {
-      const routeState = {
-        index: 0,
-        routes: [
-          {
-            name: Routes.MODAL.ROOT_MODAL_FLOW,
-            params: {
-              screen: Routes.SHEET.UNSUPPORTED_REGION_MODAL,
-            },
-          },
-        ],
-      };
-
-      const { getByTestId } = renderAppWithRouteState(routeState);
-
-      await waitFor(() => {
-        expect(getByTestId('ramp-unsupported-modal')).toBeOnTheScreen();
+        expect(getByTestId('eligibility-failed-modal')).toBeTruthy();
       });
     });
   });

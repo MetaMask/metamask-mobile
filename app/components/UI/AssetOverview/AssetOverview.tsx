@@ -36,8 +36,6 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   toHexadecimal,
-  addCurrencySymbol,
-  balanceToFiatNumber,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
@@ -64,7 +62,7 @@ import {
 } from '../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import {
@@ -88,7 +86,7 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
-import parseRampIntent from '../Ramp/utils/parseRampIntent';
+import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from './TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -170,7 +168,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
-  const { goToBuy } = useRampNavigation();
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     asset,
@@ -340,7 +337,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       assetId = undefined;
     }
 
-    goToBuy({ assetId });
+    navigation.navigate(
+      ...createBuyNavigationDetails({
+        assetId,
+      }),
+    );
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
@@ -491,8 +492,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 
-  if (isMultichainAccountsState2Enabled && asset.balance != null) {
-    // When state2 is enabled and asset has balance, use it directly
+  if (isMultichainAccountsState2Enabled) {
     balance = asset.balance;
   } else if (isMultichainAsset) {
     balance = asset.balance
@@ -518,14 +518,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     if (
       !isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)
     ) {
-      balance = asset.balance ?? undefined;
+      balance = asset.balance || 0;
     } else {
       balance =
         itemAddress && tokenBalanceHex
           ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
-          : (asset.balance ?? undefined);
+          : 0;
     }
   }
+
+  const mainBalance = asset.balanceFiat || '';
+  const secondaryBalance = `${balance} ${
+    asset.isETH ? asset.ticker : asset.symbol
+  }`;
 
   const convertedMultichainAssetRates =
     isNonEvmAsset && multichainAssetRates
@@ -560,53 +565,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     priceDiff = calculatedPriceDiff;
     comparePrice = calculatedComparePrice;
   }
-
-  // Calculate fiat balance if not provided in asset (e.g., when coming from trending view)
-  let mainBalance = asset.balanceFiat || '';
-  if (!mainBalance && balance != null) {
-    // Convert balance to number for calculations
-    const balanceNumber =
-      typeof balance === 'number' ? balance : parseFloat(String(balance));
-
-    if (balanceNumber > 0 && !isNaN(balanceNumber)) {
-      if (isNonEvmAsset && multichainAssetRates?.rate) {
-        // For non-EVM assets, use multichainAssetRates directly
-        const rate = Number(multichainAssetRates.rate);
-        const balanceFiatNumber = balanceNumber * rate;
-        mainBalance =
-          balanceFiatNumber >= 0.01 || balanceFiatNumber === 0
-            ? addCurrencySymbol(balanceFiatNumber, currentCurrency)
-            : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
-      } else if (!isNonEvmAsset) {
-        // For EVM assets, calculate fiat balance directly using balance, market price, and conversion rate
-        const tickerConversionRate =
-          conversionRateByTicker?.[nativeCurrency]?.conversionRate;
-
-        if (
-          tickerConversionRate &&
-          marketDataRate !== undefined &&
-          isFinite(marketDataRate)
-        ) {
-          const balanceFiatNumber = balanceToFiatNumber(
-            balanceNumber,
-            tickerConversionRate,
-            marketDataRate,
-          );
-          if (isFinite(balanceFiatNumber)) {
-            mainBalance =
-              balanceFiatNumber >= 0.01 || balanceFiatNumber === 0
-                ? addCurrencySymbol(balanceFiatNumber, currentCurrency)
-                : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
-          }
-        }
-      }
-    }
-  }
-
-  const secondaryBalance =
-    balance != null
-      ? `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`
-      : undefined;
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
