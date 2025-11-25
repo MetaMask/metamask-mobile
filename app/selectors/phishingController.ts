@@ -1,5 +1,7 @@
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
+import { generateAddressCacheKey } from '../lib/address-scanning/address-scan-util';
+import { TokenScanCacheData } from '@metamask/phishing-controller';
 
 const selectPhishingControllerState = (state: RootState) =>
   state.engine.backgroundState.PhishingController;
@@ -25,26 +27,30 @@ export const selectMultipleTokenScanResults = createDeepEqualSelector(
 
     const tokenScanCache = phishingControllerState?.tokenScanCache || {};
 
-    return tokens
-      .map((token) => {
-        const { address, chainId } = token;
+    return tokens.reduce<
+      {
+        address: string;
+        chainId: string;
+        scanResult: TokenScanCacheData;
+      }[]
+    >((acc, token) => {
+      const { address, chainId } = token;
 
-        if (!address || !chainId) {
-          return null;
-        }
+      if (!address || !chainId) {
+        return acc;
+      }
 
-        const cacheKey = `${chainId}:${address.toLowerCase()}`;
-        const cacheEntry = tokenScanCache[cacheKey];
+      const cacheKey = `${chainId}:${address.toLowerCase()}`;
+      const cacheEntry = tokenScanCache[cacheKey];
 
-        return {
-          address: address.toLowerCase(),
-          chainId,
-          scanResult: cacheEntry?.data,
-        };
-      })
-      .filter(
-        (result): result is NonNullable<typeof result> => result !== null,
-      );
+      acc.push({
+        address: address.toLowerCase(),
+        chainId,
+        scanResult: cacheEntry?.data,
+      });
+
+      return acc;
+    }, []);
   },
 );
 
@@ -69,26 +75,30 @@ export const selectMultipleAddressScanResults = createDeepEqualSelector(
 
     const addressScanCache = phishingControllerState?.addressScanCache || {};
 
-    return addresses
-      .map((addressItem) => {
-        const { address, chainId } = addressItem;
+    return addresses.reduce<
+      {
+        address: string;
+        chainId: string;
+        scanResult: unknown;
+      }[]
+    >((acc, addressItem) => {
+      const { address, chainId } = addressItem;
 
-        if (!address || !chainId) {
-          return null;
-        }
+      if (!address || !chainId) {
+        return acc;
+      }
 
-        const cacheKey = `${chainId}:${address.toLowerCase()}`;
-        const cacheEntry = addressScanCache[cacheKey];
+      const cacheKey = generateAddressCacheKey(chainId, address);
+      const cacheEntry = addressScanCache[cacheKey];
 
-        return {
-          address: address.toLowerCase(),
-          chainId,
-          scanResult: cacheEntry?.data,
-        };
-      })
-      .filter(
-        (result): result is NonNullable<typeof result> => result !== null,
-      );
+      acc.push({
+        address: address.toLowerCase(),
+        chainId,
+        scanResult: cacheEntry?.data,
+      });
+
+      return acc;
+    }, []);
   },
 );
 

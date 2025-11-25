@@ -198,10 +198,6 @@ export async function scanAddress(
 ): Promise<void> {
   try {
     await phishingController.scanAddress(chainId, address);
-    // log the cache
-    Logger.log(
-      `[scanAddress] Cache: ${JSON.stringify(phishingController.state.addressScanCache)}`,
-    );
   } catch (error) {
     Logger.log(`[scanAddress] Failed to scan address ${address}:`, error);
   }
@@ -234,11 +230,21 @@ export async function scanUrl(
 ): Promise<void> {
   try {
     await phishingController.scanUrl(origin);
-    // log the cache
-    Logger.log(
-      `[scanUrl] Cache: ${JSON.stringify(phishingController.state.urlScanCache)}`,
-    );
   } catch (error) {
     Logger.log(`[scanUrl] Failed to scan URL ${origin}:`, error);
   }
+}
+
+/**
+ * Generate a cache key for address scanning
+ *
+ * @param chainId - The chainId
+ * @param address - The address to scan
+ * @returns The cache key
+ */
+export function generateAddressCacheKey(
+  chainId: string,
+  address: string,
+): string {
+  return `${chainId.toLowerCase()}:${address.toLowerCase()}`;
 }

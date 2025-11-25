@@ -15,15 +15,12 @@ export function useUrlTrustSignalAlerts(): Alert[] {
   const { approvalRequest } = useApprovalRequest();
 
   const origin = useMemo(() => {
-    // For signatures, use the URL from approval request meta
     if (signatureRequest && approvalRequest?.requestData?.meta?.url) {
       return approvalRequest.requestData.meta.url;
     }
-    // For transactions, use the origin
     if (transactionMetadata?.origin) {
       return transactionMetadata.origin;
     }
-    // Fallback to approval request origin
     if (approvalRequest?.requestData?.origin) {
       return approvalRequest.requestData.origin;
     }
