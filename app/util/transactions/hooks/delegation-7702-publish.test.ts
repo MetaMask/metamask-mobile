@@ -576,7 +576,22 @@ describe('Delegation 7702 Publish Hook', () => {
       transactionHash: TRANSACTION_HASH_MOCK,
     });
 
-    expect(updateTransactionMock).toHaveBeenCalledWith(
+    expect(updateTransactionMock).toHaveBeenCalledTimes(2);
+
+    expect(updateTransactionMock).toHaveBeenNthCalledWith(
+      1,
+      {
+        ...txMeta,
+        txParams: {
+          ...txMeta.txParams,
+          nonce: undefined,
+        },
+      },
+      'Delegation7702PublishHook - Remove nonce from transaction before relay',
+    );
+
+    expect(updateTransactionMock).toHaveBeenNthCalledWith(
+      2,
       {
         ...txMeta,
         isIntentComplete: true,

@@ -202,6 +202,24 @@ export class Delegation7702PublishHook {
 
     log('Relay request', relayRequest);
 
+    const initialTxMeta = this.#messenger
+      .call('TransactionController:getState')
+      .transactions.find((tx) => tx.id === transactionMeta.id);
+
+    if (initialTxMeta) {
+      this.#messenger.call(
+        'TransactionController:updateTransaction',
+        {
+          ...initialTxMeta,
+          txParams: {
+            ...initialTxMeta.txParams,
+            nonce: undefined,
+          },
+        },
+        'Delegation7702PublishHook - Remove nonce from transaction before relay',
+      );
+    }
+
     const { uuid } = await submitRelayTransaction(relayRequest);
 
     const { transactionHash, status } = await waitForRelayResult({
@@ -214,11 +232,6 @@ export class Delegation7702PublishHook {
       throw new Error(`Transaction relay error - ${status}`);
     }
 
-    // Set isIntentComplete=true immediately after relay success
-    // to prevent PendingTransactionTracker from running nonce checks.
-    // The relay transaction consumed the nonce, so #isNonceTaken would
-    // incorrectly mark this as dropped.
-    // https://github.com/MetaMask/core/blob/build/gasless-bridge-dev-test/packages/transaction-pay-controller/src/strategy/relay/relay-submit.ts#L111
     log('Setting isIntentComplete after relay success', transactionMeta.id);
     const finalTxMeta = this.#messenger
       .call('TransactionController:getState')
