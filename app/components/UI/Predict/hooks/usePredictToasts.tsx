@@ -1,4 +1,5 @@
 import {
+  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
 } from '@metamask/design-system-react-native';
@@ -96,12 +97,12 @@ export const usePredictToasts = ({
         backgroundColor: theme.colors.accent04.normal,
         hasNoTimeout: false,
         startAccessory: (
-          <View style={toastStyles?.spinnerContainer}>
+          <Box style={toastStyles?.spinnerContainer}>
             <Spinner
               color={ReactNativeDsIconColor.PrimaryDefault}
               spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
             />
-          </View>
+          </Box>
         ),
         ...(config.onPress
           ? {
