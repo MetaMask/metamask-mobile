@@ -1,9 +1,6 @@
 import { RootState } from '../reducers';
 
-import {
-  selectPrimaryCurrency,
-  selectShowFiatInTestnets,
-} from './settings';
+import { selectPrimaryCurrency, selectShowFiatInTestnets } from './settings';
 
 describe('selectShowFiatInTestnets', () => {
   it('returns showFiatOnTestnets from state', () => {

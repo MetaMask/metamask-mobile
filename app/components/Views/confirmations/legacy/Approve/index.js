@@ -76,9 +76,7 @@ import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gas
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { selectTransactions } from '../../../../../selectors/transactionController';
-import {
-  selectPrimaryCurrency,
-} from '../../../../../selectors/settings';
+import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 import Routes from '../../../../../constants/navigation/Routes';

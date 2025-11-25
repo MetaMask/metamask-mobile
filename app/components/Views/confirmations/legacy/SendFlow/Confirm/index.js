@@ -814,10 +814,7 @@ class Confirm extends PureComponent {
   };
 
   prepareTransactionToSend = () => {
-    const {
-      gasEstimateType,
-      transaction: rawTransaction,
-    } = this.props;
+    const { gasEstimateType, transaction: rawTransaction } = this.props;
 
     const {
       fromSelectedAddress: from,
