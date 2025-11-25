@@ -5,7 +5,7 @@ import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 
 // Mock dependencies
-jest.mock('../SectionSites/hooks/useSitesData');
+jest.mock('../../UI/Sites/hooks/useSiteData/useSitesData');
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 50, bottom: 34, left: 0, right: 0 }),

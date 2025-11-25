@@ -6,7 +6,7 @@ import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { SiteData } from '../SiteRowItem/SiteRowItem';
 
 // Mock the dependencies
-jest.mock('../../../Nav/Main/MainNavigator', () => ({
+jest.mock('../../../../Nav/Main/MainNavigator', () => ({
   updateLastTrendingScreen: jest.fn(),
 }));
 
