@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.59.1]
 
-### Uncategorized
+### Fixed
 
-- update changelog for 7.59.1 (hotfix - no test plan)
-- bump semvar version to 7.59.1 && build version to 3146
-- bump semvar version to 7.59.1 && build version to 3146
+- fix: cp-7.59.1 cp-7.60.0 add mon to the currency list ([#23269](https://github.com/MetaMask/metamask-mobile/pull/23269)
+
+## [7.59.0]
 
 ## [7.58.2]
 
@@ -8822,7 +8822,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.59.1...HEAD
-[7.59.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.2...v7.59.1
+[7.59.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.59.0...v7.59.1
+[7.59.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.2...v7.59.0
 [7.58.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.1...v7.58.2
 [7.58.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.0...v7.58.1
 [7.58.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.57.2...v7.58.0
