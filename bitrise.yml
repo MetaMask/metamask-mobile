@@ -3577,13 +3577,13 @@ app:
       VERSION_NAME: 7.60.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 3120
+      VERSION_NUMBER: 3144
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.60.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 3120
+      FLASK_VERSION_NUMBER: 3144
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
