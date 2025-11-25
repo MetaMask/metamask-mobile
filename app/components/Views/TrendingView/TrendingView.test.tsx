@@ -518,7 +518,7 @@ describe('TrendingView', () => {
       </NavigationContainer>,
     );
 
-    expect(getByText('Trending')).toBeDefined();
+    expect(getByText('Explore')).toBeDefined();
   });
 
   it('navigates to TrendingBrowser route when browser button is pressed', () => {

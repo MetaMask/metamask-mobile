@@ -19,7 +19,7 @@ import Avatar, {
 import { strings } from '../../../../../../locales/i18n';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
-import { usePopularNetworks } from '../../../../hooks/usePopularNetworks';
+import { usePopularNetworks } from '../../hooks/usePopularNetworks';
 
 export enum NetworkOption {
   AllNetworks = 'all',
@@ -32,6 +32,7 @@ const EXCLUDED_NETWORKS: CaipChainId[] = [
   'eip155:11297108109', // Palm
   'eip155:999', // Hyper EVM
   'eip155:143', // Monad
+  'bip122:000000000019d6689c085ae165831e93', // btc mainnet
 ];
 
 export interface TrendingTokenNetworkBottomSheetProps {
