@@ -62,6 +62,10 @@ app/util/test/component-view/
 └─ renderers/
    ├─ bridge.ts                 # Render helper for BridgeView
    └─ wallet.ts                 # Render helper for Wallet view
+
+Configuration:
+├─ jest.config.view.js          # Isolated Jest config for view tests
+└─ app/util/test/testSetupView.js # Clean setup environment + runtime guard
 ```
 
 ## Usage
@@ -198,7 +202,7 @@ To make fiat assertions exact, use:
 Faster local iteration:
 
 ```bash
-yarn jest <path/to/test> -t "<test-name>" --runInBand --silent --coverage=false
+yarn jest -c jest.config.view.js <path/to/test> -t "<test-name>" --runInBand --silent --coverage=false
 ```
 
 ## Do / Don’t
@@ -214,7 +218,7 @@ To enforce component-view purity, we have two layers:
 
 1. Runtime guard prevents unauthorized mocks in component-view tests:
 
-- Location: `app/util/test/testSetup.js`
+- Location: `app/util/test/testSetupView.js`
 - Applies to files matching `*.view.test.*`
 - Only these `jest.mock(...)` calls are allowed:
   - `'../../../core/Engine'`

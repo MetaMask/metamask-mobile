@@ -32,7 +32,7 @@ These rules are written to align with Cursor Context Rules so the guidance is ea
   - `../../../core/Engine/Engine`
   - `react-native-device-info`
 - Enforced by:
-  - Runtime guard in `app/util/test/testSetup.js` (blocks other `jest.mock` in `*.view.test.*`)
+  - Runtime guard in `app/util/test/testSetupView.js` (blocks other `jest.mock` in `*.view.test.*`)
   - ESLint override in root `.eslintrc.js` (disallows other `jest.mock` in `*.view.test.*`)
 
 2. Drive behavior via Redux state (no mocking hooks or selectors)
@@ -145,7 +145,7 @@ renderScreenWithRoutes(
 - For faster iteration:
 
 ```bash
-yarn jest <path/to/test> -t "<name>" --runInBand --silent --coverage=false
+yarn jest -c jest.config.view.js <path/to/test> -t "<name>" --runInBand --silent --coverage=false
 ```
 
 - Only use yarn (no npm/npx).
@@ -178,4 +178,4 @@ yarn jest <path/to/test> -t "<name>" --runInBand --silent --coverage=false
 - Framework overview: `app/util/test/component-view/README.md`
 - Enforcement:
   - `.eslintrc.js` (override for `**/*.view.test.*`)
-  - `app/util/test/testSetup.js` (runtime guard)
+  - `app/util/test/testSetupView.js` (runtime guard)
