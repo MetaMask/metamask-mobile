@@ -93,36 +93,27 @@ export const selectMultipleAddressScanResults = createDeepEqualSelector(
 );
 
 /**
- * Select the scan result for a URL/origin
+ * Select the scan result for a hostname
  *
  * @param state - Redux root state
  * @param params - Parameters object
- * @param params.url - URL to check
- * @returns Scan result for the URL
+ * @param params.hostname - Hostname to check (not full URL)
+ * @returns Scan result for the hostname
  */
 export const selectUrlScanResult = createDeepEqualSelector(
   selectPhishingControllerState,
-  (_state: RootState, params: { url: string | undefined }) => params.url,
-  (phishingControllerState, url) => {
-    if (!url) {
+  (_state: RootState, params: { hostname: string | undefined }) =>
+    params.hostname,
+  (phishingControllerState, hostname) => {
+    if (!hostname) {
       return null;
     }
 
     const urlScanCache = phishingControllerState?.urlScanCache || {};
-
-    // Extract hostname from URL since cache is keyed by hostname
-    let hostname = url;
-    try {
-      const urlObj = new URL(url);
-      hostname = urlObj.hostname;
-    } catch (error) {
-      // If URL parsing fails, try using it as-is
-      // This handles cases where it might already be a hostname
-    }
     const cacheEntry = urlScanCache[hostname];
 
     return {
-      url,
+      hostname,
       scanResult: cacheEntry?.data,
     };
   },

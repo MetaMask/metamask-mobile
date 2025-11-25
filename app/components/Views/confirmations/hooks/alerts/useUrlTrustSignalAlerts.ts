@@ -1,94 +1,64 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { Alert, Severity } from '../../types/alerts';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
-import { selectUrlScanResult } from '../../../../../selectors/phishingController';
-import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import useApprovalRequest from '../useApprovalRequest';
-import { RecommendedAction } from '@metamask/phishing-controller';
+import { useOriginTrustSignals } from '../useOriginTrustSignals';
+import { TrustSignalDisplayState } from '../../types/trustSignals';
 
 export function useUrlTrustSignalAlerts(): Alert[] {
   const transactionMetadata = useTransactionMetadataRequest();
   const signatureRequest = useSignatureRequest();
   const { approvalRequest } = useApprovalRequest();
 
-  const urlToScan = useMemo(() => {
+  const origin = useMemo(() => {
     // For signatures, use the URL from approval request meta
     if (signatureRequest && approvalRequest?.requestData?.meta?.url) {
       return approvalRequest.requestData.meta.url;
     }
-
     // For transactions, use the origin
     if (transactionMetadata?.origin) {
       return transactionMetadata.origin;
     }
-
     // Fallback to approval request origin
     if (approvalRequest?.requestData?.origin) {
       return approvalRequest.requestData.origin;
     }
-
     return undefined;
   }, [transactionMetadata, signatureRequest, approvalRequest]);
 
-  const urlScanResult = useSelector((state: RootState) =>
-    selectUrlScanResult(state, { url: urlToScan }),
-  );
+  const { state: trustSignalState } = useOriginTrustSignals(origin);
 
-  const alerts = useMemo(() => {
-    if (!urlScanResult?.scanResult) {
+  return useMemo(() => {
+    if (!origin) {
       return [];
     }
 
-    const resultType = urlScanResult.scanResult.recommendedAction;
-    let severity: Severity | null = null;
+    const alerts: Alert[] = [];
 
-    if (resultType === RecommendedAction.Block) {
-      severity = Severity.Danger;
-    } else if (resultType === RecommendedAction.Warn) {
-      severity = Severity.Warning;
-    }
-
-    if (!severity) {
-      return [];
-    }
-
-    const isDanger = severity === Severity.Danger;
-
-    const alertKey = isDanger
-      ? AlertKeys.UrlTrustSignalMalicious
-      : AlertKeys.UrlTrustSignalWarning;
-
-    const message = isDanger
-      ? strings('alert_system.url_trust_signal.malicious.message')
-      : strings('alert_system.url_trust_signal.warning.message');
-
-    const title = isDanger
-      ? strings('alert_system.url_trust_signal.malicious.title')
-      : strings('alert_system.url_trust_signal.warning.title');
-
-    return [
-      {
-        key: alertKey,
+    if (trustSignalState === TrustSignalDisplayState.Malicious) {
+      alerts.push({
+        key: AlertKeys.UrlTrustSignalMalicious,
         field: RowAlertKey.RequestFrom,
-        message,
-        title,
-        severity,
+        severity: Severity.Danger,
+        message: strings('alert_system.url_trust_signal.malicious.message'),
+        title: strings('alert_system.url_trust_signal.malicious.title'),
         isBlocking: false,
-      },
-    ];
-  }, [urlScanResult]);
+      });
+    } else if (trustSignalState === TrustSignalDisplayState.Warning) {
+      alerts.push({
+        key: AlertKeys.UrlTrustSignalWarning,
+        field: RowAlertKey.RequestFrom,
+        severity: Severity.Warning,
+        message: strings('alert_system.url_trust_signal.warning.message'),
+        title: strings('alert_system.url_trust_signal.warning.title'),
+        isBlocking: false,
+      });
+    }
 
-  // eslint-disable-next-line no-console
-  console.log('alerts', alerts);
-  // eslint-disable-next-line no-console
-  console.log('urlScanResult', urlScanResult);
-  // eslint-disable-next-line no-console
-  console.log('urlToScan', urlToScan);
-
-  return alerts;
+    return alerts;
+  }, [origin, trustSignalState]);
 }
