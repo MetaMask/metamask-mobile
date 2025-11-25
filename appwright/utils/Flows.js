@@ -134,11 +134,6 @@ export async function login(device, options = {}) {
   await LoginScreen.tapUnlockButton();
   // Wait for app to settle after unlock
   await AppwrightGestures.wait(5000);
-  const cancelButton = await AppwrightSelectors.getElementByID(
-    device,
-    'snap-account-custom-name-approval-cancel-button',
-  );
-  await AppwrightGestures.tap(cancelButton);
   await dismissMultichainAccountsIntroModal(device);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
