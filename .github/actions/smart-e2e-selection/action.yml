@@ -53,12 +53,22 @@ runs:
 
         # Get the actual PR base branch (for PRs targeting release branches, etc.)
         if [[ -n "${{ inputs.pr-number }}" ]]; then
-          BASE_BRANCH=$(gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json baseRefName --jq '.baseRefName')
-          echo "📍 PR base branch: ${BASE_BRANCH}"
-          echo "PR_BASE_BRANCH=${BASE_BRANCH}" >> $GITHUB_ENV
+          # Attempt to get PR base branch with error handling
+          if BASE_BRANCH=$(gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json baseRefName --jq '.baseRefName' 2>/dev/null); then
+            if [[ -n "$BASE_BRANCH" && "$BASE_BRANCH" != "null" ]]; then
+              echo "📍 PR base branch detected: ${BASE_BRANCH}"
+              echo "PR_BASE_BRANCH=${BASE_BRANCH}" >> $GITHUB_ENV
 
-          # Fetch the actual base branch
-          git fetch origin "${BASE_BRANCH}" 2>/dev/null || true
+              # Fetch the actual base branch
+              if ! git fetch origin "${BASE_BRANCH}" 2>/dev/null; then
+                echo "⚠️ Warning: Could not fetch ${BASE_BRANCH}, will fall back to main"
+              fi
+            else
+              echo "⚠️ Warning: Could not determine PR base branch, defaulting to main"
+            fi
+          else
+            echo "⚠️ Warning: gh pr view failed (network/auth issue?), defaulting to main"
+          fi
         fi
 
         # Always fetch main as fallback

@@ -75,9 +75,11 @@ async function main() {
 
     // Build command with optional base branch
     let baseCmd = `node -r esbuild-register e2e/tools/e2e-ai-analyzer --mode select-tags --pr ${env.PR_NUMBER}`;
-    if (env.PR_BASE_BRANCH) {
+    if (env.PR_BASE_BRANCH && env.PR_BASE_BRANCH !== 'null' && env.PR_BASE_BRANCH !== '') {
       baseCmd += ` --base-branch origin/${env.PR_BASE_BRANCH}`;
-      console.log(`🎯 Using PR base branch: ${env.PR_BASE_BRANCH}`);
+      console.log(`🎯 Using PR base branch: origin/${env.PR_BASE_BRANCH}`);
+    } else {
+      console.log(`ℹ️ No PR base branch specified, analyzer will use default (origin/main)`);
     }
 
     try {
