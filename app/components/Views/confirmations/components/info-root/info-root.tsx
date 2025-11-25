@@ -25,7 +25,6 @@ import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { MusdConversionInfo } from '../info/musd-conversion-info';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../UI/Earn/constants/musd';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -95,7 +94,7 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [MUSD_CONVERSION_TRANSACTION_TYPE])
+    hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
   ) {
     return <MusdConversionInfo />;
   }
