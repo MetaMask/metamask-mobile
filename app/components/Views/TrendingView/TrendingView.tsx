@@ -26,12 +26,6 @@ import {
 } from '../../Nav/Main/MainNavigator';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
-import {
-  PredictModalStack,
-  PredictMarketDetails,
-  PredictSellPreview,
-} from '../../UI/Predict';
-import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
@@ -176,38 +170,6 @@ const TrendingView: React.FC = () => {
       <Stack.Screen
         name={Routes.EXPLORE_SEARCH}
         component={ExploreSearchScreen}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.ROOT}
-        component={PredictModalStack}
-        options={{
-          headerShown: false,
-          cardStyle: {
-            backgroundColor: 'transparent',
-          },
-          animationEnabled: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MARKET_DETAILS}
-        component={PredictMarketDetails}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.BUY_PREVIEW}
-        component={PredictBuyPreview}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.SELL_PREVIEW}
-        component={PredictSellPreview}
-        options={{
-          headerShown: false,
-        }}
       />
     </Stack.Navigator>
   );
