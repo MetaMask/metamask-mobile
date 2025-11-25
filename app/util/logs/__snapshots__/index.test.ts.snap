@@ -546,6 +546,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "useTokenDetection": true,
         "useTransactionSimulations": true,
       },
+      "ProfileMetricsController": {
+        "firstSyncCompleted": false,
+        "syncQueue": {},
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
@@ -729,10 +733,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "TransactionPayController": {
         "transactionData": {},
-      },
-      "ProfileMetricsController": {
-        "firstSyncCompleted": false,
-        "syncQueue": {},
       },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
@@ -1293,6 +1293,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "useTokenDetection": true,
         "useTransactionSimulations": true,
       },
+      "ProfileMetricsController": {
+        "firstSyncCompleted": false,
+        "syncQueue": {},
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
@@ -1458,10 +1462,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "TransactionPayController": {
         "transactionData": {},
-      },
-      "ProfileMetricsController": {
-        "firstSyncCompleted": false,
-        "syncQueue": {},
       },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
