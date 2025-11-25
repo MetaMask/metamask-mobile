@@ -28,7 +28,6 @@ import {
 } from '../../core/Multichain/constants';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 import { TrxScope } from '@metamask/keyring-api';
-import { selectSelectedInternalAccountId } from '../accountsController';
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (state: RootState) => {
@@ -299,7 +298,6 @@ export const selectAsset = createSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
-    selectSelectedInternalAccountId,
     (state: RootState) =>
       state.engine.backgroundState.TokenListController.tokensChainsCache,
     (
@@ -315,21 +313,11 @@ export const selectAsset = createSelector(
       params: { address: string; chainId: string; isStaked?: boolean },
     ) => params.isStaked,
   ],
-  (
-    assets,
-    stakedAssets,
-    selectedAccountId,
-    tokensChainsCache,
-    address,
-    chainId,
-    isStaked,
-  ) => {
+  (assets, stakedAssets, tokensChainsCache, address, chainId, isStaked) => {
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
-            item.chainId === chainId &&
-            item.stakedAsset.assetId === address &&
-            item.accountId === selectedAccountId,
+            item.chainId === chainId && item.stakedAsset.assetId === address,
         )?.stakedAsset
       : assets[chainId]?.find((item: Asset & { isStaked?: boolean }) => {
           // Normalize isStaked values: treat undefined as false

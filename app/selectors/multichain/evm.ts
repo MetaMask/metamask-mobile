@@ -38,8 +38,6 @@ import { RootState } from '../../reducers';
 import { selectTokenList } from '../tokenListController';
 import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
-import { isSupportedPooledStakingChain } from '@metamask/earn-controller';
-import { getDecimalChainId } from '../../util/networks';
 
 interface NativeTokenBalance {
   balance: string;
@@ -188,11 +186,7 @@ export const selectNativeTokensAcrossChainsForAddress = createSelector(
       // Non-staked tokens
       tokensByChain[nativeChainId].push(tokenByChain);
 
-      if (
-        nativeTokenInfoByChainId &&
-        !nativeTokenInfoByChainId.isStaked &&
-        isSupportedPooledStakingChain(getDecimalChainId(nativeChainId as Hex))
-      ) {
+      if (nativeTokenInfoByChainId && !nativeTokenInfoByChainId.isStaked) {
         // Staked tokens
         tokensByChain[nativeChainId].push({
           ...nativeTokenInfoByChainId,
