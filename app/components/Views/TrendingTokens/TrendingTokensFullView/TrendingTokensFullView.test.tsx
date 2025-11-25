@@ -22,9 +22,12 @@ const mockUseTrendingRequest = jest.fn().mockReturnValue({
   error: null,
   fetch: mockFetchTrendingTokens,
 });
-jest.mock('../../../UI/Trending/hooks/useTrendingRequest', () => ({
-  useTrendingRequest: (options: unknown) => mockUseTrendingRequest(options),
-}));
+jest.mock(
+  '../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
+  () => ({
+    useTrendingRequest: (options: unknown) => mockUseTrendingRequest(options),
+  }),
+);
 
 const mockUseSectionData = jest.fn();
 
