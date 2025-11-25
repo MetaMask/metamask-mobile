@@ -19,8 +19,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     pnlSection: {
       flexDirection: 'row',
-      gap: 12,
-      marginBottom: 12,
+      gap: 8,
+      marginBottom: 8,
     },
     pnlCard: {
       flex: 1,
@@ -37,8 +37,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     sizeMarginRow: {
       flexDirection: 'row',
-      gap: 12,
-      marginBottom: 12,
+      gap: 8,
+      marginBottom: 8,
     },
     sizeContainer: {
       flex: 1,
