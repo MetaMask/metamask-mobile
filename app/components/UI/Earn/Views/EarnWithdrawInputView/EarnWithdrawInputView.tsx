@@ -71,6 +71,7 @@ import useTronUnstake from '../../hooks/useTronUnstake';
 import ResourceToggle, {
   type ResourceType,
 } from '../../components/Tron/ResourceToggle';
+import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
 import {
   TRON_RESOURCE,
   TronResourceType,
@@ -98,8 +99,11 @@ const EarnWithdrawInputView = () => {
   const [resourceType, setResourceType] = useState<ResourceType>(
     TRON_RESOURCE.ENERGY,
   );
-  const { validate: tronValidateUnstake, confirm: tronConfirmUnstake } =
-    useTronUnstake();
+  const {
+    validate: tronValidateUnstake,
+    confirm: tronConfirmUnstake,
+    validating: isTronUnstakeValidating,
+  } = useTronUnstake();
   ///: END:ONLY_INCLUDE_IF
 
   const earnToken = React.useMemo(() => {
@@ -207,6 +211,34 @@ const EarnWithdrawInputView = () => {
     conversionRate,
     exchangeRate,
   });
+
+  // Preview visibility: when true, hide keypad/quick amounts and show the Tron preview box
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+
+  // Build quick-amounts list, replacing the last "Max" with "Done" when editing and a value is entered (TRON only)
+  const quickAmounts = useMemo(() => {
+    if (
+      isTrxStakingEnabled &&
+      isTronAsset &&
+      !isPreviewVisible &&
+      isNonZeroAmount
+    ) {
+      const modified = [...percentageOptions];
+      modified[modified.length - 1] = {
+        ...modified[modified.length - 1],
+        label: strings('onboarding_success.done'),
+      };
+      return modified;
+    }
+
+    return percentageOptions;
+  }, [
+    isTrxStakingEnabled,
+    isTronAsset,
+    isPreviewVisible,
+    isNonZeroAmount,
+    percentageOptions,
+  ]);
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
@@ -817,6 +849,28 @@ const EarnWithdrawInputView = () => {
     ],
   );
 
+  // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as 100% quick amount
+  const onRightActionPress = useCallback(() => {
+    if (
+      isTrxStakingEnabled &&
+      isTronAsset &&
+      isNonZeroAmount &&
+      !isPreviewVisible
+    ) {
+      setIsPreviewVisible(true);
+      return;
+    }
+
+    // Fallback: keep existing 100% quick amount behavior
+    handleQuickAmountPressWithTracking({ value: 1 });
+  }, [
+    isTrxStakingEnabled,
+    isTronAsset,
+    isNonZeroAmount,
+    isPreviewVisible,
+    handleQuickAmountPressWithTracking,
+  ]);
+
   return (
     <ScreenLayout style={styles.container}>
       {
@@ -842,6 +896,7 @@ const EarnWithdrawInputView = () => {
           handleCurrencySwitch={handleCurrencySwitchWithTracking}
           currencyToggleValue={currencyToggleValue}
           maxWithdrawalAmount={maxRiskAwareWithdrawalText}
+          onPressAmount={() => setIsPreviewVisible(false)}
           error={
             isWithdrawingMoreThanAvailableForLendingToken
               ? strings('earn.amount_exceeds_safe_withdrawal_limit')
@@ -858,50 +913,92 @@ const EarnWithdrawInputView = () => {
           </View>
         )}
       </ScrollView>
-      <QuickAmounts
-        amounts={percentageOptions}
-        onAmountPress={handleQuickAmountPressWithTracking}
-      />
-      <Keypad
-        value={isFiat ? amountFiatNumber : amountToken}
-        onChange={(data) => {
-          handleKeypadChange(data);
-          ///: BEGIN:ONLY_INCLUDE_IF(tron)
-          if (isTrxStakingEnabled && isTronAsset && !isFiat) {
-            tronValidateUnstake?.(
-              String((data as { value: string }).value),
-              resourceType as TronResourceType,
-              String(token.chainId),
-            );
-          }
-          ///: END:ONLY_INCLUDE_IF
-        }}
-        style={styles.keypad}
-        // TODO: this should be the underlying token symbol/ticker if not ETH
-        // once this data is available in the state we can use that
-        currency={token.isETH ? 'ETH' : (token.ticker ?? token.symbol)}
-        decimals={isFiat ? 2 : 5}
-      />
-      <View style={styles.reviewButtonContainer}>
-        <Button
-          testID="review-button"
-          label={buttonLabel}
-          size={ButtonSize.Lg}
-          labelTextVariant={TextVariant.BodyMDMedium}
-          variant={ButtonVariants.Primary}
-          loading={isSubmittingStakeWithdrawalTransaction}
-          isDisabled={
-            (isTronAsset
-              ? !isNonZeroAmount
-              : isWithdrawingMoreThanAvailableForLendingToken ||
-                isOverMaximum.isOverMaximumToken ||
-                isOverMaximum.isOverMaximumEth ||
-                !isNonZeroAmount) || isSubmittingStakeWithdrawalTransaction
-          }
-          width={ButtonWidthTypes.Full}
-          onPress={handleWithdrawPress}
-        />
-      </View>
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled &&
+          isTronAsset &&
+          isPreviewVisible &&
+          isNonZeroAmount && (
+            <TronStakePreview stakeAmount={amountToken} mode="unstake" />
+          )
+        ///: END:ONLY_INCLUDE_IF
+      }
+      {!isPreviewVisible && (
+        <>
+          <QuickAmounts
+            amounts={quickAmounts}
+            onAmountPress={handleQuickAmountPressWithTracking}
+            onMaxPress={onRightActionPress}
+          />
+          <Keypad
+            value={isFiat ? amountFiatNumber : amountToken}
+            onChange={(data) => {
+              handleKeypadChange(data);
+              ///: BEGIN:ONLY_INCLUDE_IF(tron)
+              if (isTrxStakingEnabled && isTronAsset && !isFiat) {
+                tronValidateUnstake?.(
+                  String((data as { value: string }).value),
+                  resourceType as TronResourceType,
+                  String(token.chainId),
+                );
+              }
+              ///: END:ONLY_INCLUDE_IF
+            }}
+            style={styles.keypad}
+            // TODO: this should be the underlying token symbol/ticker if not ETH
+            // once this data is available in the state we can use that
+            currency={token.isETH ? 'ETH' : (token.ticker ?? token.symbol)}
+            decimals={isFiat ? 2 : 5}
+          />
+        </>
+      )}
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        isTrxStakingEnabled &&
+          isTronAsset &&
+          isPreviewVisible &&
+          isNonZeroAmount && (
+            <View style={styles.reviewButtonContainer}>
+              <Button
+                testID="review-button"
+                label={buttonLabel}
+                size={ButtonSize.Lg}
+                labelTextVariant={TextVariant.BodyMDMedium}
+                variant={ButtonVariants.Primary}
+                loading={isSubmittingStakeWithdrawalTransaction}
+                isDisabled={
+                  !isNonZeroAmount ||
+                  isSubmittingStakeWithdrawalTransaction ||
+                  isTronUnstakeValidating
+                }
+                width={ButtonWidthTypes.Full}
+                onPress={handleWithdrawPress}
+              />
+            </View>
+          )
+        ///: END:ONLY_INCLUDE_IF
+      }
+      {!isTronAsset && (
+        <View style={styles.reviewButtonContainer}>
+          <Button
+            testID="review-button"
+            label={buttonLabel}
+            size={ButtonSize.Lg}
+            labelTextVariant={TextVariant.BodyMDMedium}
+            variant={ButtonVariants.Primary}
+            loading={isSubmittingStakeWithdrawalTransaction}
+            isDisabled={
+              isWithdrawingMoreThanAvailableForLendingToken ||
+              isOverMaximum.isOverMaximumToken ||
+              isOverMaximum.isOverMaximumEth ||
+              !isNonZeroAmount ||
+              isSubmittingStakeWithdrawalTransaction
+            }
+            width={ButtonWidthTypes.Full}
+            onPress={handleWithdrawPress}
+          />
+        </View>
+      )}
     </ScreenLayout>
   );
 };

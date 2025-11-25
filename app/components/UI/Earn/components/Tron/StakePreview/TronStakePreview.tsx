@@ -20,6 +20,11 @@ export interface TronStakePreviewProps {
   resourceType?: ResourceType;
   fee?: ComputeFeeResult | ComputeFeeResult[0];
   stakeAmount?: string;
+  /**
+   * Mode indicates whether we are previewing a stake or an unstake action.
+   * Defaults to 'stake' to preserve existing behavior.
+   */
+  mode?: 'stake' | 'unstake';
 }
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -37,7 +42,11 @@ const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
 // Temporary fixed APR until staking yield is provided
 const TRON_STAKING_APR = 0.0335; // 3.35%
 
-const TronStakePreview = ({ fee, stakeAmount }: TronStakePreviewProps) => {
+const TronStakePreview = ({
+  fee,
+  stakeAmount,
+  mode = 'stake',
+}: TronStakePreviewProps) => {
   const tw = useTailwind();
 
   const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
@@ -78,7 +87,13 @@ const TronStakePreview = ({ fee, stakeAmount }: TronStakePreviewProps) => {
     const baseStaked = Number.isNaN(totalStakedTrx) ? 0 : totalStakedTrx;
     const stake = Number.isNaN(inputAmount) ? 0 : inputAmount;
 
-    const totalForRewards = baseStaked + stake;
+    let totalForRewards = baseStaked;
+
+    if (mode === 'stake') {
+      totalForRewards = baseStaked + stake;
+    } else if (mode === 'unstake') {
+      totalForRewards = Math.max(baseStaked - stake, 0);
+    }
 
     if (totalForRewards <= 0) {
       return '';
@@ -91,7 +106,7 @@ const TronStakePreview = ({ fee, stakeAmount }: TronStakePreviewProps) => {
       minimumFractionDigits: 3,
       maximumFractionDigits: 3,
     })} TRX`;
-  }, [stakeAmount, totalStakedTrx]);
+  }, [stakeAmount, totalStakedTrx, mode]);
 
   const translateY = React.useRef(new Animated.Value(40)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;
