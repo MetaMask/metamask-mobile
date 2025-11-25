@@ -407,7 +407,7 @@ export const POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE = [
       '0x81daa857b8fa34cd3627c8cdbe5d92ea98756bcbe1e5cfcfffb94754e4d5ed86',
     type: 'TRADE',
     size: 11.904758, // Shares received
-    usdcSize: 9.999996, // Amount spent
+    usdcSize: 10, // Amount spent
     transactionHash:
       '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
     price: 0.84, // Price per share
@@ -421,7 +421,7 @@ export const POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE = [
     eventSlug: 'nba-bos-bkn-2025-11-18',
     outcome: 'Celtics',
     name: 'cropMaster',
-    pseudonym: 'Nonstop-Suitcase',
+    pseudonym: 'cropMaster',
     bio: '',
     profileImage: '',
     profileImageOptimized: '',

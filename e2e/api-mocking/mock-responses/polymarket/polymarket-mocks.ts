@@ -19,6 +19,7 @@ import { POLYMARKET_UPNL_RESPONSE } from './polymarket-upnl-response';
 import {
   POLYMARKET_ACTIVITY_RESPONSE,
   POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE,
+  POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE,
 } from './polymarket-activity-response';
 import {
   POLYMARKET_ORDER_BOOK_RESPONSE,
@@ -160,10 +161,7 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url &&
-          /^https:\/\/gamma-api\.polymarket\.com\/events\/[0-9]+$/.test(url),
-      );
+      return Boolean(url?.includes('gamma-api.polymarket.com/events/'));
     })
     .thenCallback((request) => {
       const url = new URL(request.url).searchParams.get('url');
@@ -207,9 +205,8 @@ export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -260,9 +257,8 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ) &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
           !url.includes('redeemable=true'),
       );
     })
@@ -303,9 +299,8 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ) &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
           url.includes('redeemable=true'),
       );
     })
@@ -469,7 +464,8 @@ export const POLYMARKET_ORDER_BOOK_MOCKS = async (mockServer: Mockttp) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/clob\.polymarket\.com\/book\?token_id=\d+$/.test(url),
+          url.includes('clob.polymarket.com/book') &&
+          url.includes('token_id='),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -600,9 +596,8 @@ export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/activity') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -634,9 +629,8 @@ export const POLYMARKET_UPNL_MOCKS = async (mockServer: Mockttp) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/upnl\?user=0x[a-fA-F0-9]{40}$/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/upnl') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -733,8 +727,19 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         } else if (
           toAddress?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()
         ) {
-          // USDC contract call - return current global balance
-          result = currentUSDCBalance;
+          // USDC contract call - check function selector
+          if (callData?.toLowerCase()?.startsWith('0x70a08231')) {
+            // balanceOf(address) selector - return current global balance
+            result = currentUSDCBalance;
+          } else if (callData?.toLowerCase()?.startsWith('0xdd62ed3e')) {
+            // allowance(address,address) selector - return max allowance (uint256 max)
+            // This indicates full allowance is granted
+            result =
+              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else {
+            // Other USDC contract calls - return current global balance as fallback
+            result = currentUSDCBalance;
+          }
         } else if (
           toAddress?.toLowerCase() === MULTICALL_CONTRACT_ADDRESS.toLowerCase()
         ) {
@@ -824,8 +829,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
-        url &&
-          /^https:\/\/gamma-api\.polymarket\.com\/events\/pagination/.test(url),
+        url?.includes('gamma-api.polymarket.com/events/pagination'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -882,9 +886,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url && /^https:\/\/gamma-api\.polymarket\.com\/public-search/.test(url),
-      );
+      return Boolean(url?.includes('gamma-api.polymarket.com/public-search'));
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback(() => ({
@@ -992,9 +994,20 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
       // Handle USDC balance calls
       if (body?.method === 'eth_call') {
         const toAddress = body?.params?.[0]?.to?.toLowerCase();
+        const callData = body?.params?.[0]?.data;
         if (toAddress === USDC_CONTRACT_ADDRESS.toLowerCase()) {
-          // USDC contract call - return updated balance
-          result = balance;
+          // USDC contract call - check function selector
+          if (callData?.toLowerCase()?.startsWith('0x70a08231')) {
+            // balanceOf(address) selector - return updated balance
+            result = balance;
+          } else if (callData?.toLowerCase()?.startsWith('0xdd62ed3e')) {
+            // allowance(address,address) selector - return max allowance (uint256 max)
+            result =
+              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else {
+            // Other USDC contract calls - return updated balance as fallback
+            result = balance;
+          }
         } else {
           // For other eth_call, return empty result (let base mocks handle if needed)
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
@@ -1040,9 +1053,11 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
     .matching(async (request) => {
       try {
         const urlParam = new URL(request.url).searchParams.get('url');
-        const relayerEndpointPattern =
-          /predict\.(dev-)?api\.cx\.metamask\.io\/order/;
-        if (!urlParam || !relayerEndpointPattern.test(urlParam)) {
+        if (
+          !urlParam ||
+          !urlParam.includes('predict.') ||
+          !urlParam.includes('api.cx.metamask.io/order')
+        ) {
           return false;
         }
 
@@ -1532,6 +1547,58 @@ export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
 };
 
 /**
+ * Mock for adding Celtics vs Nets activity entry to activity list after order is submitted
+ * This override adds the Celtics vs Nets BUY activity only after the open position flow is completed
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          url.includes('data-api.polymarket.com/activity') &&
+          url.includes('user=0x'),
+      );
+    })
+    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base activity mock
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
+
+      // Check if Celtics vs Nets order has been submitted
+      const proxyAddressLower = PROXY_WALLET_ADDRESS.toLowerCase();
+      const celticsOrderSubmittedForProxy =
+        celticsOrderSubmitted.has(proxyAddressLower);
+
+      // Combine existing activity with Celtics activity only if Celtics order was submitted
+      // Put Celtics activity at the top (most recent first)
+      let allActivity = [...POLYMARKET_ACTIVITY_RESPONSE];
+      if (celticsOrderSubmittedForProxy) {
+        allActivity = [
+          ...POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE,
+          ...POLYMARKET_ACTIVITY_RESPONSE,
+        ];
+      }
+
+      // Update the mock response with the actual user address
+      const dynamicResponse = allActivity.map((activity) => ({
+        ...activity,
+        proxyWallet: userAddress,
+      }));
+
+      return {
+        statusCode: 200,
+        json: dynamicResponse,
+      };
+    });
+};
+
+/**
  * Dedicated mock for loading USDC balance specifically for withdraw flow
  * This ensures balance refresh for withdraw/deposit flows doesn't interfere with cash-out
  * @param mockServer - The mockttp server instance
@@ -1593,9 +1660,8 @@ export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ) &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
           url.includes('redeemable=true'),
       );
     })
@@ -1622,9 +1688,8 @@ export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/activity') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the original activity mock
@@ -1678,9 +1743,8 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ) &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
           !url.includes('redeemable=true'),
       );
     })
@@ -1726,9 +1790,8 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/activity') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the original activity mock

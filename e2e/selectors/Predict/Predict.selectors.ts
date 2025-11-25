@@ -30,7 +30,7 @@ export const PredictMarketListSelectorsIDs = {
   SPORTS_TAB: 'predict-market-list-sports-tab',
   CRYPTO_TAB: 'predict-market-list-crypto-tab',
   POLITICS_TAB: 'predict-market-list-politics-tab',
-
+  BACK_BUTTON: 'back-button',
   // Empty state
   EMPTY_STATE: 'predict-market-list-empty-state',
 } as const;

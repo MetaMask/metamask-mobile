@@ -8,7 +8,6 @@ import PredictMarketList from '../../pages/Predict/PredictMarketList';
 import PredictDetailsPage from '../../pages/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
-
 import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -18,7 +17,27 @@ import {
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
   POLYMARKET_ADD_CELTICS_POSITION_MOCKS,
+  POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+
+/*
+Test Scenario: Open position on Celtics vs. Nets market
+  Verifies the open position flow for a predictions market:
+  1. Navigate to Predictions tab and open market list
+  2. Select Celtics vs. Nets market from sports category
+  3. Open a position with $10 investment
+  4. Verify position appears in Positions tab
+  5. Verify balance updates to $17.76
+  6. Verify position appears in Activities tab
+*/
+const positionDetails = {
+  name: 'Celtics vs. Nets',
+  positionAmount: '10',
+  newBalance: '$17.76',
+  category: 'sports' as const,
+  marketIndex: 1,
+};
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
@@ -28,8 +47,9 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
 };
+
 describe(SmokePredictions('Predictions'), () => {
-  it('Opens predict position: Celtics vs. Nets', async () => {
+  it('opens position on Celtics vs. Nets market', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -40,13 +60,7 @@ describe(SmokePredictions('Predictions'), () => {
         await loginToApp();
 
         await WalletView.tapOnPredictionsTab();
-
-        await Assertions.expectElementToBeVisible(
-          WalletView.PredictionsTabContainer,
-        );
-        // Navigate to actions
         await TabBarComponent.tapActions();
-
         await WalletActionsBottomSheet.tapPredictButton();
         await device.disableSynchronization();
 
@@ -54,34 +68,59 @@ describe(SmokePredictions('Predictions'), () => {
           description: 'Predict market list container should be visible',
         });
 
-        await PredictMarketList.tapCategoryTab('sports');
-
-        await PredictMarketList.tapMarketCard('sports', 1);
+        await PredictMarketList.tapCategoryTab(positionDetails.category);
+        await PredictMarketList.tapMarketCard(
+          positionDetails.category,
+          positionDetails.marketIndex,
+        );
         await PredictDetailsPage.tapOpenPositionValue();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
-        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
-
-        await PredictDetailsPage.tapPositionAmount('10');
-
+        await PredictDetailsPage.tapPositionAmount(
+          positionDetails.positionAmount,
+        );
         await PredictDetailsPage.tapDoneButton();
         await POLYMARKET_ADD_CELTICS_POSITION_MOCKS(mockServer);
+        await POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS(mockServer);
 
         await PredictDetailsPage.tapOpenPosition();
         await device.enableSynchronization();
-        // await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        await Assertions.expectElementToBeVisible(
+          PredictDetailsPage.positionsTab,
+          {
+            description:
+              'Position tab should appear after opening a new position',
+          },
+        );
+
+        await Assertions.expectTextDisplayed(positionDetails.name, {
+          description: 'Position card for Celtics vs. Nets should appear',
+        });
 
         await PredictDetailsPage.tapBackButton();
-        await Assertions.expectTextDisplayed('$17.76');
+        await Assertions.expectTextDisplayed(positionDetails.newBalance, {
+          description: `USDC balance should display ${positionDetails.newBalance} after opening position`,
+        });
+        await PredictMarketList.tapBackButton();
 
-        // await new Promise((resolve) => setTimeout(resolve, 6000));
+        // Verify position does not appear in current positions list on homepage
+        for (let i = 0; i < 4; i++) {
+          const positionCard =
+            WalletView.getPredictCurrentPositionCardByIndex(i);
+          await Assertions.expectElementToNotHaveText(
+            positionCard,
+            positionDetails.name,
+            {
+              description: `Position card at index ${i} should not have text "${positionDetails.name}"`,
+            },
+          );
+        }
 
-        // await Assertions.expectElementToBeVisible(
-        //   PredictDetailsPage.container,
-        //   {
-        //     description: 'Predict details page container should be visible',
-        //   },
-        // );
+        await TabBarComponent.tapActivity();
+        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+        await ActivitiesView.tapOnPredictionsTab();
+        await ActivitiesView.tapPredictPosition(positionDetails.name);
       },
     );
   });
