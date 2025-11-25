@@ -137,7 +137,7 @@ describe('usePredictRewards', () => {
       const mockEstimatedPoints = 100;
       mockControllerMessengerCall
         .mockResolvedValueOnce(true) // hasActiveSeason
-        .mockResolvedValueOnce('subscription-1') // getFirstSubscriptionId
+        .mockResolvedValueOnce('subscription-1') // getCandidateSubscriptionId
         .mockResolvedValueOnce(true) // getHasAccountOptedIn
         .mockResolvedValueOnce({
           pointsEstimate: mockEstimatedPoints,
@@ -164,13 +164,14 @@ describe('usePredictRewards', () => {
       expect(result.current.accountOptedIn).toBe(true);
       expect(result.current.shouldShowRewardsRow).toBe(true);
       expect(result.current.hasError).toBe(false);
+      expect(result.current.rewardsAccountScope).toEqual(mockInternalAccount);
 
       // Verify controller calls
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
         'RewardsController:hasActiveSeason',
       );
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
-        'RewardsController:getFirstSubscriptionId',
+        'RewardsController:getCandidateSubscriptionId',
       );
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
         'RewardsController:getHasAccountOptedIn',
@@ -217,6 +218,7 @@ describe('usePredictRewards', () => {
       expect(result.current.accountOptedIn).toBe(null);
       expect(result.current.shouldShowRewardsRow).toBe(false);
       expect(result.current.estimatedPoints).toBe(null);
+      expect(result.current.rewardsAccountScope).toEqual(mockInternalAccount);
       expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
         'RewardsController:hasActiveSeason',
@@ -225,11 +227,11 @@ describe('usePredictRewards', () => {
   });
 
   describe('when no subscription exists', () => {
-    it('returns enabled false when getFirstSubscriptionId returns null', async () => {
+    it('returns enabled false when getCandidateSubscriptionId returns null', async () => {
       // Arrange
       mockControllerMessengerCall
         .mockResolvedValueOnce(true) // hasActiveSeason
-        .mockResolvedValueOnce(null); // getFirstSubscriptionId
+        .mockResolvedValueOnce(null); // getCandidateSubscriptionId
 
       // Act
       const { result } = renderHook(() => usePredictRewards(10.5));
@@ -244,6 +246,7 @@ describe('usePredictRewards', () => {
       expect(result.current.shouldShowRewardsRow).toBe(false);
       expect(result.current.estimatedPoints).toBe(null);
       expect(result.current.hasError).toBe(false);
+      expect(result.current.rewardsAccountScope).toEqual(mockInternalAccount);
       expect(mockControllerMessengerCall).toHaveBeenCalledTimes(2);
     });
   });
@@ -253,7 +256,7 @@ describe('usePredictRewards', () => {
       // Arrange
       mockControllerMessengerCall
         .mockResolvedValueOnce(true) // hasActiveSeason
-        .mockResolvedValueOnce('subscription-1') // getFirstSubscriptionId
+        .mockResolvedValueOnce('subscription-1') // getCandidateSubscriptionId
         .mockResolvedValueOnce(false) // getHasAccountOptedIn
         .mockResolvedValueOnce(true); // isOptInSupported
 
@@ -270,6 +273,7 @@ describe('usePredictRewards', () => {
       expect(result.current.shouldShowRewardsRow).toBe(true);
       expect(result.current.estimatedPoints).toBe(null);
       expect(result.current.hasError).toBe(false);
+      expect(result.current.rewardsAccountScope).toEqual(mockInternalAccount);
 
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
         'RewardsController:isOptInSupported',
@@ -285,7 +289,7 @@ describe('usePredictRewards', () => {
       // Arrange
       mockControllerMessengerCall
         .mockResolvedValueOnce(true) // hasActiveSeason
-        .mockResolvedValueOnce('subscription-1') // getFirstSubscriptionId
+        .mockResolvedValueOnce('subscription-1') // getCandidateSubscriptionId
         .mockResolvedValueOnce(false) // getHasAccountOptedIn
         .mockResolvedValueOnce(false); // isOptInSupported
 
@@ -301,6 +305,7 @@ describe('usePredictRewards', () => {
       expect(result.current.accountOptedIn).toBe(false);
       expect(result.current.shouldShowRewardsRow).toBe(false);
       expect(result.current.estimatedPoints).toBe(null);
+      expect(result.current.rewardsAccountScope).toEqual(mockInternalAccount);
     });
   });
 
@@ -321,26 +326,7 @@ describe('usePredictRewards', () => {
       expect(result.current.accountOptedIn).toBe(null);
       expect(result.current.shouldShowRewardsRow).toBe(false);
       expect(result.current.estimatedPoints).toBe(null);
-      expect(mockControllerMessengerCall).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('when totalFeeAmountUsd is missing', () => {
-    it('returns enabled false and does not call controller when totalFeeAmountUsd is undefined', async () => {
-      // Arrange - no mocks needed since hook returns early
-
-      // Act
-      const { result } = renderHook(() => usePredictRewards());
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.enabled).toBe(false);
-      expect(result.current.accountOptedIn).toBe(null);
-      expect(result.current.shouldShowRewardsRow).toBe(false);
-      expect(result.current.estimatedPoints).toBe(null);
+      expect(result.current.rewardsAccountScope).toBe(null);
       expect(mockControllerMessengerCall).not.toHaveBeenCalled();
     });
   });
@@ -353,7 +339,7 @@ describe('usePredictRewards', () => {
         throw mockError;
       });
       mockControllerMessengerCall.mockResolvedValueOnce(true); // hasActiveSeason
-      mockControllerMessengerCall.mockResolvedValueOnce('subscription-1'); // getFirstSubscriptionId
+      mockControllerMessengerCall.mockResolvedValueOnce('subscription-1'); // getCandidateSubscriptionId
 
       // Act
       const { result } = renderHook(() => usePredictRewards(10.5));
@@ -366,6 +352,7 @@ describe('usePredictRewards', () => {
       expect(result.current.enabled).toBe(false);
       expect(result.current.accountOptedIn).toBe(null);
       expect(result.current.shouldShowRewardsRow).toBe(false);
+      expect(result.current.rewardsAccountScope).toEqual(mockInternalAccount);
       expect(mockLoggerError).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'Invalid chain ID' }),
         {
@@ -392,7 +379,7 @@ describe('usePredictRewards', () => {
       const mockError = new Error('Network error');
       mockControllerMessengerCall
         .mockResolvedValueOnce(true) // hasActiveSeason
-        .mockResolvedValueOnce('subscription-1') // getFirstSubscriptionId
+        .mockResolvedValueOnce('subscription-1') // getCandidateSubscriptionId
         .mockResolvedValueOnce(true) // getHasAccountOptedIn
         .mockRejectedValueOnce(mockError); // estimatePoints
 
@@ -416,6 +403,7 @@ describe('usePredictRewards', () => {
       expect(result.current.accountOptedIn).toBe(true);
       expect(result.current.shouldShowRewardsRow).toBe(true);
       expect(result.current.estimatedPoints).toBe(null);
+      expect(result.current.rewardsAccountScope).toEqual(mockInternalAccount);
       expect(mockLoggerError).toHaveBeenCalledWith(expect.any(Error), {
         tags: {
           feature: 'Predict',

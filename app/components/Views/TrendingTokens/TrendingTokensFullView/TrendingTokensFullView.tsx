@@ -5,33 +5,32 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  RefreshControl,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { Theme } from '../../../../util/theme/models';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
-import HeaderBase, {
-  HeaderBaseVariant,
-} from '../../../../component-library/components/HeaderBase';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconName,
   IconColor,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
+import { TrendingListHeader } from '../../../UI/Trending/components/TrendingListHeader';
 import TrendingTokensList from '../../../UI/Trending/components/TrendingTokensList/TrendingTokensList';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
-import { SortTrendingBy } from '@metamask/assets-controllers';
+import {
+  SortTrendingBy,
+  type TrendingAsset,
+} from '@metamask/assets-controllers';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { PopularList } from '../../../../util/networks/customNetworks';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import {
   TrendingTokenTimeBottomSheet,
   TrendingTokenNetworkBottomSheet,
@@ -41,6 +40,7 @@ import {
   TimeOption,
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
+import { SECTIONS_CONFIG } from '../../TrendingView/config/sections.config';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -55,14 +55,6 @@ const createStyles = (theme: Theme) =>
     },
     headerContainer: {
       backgroundColor: theme.colors.background.default,
-    },
-    header: {
-      paddingTop: 16,
-      paddingBottom: 0,
-      paddingHorizontal: 16,
-      alignItems: 'center',
-      gap: 8,
-      alignSelf: 'stretch',
     },
     cardContainer: {
       margin: 16,
@@ -147,10 +139,24 @@ const TrendingTokensFullView = () => {
   const [showNetworkBottomSheet, setShowNetworkBottomSheet] = useState(false);
   const [showPriceChangeBottomSheet, setShowPriceChangeBottomSheet] =
     useState(false);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleSearchToggle = useCallback(() => {
+    setIsSearchVisible((prev) => !prev);
+    if (isSearchVisible) {
+      setSearchQuery('');
+    }
+  }, [isSearchVisible]);
+
+  const handleSearchQueryChange = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -188,26 +194,57 @@ const TrendingTokensFullView = () => {
     return strings('trending.all_networks');
   }, [selectedNetwork, networkConfigurations]);
 
-  const { results: trendingTokensResults, isLoading } = useTrendingRequest({
+  // Use tokens section data as the single source of truth:
+  // - When no search query: returns trending results from useTrendingRequest
+  // - When search query exists: returns merged trending + search results
+  const {
+    data: tokensSectionData,
+    isLoading,
+    refetch: refetchTokensSection,
+  } = SECTIONS_CONFIG.tokens.useSectionData({
+    searchQuery: searchQuery || undefined,
     sortBy,
-    chainIds: selectedNetwork ?? undefined,
+    chainIds: selectedNetwork,
   });
+
+  const searchResults = useMemo(() => {
+    // When search is not active, use the full section data
+    if (!isSearchVisible) {
+      return tokensSectionData as TrendingAsset[];
+    }
+
+    const searchTerm = searchQuery.toLowerCase().trim();
+
+    // If search box is empty, still use full section data
+    if (!searchTerm) {
+      return tokensSectionData as TrendingAsset[];
+    }
+
+    const tokensSectionConfig = SECTIONS_CONFIG.tokens;
+
+    // Filter section data based on searchable text (symbol + name)
+    return (tokensSectionData as unknown[]).filter((item) =>
+      tokensSectionConfig.getSearchableText(item).includes(searchTerm),
+    ) as TrendingAsset[];
+  }, [isSearchVisible, searchQuery, tokensSectionData]);
 
   // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {
     // Early return if no results
-    if (trendingTokensResults.length === 0) {
+    if (searchResults.length === 0) {
       return [];
     }
 
-    // If no sort option selected, return results as-is (already sorted by API)
+    const filteredResults = searchResults;
+
+    // If no sort option selected, return filtered results as-is (already sorted by API)
     if (!selectedPriceChangeOption) {
-      return trendingTokensResults.slice(0, MAX_TOKENS);
+      return filteredResults.slice(0, MAX_TOKENS);
     }
 
     // Sort using the shared utility function
     const sorted = sortTrendingTokens(
-      trendingTokensResults,
+      filteredResults,
       selectedPriceChangeOption,
       priceChangeSortDirection,
       selectedTimeOption,
@@ -215,7 +252,7 @@ const TrendingTokensFullView = () => {
 
     return sorted.slice(0, MAX_TOKENS);
   }, [
-    trendingTokensResults,
+    searchResults,
     selectedPriceChangeOption,
     priceChangeSortDirection,
     selectedTimeOption,
@@ -253,6 +290,18 @@ const TrendingTokensFullView = () => {
     setShowTimeBottomSheet(true);
   }, []);
 
+  // Handle pull-to-refresh
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      refetchTokensSection?.();
+    } catch (error) {
+      console.warn('Failed to refresh trending tokens:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchTokensSection]);
+
   // Get the button text based on selected price change option
   const priceChangeButtonText = useMemo(() => {
     switch (selectedPriceChangeOption) {
@@ -276,91 +325,77 @@ const TrendingTokensFullView = () => {
           },
         ]}
       >
-        <HeaderBase
-          variant={HeaderBaseVariant.Display}
-          startAccessory={
-            <ButtonIcon
-              size={ButtonIconSizes.Lg}
-              onPress={handleBackPress}
-              iconName={IconName.ArrowLeft}
-              testID="back-button"
-            />
-          }
-          endAccessory={
-            <ButtonIcon
-              size={ButtonIconSizes.Lg}
-              onPress={() => {
-                // TODO: Implement search functionality
-              }}
-              iconName={IconName.Search}
-              testID="search-button"
-            />
-          }
-          style={styles.header}
-        >
-          <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
-            {strings('trending.trending_tokens')}
-          </Text>
-        </HeaderBase>
+        <TrendingListHeader
+          title={strings('trending.trending_tokens')}
+          isSearchVisible={isSearchVisible}
+          searchQuery={searchQuery}
+          onSearchQueryChange={handleSearchQueryChange}
+          onBack={handleBackPress}
+          onSearchToggle={handleSearchToggle}
+          testID="trending-tokens-header"
+        />
       </View>
-      <View style={styles.controlBarWrapper}>
-        <View style={styles.controlButtonOuterWrapper}>
-          <TouchableOpacity
-            testID="price-change-button"
-            onPress={handlePriceChangePress}
-            style={styles.controlButton}
-            activeOpacity={0.2}
-          >
-            <View style={styles.controlButtonContent}>
-              <Text style={styles.controlButtonText}>
-                {priceChangeButtonText}
-              </Text>
-              <Icon
-                name={IconName.ArrowDown}
-                color={IconColor.Alternative}
-                size={IconSize.Xs}
-              />
+      {!isSearchVisible ? (
+        <View style={styles.controlBarWrapper}>
+          <View style={styles.controlButtonOuterWrapper}>
+            <TouchableOpacity
+              testID="price-change-button"
+              onPress={handlePriceChangePress}
+              style={styles.controlButton}
+              activeOpacity={0.2}
+            >
+              <View style={styles.controlButtonContent}>
+                <Text style={styles.controlButtonText}>
+                  {priceChangeButtonText}
+                </Text>
+                <Icon
+                  name={IconName.ArrowDown}
+                  color={IconColor.Alternative}
+                  size={IconSize.Xs}
+                />
+              </View>
+            </TouchableOpacity>
+            <View style={styles.controlButtonInnerWrapper}>
+              <TouchableOpacity
+                testID="all-networks-button"
+                onPress={handleAllNetworksPress}
+                style={styles.controlButtonRight}
+                activeOpacity={0.2}
+              >
+                <View style={styles.controlButtonContent}>
+                  <Text style={styles.controlButtonText}>
+                    {selectedNetworkName}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowDown}
+                    color={IconColor.Alternative}
+                    size={IconSize.Xs}
+                  />
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="24h-button"
+                onPress={handle24hPress}
+                style={styles.controlButtonRight}
+                activeOpacity={0.2}
+              >
+                <View style={styles.controlButtonContent}>
+                  <Text style={styles.controlButtonText}>
+                    {selectedTimeOption}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowDown}
+                    color={IconColor.Alternative}
+                    size={IconSize.Xs}
+                  />
+                </View>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-          <View style={styles.controlButtonInnerWrapper}>
-            <TouchableOpacity
-              testID="all-networks-button"
-              onPress={handleAllNetworksPress}
-              style={styles.controlButtonRight}
-              activeOpacity={0.2}
-            >
-              <View style={styles.controlButtonContent}>
-                <Text style={styles.controlButtonText}>
-                  {selectedNetworkName}
-                </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  color={IconColor.Alternative}
-                  size={IconSize.Xs}
-                />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="24h-button"
-              onPress={handle24hPress}
-              style={styles.controlButtonRight}
-              activeOpacity={0.2}
-            >
-              <View style={styles.controlButtonContent}>
-                <Text style={styles.controlButtonText}>
-                  {selectedTimeOption}
-                </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  color={IconColor.Alternative}
-                  size={IconSize.Xs}
-                />
-              </View>
-            </TouchableOpacity>
           </View>
         </View>
-      </View>
-      {isLoading || trendingTokensResults.length === 0 ? (
+      ) : null}
+
+      {isLoading || (searchResults as TrendingAsset[]).length === 0 ? (
         <View style={styles.listContainer}>
           <TrendingTokensSkeleton count={10} />
         </View>
@@ -369,6 +404,14 @@ const TrendingTokensFullView = () => {
           <TrendingTokensList
             trendingTokens={trendingTokens}
             selectedTimeOption={selectedTimeOption}
+            refreshControl={
+              <RefreshControl
+                colors={[theme.colors.primary.default]}
+                tintColor={theme.colors.icon.default}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
           />
         </View>
       )}
