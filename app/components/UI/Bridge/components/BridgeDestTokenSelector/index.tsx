@@ -49,9 +49,9 @@ const createStyles = () =>
       marginRight: 12,
     },
   });
-export const BridgeDestTokenSelector: React.FC = React.memo(() => {
+export const BridgeDestTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
-  const { styles } = useStyles(createStyles);
+  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
 
@@ -59,21 +59,11 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
   const selectedDestToken = useSelector(selectDestToken);
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
-
-  const balanceChainIds = useMemo(
-    () => (selectedDestChainId ? [selectedDestChainId] : []),
-    [selectedDestChainId],
-  );
-  const tokensToExclude = useMemo(
-    () => (selectedSourceToken ? [selectedSourceToken] : []),
-    [selectedSourceToken],
-  );
   const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedDestChainId,
-    balanceChainIds,
-    tokensToExclude,
+    balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
+    tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
   });
-
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
       dispatch(setDestToken(token));
@@ -165,18 +155,14 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
     ],
   );
 
-  const networksBar = useMemo(
-    () =>
-      bridgeViewMode === BridgeViewMode.Bridge ||
-      bridgeViewMode === BridgeViewMode.Unified ? (
-        <BridgeDestNetworksBar />
-      ) : undefined,
-    [bridgeViewMode],
-  );
-
   return (
     <BridgeTokenSelectorBase
-      networksBar={networksBar}
+      networksBar={
+        bridgeViewMode === BridgeViewMode.Bridge ||
+        bridgeViewMode === BridgeViewMode.Unified ? (
+          <BridgeDestNetworksBar />
+        ) : undefined
+      }
       renderTokenItem={renderToken}
       allTokens={allTokens}
       tokensToRender={tokensToRender}
@@ -185,6 +171,4 @@ export const BridgeDestTokenSelector: React.FC = React.memo(() => {
       scrollResetKey={selectedDestChainId}
     />
   );
-});
-
-BridgeDestTokenSelector.displayName = 'BridgeDestTokenSelector';
+};

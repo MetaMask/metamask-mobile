@@ -126,19 +126,17 @@ interface PredictMarketSingleProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
-  isCarousel?: boolean;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-  isCarousel = false,
 }) => {
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { styles } = useStyles(styleSheet, { isCarousel });
+  const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({
@@ -235,16 +233,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
         <View style={styles.buttonContainer}>
           <Button
             variant={ButtonVariants.Secondary}
-            size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
+            size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text
-                variant={
-                  isCarousel ? TextVariant.BodyXSMedium : TextVariant.BodySM
-                }
-                style={tw.style('font-medium')}
-                color={TextColor.Success}
-              >
+              <Text style={tw.style('font-medium')} color={TextColor.Success}>
                 {outcome.tokens[0].title}
               </Text>
             }
@@ -253,14 +245,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           />
           <Button
             variant={ButtonVariants.Secondary}
-            size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
+            size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={
-              <Text
-                variant={isCarousel ? TextVariant.BodyXS : TextVariant.BodySM}
-                style={tw.style('font-medium')}
-                color={TextColor.Error}
-              >
+              <Text style={tw.style('font-medium')} color={TextColor.Error}>
                 {outcome.tokens[1].title}
               </Text>
             }

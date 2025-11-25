@@ -76,9 +76,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
   }),
-  useRoute: () => ({
-    params: {},
-  }),
+  useRoute: jest.fn(),
 }));
 
 const mockedUseAmountSelectionMetrics = jest.mocked(useAmountSelectionMetrics);
@@ -221,7 +219,6 @@ describe('Amount', () => {
     fireEvent.press(getByTestId('fiat_toggle'));
     fireEvent.press(getByRole('button', { name: '5' }));
     expect(getByText('1 ETH')).toBeTruthy();
-    expect(getByText('$ 250.00 available')).toBeTruthy();
   });
 
   it('calls metrics methods on changing fiat mode', () => {

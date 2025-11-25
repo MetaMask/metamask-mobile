@@ -6,7 +6,6 @@ import {
 import { RouteProp } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
-import { DepositNavigationParams } from '../types';
 
 import Root from '../Views/Root';
 import BuildQuote from '../Views/BuildQuote';
@@ -40,7 +39,6 @@ interface DepositParamList {
         animationEnabled?: boolean;
         quote?: BuyQuote;
       }
-    | DepositNavigationParams
     | undefined;
 }
 
@@ -60,83 +58,69 @@ const getAnimationOptions = ({
   route,
 }: {
   route: RouteProp<DepositParamList, string>;
-}): StackNavigationOptions => {
-  const params = route.params;
-  const animationEnabled =
-    params && 'animationEnabled' in params
-      ? params.animationEnabled !== false
-      : true;
-  return { animationEnabled };
-};
+}): StackNavigationOptions => ({
+  animationEnabled: route.params?.animationEnabled !== false,
+});
 
-interface MainRoutesProps {
-  route: RouteProp<{ params: DepositNavigationParams }, 'params'>;
-}
-
-const MainRoutes = ({ route }: MainRoutesProps) => {
-  const parentParams = route.params;
-
-  return (
-    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} headerMode="screen">
-      <Stack.Screen
-        name={Routes.DEPOSIT.ROOT}
-        component={Root}
-        initialParams={parentParams}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.BUILD_QUOTE}
-        component={BuildQuote}
-        options={getAnimationOptions}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.ENTER_EMAIL}
-        component={EnterEmail}
-        options={getAnimationOptions}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.OTP_CODE}
-        component={OtpCode}
-        options={getAnimationOptions}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.VERIFY_IDENTITY}
-        component={VerifyIdentity}
-        options={getAnimationOptions}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.BASIC_INFO}
-        component={BasicInfo}
-        options={getAnimationOptions}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.ENTER_ADDRESS}
-        component={EnterAddress}
-        options={getAnimationOptions}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.KYC_PROCESSING}
-        component={KycProcessing}
-        options={getAnimationOptions}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.ORDER_PROCESSING}
-        component={OrderProcessing}
-        options={getAnimationOptions}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.BANK_DETAILS}
-        component={BankDetails}
-        options={getAnimationOptions}
-      />
-      <Stack.Screen
-        name={Routes.DEPOSIT.ADDITIONAL_VERIFICATION}
-        component={AdditionalVerification}
-        options={getAnimationOptions}
-      />
-    </Stack.Navigator>
-  );
-};
+const MainRoutes = () => (
+  <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} headerMode="screen">
+    <Stack.Screen
+      name={Routes.DEPOSIT.ROOT}
+      component={Root}
+      options={{ animationEnabled: false }}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.BUILD_QUOTE}
+      component={BuildQuote}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ENTER_EMAIL}
+      component={EnterEmail}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.OTP_CODE}
+      component={OtpCode}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.VERIFY_IDENTITY}
+      component={VerifyIdentity}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.BASIC_INFO}
+      component={BasicInfo}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ENTER_ADDRESS}
+      component={EnterAddress}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.KYC_PROCESSING}
+      component={KycProcessing}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ORDER_PROCESSING}
+      component={OrderProcessing}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.BANK_DETAILS}
+      component={BankDetails}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ADDITIONAL_VERIFICATION}
+      component={AdditionalVerification}
+      options={getAnimationOptions}
+    />
+  </Stack.Navigator>
+);
 
 const DepositModalsRoutes = () => (
   <ModalsStack.Navigator

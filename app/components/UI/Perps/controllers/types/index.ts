@@ -13,8 +13,6 @@ export * from '../../types/navigation';
 
 // Import adapter types
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
-import type { CandleData } from '../../types/perps-types';
-import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -110,7 +108,7 @@ export type OrderParams = {
   takeProfitPrice?: string; // Take profit price
   stopLossPrice?: string; // Stop loss price
   clientOrderId?: string; // Optional client-provided order ID
-  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS / 10000 = 3%)
+  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS / 10000 = 1%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
@@ -613,14 +611,6 @@ export interface SubscribeOICapsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
 
-export interface SubscribeCandlesParams {
-  coin: string;
-  interval: CandlePeriod;
-  duration?: TimeDuration;
-  callback: (data: CandleData) => void;
-  onError?: (error: Error) => void;
-}
-
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -808,7 +798,6 @@ export interface IPerpsProvider {
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
   subscribeToOICaps(params: SubscribeOICapsParams): () => void;
-  subscribeToCandles(params: SubscribeCandlesParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

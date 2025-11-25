@@ -1,6 +1,6 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useExploreSearch } from './useExploreSearch';
-import { SECTIONS_ARRAY } from '../../../../config/sections.config';
+import { SEARCH_SECTION_ARRAY } from './exploreSearchConfig';
 
 const mockTrendingTokens = [
   { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
@@ -25,16 +25,11 @@ const mockPredictionMarkets = [
 ];
 
 const mockUseTrendingRequest = jest.fn();
-const mockUseSearchRequest = jest.fn();
 const mockUsePerpsMarkets = jest.fn();
 const mockUsePredictMarketData = jest.fn();
 
-jest.mock('../../../../../../UI/Trending/hooks/useTrendingRequest', () => ({
+jest.mock('../../../../../../UI/Assets/hooks/useTrendingRequest', () => ({
   useTrendingRequest: () => mockUseTrendingRequest(),
-}));
-
-jest.mock('../../../../../../UI/Trending/hooks/useSearchRequest', () => ({
-  useSearchRequest: () => mockUseSearchRequest(),
 }));
 
 jest.mock('../../../../../../UI/Perps/hooks/usePerpsMarkets', () => ({
@@ -51,11 +46,6 @@ describe('useExploreSearch', () => {
     jest.useFakeTimers();
 
     mockUseTrendingRequest.mockReturnValue({
-      results: mockTrendingTokens,
-      isLoading: false,
-    });
-
-    mockUseSearchRequest.mockReturnValue({
       results: mockTrendingTokens,
       isLoading: false,
     });
@@ -280,10 +270,10 @@ describe('useExploreSearch', () => {
     });
   });
 
-  it('processes all sections defined in config', () => {
+  it('processes all sections defined in SEARCH_SECTION_ARRAY', () => {
     const { result } = renderHook(() => useExploreSearch(''));
 
-    SECTIONS_ARRAY.forEach((section) => {
+    SEARCH_SECTION_ARRAY.forEach((section) => {
       expect(result.current.data[section.id]).toBeDefined();
       expect(result.current.isLoading[section.id]).toBeDefined();
     });

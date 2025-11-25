@@ -32,7 +32,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import {
+  RampMode,
+  useRampNavigation,
+} from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
@@ -179,11 +183,17 @@ function BuySection() {
     asset?.assetId ?? '0x0',
   );
 
-  const { goToBuy } = useRampNavigation();
+  const { goToRamps } = useRampNavigation();
 
   const handleBuyPress = useCallback(() => {
-    goToBuy({ assetId });
-  }, [assetId, goToBuy]);
+    goToRamps({
+      mode: RampMode.AGGREGATOR,
+      params: {
+        rampType: RampType.BUY,
+        intent: { assetId },
+      },
+    });
+  }, [assetId, goToRamps]);
 
   let message: string | undefined;
 
@@ -265,10 +275,6 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirmation_button');
   }
 
   return strings('confirm.deposit_edit_amount_done');

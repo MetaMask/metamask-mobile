@@ -39,28 +39,13 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   default: () => ({ getEarnToken: jest.fn() }),
 }));
 
-jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: () => ({
-    initiateConversion: jest.fn(),
-    error: null,
-  }),
-}));
-
-jest.mock('../../../../../selectors/earnController/earn', () => ({
-  earnSelectors: {
-    selectPrimaryEarnExperienceTypeForAsset: jest.fn(() => 'pooled-staking'),
-  },
-}));
-
 jest.mock('../../../Stake/hooks/useStakingChain', () => ({
   useStakingChainByChainId: () => ({ isStakingSupportedChain: false }),
 }));
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
-  selectPooledStakingEnabledFlag: () => true, // Enable to show Earn button
+  selectPooledStakingEnabledFlag: () => false,
   selectStablecoinLendingEnabledFlag: () => false,
-  selectIsMusdConversionFlowEnabledFlag: () => false,
-  selectMusdConversionPaymentTokensAllowlist: () => ({}),
 }));
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -1646,24 +1631,23 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     // Default mock setup
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
-        if (!selector || typeof selector !== 'function') {
-          return {};
-        }
-
-        const selectorString = selector.toString();
-
         // Return sensible defaults for all selectors
-        if (selectorString.includes('selectIsEvmNetworkSelected')) return true;
-        if (selectorString.includes('selectSelectedInternalAccountAddress'))
+        if (selector.toString().includes('selectIsEvmNetworkSelected'))
+          return true;
+        if (
+          selector.toString().includes('selectSelectedInternalAccountAddress')
+        )
           return '0x123';
-        if (selectorString.includes('selectCurrentCurrency')) return 'USD';
-        if (selectorString.includes('selectShowFiatInTestnets')) return false;
-        if (selectorString.includes('selectSingleTokenBalance'))
+        if (selector.toString().includes('selectCurrentCurrency')) return 'USD';
+        if (selector.toString().includes('selectShowFiatInTestnets'))
+          return false;
+        if (selector.toString().includes('selectSingleTokenBalance'))
           return { '0x456': '1.23' };
-        if (selectorString.includes('selectSingleTokenPriceMarketData'))
+        if (selector.toString().includes('selectSingleTokenPriceMarketData'))
           return { price: 100 };
-        if (selectorString.includes('selectCurrencyRateForChainId')) return 1.0;
-        if (selectorString.includes('makeSelectAssetByAddressAndChainId'))
+        if (selector.toString().includes('selectCurrencyRateForChainId'))
+          return 1.0;
+        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
           return {
             address: '0x456',
             chainId: '0x1',
@@ -1674,30 +1658,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
             isNative: false,
             isETH: false,
           };
-
-        // StakeButton selectors - return appropriate mock data
-        if (selectorString.includes('selectIsStakeableToken')) {
-          return true; // Enable to show Earn button
-        }
-
-        if (selectorString.includes('state.browser.tabs')) {
-          return [];
-        }
-
-        if (selectorString.includes('selectEvmChainId')) {
-          return '0x1';
-        }
-
-        if (selectorString.includes('selectNetworkConfigurationByChainId')) {
-          return { name: 'Ethereum Mainnet' };
-        }
-
-        if (
-          selectorString.includes('selectPrimaryEarnExperienceTypeForAsset')
-        ) {
-          return 'pooled-staking';
-        }
-
         return {};
       },
     );
