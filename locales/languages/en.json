@@ -952,7 +952,8 @@
     "no_open_orders": "No open orders",
     "auto_close": {
       "title": "Auto close",
-      "description": "Protect your margin, lock in gains"
+      "description": "Protect your margin, lock in gains",
+      "set_button": "Set"
     },
     "deposit": {
       "title": "Amount to deposit",

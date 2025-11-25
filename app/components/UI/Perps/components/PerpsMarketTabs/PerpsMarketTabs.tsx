@@ -5,6 +5,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -25,9 +26,17 @@ import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
 import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
-import type { Position, Order } from '../../controllers/types';
+import type {
+  Position,
+  Order,
+  PerpsNavigationParamList,
+} from '../../controllers/types';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
-import { usePerpsLivePositions, usePerpsLiveOrders } from '../../hooks/stream';
+import {
+  usePerpsLivePositions,
+  usePerpsLiveOrders,
+  usePerpsLivePrices,
+} from '../../hooks/stream';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
@@ -40,17 +49,24 @@ import Engine from '../../../../../core/Engine';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { OrderDirection } from '../../types/perps-types';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Tab content component for Position tab
 interface PositionTabContentProps {
   tabLabel: string;
   position: Position | null;
   showIcon: boolean;
+  onAutoClosePress?: () => void;
+  onMarginPress?: () => void;
+  onSharePress?: () => void;
 }
 
 const PositionTabContent: React.FC<PositionTabContentProps> = ({
   position,
   showIcon,
+  onAutoClosePress,
+  onMarginPress,
+  onSharePress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -65,6 +81,9 @@ const PositionTabContent: React.FC<PositionTabContentProps> = ({
         key={`${position.coin}`}
         position={position}
         showIcon={showIcon}
+        onAutoClosePress={onAutoClosePress}
+        onMarginPress={onMarginPress}
+        onSharePress={onSharePress}
       />
     </View>
   );
@@ -201,6 +220,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
   const tabsListRef = useRef<TabsListRef>(null);
@@ -215,6 +235,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   });
   const { orders: allOrders } = usePerpsLiveOrders({ throttleMs: 0 });
 
+  // Subscribe to live prices for current position price
+  const livePrices = usePerpsLivePrices({
+    symbols: symbol ? [symbol] : [],
+    throttleMs: 1000,
+  });
+
   const position = useMemo(
     () => positions.find((p) => p.coin === symbol) || null,
     [positions, symbol],
@@ -223,6 +249,19 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => allOrders.filter((o) => o.symbol === symbol),
     [allOrders, symbol],
   );
+
+  // Get current price for the symbol
+  const currentPrice = useMemo(() => {
+    const priceData = livePrices[symbol];
+    if (priceData?.price) {
+      return parseFloat(priceData.price);
+    }
+    // Fallback to position entry price if available
+    if (position?.entryPrice) {
+      return parseFloat(position.entryPrice);
+    }
+    return 0;
+  }, [livePrices, symbol, position]);
 
   // State to track which orders are being cancelled for UI display
   const [cancellingOrderIds, setCancellingOrderIds] = useState<Set<string>>(
@@ -278,6 +317,40 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       }
     }
   }, [unfilledOrders, successfullyCancelledOrderIds]);
+
+  // Position management callbacks
+  const handleAutoClosePress = useCallback(() => {
+    if (!position) return;
+
+    navigation.navigate(Routes.PERPS.TPSL, {
+      asset: position.coin,
+      currentPrice,
+      position,
+      initialTakeProfitPrice: position.takeProfitPrice,
+      initialStopLossPrice: position.stopLossPrice,
+      onConfirm: async () => {
+        // TP/SL is set directly on the position, no need to handle here
+        // The position will update via WebSocket
+      },
+    });
+  }, [position, currentPrice, navigation]);
+
+  const handleMarginPress = useCallback(() => {
+    if (!position) return;
+
+    navigation.navigate(Routes.PERPS.SELECT_ADJUST_MARGIN_ACTION, {
+      position,
+    });
+  }, [position, navigation]);
+
+  const handleSharePress = useCallback(() => {
+    if (!position) return;
+
+    navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
+      position,
+      marketPrice: currentPrice.toString(),
+    });
+  }, [position, currentPrice, navigation]);
 
   const tabs = React.useMemo(() => {
     const dynamicTabs = [];
@@ -550,8 +623,11 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       tabLabel: strings('perps.market.position'),
       position,
       showIcon: true,
+      onAutoClosePress: handleAutoClosePress,
+      onMarginPress: handleMarginPress,
+      onSharePress: handleSharePress,
     }),
-    [position],
+    [position, handleAutoClosePress, handleMarginPress, handleSharePress],
   );
 
   const ordersTabProps = useMemo(

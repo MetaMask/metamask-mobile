@@ -53,6 +53,11 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       gap: 4,
     },
+    sizeLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
     marginContainer: {
       flex: 1,
       flexDirection: 'row',
@@ -64,6 +69,11 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     marginLeftContent: {
       flex: 1,
+      gap: 4,
+    },
+    marginLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 4,
     },
     autoCloseSection: {
@@ -78,6 +88,17 @@ const styleSheet = (params: { theme: Theme }) => {
     autoCloseTextContainer: {
       flex: 1,
       gap: 4,
+    },
+    autoCloseButton: {
+      borderRadius: 8,
+    },
+    iconButton: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 8,
+    },
+    iconButtonContainer: {
+      height: '100%',
+      alignItems: 'flex-end',
     },
     toggleContainer: {
       marginLeft: 16,

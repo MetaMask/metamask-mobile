@@ -5,10 +5,13 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../../../component-library/components/Buttons/Button';
+import {
   IconColor,
   IconName,
-  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
@@ -156,7 +159,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             {strings('perps.position.card.pnl_label')}
           </Text>
           <Text
-            variant={TextVariant.HeadingSM}
+            variant={TextVariant.BodyMD}
             color={pnlNum >= 0 ? TextColor.Success : TextColor.Error}
             testID={PerpsPositionCardSelectorsIDs.PNL_VALUE}
           >
@@ -172,7 +175,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             {strings('perps.position.card.return_label')}
           </Text>
           <Text
-            variant={TextVariant.HeadingSM}
+            variant={TextVariant.BodyMD}
             color={roe >= 0 ? TextColor.Success : TextColor.Error}
             testID={PerpsPositionCardSelectorsIDs.RETURN_VALUE}
           >
@@ -205,12 +208,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.coin)}`}
             </Text>
           </View>
-          <Icon
-            name={IconName.SwapHorizontal}
-            size={IconSize.Md}
-            color={IconColor.Default}
-            testID={PerpsPositionCardSelectorsIDs.FLIP_ICON}
-          />
+          <View style={styles.iconButtonContainer}>
+            <ButtonIcon
+              iconName={IconName.SwapHorizontal}
+              size={ButtonIconSizes.Sm}
+              iconColor={IconColor.Default}
+              onPress={handleSizeToggle}
+              style={styles.iconButton}
+              testID={PerpsPositionCardSelectorsIDs.FLIP_ICON}
+            />
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -234,12 +241,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Text>
           </View>
           {onMarginPress && (
-            <Icon
-              name={IconName.Arrow2Right}
-              size={IconSize.Md}
-              color={IconColor.Default}
-              testID={PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON}
-            />
+            <View style={styles.iconButtonContainer}>
+              <ButtonIcon
+                iconName={IconName.Arrow2Right}
+                size={ButtonIconSizes.Sm}
+                iconColor={IconColor.Default}
+                onPress={onMarginPress}
+                style={styles.iconButton}
+                testID={PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON}
+              />
+            </View>
           )}
         </TouchableOpacity>
       </View>
@@ -253,7 +264,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
       >
         <View style={styles.autoCloseTextContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('perps.auto_close.title')}
           </Text>
           {(() => {
@@ -315,19 +326,24 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             }
 
             return (
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                 {strings('perps.auto_close.description')}
               </Text>
             );
           })()}
         </View>
-        {onAutoClosePress && (
-          <Icon
-            name={IconName.Arrow2Right}
-            size={IconSize.Md}
-            color={IconColor.Default}
-          />
-        )}
+        <View>
+          {onAutoClosePress && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Sm}
+              label={strings('perps.auto_close.set_button')}
+              labelTextVariant={TextVariant.BodyMD}
+              onPress={handleAutoCloseButtonPress}
+              style={styles.autoCloseButton}
+            />
+          )}
+        </View>
       </TouchableOpacity>
 
       {/* Details Section - Always expanded */}
