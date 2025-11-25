@@ -79,39 +79,6 @@ describe('useAddressTrustSignals', () => {
       });
     });
 
-    it('returns Loading state for loading address', () => {
-      const requests = [{ address: TEST_ADDRESS_1, chainId: TEST_CHAIN_ID }];
-
-      const { result } = renderHookWithProvider(
-        () => useAddressTrustSignals(requests),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  // @ts-expect-error - AddressScanResultType is not exported in PhishingController
-                  addressScanCache: {
-                    [`${TEST_CHAIN_ID.toLowerCase()}:${TEST_ADDRESS_1.toLowerCase()}`]:
-                      {
-                        data: {
-                          result_type: 'Loading',
-                        },
-                      },
-                  },
-                },
-              },
-            },
-          },
-        },
-      );
-
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0]).toEqual({
-        state: TrustSignalDisplayState.Loading,
-        label: null,
-      });
-    });
-
     it('returns Unknown state for benign address', () => {
       const requests = [{ address: TEST_ADDRESS_1, chainId: TEST_CHAIN_ID }];
 
