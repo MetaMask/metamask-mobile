@@ -17,20 +17,17 @@ import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigatio
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
 import SectionCard from '../components/SectionCard/SectionCard';
 import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
-import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
-import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
-import { PriceChangeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
-import { useSearchRequest } from '../../../UI/Trending/hooks/useSearchRequest';
 import { Box, IconName } from '@metamask/design-system-react-native';
 import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
 import SiteRowItemWrapper from '../SectionSites/SiteRowItemWrapper';
 import SiteSkeleton from '../SectionSites/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../SectionSites/hooks/useSitesData';
 import { CaipChainId } from '@metamask/utils';
+import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
@@ -100,57 +97,13 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     Section: () => <SectionCard sectionId="tokens" />,
     useSectionData: (params?: SectionParams) => {
       const { searchQuery, sortBy, chainIds } = params ?? {};
-      // Trending will return tokens that have just been created which wont be picked up by search API
-      // so if you see a token on trending and search on omnisearch which uses the search endpoint...
-      // There is a chance you will get 0 results
-      const { results: searchResults, isLoading: isSearchLoading } =
-        useSearchRequest({
-          query: searchQuery || '',
-          limit: 20,
-          chainIds: [],
-        });
-
-      const {
-        results: trendingResults,
-        isLoading: isTrendingLoading,
-        fetch: fetchTrendingTokens,
-      } = useTrendingRequest({
+      const { data, isLoading } = useTrendingSearch(
+        searchQuery,
         sortBy,
-        chainIds: chainIds ?? undefined,
-      });
-
-      if (!searchQuery) {
-        const sortedResults = sortTrendingTokens(
-          trendingResults,
-          PriceChangeOption.PriceChange,
-        );
-        return {
-          data: sortedResults,
-          isLoading: isTrendingLoading,
-          refetch: () => {
-            fetchTrendingTokens();
-          },
-        };
-      }
-
-      const resultMap = new Map(
-        trendingResults.map((result) => [result.assetId, result]),
+        chainIds,
       );
 
-      searchResults.forEach((result) => {
-        const asset = result as TrendingAsset;
-        if (!resultMap.has(asset.assetId)) {
-          resultMap.set(asset.assetId, asset);
-        }
-      });
-
-      return {
-        data: Array.from(resultMap.values()),
-        isLoading: isSearchLoading,
-        refetch: () => {
-          fetchTrendingTokens();
-        },
-      };
+      return { data, isLoading };
     },
   },
   perps: {

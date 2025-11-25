@@ -41,6 +41,7 @@ import {
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
 import { SECTIONS_CONFIG } from '../../TrendingView/config/sections.config';
+import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;
@@ -201,11 +202,7 @@ const TrendingTokensFullView = () => {
     data: tokensSectionData,
     isLoading,
     refetch: refetchTokensSection,
-  } = SECTIONS_CONFIG.tokens.useSectionData({
-    searchQuery: searchQuery || undefined,
-    sortBy,
-    chainIds: selectedNetwork,
-  });
+  } = useTrendingSearch(searchQuery || undefined, sortBy, selectedNetwork);
 
   const searchResults = useMemo(() => {
     // When search is not active, use the full section data
