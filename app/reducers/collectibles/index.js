@@ -23,6 +23,9 @@ export const collectibleContractsSelector = createSelector(
     allNftContracts[address]?.[chainId] || [],
 );
 
+/**
+ * @deprecated - this does not return all collectibles if multiple networks are selected
+ */
 export const collectiblesSelector = createDeepEqualSelector(
   selectSelectedInternalAccountAddress,
   selectChainId,

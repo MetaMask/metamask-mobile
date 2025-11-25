@@ -16,7 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     accountCardWrapper: {
-      flex: 1,
       borderWidth: 1,
       borderColor: colors.border.default,
       borderRadius: 10,

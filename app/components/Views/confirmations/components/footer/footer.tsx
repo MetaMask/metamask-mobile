@@ -38,7 +38,6 @@ import {
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
@@ -247,19 +246,3 @@ export const Footer = () => {
     </>
   );
 };
-
-export function FooterSkeleton() {
-  const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const { styles } = useStyles(styleSheet, {
-    confirmDisabled: false,
-    isStakingConfirmationBool: false,
-    isFullScreenConfirmation,
-  });
-
-  return (
-    <View style={styles.footerSkeletonContainer}>
-      <Skeleton height={48} style={styles.footerButtonSkeleton} />
-      <Skeleton height={48} style={styles.footerButtonSkeleton} />
-    </View>
-  );
-}

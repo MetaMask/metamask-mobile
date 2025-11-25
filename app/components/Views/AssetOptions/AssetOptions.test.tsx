@@ -13,7 +13,6 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import Logger from '../../../util/Logger';
 import { removeNonEvmToken } from '../../UI/Tokens/util';
 
@@ -182,10 +181,6 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../selectors/assets/assets-list', () => ({
-  selectAssetsBySelectedAccountGroup: jest.fn(() => ({})),
-}));
-
 jest.mock('react-native-inappbrowser-reborn', () => ({
   isAvailable: jest.fn(),
   open: jest.fn(),
@@ -262,24 +257,10 @@ describe('AssetOptions Component', () => {
       ) {
         return mockSelectInternalAccountByScope;
       }
-      if (selector === selectAssetsBySelectedAccountGroup)
-        return {
-          '0x1': [
-            {
-              assetId: '0x123',
-              chainId: '0x1',
-              symbol: 'ABC',
-              decimals: 18,
-              name: 'Test Token',
-            },
-          ],
-        };
       if (selector.name === 'selectEvmChainId') return '1';
       if (selector.name === 'selectProviderConfig') return {};
       if (selector.name === 'selectTokenList')
         return { '0x123': { symbol: 'ABC' } };
-      if (selector.name === 'selectIsAllNetworks') return false;
-      if (selector.name === 'selectIsPopularNetwork') return false;
       return {};
     });
     mockNavigation.navigate.mockClear();
@@ -310,6 +291,23 @@ describe('AssetOptions Component', () => {
   afterAll(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
+  });
+
+  it('matches the snapshot', () => {
+    const { toJSON } = render(
+      <AssetOptions
+        route={{
+          params: {
+            address: '0x123',
+            chainId: '0x1',
+            isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
+          },
+        }}
+      />,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly and displays options', () => {
@@ -445,9 +443,6 @@ describe('AssetOptions Component', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectEvmNetworkConfigurationsByChainId)
           return mockNetworkConfigurations;
-        if (selector === selectAssetsBySelectedAccountGroup) return {};
-        if (selector.name === 'selectIsAllNetworks') return false;
-        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
     });
@@ -586,22 +581,8 @@ describe('AssetOptions Component', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockAccountSelector;
         }
-        if (selector === selectAssetsBySelectedAccountGroup)
-          return {
-            [mockNonEvmChainId]: [
-              {
-                assetId: mockNonEvmTokenAddress,
-                chainId: mockNonEvmChainId,
-                symbol: 'USDC',
-                decimals: 6,
-                name: 'USD Coin',
-              },
-            ],
-          };
         if (selector.name === 'selectEvmChainId') return '1';
         if (selector.name === 'selectTokenList') return {};
-        if (selector.name === 'selectIsAllNetworks') return false;
-        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 
@@ -661,23 +642,9 @@ describe('AssetOptions Component', () => {
         ) {
           return mockSelectInternalAccountByScope;
         }
-        if (selector === selectAssetsBySelectedAccountGroup)
-          return {
-            '0x1': [
-              {
-                assetId: '0x123',
-                chainId: '0x1',
-                symbol: 'TEST',
-                decimals: 18,
-                name: 'Test Token',
-              },
-            ],
-          };
         if (selector.name === 'selectEvmChainId') return '0x1';
         if (selector.name === 'selectTokenList')
           return { '0x123': { symbol: 'TEST' } };
-        if (selector.name === 'selectIsAllNetworks') return false;
-        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 
@@ -741,22 +708,8 @@ describe('AssetOptions Component', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockAccountSelector;
         }
-        if (selector === selectAssetsBySelectedAccountGroup)
-          return {
-            [mockNonEvmChainId]: [
-              {
-                assetId: mockNonEvmTokenAddress,
-                chainId: mockNonEvmChainId,
-                symbol: 'USDC',
-                decimals: 6,
-                name: 'USD Coin',
-              },
-            ],
-          };
         if (selector.name === 'selectEvmChainId') return '1';
         if (selector.name === 'selectTokenList') return {};
-        if (selector.name === 'selectIsAllNetworks') return false;
-        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 
@@ -808,23 +761,9 @@ describe('AssetOptions Component', () => {
         ) {
           return mockSelectInternalAccountByScope;
         }
-        if (selector === selectAssetsBySelectedAccountGroup)
-          return {
-            '0x1': [
-              {
-                assetId: '0x123',
-                chainId: '0x1',
-                symbol: 'TEST',
-                decimals: 18,
-                name: 'Test Token',
-              },
-            ],
-          };
         if (selector.name === 'selectEvmChainId') return '0x1';
         if (selector.name === 'selectTokenList')
           return { '0x123': { symbol: 'TEST' } };
-        if (selector.name === 'selectIsAllNetworks') return false;
-        if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 

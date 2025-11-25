@@ -15,7 +15,6 @@ import { useTransferRecipient } from '../../../../hooks/transactions/useTransfer
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
-import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './from-to-row.styles';
 
 const FromToRow = () => {
@@ -71,37 +70,5 @@ const FromToRow = () => {
     </InfoSection>
   );
 };
-
-export function FromToRowSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <InfoSection>
-      <View style={styles.container}>
-        <View style={[styles.nameContainer, styles.leftNameContainer]}>
-          <Skeleton
-            width={110}
-            height={36}
-            style={styles.skeletonBorderRadiusLarge}
-          />
-        </View>
-        <View style={styles.iconContainer}>
-          <Skeleton
-            width={16}
-            height={16}
-            style={styles.skeletonBorderRadiusSmall}
-          />
-        </View>
-        <View style={[styles.nameContainer, styles.rightNameContainer]}>
-          <Skeleton
-            width={110}
-            height={36}
-            style={styles.skeletonBorderRadiusLarge}
-          />
-        </View>
-      </View>
-    </InfoSection>
-  );
-}
 
 export default FromToRow;

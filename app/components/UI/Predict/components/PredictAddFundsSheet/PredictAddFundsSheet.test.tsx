@@ -30,19 +30,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: jest.fn(),
-      goBack: jest.fn(),
-    }),
-  };
-});
-
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  }),
 }));
 
 // Mock BottomSheet component
@@ -189,9 +181,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       HeadingMd: 'HeadingMd',
       BodyMd: 'BodyMd',
-    },
-    IconName: {
-      QrCode: 'QrCode',
     },
   };
 });

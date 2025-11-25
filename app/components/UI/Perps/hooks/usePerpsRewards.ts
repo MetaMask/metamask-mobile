@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { InternalAccount } from '@metamask/keyring-internal-api';
+import { useSelector } from 'react-redux';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { OrderFeesResult } from './usePerpsOrderFees';
-import { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
 
 interface UsePerpsRewardsParams {
   /** Result from usePerpsOrderFees hook containing rewards data */
@@ -30,10 +30,6 @@ interface UsePerpsRewardsResult {
   hasError: boolean;
   /** Whether this is a refresh operation (points value changed) */
   isRefresh: boolean;
-  /** Whether the account has opted in to rewards */
-  accountOptedIn: boolean | null;
-  /** The account that is currently in scope */
-  account?: InternalAccount | null;
 }
 
 /**
@@ -46,12 +42,11 @@ export const usePerpsRewards = ({
   isFeesLoading = false,
   orderAmount = '',
 }: UsePerpsRewardsParams): UsePerpsRewardsResult => {
+  // Get rewards feature flag
+  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
+
   // Track previous points to detect refresh state
   const [previousPoints, setPreviousPoints] = useState<number | undefined>();
-
-  // Use the extracted hook for opt-in status
-  const { accountOptedIn, account: selectedAccount } =
-    usePerpsRewardAccountOptedIn(feeResults?.estimatedPoints);
 
   // Development-only simulations for testing different states
   // Amount "42": Triggers error state to test error handling UI
@@ -73,10 +68,9 @@ export const usePerpsRewards = ({
   );
 
   // Determine if we should show rewards row
-  // Show row if: has valid amount AND (opt-in check passed OR we're still checking)
   const shouldShowRewardsRow = useMemo(
-    () => hasValidAmount && accountOptedIn !== null,
-    [hasValidAmount, accountOptedIn],
+    () => rewardsEnabled && hasValidAmount, // Show row if we have valid amount (even if there's an error or points are undefined)
+    [rewardsEnabled, hasValidAmount],
   );
 
   // Determine loading state
@@ -127,7 +121,5 @@ export const usePerpsRewards = ({
     feeDiscountPercentage: feeResults.feeDiscountPercentage,
     hasError,
     isRefresh,
-    accountOptedIn,
-    account: selectedAccount,
   };
 };

@@ -11,8 +11,6 @@ import {
   TransactionPayRequiredToken,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
-import { getNativeTokenAddress } from './asset';
-import { strings } from '../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
 
@@ -126,22 +124,8 @@ export function getAvailableTokens({
         payToken?.address.toLowerCase() === token.address.toLowerCase() &&
         payToken?.chainId === token.chainId;
 
-      const nativeTokenAddress = getNativeTokenAddress(token.chainId as Hex);
-
-      const nativeToken = tokens.find(
-        (t) => t.address === nativeTokenAddress && t.chainId === token.chainId,
-      );
-
-      const disabled = new BigNumber(nativeToken?.balance ?? 0).isZero();
-
-      const disabledMessage = disabled
-        ? strings('pay_with_modal.no_gas')
-        : undefined;
-
       return {
         ...token,
-        disabled,
-        disabledMessage,
         isSelected,
       };
     });

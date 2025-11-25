@@ -87,7 +87,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
 
     it('returns alert if pay token balance is less than required token amount', () => {
-      useTransactionPayTokenMock.mockReturnValueOnce({
+      useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           ...PAY_TOKEN_MOCK,
           balanceUsd: '1.22',
@@ -111,14 +111,14 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
 
     it('ignores required token amount if skipIfBalance', () => {
-      useTransactionPayRequiredTokensMock.mockReturnValueOnce([
+      useTransactionPayRequiredTokensMock.mockReturnValue([
         {
           ...REQUIRED_TOKEN_MOCK,
           skipIfBalance: true,
         },
       ]);
 
-      useTransactionPayTokenMock.mockReturnValueOnce({
+      useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           ...PAY_TOKEN_MOCK,
           balanceUsd: '1.22',
@@ -134,7 +134,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
   describe('for fees', () => {
     it('returns alert if pay token balance is less than total source amount', () => {
-      useTransactionPayTokenMock.mockReturnValueOnce({
+      useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           ...PAY_TOKEN_MOCK,
           balanceRaw: '999',
@@ -159,8 +159,41 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       ]);
     });
 
+    it('returns alert if pay token balance shortfall is equal to total amount', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceRaw: '999',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          ...REQUIRED_TOKEN_MOCK,
+          amountUsd: '0.02',
+        },
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenFees,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_balance_fees_no_target.message',
+            { amount: '$1.21' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
     it('returns alert if pay token balance is less than source amount plus source network', () => {
-      useTransactionPayTokenMock.mockReturnValueOnce({
+      useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           ...PAY_TOKEN_MOCK,
           address: NATIVE_TOKEN_MOCK.address as Hex,
@@ -185,11 +218,45 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         },
       ]);
     });
+
+    it('returns alert if pay token balance is less than source amount plus source network if gas fee token', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceRaw: '1099',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      useTransactionPayTotalsMock.mockReturnValue({
+        ...TOTALS_MOCK,
+        fees: {
+          ...TOTALS_MOCK.fees,
+          isSourceGasFeeToken: true,
+        },
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenFees,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_balance_fees.message',
+            { amount: '$1.11' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
   });
 
   describe('for source network fee', () => {
     it('returns alert if native balance is less than total source network fee', () => {
-      useTokenWithBalanceMock.mockReturnValueOnce({
+      useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
         balanceRaw: '99',
       } as ReturnType<typeof useTokenWithBalance>);
@@ -212,15 +279,43 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
 
     it('returns no alert if pay token is native', () => {
-      useTokenWithBalanceMock.mockReturnValueOnce({
+      useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
         balanceRaw: '99',
       } as ReturnType<typeof useTokenWithBalance>);
 
-      useTransactionPayTokenMock.mockReturnValueOnce({
+      useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           ...PAY_TOKEN_MOCK,
           address: NATIVE_TOKEN_MOCK.address as Hex,
+          balanceRaw: '1100',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert if source network is using gas fee token', () => {
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '99',
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      useTransactionPayTotalsMock.mockReturnValue({
+        ...TOTALS_MOCK,
+        fees: {
+          ...TOTALS_MOCK.fees,
+          isSourceGasFeeToken: true,
+        },
+        sourceAmount: TOTALS_MOCK.sourceAmount,
+      });
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
           balanceRaw: '1100',
         },
         setPayToken: jest.fn(),
