@@ -252,6 +252,18 @@ jest.mock('../../components/PredictMarketOutcome', () => {
   };
 });
 
+jest.mock('../../components/PredictShareButton/PredictShareButton', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPredictShareButton({ marketId }: { marketId?: string }) {
+    return (
+      <View
+        testID="predict-share-button"
+        accessibilityHint={`marketId:${marketId ?? 'undefined'}`}
+      />
+    );
+  };
+});
+
 jest.mock('../../../../Base/TabBar', () => {
   const { View, Text } = jest.requireActual('react-native');
   return function MockTabBar({ textStyle }: { textStyle: object }) {
@@ -621,6 +633,33 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(screen.getByTestId('icon-ArrowLeft')).toBeOnTheScreen();
+    });
+
+    it('renders share button in header when market data is loaded', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(screen.getByTestId('predict-share-button')).toBeOnTheScreen();
+    });
+
+    it('passes market.id to share button', () => {
+      setupPredictMarketDetailsTest({ id: 'test-market-id' });
+
+      const shareButton = screen.getByTestId('predict-share-button');
+
+      expect(shareButton.props.accessibilityHint).toBe(
+        'marketId:test-market-id',
+      );
+    });
+
+    it('hides share button when market is not loaded (shows skeleton)', () => {
+      setupPredictMarketDetailsTest({}, {}, { market: { market: null } });
+
+      expect(
+        screen.queryByTestId('predict-share-button'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-details-header-skeleton-back-button'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -1181,7 +1220,7 @@ describe('PredictMarketDetails', () => {
     it('uses correct string keys for back button', () => {
       setupPredictMarketDetailsTest();
 
-      expect(strings).toHaveBeenCalledWith('back');
+      expect(strings).toHaveBeenCalledWith('predict.buttons.back');
     });
   });
 
