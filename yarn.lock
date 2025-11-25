@@ -9641,9 +9641,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/user-profile-controller@npm:@metamask-previews/user-profile-controller@0.0.0-preview-8ae7c53c":
-  version: 0.0.0-preview-8ae7c53c
-  resolution: "@metamask-previews/user-profile-controller@npm:0.0.0-preview-8ae7c53c"
+"@metamask/user-profile-controller@npm:@metamask-previews/user-profile-controller@0.0.0-preview-a2f1e6f9":
+  version: 0.0.0-preview-a2f1e6f9
+  resolution: "@metamask-previews/user-profile-controller@npm:0.0.0-preview-a2f1e6f9"
   dependencies:
     "@metamask/accounts-controller": "npm:^35.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -9654,7 +9654,7 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^27.0.0"
     "@metamask/utils": "npm:^11.8.1"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/9621ee0b078d9d093ca6a3ce4bfee6f2ddc358aacef1bf9c83748d8feb089579d5d3b4429f843ee480d32d318562f4fea77575694167017d17fbbe8b9080eeba
+  checksum: 10/7d8a723905822bc95bb7c02ccaf4b315ce3918fe803f6ec578b2a039adae00f34f332a2af93d2217a87d2cb91261c4fa6cca311aacab996279a0b6700284df66
   languageName: node
   linkType: hard
 
