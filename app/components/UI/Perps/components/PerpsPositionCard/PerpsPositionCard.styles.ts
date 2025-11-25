@@ -9,9 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       backgroundColor: colors.background.default,
       borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      padding: 16,
+      // padding: 16,
     },
     header: {
       flexDirection: 'row',
@@ -26,7 +24,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     pnlCard: {
       flex: 1,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 12,
       gap: 4,
@@ -47,7 +45,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 12,
     },
@@ -60,7 +58,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 12,
     },
@@ -72,7 +70,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 12,
       marginBottom: 12,
@@ -110,15 +108,25 @@ const styleSheet = (params: { theme: Theme }) => {
       alignSelf: 'flex-end',
     },
     detailsSection: {
-      gap: 12,
+      gap: 1,
     },
     detailsTitle: {
       marginBottom: 4,
     },
     detailRow: {
+      padding: 12,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      backgroundColor: colors.background.section,
+    },
+    detailRowFirst: {
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+    },
+    detailRowLast: {
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
   });
 };

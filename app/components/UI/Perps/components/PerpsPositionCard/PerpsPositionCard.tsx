@@ -336,15 +336,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}
       >
         <Text
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.HeadingMD}
           color={TextColor.Default}
           style={styles.detailsTitle}
         >
           {strings('perps.position.card.details_title')}
         </Text>
 
-        <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <View style={[styles.detailRow, styles.detailRowFirst]}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+          >
             {strings('perps.position.card.direction_label')}
           </Text>
           <Text
@@ -360,7 +363,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         </View>
 
         <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+          >
             {strings('perps.position.card.entry_label')}
           </Text>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
@@ -371,7 +377,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         </View>
 
         <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+          >
             {strings('perps.position.card.liquidation_price_label')}
           </Text>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
@@ -384,8 +393,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </Text>
         </View>
 
-        <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <View style={[styles.detailRow, styles.detailRowLast]}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+          >
             {strings('perps.position.card.funding_payments_label')}
           </Text>
           <Text variant={TextVariant.BodyMD} color={fundingColor}>
