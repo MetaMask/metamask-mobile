@@ -730,6 +730,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "TransactionPayController": {
         "transactionData": {},
       },
+      "UserProfileController": {
+        "firstSyncCompleted": false,
+        "syncQueue": {},
+      },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
         "isBackupAndSyncEnabled": true,
@@ -1454,6 +1458,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "TransactionPayController": {
         "transactionData": {},
+      },
+      "UserProfileController": {
+        "firstSyncCompleted": false,
+        "syncQueue": {},
       },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
