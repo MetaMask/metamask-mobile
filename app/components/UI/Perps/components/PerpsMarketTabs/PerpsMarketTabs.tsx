@@ -45,18 +45,12 @@ import { OrderDirection } from '../../types/perps-types';
 interface PositionTabContentProps {
   tabLabel: string;
   position: Position | null;
-  expanded: boolean;
   showIcon: boolean;
-  onTooltipPress: (contentKey: PerpsTooltipContentKey) => void;
-  onTpslCountPress: (tabId: string) => void;
 }
 
 const PositionTabContent: React.FC<PositionTabContentProps> = ({
   position,
-  expanded,
   showIcon,
-  onTooltipPress,
-  onTpslCountPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -70,10 +64,7 @@ const PositionTabContent: React.FC<PositionTabContentProps> = ({
       <PerpsPositionCard
         key={`${position.coin}`}
         position={position}
-        expanded={expanded}
         showIcon={showIcon}
-        onTooltipPress={onTooltipPress}
-        onTpslCountPress={onTpslCountPress}
       />
     </View>
   );
@@ -552,35 +543,15 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     ],
   );
 
-  // Helper to switch tabs programmatically by tabId (for backwards compatibility)
-  const handleTabSwitchByTabId = useCallback(
-    (tabId: string) => {
-      // Build current available tabs in same order as tabsToRender
-      const availableTabIds: PerpsTabId[] = [];
-      if (position) availableTabIds.push('position');
-      if (sortedUnfilledOrders.length > 0) availableTabIds.push('orders');
-      availableTabIds.push('statistics'); // Always available
-
-      const targetIndex = availableTabIds.indexOf(tabId as PerpsTabId);
-      if (targetIndex >= 0 && tabsListRef.current) {
-        tabsListRef.current.goToTabIndex(targetIndex);
-      }
-    },
-    [position, sortedUnfilledOrders.length],
-  );
-
   // Define tab props objects (similar to wallet's tokensTabProps, perpsTabProps pattern)
   const positionTabProps = useMemo(
     () => ({
       key: 'position-tab',
       tabLabel: strings('perps.market.position'),
       position,
-      expanded: true,
       showIcon: true,
-      onTooltipPress: handleTooltipPress,
-      onTpslCountPress: handleTabSwitchByTabId,
     }),
-    [position, handleTooltipPress, handleTabSwitchByTabId],
+    [position],
   );
 
   const ordersTabProps = useMemo(

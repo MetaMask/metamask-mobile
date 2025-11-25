@@ -98,6 +98,7 @@ import type {
   LiquidationPriceParams,
   LiveDataConfig,
   MaintenanceMarginParams,
+  MarginResult,
   MarketInfo,
   Order,
   OrderFill,

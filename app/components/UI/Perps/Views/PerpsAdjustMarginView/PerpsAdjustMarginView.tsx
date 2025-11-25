@@ -68,16 +68,19 @@ const PerpsAdjustMarginView: React.FC = () => {
   const { markets } = usePerpsMarkets();
   const marketInfo = useMemo(
     () =>
-      position?.coin ? markets.find((m) => m.coin === position.coin) : null,
+      position?.coin ? markets.find((m) => m.symbol === position.coin) : null,
     [position?.coin, markets],
   );
-  const maxLeverage = marketInfo?.maxLeverage || 50;
+  // maxLeverage in PerpsMarketData is a formatted string (e.g., '40x'), parse to number
+  const maxLeverage = marketInfo?.maxLeverage
+    ? parseInt(marketInfo.maxLeverage, 10)
+    : 50;
 
   // Add performance measurement for this view
   usePerpsMeasurement({
     traceName: TraceName.PerpsAdjustMarginView,
     conditions: [!isAdjusting, !!position],
-    tags: { mode },
+    debugContext: { mode },
   });
 
   // Get live prices for the header
@@ -382,7 +385,7 @@ const PerpsAdjustMarginView: React.FC = () => {
           label={buttonLabel}
           onPress={handleConfirm}
           isDisabled={marginAmount <= 0 || isAdjusting}
-          isLoading={isAdjusting}
+          loading={isAdjusting}
         />
       </View>
     </SafeAreaView>

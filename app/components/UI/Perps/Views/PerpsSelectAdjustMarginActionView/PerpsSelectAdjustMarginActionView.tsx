@@ -29,7 +29,7 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<
-      RouteProp<PerpsNavigationParamList, 'SELECT_ADJUST_MARGIN_ACTION'>
+      RouteProp<PerpsNavigationParamList, 'PerpsSelectAdjustMarginAction'>
     >();
 
   // Support both props and route params

@@ -1684,7 +1684,7 @@ describe('TradingService', () => {
     });
 
     it('throws error when provider does not support margin adjustment', async () => {
-      mockProvider.updateMargin = undefined;
+      mockProvider.updateMargin = undefined as never;
 
       await expect(
         TradingService.updateMargin({

@@ -268,10 +268,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               orders.length > 0
             ) {
               // Find the parent order for this position
-              // Parent orders: same coin, not trigger orders, have TP/SL children
+              // Parent orders: same symbol, not trigger orders, have TP/SL children
               const parentOrder = orders.find(
                 (order) =>
-                  order.coin === position.coin &&
+                  order.symbol === position.coin &&
                   !order.isTrigger &&
                   (order.takeProfitPrice || order.stopLossPrice),
               );
@@ -291,18 +291,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               const parts: string[] = [];
 
               if (hasTakeProfit && takeProfitPrice) {
-                const tpPrice = formatPerpsFiat(
-                  parseFloat(takeProfitPrice),
-                  PRICE_RANGES_MINIMAL_VIEW,
-                );
+                const tpPrice = formatPerpsFiat(parseFloat(takeProfitPrice), {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                });
                 parts.push(`${strings('perps.order.tp')} ${tpPrice}`);
               }
 
               if (hasStopLoss && stopLossPrice) {
-                const slPrice = formatPerpsFiat(
-                  parseFloat(stopLossPrice),
-                  PRICE_RANGES_MINIMAL_VIEW,
-                );
+                const slPrice = formatPerpsFiat(parseFloat(stopLossPrice), {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                });
                 parts.push(`${strings('perps.order.sl')} ${slPrice}`);
               }
 

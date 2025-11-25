@@ -148,7 +148,11 @@ describe('PerpsAdjustMarginView', () => {
     unrealizedPnl: '100',
     returnOnEquity: '0.20',
     leverage: { value: 10, type: 'isolated' },
-    cumulativeFunding: { sinceOpen: '5' },
+    cumulativeFunding: { allTime: '10', sinceOpen: '5', sinceChange: '2' },
+    positionValue: '5000',
+    maxLeverage: 50,
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   beforeEach(() => {

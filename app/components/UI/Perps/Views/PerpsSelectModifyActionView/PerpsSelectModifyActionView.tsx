@@ -30,7 +30,7 @@ const PerpsSelectModifyActionView: React.FC<
 }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
-    useRoute<RouteProp<PerpsNavigationParamList, 'SELECT_MODIFY_ACTION'>>();
+    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
 
   // Support both props and route params
   const position = positionProp || route.params?.position;
@@ -74,9 +74,8 @@ const PerpsSelectModifyActionView: React.FC<
             navigateToOrder({
               direction: oppositeDirection,
               asset: position.coin,
-              amount: positionSize.toString(),
+              size: positionSize.toString(),
               leverage: positionLeverage,
-              existingPosition: position,
             });
           }
           break;

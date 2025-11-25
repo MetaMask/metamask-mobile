@@ -38,11 +38,11 @@ jest.mock('../PerpsTokenLogo', () => 'PerpsTokenLogo');
 describe('PerpsCompactOrderRow', () => {
   const mockLimitBuyOrder: Order = {
     orderId: 'order-123',
-    coin: 'BTC',
     symbol: 'BTC',
     size: '0.5',
     originalSize: '0.5',
     filledSize: '0',
+    remainingSize: '0.5',
     price: '50000',
     side: 'buy',
     orderType: 'limit',
@@ -68,9 +68,9 @@ describe('PerpsCompactOrderRow', () => {
   const mockTriggerOrder: Order = {
     ...mockLimitBuyOrder,
     orderId: 'order-trigger',
-    orderType: 'trigger',
+    orderType: 'limit',
     isTrigger: true,
-    triggerPx: '48000',
+    price: '48000',
     detailedOrderType: 'Stop Market',
   };
 
@@ -105,11 +105,12 @@ describe('PerpsCompactOrderRow', () => {
     expect(screen.getByText('Stop Market long')).toBeOnTheScreen();
   });
 
-  it('uses trigger price for trigger orders', () => {
+  it('uses price for trigger orders', () => {
     const { formatPerpsFiat } = jest.requireMock('../../utils/formatUtils');
     render(<PerpsCompactOrderRow order={mockTriggerOrder} />);
 
-    // Should have called formatPerpsFiat with the trigger price value (48000)
+    // Should have called formatPerpsFiat with the order price value (48000)
+    // Note: The adapter maps triggerPx to price, so trigger orders use price field
     expect(formatPerpsFiat).toHaveBeenCalledWith(48000, expect.any(Object));
   });
 

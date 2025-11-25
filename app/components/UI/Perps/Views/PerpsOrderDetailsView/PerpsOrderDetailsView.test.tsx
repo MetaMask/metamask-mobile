@@ -170,11 +170,11 @@ jest.mock(
 describe('PerpsOrderDetailsView', () => {
   const mockOrder: Order = {
     orderId: 'order-123',
-    coin: 'BTC',
     symbol: 'BTC',
     size: '0.5',
     originalSize: '0.5',
     filledSize: '0',
+    remainingSize: '0.5',
     price: '50000',
     side: 'buy',
     orderType: 'limit',
