@@ -212,9 +212,9 @@ export async function scanAddress(
 export function extractHostname(url: string): string {
   try {
     const urlObj = new URL(url);
-    return urlObj.hostname;
+    return urlObj.hostname.toLowerCase();
   } catch (error) {
-    return url;
+    return url.toLowerCase();
   }
 }
 

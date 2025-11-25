@@ -23,7 +23,6 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     const chainId = transactionMetadata.chainId;
     const addresses: AddressTrustSignalRequest[] = [];
 
-    // Add the "to" address (recipient)
     if (transactionMetadata.txParams?.to) {
       addresses.push({
         address: transactionMetadata.txParams.to,
@@ -55,30 +54,43 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     }
 
     const alerts: Alert[] = [];
+    let highestSeverity: Severity | null = null;
 
     trustSignalResults.forEach(({ state: trustSignalState }) => {
       if (trustSignalState === TrustSignalDisplayState.Malicious) {
-        alerts.push({
-          key: AlertKeys.AddressTrustSignalMalicious,
-          field: RowAlertKey.InteractingWith,
-          severity: Severity.Danger,
-          message: strings(
-            'alert_system.address_trust_signal.malicious.message',
-          ),
-          title: strings('alert_system.address_trust_signal.malicious.title'),
-          isBlocking: false,
-        });
-      } else if (trustSignalState === TrustSignalDisplayState.Warning) {
-        alerts.push({
-          key: AlertKeys.AddressTrustSignalWarning,
-          field: RowAlertKey.InteractingWith,
-          severity: Severity.Warning,
-          message: strings('alert_system.address_trust_signal.warning.message'),
-          title: strings('alert_system.address_trust_signal.warning.title'),
-          isBlocking: false,
-        });
+        highestSeverity = Severity.Danger;
+      } else if (
+        trustSignalState === TrustSignalDisplayState.Warning &&
+        highestSeverity !== Severity.Danger
+      ) {
+        highestSeverity = Severity.Warning;
       }
     });
+
+    if (highestSeverity) {
+      const isDanger = highestSeverity === Severity.Danger;
+
+      const alertKey = isDanger
+        ? AlertKeys.AddressTrustSignalMalicious
+        : AlertKeys.AddressTrustSignalWarning;
+
+      const message = isDanger
+        ? strings('alert_system.address_trust_signal.malicious.message')
+        : strings('alert_system.address_trust_signal.warning.message');
+
+      const title = isDanger
+        ? strings('alert_system.address_trust_signal.malicious.title')
+        : strings('alert_system.address_trust_signal.warning.title');
+
+      alerts.push({
+        key: alertKey,
+        field: RowAlertKey.InteractingWith,
+        severity: highestSeverity,
+        message,
+        title,
+        isBlocking: false,
+      });
+    }
 
     return alerts;
   }, [addressesToScan.length, trustSignalResults]);

@@ -39,7 +39,7 @@ function getTrustState(
  * Hook to get trust signals for an origin URL.
  *
  * @param origin - The origin URL to check
- * @returns Trust signal result with state and label
+ * @returns Trust signal result with state and null label since we don't display a label for origins
  */
 export function useOriginTrustSignals(
   origin: string | undefined,

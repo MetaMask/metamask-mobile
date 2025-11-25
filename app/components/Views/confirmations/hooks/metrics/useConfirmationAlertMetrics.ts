@@ -118,14 +118,14 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.InsufficientPayTokenNative]: 'insufficient_funds_for_gas',
   [AlertKeys.InsufficientPredictBalance]: 'insufficient_funds',
   [AlertKeys.NoPayTokenQuotes]: 'no_payment_route_available',
+  [AlertKeys.OriginTrustSignalMalicious]: 'origin_trust_signal_malicious',
+  [AlertKeys.OriginTrustSignalWarning]: 'origin_trust_signal_warning',
   [AlertKeys.PendingTransaction]: 'pending_transaction',
   [AlertKeys.PerpsDepositMinimum]: 'minimum_deposit',
   [AlertKeys.PerpsHardwareAccount]: 'perps_hardware_account',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
-  [AlertKeys.OriginTrustSignalMalicious]: 'origin_trust_signal_malicious',
-  [AlertKeys.OriginTrustSignalWarning]: 'origin_trust_signal_warning',
 };
 
 function getAlertName(alertKey: string): string {
