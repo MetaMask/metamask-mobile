@@ -27,7 +27,7 @@ import {
   isTransactionIncomplete,
 } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { isSwapsNativeAsset } from '../Swaps/utils';
+import { isSwapsNativeAsset } from '../../../util/bridge';
 import Engine from '../../../core/Engine';
 import { TransactionType } from '@metamask/transaction-controller';
 import {

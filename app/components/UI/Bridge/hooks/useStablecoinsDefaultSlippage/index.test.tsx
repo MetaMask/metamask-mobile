@@ -1,11 +1,8 @@
-import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import {
-  useStablecoinsDefaultSlippage,
-  handleEvmStablecoinSlippage,
-} from './useStablecoinsDefaultSlippage';
+import { useStablecoinsDefaultSlippage, handleEvmStablecoinSlippage } from './';
 import { Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import AppConstants from '../../../core/AppConstants';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import AppConstants from '../../../../../core/AppConstants';
 
 describe('useStablecoinsDefaultSlippage', () => {
   const mockSetSlippage = jest.fn();

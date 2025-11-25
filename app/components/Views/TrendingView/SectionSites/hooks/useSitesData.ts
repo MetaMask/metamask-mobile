@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Logger from '../../../../../util/Logger';
 import type { SiteData } from '../SiteRowItem/SiteRowItem';
 
@@ -29,6 +29,7 @@ interface UseSitesDataResult {
   sites: SiteData[];
   isLoading: boolean;
   error: Error | null;
+  refetch: () => void;
 }
 
 const PORTFOLIO_API_BASE_URL = 'https://portfolio.api.cx.metamask.io/';
@@ -57,47 +58,51 @@ export const useSitesData = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    const fetchSites = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetchSites = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        // Use current timestamp
-        const timestamp = Date.now();
-        const url = `${PORTFOLIO_API_BASE_URL}explore/sites?limit=${limit}&ts=${timestamp}`;
-        const response = await fetch(url);
+      // Use current timestamp
+      const timestamp = Date.now();
+      const url = `${PORTFOLIO_API_BASE_URL}explore/sites?limit=${limit}&ts=${timestamp}`;
+      const response = await fetch(url);
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch sites: ${response.statusText}`);
-        }
-
-        const data = (await response.json()) as ApiSitesResponse;
-
-        // Transform API response to SiteData format
-        const transformedSites: SiteData[] = data.dapps.map((dapp) => ({
-          id: dapp.id,
-          name: dapp.name,
-          url: dapp.website,
-          displayUrl: extractDisplayUrl(dapp.website),
-          logoUrl: dapp.logoSrc,
-          featured: dapp.featured,
-        }));
-
-        setSites(transformedSites);
-      } catch (err) {
-        const fetchError = err instanceof Error ? err : new Error(String(err));
-        Logger.error(fetchError, '[useSitesData] Error fetching sites');
-        setError(fetchError);
-        // Don't use fallback data - return empty array to show the error
-        setSites([]);
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sites: ${response.statusText}`);
       }
-    };
 
-    fetchSites();
+      const data = (await response.json()) as ApiSitesResponse;
+
+      // Transform API response to SiteData format
+      const transformedSites: SiteData[] = data.dapps.map((dapp) => ({
+        id: dapp.id,
+        name: dapp.name,
+        url: dapp.website,
+        displayUrl: extractDisplayUrl(dapp.website),
+        logoUrl: dapp.logoSrc,
+        featured: dapp.featured,
+      }));
+
+      setSites(transformedSites);
+    } catch (err) {
+      const fetchError = err instanceof Error ? err : new Error(String(err));
+      Logger.error(fetchError, '[useSitesData] Error fetching sites');
+      setError(fetchError);
+      // Don't use fallback data - return empty array to show the error
+      setSites([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, [limit]);
 
-  return { sites, isLoading, error };
+  useEffect(() => {
+    fetchSites();
+  }, [fetchSites]);
+
+  const refetch = useCallback(() => {
+    fetchSites();
+  }, [fetchSites]);
+
+  return { sites, isLoading, error, refetch };
 };
