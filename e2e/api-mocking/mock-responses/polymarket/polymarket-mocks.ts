@@ -949,6 +949,152 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
       }
     });
 };
+
+/**
+ * Mock for adding Celtics vs Nets position to positions list after order is submitted
+ * This override adds the Celtics vs Nets position only after the open position flow is completed
+ *
+ * Mocks endpoint: https://data-api.polymarket.com/positions?limit=100&offset=0&user=...&sortBy=CURRENT&redeemable=false&eventId=79682
+ * - Always uses PROXY_WALLET_ADDRESS for the proxyWallet field (regardless of user in URL)
+ * - When eventId=79682 (Celtics vs Nets), returns only the Celtics position
+ * - When no eventId, returns all positions including Celtics (if order was submitted)
+ * - Also mocks the position appearing in the main positions list on the predict page
+ *
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
+          !url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base positions mock
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
+      const eventId = eventIdMatch ? eventIdMatch[1] : null;
+
+      // Check if Celtics vs Nets order has been submitted
+      const proxyAddressLower = PROXY_WALLET_ADDRESS.toLowerCase();
+      const celticsOrderSubmittedForProxy =
+        celticsOrderSubmitted.has(proxyAddressLower);
+
+      // If eventId=79682 (Celtics vs Nets), return only the Celtics position
+      if (eventId === '79682') {
+        if (!celticsOrderSubmittedForProxy) {
+          // Return empty array if order hasn't been submitted yet
+          return {
+            statusCode: 200,
+            json: [],
+          };
+        }
+
+        // Return Celtics vs Nets position with PROXY_WALLET_ADDRESS
+        const dynamicResponse =
+          POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE.map(
+            (position) => ({
+              ...position,
+              proxyWallet: PROXY_WALLET_ADDRESS,
+            }),
+          );
+
+        return {
+          statusCode: 200,
+          json: dynamicResponse,
+        };
+      }
+
+      // For main positions list (no eventId filter), combine existing positions with Celtics position
+      // only if Celtics order was submitted. Put Celtics position at the top of the list.
+      let allPositions = [...POLYMARKET_CURRENT_POSITIONS_RESPONSE];
+      if (celticsOrderSubmittedForProxy) {
+        allPositions = [
+          ...POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE,
+          ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
+        ];
+      }
+
+      // Filter positions by eventId if provided (for other eventIds)
+      let filteredPositions = allPositions;
+      if (eventId) {
+        filteredPositions = allPositions.filter(
+          (position) => position.eventId === eventId,
+        );
+      }
+
+      // Always use PROXY_WALLET_ADDRESS for proxyWallet field
+      const dynamicResponse = filteredPositions.map((position) => ({
+        ...position,
+        proxyWallet: PROXY_WALLET_ADDRESS,
+      }));
+
+      return {
+        statusCode: 200,
+        json: dynamicResponse,
+      };
+    });
+};
+
+/**
+ * Mock for adding Celtics vs Nets activity entry to activity list after order is submitted
+ * This override adds the Celtics vs Nets BUY activity only after the open position flow is completed
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          url.includes('data-api.polymarket.com/activity') &&
+          url.includes('user=0x'),
+      );
+    })
+    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base activity mock
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
+
+      // Check if Celtics vs Nets order has been submitted
+      const proxyAddressLower = PROXY_WALLET_ADDRESS.toLowerCase();
+      const celticsOrderSubmittedForProxy =
+        celticsOrderSubmitted.has(proxyAddressLower);
+
+      // Combine existing activity with Celtics activity only if Celtics order was submitted
+      // Put Celtics activity at the top (most recent first)
+      let allActivity = [...POLYMARKET_ACTIVITY_RESPONSE];
+      if (celticsOrderSubmittedForProxy) {
+        allActivity = [
+          ...POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE,
+          ...POLYMARKET_ACTIVITY_RESPONSE,
+        ];
+      }
+
+      // Update the mock response with the actual user address
+      const dynamicResponse = allActivity.map((activity) => ({
+        ...activity,
+        proxyWallet: userAddress,
+      }));
+
+      return {
+        statusCode: 200,
+        json: dynamicResponse,
+      };
+    });
+};
+
 /**
  * Sets up mocks for USDC balance refresh calls after claim or cash-out operations
  * This mock should be triggered after claim/cash-out transactions to update the displayed balance
@@ -1159,6 +1305,7 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
   // In e2e, all requests go through /proxy with the actual URL in the url query parameter
   // Matches request payload structure with PROXY_WALLET_ADDRESS as maker and USER_WALLET_ADDRESS as signer
   // Response uses decimal string format (not wei)
+  // Uses flexible matching: requires BUY order to relayer endpoint, with optional strict field validation
   await mockServer
     .forPost('/proxy')
     .matching(async (request) => {
@@ -1176,31 +1323,41 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
         const body = bodyText ? JSON.parse(bodyText) : {};
         const order = body?.order;
 
-        // Verify the request matches BUY order structure for opening a position
-        // Only check consistent fields - allow variable values for dynamic fields (salt, tokenId, amounts, signature, owner)
-        // Make matching more permissive - only check essential fields that identify a BUY order
-        return (
-          order &&
-          body.orderType === 'FOK' &&
-          order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase() &&
-          order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase() &&
-          order.taker === '0x0000000000000000000000000000000000000000' &&
-          order.expiration === '0' &&
-          order.nonce === '0' &&
-          order.feeRateBps === '0' &&
-          order.side === 'BUY' &&
-          order.signatureType === 2 &&
-          typeof order.salt === 'number' &&
-          typeof order.tokenId === 'string' &&
-          order.tokenId.length > 0 &&
-          typeof order.makerAmount === 'string' &&
-          order.makerAmount.length > 0 &&
-          typeof order.takerAmount === 'string' &&
-          order.takerAmount.length > 0 &&
-          typeof order.signature === 'string' &&
-          order.signature.startsWith('0x') &&
-          order.signature.length > 10
-        );
+        // Flexible matching: require BUY order to relayer endpoint
+        // Validates key fields when present, but doesn't require all fields to match strict pattern
+        // This handles both well-formed orders and edge cases with missing/optional fields
+        if (!order || order.side !== 'BUY') {
+          return false;
+        }
+
+        // Validate orderType if present (should be FOK for open positions)
+        if (body.orderType !== undefined && body.orderType !== 'FOK') {
+          return false;
+        }
+
+        // Validate addresses if present (should match expected addresses for open positions)
+        if (order.maker !== undefined && order.signer !== undefined) {
+          const makerMatch =
+            order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase();
+          const signerMatch =
+            order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase();
+          if (!makerMatch || !signerMatch) {
+            return false;
+          }
+        }
+
+        // If order has signature field, validate it's a valid signature format
+        if (order.signature !== undefined) {
+          if (
+            typeof order.signature !== 'string' ||
+            !order.signature.startsWith('0x') ||
+            order.signature.length < 10
+          ) {
+            return false;
+          }
+        }
+
+        return true;
       } catch {
         return false;
       }
@@ -1248,97 +1405,6 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
         };
       } catch {
         // Fallback response if parsing fails - still track the addresses
-        const userAddress = USER_WALLET_ADDRESS.toLowerCase();
-        const proxyAddress = PROXY_WALLET_ADDRESS.toLowerCase();
-        orderSubmitted.add(userAddress);
-        orderSubmitted.add(proxyAddress);
-        // Note: Can't check tokenId in catch block, so don't add to celticsOrderSubmitted
-
-        return {
-          statusCode: 200,
-          json: {
-            success: true,
-            errorMsg: '',
-            status: 'matched',
-            orderID:
-              '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
-            transactionsHashes: [
-              '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
-            ],
-            takingAmount: '11.904758',
-            makingAmount: '9.999996',
-          },
-        };
-      }
-    });
-
-  // Fallback mock for relayer endpoint - catches any order request that doesn't match the strict pattern above
-  // This ensures we catch orders even if the structure is slightly different
-  await mockServer
-    .forPost('/proxy')
-    .matching(async (request) => {
-      try {
-        const urlParam = new URL(request.url).searchParams.get('url');
-        if (
-          !urlParam ||
-          !urlParam.includes('predict.') ||
-          !urlParam.includes('api.cx.metamask.io/order')
-        ) {
-          return false;
-        }
-
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : {};
-        const order = body?.order;
-
-        // Very permissive - just check if it's a BUY order to the relayer
-        return order && order.side === 'BUY';
-      } catch {
-        return false;
-      }
-    })
-    .asPriority(PRIORITY.API_OVERRIDE - 1) // Lower priority than strict match
-    .thenCallback(async (request) => {
-      try {
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : {};
-        const order = body?.order;
-        const userAddress =
-          order?.signer?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
-        const proxyAddress =
-          order?.maker?.toLowerCase() || PROXY_WALLET_ADDRESS.toLowerCase();
-
-        // Check if it's a Celtics vs Nets token
-        const isCelticsToken =
-          order?.tokenId ===
-          '51851880223290407825872150827934296608070009371891114025629582819868766043137';
-
-        // Track both addresses - positions/activity may use either
-        orderSubmitted.add(userAddress);
-        orderSubmitted.add(proxyAddress);
-
-        // Track Celtics orders separately for position addition
-        if (isCelticsToken) {
-          celticsOrderSubmitted.add(userAddress);
-          celticsOrderSubmitted.add(proxyAddress);
-        }
-
-        return {
-          statusCode: 200,
-          json: {
-            success: true,
-            errorMsg: '',
-            status: 'matched',
-            orderID:
-              '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
-            transactionsHashes: [
-              '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
-            ],
-            takingAmount: '11.904758',
-            makingAmount: '9.999996',
-          },
-        };
-      } catch {
         const userAddress = USER_WALLET_ADDRESS.toLowerCase();
         const proxyAddress = PROXY_WALLET_ADDRESS.toLowerCase();
         orderSubmitted.add(userAddress);
@@ -1448,154 +1514,11 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
         };
       }
     });
+  await POLYMARKET_ADD_CELTICS_POSITION_MOCKS(mockServer);
+  await POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS(mockServer);
 
   // Update balance after opening position
   // await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
-};
-
-/**
- * Mock for adding Celtics vs Nets position to positions list after order is submitted
- * This override adds the Celtics vs Nets position only after the open position flow is completed
- *
- * Mocks endpoint: https://data-api.polymarket.com/positions?limit=100&offset=0&user=...&sortBy=CURRENT&redeemable=false&eventId=79682
- * - Always uses PROXY_WALLET_ADDRESS for the proxyWallet field (regardless of user in URL)
- * - When eventId=79682 (Celtics vs Nets), returns only the Celtics position
- * - When no eventId, returns all positions including Celtics (if order was submitted)
- * - Also mocks the position appearing in the main positions list on the predict page
- *
- * @param mockServer - The mockttp server instance
- */
-export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
-  mockServer: Mockttp,
-) => {
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url &&
-          url.includes('data-api.polymarket.com/positions') &&
-          url.includes('user=0x') &&
-          !url.includes('redeemable=true'),
-      );
-    })
-    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base positions mock
-    .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
-      const eventId = eventIdMatch ? eventIdMatch[1] : null;
-
-      // Check if Celtics vs Nets order has been submitted
-      const proxyAddressLower = PROXY_WALLET_ADDRESS.toLowerCase();
-      const celticsOrderSubmittedForProxy =
-        celticsOrderSubmitted.has(proxyAddressLower);
-
-      // If eventId=79682 (Celtics vs Nets), return only the Celtics position
-      if (eventId === '79682') {
-        if (!celticsOrderSubmittedForProxy) {
-          // Return empty array if order hasn't been submitted yet
-          return {
-            statusCode: 200,
-            json: [],
-          };
-        }
-
-        // Return Celtics vs Nets position with PROXY_WALLET_ADDRESS
-        const dynamicResponse =
-          POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE.map(
-            (position) => ({
-              ...position,
-              proxyWallet: PROXY_WALLET_ADDRESS,
-            }),
-          );
-
-        return {
-          statusCode: 200,
-          json: dynamicResponse,
-        };
-      }
-
-      // For main positions list (no eventId filter), combine existing positions with Celtics position
-      // only if Celtics order was submitted. Put Celtics position at the top of the list.
-      let allPositions = [...POLYMARKET_CURRENT_POSITIONS_RESPONSE];
-      if (celticsOrderSubmittedForProxy) {
-        allPositions = [
-          ...POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE,
-          ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
-        ];
-      }
-
-      // Filter positions by eventId if provided (for other eventIds)
-      let filteredPositions = allPositions;
-      if (eventId) {
-        filteredPositions = allPositions.filter(
-          (position) => position.eventId === eventId,
-        );
-      }
-
-      // Always use PROXY_WALLET_ADDRESS for proxyWallet field
-      const dynamicResponse = filteredPositions.map((position) => ({
-        ...position,
-        proxyWallet: PROXY_WALLET_ADDRESS,
-      }));
-
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
-    });
-};
-
-/**
- * Mock for adding Celtics vs Nets activity entry to activity list after order is submitted
- * This override adds the Celtics vs Nets BUY activity only after the open position flow is completed
- * @param mockServer - The mockttp server instance
- */
-export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
-  mockServer: Mockttp,
-) => {
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url &&
-          url.includes('data-api.polymarket.com/activity') &&
-          url.includes('user=0x'),
-      );
-    })
-    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base activity mock
-    .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
-      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
-
-      // Check if Celtics vs Nets order has been submitted
-      const proxyAddressLower = PROXY_WALLET_ADDRESS.toLowerCase();
-      const celticsOrderSubmittedForProxy =
-        celticsOrderSubmitted.has(proxyAddressLower);
-
-      // Combine existing activity with Celtics activity only if Celtics order was submitted
-      // Put Celtics activity at the top (most recent first)
-      let allActivity = [...POLYMARKET_ACTIVITY_RESPONSE];
-      if (celticsOrderSubmittedForProxy) {
-        allActivity = [
-          ...POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE,
-          ...POLYMARKET_ACTIVITY_RESPONSE,
-        ];
-      }
-
-      // Update the mock response with the actual user address
-      const dynamicResponse = allActivity.map((activity) => ({
-        ...activity,
-        proxyWallet: userAddress,
-      }));
-
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
-    });
 };
 
 /**

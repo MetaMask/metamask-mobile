@@ -16,8 +16,6 @@ import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
-  POLYMARKET_ADD_CELTICS_POSITION_MOCKS,
-  POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
@@ -76,12 +74,12 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapOpenPositionValue();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
+        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+
         await PredictDetailsPage.tapPositionAmount(
           positionDetails.positionAmount,
         );
         await PredictDetailsPage.tapDoneButton();
-        await POLYMARKET_ADD_CELTICS_POSITION_MOCKS(mockServer);
-        await POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS(mockServer);
 
         await PredictDetailsPage.tapOpenPosition();
         await device.enableSynchronization();
@@ -104,21 +102,13 @@ describe(SmokePredictions('Predictions'), () => {
         });
         await PredictMarketList.tapBackButton();
 
-        // Verify position does not appear in current positions list on homepage
-        for (let i = 0; i < 4; i++) {
-          const positionCard =
-            WalletView.getPredictCurrentPositionCardByIndex(i);
-          await Assertions.expectElementToNotHaveText(
-            positionCard,
-            positionDetails.name,
-            {
-              description: `Position card at index ${i} should not have text "${positionDetails.name}"`,
-            },
-          );
-        }
+        // Verify position appears in current positions list on homepage
+
+        await Assertions.expectTextDisplayed(positionDetails.name, {
+          description: `Position card should have text "${positionDetails.name}"`,
+        });
 
         await TabBarComponent.tapActivity();
-        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
         await ActivitiesView.tapOnPredictionsTab();
         await ActivitiesView.tapPredictPosition(positionDetails.name);
       },
