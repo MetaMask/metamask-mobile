@@ -90,13 +90,13 @@ import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectNetworkImageSourceByChainId } from '../../../selectors/networkInfos';
 import ContextualNetworkPicker from '../ContextualNetworkPicker/ContextualNetworkPicker';
+import { useStablecoinsDefaultSlippage } from '../Bridge/hooks/useStablecoinsDefaultSlippage';
 import Routes from '../../../constants/navigation/Routes';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useChainRedirect } from './useChainRedirect';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useStablecoinsDefaultSlippage } from '../Bridge/hooks/useStablecoinsDefaultSlippage';
 ///: END:ONLY_INCLUDE_IF
 
 const createStyles = (colors) =>
