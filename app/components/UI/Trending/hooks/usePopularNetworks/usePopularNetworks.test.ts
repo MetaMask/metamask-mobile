@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { isTestNet } from '../../../../../util/networks';
-import { usePopularNetworks } from '.';
+import { usePopularNetworks } from './usePopularNetworks';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
