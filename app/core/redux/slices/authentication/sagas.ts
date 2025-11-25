@@ -53,11 +53,14 @@ import {
   navigateToLogin,
   navigateToHome,
   authenticationError,
+  saveNavigationStateBeforeLock,
+  clearNavigationStateBeforeLock,
   // Selectors
   selectCurrentAuthState,
   selectIsAuthenticated,
   selectIsRememberMeEnabled,
   selectLockTime,
+  selectNavigationStateBeforeLock,
   // Enums/Types
   AuthenticationMethod,
   AuthenticationState,
@@ -95,6 +98,8 @@ const actions = {
   navigateToLogin,
   navigateToHome,
   authenticationError,
+  saveNavigationStateBeforeLock,
+  clearNavigationStateBeforeLock,
 };
 
 const selectors = {
@@ -102,6 +107,7 @@ const selectors = {
   selectIsAuthenticated,
   selectIsRememberMeEnabled,
   selectLockTime,
+  selectNavigationStateBeforeLock,
 };
 
 // ==========================================================================
@@ -324,7 +330,7 @@ function* initializeAuthenticationSaga() {
  * Handle authentication request
  * Uses actual Authentication API methods
  */
-function* requestAuthenticationSaga(
+export function* requestAuthenticationSaga(
   action: PayloadAction<{
     method: AuthenticationMethod;
     password?: string;
@@ -396,9 +402,35 @@ function* requestAuthenticationSaga(
         }),
       );
 
-      // Navigate to HOME on successful authentication
-      Logger.log('AuthSaga: Navigating to HOME_NAV via NavigationService');
-      NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
+      // Check if we should restore previous navigation state (for background/foreground flow)
+      // Navigation state from React Navigation is complex and not fully typed
+      const savedNavigationState: unknown = yield select(
+        selectors.selectNavigationStateBeforeLock,
+      );
+
+      Logger.log('AuthSaga: Checking for saved navigation state:', {
+        hasSavedState: !!savedNavigationState,
+        savedState: JSON.stringify(savedNavigationState),
+      });
+
+      if (savedNavigationState) {
+        // Restore the full navigation state
+        Logger.log('AuthSaga: Restoring navigation state after unlock');
+
+        // Use reset() to restore the full navigation stack
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        NavigationService.navigation?.reset(savedNavigationState as any);
+
+        // Clear the stored state
+        yield put(actions.clearNavigationStateBeforeLock());
+        Logger.log('AuthSaga: Navigation state restored and cleared');
+      } else {
+        // No stored state - navigate to HOME (normal flow)
+        Logger.log(
+          'AuthSaga: No saved navigation state - navigating to HOME_NAV',
+        );
+        NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
+      }
       Logger.log('AuthSaga: Navigation command sent');
 
       // If biometric was shown and successful, store preference
@@ -743,11 +775,13 @@ function* attemptRememberMeLoginSaga() {
  * Lock the app
  * Uses Authentication.lockApp() - the actual API method
  */
-function* lockAppSaga(action: PayloadAction<{ shouldNavigate?: boolean }>) {
+export function* lockAppSaga(
+  action: PayloadAction<{ shouldNavigate?: boolean }>,
+) {
   try {
     const { shouldNavigate = true } = action.payload;
 
-    Logger.log('AuthSaga: Locking app');
+    Logger.log('AuthSaga: Locking app (manual lock)');
 
     // Call Authentication API to lock
     // Note: Authentication.lockApp handles navigation internally if navigateToLogin = true
@@ -759,6 +793,9 @@ function* lockAppSaga(action: PayloadAction<{ shouldNavigate?: boolean }>) {
 
     // Clear any active lock timer
     yield call([AppStateService, 'clearLockTimer']);
+
+    // Clear any stored navigation state - manual locks should not restore previous screen
+    yield put(actions.clearNavigationStateBeforeLock());
 
     // Update state
     yield put(actions.appLocked({ shouldNavigate }));
@@ -817,7 +854,7 @@ function* unlockAppSaga() {
 /**
  * App backgrounded - start lock timer using AppStateService
  */
-function* appBackgroundedSaga() {
+export function* appBackgroundedSaga() {
   try {
     // Debug: Check current authentication state
     const currentState: AuthenticationState = yield select(
@@ -841,6 +878,40 @@ function* appBackgroundedSaga() {
     if (rememberMeEnabled) {
       Logger.log('AuthSaga: Remember Me enabled, skipping background lock');
       return;
+    }
+
+    // Save full navigation state for restoration after unlock
+    // This allows users to return to where they were before backgrounding
+    const navRef = NavigationService.navigation;
+    const currentRoute = navRef?.getCurrentRoute?.()?.name;
+
+    // Try to get navigation state using getRootState (correct React Navigation API)
+    let navigationState: unknown;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      navigationState = (navRef as any)?.getRootState?.();
+    } catch (error) {
+      Logger.error(error as Error, 'AuthSaga: Error getting navigation state');
+    }
+
+    if (
+      navigationState &&
+      currentRoute &&
+      currentRoute !== Routes.ONBOARDING.LOGIN
+    ) {
+      Logger.log(
+        `AuthSaga: ✅ Saving navigation state before lock - current route: ${currentRoute}`,
+      );
+      yield put(actions.saveNavigationStateBeforeLock(navigationState));
+    } else {
+      Logger.log(
+        'AuthSaga: NOT saving navigation state - conditions not met:',
+        {
+          hasNavigationState: !!navigationState,
+          hasCurrentRoute: !!currentRoute,
+          isNotLogin: currentRoute !== Routes.ONBOARDING.LOGIN,
+        },
+      );
     }
 
     // Get lock timer duration from settings using selector
@@ -1122,7 +1193,7 @@ function* triggerBiometricAuthenticationSaga() {
  * Handle user logout
  * Note: Authentication.lockApp with reset=true handles logout
  */
-function* logoutSaga() {
+export function* logoutSaga() {
   try {
     Logger.log('AuthSaga: Logging out');
 
@@ -1136,6 +1207,9 @@ function* logoutSaga() {
 
     // Clear lock timer
     yield call([AppStateService, 'clearLockTimer']);
+
+    // Clear any stored navigation state
+    yield put(actions.clearNavigationStateBeforeLock());
 
     // Update state
     yield put(actions.logoutComplete());

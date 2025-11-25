@@ -19,7 +19,6 @@
  *
  * ✅ Android Devices - STANDARDIZED BiometricPrompt API (Android 9.0+):
  *
- * ASIA-PACIFIC:
  * - Xiaomi/Redmi/POCO (MIUI) - Fingerprint, Face Unlock, In-display sensors
  * - Oppo (ColorOS) - Fingerprint, Face Recognition
  * - Vivo/iQOO (Funtouch OS) - In-display fingerprint, Face Unlock
@@ -47,12 +46,6 @@
  * - May have slightly different error messages, but error codes remain similar
  * - react-native-keychain handles the API differences internally
  *
- * TESTING RECOMMENDATIONS:
- * - Test on various iOS devices (different Face ID/Touch ID)
- * - Test on various Android manufacturers (Samsung, Google, Xiaomi, etc.)
- * - Test in different regions (error messages may vary by device locale)
- * - Test on both flagship and budget devices from each manufacturer
- * - Monitor production error logs for unhandled patterns
  *
  * PRODUCTION MONITORING:
  * If you encounter a device where cancellation is not detected correctly:

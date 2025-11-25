@@ -101,6 +101,7 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { RootState } from '../../../reducers';
+import { selectNavigationStateBeforeLock } from '../../../core/redux/slices/authentication';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -153,6 +154,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const allowLoginWithRememberMeFromRedux = useSelector(
     (state: RootState) => state.security.allowLoginWithRememberMe,
   );
+
+  const savedNavigationState = useSelector(selectNavigationStateBeforeLock);
 
   // coming from vault recovery flow flag
   const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
@@ -330,8 +333,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, [password, biometryChoice, rememberMe, navigation]);
 
   const navigateToHome = useCallback(async () => {
+    // Skip navigation if there's a saved navigation state - the saga will handle restoration
+    if (savedNavigationState) {
+      Logger.log(
+        'Login: Skipping navigation to HOME - saga will restore previous screen',
+      );
+      return;
+    }
     navigation.replace(Routes.ONBOARDING.HOME_NAV);
-  }, [navigation]);
+  }, [navigation, savedNavigationState]);
 
   const checkMetricsUISeen = useCallback(async (): Promise<void> => {
     const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
@@ -339,6 +349,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     );
 
     if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
+      // Skip navigation if there's a saved navigation state
+      if (savedNavigationState) {
+        Logger.log(
+          'Login: Skipping metrics navigation - saga will restore previous screen',
+        );
+        return;
+      }
       navigation.reset({
         routes: [
           {
@@ -355,7 +372,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } else {
       navigateToHome();
     }
-  }, [navigation, navigateToHome, isMetricsEnabled]);
+  }, [navigation, navigateToHome, isMetricsEnabled, savedNavigationState]);
 
   const handlePasswordError = useCallback((loginErrorMessage: string) => {
     setLoading(false);

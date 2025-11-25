@@ -49,6 +49,7 @@ export interface AuthenticationContext {
   error?: string;
   isFirstTimeUser: boolean;
   shouldShowBiometric: boolean;
+  navigationStateBeforeLock?: unknown;
 }
 
 /**
@@ -230,6 +231,14 @@ const authenticationSlice = createSlice({
       state.stateChangedAt = Date.now();
     },
 
+    // Route Restoration
+    saveNavigationStateBeforeLock: (state, action: PayloadAction<unknown>) => {
+      state.context.navigationStateBeforeLock = action.payload;
+    },
+    clearNavigationStateBeforeLock: (state) => {
+      state.context.navigationStateBeforeLock = undefined;
+    },
+
     // Remember Me
     setRememberMe: (state, action: PayloadAction<boolean>) => {
       state.context.rememberMeEnabled = action.payload;
@@ -300,6 +309,8 @@ export const {
   navigateToLogin,
   navigateToHome,
   authenticationError,
+  saveNavigationStateBeforeLock,
+  clearNavigationStateBeforeLock,
 } = authenticationSlice.actions;
 
 export default authenticationSlice.reducer;
@@ -433,4 +444,9 @@ export const selectAuthStateSummary = createSelector(
     error: context.error,
     stateChangedAt: changedAt,
   }),
+);
+
+export const selectNavigationStateBeforeLock = createSelector(
+  selectAuthContext,
+  (context) => context.navigationStateBeforeLock,
 );
