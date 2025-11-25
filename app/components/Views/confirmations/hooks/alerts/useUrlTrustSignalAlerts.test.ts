@@ -197,6 +197,11 @@ describe('useUrlTrustSignalAlerts', () => {
       mockUseApprovalRequest.mockReturnValue({
         approvalRequest: {
           id: 'test-approval-id',
+          origin: 'https://signature-site.com',
+          time: Date.now(),
+          type: 'eth_signTypedData_v4',
+          requestState: null,
+          expectsResult: false,
           requestData: {
             meta: {
               url: 'https://signature-site.com/sign',
@@ -250,6 +255,11 @@ describe('useUrlTrustSignalAlerts', () => {
       mockUseApprovalRequest.mockReturnValue({
         approvalRequest: {
           id: 'test-approval-id',
+          origin: 'https://approval-site.com',
+          time: Date.now(),
+          type: 'transaction',
+          requestState: null,
+          expectsResult: false,
           requestData: {
             origin: 'https://approval-site.com',
           },
@@ -334,6 +344,11 @@ describe('useUrlTrustSignalAlerts', () => {
       mockUseApprovalRequest.mockReturnValue({
         approvalRequest: {
           id: 'test-approval-id',
+          origin: 'https://signature-site.com',
+          time: Date.now(),
+          type: 'eth_signTypedData_v4',
+          requestState: null,
+          expectsResult: false,
           requestData: {
             meta: {
               url: 'https://signature-site.com',
@@ -391,6 +406,11 @@ describe('useUrlTrustSignalAlerts', () => {
       mockUseApprovalRequest.mockReturnValue({
         approvalRequest: {
           id: 'test-approval-id',
+          origin: 'https://approval-site.com',
+          time: Date.now(),
+          type: 'transaction',
+          requestState: null,
+          expectsResult: false,
           requestData: {
             origin: 'https://approval-site.com',
           },
