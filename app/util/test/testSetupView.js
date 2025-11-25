@@ -26,6 +26,16 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
+// --------------------------------------------------------------------------------
+// External Library Mocks & Test Environment Configuration
+// --------------------------------------------------------------------------------
+// We group non-React Native mocks here to ensure consistent behavior across tests.
+// These mocks replace native modules and external libraries that either:
+// 1. Depend on native code not available in the Jest environment (e.g., filesystem, crypto).
+// 2. Perform async operations that cause "act()" warnings or flakiness (e.g., animations, analytics).
+// 3. Are not the focus of view tests and add unnecessary complexity.
+// --------------------------------------------------------------------------------
+
 // Mock redux-devtools-expo-dev-plugin
 // eslint-disable-next-line no-empty-function
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
@@ -76,13 +86,15 @@ jest.mock('react-native-quick-crypto', () => ({
     return array;
   }),
   subtle: {
-    importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) => Promise.resolve({
+    importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) =>
+      Promise.resolve({
         format,
         keyData,
         algorithm,
         extractable,
         keyUsages,
-      })),
+      }),
+    ),
     deriveBits: jest.fn((algorithm, baseKey, length) => {
       const derivedBits = new Uint8Array(length);
       for (let i = 0; i < length; i++) {
@@ -90,19 +102,25 @@ jest.mock('react-native-quick-crypto', () => ({
       }
       return Promise.resolve(derivedBits);
     }),
-    exportKey: jest.fn((format, key) => Promise.resolve(new Uint8Array([1, 2, 3, 4]))),
-    encrypt: jest.fn((algorithm, key, data) => Promise.resolve(
+    exportKey: jest.fn((format, key) =>
+      Promise.resolve(new Uint8Array([1, 2, 3, 4])),
+    ),
+    encrypt: jest.fn((algorithm, key, data) =>
+      Promise.resolve(
         new Uint8Array([
           123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
           58,
         ]),
-      )),
-    decrypt: jest.fn((algorithm, key, data) => Promise.resolve(
+      ),
+    ),
+    decrypt: jest.fn((algorithm, key, data) =>
+      Promise.resolve(
         new Uint8Array([
           123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
           58,
         ]),
-      )),
+      ),
+    ),
   },
   randomUUID: jest.fn(
     () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
@@ -356,25 +374,23 @@ jest.mock('@sentry/react-native', () => ({
 // Mock Firebase Messaging
 jest.mock('@react-native-firebase/messaging', () => {
   const module = () => ({
-      getToken: jest.fn(() => Promise.resolve('fcmToken')),
-      deleteToken: jest.fn(() => Promise.resolve()),
-      subscribeToTopic: jest.fn(),
-      unsubscribeFromTopic: jest.fn(),
-      hasPermission: jest.fn(() => Promise.resolve(1)),
-      requestPermission: jest.fn(() => Promise.resolve(1)),
-      setBackgroundMessageHandler: jest.fn(() => Promise.resolve()),
-      isDeviceRegisteredForRemoteMessages: jest.fn(() =>
-        Promise.resolve(false),
-      ),
-      registerDeviceForRemoteMessages: jest.fn(() =>
-        Promise.resolve('registered'),
-      ),
-      unregisterDeviceForRemoteMessages: jest.fn(() =>
-        Promise.resolve('unregistered'),
-      ),
-      onMessage: jest.fn(),
-      onTokenRefresh: jest.fn(),
-    });
+    getToken: jest.fn(() => Promise.resolve('fcmToken')),
+    deleteToken: jest.fn(() => Promise.resolve()),
+    subscribeToTopic: jest.fn(),
+    unsubscribeFromTopic: jest.fn(),
+    hasPermission: jest.fn(() => Promise.resolve(1)),
+    requestPermission: jest.fn(() => Promise.resolve(1)),
+    setBackgroundMessageHandler: jest.fn(() => Promise.resolve()),
+    isDeviceRegisteredForRemoteMessages: jest.fn(() => Promise.resolve(false)),
+    registerDeviceForRemoteMessages: jest.fn(() =>
+      Promise.resolve('registered'),
+    ),
+    unregisterDeviceForRemoteMessages: jest.fn(() =>
+      Promise.resolve('unregistered'),
+    ),
+    onMessage: jest.fn(),
+    onTokenRefresh: jest.fn(),
+  });
   module.AuthorizationStatus = {
     NOT_DETERMINED: -1,
     DENIED: 0,
@@ -553,14 +569,25 @@ jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
   };
 });
 
+// Mock RemoteImage to avoid async dimension calculations in tests
+jest.mock('../../components/Base/RemoteImage', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return (props) => <View {...props} testID="mock-remote-image" />;
+});
+
 // 2. The Guard: Enforce Whitelist for jest.mock
 // ------------------------------------------------
 (() => {
   const ALLOWED_MOCK_MODULES = new Set([
+    // Core business logic: mocked to isolate view tests from complex state/side-effects
     '../../../core/Engine',
     '../../../core/Engine/Engine',
+    // Native modules: mocked for deterministic behavior
     'react-native-device-info',
     'react-native/Libraries/Animated/Easing',
+    // App components: mocked to avoid async operations (e.g. image sizing) causing act() warnings
+    '../../components/Base/RemoteImage',
   ]);
   const originalJestMock = jest.mock.bind(jest);
 

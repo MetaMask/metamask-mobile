@@ -39,8 +39,10 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Input areas are rendered
-    expect(getByTestId(SWAP_SCREEN_SOURCE_TOKEN_AREA_ID)).toBeTruthy();
-    expect(getByTestId(SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID)).toBeTruthy();
+    expect(getByTestId(SWAP_SCREEN_SOURCE_TOKEN_AREA_ID)).toBeOnTheScreen();
+    expect(
+      getByTestId(SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID),
+    ).toBeOnTheScreen();
 
     // Confirm button should NOT be rendered without valid inputs and quote
     expect(queryByTestId(SWAP_SCREEN_CONFIRM_BUTTON_ID)).toBeNull();
@@ -73,7 +75,9 @@ describeForPlatforms('BridgeView', () => {
 
     // Ensure keypad is visible
     await waitFor(() => {
-      expect(queryByTestId(SWAP_SCREEN_KEYPAD_DELETE_BUTTON_ID)).toBeTruthy();
+      expect(
+        getByTestId(SWAP_SCREEN_KEYPAD_DELETE_BUTTON_ID),
+      ).toBeOnTheScreen();
     });
 
     // Type 9.5 using keypad buttons
@@ -83,9 +87,9 @@ describeForPlatforms('BridgeView', () => {
     fireEvent.press(within(scroll).getByText('5'));
 
     // Assert amount and exact fiat conversion (9.5 * $2000 = $19,000.00)
-    expect(await findByDisplayValue('9.5')).toBeTruthy();
+    expect(await findByDisplayValue('9.5')).toBeOnTheScreen();
     await waitFor(async () => {
-      expect(await findByText('$19,000.00')).toBeTruthy();
+      expect(await findByText('$19,000.00')).toBeOnTheScreen();
     });
   });
 
@@ -131,7 +135,7 @@ describeForPlatforms('BridgeView', () => {
     });
 
     const button = getByTestId(SWAP_SCREEN_CONFIRM_BUTTON_ID);
-    expect(button).toBeTruthy();
+    expect(button).toBeOnTheScreen();
     expect(
       (button as unknown as { props: { isDisabled?: boolean } }).props
         .isDisabled,
@@ -210,7 +214,7 @@ describeForPlatforms('BridgeView', () => {
     const expected = strings('bridge.no_mm_fee_disclaimer', {
       destTokenSymbol: 'mUSD',
     });
-    expect(await findByText(expected)).toBeTruthy();
+    expect(await findByText(expected)).toBeOnTheScreen();
   });
 
   it('navigates to dest token selector on press', async () => {
@@ -252,6 +256,6 @@ describeForPlatforms('BridgeView', () => {
     fireEvent.press(await findByText('Swap to'));
     expect(
       await findByText(Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 });

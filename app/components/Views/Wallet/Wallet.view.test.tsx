@@ -27,8 +27,8 @@ describeForPlatforms('Wallet', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    expect(getByTestId(WALLET_VIEW_CONTAINER_ID)).toBeTruthy();
-    expect(getByTestId(WALLET_TOTAL_BALANCE_TEXT_ID)).toBeTruthy();
-    expect(getByTestId(WALLET_SEND_BUTTON_ID)).toBeTruthy();
+    expect(getByTestId(WALLET_VIEW_CONTAINER_ID)).toBeOnTheScreen();
+    expect(getByTestId(WALLET_TOTAL_BALANCE_TEXT_ID)).toBeOnTheScreen();
+    expect(getByTestId(WALLET_SEND_BUTTON_ID)).toBeOnTheScreen();
   });
 });
