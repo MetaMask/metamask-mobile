@@ -7,7 +7,7 @@ import React, {
   useMemo,
 } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, View, TouchableOpacity } from 'react-native';
+import { Alert, View, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -115,6 +115,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const srpInputGridRef = useRef(null);
   const scrollViewRef = useRef(null);
+  const currentRowRef = useRef(-1);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -135,6 +136,22 @@ const ImportFromSecretRecoveryPhrase = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedPhrase]);
+
+  const handleInputFocus = useCallback((index) => {
+    if (Platform.OS === 'android' && scrollViewRef.current) {
+      const rowIndex = Math.floor(index / 3);
+
+      if (rowIndex > 3 && rowIndex !== currentRowRef.current) {
+        currentRowRef.current = rowIndex;
+
+        const scrollY = 30 + (rowIndex - 4) * 20;
+
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToPosition(0, scrollY, true);
+        }, 50);
+      }
+    }
+  }, []);
 
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
@@ -518,7 +535,7 @@ const ImportFromSecretRecoveryPhrase = ({
         keyboardDismissMode="none"
         enableOnAndroid
         enableAutomaticScroll
-        extraScrollHeight={150}
+        extraScrollHeight={100}
         showsVerticalScrollIndicator={false}
       >
         {currentStep === 0 && (
@@ -560,6 +577,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
                 placeholderText={strings('import_from_seed.srp_placeholder')}
                 uniqueId={uniqueId}
+                onInputFocus={handleInputFocus}
               />
               <View style={styles.seedPhraseCtaContainer}>
                 <Button

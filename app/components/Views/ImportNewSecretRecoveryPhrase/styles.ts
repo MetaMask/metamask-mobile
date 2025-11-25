@@ -13,7 +13,6 @@ const createStyles = (colors: Colors) =>
     wrapper: {
       flexGrow: 1,
       paddingHorizontal: 16,
-      paddingBottom: 100,
     },
     headerButton: {
       paddingHorizontal: 16,

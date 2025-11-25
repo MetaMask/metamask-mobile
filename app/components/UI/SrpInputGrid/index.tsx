@@ -57,6 +57,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       placeholderText,
       uniqueId = uuidv4(),
       disabled = false,
+      onInputFocus,
     },
     ref,
   ) => {
@@ -254,8 +255,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         if (!currentWord.includes(' ')) {
           setCurrentInputWord(currentWord);
         }
+
+        // Notify parent component for manual scrolling
+        onInputFocus?.(index);
       },
-      [seedPhrase],
+      [seedPhrase, onInputFocus],
     );
 
     const handleOnBlur = useCallback(

@@ -43,4 +43,9 @@ export interface SrpInputGridProps {
    * Whether the inputs should be disabled
    */
   disabled?: boolean;
+
+  /**
+   * Callback when an input receives focus
+   */
+  onInputFocus?: (index: number) => void;
 }

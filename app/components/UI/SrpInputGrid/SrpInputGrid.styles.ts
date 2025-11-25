@@ -113,7 +113,7 @@ export const createStyles = (colors: Colors) =>
     },
     suggestionButton: {
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingVertical: 4,
       marginRight: 12,
       borderRadius: 8,
       minWidth: 60,

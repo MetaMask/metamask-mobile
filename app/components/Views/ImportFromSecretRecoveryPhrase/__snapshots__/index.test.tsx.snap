@@ -403,7 +403,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         contentContainerStyle={
                           {
                             "flexGrow": 1,
-                            "paddingBottom": 100,
                             "paddingHorizontal": 16,
                           }
                         }
@@ -416,7 +415,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         enableOnAndroid={true}
                         enableResetScrollToCoords={true}
                         extraHeight={75}
-                        extraScrollHeight={150}
+                        extraScrollHeight={100}
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
                         keyboardDismissMode="none"
