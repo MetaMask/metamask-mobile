@@ -9,6 +9,7 @@ import { execSync } from 'node:child_process';
 /**
  * Gets the list of changed files between a base branch and HEAD
  * Uses three-dot syntax (...) to compare against merge base
+ * Falls back to two-dot syntax (..) for problematic git histories (cherry-picks, force pushes)
  */
 export function getAllChangedFiles(
   baseBranch: string,
@@ -17,8 +18,32 @@ export function getAllChangedFiles(
   try {
     const targetBranch = baseBranch;
 
+    // Try three-dot syntax first (merge-base comparison)
+    try {
+      const changedFiles = execSync(
+        `git diff --name-only ${targetBranch}...HEAD`,
+        {
+          encoding: 'utf8',
+          cwd: baseDir,
+          stdio: ['ignore', 'pipe', 'pipe'],
+        },
+      )
+        .trim()
+        .split('\n')
+        .filter((f) => f);
+
+      if (changedFiles.length > 0 && changedFiles[0] !== '') {
+        return changedFiles;
+      }
+    } catch (threeWayError) {
+      console.warn(
+        `⚠️  Three-dot diff failed for ${targetBranch}, falling back to two-dot syntax`,
+      );
+    }
+
+    // Fallback to two-dot syntax (direct branch comparison)
     const changedFiles = execSync(
-      `git diff --name-only ${targetBranch}...HEAD`,
+      `git diff --name-only ${targetBranch}..HEAD`,
       {
         encoding: 'utf8',
         cwd: baseDir,
@@ -36,16 +61,17 @@ export function getAllChangedFiles(
 }
 
 /**
- * Gets the diff for a specific file
- * Uses three-dot syntax (...) to compare against merge base
- */
-/**
  * Escapes shell special characters to prevent command injection
  */
 function escapeShell(str: string): string {
   return str.replace(/[`$\\"\n]/g, '\\$&');
 }
 
+/**
+ * Gets the diff for a specific file
+ * Uses three-dot syntax (...) to compare against merge base
+ * Falls back to two-dot syntax (..) for problematic git histories (cherry-picks, force pushes)
+ */
 export function getFileDiff(
   filePath: string,
   baseBranch: string,
@@ -56,13 +82,31 @@ export function getFileDiff(
     const targetBranch = escapeShell(baseBranch);
     const escapedFilePath = escapeShell(filePath);
 
-    const diff = execSync(
-      `git diff ${targetBranch}...HEAD -- "${escapedFilePath}"`,
-      {
-        encoding: 'utf-8',
-        cwd: baseDir,
-      },
-    );
+    // Try three-dot syntax first (merge-base comparison)
+    let diff = '';
+    try {
+      diff = execSync(
+        `git diff ${targetBranch}...HEAD -- "${escapedFilePath}"`,
+        {
+          encoding: 'utf-8',
+          cwd: baseDir,
+          stdio: ['ignore', 'pipe', 'pipe'],
+        },
+      );
+    } catch (threeWayError) {
+      // Fallback to two-dot syntax (direct branch comparison)
+      try {
+        diff = execSync(
+          `git diff ${targetBranch}..HEAD -- "${escapedFilePath}"`,
+          {
+            encoding: 'utf-8',
+            cwd: baseDir,
+          },
+        );
+      } catch {
+        return `Could not get git diff for ${filePath}`;
+      }
+    }
 
     if (!diff) {
       return `No git diff available for ${filePath} (may be new/untracked)`;

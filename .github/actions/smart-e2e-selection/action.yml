@@ -45,10 +45,23 @@ runs:
 
     - name: Fetch base branch for comparison
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
       run: |
         # Unshallow the repository first (if it's shallow)
         git fetch --unshallow 2>/dev/null || true
-        # Then fetch base branch to ensure merge-base exists
+
+        # Get the actual PR base branch (for PRs targeting release branches, etc.)
+        if [[ -n "${{ inputs.pr-number }}" ]]; then
+          BASE_BRANCH=$(gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json baseRefName --jq '.baseRefName')
+          echo "📍 PR base branch: ${BASE_BRANCH}"
+          echo "PR_BASE_BRANCH=${BASE_BRANCH}" >> $GITHUB_ENV
+
+          # Fetch the actual base branch
+          git fetch origin "${BASE_BRANCH}" 2>/dev/null || true
+        fi
+
+        # Always fetch main as fallback
         git fetch origin main 2>/dev/null || true
 
     - name: Setup Node.js
@@ -97,6 +110,7 @@ runs:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
         EVENT_NAME: ${{ inputs.event-name }}
         PR_NUMBER: ${{ inputs.pr-number }}
+        PR_BASE_BRANCH: ${{ env.PR_BASE_BRANCH }}
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
