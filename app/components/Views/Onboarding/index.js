@@ -432,7 +432,7 @@ class Onboarding extends PureComponent {
       OAuthLoginService.resetOauthState();
     }
 
-    await this.props.metrics.restoreMetricsOptInPriorReset();
+    await this.props.metrics.enable(false);
     // need to call hasMetricsConsent to update the cached consent state
     await hasMetricsConsent();
 
@@ -462,7 +462,7 @@ class Onboarding extends PureComponent {
       OAuthLoginService.resetOauthState();
     }
 
-    await this.props.metrics.restoreMetricsOptInPriorReset();
+    await this.props.metrics.enable(false);
     await hasMetricsConsent();
 
     const action = async () => {

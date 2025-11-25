@@ -581,7 +581,7 @@ describe('Onboarding', () => {
         }),
       );
 
-      expect(mockRestorePriorReset).toHaveBeenCalled();
+      expect(mockEnable).toHaveBeenCalledWith(false);
     });
   });
 
@@ -1262,7 +1262,6 @@ describe('Onboarding', () => {
       });
 
       expect(mockEnable).toHaveBeenCalledWith(true);
-      expect(mockRestorePriorReset).not.toHaveBeenCalled();
     });
   });
 

@@ -30,8 +30,6 @@ jest.spyOn(MetaMetrics, 'getInstance').mockReturnValue({
   isDataRecorded: jest.fn(),
   configure: jest.fn(),
   getMetaMetricsId: jest.fn(),
-  restoreMetricsOptInPriorReset: jest.fn(),
-  backupMetricsOptInPriorReset: jest.fn(),
 } as IMetaMetrics);
 
 describe('trackSnapAccountEvent', () => {
