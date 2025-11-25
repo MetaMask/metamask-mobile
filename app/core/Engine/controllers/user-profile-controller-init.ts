@@ -30,7 +30,7 @@ export const userProfileControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state: persistedState.UserProfileController,
     assertUserOptedIn,
-    getMetaMetricsId: async () => metaMetricsId,
+    getMetaMetricsId: () => metaMetricsId,
   });
 
   return {
