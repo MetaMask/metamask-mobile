@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import type { CaipChainId } from '@metamask/utils';
 import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest';
@@ -33,36 +34,41 @@ export const useTrendingSearch = (
     chainIds: chainIds ?? undefined,
   });
 
-  if (!searchQuery) {
-    const sortedResults = sortTrendingTokens(
-      trendingResults,
-      PriceChangeOption.PriceChange,
+  const refetch = useCallback(() => {
+    fetchTrendingTokens();
+  }, [fetchTrendingTokens]);
+
+  const sortedResults = useMemo(
+    () => sortTrendingTokens(trendingResults, PriceChangeOption.PriceChange),
+    [trendingResults],
+  );
+
+  const combinedResults = useMemo(() => {
+    const resultMap = new Map(
+      trendingResults.map((result) => [result.assetId, result]),
     );
+
+    searchResults.forEach((result) => {
+      const asset = result as TrendingAsset;
+      if (!resultMap.has(asset.assetId)) {
+        resultMap.set(asset.assetId, asset);
+      }
+    });
+
+    return Array.from(resultMap.values());
+  }, [trendingResults, searchResults]);
+
+  if (!searchQuery) {
     return {
       data: sortedResults,
       isLoading: isTrendingLoading,
-      refetch: () => {
-        fetchTrendingTokens();
-      },
+      refetch,
     };
   }
 
-  const resultMap = new Map(
-    trendingResults.map((result) => [result.assetId, result]),
-  );
-
-  searchResults.forEach((result) => {
-    const asset = result as TrendingAsset;
-    if (!resultMap.has(asset.assetId)) {
-      resultMap.set(asset.assetId, asset);
-    }
-  });
-
   return {
-    data: Array.from(resultMap.values()),
+    data: combinedResults,
     isLoading: isSearchLoading,
-    refetch: () => {
-      fetchTrendingTokens();
-    },
+    refetch,
   };
 };
