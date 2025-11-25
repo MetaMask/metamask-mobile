@@ -30,6 +30,7 @@ import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
 import SiteRowItemWrapper from '../SectionSites/SiteRowItemWrapper';
 import SiteSkeleton from '../SectionSites/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../SectionSites/hooks/useSitesData';
+import { CaipChainId } from '@metamask/utils';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
