@@ -18,11 +18,7 @@ import {
 } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
-import {
-  hexToBN,
-  toChecksumHexAddress,
-  toHex,
-} from '@metamask/controller-utils';
+import { hexToBN, toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   selectConversionRate,
   selectCurrencyRates,
@@ -42,6 +38,8 @@ import { RootState } from '../../reducers';
 import { selectTokenList } from '../tokenListController';
 import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
+import { isSupportedPooledStakingChain } from '@metamask/earn-controller';
+import { getDecimalChainId } from '../../util/networks';
 
 interface NativeTokenBalance {
   balance: string;
@@ -192,10 +190,8 @@ export const selectNativeTokensAcrossChainsForAddress = createSelector(
 
       if (
         nativeTokenInfoByChainId &&
-        nativeTokenInfoByChainId.isStaked &&
-        nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
-        nativeTokenInfoByChainId.stakedBalance !== toHex(0) &&
-        nativeTokenInfoByChainId.stakedBalance !== '0'
+        !nativeTokenInfoByChainId.isStaked &&
+        isSupportedPooledStakingChain(getDecimalChainId(nativeChainId as Hex))
       ) {
         // Staked tokens
         tokensByChain[nativeChainId].push({
