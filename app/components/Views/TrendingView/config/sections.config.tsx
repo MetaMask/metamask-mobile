@@ -1,6 +1,9 @@
 import React from 'react';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
-import type { TrendingAsset } from '@metamask/assets-controllers';
+import type {
+  TrendingAsset,
+  SortTrendingBy,
+} from '@metamask/assets-controllers';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import TrendingTokenRowItem from '../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
@@ -16,37 +19,50 @@ import SectionCard from '../components/SectionCard/SectionCard';
 import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
 import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
-import {
-  PriceChangeOption,
-  SortDirection,
-} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
+import { PriceChangeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
+import { useSearchRequest } from '../../../UI/Trending/hooks/useSearchRequest';
+import { Box, IconName } from '@metamask/design-system-react-native';
+import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
+import SiteRowItemWrapper from '../SectionSites/SiteRowItemWrapper';
+import SiteSkeleton from '../SectionSites/SiteSkeleton/SiteSkeleton';
+import { useSitesData } from '../SectionSites/hooks/useSitesData';
+import { CaipChainId } from '@metamask/utils';
 
-export type SectionId = 'predictions' | 'tokens' | 'perps';
+export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
 interface SectionData {
   data: unknown[];
   isLoading: boolean;
+  refetch?: () => void;
+}
+
+interface SectionParams {
+  searchQuery?: string;
+  sortBy?: SortTrendingBy;
+  chainIds?: CaipChainId[] | null;
 }
 
 interface SectionConfig {
   id: SectionId;
   title: string;
+  icon: IconName;
   viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
-  renderRowItem: (
-    item: unknown,
-    navigation: NavigationProp<ParamListBase>,
-  ) => JSX.Element;
-  renderSkeleton: () => JSX.Element;
+  RowItem: React.ComponentType<{
+    item: unknown;
+    navigation: NavigationProp<ParamListBase>;
+  }>;
+  Skeleton: React.ComponentType;
   getSearchableText: (item: unknown) => string;
   keyExtractor: (item: unknown) => string;
-  renderSection: () => JSX.Element;
-  useSectionData: (searchQuery?: string) => {
+  Section: React.ComponentType;
+  useSectionData: (params?: SectionParams) => {
     data: unknown[];
     isLoading: boolean;
+    refetch?: () => void;
   };
 }
 
@@ -70,34 +86,77 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
     title: strings('trending.tokens'),
+    icon: IconName.Ethereum,
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
-    renderRowItem: (item) => (
+    RowItem: ({ item }) => (
       <TrendingTokenRowItem token={item as TrendingAsset} />
     ),
-    renderSkeleton: () => <TrendingTokensSkeleton />,
+    Skeleton: () => <TrendingTokensSkeleton />,
     getSearchableText: (item) =>
       `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
     keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
-    renderSection: () => <SectionCard sectionId="tokens" />,
-    useSectionData: () => {
-      const { results, isLoading } = useTrendingRequest({});
+    Section: () => <SectionCard sectionId="tokens" />,
+    useSectionData: (params?: SectionParams) => {
+      const { searchQuery, sortBy, chainIds } = params ?? {};
+      // Trending will return tokens that have just been created which wont be picked up by search API
+      // so if you see a token on trending and search on omnisearch which uses the search endpoint...
+      // There is a chance you will get 0 results
+      const { results: searchResults, isLoading: isSearchLoading } =
+        useSearchRequest({
+          query: searchQuery || '',
+          limit: 20,
+          chainIds: [],
+        });
 
-      // Apply default sorting to match full view (PriceChange, Descending)
-      // This ensures the section view shows the same order as the full view
-      const sortedResults = sortTrendingTokens(
-        results,
-        PriceChangeOption.PriceChange,
-        SortDirection.Descending,
+      const {
+        results: trendingResults,
+        isLoading: isTrendingLoading,
+        fetch: fetchTrendingTokens,
+      } = useTrendingRequest({
+        sortBy,
+        chainIds: chainIds ?? undefined,
+      });
+
+      if (!searchQuery) {
+        const sortedResults = sortTrendingTokens(
+          trendingResults,
+          PriceChangeOption.PriceChange,
+        );
+        return {
+          data: sortedResults,
+          isLoading: isTrendingLoading,
+          refetch: () => {
+            fetchTrendingTokens();
+          },
+        };
+      }
+
+      const resultMap = new Map(
+        trendingResults.map((result) => [result.assetId, result]),
       );
 
-      return { data: sortedResults, isLoading };
+      searchResults.forEach((result) => {
+        const asset = result as TrendingAsset;
+        if (!resultMap.has(asset.assetId)) {
+          resultMap.set(asset.assetId, asset);
+        }
+      });
+
+      return {
+        data: Array.from(resultMap.values()),
+        isLoading: isSearchLoading,
+        refetch: () => {
+          fetchTrendingTokens();
+        },
+      };
     },
   },
   perps: {
     id: 'perps',
     title: strings('trending.perps'),
+    icon: IconName.Candlestick,
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
@@ -106,7 +165,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         },
       });
     },
-    renderRowItem: (item, navigation) => (
+    RowItem: ({ item, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
         onPress={() => {
@@ -121,11 +180,11 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         showBadge={false}
       />
     ),
-    renderSkeleton: () => <PerpsMarketRowSkeleton />,
+    Skeleton: () => <PerpsMarketRowSkeleton />,
     getSearchableText: (item) =>
       `${(item as PerpsMarketData).symbol} ${(item as PerpsMarketData).name || ''}`.toLowerCase(),
     keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
-    renderSection: () => (
+    Section: () => (
       <PerpsConnectionProvider>
         <PerpsStreamProvider>
           <SectionCard sectionId="perps" />
@@ -141,20 +200,24 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   predictions: {
     id: 'predictions',
     title: strings('wallet.predict'),
+    icon: IconName.Speedometer,
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
       });
     },
-    renderRowItem: (item) => (
-      <PredictMarket market={item as PredictMarketType} isCarousel />
+    RowItem: ({ item }) => (
+      <Box twClassName="py-2">
+        <PredictMarket market={item as PredictMarketType} isCarousel />
+      </Box>
     ),
-    renderSkeleton: () => <PredictMarketSkeleton isCarousel />,
+    Skeleton: () => <PredictMarketSkeleton isCarousel />,
     getSearchableText: (item) =>
       (item as PredictMarketType).title.toLowerCase(),
     keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
-    renderSection: () => <SectionCarrousel sectionId="predictions" />,
-    useSectionData: (searchQuery?: string) => {
+    Section: () => <SectionCarrousel sectionId="predictions" />,
+    useSectionData: (params?: SectionParams) => {
+      const { searchQuery } = params ?? {};
       const { marketData, isFetching } = usePredictMarketData({
         category: 'trending',
         pageSize: searchQuery ? 20 : 6,
@@ -164,6 +227,26 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       return { data: marketData, isLoading: isFetching };
     },
   },
+  sites: {
+    id: 'sites',
+    title: strings('trending.sites'),
+    icon: IconName.Global,
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.SITES_LIST_VIEW);
+    },
+    RowItem: ({ item, navigation }) => (
+      <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
+    ),
+    Skeleton: () => <SiteSkeleton />,
+    getSearchableText: (item) =>
+      `${(item as SiteData).name} ${(item as SiteData).displayUrl}`.toLowerCase(),
+    keyExtractor: (item) => `site-${(item as SiteData).id}`,
+    Section: () => <SectionCard sectionId="sites" />,
+    useSectionData: () => {
+      const { sites, isLoading } = useSitesData({ limit: 100 });
+      return { data: sites, isLoading };
+    },
+  },
 };
 
 // Sorted by order on the main screen
@@ -171,6 +254,7 @@ export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.sites,
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
@@ -178,6 +262,7 @@ export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
+  SECTIONS_CONFIG.sites,
 ];
 
 /**
@@ -192,11 +277,13 @@ export const useSectionsData = (
   searchQuery?: string,
 ): Record<SectionId, SectionData> => {
   const { data: trendingTokens, isLoading: isTokensLoading } =
-    SECTIONS_CONFIG.tokens.useSectionData();
+    SECTIONS_CONFIG.tokens.useSectionData({ searchQuery });
   const { data: perpsMarkets, isLoading: isPerpsLoading } =
     SECTIONS_CONFIG.perps.useSectionData();
   const { data: predictionMarkets, isLoading: isPredictionsLoading } =
-    SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
+    SECTIONS_CONFIG.predictions.useSectionData({ searchQuery });
+  const { data: sites, isLoading: isSitesLoading } =
+    SECTIONS_CONFIG.sites.useSectionData();
 
   return {
     tokens: {
@@ -210,6 +297,10 @@ export const useSectionsData = (
     predictions: {
       data: predictionMarkets,
       isLoading: isPredictionsLoading,
+    },
+    sites: {
+      data: sites,
+      isLoading: isSitesLoading,
     },
   };
 };

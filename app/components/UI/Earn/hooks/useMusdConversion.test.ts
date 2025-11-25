@@ -6,13 +6,13 @@ import {
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../constants/musd';
 import { MMM_ORIGIN } from '../../../Views/confirmations/constants/confirmations';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
@@ -160,7 +160,8 @@ describe('useMusdConversion', () => {
         {
           networkClientId: 'mainnet',
           origin: MMM_ORIGIN,
-          type: MUSD_CONVERSION_TRANSACTION_TYPE,
+          skipInitialGasEstimate: true,
+          type: TransactionType.musdConversion,
           nestedTransactions: [
             {
               to: mockConfig.outputToken.address,

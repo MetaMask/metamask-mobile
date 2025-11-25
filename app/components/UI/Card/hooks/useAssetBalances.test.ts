@@ -55,9 +55,6 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn((chainId: string) => chainId.startsWith('solana:')),
 }));
-jest.mock('@metamask/swaps-controller/dist/constants', () => ({
-  LINEA_CHAIN_ID: '0xe708',
-}));
 jest.mock('../../Ramp/Deposit/constants/networks', () => ({
   SOLANA_MAINNET: {
     chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
