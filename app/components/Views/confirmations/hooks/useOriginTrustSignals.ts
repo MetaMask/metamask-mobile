@@ -3,11 +3,11 @@ import { useSelector } from 'react-redux';
 import { RecommendedAction } from '@metamask/phishing-controller';
 import { selectUrlScanResult } from '../../../../selectors/phishingController';
 import { RootState } from '../../../../reducers';
-import { extractHostname } from '../../../../lib/address-scanning/address-scan-util';
 import {
   TrustSignalDisplayState,
   TrustSignalResult,
 } from '../types/trustSignals';
+import { getHost } from '../../../../util/browser';
 
 /**
  * Get the trust signal display state from a recommended action
@@ -48,7 +48,7 @@ export function useOriginTrustSignals(
     if (!origin) {
       return undefined;
     }
-    return extractHostname(origin);
+    return getHost(origin.toLowerCase());
   }, [origin]);
 
   const urlScanResult = useSelector((state: RootState) =>

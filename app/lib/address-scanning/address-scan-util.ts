@@ -204,21 +204,6 @@ export async function scanAddress(
 }
 
 /**
- * Extract hostname from a URL string
- *
- * @param url - URL string or hostname
- * @returns hostname or original string if parsing fails
- */
-export function extractHostname(url: string): string {
-  try {
-    const urlObj = new URL(url);
-    return urlObj.hostname.toLowerCase();
-  } catch (error) {
-    return url.toLowerCase();
-  }
-}
-
-/**
  * Scan a URL/origin using the phishing controller
  *
  * @param phishingController - The phishing controller

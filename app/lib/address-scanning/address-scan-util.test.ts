@@ -11,7 +11,6 @@ import {
   isEthSignTypedData,
   scanAddress,
   scanUrl,
-  extractHostname,
 } from './address-scan-util';
 import { PRIMARY_TYPES_PERMIT } from '../../components/Views/confirmations/constants/signatures';
 import { APPROVAL_4BYTE_SELECTORS } from '../../components/Views/confirmations/constants/approve';
@@ -94,56 +93,6 @@ describe('address-scan-util', () => {
       const result = parseTypedDataMessage('{"test":"data"}');
 
       expect(result).toBeUndefined();
-    });
-  });
-
-  describe('extractHostname', () => {
-    it('extracts hostname from valid HTTP URL', () => {
-      const url = 'http://example.com/path/to/resource';
-
-      const result = extractHostname(url);
-
-      expect(result).toBe('example.com');
-    });
-
-    it('extracts hostname from valid HTTPS URL', () => {
-      const url = 'https://subdomain.example.com:8080/path';
-
-      const result = extractHostname(url);
-
-      expect(result).toBe('subdomain.example.com');
-    });
-
-    it('extracts hostname from URL with port', () => {
-      const url = 'http://localhost:3000/api/v1';
-
-      const result = extractHostname(url);
-
-      expect(result).toBe('localhost');
-    });
-
-    it('extracts hostname from URL with query parameters', () => {
-      const url = 'https://example.com/search?q=test&page=1';
-
-      const result = extractHostname(url);
-
-      expect(result).toBe('example.com');
-    });
-
-    it('returns original string when URL parsing fails', () => {
-      const invalidUrl = 'not-a-valid-url';
-
-      const result = extractHostname(invalidUrl);
-
-      expect(result).toBe('not-a-valid-url');
-    });
-
-    it('returns hostname when given a hostname directly', () => {
-      const hostname = 'example.com';
-
-      const result = extractHostname(hostname);
-
-      expect(result).toBe('example.com');
     });
   });
 

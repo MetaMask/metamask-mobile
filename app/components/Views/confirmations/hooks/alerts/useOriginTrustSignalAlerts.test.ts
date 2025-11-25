@@ -42,7 +42,7 @@ describe('useOriginTrustSignalAlerts', () => {
     });
   });
 
-  describe('with transaction metadata origin', () => {
+  describe('with useTransactionMetadataRequest', () => {
     beforeEach(() => {
       mockUseTransactionMetadataRequest.mockReturnValue({
         origin: 'https://malicious-site.com',
@@ -189,7 +189,7 @@ describe('useOriginTrustSignalAlerts', () => {
     });
   });
 
-  describe('with signature request URL', () => {
+  describe('with useSignatureRequest', () => {
     beforeEach(() => {
       mockUseSignatureRequest.mockReturnValue({
         id: 'test-signature-id',
@@ -250,7 +250,7 @@ describe('useOriginTrustSignalAlerts', () => {
     });
   });
 
-  describe('with approval request origin', () => {
+  describe('with useApprovalRequest', () => {
     beforeEach(() => {
       mockUseApprovalRequest.mockReturnValue({
         approvalRequest: {
@@ -306,20 +306,18 @@ describe('useOriginTrustSignalAlerts', () => {
     });
   });
 
-  describe('with no origin', () => {
-    it('returns no alerts when origin is undefined', () => {
-      const { result } = renderHookWithProvider(
-        () => useOriginTrustSignalAlerts(),
-        {
-          state: {
-            engine: {
-              backgroundState: {
-                PhishingController: {
-                  urlScanCache: {
-                    'some-site.com': {
-                      data: {
-                        recommendedAction: RecommendedAction.Block,
-                      },
+  it('returns no alerts when origin is undefined', () => {
+    const { result } = renderHookWithProvider(
+      () => useOriginTrustSignalAlerts(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              PhishingController: {
+                urlScanCache: {
+                  'some-site.com': {
+                    data: {
+                      recommendedAction: RecommendedAction.Block,
                     },
                   },
                 },
@@ -327,14 +325,14 @@ describe('useOriginTrustSignalAlerts', () => {
             },
           },
         },
-      );
+      },
+    );
 
-      expect(result.current).toEqual([]);
-    });
+    expect(result.current).toEqual([]);
   });
 
   describe('origin priority', () => {
-    it('prioritizes signature request URL over transaction metadata origin', () => {
+    it('prioritizes the URL from useSignatureRequest over useTransactionMetadataRequest', () => {
       mockUseTransactionMetadataRequest.mockReturnValue({
         origin: 'https://transaction-site.com',
       } as unknown as TransactionMeta);
@@ -399,7 +397,7 @@ describe('useOriginTrustSignalAlerts', () => {
       ]);
     });
 
-    it('prioritizes transaction metadata origin over approval request origin', () => {
+    it('prioritizes the origin from useTransactionMetadataRequest over useApprovalRequest', () => {
       mockUseTransactionMetadataRequest.mockReturnValue({
         origin: 'https://transaction-site.com',
       } as unknown as TransactionMeta);
