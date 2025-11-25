@@ -17,8 +17,8 @@ interface ShapesBackgroundAnimationProps {
 }
 
 const ShapesBackgroundAnimation = ({
-  width = 200,
-  height = 200,
+  width,
+  height,
 }: ShapesBackgroundAnimationProps) => {
   const spinValue = React.useMemo(() => new Animated.Value(0), []);
 
