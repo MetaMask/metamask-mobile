@@ -1,0 +1,21 @@
+diff --git a/dist/curves/ed25519.cjs b/dist/curves/ed25519.cjs
+index 3f6b0951c046dbda89f18edb7f17e6d23b839fc5..d2aee95598d942c0219128a77f6f83abdf206b80 100644
+--- a/dist/curves/ed25519.cjs
++++ b/dist/curves/ed25519.cjs
+@@ -14,6 +14,7 @@ const isValidPrivateKey = (_privateKey) => true;
+ exports.isValidPrivateKey = isValidPrivateKey;
+ exports.deriveUnhardenedKeys = false;
+ exports.publicKeyLength = 33;
++const nativeUtils = require('@metamask/native-utils')
+ const getGetPublicKey = () => {
+     let hasSetWindowSize = false;
+     const getPublicKey = (privateKey, _compressed) => {
+@@ -21,7 +22,7 @@ const getGetPublicKey = () => {
+             ed25519_1.ed25519.ExtendedPoint.BASE._setWindowSize(4);
+             hasSetWindowSize = true;
+         }
+-        const publicKey = ed25519_1.ed25519.getPublicKey(privateKey);
++        const publicKey = nativeUtils.getPublicKeyEd25519(privateKey);
+         return (0, utils_1.concatBytes)([new Uint8Array([0]), publicKey]);
+     };
+     return getPublicKey;
