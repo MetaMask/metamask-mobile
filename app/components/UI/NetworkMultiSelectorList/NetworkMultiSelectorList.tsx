@@ -236,7 +236,7 @@ const NetworkMultiSelectList = ({
       variant: AvatarVariant.Network as const,
       name: network.name,
       imageSource: network.imageSource as ImageSourcePropType,
-      size: AvatarSize.Sm,
+      size: AvatarSize.Md,
     }),
     [],
   );
@@ -314,6 +314,7 @@ const NetworkMultiSelectList = ({
             disabled={isDisabled}
             showButtonIcon={showButtonIcon}
             buttonProps={createButtonProps(network)}
+            style={styles.centeredNetworkCell}
             testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
               caipChainId,
               isSelected,
@@ -335,6 +336,7 @@ const NetworkMultiSelectList = ({
       isSelectAllNetworksSection,
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
+      styles.centeredNetworkCell,
     ],
   );
 
