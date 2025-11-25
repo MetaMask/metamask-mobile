@@ -173,6 +173,8 @@ import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
+import { userProfileControllerInit } from './controllers/user-profile-controller-init';
+import { userProfileServiceInit } from './controllers/user-profile-service-init';
 import { Messenger, MessengerEvents } from '@metamask/messenger';
 
 // TODO: Replace "any" with type
@@ -361,6 +363,8 @@ export class Engine {
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
         AddressBookController: addressBookControllerInit,
+        UserProfileController: userProfileControllerInit,
+        UserProfileService: userProfileServiceInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -393,6 +397,8 @@ export class Engine {
     const preferencesController = controllersByName.PreferencesController;
     const delegationController = controllersByName.DelegationController;
     const addressBookController = controllersByName.AddressBookController;
+    const userProfileController = controllersByName.UserProfileController;
+    const userProfileService = controllersByName.UserProfileService;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -539,6 +545,8 @@ export class Engine {
       PredictController: predictController,
       RewardsController: rewardsController,
       DelegationController: delegationController,
+      UserProfileController: userProfileController,
+      UserProfileService: userProfileService,
     };
 
     const childControllers = Object.assign({}, this.context);

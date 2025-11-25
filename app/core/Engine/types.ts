@@ -352,6 +352,15 @@ import {
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
 import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
+import {
+  UserProfileController,
+  UserProfileControllerActions,
+  UserProfileControllerEvents,
+  UserProfileControllerState,
+  UserProfileService,
+  UserProfileServiceActions,
+  UserProfileServiceEvents,
+} from '@metamask/user-profile-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
   'NftDetectionController',
@@ -486,7 +495,9 @@ type GlobalActions =
   | ErrorReportingServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
-  | NftDetectionControllerActions;
+  | NftDetectionControllerActions
+  | UserProfileControllerActions
+  | UserProfileServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -555,7 +566,9 @@ type GlobalEvents =
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   | DelegationControllerEvents
-  | NftDetectionControllerEvents;
+  | NftDetectionControllerEvents
+  | UserProfileControllerEvents
+  | UserProfileServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -665,6 +678,8 @@ export type Controllers = {
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
+  UserProfileController: UserProfileController;
+  UserProfileService: UserProfileService;
 };
 
 /**
@@ -739,6 +754,7 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
+  UserProfileController: UserProfileControllerState;
 };
 
 /** Controller names */
@@ -838,7 +854,9 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'GatorPermissionsController'
   | 'DelegationController'
-  | 'SelectedNetworkController';
+  | 'SelectedNetworkController'
+  | 'UserProfileController'
+  | 'UserProfileService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
