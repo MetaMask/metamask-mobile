@@ -68,7 +68,7 @@ export const Amount = () => {
   }, [primaryCurrency, setFiatMode]);
 
   useEffect(() => {
-    if (location === InitSendLocation.AssetOverview) {
+    if (location && location === InitSendLocation.AssetOverview) {
       navigation.setOptions({
         headerRight: () => null,
       });

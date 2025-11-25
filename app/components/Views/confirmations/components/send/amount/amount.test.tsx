@@ -31,6 +31,10 @@ jest.mock('../../../hooks/send/useRouteParams');
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({}),
+  createNavigationDetails: jest.fn(
+    (name: string, screen?: string) => (params?: unknown) =>
+      [name, screen ? { screen, params } : params] as const,
+  ),
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
