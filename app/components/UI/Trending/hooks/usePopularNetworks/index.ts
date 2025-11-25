@@ -2,11 +2,15 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { getNetworkImageSource, isTestNet } from '../../util/networks';
-import { PopularList } from '../../util/networks/customNetworks';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
-import { ProcessedNetwork } from './useNetworksByNamespace/useNetworksByNamespace';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+import { getNetworkImageSource, isTestNet } from '../../../../../util/networks';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { PopularList } from '../../../../../util/networks/customNetworks';
 
 /**
  * Hook to get popular networks, combining networks from Redux state and PopularList.
@@ -20,7 +24,6 @@ export const usePopularNetworks = (): ProcessedNetwork[] => {
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-
   return useMemo(() => {
     const processedNetworks: ProcessedNetwork[] = [];
     const addedCaipChainIds = new Set<CaipChainId>();
@@ -35,19 +38,19 @@ export const usePopularNetworks = (): ProcessedNetwork[] => {
         return isTestNet(hexChainId);
       }
 
-      // Check Bitcoin testnets
+      // Check Bitcoin testnets using full CAIP IDs from BtcScope
       if (namespace === 'bip122') {
         return (
-          reference === BtcScope.Testnet ||
-          reference === BtcScope.Testnet4 ||
-          reference === BtcScope.Regtest ||
-          reference === BtcScope.Signet
+          caipChainId === BtcScope.Testnet ||
+          caipChainId === BtcScope.Testnet4 ||
+          caipChainId === BtcScope.Regtest ||
+          caipChainId === BtcScope.Signet
         );
       }
 
-      // Check Solana testnets
+      // Check Solana testnets using full CAIP IDs from SolScope
       if (namespace === 'solana') {
-        return reference === SolScope.Devnet;
+        return caipChainId === SolScope.Devnet;
       }
 
       // For other namespaces, assume mainnet if not explicitly a testnet
@@ -56,8 +59,17 @@ export const usePopularNetworks = (): ProcessedNetwork[] => {
 
     // First, add all networks from networkConfigurations (excluding testnets)
     for (const [caipChainId, config] of Object.entries(networkConfigurations)) {
-      // Skip testnets using isTestnet helper
-      if (isTestnetCaipChainId(caipChainId as CaipChainId)) {
+      // Skip testnets using isTestnet helper and custom networks based of rpcEndpoints[defaultRpcEndpointIndex].type
+      const isEvmCustomChain =
+        config.caipChainId.startsWith('eip155') &&
+        (config as NetworkConfiguration).rpcEndpoints?.[
+          (config as NetworkConfiguration).defaultRpcEndpointIndex
+        ]?.type === RpcEndpointType.Custom;
+
+      if (
+        isTestnetCaipChainId(caipChainId as CaipChainId) ||
+        isEvmCustomChain
+      ) {
         continue;
       }
 
