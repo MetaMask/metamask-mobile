@@ -134,27 +134,33 @@ jest.mock('react-native/index.js', () => {
   // eslint-disable-next-line no-underscore-dangle
   jest.mock = new Proxy(originalJestMock, {
     apply(target, thisArg, args) {
+      let state;
       try {
         // Expect state is available when evaluating test files
-        const state = global.expect?.getState?.();
-        const testPath = state?.testPath ?? '';
-        const isComponentViewTest = /\.[iI]view(\..*)?\.test\.(t|j)sx?$/.test(
-          testPath,
+        state = global.expect?.getState?.();
+      } catch (e) {
+        // Best-effort guard; if state cannot be read, skip enforcement
+        console.warn(
+          `Failed to read Jest state for component-view test guard: ${e}`,
         );
-        if (isComponentViewTest) {
-          const [moduleName] = args;
-          if (!ALLOWED_MOCK_MODULES.has(moduleName)) {
-            throw new Error(
-              `Forbidden jest.mock("${String(
-                moduleName,
-              )}") in component-view tests. Allowed only: ${[
-                ...ALLOWED_MOCK_MODULES,
-              ].join(', ')}`,
-            );
-          }
+        return Reflect.apply(target, thisArg, args);
+      }
+
+      const testPath = state?.testPath ?? '';
+      const isComponentViewTest = /\.view(\..*)?\.test\.(t|j)sx?$/.test(
+        testPath,
+      );
+      if (isComponentViewTest) {
+        const [moduleName] = args;
+        if (!ALLOWED_MOCK_MODULES.has(moduleName)) {
+          throw new Error(
+            `Forbidden jest.mock("${String(
+              moduleName,
+            )}") in component-view tests. Allowed only: ${[
+              ...ALLOWED_MOCK_MODULES,
+            ].join(', ')}`,
+          );
         }
-      } catch (_e) {
-        // Best-effort guard; if state is not available yet, skip enforcement
       }
       return Reflect.apply(target, thisArg, args);
     },

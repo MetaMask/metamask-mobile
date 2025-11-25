@@ -10,6 +10,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../util/test/component-view/presets/bridge';
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
+import {
+  SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID,
+  SWAP_SCREEN_QUOTE_DISPLAYED_ID,
+  SWAP_SCREEN_CONFIRM_BUTTON_ID,
+  SWAP_SCREEN_BANNER_CLOSE_BUTTON_ICON_ID,
+  SWAP_SCREEN_KEYPAD_DELETE_BUTTON_ID,
+  SWAP_SCREEN_SOURCE_TOKEN_AREA_ID,
+} from '../../../../../../wdio/screen-objects/testIDs/Screens/SwapScreen.testIds';
 
 describeForPlatforms('BridgeView', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
@@ -31,11 +39,11 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Input areas are rendered
-    expect(getByTestId('source-token-area')).toBeTruthy();
-    expect(getByTestId('dest-token-area-input')).toBeTruthy();
+    expect(getByTestId(SWAP_SCREEN_SOURCE_TOKEN_AREA_ID)).toBeTruthy();
+    expect(getByTestId(SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID)).toBeTruthy();
 
     // Confirm button should NOT be rendered without valid inputs and quote
-    expect(queryByTestId('bridge-confirm-button')).toBeNull();
+    expect(queryByTestId(SWAP_SCREEN_CONFIRM_BUTTON_ID)).toBeNull();
   });
 
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
@@ -58,18 +66,18 @@ describeForPlatforms('BridgeView', () => {
       });
 
     // Close possible banner to reveal keypad
-    const closeBanner = queryByTestId('banner-close-button-icon');
+    const closeBanner = queryByTestId(SWAP_SCREEN_BANNER_CLOSE_BUTTON_ICON_ID);
     if (closeBanner) {
       fireEvent.press(closeBanner);
     }
 
     // Ensure keypad is visible
     await waitFor(() => {
-      expect(queryByTestId('keypad-delete-button')).toBeTruthy();
+      expect(queryByTestId(SWAP_SCREEN_KEYPAD_DELETE_BUTTON_ID)).toBeTruthy();
     });
 
     // Type 9.5 using keypad buttons
-    const scroll = getByTestId('bridge-view-scroll');
+    const scroll = getByTestId(SWAP_SCREEN_QUOTE_DISPLAYED_ID);
     fireEvent.press(within(scroll).getByText('9'));
     fireEvent.press(within(scroll).getByText('.'));
     fireEvent.press(within(scroll).getByText('5'));
@@ -122,7 +130,7 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    const button = getByTestId('bridge-confirm-button');
+    const button = getByTestId(SWAP_SCREEN_CONFIRM_BUTTON_ID);
     expect(button).toBeTruthy();
     expect(
       (button as unknown as { props: { isDisabled?: boolean } }).props

@@ -1,6 +1,10 @@
 import '../../../util/test/component-view/mocks';
 import { renderWalletView } from '../../../util/test/component-view/renderers/wallet';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import {
+  WALLET_VIEW_CONTAINER_ID,
+  WALLET_TOTAL_BALANCE_TEXT_ID,
+  WALLET_SEND_BUTTON_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { describeForPlatforms } from '../../../util/test/platform';
 
 describeForPlatforms('Wallet', () => {
@@ -23,8 +27,8 @@ describeForPlatforms('Wallet', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    expect(getByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER)).toBeTruthy();
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeTruthy();
-    expect(getByTestId(WalletViewSelectorsIDs.WALLET_SEND_BUTTON)).toBeTruthy();
+    expect(getByTestId(WALLET_VIEW_CONTAINER_ID)).toBeTruthy();
+    expect(getByTestId(WALLET_TOTAL_BALANCE_TEXT_ID)).toBeTruthy();
+    expect(getByTestId(WALLET_SEND_BUTTON_ID)).toBeTruthy();
   });
 });
