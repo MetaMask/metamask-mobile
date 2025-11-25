@@ -121,7 +121,6 @@ export async function handleTransactionFinalizedEventForMetrics(
       return;
     }
 
-    // Generate default properties
     const defaultTransactionMetricProperties =
       await generateDefaultTransactionMetrics(
         TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
@@ -129,47 +128,22 @@ export async function handleTransactionFinalizedEventForMetrics(
         transactionEventHandlerRequest,
       );
 
-    // Generate smart transaction properties if applicable
-    let smartTransactionProperties = {
-      properties: {},
-      sensitiveProperties: {},
-    };
-
-    try {
-      const { getState, initMessenger, smartTransactionsController } =
-        transactionEventHandlerRequest;
-      const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-        getState(),
-        transactionMeta.chainId,
-      );
-      if (shouldUseSmartTransaction) {
-        const smartMetrics = await getSmartTransactionMetricsProperties(
-          smartTransactionsController,
-          transactionMeta,
-          true,
-          initMessenger as unknown as RootExtendedMessenger,
-        );
-        smartTransactionProperties = {
-          properties: smartMetrics,
-          sensitiveProperties: {},
-        };
-      }
-    } catch (error) {
-      log('Error getting smart transaction metrics', error);
-    }
-
-    // Add RPC properties
     const rpcProperties = generateRPCProperties(transactionMeta.chainId);
+    const smartTransactionProperties = await generateStxProperties(
+      transactionMeta,
+      transactionEventHandlerRequest,
+    );
+    const hashProperty = generateHashProperty(
+      transactionMeta,
+      transactionEventHandlerRequest,
+    );
 
-    // Merge default, smart transaction, and RPC properties
     const mergedEventProperties = merge(
       {},
       defaultTransactionMetricProperties,
       smartTransactionProperties,
-      {
-        properties: rpcProperties.properties,
-        sensitiveProperties: rpcProperties.sensitiveProperties,
-      },
+      hashProperty,
+      rpcProperties,
     );
 
     const metrics = getBuilderMetrics({
@@ -245,4 +219,66 @@ function getBuilderMetrics({
   }
 
   return metrics;
+}
+
+function generateHashProperty(
+  transactionMeta: TransactionMeta,
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+) {
+  const state = transactionEventHandlerRequest.getState();
+
+  const isExtensionUxPna25Enabled =
+    state.engine.backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags
+      ?.extensionUxPna25;
+
+  // This is object to change - waiting for mobile PR
+  // const isPna25Acknowledged = state.getPna25Acknowledged();
+  if (isExtensionUxPna25Enabled) {
+    return {
+      properties: {
+        transaction_hash: transactionMeta.hash,
+      },
+    };
+  }
+
+  return {
+    properties: {
+      transaction_hash: undefined,
+    },
+  };
+}
+
+async function generateStxProperties(
+  transactionMeta: TransactionMeta,
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+) {
+  let smartTransactionProperties = {
+    properties: {},
+    sensitiveProperties: {},
+  };
+
+  try {
+    const { getState, initMessenger, smartTransactionsController } =
+      transactionEventHandlerRequest;
+    const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+      getState(),
+      transactionMeta.chainId,
+    );
+    if (shouldUseSmartTransaction) {
+      const smartMetrics = await getSmartTransactionMetricsProperties(
+        smartTransactionsController,
+        transactionMeta,
+        true,
+        initMessenger as unknown as RootExtendedMessenger,
+      );
+      smartTransactionProperties = {
+        properties: smartMetrics,
+        sensitiveProperties: {},
+      };
+    }
+  } catch (error) {
+    log('Error getting smart transaction metrics', error);
+  }
+
+  return smartTransactionProperties;
 }

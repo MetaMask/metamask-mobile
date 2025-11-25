@@ -73,6 +73,7 @@ describe('Transaction Metric Event Handlers', () => {
   const mockTransactionMeta = {
     id: 'test-id',
     chainId: '0x1',
+    hash: '0x1234567890',
     type: 'standard',
     networkClientId: 'test-network',
     time: 1234567890,
@@ -298,6 +299,72 @@ describe('Transaction Metric Event Handlers', () => {
           builder_sensitive_test: true,
         }),
       );
+    });
+
+    describe('hash property', () => {
+      it('included when extensionUxPna25 is enabled', async () => {
+        const mockRequest = {
+          ...mockTransactionMetricRequest,
+          getState: jest.fn().mockReturnValue(
+            merge(
+              {},
+              {
+                engine: {
+                  backgroundState: {
+                    RemoteFeatureFlagController: {
+                      remoteFeatureFlags: {
+                        extensionUxPna25: true,
+                      },
+                    },
+                  },
+                },
+              },
+              mockTransactionMetricRequest.getState(),
+            ),
+          ),
+        } as unknown as TransactionEventHandlerRequest;
+
+        await handleTransactionFinalizedEventForMetrics(
+          mockTransactionMeta,
+          mockRequest,
+        );
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            transaction_hash: mockTransactionMeta.hash,
+          }),
+        );
+      });
+
+      it('not included when extensionUxPna25 is disabled', async () => {
+        const mockRequest = {
+          ...mockTransactionMetricRequest,
+          getState: jest.fn().mockReturnValue(
+            merge({}, mockTransactionMetricRequest.getState(), {
+              engine: {
+                backgroundState: {
+                  RemoteFeatureFlagController: {
+                    remoteFeatureFlags: {
+                      extensionUxPna25: false,
+                    },
+                  },
+                },
+              },
+            }),
+          ),
+        } as unknown as TransactionEventHandlerRequest;
+
+        await handleTransactionFinalizedEventForMetrics(
+          mockTransactionMeta,
+          mockRequest,
+        );
+
+        expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            transaction_hash: mockTransactionMeta.hash,
+          }),
+        );
+      });
     });
   });
 });
