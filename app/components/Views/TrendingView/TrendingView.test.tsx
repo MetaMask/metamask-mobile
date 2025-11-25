@@ -94,14 +94,17 @@ jest.mock(
 );
 
 // Mock useTrendingRequest to return empty results
-jest.mock('../../../components/UI/Trending/hooks/useTrendingRequest', () => ({
-  useTrendingRequest: jest.fn(() => ({
-    results: [],
-    isLoading: false,
-    error: null,
-    fetch: jest.fn(),
-  })),
-}));
+jest.mock(
+  '../../../components/UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
+  () => ({
+    useTrendingRequest: jest.fn(() => ({
+      results: [],
+      isLoading: false,
+      error: null,
+      fetch: jest.fn(),
+    })),
+  }),
+);
 
 describe('TrendingView', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
