@@ -335,7 +335,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           fireEvent(metaMetricsSwitch, 'valueChange', true);
 
           await waitFor(() => {
-            // expect(mockMetrics.enable).toHaveBeenCalledWith(true);
+            expect(mockMetrics.enable).toHaveBeenCalled();
             expect(mockAlert).not.toHaveBeenCalled();
             expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
             expect(mockMetrics.trackEvent).toHaveBeenCalled();
@@ -405,7 +405,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           await waitFor(() => {
             expect(metaMetricsSwitch.props.value).toBe(true);
             expect(marketingSwitch.props.value).toBe(false);
-            // expect(mockMetrics.enable).toHaveBeenCalledWith(true);
+            expect(mockMetrics.enable).toHaveBeenCalled();
             expect(mockAlert).not.toHaveBeenCalled();
             expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
             expect(mockMetrics.trackEvent).toHaveBeenCalled();

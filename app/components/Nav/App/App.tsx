@@ -27,7 +27,6 @@ import {
   AGREED,
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
-  METRICS_OPT_IN,
   METRICS_OPT_IN_SOCIAL_LOGIN,
   OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
@@ -1242,7 +1241,7 @@ const AppContent: React.FC = () => {
           METRICS_OPT_IN_SOCIAL_LOGIN,
         );
         if (socialLoginOptIn === AGREED) {
-          await StorageWrapper.setItem(METRICS_OPT_IN, AGREED);
+          await MetaMetrics.getInstance().enable();
           await hasMetricsConsent();
         }
         // remove item if it exists

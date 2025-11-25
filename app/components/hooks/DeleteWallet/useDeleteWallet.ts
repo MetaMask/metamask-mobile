@@ -17,7 +17,7 @@ const useDeleteWallet = () => {
   const resetWalletState = useCallback(async () => {
     try {
       // backup metrics state prior reset
-      metrics.backupMetricsOptInPriorReset?.();
+      await metrics.backupMetricsOptInPriorReset?.();
 
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();

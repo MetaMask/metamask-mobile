@@ -12,7 +12,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
-  METRICS_OPT_IN,
   METRICS_OPT_IN_SOCIAL_LOGIN,
   AGREED,
   DENIED,
@@ -165,6 +164,7 @@ const mockMetrics = {
   configure: jest.fn(),
   addTraitsToUser: jest.fn(),
   isEnabled: jest.fn().mockReturnValue(false),
+  enable: jest.fn(),
 };
 
 const mockAuthType = AUTHENTICATION_TYPE.BIOMETRIC;
@@ -1067,10 +1067,6 @@ describe('App', () => {
         return null;
       });
 
-      const mockSetItem = jest
-        .spyOn(StorageWrapper, 'setItem')
-        .mockResolvedValue();
-
       // Ensure removeItem exists before spying
       if (!StorageWrapper.removeItem) {
         StorageWrapper.removeItem = jest.fn();
@@ -1084,7 +1080,7 @@ describe('App', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockSetItem).toHaveBeenCalledWith(METRICS_OPT_IN, AGREED);
+        expect(mockMetrics.enable).toHaveBeenCalled();
         expect(mockRemoveItem).toHaveBeenCalledWith(
           METRICS_OPT_IN_SOCIAL_LOGIN,
         );
@@ -1105,15 +1101,13 @@ describe('App', () => {
         return null;
       });
 
-      const mockSetItem = jest.spyOn(StorageWrapper, 'setItem');
-
       renderScreen(App, { name: 'App' }, { state: initialState });
 
       await waitFor(() => {
         expect(mockMetrics.configure).toHaveBeenCalled();
       });
 
-      expect(mockSetItem).not.toHaveBeenCalledWith(METRICS_OPT_IN, AGREED);
+      expect(mockMetrics.enable).not.toHaveBeenCalled();
     });
 
     it('removes social login opt-in item when it exists but is not agreed', async () => {
@@ -1130,8 +1124,6 @@ describe('App', () => {
         }
         return null;
       });
-
-      const mockSetItem = jest.spyOn(StorageWrapper, 'setItem');
 
       // Ensure removeItem exists before spying
       if (!StorageWrapper.removeItem) {
@@ -1151,7 +1143,7 @@ describe('App', () => {
         );
       });
 
-      expect(mockSetItem).not.toHaveBeenCalledWith(METRICS_OPT_IN, AGREED);
+      expect(mockMetrics.enable).not.toHaveBeenCalled();
     });
 
     it('does not perform migration when social login opt-in does not exist', async () => {
@@ -1169,8 +1161,6 @@ describe('App', () => {
         return null;
       });
 
-      const mockSetItem = jest.spyOn(StorageWrapper, 'setItem');
-
       // Ensure removeItem exists before spying
       if (!StorageWrapper.removeItem) {
         StorageWrapper.removeItem = jest.fn();
@@ -1185,7 +1175,7 @@ describe('App', () => {
         expect(mockMetrics.configure).toHaveBeenCalled();
       });
 
-      expect(mockSetItem).not.toHaveBeenCalledWith(METRICS_OPT_IN, AGREED);
+      expect(mockMetrics.enable).not.toHaveBeenCalled();
       expect(mockRemoveItem).not.toHaveBeenCalledWith(
         METRICS_OPT_IN_SOCIAL_LOGIN,
       );
