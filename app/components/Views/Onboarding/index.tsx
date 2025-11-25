@@ -217,7 +217,9 @@ const Onboarding = () => {
   const alertExistingUser = useCallback(
     (callback: () => void | Promise<void>): void => {
       warningCallback.current = () => {
-        void callback();
+        Promise.resolve(callback()).catch((error) => {
+          console.error('alertExistingUser callback failed:', error);
+        });
         toggleWarningModal();
         return true;
       };
