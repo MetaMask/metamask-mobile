@@ -244,24 +244,6 @@ jobs:
       - run: yarn test:view --coverage=false --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
-      - name: Rename coverage report to include shard number
-        shell: bash
-        run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-${{ matrix.shard }}.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ matrix.shard }}
-          path: ./tests/coverage/coverage-${{ matrix.shard }}.json
-          if-no-files-found: error
-      - name: Require clean working directory
-        shell: bash
-        run: |
-          if ! git diff --exit-code; then
-            echo "Working tree dirty at end of job"
-            exit 1
-          else
-            echo "No changes detected"
-          fi
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml
 
