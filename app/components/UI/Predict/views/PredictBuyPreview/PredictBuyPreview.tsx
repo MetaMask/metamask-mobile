@@ -210,6 +210,7 @@ const PredictBuyPreview = () => {
     enabled: isRewardsEnabled,
     isLoading: isRewardsLoading,
     accountOptedIn: isAccountOptedIntoRewards,
+    rewardsAccountScope,
     estimatedPoints: estimatedRewardsPoints,
     hasError: isRewardsError,
   } = usePredictRewards(
@@ -538,6 +539,7 @@ const PredictBuyPreview = () => {
         metamaskFee={metamaskFee}
         providerFee={providerFee}
         shouldShowRewardsRow={shouldShowRewardsRow}
+        rewardsAccountScope={rewardsAccountScope}
         accountOptedIn={isAccountOptedIntoRewards}
         estimatedPoints={estimatedRewardsPoints}
         isLoadingRewards={

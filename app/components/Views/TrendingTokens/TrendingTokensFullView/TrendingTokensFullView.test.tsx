@@ -15,9 +15,30 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
-const mockUseTrendingRequest = jest.fn();
+const mockFetchTrendingTokens = jest.fn();
+const mockUseTrendingRequest = jest.fn().mockReturnValue({
+  results: [],
+  isLoading: false,
+  error: null,
+  fetch: mockFetchTrendingTokens,
+});
 jest.mock('../../../UI/Trending/hooks/useTrendingRequest', () => ({
   useTrendingRequest: (options: unknown) => mockUseTrendingRequest(options),
+}));
+
+const mockUseSectionData = jest.fn();
+
+// Mock sections.config to avoid complex Perps dependencies
+// Make useSectionData return the same data as useTrendingRequest
+jest.mock('../../TrendingView/config/sections.config', () => ({
+  SECTIONS_CONFIG: {
+    tokens: {
+      useSectionData: (params?: { searchQuery?: string }) =>
+        mockUseSectionData(params),
+      getSearchableText: (item: { name?: string; symbol?: string }) =>
+        `${item.name || ''} ${item.symbol || ''}`.toLowerCase(),
+    },
+  },
 }));
 
 jest.mock(
@@ -27,11 +48,12 @@ jest.mock(
     return ({
       trendingTokens,
       onTokenPress,
+      ...rest
     }: {
       trendingTokens: TrendingAsset[];
       onTokenPress: (token: TrendingAsset) => void;
     }) => (
-      <View testID="trending-tokens-list">
+      <View testID="trending-tokens-list" {...rest}>
         {trendingTokens.map((token, index) => (
           <View
             key={token.assetId || index}
@@ -154,104 +176,6 @@ jest.mock('../../../UI/Trending/components/TrendingTokensBottomSheet', () => {
   };
 });
 
-jest.mock('../../../../component-library/components/HeaderBase', () => {
-  const { View } = jest.requireActual('react-native');
-  const MockHeaderBase = ({
-    children,
-    startAccessory,
-    endAccessory,
-  }: {
-    children: React.ReactNode;
-    startAccessory?: React.ReactNode;
-    endAccessory?: React.ReactNode;
-  }) => (
-    <View testID="header-base">
-      {startAccessory}
-      {children}
-      {endAccessory}
-    </View>
-  );
-  return {
-    __esModule: true,
-    default: MockHeaderBase,
-    HeaderBaseVariant: {
-      Display: 'display',
-      Compact: 'compact',
-    },
-  };
-});
-
-jest.mock('../../../../component-library/components/Buttons/ButtonIcon', () => {
-  const { TouchableOpacity } = jest.requireActual('react-native');
-  const MockButtonIcon = ({
-    onPress,
-    testID,
-  }: {
-    onPress?: () => void;
-    testID?: string;
-  }) => (
-    <TouchableOpacity testID={testID} onPress={onPress}>
-      ButtonIcon
-    </TouchableOpacity>
-  );
-  return {
-    __esModule: true,
-    default: MockButtonIcon,
-    ButtonIconSizes: {
-      Sm: '24',
-      Md: '28',
-      Lg: '32',
-    },
-  };
-});
-
-jest.mock('../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: Text,
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-    },
-    TextColor: {
-      Default: 'Default',
-    },
-  };
-});
-
-jest.mock('../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockIcon({ name }: { name: string }) {
-      return <View testID={`icon-${name}`}>{name}</View>;
-    },
-    IconName: {
-      ArrowLeft: 'ArrowLeft',
-      Search: 'Search',
-      ArrowDown: 'ArrowDown',
-    },
-    IconColor: {
-      Alternative: 'Alternative',
-    },
-    IconSize: {
-      Xs: 'Xs',
-    },
-  };
-});
-
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const translations: Record<string, string> = {
-      'trending.trending_tokens': 'Trending Tokens',
-      'trending.price_change': 'Price change',
-      'trending.all_networks': 'All networks',
-      'trending.24h': '24h',
-    };
-    return translations[key] || key;
-  },
-}));
-
 const createMockToken = (
   overrides: Partial<TrendingAsset> = {},
 ): TrendingAsset => ({
@@ -292,6 +216,11 @@ describe('TrendingTokensFullView', () => {
       error: null,
       fetch: jest.fn(),
     });
+    mockUseSectionData.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
   });
 
   it('renders header with title and buttons', () => {
@@ -301,9 +230,8 @@ describe('TrendingTokensFullView', () => {
       false, // Exclude NavigationContainer since we're mocking navigation
     );
 
-    expect(getByText('Trending Tokens')).toBeTruthy();
-    expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('search-button')).toBeTruthy();
+    expect(getByText('Trending Tokens')).toBeOnTheScreen();
+    expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 
   it('renders control buttons', () => {
@@ -313,12 +241,12 @@ describe('TrendingTokensFullView', () => {
       false,
     );
 
-    expect(getByTestId('price-change-button')).toBeTruthy();
-    expect(getByTestId('all-networks-button')).toBeTruthy();
-    expect(getByTestId('24h-button')).toBeTruthy();
-    expect(getByText('Price change')).toBeTruthy();
-    expect(getByText('All networks')).toBeTruthy();
-    expect(getByText('24h')).toBeTruthy();
+    expect(getByTestId('price-change-button')).toBeOnTheScreen();
+    expect(getByTestId('all-networks-button')).toBeOnTheScreen();
+    expect(getByTestId('24h-button')).toBeOnTheScreen();
+    expect(getByText('Price change')).toBeOnTheScreen();
+    expect(getByText('All networks')).toBeOnTheScreen();
+    expect(getByText('24h')).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', () => {
@@ -328,7 +256,7 @@ describe('TrendingTokensFullView', () => {
       false,
     );
 
-    const backButton = getByTestId('back-button');
+    const backButton = getByTestId('trending-tokens-header-back-button');
     fireEvent.press(backButton);
 
     expect(mockGoBack).toHaveBeenCalled();
@@ -344,7 +272,7 @@ describe('TrendingTokensFullView', () => {
     const button24h = getByTestId('24h-button');
     fireEvent.press(button24h);
 
-    expect(getByTestId('trending-token-time-bottom-sheet')).toBeTruthy();
+    expect(getByTestId('trending-token-time-bottom-sheet')).toBeOnTheScreen();
   });
 
   it('opens network bottom sheet when all networks button is pressed', () => {
@@ -357,7 +285,9 @@ describe('TrendingTokensFullView', () => {
     const allNetworksButton = getByTestId('all-networks-button');
     fireEvent.press(allNetworksButton);
 
-    expect(getByTestId('trending-token-network-bottom-sheet')).toBeTruthy();
+    expect(
+      getByTestId('trending-token-network-bottom-sheet'),
+    ).toBeOnTheScreen();
   });
 
   it('opens price change bottom sheet when price change button is pressed', () => {
@@ -389,7 +319,7 @@ describe('TrendingTokensFullView', () => {
       false,
     );
 
-    expect(getByTestId('trending-tokens-skeleton')).toBeTruthy();
+    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
   });
 
   it('displays skeleton loader when results are empty', () => {
@@ -406,7 +336,7 @@ describe('TrendingTokensFullView', () => {
       false,
     );
 
-    expect(getByTestId('trending-tokens-skeleton')).toBeTruthy();
+    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
   });
 
   it('displays trending tokens list when data is loaded', () => {
@@ -422,23 +352,30 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
+    mockUseSectionData.mockReturnValue({
+      data: mockTokens,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
     const { getByTestId, getByText } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
       false,
     );
 
-    expect(getByTestId('trending-tokens-list')).toBeTruthy();
-    expect(getByText('Token 1')).toBeTruthy();
-    expect(getByText('Token 2')).toBeTruthy();
+    expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
+    expect(getByText('Token 1')).toBeOnTheScreen();
+    expect(getByText('Token 2')).toBeOnTheScreen();
   });
 
-  it('calls useTrendingRequest with correct initial parameters', () => {
+  it('calls useSectionData with correct initial parameters', () => {
     renderWithProvider(<TrendingTokensFullView />, { state: mockState }, false);
 
-    expect(mockUseTrendingRequest).toHaveBeenCalledWith({
+    expect(mockUseSectionData).toHaveBeenCalledWith({
       sortBy: undefined,
-      chainIds: undefined,
+      chainIds: null,
+      searchQuery: undefined,
     });
   });
 
@@ -458,9 +395,10 @@ describe('TrendingTokensFullView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUseTrendingRequest).toHaveBeenLastCalledWith({
+      expect(mockUseSectionData).toHaveBeenLastCalledWith({
         sortBy: 'h6_trending',
-        chainIds: undefined,
+        chainIds: null,
+        searchQuery: undefined,
       });
     });
   });
@@ -481,10 +419,90 @@ describe('TrendingTokensFullView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUseTrendingRequest).toHaveBeenLastCalledWith({
+      expect(mockUseSectionData).toHaveBeenLastCalledWith({
         sortBy: undefined,
         chainIds: ['eip155:1'],
+        searchQuery: undefined,
       });
     });
+  });
+
+  it('updates price change filter when option is selected', async () => {
+    const mockTokens = [
+      createMockToken({ name: 'Token 1', assetId: 'eip155:1/erc20:0x123' }),
+      createMockToken({ name: 'Token 2', assetId: 'eip155:1/erc20:0x456' }),
+    ];
+
+    mockUseTrendingRequest.mockReturnValue({
+      results: mockTokens,
+      isLoading: false,
+      error: null,
+      fetch: jest.fn(),
+    });
+
+    mockUseSectionData.mockReturnValue({
+      data: mockTokens,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
+
+    // Open price change bottom sheet
+    const priceChangeButton = getByTestId('price-change-button');
+    fireEvent.press(priceChangeButton);
+
+    // Select Volume option (which maps to PriceChangeOption.Volume and ascending sort)
+    const volumeOption = getByTestId('price-change-select-volume');
+    await act(async () => {
+      fireEvent(volumeOption, 'touchEnd');
+    });
+
+    // Price change button label should update to "Volume"
+    expect(getByText('Volume')).toBeOnTheScreen();
+  });
+
+  it('triggers section refetch on pull-to-refresh', async () => {
+    const mockTokens = [
+      createMockToken({
+        assetId: 'eip155:1/erc20:0xabc',
+        name: 'Token 1',
+        symbol: 'TKN1',
+      }),
+    ];
+
+    mockUseTrendingRequest.mockReturnValueOnce({
+      results: mockTokens,
+      isLoading: false,
+      error: null,
+      fetch: mockFetchTrendingTokens,
+    });
+
+    mockUseSectionData.mockReturnValue({
+      data: mockTokens,
+      isLoading: false,
+      refetch: mockFetchTrendingTokens,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <TrendingTokensFullView />,
+      { state: mockState },
+      false,
+    );
+
+    const list = getByTestId('trending-tokens-list');
+
+    // Simulate pull-to-refresh via RefreshControl's onRefresh
+    const refreshControl = list.props.refreshControl;
+
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    expect(mockFetchTrendingTokens).toHaveBeenCalledTimes(1);
   });
 });
