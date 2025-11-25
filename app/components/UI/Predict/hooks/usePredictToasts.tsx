@@ -10,12 +10,16 @@ import {
 } from '@metamask/transaction-controller';
 import React, { useCallback, useContext, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../../core/Engine';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 const toastStyles = StyleSheet.create({
   spinnerContainer: {
@@ -23,6 +27,10 @@ const toastStyles = StyleSheet.create({
     alignContent: 'center',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  spinner: {
+    width: 24,
+    height: 24,
   },
 });
 
@@ -91,15 +99,16 @@ export const usePredictToasts = ({
           <View style={toastStyles?.spinnerContainer}>
             <Spinner
               color={ReactNativeDsIconColor.PrimaryDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Xl }}
+              spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
             />
           </View>
         ),
         ...(config.onPress
           ? {
-              linkButtonOptions: {
-                label: strings('predict.deposit.in_progress_link'),
+              closeButtonOptions: {
+                label: strings('predict.deposit.track'),
                 onPress: config.onPress,
+                variant: ButtonVariants.Link,
               },
             }
           : {}),
@@ -125,10 +134,19 @@ export const usePredictToasts = ({
             isBold: false,
           },
         ],
-        iconName: IconName.CheckBold,
+        iconName: IconName.Confirmation,
         iconColor: theme.colors.accent03.dark,
         backgroundColor: theme.colors.accent03.normal,
         hasNoTimeout: false,
+        startAccessory: (
+          <View style={toastStyles?.spinnerContainer}>
+            <Icon
+              name={IconName.Confirmation}
+              color={theme.colors.accent03.normal}
+              size={IconSize.Lg}
+            />
+          </View>
+        ),
       });
     },
     [
