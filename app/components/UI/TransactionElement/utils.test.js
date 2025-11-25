@@ -3,7 +3,6 @@ import {
   CONTRACT_CREATION_SIGNATURE,
   TRANSACTION_TYPES,
 } from '../../../util/transactions';
-import { TransactionType } from '@metamask/transaction-controller';
 import decodeTransaction from './utils';
 import { strings } from '../../../../locales/i18n';
 
