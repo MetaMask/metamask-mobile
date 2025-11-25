@@ -50,7 +50,6 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
         <View
           style={
             {
-              "alignItems": "center",
               "flexDirection": "row",
             }
           }
