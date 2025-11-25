@@ -137,6 +137,8 @@ jobs:
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
+          # Use E2E gradle properties for GitHub Actions builds (gradle.properties.github)
+          cp android/gradle.properties.github android/gradle.properties
           yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
         env:
