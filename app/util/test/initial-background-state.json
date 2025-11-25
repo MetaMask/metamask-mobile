@@ -540,6 +540,10 @@
   "TransactionPayController": {
     "transactionData": {}
   },
+  "UserProfileController": {
+    "firstSyncCompleted": false,
+    "syncQueue": {}
+  },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
