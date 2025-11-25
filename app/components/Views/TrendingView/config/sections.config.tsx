@@ -23,7 +23,7 @@ import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
 import SiteRowItemWrapper from '../SectionSites/SiteRowItemWrapper';
 import SiteSkeleton from '../SectionSites/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../SectionSites/hooks/useSitesData';
-import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch';
+import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 

@@ -41,7 +41,7 @@ import {
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
 import { SECTIONS_CONFIG } from '../../TrendingView/config/sections.config';
-import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch';
+import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 
 interface TrendingTokensNavigationParamList {
   [key: string]: undefined | object;

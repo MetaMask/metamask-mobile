@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { CaipChainId } from '@metamask/utils';
 import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
@@ -34,16 +34,12 @@ export const useTrendingSearch = (
     chainIds: chainIds ?? undefined,
   });
 
-  const refetch = useCallback(() => {
-    fetchTrendingTokens();
-  }, [fetchTrendingTokens]);
+  const data = useMemo(() => {
+    if (!searchQuery) {
+      return sortTrendingTokens(trendingResults, PriceChangeOption.PriceChange);
+    }
 
-  const sortedResults = useMemo(
-    () => sortTrendingTokens(trendingResults, PriceChangeOption.PriceChange),
-    [trendingResults],
-  );
-
-  const combinedResults = useMemo(() => {
+    // Combine trending and search results, avoiding duplicates
     const resultMap = new Map(
       trendingResults.map((result) => [result.assetId, result]),
     );
@@ -56,19 +52,11 @@ export const useTrendingSearch = (
     });
 
     return Array.from(resultMap.values());
-  }, [trendingResults, searchResults]);
-
-  if (!searchQuery) {
-    return {
-      data: sortedResults,
-      isLoading: isTrendingLoading,
-      refetch,
-    };
-  }
+  }, [searchQuery, trendingResults, searchResults]);
 
   return {
-    data: combinedResults,
-    isLoading: isSearchLoading,
-    refetch,
+    data,
+    isLoading: searchQuery ? isSearchLoading : isTrendingLoading,
+    refetch: fetchTrendingTokens,
   };
 };
