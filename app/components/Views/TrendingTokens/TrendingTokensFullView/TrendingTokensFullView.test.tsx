@@ -26,15 +26,19 @@ jest.mock('../../../UI/Trending/hooks/useTrendingRequest', () => ({
   useTrendingRequest: (options: unknown) => mockUseTrendingRequest(options),
 }));
 
-// Mock search request used inside tokens section config
-const mockUseSearchRequest = jest.fn().mockReturnValue({
-  results: [],
-  isLoading: false,
-  error: null,
-  search: jest.fn(),
-});
-jest.mock('../../../UI/Trending/hooks/useSearchRequest', () => ({
-  useSearchRequest: (options: unknown) => mockUseSearchRequest(options),
+const mockUseSectionData = jest.fn();
+
+// Mock sections.config to avoid complex Perps dependencies
+// Make useSectionData return the same data as useTrendingRequest
+jest.mock('../../TrendingView/config/sections.config', () => ({
+  SECTIONS_CONFIG: {
+    tokens: {
+      useSectionData: (params?: { searchQuery?: string }) =>
+        mockUseSectionData(params),
+      getSearchableText: (item: { name?: string; symbol?: string }) =>
+        `${item.name || ''} ${item.symbol || ''}`.toLowerCase(),
+    },
+  },
 }));
 
 jest.mock(
@@ -212,6 +216,11 @@ describe('TrendingTokensFullView', () => {
       error: null,
       fetch: jest.fn(),
     });
+    mockUseSectionData.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
   });
 
   it('renders header with title and buttons', () => {
@@ -343,6 +352,12 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
+    mockUseSectionData.mockReturnValue({
+      data: mockTokens,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
     const { getByTestId, getByText } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
@@ -354,12 +369,13 @@ describe('TrendingTokensFullView', () => {
     expect(getByText('Token 2')).toBeOnTheScreen();
   });
 
-  it('calls useTrendingRequest with correct initial parameters', () => {
+  it('calls useSectionData with correct initial parameters', () => {
     renderWithProvider(<TrendingTokensFullView />, { state: mockState }, false);
 
-    expect(mockUseTrendingRequest).toHaveBeenCalledWith({
+    expect(mockUseSectionData).toHaveBeenCalledWith({
       sortBy: undefined,
-      chainIds: undefined,
+      chainIds: null,
+      searchQuery: undefined,
     });
   });
 
@@ -379,9 +395,10 @@ describe('TrendingTokensFullView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUseTrendingRequest).toHaveBeenLastCalledWith({
+      expect(mockUseSectionData).toHaveBeenLastCalledWith({
         sortBy: 'h6_trending',
-        chainIds: undefined,
+        chainIds: null,
+        searchQuery: undefined,
       });
     });
   });
@@ -402,9 +419,10 @@ describe('TrendingTokensFullView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUseTrendingRequest).toHaveBeenLastCalledWith({
+      expect(mockUseSectionData).toHaveBeenLastCalledWith({
         sortBy: undefined,
         chainIds: ['eip155:1'],
+        searchQuery: undefined,
       });
     });
   });
@@ -420,6 +438,12 @@ describe('TrendingTokensFullView', () => {
       isLoading: false,
       error: null,
       fetch: jest.fn(),
+    });
+
+    mockUseSectionData.mockReturnValue({
+      data: mockTokens,
+      isLoading: false,
+      refetch: jest.fn(),
     });
 
     const { getByTestId, getByText } = renderWithProvider(
@@ -443,17 +467,25 @@ describe('TrendingTokensFullView', () => {
   });
 
   it('triggers section refetch on pull-to-refresh', async () => {
+    const mockTokens = [
+      createMockToken({
+        assetId: 'eip155:1/erc20:0xabc',
+        name: 'Token 1',
+        symbol: 'TKN1',
+      }),
+    ];
+
     mockUseTrendingRequest.mockReturnValueOnce({
-      results: [
-        createMockToken({
-          assetId: 'eip155:1/erc20:0xabc',
-          name: 'Token 1',
-          symbol: 'TKN1',
-        }),
-      ],
+      results: mockTokens,
       isLoading: false,
       error: null,
       fetch: mockFetchTrendingTokens,
+    });
+
+    mockUseSectionData.mockReturnValue({
+      data: mockTokens,
+      isLoading: false,
+      refetch: mockFetchTrendingTokens,
     });
 
     const { getByTestId } = renderWithProvider(
