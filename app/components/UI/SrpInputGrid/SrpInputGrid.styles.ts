@@ -20,14 +20,18 @@ export const createStyles = (colors: Colors) =>
       borderRadius: 10,
       marginTop: 16,
       minHeight: 210,
-      maxHeight: 'auto',
+      maxHeight: 210,
     },
     seedPhraseInnerContainer: {
+      flex: 1,
+    },
+    seedPhraseScrollContent: {
       paddingHorizontal: Platform.select({
         ios: 16,
         macos: 16,
         default: 14,
       }),
+      paddingBottom: 16,
     },
     seedPhraseInputContainer: {
       flexDirection: 'row' as const,

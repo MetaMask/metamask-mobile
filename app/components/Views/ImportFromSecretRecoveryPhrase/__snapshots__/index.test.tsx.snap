@@ -516,219 +516,230 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     "backgroundColor": "#f3f5f9",
                                     "borderRadius": 10,
                                     "marginTop": 16,
-                                    "maxHeight": "auto",
+                                    "maxHeight": 210,
                                     "minHeight": 210,
                                     "paddingTop": 16,
                                   }
                                 }
                               >
-                                <View
-                                  style={
+                                <RCTScrollView
+                                  contentContainerStyle={
                                     {
+                                      "paddingBottom": 16,
                                       "paddingHorizontal": 16,
                                     }
                                   }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flexDirection": "row",
-                                        "flexWrap": "wrap",
-                                        "width": "100%",
-                                      }
+                                  keyboardShouldPersistTaps="handled"
+                                  nestedScrollEnabled={true}
+                                  showsVerticalScrollIndicator={true}
+                                  style={
+                                    {
+                                      "flex": 1,
                                     }
-                                  >
+                                  }
+                                >
+                                  <View>
                                     <View
-                                      accessibilityState={
-                                        {
-                                          "busy": undefined,
-                                          "checked": undefined,
-                                          "disabled": undefined,
-                                          "expanded": undefined,
-                                          "selected": undefined,
-                                        }
-                                      }
-                                      accessible={true}
-                                      focusable={false}
-                                      onClick={[Function]}
-                                      onResponderGrant={[Function]}
-                                      onResponderMove={[Function]}
-                                      onResponderRelease={[Function]}
-                                      onResponderTerminate={[Function]}
-                                      onResponderTerminationRequest={[Function]}
-                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1,
                                           "flexDirection": "row",
-                                          "height": 0,
-                                          "left": 0,
-                                          "opacity": 0,
-                                          "paddingHorizontal": 16,
-                                          "position": "absolute",
-                                          "top": 0,
+                                          "flexWrap": "wrap",
+                                          "width": "100%",
                                         }
                                       }
-                                      testID="textfield"
                                     >
                                       <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "inherit",
-                                              "height": 38,
-                                            },
-                                            {
-                                              "flex": 1,
-                                            },
-                                          ]
-                                        }
-                                      >
-                                        <TextInput
-                                          autoCapitalize="none"
-                                          autoComplete="off"
-                                          autoCorrect={false}
-                                          autoFocus={false}
-                                          editable={true}
-                                          importantForAutofill="no"
-                                          keyboardType="visible-password"
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onKeyPress={[Function]}
-                                          onSelectionChange={[Function]}
-                                          onSubmitEditing={[Function]}
-                                          placeholder=""
-                                          placeholderTextColor="#b7bbc8"
-                                          showSoftInputOnFocus={true}
-                                          spellCheck={false}
-                                          style={
-                                            {
-                                              "backgroundColor": "transparent",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
-                                              "color": "#686e7d",
-                                              "display": "flex",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 66,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "opacity": 1,
-                                              "paddingBottom": 12,
-                                              "paddingTop": 12,
-                                              "paddingVertical": 0,
-                                            }
+                                        accessibilityState={
+                                          {
+                                            "busy": undefined,
+                                            "checked": undefined,
+                                            "disabled": undefined,
+                                            "expanded": undefined,
+                                            "selected": undefined,
                                           }
-                                          submitBehavior="submit"
-                                          testID="import-from-seed-screen-seed-phrase-input-id_0"
-                                          textAlignVertical="top"
-                                          textContentType="none"
-                                          value=""
-                                        />
+                                        }
+                                        accessible={true}
+                                        focusable={false}
+                                        onClick={[Function]}
+                                        onResponderGrant={[Function]}
+                                        onResponderMove={[Function]}
+                                        onResponderRelease={[Function]}
+                                        onResponderTerminate={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "#b7bbc8",
+                                            "borderRadius": 8,
+                                            "borderWidth": 1,
+                                            "flexDirection": "row",
+                                            "height": 0,
+                                            "left": 0,
+                                            "opacity": 0,
+                                            "paddingHorizontal": 16,
+                                            "position": "absolute",
+                                            "top": 0,
+                                          }
+                                        }
+                                        testID="textfield"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "inherit",
+                                                "height": 38,
+                                              },
+                                              {
+                                                "flex": 1,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <TextInput
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                            autoCorrect={false}
+                                            autoFocus={false}
+                                            editable={true}
+                                            importantForAutofill="no"
+                                            keyboardType="visible-password"
+                                            onBlur={[Function]}
+                                            onChangeText={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyPress={[Function]}
+                                            onSelectionChange={[Function]}
+                                            onSubmitEditing={[Function]}
+                                            placeholder=""
+                                            placeholderTextColor="#b7bbc8"
+                                            showSoftInputOnFocus={true}
+                                            spellCheck={false}
+                                            style={
+                                              {
+                                                "backgroundColor": "transparent",
+                                                "borderColor": "transparent",
+                                                "borderWidth": 1,
+                                                "color": "#686e7d",
+                                                "display": "flex",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "height": 66,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 20,
+                                                "opacity": 1,
+                                                "paddingBottom": 12,
+                                                "paddingTop": 12,
+                                                "paddingVertical": 0,
+                                              }
+                                            }
+                                            submitBehavior="submit"
+                                            testID="import-from-seed-screen-seed-phrase-input-id_0"
+                                            textAlignVertical="top"
+                                            textContentType="none"
+                                            value=""
+                                          />
+                                        </View>
                                       </View>
-                                    </View>
-                                    <View
-                                      accessibilityState={
-                                        {
-                                          "busy": undefined,
-                                          "checked": undefined,
-                                          "disabled": undefined,
-                                          "expanded": undefined,
-                                          "selected": undefined,
-                                        }
-                                      }
-                                      accessible={true}
-                                      focusable={false}
-                                      onClick={[Function]}
-                                      onResponderGrant={[Function]}
-                                      onResponderMove={[Function]}
-                                      onResponderRelease={[Function]}
-                                      onResponderTerminate={[Function]}
-                                      onResponderTerminationRequest={[Function]}
-                                      onStartShouldSetResponder={[Function]}
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderWidth": 0,
-                                          "display": "flex",
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                          "height": 40,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 0,
-                                        }
-                                      }
-                                      testID="textfield"
-                                    >
                                       <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "inherit",
-                                              "height": 38,
-                                            },
-                                            {
-                                              "flex": 1,
-                                            },
-                                          ]
-                                        }
-                                      >
-                                        <TextInput
-                                          autoCapitalize="none"
-                                          autoComplete="off"
-                                          autoCorrect={false}
-                                          autoFocus={true}
-                                          editable={true}
-                                          importantForAutofill="no"
-                                          keyboardType="visible-password"
-                                          multiline={true}
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onKeyPress={[Function]}
-                                          onSelectionChange={[Function]}
-                                          placeholder="Add a space between each word and make sure no one is watching."
-                                          placeholderTextColor="#686e7d"
-                                          showSoftInputOnFocus={true}
-                                          spellCheck={false}
-                                          style={
-                                            {
-                                              "backgroundColor": "transparent",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
-                                              "color": "#686e7d",
-                                              "display": "flex",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 66,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "opacity": 1,
-                                              "paddingBottom": 12,
-                                              "paddingTop": 12,
-                                              "paddingVertical": 0,
-                                            }
+                                        accessibilityState={
+                                          {
+                                            "busy": undefined,
+                                            "checked": undefined,
+                                            "disabled": undefined,
+                                            "expanded": undefined,
+                                            "selected": undefined,
                                           }
-                                          submitBehavior="submit"
-                                          testID="import-from-seed-screen-seed-phrase-input-id"
-                                          textAlignVertical="top"
-                                          textContentType="none"
-                                          value=""
-                                        />
+                                        }
+                                        accessible={true}
+                                        focusable={false}
+                                        onClick={[Function]}
+                                        onResponderGrant={[Function]}
+                                        onResponderMove={[Function]}
+                                        onResponderRelease={[Function]}
+                                        onResponderTerminate={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "transparent",
+                                            "borderColor": "#b7bbc8",
+                                            "borderRadius": 8,
+                                            "borderWidth": 0,
+                                            "display": "flex",
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "height": 40,
+                                            "opacity": 1,
+                                            "paddingHorizontal": 0,
+                                          }
+                                        }
+                                        testID="textfield"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "inherit",
+                                                "height": 38,
+                                              },
+                                              {
+                                                "flex": 1,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <TextInput
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                            autoCorrect={false}
+                                            autoFocus={true}
+                                            editable={true}
+                                            importantForAutofill="no"
+                                            keyboardType="visible-password"
+                                            multiline={true}
+                                            onBlur={[Function]}
+                                            onChangeText={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyPress={[Function]}
+                                            onSelectionChange={[Function]}
+                                            placeholder="Add a space between each word and make sure no one is watching."
+                                            placeholderTextColor="#686e7d"
+                                            showSoftInputOnFocus={true}
+                                            spellCheck={false}
+                                            style={
+                                              {
+                                                "backgroundColor": "transparent",
+                                                "borderColor": "transparent",
+                                                "borderWidth": 1,
+                                                "color": "#686e7d",
+                                                "display": "flex",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "height": 66,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 20,
+                                                "opacity": 1,
+                                                "paddingBottom": 12,
+                                                "paddingTop": 12,
+                                                "paddingVertical": 0,
+                                              }
+                                            }
+                                            submitBehavior="submit"
+                                            testID="import-from-seed-screen-seed-phrase-input-id"
+                                            textAlignVertical="top"
+                                            textContentType="none"
+                                            value=""
+                                          />
+                                        </View>
                                       </View>
                                     </View>
                                   </View>
-                                </View>
+                                </RCTScrollView>
                               </View>
                               <Text
                                 accessibilityRole="text"

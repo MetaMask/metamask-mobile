@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, Keyboard, FlatList, Pressable } from 'react-native';
+import { View, Keyboard, FlatList, Pressable, ScrollView } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
 import Text, {
@@ -373,7 +373,13 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     return (
       <View style={styles.seedPhraseRoot}>
         <View style={styles.seedPhraseContainer}>
-          <View style={styles.seedPhraseInnerContainer}>
+          <ScrollView
+            style={styles.seedPhraseInnerContainer}
+            contentContainerStyle={styles.seedPhraseScrollContent}
+            showsVerticalScrollIndicator
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
+          >
             <View style={styles.seedPhraseInputContainer}>
               {/* Grid Inputs on multiple words mode. hidden when first input mode.
               Need to use style hidden instead of condition rendering to avoid
@@ -488,7 +494,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 isDisabled={disabled}
               />
             </View>
-          </View>
+          </ScrollView>
         </View>
 
         {suggestions.length > 0 && (
