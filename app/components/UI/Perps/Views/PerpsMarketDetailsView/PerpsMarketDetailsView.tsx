@@ -15,7 +15,6 @@ import { ScrollView, View, RefreshControl, Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
@@ -38,7 +37,6 @@ import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
-  Position,
 } from '../../controllers/types';
 import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
@@ -66,6 +64,7 @@ import {
   usePerpsTrading,
   usePerpsNetworkManagement,
   usePerpsNavigation,
+  usePositionManagement,
 } from '../../hooks';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
@@ -137,6 +136,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     canGoBack,
   } = usePerpsNavigation();
 
+  // Use position management hook for bottom sheet state and handlers
+  const {
+    showModifyActionSheet,
+    showAdjustMarginActionSheet,
+    showReversePositionSheet,
+    modifyActionSheetRef,
+    adjustMarginActionSheetRef,
+    reversePositionSheetRef,
+    closeModifySheet,
+    closeAdjustMarginSheet,
+    closeReversePositionSheet,
+    handleReversePosition,
+  } = usePositionManagement();
+
   // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
@@ -199,22 +212,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
-  // Bottom sheet refs - using PerpsHomeView pattern
-  const modifyActionSheetRef = useRef<BottomSheetRef>(null);
-  const adjustMarginActionSheetRef = useRef<BottomSheetRef>(null);
-  const reversePositionSheetRef = useRef<BottomSheetRef>(null);
-
   const [refreshing, setRefreshing] = useState(false);
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
-
-  // Bottom sheet visibility state - using PerpsHomeView pattern
-  const [showModifyActionSheet, setShowModifyActionSheet] = useState(false);
-  const [showAdjustMarginActionSheet, setShowAdjustMarginActionSheet] =
-    useState(false);
-  const [showReversePositionSheet, setShowReversePositionSheet] =
-    useState(false);
 
   const { account } = usePerpsLiveAccount();
 
@@ -737,27 +738,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   }, []);
 
-  // Position action handlers - using PerpsHomeView pattern
-  const handleModifyActionSheetClose = useCallback(() => {
-    setShowModifyActionSheet(false);
-  }, []);
-
-  const handleAdjustMarginActionSheetClose = useCallback(() => {
-    setShowAdjustMarginActionSheet(false);
-  }, []);
-
-  const handleReversePositionSheetClose = useCallback(() => {
-    setShowReversePositionSheet(false);
-  }, []);
-
-  const handleReversePositionConfirm = useCallback(() => {
-    setShowReversePositionSheet(false);
-  }, []);
-
-  const handleReversePosition = useCallback((_position: Position) => {
-    setShowReversePositionSheet(true);
-  }, []);
-
   // Determine market hours content key based on current status - recalculated on each render to stay current
   const marketHoursContentKey = (() => {
     const status = getMarketHoursStatus();
@@ -1093,7 +1073,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <PerpsSelectModifyActionView
           sheetRef={modifyActionSheetRef}
           position={existingPosition ?? undefined}
-          onClose={handleModifyActionSheetClose}
+          onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
         />
       )}
@@ -1103,7 +1083,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <PerpsSelectAdjustMarginActionView
           sheetRef={adjustMarginActionSheetRef}
           position={existingPosition ?? undefined}
-          onClose={handleAdjustMarginActionSheetClose}
+          onClose={closeAdjustMarginSheet}
         />
       )}
 
@@ -1112,8 +1092,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <PerpsFlipPositionConfirmSheet
           position={existingPosition}
           sheetRef={reversePositionSheetRef}
-          onClose={handleReversePositionSheetClose}
-          onConfirm={handleReversePositionConfirm}
+          onClose={closeReversePositionSheet}
+          onConfirm={closeReversePositionSheet}
         />
       )}
     </SafeAreaView>

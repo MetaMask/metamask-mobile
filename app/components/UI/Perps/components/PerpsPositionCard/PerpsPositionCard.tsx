@@ -27,6 +27,38 @@ import {
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import styleSheet from './PerpsPositionCard.styles';
 
+/**
+ * PerpsPositionCard Component
+ *
+ * Displays open position details with interactive controls for position management.
+ *
+ * @component
+ *
+ * @remarks
+ * **Callback Requirements by Context:**
+ * - **View-Only Mode** (no callbacks): Shows position data only, no interactive elements
+ * - **Interactive Mode** (with callbacks): Enables position management actions
+ *
+ * **Interactive Callbacks:**
+ * - `onAutoClosePress`: Required for TP/SL configuration - opens auto-close settings
+ * - `onMarginPress`: Required for margin adjustment - opens add/remove margin flow
+ * - `onSharePress`: Optional - enables sharing position P&L card
+ * - `onFlipPress`: Not currently used (flip handled via modify action sheet)
+ *
+ * @example
+ * // View-only mode
+ * <PerpsPositionCard position={position} currentPrice={price} />
+ *
+ * @example
+ * // Interactive mode
+ * <PerpsPositionCard
+ *   position={position}
+ *   currentPrice={price}
+ *   onAutoClosePress={() => navigateToTPSL(position)}
+ *   onMarginPress={() => setShowAdjustMarginSheet(true)}
+ *   onSharePress={() => navigateToPnlShare(position)}
+ * />
+ */
 interface PerpsPositionCardProps {
   position: Position;
   orders?: Order[];

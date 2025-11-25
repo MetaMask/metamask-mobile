@@ -319,6 +319,21 @@ jest.mock('../../hooks', () => ({
     navigateBack: mockNavigateBack,
     canGoBack: mockCanGoBack(),
   })),
+  usePositionManagement: jest.fn(() => ({
+    showModifyActionSheet: false,
+    showAdjustMarginActionSheet: false,
+    showReversePositionSheet: false,
+    modifyActionSheetRef: { current: null },
+    adjustMarginActionSheetRef: { current: null },
+    reversePositionSheetRef: { current: null },
+    openModifySheet: jest.fn(),
+    closeModifySheet: jest.fn(),
+    openAdjustMarginSheet: jest.fn(),
+    closeAdjustMarginSheet: jest.fn(),
+    openReversePositionSheet: jest.fn(),
+    closeReversePositionSheet: jest.fn(),
+    handleReversePosition: jest.fn(),
+  })),
 }));
 
 // Mock PerpsMarketStatisticsCard to simplify the test

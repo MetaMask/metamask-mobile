@@ -26,6 +26,8 @@ import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { TraceName } from '../../../../../util/trace';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../utils/perpsErrorHandler';
 import {
   calculateMaxRemovableMargin,
   calculateNewLiquidationPrice,
@@ -215,10 +217,19 @@ const PerpsAdjustMarginView: React.FC = () => {
 
   const handleConfirm = useCallback(async () => {
     if (marginAmount <= 0 || !position) return;
-    if (isAddMode) {
-      await handleAddMargin(position.coin, marginAmount);
-    } else {
-      await handleRemoveMargin(position.coin, marginAmount);
+
+    try {
+      if (isAddMode) {
+        await handleAddMargin(position.coin, marginAmount);
+      } else {
+        await handleRemoveMargin(position.coin, marginAmount);
+      }
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        `Failed to ${isAddMode ? 'add' : 'remove'} margin for ${position.coin}`,
+      );
+      // Note: Toast notification is handled by usePerpsMarginAdjustment hook
     }
   }, [marginAmount, position, isAddMode, handleAddMargin, handleRemoveMargin]);
 
