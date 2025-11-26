@@ -44,6 +44,7 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
+  useIsFocused: jest.fn(() => true),
   NavigationContainer: ({ children }: { children: React.ReactNode }) =>
     children,
 }));
@@ -224,6 +225,11 @@ jest.mock('../../hooks/usePredictPrices', () => ({
 
 jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
+}));
+
+let mockUsePredictOrderPreview: jest.Mock;
+jest.mock('../../hooks/usePredictOrderPreview', () => ({
+  usePredictOrderPreview: (mockUsePredictOrderPreview = jest.fn()),
 }));
 
 jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
@@ -517,6 +523,39 @@ function setupPredictMarketDetailsTest(
   usePredictPositions.mockImplementation(
     ({ claimable }: { claimable?: boolean }) =>
       claimable ? claimablePositionsHook : activePositionsHook,
+  );
+
+  // Set up usePredictOrderPreview mock to return preview data matching position currentValue
+  mockUsePredictOrderPreview.mockImplementation(
+    (params: { outcomeId: string }) => {
+      // Find the position matching this outcomeId from active positions
+      const position = activePositionsHook.positions.find(
+        (p: Record<string, unknown>) => p.outcomeId === params.outcomeId,
+      ) as { currentValue?: number } | undefined;
+
+      // Return preview with minAmountReceived matching position's currentValue
+      // or a default value if no position found
+      const minAmountReceived = position?.currentValue ?? 100;
+
+      return {
+        preview: {
+          marketId: params.outcomeId,
+          outcomeId: params.outcomeId,
+          outcomeTokenId: 'token-1',
+          timestamp: Date.now(),
+          side: 'sell',
+          sharePrice: 0.5,
+          maxAmountSpent: 0,
+          minAmountReceived,
+          slippage: 0,
+          tickSize: 0,
+          minOrderSize: 0,
+          negRisk: false,
+        },
+        error: null,
+        isCalculating: false,
+      };
+    },
   );
 
   const result = renderWithProvider(<PredictMarketDetails />);
@@ -1390,7 +1429,7 @@ describe('PredictMarketDetails', () => {
           exact: false,
         }),
       ).toBeOnTheScreen();
-      expect(screen.getByText('+7.70%')).toBeOnTheScreen();
+      expect(screen.getByText('+7.69%')).toBeOnTheScreen();
     });
 
     it('renders position with negative PnL correctly', () => {
@@ -1419,7 +1458,7 @@ describe('PredictMarketDetails', () => {
       );
       fireEvent.press(positionsTab);
 
-      expect(screen.getByText('7.70%')).toBeOnTheScreen();
+      expect(screen.getByText('7.69%')).toBeOnTheScreen();
     });
 
     it('renders outcomes tab for multi-outcome markets', () => {
