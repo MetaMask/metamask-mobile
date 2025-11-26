@@ -104,28 +104,38 @@ const SelectHardwareWallet = () => {
   }, [navigation, colors]);
 
   const navigateToConnectQRWallet = async () => {
-    const connectedDeviceCount = await getConnectedDevicesCount();
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
-        .addProperties({
-          device_type: HardwareDeviceTypes.QR,
-          connected_device_count: connectedDeviceCount.toString(),
-        })
-        .build(),
-    );
+    try {
+      const connectedDeviceCount = await getConnectedDevicesCount();
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+          .addProperties({
+            device_type: HardwareDeviceTypes.QR,
+            connected_device_count: connectedDeviceCount.toString(),
+          })
+          .build(),
+      );
+    } catch (error) {
+      // [SelectHardware] Analytics error should not block navigation
+      console.error('[SelectHardware] Failed to track analytics:', error);
+    }
     navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
   };
 
   const navigateToConnectLedger = async () => {
-    const connectedDeviceCount = await getConnectedDevicesCount();
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
-        .addProperties({
-          device_type: HardwareDeviceTypes.LEDGER,
-          connected_device_count: connectedDeviceCount.toString(),
-        })
-        .build(),
-    );
+    try {
+      const connectedDeviceCount = await getConnectedDevicesCount();
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+          .addProperties({
+            device_type: HardwareDeviceTypes.LEDGER,
+            connected_device_count: connectedDeviceCount.toString(),
+          })
+          .build(),
+      );
+    } catch (error) {
+      // [SelectHardware] Analytics error should not block navigation
+      console.error('[SelectHardware] Failed to track analytics:', error);
+    }
 
     navigation.navigate(Routes.HW.CONNECT_LEDGER);
   };

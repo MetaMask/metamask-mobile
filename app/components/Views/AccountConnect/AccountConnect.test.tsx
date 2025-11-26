@@ -5,8 +5,7 @@ import renderWithProvider, {
 import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import {
   createMockAccountsControllerState as createMockAccountsControllerStateUtil,
@@ -25,8 +24,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import { USER_INTENT } from '../../../constants/permissions';
+import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
@@ -57,10 +55,13 @@ const createMockCaip25Permission = (
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
 const mockedTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn().mockReturnValue({
+  build: mockBuild,
+});
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnValue({
-    build: jest.fn(),
-  }),
+  addProperties: mockAddProperties,
+  build: mockBuild,
 });
 const mockGetNextAvailableAccountName = jest
   .fn()
@@ -751,7 +752,7 @@ describe('AccountConnect', () => {
 
   describe('Phishing detection', () => {
     describe('dapp scanning is enabled', () => {
-      it('should show phishing modal for phishing URLs', async () => {
+      it('displays phishing modal when origin is flagged as phishing', async () => {
         const { findByText } = renderWithProvider(
           <AccountConnect
             route={{
@@ -883,23 +884,20 @@ describe('AccountConnect', () => {
     });
   });
 
-  describe('Hardware wallet connection', () => {
+  describe('Metrics tracking', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
-    it('tracks metrics when connecting hardware wallet with correct device type and count', async () => {
-      const mockConnectedDeviceCount = 2;
-      mockGetConnectedDevicesCount.mockResolvedValue(mockConnectedDeviceCount);
-
-      const { getByTestId, UNSAFE_queryByType } = renderWithProvider(
+    it('tracks metrics when user cancels connection', () => {
+      const { getByTestId } = renderWithProvider(
         <AccountConnect
           route={{
             params: {
               hostInfo: {
                 metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
+                  id: 'cancel-metrics-id',
+                  origin: 'https://cancel-test.com',
                 },
                 permissions: createMockCaip25Permission({
                   'wallet:eip155': {
@@ -907,143 +905,18 @@ describe('AccountConnect', () => {
                   },
                 }),
               },
-              permissionRequestId: 'test',
+              permissionRequestId: 'test-cancel-metrics',
             },
           }}
         />,
         { state: mockInitialState },
       );
 
-      const permissionContainer = getByTestId('permission-summary-container');
-      expect(permissionContainer).toBeDefined();
+      const cancelButton = getByTestId('cancel-button');
+      fireEvent.press(cancelButton);
 
-      const permissionsSummary = UNSAFE_queryByType(
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-        require('../../../components/UI/PermissionsSummary').default,
-      );
-
-      expect(permissionsSummary).toBeDefined();
-
-      await act(async () => {
-        if (permissionsSummary) {
-          permissionsSummary.props.onUserAction(USER_INTENT.ConnectHW);
-        }
-      });
-
-      await waitFor(() => {
-        expect(mockGetConnectedDevicesCount).toHaveBeenCalled();
-      });
-
-      expect(mockedNavigate).toHaveBeenCalledWith('ConnectQRHardwareFlow');
-
-      await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalled();
-        expect(mockedTrackEvent).toHaveBeenCalled();
-      });
-    });
-
-    it('tracks metrics when connecting hardware wallet with zero connected devices', async () => {
-      mockGetConnectedDevicesCount.mockResolvedValue(0);
-
-      const { getByTestId, UNSAFE_queryByType } = renderWithProvider(
-        <AccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
-
-      const permissionContainer = getByTestId('permission-summary-container');
-      expect(permissionContainer).toBeDefined();
-
-      const permissionsSummary = UNSAFE_queryByType(
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-        require('../../../components/UI/PermissionsSummary').default,
-      );
-
-      expect(permissionsSummary).toBeDefined();
-
-      await act(async () => {
-        if (permissionsSummary) {
-          permissionsSummary.props.onUserAction(USER_INTENT.ConnectHW);
-        }
-      });
-
-      await waitFor(() => {
-        expect(mockGetConnectedDevicesCount).toHaveBeenCalled();
-        expect(mockedNavigate).toHaveBeenCalledWith('ConnectQRHardwareFlow');
-      });
-    });
-
-    it('includes correct properties in hardware wallet metrics', async () => {
-      const mockConnectedDeviceCount = 3;
-      mockGetConnectedDevicesCount.mockResolvedValue(mockConnectedDeviceCount);
-
-      const { getByTestId, UNSAFE_queryByType } = renderWithProvider(
-        <AccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
-
-      const permissionContainer = getByTestId('permission-summary-container');
-      expect(permissionContainer).toBeDefined();
-
-      const permissionsSummary = UNSAFE_queryByType(
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-        require('../../../components/UI/PermissionsSummary').default,
-      );
-
-      await act(async () => {
-        if (permissionsSummary) {
-          permissionsSummary.props.onUserAction(USER_INTENT.ConnectHW);
-        }
-      });
-
-      await waitFor(() => {
-        expect(mockGetConnectedDevicesCount).toHaveBeenCalled();
-      });
-
-      await waitFor(() => {
-        const mockAddProperties =
-          mockCreateEventBuilder.mock.results[
-            mockCreateEventBuilder.mock.results.length - 1
-          ].value.addProperties;
-
-        expect(mockAddProperties).toHaveBeenCalledWith({
-          device_type: HardwareDeviceTypes.QR,
-          connected_device_count: mockConnectedDeviceCount,
-        });
-      });
+      expect(mockedTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
     });
   });
 

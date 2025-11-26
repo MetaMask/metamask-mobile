@@ -216,7 +216,7 @@ describe('SelectHardwareWallet', () => {
   });
 
   describe('error handling', () => {
-    it('continues navigation when getConnectedDevicesCount fails', async () => {
+    it('continues navigation to Ledger when getConnectedDevicesCount fails', async () => {
       const error = new Error('Failed to get device count');
       mockGetConnectedDevicesCount.mockRejectedValue(error);
 
@@ -225,10 +225,63 @@ describe('SelectHardwareWallet', () => {
       });
       const ledgerButton = getByTestId('ledger-hardware-button');
 
-      await expect(ledgerButton.props.onPress()).rejects.toThrow(
-        'Failed to get device count',
+      await ledgerButton.props.onPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_LEDGER);
+    });
+
+    it('continues navigation to QR when getConnectedDevicesCount fails', async () => {
+      const error = new Error('Failed to get device count');
+      mockGetConnectedDevicesCount.mockRejectedValue(error);
+
+      const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
+        state: initialState,
+      });
+      const qrButton = getByTestId('qr-hardware-button');
+
+      await qrButton.props.onPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE);
+    });
+
+    it('logs error when analytics tracking fails for Ledger', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const error = new Error('Analytics failure');
+      mockGetConnectedDevicesCount.mockRejectedValue(error);
+
+      const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
+        state: initialState,
+      });
+      const ledgerButton = getByTestId('ledger-hardware-button');
+
+      await ledgerButton.props.onPress();
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[SelectHardware] Failed to track analytics:',
+        error,
       );
-      expect(mockNavigate).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('logs error when analytics tracking fails for QR', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const error = new Error('Analytics failure');
+      mockGetConnectedDevicesCount.mockRejectedValue(error);
+
+      const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
+        state: initialState,
+      });
+      const qrButton = getByTestId('qr-hardware-button');
+
+      await qrButton.props.onPress();
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[SelectHardware] Failed to track analytics:',
+        error,
+      );
+
+      consoleSpy.mockRestore();
     });
   });
 });

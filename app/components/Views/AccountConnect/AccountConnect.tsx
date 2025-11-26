@@ -683,15 +683,20 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          const connectedDeviceCount = await getConnectedDevicesCount();
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
-              .addProperties({
-                device_type: HardwareDeviceTypes.QR,
-                connected_device_count: connectedDeviceCount,
-              })
-              .build(),
-          );
+          try {
+            const connectedDeviceCount = await getConnectedDevicesCount();
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET)
+                .addProperties({
+                  device_type: HardwareDeviceTypes.QR,
+                  connected_device_count: connectedDeviceCount,
+                })
+                .build(),
+            );
+          } catch (error) {
+            // [AccountConnect] Analytics error should not disrupt user flow
+            console.error('[AccountConnect] Failed to track analytics:', error);
+          }
 
           break;
         }

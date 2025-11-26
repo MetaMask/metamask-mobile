@@ -250,8 +250,8 @@ const LedgerSelectAccount = () => {
     async (accountIndexes: number[]) => {
       showLoadingModal();
 
-      const numberOfConnectedDevices = await getConnectedDevicesCount();
       try {
+        const numberOfConnectedDevices = await getConnectedDevicesCount();
         for (const index of accountIndexes) {
           await unlockLedgerWalletAccount(index);
         }
