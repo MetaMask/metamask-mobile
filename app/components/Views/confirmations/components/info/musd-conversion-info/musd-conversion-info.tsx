@@ -37,5 +37,5 @@ export const MusdConversionInfo = () => {
     tokenAddress: tokenToAddAddress,
   });
 
-  return <CustomAmountInfo preferredPaymentToken={preferredPaymentToken} />;
+  return <CustomAmountInfo preferredToken={preferredPaymentToken} />;
 };

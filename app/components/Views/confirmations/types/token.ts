@@ -42,7 +42,3 @@ export interface Nft {
   balance?: string;
 }
 
-export interface PreferredPaymentToken {
-  address: Hex;
-  chainId: Hex;
-}

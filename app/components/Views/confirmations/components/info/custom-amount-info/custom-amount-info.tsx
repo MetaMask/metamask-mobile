@@ -14,7 +14,10 @@ import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
-import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import {
+  SetPayTokenRequest,
+  useAutomaticTransactionPayToken,
+} from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -49,22 +52,21 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
-import { PreferredPaymentToken } from '../../../types/token';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
   hasMax?: boolean;
-  preferredPaymentToken?: PreferredPaymentToken;
+  preferredToken?: SetPayTokenRequest;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay, hasMax, preferredPaymentToken }) => {
+  ({ children, currency, disablePay, hasMax, preferredToken }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({
       disable: disablePay,
-      preferredPaymentToken,
+      preferredToken,
     });
     useTransactionPayMetrics();
 

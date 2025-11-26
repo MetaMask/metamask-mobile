@@ -1,6 +1,9 @@
 import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
+import {
+  useAutomaticTransactionPayToken,
+  SetPayTokenRequest,
+} from './useAutomaticTransactionPayToken';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
@@ -10,7 +13,7 @@ import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controlle
 import { Hex } from '@metamask/utils';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
-import { AssetType, PreferredPaymentToken } from '../../types/token';
+import { AssetType } from '../../types/token';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../../util/address');
@@ -51,7 +54,7 @@ function runHook({
   preferredPaymentToken,
 }: {
   disable?: boolean;
-  preferredPaymentToken?: PreferredPaymentToken;
+  preferredPaymentToken?: SetPayTokenRequest;
 } = {}) {
   return renderHookWithProvider(
     () => useAutomaticTransactionPayToken({ disable, preferredPaymentToken }),

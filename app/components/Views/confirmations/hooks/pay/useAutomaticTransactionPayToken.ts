@@ -7,16 +7,21 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
-import { AssetType, PreferredPaymentToken } from '../../types/token';
+import { AssetType } from '../../types/token';
+
+export interface SetPayTokenRequest {
+  address: Hex;
+  chainId: Hex;
+}
 
 const log = createProjectLogger('transaction-pay');
 
 export function useAutomaticTransactionPayToken({
   disable = false,
-  preferredPaymentToken,
+  preferredToken,
 }: {
   disable?: boolean;
-  preferredPaymentToken?: PreferredPaymentToken;
+  preferredToken?: SetPayTokenRequest;
 } = {}) {
   const isUpdated = useRef(false);
   const { setPayToken } = useTransactionPayToken();
@@ -54,7 +59,7 @@ export function useAutomaticTransactionPayToken({
       isHardwareWallet,
       targetToken,
       tokens: tokensWithBalance,
-      preferredPaymentToken,
+      preferredToken,
     });
 
     if (!automaticToken) {
@@ -73,7 +78,7 @@ export function useAutomaticTransactionPayToken({
   }, [
     disable,
     isHardwareWallet,
-    preferredPaymentToken,
+    preferredToken,
     requiredTokens,
     setPayToken,
     targetToken,
@@ -85,12 +90,12 @@ function getBestToken({
   isHardwareWallet,
   targetToken,
   tokens,
-  preferredPaymentToken,
+  preferredToken,
 }: {
   isHardwareWallet: boolean;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
-  preferredPaymentToken?: PreferredPaymentToken;
+  preferredToken?: SetPayTokenRequest;
 }): { address: Hex; chainId: Hex } | undefined {
   const targetTokenFallback = targetToken
     ? {
@@ -103,19 +108,19 @@ function getBestToken({
     return targetTokenFallback;
   }
 
-  if (tokens?.length) {
-    if (preferredPaymentToken) {
-      const preferredTokenAvailable = tokens.find(
-        (token) =>
-          token.address === preferredPaymentToken.address &&
-          token.chainId === preferredPaymentToken.chainId,
-      );
+  if (preferredToken) {
+    const preferredTokenAvailable = tokens.find(
+      (token) =>
+        token.address === preferredToken.address &&
+        token.chainId === preferredToken.chainId,
+    );
 
-      if (preferredTokenAvailable) {
-        return preferredPaymentToken;
-      }
+    if (preferredTokenAvailable) {
+      return preferredToken;
     }
+  }
 
+  if (tokens?.length) {
     return {
       address: tokens[0].address as Hex,
       chainId: tokens[0].chainId as Hex,
