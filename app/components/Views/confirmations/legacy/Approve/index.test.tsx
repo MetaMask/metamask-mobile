@@ -205,7 +205,7 @@ describe('Approve', () => {
     );
   });
 
-  it('does not display nonce editor', async () => {
+  it('fetches network nonce on component mount', async () => {
     const getNetworkNonceSpy = jest.spyOn(
       TransactionController,
       'getNetworkNonce',
@@ -232,7 +232,7 @@ describe('Approve', () => {
           },
         },
         transaction: {
-          mode: 'edit', // Add mode to transaction state
+          mode: 'edit',
         },
       }),
     );
