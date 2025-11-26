@@ -111,7 +111,7 @@ function getBestToken({
   if (preferredToken) {
     const preferredTokenAvailable = tokens.find(
       (token) =>
-        token.address === preferredToken.address &&
+        token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
         token.chainId === preferredToken.chainId,
     );
 
