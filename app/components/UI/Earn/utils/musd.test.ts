@@ -5,6 +5,7 @@ import {
   isMusdConversionPaymentToken,
 } from './musd';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+import { CONVERTIBLE_STABLECOINS_BY_CHAIN } from '../constants/musd';
 
 describe('convertSymbolAllowlistToAddresses', () => {
   let consoleWarnSpy: jest.SpyInstance;
@@ -226,6 +227,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns true for USDC on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -235,6 +237,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns true for DAI on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0x6b175474e89094c44da98b954eedeac495271d0f',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -246,6 +249,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns true for mixed case USDC address on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0xA0B86991c6218B36c1d19D4a2e9Eb0cE3606eB48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -257,6 +261,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for valid token on unsupported chain', () => {
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         '0x999' as Hex,
       );
 
@@ -266,6 +271,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for Polygon chain', () => {
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         '0x89' as Hex,
       );
 
@@ -277,6 +283,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for random address on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0x1234567890123456789012345678901234567890',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -286,6 +293,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for WETH address on Mainnet', () => {
       const result = isMusdConversionPaymentToken(
         '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -303,8 +311,8 @@ describe('isMusdConversionPaymentToken', () => {
 
       const result = isMusdConversionPaymentToken(
         '0x1234567890123456789012345678901234567890',
-        NETWORKS_CHAIN_ID.MAINNET,
         customAllowlist,
+        NETWORKS_CHAIN_ID.MAINNET,
       );
 
       expect(result).toBe(true);
@@ -319,8 +327,8 @@ describe('isMusdConversionPaymentToken', () => {
 
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        NETWORKS_CHAIN_ID.MAINNET,
         customAllowlist,
+        NETWORKS_CHAIN_ID.MAINNET,
       );
 
       expect(result).toBe(false);
@@ -331,8 +339,8 @@ describe('isMusdConversionPaymentToken', () => {
 
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        NETWORKS_CHAIN_ID.MAINNET,
         customAllowlist,
+        NETWORKS_CHAIN_ID.MAINNET,
       );
 
       expect(result).toBe(false);
@@ -343,6 +351,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for empty address', () => {
       const result = isMusdConversionPaymentToken(
         '',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         NETWORKS_CHAIN_ID.MAINNET,
       );
 
@@ -352,6 +361,7 @@ describe('isMusdConversionPaymentToken', () => {
     it('returns false for empty chain ID', () => {
       const result = isMusdConversionPaymentToken(
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        CONVERTIBLE_STABLECOINS_BY_CHAIN,
         '',
       );
 
