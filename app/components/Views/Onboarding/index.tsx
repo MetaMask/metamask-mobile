@@ -296,11 +296,7 @@ const Onboarding = () => {
       if (state.existingUser) {
         alertExistingUser(action);
       } else {
-        try {
-          await action();
-        } catch (error) {
-          // errors
-        }
+        await action();
       }
     },
     [state.existingUser, alertExistingUser],
