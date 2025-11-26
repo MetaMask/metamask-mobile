@@ -6,6 +6,7 @@ const logger = createLogger({ name: 'AppiumDriver' });
 
 /**
  * Install an Appium driver
+ * @deprecated - This function is no longer used as Appium drivers are now installed automatically via yarn install
  */
 export async function installDriver(driverName: string): Promise<void> {
   logger.debug(`Installing Appium driver: ${driverName}`);

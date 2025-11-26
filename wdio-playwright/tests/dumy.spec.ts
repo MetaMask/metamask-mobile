@@ -23,6 +23,7 @@ test.only('login with password - page object helper functions flow', async ({
     async () => {
       // High-level method - works with both frameworks
       await LoginView.enterPassword(E2E_PASSWORD);
+      await new Promise((resolve) => setTimeout(resolve, 15000));
     },
   );
 });

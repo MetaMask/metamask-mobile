@@ -1,12 +1,7 @@
 import { remote, type Browser } from 'webdriverio';
-import { Platform } from '../../../../e2e/framework/types';
 import { BaseServiceProvider } from '../../common/base/BaseServiceProvider';
 import type { ProjectConfig } from '../../common/types';
-import {
-  installDriver,
-  startAppiumServer,
-  stopAppiumServer,
-} from '../../appium';
+import { startAppiumServer, stopAppiumServer } from '../../appium';
 import { EmulatorConfigBuilder } from './EmulatorConfigBuilder';
 
 /**
@@ -31,11 +26,6 @@ export class EmulatorProvider extends BaseServiceProvider {
    */
   async getDriver(): Promise<Browser> {
     this.logger.debug('Creating driver for local emulator');
-
-    // Install the appropriate Appium driver
-    const driverName =
-      this.getPlatform() === Platform.ANDROID ? 'uiautomator2' : 'xcuitest';
-    await installDriver(driverName);
 
     // Start Appium server
     await startAppiumServer();
