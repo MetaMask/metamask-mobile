@@ -231,11 +231,13 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     } catch (submissionError) {
-      const axiosError = submissionError as AxiosError<{
-        error?: { errorCode?: number; message?: string };
-      }>;
+      const axiosError = submissionError as AxiosError;
+      const apiError = (
+        axiosError?.response?.data as {
+          error?: { errorCode?: number; message?: string };
+        }
+      )?.error;
 
-      const apiError = axiosError?.response?.data?.error;
       const isPhoneError = apiError?.errorCode === 2020;
       setIsPhoneRegisteredError(isPhoneError);
 
