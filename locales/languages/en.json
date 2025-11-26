@@ -1314,6 +1314,8 @@
       "add_title": "Add Margin",
       "remove_title": "Reduce Margin",
       "margin_in_position": "Margin in position",
+      "margin_available_to_add": "Margin available to add",
+      "margin_available_to_remove": "Margin available to remove",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance"
