@@ -1,5 +1,10 @@
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
+import { generateAddressCacheKey } from '../lib/address-scanning/address-scan-util';
+import {
+  TokenScanCacheData,
+  AddressScanResult,
+} from '@metamask/phishing-controller';
 
 const selectPhishingControllerState = (state: RootState) =>
   state.engine.backgroundState.PhishingController;
@@ -25,26 +30,30 @@ export const selectMultipleTokenScanResults = createDeepEqualSelector(
 
     const tokenScanCache = phishingControllerState?.tokenScanCache || {};
 
-    return tokens
-      .map((token) => {
-        const { address, chainId } = token;
+    return tokens.reduce<
+      {
+        address: string;
+        chainId: string;
+        scanResult: TokenScanCacheData;
+      }[]
+    >((acc, token) => {
+      const { address, chainId } = token;
 
-        if (!address || !chainId) {
-          return null;
-        }
+      if (!address || !chainId) {
+        return acc;
+      }
 
-        const cacheKey = `${chainId}:${address.toLowerCase()}`;
-        const cacheEntry = tokenScanCache[cacheKey];
+      const cacheKey = `${chainId}:${address.toLowerCase()}`;
+      const cacheEntry = tokenScanCache[cacheKey];
 
-        return {
-          address: address.toLowerCase(),
-          chainId,
-          scanResult: cacheEntry?.data,
-        };
-      })
-      .filter(
-        (result): result is NonNullable<typeof result> => result !== null,
-      );
+      acc.push({
+        address: address.toLowerCase(),
+        chainId,
+        scanResult: cacheEntry?.data,
+      });
+
+      return acc;
+    }, []);
   },
 );
 
@@ -62,67 +71,65 @@ export const selectMultipleAddressScanResults = createDeepEqualSelector(
     _state: RootState,
     params: { addresses: { address: string; chainId: string }[] },
   ) => params.addresses,
-  (phishingControllerState, addresses) => {
+  (
+    phishingControllerState,
+    addresses,
+  ): {
+    address: string;
+    chainId: string;
+    scanResult: AddressScanResult | undefined;
+  }[] => {
     if (!addresses || addresses.length === 0) {
       return [];
     }
 
     const addressScanCache = phishingControllerState?.addressScanCache || {};
 
-    return addresses
-      .map((addressItem) => {
-        const { address, chainId } = addressItem;
+    return addresses.map((addressItem) => {
+      const { address, chainId } = addressItem;
 
-        if (!address || !chainId) {
-          return null;
-        }
-
-        const cacheKey = `${chainId}:${address.toLowerCase()}`;
-        const cacheEntry = addressScanCache[cacheKey];
-
+      if (!address || !chainId) {
         return {
-          address: address.toLowerCase(),
-          chainId,
-          scanResult: cacheEntry?.data,
+          address: address?.toLowerCase() || '',
+          chainId: chainId || '',
+          scanResult: undefined,
         };
-      })
-      .filter(
-        (result): result is NonNullable<typeof result> => result !== null,
-      );
+      }
+
+      const cacheKey = generateAddressCacheKey(chainId, address);
+      const cacheEntry = addressScanCache[cacheKey];
+
+      return {
+        address: address.toLowerCase(),
+        chainId,
+        scanResult: cacheEntry?.data,
+      };
+    });
   },
 );
 
 /**
- * Select the scan result for a URL/origin
+ * Select the scan result for a hostname
  *
  * @param state - Redux root state
  * @param params - Parameters object
- * @param params.url - URL to check
- * @returns Scan result for the URL
+ * @param params.hostname - Hostname to check (not full URL)
+ * @returns Scan result for the hostname
  */
 export const selectUrlScanResult = createDeepEqualSelector(
   selectPhishingControllerState,
-  (_state: RootState, params: { url: string | undefined }) => params.url,
-  (phishingControllerState, url) => {
-    if (!url) {
+  (_state: RootState, params: { hostname: string | undefined }) =>
+    params.hostname,
+  (phishingControllerState, hostname) => {
+    if (!hostname) {
       return null;
     }
 
     const urlScanCache = phishingControllerState?.urlScanCache || {};
-
-    // Extract hostname from URL since cache is keyed by hostname
-    let hostname = url;
-    try {
-      const urlObj = new URL(url);
-      hostname = urlObj.hostname;
-    } catch (error) {
-      // If URL parsing fails, try using it as-is
-      // This handles cases where it might already be a hostname
-    }
     const cacheEntry = urlScanCache[hostname];
 
     return {
-      url,
+      hostname,
       scanResult: cacheEntry?.data,
     };
   },

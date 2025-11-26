@@ -1,28 +1,28 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
 import { Alert, Severity } from '../../types/alerts';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { selectMultipleAddressScanResults } from '../../../../../selectors/phishingController';
-import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import { extractSpenderFromApprovalData } from '../../../../../lib/address-scanning/address-scan-util';
-import { Hex } from '@metamask/utils';
+import { useAddressTrustSignals } from '../useAddressTrustSignals';
+import {
+  TrustSignalDisplayState,
+  AddressTrustSignalRequest,
+} from '../../types/trustSignals';
 
 export function useAddressTrustSignalAlerts(): Alert[] {
   const transactionMetadata = useTransactionMetadataRequest();
 
-  const addressesToScan = useMemo(() => {
-    const addresses: { address: string; chainId: string }[] = [];
-
+  const addressesToScan = useMemo((): AddressTrustSignalRequest[] => {
     if (!transactionMetadata?.chainId) {
-      return addresses;
+      return [];
     }
 
     const chainId = transactionMetadata.chainId;
+    const addresses: AddressTrustSignalRequest[] = [];
 
-    // Add the "to" address (recipient)
     if (transactionMetadata.txParams?.to) {
       addresses.push({
         address: transactionMetadata.txParams.to,
@@ -46,32 +46,29 @@ export function useAddressTrustSignalAlerts(): Alert[] {
     return addresses;
   }, [transactionMetadata]);
 
-  const addressScanResults = useSelector((state: RootState) =>
-    selectMultipleAddressScanResults(state, { addresses: addressesToScan }),
-  );
+  const trustSignalResults = useAddressTrustSignals(addressesToScan);
 
-  const alerts = useMemo(() => {
-    const alertsList: Alert[] = [];
+  return useMemo(() => {
+    if (addressesToScan.length === 0) {
+      return [];
+    }
 
-    addressScanResults.forEach(({ scanResult }) => {
-      if (!scanResult) {
-        return;
+    const alerts: Alert[] = [];
+    let highestSeverity: Severity | null = null;
+
+    trustSignalResults.forEach(({ state: trustSignalState }) => {
+      if (trustSignalState === TrustSignalDisplayState.Malicious) {
+        highestSeverity = Severity.Danger;
+      } else if (
+        trustSignalState === TrustSignalDisplayState.Warning &&
+        highestSeverity !== Severity.Danger
+      ) {
+        highestSeverity = Severity.Warning;
       }
+    });
 
-      const resultType = scanResult.result_type;
-      let severity: Severity | null = null;
-
-      if (resultType === 'Malicious') {
-        severity = Severity.Danger;
-      } else if (resultType === 'Warning') {
-        severity = Severity.Warning;
-      }
-
-      if (!severity) {
-        return;
-      }
-
-      const isDanger = severity === Severity.Danger;
+    if (highestSeverity) {
+      const isDanger = highestSeverity === Severity.Danger;
 
       const alertKey = isDanger
         ? AlertKeys.AddressTrustSignalMalicious
@@ -85,18 +82,16 @@ export function useAddressTrustSignalAlerts(): Alert[] {
         ? strings('alert_system.address_trust_signal.malicious.title')
         : strings('alert_system.address_trust_signal.warning.title');
 
-      alertsList.push({
+      alerts.push({
         key: alertKey,
         field: RowAlertKey.InteractingWith,
+        severity: highestSeverity,
         message,
         title,
-        severity,
         isBlocking: false,
       });
-    });
+    }
 
-    return alertsList;
-  }, [addressScanResults]);
-
-  return alerts;
+    return alerts;
+  }, [addressesToScan.length, trustSignalResults]);
 }

@@ -135,4 +135,17 @@ describe('AlertRow', () => {
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
     expect(queryByTestId('inline-alert')).toBeNull();
   });
+
+  it('disables inline alert interaction when disableAlertInteraction prop is true', () => {
+    const { getByTestId } = render(
+      <AlertRow {...baseProps} disableAlertInteraction />,
+    );
+    const inlineAlert = getByTestId('inline-alert');
+
+    fireEvent.press(inlineAlert);
+
+    expect(mockSetAlertKey).not.toHaveBeenCalled();
+    expect(mockShowAlertModal).not.toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).not.toHaveBeenCalled();
+  });
 });
