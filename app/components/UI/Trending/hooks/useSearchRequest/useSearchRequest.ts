@@ -9,7 +9,7 @@ interface SearchResult {
   name: string;
   symbol: string;
   marketCap: number;
-  totalVolume: number;
+  aggregatedUsdVolume: number;
   price: string;
   pricePercentChange1d: string;
 }
