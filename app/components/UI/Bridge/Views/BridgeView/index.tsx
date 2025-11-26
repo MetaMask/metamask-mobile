@@ -336,7 +336,6 @@ const BridgeView = () => {
         dispatch(setIsSubmittingTx(true));
         await submitBridgeTx({
           quoteResponse: activeQuote,
-          isLoading,
           warnings,
         });
       }

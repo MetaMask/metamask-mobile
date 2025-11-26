@@ -1,5 +1,6 @@
 import Engine from '../../../core/Engine';
 import {
+  getQuotesReceivedProperties,
   QuoteMetadata,
   QuoteResponse,
   QuoteWarning,
@@ -14,11 +15,9 @@ export default function useSubmitBridgeTx() {
 
   const submitBridgeTx = async ({
     quoteResponse,
-    isLoading,
     warnings,
   }: {
     quoteResponse: QuoteResponse & QuoteMetadata;
-    isLoading: boolean;
     warnings: QuoteWarning[];
   }) => {
     if (!walletAddress) {
@@ -31,8 +30,7 @@ export default function useSubmitBridgeTx() {
         approval: quoteResponse.approval ?? undefined,
       },
       stxEnabled,
-      isLoading,
-      warnings,
+      getQuotesReceivedProperties(quoteResponse, warnings, true),
     );
 
     return txResult;
