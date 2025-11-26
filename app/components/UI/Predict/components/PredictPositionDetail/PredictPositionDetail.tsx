@@ -1,29 +1,31 @@
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
+import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import {
-  PredictPosition as PredictPositionType,
   PredictMarket,
   PredictMarketStatus,
+  PredictPosition as PredictPositionType,
 } from '../../types';
-import { formatPercentage, formatPrice } from '../../utils/format';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Routes from '../../../../../constants/navigation/Routes';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
-import { strings } from '../../../../../../locales/i18n';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
+import { formatPercentage, formatPrice } from '../../utils/format';
+import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -38,41 +40,43 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 }: PredictPositionProps) => {
   const tw = useTailwind();
 
+  const currentPosition = usePredictOptimisticPositionRefresh({
+    position,
+  });
+
   const {
     icon,
     initialValue,
     percentPnl,
     outcome,
-    avgPrice,
     currentValue,
     title,
-  } = position;
+    optimistic,
+    size,
+  } = currentPosition;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: position.providerId,
+    providerId: currentPosition.providerId,
     navigation,
   });
 
   const groupItemTitle = market?.outcomes.find(
-    (o) => o.id === position.outcomeId && o.groupItemTitle,
+    (o) => o.id === currentPosition.outcomeId && o.groupItemTitle,
   )?.groupItemTitle;
 
   const onCashOut = () => {
     executeGuardedAction(
       () => {
         const _outcome = market?.outcomes.find(
-          (o) => o.id === position.outcomeId,
+          (o) => o.id === currentPosition.outcomeId,
         );
-        navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
-          params: {
-            market,
-            position,
-            outcome: _outcome,
-            entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-          },
+        navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, {
+          market,
+          position: currentPosition,
+          outcome: _outcome,
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
         });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
@@ -80,6 +84,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   };
 
   const renderValueText = () => {
+    // Show skeleton for optimistic positions
+    if (optimistic) {
+      return <Skeleton width={70} height={20} />;
+    }
+
     if (marketStatus === PredictMarketStatus.OPEN) {
       return (
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
@@ -129,20 +138,30 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
           >
-            ${initialValue.toFixed(2)} on {outcome} •{' '}
-            {(avgPrice * 100).toFixed(0)}¢
+            {strings('predict.position_info', {
+              initialValue: formatPrice(initialValue, {
+                maximumDecimals: 2,
+              }),
+              outcome,
+              shares: formatPrice(size, {
+                maximumDecimals: 2,
+              }),
+            })}
           </Text>
         </Box>
         <Box twClassName="items-end justify-end ml-auto shrink-0">
           {renderValueText()}
-          {marketStatus === PredictMarketStatus.OPEN && (
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
-            >
-              {formatPercentage(percentPnl)}
-            </Text>
-          )}
+          {marketStatus === PredictMarketStatus.OPEN &&
+            (optimistic ? (
+              <Skeleton width={55} height={16} style={tw.style('mt-1')} />
+            ) : (
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={percentPnl > 0 ? TextColor.Success : TextColor.Error}
+              >
+                {formatPercentage(percentPnl)}
+              </Text>
+            ))}
         </Box>
       </Box>
       {marketStatus === PredictMarketStatus.OPEN && (
@@ -156,6 +175,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
             width={ButtonWidthTypes.Full}
             label={strings('predict.cash_out')}
             onPress={onCashOut}
+            isDisabled={optimistic}
           />
         </Box>
       )}

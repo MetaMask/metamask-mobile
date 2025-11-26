@@ -18,10 +18,17 @@ import {
 } from '../../../Encryptor';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { store } from '../../../../store';
+import { store, runSaga } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
 import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { take } from 'redux-saga/effects';
+import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
+import {
+  SET_COMPLETED_ONBOARDING,
+  SetCompletedOnboardingAction,
+} from '../../../../actions/onboarding';
+import { SagaIterator } from 'redux-saga';
 
 /**
  * Initialize the Snap controller.
@@ -42,6 +49,7 @@ export const snapControllerInit: ControllerInitFunction<
   const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
+  const autoUpdatePreinstalledSnaps = true;
 
   ///: BEGIN:ONLY_INCLUDE_IF(flask)
   const forcePreinstalledSnaps =
@@ -84,6 +92,33 @@ export const snapControllerInit: ControllerInitFunction<
     };
   }
 
+  function* ensureOnboardingCompleteSaga(): SagaIterator {
+    while (true) {
+      const result = (yield take([
+        SET_COMPLETED_ONBOARDING,
+      ])) as SetCompletedOnboardingAction;
+
+      if (result.completedOnboarding) {
+        return;
+      }
+    }
+  }
+
+  let onboardingPromise: Promise<void> | null = null;
+
+  async function ensureOnboardingComplete() {
+    if (selectCompletedOnboarding(store.getState())) {
+      return;
+    }
+
+    if (!onboardingPromise) {
+      onboardingPromise = runSaga(ensureOnboardingCompleteSaga).toPromise();
+    }
+
+    await onboardingPromise;
+    onboardingPromise = null;
+  }
+
   const controller = new SnapController({
     environmentEndowmentPermissions: Object.values(EndowmentPermissions),
     excludedPermissions: {
@@ -106,6 +141,7 @@ export const snapControllerInit: ControllerInitFunction<
       allowLocalSnaps,
       disableSnapInstallation,
       requireAllowlist,
+      autoUpdatePreinstalledSnaps,
       ///: BEGIN:ONLY_INCLUDE_IF(flask)
       forcePreinstalledSnaps,
       ///: END:ONLY_INCLUDE_IF
@@ -123,6 +159,8 @@ export const snapControllerInit: ControllerInitFunction<
     // TODO: Update the controller to accept a readonly array.
     preinstalledSnaps: PREINSTALLED_SNAPS,
     getFeatureFlags,
+
+    ensureOnboardingComplete,
 
     detectSnapLocation,
     clientCryptography: {

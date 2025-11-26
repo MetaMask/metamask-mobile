@@ -12,6 +12,7 @@ import {
 } from '@metamask/network-controller';
 import {
   TransactionControllerAddTransactionAction,
+  TransactionControllerAddTransactionBatchAction,
   TransactionControllerGetStateAction,
   TransactionControllerMessenger,
   TransactionControllerStateChangeEvent,
@@ -95,6 +96,7 @@ type InitMessengerActions =
   | NetworkControllerGetNetworkClientByIdAction
   | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerAddTransactionAction
+  | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerGetStateAction
@@ -146,7 +148,9 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:getEIP1559Compatibility',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
+      'RemoteFeatureFlagController:getState',
       'TransactionController:addTransaction',
+      'TransactionController:addTransactionBatch',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
       'TransactionPayController:getState',

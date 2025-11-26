@@ -605,6 +605,49 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       mockAlert.mockRestore();
     });
 
+    it('displays error when import fails with duplicate account', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert');
+      mockImportNewSecretRecoveryPhrase.mockRejectedValueOnce(
+        new Error(
+          'KeyringController - The account you are trying to import is a duplicate',
+        ),
+      );
+      mockGetString.mockResolvedValue(valid12WordMnemonic);
+
+      const { getByTestId, getByText } = renderScreen(
+        ImportNewSecretRecoveryPhrase,
+        { name: 'ImportNewSecretRecoveryPhrase' },
+        {
+          state: initialState,
+        },
+      );
+
+      const pasteButton = getByText(messages.import_from_seed.paste);
+
+      await act(async () => {
+        await fireEvent.press(pasteButton);
+      });
+
+      await waitFor(() => {
+        const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+        expect(importButton.props.disabled).toBe(false);
+      });
+
+      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+
+      await act(async () => {
+        await fireEvent.press(importButton);
+      });
+
+      await waitFor(() => {
+        expect(mockAlert).toHaveBeenCalledWith(
+          messages.import_new_secret_recovery_phrase.error_duplicate_account,
+        );
+      });
+
+      mockAlert.mockRestore();
+    });
+
     it('displays generic error when import fails', async () => {
       const mockAlert = jest.spyOn(Alert, 'alert');
       mockImportNewSecretRecoveryPhrase.mockRejectedValueOnce(

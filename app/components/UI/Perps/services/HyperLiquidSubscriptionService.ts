@@ -31,6 +31,7 @@ import {
   adaptAccountStateFromSDK,
   parseAssetName,
 } from '../utils/hyperLiquidAdapter';
+import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
@@ -159,6 +160,7 @@ export class HyperLiquidSubscriptionService {
     this.walletService = walletService;
     this.hip3Enabled = hip3Enabled ?? false;
     this.enabledDexs = enabledDexs ?? [];
+    this.discoveredDexNames = enabledDexs ?? [];
     this.allowlistMarkets = allowlistMarkets ?? [];
     this.blocklistMarkets = blocklistMarkets ?? [];
   }
@@ -475,6 +477,12 @@ export class HyperLiquidSubscriptionService {
     let totalMarginUsed = 0;
     let totalUnrealizedPnl = 0;
 
+    // Collect account states for weighted ROE calculation
+    const accountStatesForROE: {
+      unrealizedPnl: string;
+      returnOnEquity: string;
+    }[] = [];
+
     // Aggregate all cached account states
     Array.from(this.dexAccountCache.entries()).forEach(
       ([currentDex, state]) => {
@@ -487,12 +495,21 @@ export class HyperLiquidSubscriptionService {
         totalBalance += parseFloat(state.totalBalance);
         totalMarginUsed += parseFloat(state.marginUsed);
         totalUnrealizedPnl += parseFloat(state.unrealizedPnl);
+
+        // Collect data for weighted ROE calculation
+        accountStatesForROE.push({
+          unrealizedPnl: state.unrealizedPnl,
+          returnOnEquity: state.returnOnEquity,
+        });
       },
     );
 
     // Use first DEX's account state as base and override aggregated values
     const firstDexAccount =
       this.dexAccountCache.values().next().value || ({} as AccountState);
+
+    // Calculate weighted returnOnEquity across all DEXs
+    const returnOnEquity = calculateWeightedReturnOnEquity(accountStatesForROE);
 
     return {
       ...firstDexAccount,
@@ -501,6 +518,7 @@ export class HyperLiquidSubscriptionService {
       marginUsed: totalMarginUsed.toString(),
       unrealizedPnl: totalUnrealizedPnl.toString(),
       subAccountBreakdown,
+      returnOnEquity,
     };
   }
 
@@ -1577,7 +1595,12 @@ export class HyperLiquidSubscriptionService {
       // Last subscriber, cleanup subscription
       const subscription = this.globalActiveAssetSubscriptions.get(symbol);
       if (subscription) {
-        subscription.unsubscribe().catch(console.error);
+        subscription.unsubscribe().catch((error: unknown) => {
+          Logger.error(ensureError(error), {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            message: `Failed to cleanup active asset subscription for ${symbol}`,
+          });
+        });
         this.globalActiveAssetSubscriptions.delete(symbol);
         this.symbolSubscriberCounts.delete(symbol);
         DevLogger.log(
@@ -1816,7 +1839,12 @@ export class HyperLiquidSubscriptionService {
   private cleanupL2BookSubscription(symbol: string): void {
     const subscription = this.globalL2BookSubscriptions.get(symbol);
     if (subscription) {
-      subscription.unsubscribe().catch(console.error);
+      subscription.unsubscribe().catch((error: unknown) => {
+        Logger.error(ensureError(error), {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          message: `Failed to cleanup L2 book subscription for ${symbol}`,
+        });
+      });
       this.globalL2BookSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
       DevLogger.log(

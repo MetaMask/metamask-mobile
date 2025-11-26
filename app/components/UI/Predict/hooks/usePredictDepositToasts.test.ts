@@ -13,11 +13,17 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
   })),
+  createNavigatorFactory: () => ({}),
 }));
 
 // Mock @react-navigation/stack
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: jest.fn(),
+}));
+
+// Mock @react-navigation/compat
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
 }));
 
 // Mock useConfirmNavigation
@@ -80,6 +86,23 @@ jest.mock('../../../../core/Engine', () => ({
     PredictController: {
       clearPendingDeposit: jest.fn(),
       depositWithConfirmation: jest.fn(() => Promise.resolve()),
+    },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'mock-account-id',
+          type: 'eip155:eoa',
+          options: {},
+          metadata: {
+            name: 'Test Account',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1'],
+          methods: ['eth_sendTransaction'],
+        },
+      ]),
     },
   },
   controllerMessenger: {

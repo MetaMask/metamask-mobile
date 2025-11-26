@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
+import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
@@ -128,6 +129,8 @@ import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
+import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
+import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
@@ -146,6 +149,7 @@ import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/Mult
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -156,6 +160,7 @@ import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/Mu
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -277,7 +282,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="Rehydrate"
-      component={Login}
+      component={OAuthRehydration}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -401,8 +406,25 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={SuccessErrorSheet}
     />
     <Stack.Screen
+      name={Routes.SHEET.ELIGIBILITY_FAILED_MODAL}
+      component={EligibilityFailedModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.UNSUPPORTED_REGION_MODAL}
+      component={RampUnsupportedModal}
+    />
+    <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
+      options={{
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+        detachPreviousScreen: false,
+      }}
     />
     <Stack.Screen
       name={Routes.SHEET.ADDRESS_SELECTOR}
@@ -611,6 +633,11 @@ const ImportSRPView = () => (
       component={SeedphraseModal}
       options={{
         cardStyle: { backgroundColor: 'transparent' },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
       }}
     />
   </Stack.Navigator>
@@ -899,6 +926,11 @@ const AppFlow = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="Rehydrate"
+          component={OAuthRehydration}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
           component={MaxBrowserTabsModal}
         />
@@ -1056,7 +1088,7 @@ const AppFlow = () => {
   );
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const navigation = useNavigation();
   const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
@@ -1109,6 +1141,13 @@ const App: React.FC = () => {
           const previousRoute = routes[routes.length - 2]?.name;
 
           if (previousRoute === Routes.SETTINGS_VIEW) {
+            return;
+          }
+
+          // only proceed if biometric is enabled else rerouted to lock screen
+          const authType = await Authentication.getType();
+          if (authType.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
+            navigation.reset({ routes: [{ name: Routes.ONBOARDING.LOGIN }] });
             return;
           }
 
@@ -1239,6 +1278,16 @@ const App: React.FC = () => {
       <ProfilerManager />
     </>
   );
+};
+
+const App: React.FC = () => {
+  const { isCheckingUpdates } = useOTAUpdates();
+
+  if (isCheckingUpdates) {
+    return <FoxLoader />;
+  }
+
+  return <AppContent />;
 };
 
 export default App;

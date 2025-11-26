@@ -55,6 +55,19 @@ jest.mock('../../../../core/Engine', () => ({
         metadata: { name: 'Test Account' },
       }),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn(() => [
+        {
+          id: 'mock-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: {
+            lastSelected: 0,
+          },
+        },
+      ]),
+    },
     NetworkController: {
       getState: jest.fn().mockReturnValue({
         selectedNetworkClientId: 'mainnet',
@@ -1342,6 +1355,199 @@ describe('PredictController', () => {
         expect(mockSecondProvider.isEligible).toHaveBeenCalled();
       });
     });
+
+    describe('local geoblocking', () => {
+      it('sets eligibility to false when provider returns eligible but country is DE', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: 'DE',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: false,
+            country: 'DE',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to false when provider returns eligible but country is RO', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: 'RO',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: false,
+            country: 'RO',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to true when provider returns eligible and country is US', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: 'US',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: true,
+            country: 'US',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to false when provider returns ineligible regardless of country', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: false,
+            country: 'US',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: false,
+            country: 'US',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to true when provider returns eligible without country', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: undefined,
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: true,
+            country: undefined,
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to true when provider returns eligible with null country', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: null as any,
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: true,
+            country: null,
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+
+      it('sets eligibility to true when provider returns eligible with empty string country', async () => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockResolvedValue({
+            isEligible: true,
+            country: '',
+          });
+
+          await controller.refreshEligibility();
+
+          expect(controller.state.eligibility.polymarket).toEqual({
+            eligible: true,
+            country: '',
+          });
+          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        });
+      });
+    });
+  });
+
+  describe('isLocallyGeoblocked', () => {
+    it('returns true for blocked country DE', () => {
+      withController(({ controller }) => {
+        const region = { country: 'DE' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(true);
+      });
+    });
+
+    it('returns true for blocked country RO', () => {
+      withController(({ controller }) => {
+        const region = { country: 'RO' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(true);
+      });
+    });
+
+    it('returns false for non-blocked country US', () => {
+      withController(({ controller }) => {
+        const region = { country: 'US' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
+      });
+    });
+
+    it('returns false for empty string country code', () => {
+      withController(({ controller }) => {
+        const region = { country: '' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
+      });
+    });
+
+    it('returns false for lowercase blocked country code de', () => {
+      withController(({ controller }) => {
+        const region = { country: 'de' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
+      });
+    });
+
+    it('returns false for country code with extra spaces', () => {
+      withController(({ controller }) => {
+        const region = { country: ' DE ' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
+      });
+    });
+
+    it('returns false for partial match DES', () => {
+      withController(({ controller }) => {
+        const region = { country: 'DES' };
+
+        const result = (controller as any).isLocallyGeoblocked(region);
+
+        expect(result).toBe(false);
+      });
+    });
   });
 
   describe('multiple providers', () => {
@@ -2399,6 +2605,8 @@ describe('PredictController', () => {
           networkClientId: 'mainnet',
           disableHook: true,
           disableSequential: true,
+          disableUpgrade: true,
+          skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
       });
@@ -2744,22 +2952,22 @@ describe('PredictController', () => {
         controller.updateStateForTesting((state) => {
           state.pendingDeposits = {
             [providerId]: {
-              [address]: true,
+              [address]: 'batch-id-123',
             },
           };
         });
 
         // Verify transaction exists
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          'batch-id-123',
         );
 
         // Clear deposit transaction
         controller.clearPendingDeposit({ providerId });
 
-        // Verify transaction is cleared
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          false,
+        // Verify transaction is cleared (deleted, not set to false)
+        expect(controller.state.pendingDeposits[providerId]?.[address]).toBe(
+          undefined,
         );
       });
     });
@@ -2778,10 +2986,10 @@ describe('PredictController', () => {
           controller.clearPendingDeposit({ providerId }),
         ).not.toThrow();
 
-        // Should set to false
+        // Verify deposit transaction remains undefined
         const address = '0x1234567890123456789012345678901234567890';
-        expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          false,
+        expect(controller.state.pendingDeposits[providerId]?.[address]).toBe(
+          undefined,
         );
       });
     });
@@ -2795,12 +3003,13 @@ describe('PredictController', () => {
       withController(({ controller, messenger }) => {
         const providerId = 'polymarket';
         const address = '0x1234567890123456789012345678901234567890';
+        const existingBatchId = 'existing-batch-id';
 
         // Set up deposit transaction
         controller.updateStateForTesting((state) => {
           state.pendingDeposits = {
             [providerId]: {
-              [address]: true,
+              [address]: existingBatchId,
             },
           };
         });
@@ -2860,14 +3069,15 @@ describe('PredictController', () => {
           providerId,
         });
 
-        // Verify depositTransaction was stored with correct structure
+        // Verify depositTransaction was stored with batch ID
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          mockBatchId,
         );
       });
     });
 
     it('clears previous deposit transaction when starting new deposit', async () => {
+      const oldBatchId = 'old-batch';
       const newBatchId = 'new-batch';
       const providerId = 'polymarket';
       const address = '0x1234567890123456789012345678901234567890';
@@ -2893,24 +3103,24 @@ describe('PredictController', () => {
         controller.updateStateForTesting((state) => {
           state.pendingDeposits = {
             [providerId]: {
-              [address]: true,
+              [address]: oldBatchId,
             },
           };
         });
 
         // Verify old transaction exists
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          oldBatchId,
         );
 
-        // Start new deposit (should clear and set to false first, then true)
+        // Start new deposit (should clear old batch and set to new batch ID)
         await controller.depositWithConfirmation({
           providerId,
         });
 
-        // Verify new transaction is set
+        // Verify new transaction is set with new batch ID
         expect(controller.state.pendingDeposits[providerId][address]).toBe(
-          true,
+          newBatchId,
         );
       });
     });
@@ -3240,15 +3450,17 @@ describe('PredictController', () => {
           providerId: 'polymarket',
         });
 
-        expect(addTransactionBatch).toHaveBeenCalledWith({
-          from: '0x1234567890123456789012345678901234567890',
-          origin: 'metamask',
-          networkClientId: expect.any(String),
-          disableHook: true,
-          disableSequential: true,
-          requireApproval: true,
-          transactions: [mockWithdrawResponse.transaction],
-        });
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            from: '0x1234567890123456789012345678901234567890',
+            origin: 'metamask',
+            networkClientId: expect.any(String),
+            disableHook: true,
+            disableSequential: true,
+            requireApproval: true,
+            transactions: [mockWithdrawResponse.transaction],
+          }),
+        );
       });
     });
 

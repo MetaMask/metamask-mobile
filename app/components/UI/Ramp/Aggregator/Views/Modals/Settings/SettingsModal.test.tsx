@@ -3,14 +3,31 @@ import { fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
 import SettingsModal from './SettingsModal';
-import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { createDepositNavigationDetails } from '../../../../Deposit/routes/utils';
+import { RampSDK } from '../../../sdk';
+import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
+const mockGoToDeposit = jest.fn();
+const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -24,6 +41,21 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+jest.mock('../../../../hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({ goToDeposit: mockGoToDeposit })),
+}));
+
+const mockUseRampSDKValues: DeepPartial<RampSDK> = {
+  selectedRegion: { id: 'us' },
+};
+
+jest.mock('../../../sdk', () => ({
+  ...jest.requireActual('../../../sdk'),
+  useRampSDK: () => mockUseRampSDKValues,
+}));
 
 function render() {
   return renderScreen(
@@ -96,9 +128,7 @@ describe('SettingsModal', () => {
     fireEvent.press(newBuyExperienceButton);
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createDepositNavigationDetails(),
-    );
+    expect(mockGoToDeposit).toHaveBeenCalled();
   });
 
   it('navigates back through parent navigation when deposit is pressed', () => {
@@ -145,6 +175,23 @@ describe('SettingsModal', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDangerouslyGetParent).not.toHaveBeenCalled();
+    });
+
+    it('tracks event when deposit is pressed', () => {
+      const { getByText } = render();
+      const newBuyExperienceButton = getByText('Use new buy experience');
+
+      fireEvent.press(newBuyExperienceButton);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
+        location: 'Buy Settings Modal',
+        ramp_type: 'DEPOSIT',
+        region: 'us',
+        ramp_routing: undefined,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
+      });
     });
   });
 });
