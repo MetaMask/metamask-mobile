@@ -38,7 +38,7 @@ const mockNetworks: ProcessedNetwork[] = [
 
 const mockUsePopularNetworks = jest.fn(() => mockNetworks);
 
-jest.mock('../../hooks/usePopularNetworks', () => ({
+jest.mock('../../hooks/usePopularNetworks/usePopularNetworks', () => ({
   usePopularNetworks: () => mockUsePopularNetworks(),
 }));
 

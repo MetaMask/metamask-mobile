@@ -594,6 +594,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -1772,6 +1773,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -2786,6 +2788,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -5636,6 +5639,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -6518,6 +6522,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -7532,6 +7537,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -8959,6 +8965,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -9750,6 +9757,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -10764,6 +10772,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -12191,6 +12200,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -13326,6 +13336,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -14340,6 +14351,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -15007,6 +15019,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -16064,6 +16077,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -17078,6 +17092,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -18505,6 +18520,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -19260,6 +19276,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -20274,6 +20291,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -20941,6 +20959,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -22119,6 +22138,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -23133,6 +23153,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -23703,6 +23724,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -24797,6 +24819,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -25875,6 +25898,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,

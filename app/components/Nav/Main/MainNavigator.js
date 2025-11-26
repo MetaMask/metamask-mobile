@@ -53,8 +53,6 @@ import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import TrendingView from '../../Views/TrendingView/TrendingView';
 import SitesListView from '../../Views/TrendingView/SitesListView';
-import SwapsAmountView from '../../UI/Swaps';
-import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
@@ -133,6 +131,7 @@ import {
   TOKEN,
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
+import BridgeView from '../../UI/Bridge/Views/BridgeView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -338,16 +337,6 @@ const BrowserFlow = (props) => (
       name={Routes.BROWSER.ASSET_VIEW}
       component={Asset}
       initialParams={props.route.params}
-    />
-    <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
-    />
-    <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -874,21 +863,6 @@ const NotificationsModeView = (props) => (
   </Stack.Navigator>
 );
 
-const Swaps = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
-    />
-    <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -1099,7 +1073,6 @@ const MainNavigator = () => {
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen name="Swaps" component={Swaps} />
       <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}

@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import AppConstants from '../../../core/AppConstants';
 import { Hex } from '@metamask/utils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import usePrevious from '../../hooks/usePrevious';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import AppConstants from '../../../../../core/AppConstants';
+import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
+import usePrevious from '../../../../hooks/usePrevious';
 
 // USDC and USDT for now
 const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
