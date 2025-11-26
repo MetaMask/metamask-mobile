@@ -578,17 +578,9 @@ jest.mock('../../components/Base/RemoteImage', () => {
 
 // 2. The Guard: Enforce Whitelist for jest.mock
 // ------------------------------------------------
+const ALLOWED_MOCK_MODULES_LIST = require('./component-view/allowedMockModules');
 (() => {
-  const ALLOWED_MOCK_MODULES = new Set([
-    // Core business logic: mocked to isolate view tests from complex state/side-effects
-    '../../../core/Engine',
-    '../../../core/Engine/Engine',
-    // Native modules: mocked for deterministic behavior
-    'react-native-device-info',
-    'react-native/Libraries/Animated/Easing',
-    // App components: mocked to avoid async operations (e.g. image sizing) causing act() warnings
-    '../../components/Base/RemoteImage',
-  ]);
+  const ALLOWED_MOCK_MODULES = new Set(ALLOWED_MOCK_MODULES_LIST);
   const originalJestMock = jest.mock.bind(jest);
 
   // eslint-disable-next-line no-underscore-dangle
@@ -596,13 +588,18 @@ jest.mock('../../components/Base/RemoteImage', () => {
     apply(target, thisArg, args) {
       const [moduleName] = args;
       if (!ALLOWED_MOCK_MODULES.has(moduleName)) {
-        throw new Error(
-          `Forbidden jest.mock("${String(
-            moduleName,
-          )}") in component-view tests. Allowed only: ${[
-            ...ALLOWED_MOCK_MODULES,
-          ].join(', ')}`,
-        );
+        const attemptedModule = String(moduleName);
+        const currentTestPath =
+          global.expect?.getState?.().testPath ?? 'unknown test file';
+        const allowedList = [...ALLOWED_MOCK_MODULES].join(', ');
+        const guidanceLines = [
+          `Forbidden jest.mock("${attemptedModule}") in component-view tests.`,
+          `Test file: ${currentTestPath}`,
+          `Allowed mocks: ${allowedList}`,
+          'Tip: Prefer jest.spyOn() or dependency injection for targeted behavior.',
+          'To permanently allow a module, update app/util/test/component-view/allowedMockModules.js (requires review).',
+        ];
+        throw new Error(guidanceLines.join('\n'));
       }
       return Reflect.apply(target, thisArg, args);
     },
