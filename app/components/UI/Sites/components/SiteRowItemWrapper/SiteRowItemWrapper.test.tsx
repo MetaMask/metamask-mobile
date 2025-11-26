@@ -10,7 +10,7 @@ jest.mock('../../../../Nav/Main/MainNavigator', () => ({
   updateLastTrendingScreen: jest.fn(),
 }));
 
-jest.mock('./SiteRowItem/SiteRowItem', () => {
+jest.mock('../SiteRowItem/SiteRowItem', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
   return {
