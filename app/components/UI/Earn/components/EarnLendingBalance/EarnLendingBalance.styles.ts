@@ -5,7 +5,7 @@ const styleSheet = () =>
     container: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
+
       paddingTop: 14,
       gap: 16,
     },
