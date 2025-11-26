@@ -1972,12 +1972,15 @@
       "add_funds": "Add funds",
       "withdraw": "Withdraw",
       "in_progress_description": "They'll be available in a moment",
+      "available_in_minutes": "Available in {{minutes}} min",
       "account_ready": "Your account is ready",
       "account_ready_description": "{{amount}} added to your balance",
       "error_title": "Something went wrong",
       "error_description": "Your account wasn't funded",
       "try_again": "Try again",
-      "in_progress_link": "View"
+      "in_progress_link": "View",
+      "track": "Track",
+      "ready_to_trade": "Ready to trade"
     },
     "add_funds_sheet": {
       "title": "Add funds",
