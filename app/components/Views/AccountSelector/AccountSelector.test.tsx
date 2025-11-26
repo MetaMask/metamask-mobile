@@ -360,13 +360,13 @@ describe('AccountSelector', () => {
     });
   });
 
-  it('displays add account button when showAddAccountButton is true', async () => {
+  it('displays add account button when disableAddAccountButton is false', async () => {
     // Use real timers for this test since waitFor requires real timers
     jest.useRealTimers();
     const routeWithShowButton = {
       params: {
         ...mockRoute.params,
-        showAddAccountButton: true,
+        disableAddAccountButton: false,
       },
     };
 
@@ -388,14 +388,14 @@ describe('AccountSelector', () => {
     });
   });
 
-  it('displays add account button even when showAddAccountButton is false', async () => {
+  it('displays add account button even when disableAddAccountButton is true', async () => {
     // Use real timers for this test since waitFor requires real timers
     jest.useRealTimers();
 
     const routeWithoutShowButton = {
       params: {
         ...mockRoute.params,
-        showAddAccountButton: false,
+        disableAddAccountButton: true,
       },
     };
 
@@ -441,8 +441,8 @@ describe('AccountSelector', () => {
     });
   });
 
-  describe('showAddAccountButton prop', () => {
-    it('shows add account button when showAddAccountButton is true', async () => {
+  describe('disableAddAccountButton prop', () => {
+    it('shows add account button when disableAddAccountButton is false', async () => {
       // Use real timers for this test since waitFor requires real timers
       jest.useRealTimers();
       mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
@@ -455,7 +455,7 @@ describe('AccountSelector', () => {
       const routeWithShowButton = {
         params: {
           ...mockRoute.params,
-          showAddAccountButton: true,
+          disableAddAccountButton: false,
         },
       };
 
@@ -477,7 +477,7 @@ describe('AccountSelector', () => {
       });
     });
 
-    it('does not show add account button when showAddAccountButton is false', async () => {
+    it('does not show add account button when disableAddAccountButton is true', async () => {
       // Use real timers for this test since waitFor requires real timers
       jest.useRealTimers();
 
@@ -491,7 +491,7 @@ describe('AccountSelector', () => {
       const routeWithoutShowButton = {
         params: {
           ...mockRoute.params,
-          showAddAccountButton: false,
+          disableAddAccountButton: true,
         },
       };
 

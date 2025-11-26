@@ -43,9 +43,9 @@ export interface AccountSelectorParams {
    */
   isEvmOnly?: boolean;
   /**
-   * Optional boolean to show the add account button.
+   * Optional boolean to hide the add account button.
    */
-  showAddAccountButton?: boolean;
+  disableAddAccountButton?: boolean;
 }
 
 /**
