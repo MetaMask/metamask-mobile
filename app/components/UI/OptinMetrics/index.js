@@ -497,7 +497,7 @@ class OptinMetrics extends PureComponent {
                   {this.props.isPna25FlagEnabled
                     ? strings(
                         'privacy_policy.gather_basic_usage_description_updated',
-                      )
+                      ) + ' '
                     : strings('privacy_policy.gather_basic_usage_description') +
                       ' '}
                   <Text
