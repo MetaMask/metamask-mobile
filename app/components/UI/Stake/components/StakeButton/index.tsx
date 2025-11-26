@@ -46,6 +46,7 @@ import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { selectMusdConversionEducationSeen } from '../../../../../reducers/user';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -97,6 +98,28 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
+
+  const hasSeenMusdEducationScreen = useSelector(
+    selectMusdConversionEducationSeen,
+  );
+
+  const isConvertibleStablecoin = useMemo(
+    () =>
+      isMusdConversionFlowEnabled &&
+      asset?.chainId &&
+      asset?.address &&
+      isMusdConversionPaymentToken(
+        asset.address,
+        asset.chainId,
+        musdConversionPaymentTokensAllowlist,
+      ),
+    [
+      isMusdConversionFlowEnabled,
+      asset?.chainId,
+      asset?.address,
+      musdConversionPaymentTokensAllowlist,
+    ],
+  );
 
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -221,14 +244,27 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Asset address or chain ID is not set');
       }
 
-      await initiateConversion({
+      const config = {
         outputChainId: CHAIN_IDS.MAINNET,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
         navigationStack: Routes.EARN.ROOT,
-      });
+      };
+
+      if (!hasSeenMusdEducationScreen) {
+        navigation.navigate(config.navigationStack, {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken: config.preferredPaymentToken,
+            outputChainId: config.outputChainId,
+          },
+        });
+        return;
+      }
+
+      await initiateConversion(config);
     } catch (error) {
       Logger.error(
         error as Error,
@@ -243,7 +279,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         [{ text: 'OK' }],
       );
     }
-  }, [asset.address, asset.chainId, initiateConversion]);
+  }, [
+    asset.address,
+    asset.chainId,
+    hasSeenMusdEducationScreen,
+    initiateConversion,
+    navigation,
+  ]);
 
   const onEarnButtonPress = async () => {
     if (isConvertibleStablecoin) {

@@ -28,6 +28,7 @@ export enum UserActionType {
   SET_EXISTING_USER = 'SET_EXISTING_USER',
   SET_IS_CONNECTION_REMOVED = 'SET_IS_CONNECTION_REMOVED',
   SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN = 'SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN',
+  SET_MUSD_CONVERSION_EDUCATION_SEEN = 'SET_MUSD_CONVERSION_EDUCATION_SEEN',
 }
 
 // User actions
@@ -109,6 +110,9 @@ export type SetMultichainAccountsIntroModalSeenAction =
     payload: { seen: boolean };
   };
 
+export type SetMusdConversionEducationSeenAction =
+  Action<UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN>;
+
 /**
  * User actions union type
  */
@@ -137,4 +141,5 @@ export type UserAction =
   | SetAppServicesReadyAction
   | SetExistingUserAction
   | SetIsConnectionRemovedAction
-  | SetMultichainAccountsIntroModalSeenAction;
+  | SetMultichainAccountsIntroModalSeenAction
+  | SetMusdConversionEducationSeenAction;

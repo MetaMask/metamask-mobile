@@ -65,17 +65,31 @@ export const useMusdConversion = () => {
 
   const selectedAddress = selectedAccount?.address;
 
+  const navigateToConversionScreen = useCallback(
+    ({
+      outputChainId,
+      preferredPaymentToken,
+      navigationStack = Routes.EARN.ROOT,
+    }: MusdConversionConfig) => {
+      navigation.navigate(navigationStack, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: {
+          loader: ConfirmationLoader.CustomAmount,
+          preferredPaymentToken,
+          outputChainId,
+        },
+      });
+    },
+    [navigation],
+  );
+
   /**
    * Creates a placeholder transaction and navigates to confirmation.
    * Navigation happens immediately. Transaction creation and gas estimation happen asynchronously.
    */
   const initiateConversion = useCallback(
     async (config: MusdConversionConfig): Promise<string> => {
-      const {
-        outputChainId,
-        preferredPaymentToken,
-        navigationStack = Routes.EARN.ROOT,
-      } = config;
+      const { outputChainId, preferredPaymentToken } = config;
 
       try {
         setError(null);
@@ -105,14 +119,7 @@ export const useMusdConversion = () => {
          * since there can be a delay between the user's button press and
          * transaction creation in the background.
          */
-        navigation.navigate(navigationStack, {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params: {
-            loader: ConfirmationLoader.CustomAmount,
-            preferredPaymentToken,
-            outputChainId,
-          },
-        });
+        navigateToConversionScreen(config);
 
         try {
           const ZERO_HEX_VALUE = '0x0';
@@ -189,7 +196,7 @@ export const useMusdConversion = () => {
         throw err;
       }
     },
-    [navigation, selectedAddress],
+    [navigateToConversionScreen, navigation, selectedAddress],
   );
 
   return {
