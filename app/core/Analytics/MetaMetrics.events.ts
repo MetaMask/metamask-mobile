@@ -206,7 +206,7 @@ enum EVENT_NAME {
   HARDWARE_WALLET_CONTINUE_CONNECTION = 'Connect Hardware Wallet Continue Button Clicked',
   HARDWARE_WALLET_PERMISSION_REQUEST = 'Hardware Wallet Permission Request Clicked',
   HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN = 'Connect Hardware Wallet Account Selector Viewed',
-  HARDWARE_WALLET_MARKETING = 'Hardware wallet Marketing Button Clicked',
+  HARDWARE_WALLET_MARKETING = 'Hardware Wallet Marketing Button Clicked',
   HARDWARE_WALLET_CONNECT_INSTRUCTIONS = 'Connect Hardware Wallet Instructions Viewed',
   HARDWARE_WALLET_CONNECTION_RETRY = 'Hardware Wallet Connection Error Retry Button Clicked',
   HARDWARE_WALLET_ADD_ACCOUNT = 'Hardware Wallet Account Connected',

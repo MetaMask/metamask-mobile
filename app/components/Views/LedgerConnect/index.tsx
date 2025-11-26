@@ -43,7 +43,7 @@ import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { HARDWARE_WALLET_BUTTON_TYPE } from '../../../core/Analytics/MetaMetrics.events';
-import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
+import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
 
 interface LedgerConnectProps {
   onConnectLedger: () => void;
@@ -81,6 +81,14 @@ const LedgerConnect = ({
   const deviceOSVersion = Number(getSystemVersion()) || 0;
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  const ledgerModelName = useMemo(() => {
+    if (selectedDevice) {
+      const [bluetoothServiceId] = selectedDevice.serviceUUIDs;
+      return ledgerDeviceUUIDToModelName(bluetoothServiceId);
+    }
+    return undefined;
+  }, [selectedDevice]);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_CONNECT_INSTRUCTIONS)
@@ -94,17 +102,15 @@ const LedgerConnect = ({
   useEffect(() => {
     if (selectedDevice) {
       trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.HARDWARE_WALLET_CONNECT_INSTRUCTIONS,
-        )
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FOUND)
           .addProperties({
             device_type: HardwareDeviceTypes.LEDGER,
-            device_model: sanitizeDeviceName(selectedDevice?.name),
+            device_model: ledgerModelName,
           })
           .build(),
       );
     }
-  }, [selectedDevice, trackEvent, createEventBuilder]);
+  }, [selectedDevice, trackEvent, createEventBuilder, ledgerModelName]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -118,7 +124,7 @@ const LedgerConnect = ({
       createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_CONTINUE_CONNECTION)
         .addProperties({
           device_type: HardwareDeviceTypes.LEDGER,
-          device_model: sanitizeDeviceName(selectedDevice?.name),
+          device_model: ledgerModelName,
         })
         .build(),
     );
@@ -155,7 +161,7 @@ const LedgerConnect = ({
             )
               .addProperties({
                 device_type: HardwareDeviceTypes.LEDGER,
-                device_model: sanitizeDeviceName(selectedDevice?.name),
+                device_model: ledgerModelName,
                 retry_count: retryCount,
               })
               .build(),

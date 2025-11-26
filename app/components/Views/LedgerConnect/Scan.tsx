@@ -18,7 +18,7 @@ import {
 import SelectOptionSheet, { ISelectOption } from '../../UI/SelectOptionSheet';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
+import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -71,6 +71,14 @@ const Scan = ({
   );
   const [permissionErrorShown, setPermissionErrorShown] = useState(false);
 
+  const ledgerModelName = useMemo(() => {
+    if (selectedDevice) {
+      const [bluetoothServiceId] = selectedDevice.serviceUUIDs;
+      return ledgerDeviceUUIDToModelName(bluetoothServiceId);
+    }
+    return undefined;
+  }, [selectedDevice]);
+
   useEffect(() => {
     if (
       !bluetoothPermissionError &&
@@ -118,7 +126,7 @@ const Scan = ({
             createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
               .addProperties({
                 device_type: HardwareDeviceTypes.LEDGER,
-                device_model: sanitizeDeviceName(selectedDevice?.name),
+                device_model: ledgerModelName,
                 error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
               })
               .build(),
@@ -187,6 +195,7 @@ const Scan = ({
     bluetoothConnectionError,
     permissionErrorShown,
     selectedDevice,
+    ledgerModelName,
   ]);
 
   useEffect(() => {

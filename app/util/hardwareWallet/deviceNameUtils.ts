@@ -27,3 +27,20 @@ export const sanitizeDeviceName = (deviceName: string | undefined): string => {
 
   return deviceName;
 };
+
+export enum LEDGER_DEVICE_BLE_UUIDS_TO_MODEL_NAME {
+  LEDGER_NANO_X = '13d63400-2c97-0004-0000-4c6564676572',
+  LEDGER_NANO_STAx = '13d63400-2c97-6004-0000-4c6564676572',
+  LEDGER_FLEX = '13d63400-2c97-3004-0000-4c6564676572',
+}
+
+export const ledgerDeviceUUIDToModelName = (deviceUUID: string): string => {
+  const deviceModelName = Object.values(
+    LEDGER_DEVICE_BLE_UUIDS_TO_MODEL_NAME,
+  ).find((uuid) => uuid === deviceUUID);
+  if (deviceModelName) {
+    return deviceModelName;
+  }
+
+  return 'Unknown';
+};
