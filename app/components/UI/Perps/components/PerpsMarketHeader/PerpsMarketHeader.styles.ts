@@ -1,4 +1,5 @@
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 import type { Theme } from '../../../../../util/theme/models';
 
 interface PerpsMarketHeaderStyles {
@@ -57,7 +58,7 @@ export const styleSheet = ({
       gap: 8,
     },
     assetName: {
-      fontWeight: '600',
+      ...fontStyles.medium,
     },
     fullscreenButton: {
       padding: 4,

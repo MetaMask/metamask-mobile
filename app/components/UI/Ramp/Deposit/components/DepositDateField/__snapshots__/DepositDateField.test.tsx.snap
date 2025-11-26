@@ -17,7 +17,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -151,7 +151,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -285,7 +285,7 @@ exports[`DepositDateField render matches snapshot 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -419,7 +419,7 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -553,7 +553,7 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -672,7 +672,7 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
     style={
       {
         "color": "#ca3542",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 12,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -702,7 +702,7 @@ exports[`DepositDateField render matches snapshot with empty value 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,

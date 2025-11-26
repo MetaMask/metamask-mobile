@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Hex } from '@metamask/utils';
+import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -222,7 +223,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     header: {
       textAlign: 'center',
-      fontWeight: 'bold',
+      ...fontStyles.bold,
       fontSize: 18,
       color: colors.text.default,
     },

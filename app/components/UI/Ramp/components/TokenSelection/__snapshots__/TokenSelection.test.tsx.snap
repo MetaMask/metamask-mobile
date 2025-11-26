@@ -131,7 +131,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -139,24 +139,8 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -164,7 +148,6 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -242,7 +225,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={-1}
+              handlerTag={4}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -369,12 +352,19 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                   "paddingHorizontal": 16,
                                 }
                               }
-                              handlerTag={4}
+                              handlerTag={5}
                               handlerType="NativeViewGestureHandler"
                               horizontal={true}
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
                               showsHorizontalScrollIndicator={false}
+                              waitFor={
+                                [
+                                  {
+                                    "current": null,
+                                  },
+                                ]
+                              }
                             >
                               <View>
                                 <TouchableOpacity
@@ -403,7 +393,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -468,7 +458,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -533,7 +523,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -598,7 +588,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -712,7 +702,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -776,7 +766,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                             data={[]}
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={5}
+                            handlerTag={6}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="on-drag"
@@ -796,6 +786,16 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             viewabilityConfigCallbackPairs={[]}
+                            waitFor={
+                              [
+                                {
+                                  "current": null,
+                                },
+                                {
+                                  "current": null,
+                                },
+                              ]
+                            }
                           >
                             <View>
                               <TouchableOpacity
@@ -831,7 +831,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "Geist Medium",
+                                          "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -854,8 +854,8 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -991,7 +991,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <RNSScreenContainer
+    <View
       onLayout={[Function]}
       style={
         {
@@ -999,24 +999,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
         }
       }
     >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
+      <View
         pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1024,7 +1008,6 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "zIndex": undefined,
           }
         }
       >
@@ -1102,7 +1085,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={-1}
+              handlerTag={1}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1229,12 +1212,19 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                   "paddingHorizontal": 16,
                                 }
                               }
-                              handlerTag={-1}
+                              handlerTag={2}
                               handlerType="NativeViewGestureHandler"
                               horizontal={true}
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
                               showsHorizontalScrollIndicator={false}
+                              waitFor={
+                                [
+                                  {
+                                    "current": null,
+                                  },
+                                ]
+                              }
                             >
                               <View>
                                 <TouchableOpacity
@@ -1263,7 +1253,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1328,7 +1318,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1393,7 +1383,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1458,7 +1448,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Regular",
+                                        "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1572,7 +1562,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "height": 38,
@@ -1640,7 +1630,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                             }
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={-1}
+                            handlerTag={3}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="on-drag"
@@ -1660,6 +1650,16 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             viewabilityConfigCallbackPairs={[]}
+                            waitFor={
+                              [
+                                {
+                                  "current": null,
+                                },
+                                {
+                                  "current": null,
+                                },
+                              ]
+                            }
                           >
                             <View>
                               <View
@@ -1848,7 +1848,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -1862,7 +1862,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2159,7 +2159,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2173,7 +2173,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2470,7 +2470,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2484,7 +2484,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2781,7 +2781,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -2795,7 +2795,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3092,7 +3092,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3106,7 +3106,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -3228,8 +3228,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot 1`] = `
             </View>
           </View>
         </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+      </View>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

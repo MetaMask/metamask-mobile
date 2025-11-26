@@ -55,7 +55,7 @@ exports[`ApprovalTagUrl renders correctly 1`] = `
       {
         "color": "#686e7d",
         "flexShrink": 1,
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,
@@ -122,7 +122,7 @@ exports[`ApprovalTagUrl renders origin when only origin is provided 1`] = `
       {
         "color": "#686e7d",
         "flexShrink": 1,
-        "fontFamily": "Geist Regular",
+        "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
         "lineHeight": 24,

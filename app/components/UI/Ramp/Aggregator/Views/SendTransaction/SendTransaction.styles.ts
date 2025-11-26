@@ -1,5 +1,6 @@
 import { Theme } from '../../../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 
 const styleSheet = (_params: { theme: Theme }) =>
   StyleSheet.create({
@@ -16,7 +17,7 @@ const styleSheet = (_params: { theme: Theme }) =>
       alignItems: 'center',
     },
     normal: {
-      fontWeight: 'normal',
+      ...fontStyles.normal,
     },
     paymentMethodDestination: {
       flexDirection: 'row',

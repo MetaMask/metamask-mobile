@@ -78,7 +78,7 @@ exports[`WarningAlert should render correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
           },
@@ -126,7 +126,7 @@ exports[`WarningAlert should render correctly 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
             },

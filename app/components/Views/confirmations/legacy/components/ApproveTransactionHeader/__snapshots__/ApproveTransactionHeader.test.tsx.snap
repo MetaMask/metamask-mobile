@@ -63,7 +63,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         {
           "color": "#686e7d",
           "flexShrink": 1,
-          "fontFamily": "Geist Regular",
+          "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -225,7 +225,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 14,
                 "letterSpacing": 0,
                 "lineHeight": 22,
@@ -248,7 +248,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Bold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -266,7 +266,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -281,7 +281,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -457,7 +457,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist-Regular",
                 "fontSize": 14,
                 "letterSpacing": 0,
                 "lineHeight": 22,
@@ -480,7 +480,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Bold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -498,7 +498,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
               "lineHeight": 22,
@@ -513,7 +513,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           style={
             {
               "color": "#121314",
-              "fontFamily": "Geist Bold",
+              "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,

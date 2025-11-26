@@ -210,7 +210,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "Geist Bold",
+                            "fontFamily": "Geist-Bold",
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -271,7 +271,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Bold",
+                              "fontFamily": "Geist-Bold",
                               "fontSize": 32,
                               "letterSpacing": 0,
                               "lineHeight": 40,
@@ -293,7 +293,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "Geist Medium",
+                              "fontFamily": "Geist-Medium",
                               "fontSize": 18,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -333,7 +333,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -493,7 +493,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -619,7 +619,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 30,
                                     "marginVertical": 2,
                                   },
@@ -695,7 +695,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -710,7 +710,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "Geist Regular",
+                                    "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -868,7 +868,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
                                     },
@@ -995,7 +995,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                               null,
                               [
                                 {
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "Geist-Bold",
                                   "fontSize": 14,
                                   "textAlign": "center",
                                 },

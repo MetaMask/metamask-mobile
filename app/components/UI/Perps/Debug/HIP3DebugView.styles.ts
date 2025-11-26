@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../styles/common';
 import type { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -24,7 +25,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     sectionTitle: {
       marginBottom: 12,
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     button: {
       backgroundColor: colors.primary.default,
@@ -40,7 +41,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     buttonText: {
       color: colors.primary.inverse,
-      fontWeight: '600',
+      ...fontStyles.medium,
     },
     buttonTextSecondary: {
       color: colors.text.default,

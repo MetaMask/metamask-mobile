@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../styles/common';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -14,7 +15,7 @@ const createStyles = () =>
     },
     title: {
       fontSize: 24,
-      fontWeight: '600',
+      ...fontStyles.medium,
       textAlign: 'left',
       width: '100%',
     },

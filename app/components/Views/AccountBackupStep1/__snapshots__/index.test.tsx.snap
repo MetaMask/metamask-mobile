@@ -47,7 +47,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -72,7 +72,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               {
                 "alignSelf": "flex-start",
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -109,7 +109,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -124,7 +124,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -143,7 +143,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -192,7 +192,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -233,7 +233,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -298,7 +298,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -323,7 +323,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               {
                 "alignSelf": "flex-start",
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -360,7 +360,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -375,7 +375,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -394,7 +394,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -443,7 +443,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -484,7 +484,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -549,7 +549,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -574,7 +574,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               {
                 "alignSelf": "flex-start",
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -611,7 +611,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -626,7 +626,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -645,7 +645,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -694,7 +694,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -735,7 +735,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -800,7 +800,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -825,7 +825,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               {
                 "alignSelf": "flex-start",
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -862,7 +862,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -877,7 +877,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -896,7 +896,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -945,7 +945,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -986,7 +986,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1051,7 +1051,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "Geist Regular",
+              "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1076,7 +1076,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               {
                 "alignSelf": "flex-start",
                 "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 32,
                 "letterSpacing": 0,
                 "lineHeight": 40,
@@ -1113,7 +1113,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -1128,7 +1128,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "Geist Regular",
+                    "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1147,7 +1147,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
+                  "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -1196,7 +1196,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1237,7 +1237,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,

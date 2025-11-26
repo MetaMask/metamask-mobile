@@ -1,4 +1,5 @@
 import { Dimensions, StyleSheet } from 'react-native';
+import { fontStyles } from '../../../../../../styles/common';
 import { Theme } from '../../../../../../util/theme/models';
 
 const screenWidth = Dimensions.get('window').width;
@@ -12,7 +13,7 @@ const styleSheet = (_params: { theme: Theme }) =>
     },
     title: {
       marginTop: 24,
-      fontWeight: 'bold',
+      ...fontStyles.bold,
     },
     paragraph: {
       marginTop: 16,

@@ -185,7 +185,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -241,7 +241,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -277,7 +277,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             style={
               {
                 "color": "#b7bbc8",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -335,7 +335,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -359,7 +359,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
@@ -375,7 +375,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 12,
                   "letterSpacing": 0.25,
                   "lineHeight": 20,
@@ -395,7 +395,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 12,
                   "letterSpacing": 0.25,
                   "lineHeight": 20,
@@ -599,7 +599,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -655,7 +655,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Geist Medium",
+                    "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -691,7 +691,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             style={
               {
                 "color": "#b7bbc8",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -749,7 +749,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -773,7 +773,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist-Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
@@ -789,7 +789,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 12,
                   "letterSpacing": 0.25,
                   "lineHeight": 20,
@@ -809,7 +809,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "Geist Medium",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 12,
                   "letterSpacing": 0.25,
                   "lineHeight": 20,
