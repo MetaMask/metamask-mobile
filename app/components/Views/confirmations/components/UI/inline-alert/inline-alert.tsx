@@ -64,6 +64,7 @@ export default function InlineAlert({
       disabled={disabled}
     >
       <Icon
+        // Show info icon for all severities except danger
         name={severity === Severity.Danger ? IconName.Danger : IconName.Info}
         size={IconSize.Sm}
         color={getTextColor(severity)}
