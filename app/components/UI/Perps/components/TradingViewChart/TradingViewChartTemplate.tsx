@@ -853,8 +853,10 @@ export const createTradingViewChartTemplate = (
                     return;
                 }
 
-                // Get total chart height
-                const totalHeight = window.chart.options().height || window.innerHeight;
+                // Use actual container height for accurate measurement during orientation changes
+                // This fixes race conditions where window.chart.options().height may be stale
+                const container = document.getElementById('container');
+                const totalHeight = container ? container.clientHeight : (window.chart.options().height || window.innerHeight);
 
                 // Calculate heights with 80/20 split
                 // Note: TradingView has a minimum pane height of ~30px
@@ -968,8 +970,10 @@ export const createTradingViewChartTemplate = (
 
         // Optimized resize handler with throttling
         let resizeTimeout;
+        let finalResizeTimeout; // Debounced final call to ensure pane heights are correct after all resize events
         window.addEventListener('resize', function() {
             if (resizeTimeout) clearTimeout(resizeTimeout);
+            if (finalResizeTimeout) clearTimeout(finalResizeTimeout);
             resizeTimeout = setTimeout(() => {
                 if (window.chart) {
                     // With autoSize: true, chart automatically resizes to container
@@ -1028,6 +1032,14 @@ export const createTradingViewChartTemplate = (
                         window.updateVisiblePriceRange();
                     }
                 }
+
+                // Schedule a final pane height enforcement after resize events fully settle
+                // This fixes race conditions during orientation changes where multiple resize events fire
+                finalResizeTimeout = setTimeout(() => {
+                    if (window.chart && window.volumeSeries && window.setPaneHeights) {
+                        window.setPaneHeights();
+                    }
+                }, 300); // Wait for resize events to fully settle
             }, 100); // Throttle resize to prevent excessive redraws
         });
         
@@ -1035,6 +1047,9 @@ export const createTradingViewChartTemplate = (
         window.cleanupChartEventListeners = function() {
             if (resizeTimeout) {
                 clearTimeout(resizeTimeout);
+            }
+            if (finalResizeTimeout) {
+                clearTimeout(finalResizeTimeout);
             }
         };
         // Store price lines for management
@@ -1355,6 +1370,14 @@ export const createTradingViewChartTemplate = (
                                             }));
 
                                             window.volumeSeries.setData(volumeData);
+
+                                            // Enforce pane heights after volume data is set
+                                            // This ensures the 80/20 split is maintained after data refresh
+                                            setTimeout(() => {
+                                                if (window.setPaneHeights) {
+                                                    window.setPaneHeights();
+                                                }
+                                            }, 50);
                                         } catch (error) {
                                             // Silent error handling
                                         }
