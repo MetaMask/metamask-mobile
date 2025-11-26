@@ -74,6 +74,7 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import PredictDetailsHeaderSkeleton from '../../components/PredictDetailsHeaderSkeleton';
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictDetailsButtonsSkeleton from '../../components/PredictDetailsButtonsSkeleton';
+import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -713,7 +714,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             onPress={handleBackPress}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel={strings('back')}
+            accessibilityLabel={strings('predict.buttons.back')}
             style={tw.style('items-center justify-center rounded-full')}
             testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
           >
@@ -745,6 +746,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {title || market?.title || ''}
           </Text>
+        </Box>
+        <Box twClassName="pr-2">
+          <PredictShareButton marketId={market?.id} />
         </Box>
       </Box>
     );
