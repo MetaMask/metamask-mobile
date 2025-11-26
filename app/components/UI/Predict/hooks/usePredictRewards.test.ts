@@ -136,7 +136,7 @@ describe('usePredictRewards', () => {
       // Arrange
       const mockEstimatedPoints = 100;
       mockControllerMessengerCall
-        .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
+        .mockResolvedValueOnce(true) // hasActiveSeason
         .mockResolvedValueOnce('subscription-1') // getCandidateSubscriptionId
         .mockResolvedValueOnce(true) // getHasAccountOptedIn
         .mockResolvedValueOnce({
@@ -168,7 +168,7 @@ describe('usePredictRewards', () => {
 
       // Verify controller calls
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
-        'RewardsController:isRewardsFeatureEnabled',
+        'RewardsController:hasActiveSeason',
       );
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
         'RewardsController:getCandidateSubscriptionId',
@@ -201,7 +201,7 @@ describe('usePredictRewards', () => {
     });
   });
 
-  describe('when rewards feature is not enabled', () => {
+  describe('when there is no active season', () => {
     it('returns enabled false and stops checking', async () => {
       // Arrange
       mockControllerMessengerCall.mockResolvedValueOnce(false);
@@ -221,7 +221,7 @@ describe('usePredictRewards', () => {
       expect(result.current.rewardsAccountScope).toEqual(mockInternalAccount);
       expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
-        'RewardsController:isRewardsFeatureEnabled',
+        'RewardsController:hasActiveSeason',
       );
     });
   });
@@ -230,7 +230,7 @@ describe('usePredictRewards', () => {
     it('returns enabled false when getCandidateSubscriptionId returns null', async () => {
       // Arrange
       mockControllerMessengerCall
-        .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
+        .mockResolvedValueOnce(true) // hasActiveSeason
         .mockResolvedValueOnce(null); // getCandidateSubscriptionId
 
       // Act
@@ -255,7 +255,7 @@ describe('usePredictRewards', () => {
     it('returns enabled based on opt-in support and does not estimate points', async () => {
       // Arrange
       mockControllerMessengerCall
-        .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
+        .mockResolvedValueOnce(true) // hasActiveSeason
         .mockResolvedValueOnce('subscription-1') // getCandidateSubscriptionId
         .mockResolvedValueOnce(false) // getHasAccountOptedIn
         .mockResolvedValueOnce(true); // isOptInSupported
@@ -288,7 +288,7 @@ describe('usePredictRewards', () => {
     it('returns enabled false when opt-in is not supported', async () => {
       // Arrange
       mockControllerMessengerCall
-        .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
+        .mockResolvedValueOnce(true) // hasActiveSeason
         .mockResolvedValueOnce('subscription-1') // getCandidateSubscriptionId
         .mockResolvedValueOnce(false) // getHasAccountOptedIn
         .mockResolvedValueOnce(false); // isOptInSupported
@@ -338,7 +338,7 @@ describe('usePredictRewards', () => {
       mockParseCaipChainId.mockImplementation(() => {
         throw mockError;
       });
-      mockControllerMessengerCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockControllerMessengerCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockControllerMessengerCall.mockResolvedValueOnce('subscription-1'); // getCandidateSubscriptionId
 
       // Act
@@ -378,7 +378,7 @@ describe('usePredictRewards', () => {
       // Arrange
       const mockError = new Error('Network error');
       mockControllerMessengerCall
-        .mockResolvedValueOnce(true) // isRewardsFeatureEnabled
+        .mockResolvedValueOnce(true) // hasActiveSeason
         .mockResolvedValueOnce('subscription-1') // getCandidateSubscriptionId
         .mockResolvedValueOnce(true) // getHasAccountOptedIn
         .mockRejectedValueOnce(mockError); // estimatePoints
