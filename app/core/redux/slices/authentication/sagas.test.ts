@@ -6,7 +6,6 @@
 
 import { expectSaga } from 'redux-saga-test-plan';
 import { call } from 'redux-saga-test-plan/matchers';
-import { delay } from 'redux-saga/effects';
 import {
   initializeAuthenticationSaga,
   appBackgroundedSaga,
@@ -156,10 +155,7 @@ describe('initializeAuthenticationSaga', () => {
         authentication: {},
         user: { existingUser: false },
       })
-      .provide([
-        [call([AppStateService, 'initialize']), undefined],
-        [delay(100), undefined],
-      ])
+      .provide([[call([AppStateService, 'initialize']), undefined]])
       .put(checkBiometricAvailability())
       .put(
         initializationComplete({
@@ -185,8 +181,8 @@ describe('initializeAuthenticationSaga', () => {
       .withState(createMockState())
       .provide([
         [call([AppStateService, 'initialize']), undefined],
-        [delay(100), undefined],
-        [call([Authentication, 'getPassword']), null],
+
+        [call([Authentication, 'getType']), { currentAuthType: 'password' }],
       ])
       .put(checkBiometricAvailability())
       .put(
@@ -199,7 +195,7 @@ describe('initializeAuthenticationSaga', () => {
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: Routes.ONBOARDING.LOGIN }],
+      routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
     });
   });
 
@@ -214,8 +210,8 @@ describe('initializeAuthenticationSaga', () => {
       )
       .provide([
         [call([AppStateService, 'initialize']), undefined],
-        [delay(100), undefined],
-        [call([Authentication, 'getPassword']), { password: 'test-password' }],
+
+        [call([Authentication, 'getType']), { currentAuthType: 'remember_me' }],
       ])
       .put(checkBiometricAvailability())
       .put(attemptRememberMeLogin())
@@ -232,8 +228,7 @@ describe('initializeAuthenticationSaga', () => {
       .withState(createMockState())
       .provide([
         [call([AppStateService, 'initialize']), undefined],
-        [delay(100), undefined],
-        [call([Authentication, 'getPassword']), { password: 'test-password' }],
+
         [call([Authentication, 'getType']), { currentAuthType: 'password' }],
       ])
       .put(checkBiometricAvailability())
@@ -261,11 +256,8 @@ describe('initializeAuthenticationSaga', () => {
       .withState(createMockState())
       .provide([
         [call([AppStateService, 'initialize']), undefined],
-        [delay(100), undefined],
-        [
-          call([Authentication, 'getPassword']),
-          new Error('Credential check failed'),
-        ],
+
+        [call([Authentication, 'getType']), { currentAuthType: 'password' }],
       ])
       .put(checkBiometricAvailability())
       .put(
@@ -278,7 +270,7 @@ describe('initializeAuthenticationSaga', () => {
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: Routes.ONBOARDING.LOGIN }],
+      routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
     });
   });
 

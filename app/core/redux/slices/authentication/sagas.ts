@@ -153,9 +153,6 @@ export function* initializeAuthenticationSaga() {
     // Initialize services
     yield call([AppStateService, 'initialize']);
 
-    // Wait a moment for navigation to be ready (set by NavigationProvider)
-    yield delay(100);
-
     // Check if user exists (use Redux selector - actual API doesn't have this method)
     const hasExistingUser: boolean = yield select(selectExistingUser);
 
@@ -178,122 +175,70 @@ export function* initializeAuthenticationSaga() {
       return;
     }
 
-    // Existing user - check if we have credentials
-    try {
-      // Use actual Authentication API method: getPassword()
-      const credentials: { password: string } | false | null = yield call([
-        Authentication,
-        'getPassword',
-      ]);
-      const hasCredentials =
-        !!credentials &&
-        typeof credentials === 'object' &&
-        !!credentials.password;
+    // Existing user - check authentication type first (doesn't trigger biometric)
+    // By checking getType() first, we can skip getPassword() for biometric auth
+    const authData: Awaited<ReturnType<typeof Authentication.getType>> =
+      yield call([Authentication, 'getType']);
+    const isBiometricAuth = authData.currentAuthType === 'biometrics';
+    const isRememberMeAuth = authData.currentAuthType === 'remember_me';
 
-      if (!hasCredentials) {
-        // No credentials - user needs to authenticate
-        Logger.log('AuthSaga: No credentials found, user must login');
-        yield put(
-          actions.initializationComplete({
-            hasUser: true,
-            isLocked: true,
-          }),
-        );
+    // Check Remember Me status
+    const rememberMeEnabled: boolean = yield select(selectIsRememberMeEnabled);
 
-        // Navigate to Login (no auto-biometric needed, no credentials)
-        NavigationService.navigation?.reset({
-          index: 0,
-          routes: [{ name: Routes.ONBOARDING.LOGIN }],
-        });
-        return;
-      }
+    Logger.log(
+      `AuthSaga: Auth type: ${authData.currentAuthType}, Remember Me enabled: ${rememberMeEnabled}`,
+    );
 
-      // Check Remember Me status
-      // Note: Remember Me is stored in state.security.allowLoginWithRememberMe by SecuritySettings
-      const rememberMeEnabled: boolean = yield select(
-        selectIsRememberMeEnabled,
-      );
-
-      Logger.log(
-        `AuthSaga: Remember Me enabled: ${rememberMeEnabled}, hasCredentials: true`,
-      );
-
-      if (rememberMeEnabled) {
-        // Remember Me enabled - attempt auto-login
-        // This will show biometric prompt, then navigate directly to HOME (skipping Login screen)
-        Logger.log('AuthSaga: Remember Me enabled, attempting auto-login');
-        yield put(actions.attemptRememberMeLogin());
-        return; // attemptRememberMeLoginSaga will handle navigation
-      }
-
-      // Check if biometric auth is configured
-      const authData: Awaited<ReturnType<typeof Authentication.getType>> =
-        yield call([Authentication, 'getType']);
-
-      const isBiometricAuth = authData.currentAuthType === 'biometrics';
-
-      Logger.log(
-        `AuthSaga: Credentials exist but no auto-login - authType: ${authData.currentAuthType}, isBiometric: ${isBiometricAuth}`,
-      );
-
-      yield put(
-        actions.initializationComplete({
-          hasUser: true,
-          isLocked: true,
-        }),
-      );
-
-      // If biometric auth is configured, trigger biometric BEFORE navigating to Login
-      // This shows biometric prompt over FoxLoader for better UX
-      if (isBiometricAuth) {
-        Logger.log(
-          'AuthSaga: Biometric auth configured, triggering biometric prompt on app launch (before showing Login)',
-        );
-
-        // PERFORMANCE FIX: Wait for interactions to complete
-        // InteractionManager ensures all animations/interactions are done before proceeding
-        // Critical for Android release builds with Hermes optimization
-        yield call(waitForInteractions);
-
-        // Trigger biometric authentication
-        yield put(
-          actions.requestAuthentication({
-            method: AuthenticationMethod.BIOMETRIC,
-            showBiometric: true,
-          }),
-        );
-
-        // Wait for authentication to complete (success or failure)
-        // The requestAuthenticationSaga will handle success (navigate to HOME)
-        // or failure/cancellation (we navigate to Login below)
-        Logger.log('AuthSaga: Waiting for biometric result...');
-
-        // The saga already navigates on success, so we're done here if it succeeds
-        // If it fails/cancels, we continue below to show Login
-        return;
-      }
-
-      // No biometric - navigate to Login screen
-      NavigationService.navigation?.reset({
-        index: 0,
-        routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
-      });
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'AuthSaga: Error checking credentials during init',
-      );
-      yield put(
-        actions.initializationComplete({
-          hasUser: true,
-          isLocked: true,
-        }),
-      );
-      NavigationService.navigation?.reset({
-        index: 0,
-        routes: [{ name: Routes.ONBOARDING.LOGIN }],
-      });
+    if (rememberMeEnabled || isRememberMeAuth) {
+      Logger.log('AuthSaga: Remember Me enabled, attempting auto-login');
+      yield put(actions.attemptRememberMeLogin());
+      return; // attemptRememberMeLoginSaga will handle navigation
     }
+
+    // For biometric auth, trigger it directly without checking credentials first
+    // This avoids the double Face ID prompt on iOS
+    if (isBiometricAuth) {
+      Logger.log(
+        'AuthSaga: Biometric auth configured - triggering biometric without credential check to avoid double Face ID prompt',
+      );
+      yield put(
+        actions.initializationComplete({
+          hasUser: true,
+          isLocked: true,
+        }),
+      );
+      yield call(waitForInteractions);
+      yield put(
+        actions.requestAuthentication({
+          method: AuthenticationMethod.BIOMETRIC,
+          showBiometric: true,
+        }),
+      );
+      Logger.log('AuthSaga: Waiting for biometric result...');
+      return;
+    }
+
+    // For non-biometric auth (password), navigate to Login screen
+    // We don't need to call getPassword() here because:
+    // 1. We already know the auth type from getType()
+    // 2. Calling getPassword() could trigger Face ID unnecessarily if password was stored with biometric protection
+    // 3. We're going to show the login screen anyway - the Login component will handle credential checks
+    Logger.log(
+      `AuthSaga: Non-biometric auth type (${authData.currentAuthType}) - navigating to Login`,
+    );
+
+    yield put(
+      actions.initializationComplete({
+        hasUser: true,
+        isLocked: true,
+      }),
+    );
+
+    // Navigate to Login screen
+    NavigationService.navigation?.reset({
+      index: 0,
+      routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
+    });
   } catch (error) {
     Logger.error(
       error as Error,
