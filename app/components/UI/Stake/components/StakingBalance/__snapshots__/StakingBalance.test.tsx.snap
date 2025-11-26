@@ -407,12 +407,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
         [
           {
             "flexDirection": "row",
-            "gap": 8,
+            "gap": 16,
             "justifyContent": "space-between",
           },
-          {
-            "paddingTop": 8,
-          },
+          undefined,
         ]
       }
     >
@@ -1202,12 +1200,10 @@ exports[`StakingBalance should match the snapshot 1`] = `
         [
           {
             "flexDirection": "row",
-            "gap": 8,
+            "gap": 16,
             "justifyContent": "space-between",
           },
-          {
-            "paddingTop": 8,
-          },
+          undefined,
         ]
       }
     >
