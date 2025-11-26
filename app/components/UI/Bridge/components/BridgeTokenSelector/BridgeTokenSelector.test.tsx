@@ -97,9 +97,10 @@ jest.mock('../../hooks/useTokensWithBalances', () => ({
     })),
 }));
 
+const mockHandleTokenPress = jest.fn();
 jest.mock('../../hooks/useTokenSelection', () => ({
   useTokenSelection: () => ({
-    handleTokenPress: jest.fn(),
+    handleTokenPress: mockHandleTokenPress,
     selectedToken: null,
   }),
 }));
@@ -284,15 +285,16 @@ describe('BridgeTokenSelector', () => {
     expect(searchInput).toBeTruthy();
   });
 
-  it('handles token press', async () => {
+  it('calls handleTokenPress when token is pressed', async () => {
     const { getByTestId } = render(<BridgeTokenSelector />);
 
     await waitFor(() => {
-      const tokenItem = getByTestId('token-USDC');
-      fireEvent.press(tokenItem);
+      expect(getByTestId('token-USDC')).toBeTruthy();
     });
 
-    // Token press handler should be called (mocked)
-    expect(true).toBe(true);
+    const tokenItem = getByTestId('token-USDC');
+    fireEvent.press(tokenItem);
+
+    expect(mockHandleTokenPress).toHaveBeenCalled();
   });
 });
