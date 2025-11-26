@@ -477,13 +477,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const watchlistCount = controller.getWatchlistMarkets().length;
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]: 'watchlist_toggled',
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.FAVORITE_TOGGLED,
       [PerpsEventProperties.ACTION_TYPE]: newWatchlistState
-        ? 'add_to_watchlist'
-        : 'remove_from_watchlist',
+        ? PerpsEventValues.ACTION_TYPE.FAVORITE_MARKET
+        : PerpsEventValues.ACTION_TYPE.UNFAVORITE_MARKET,
       [PerpsEventProperties.ASSET]: market.symbol,
-      [PerpsEventProperties.SOURCE]: 'asset_details',
-      watchlist_count: watchlistCount,
+      [PerpsEventProperties.FAVORITES_COUNT]: watchlistCount,
     });
   }, [market, isWatchlist, track]);
 
