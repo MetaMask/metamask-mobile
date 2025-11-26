@@ -151,14 +151,12 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 });
-const mockRestorePriorReset = jest.fn();
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
     isEnabled: mockMetricsIsEnabled,
     trackEvent: mockTrackEvent,
     enable: mockEnable,
     createEventBuilder: mockCreateEventBuilder,
-    restoreMetricsOptInPriorReset: mockRestorePriorReset,
   }),
 }));
 
@@ -187,7 +185,6 @@ jest.mock(
           isEnabled: mockMetricsIsEnabled,
           trackEvent: mockTrackEvent,
           enable: mockEnable,
-          restoreMetricsOptInPriorReset: mockRestorePriorReset,
           createEventBuilder: mockCreateEventBuilder,
         }}
       />
@@ -257,7 +254,6 @@ describe('Onboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnable.mockClear();
-    mockRestorePriorReset.mockClear();
     mockCreateEventBuilder.mockClear();
 
     jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
