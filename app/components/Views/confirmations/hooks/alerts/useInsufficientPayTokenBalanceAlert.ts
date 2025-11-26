@@ -13,7 +13,6 @@ import {
 import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
-import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { getNativeTokenAddress } from '../../utils/asset';
 
@@ -25,9 +24,9 @@ export function useInsufficientPayTokenBalanceAlert({
   const { payToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const totals = useTransactionPayTotals();
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const isSourceGasFeeToken = totals?.fees.isSourceGasFeeToken ?? false;
+  const isPendingAlert = Boolean(pendingAmountUsd !== undefined);
 
   const sourceChainId = payToken?.chainId ?? '0x0';
 
@@ -71,21 +70,6 @@ export function useInsufficientPayTokenBalanceAlert({
     );
   }, [isLoading, isPayTokenNative, isSourceGasFeeToken, totals]);
 
-  const totalSourceAmountUsd = useMemo(
-    () =>
-      new BigNumber(totals?.sourceAmount.usd ?? '0').plus(
-        isPayTokenNative || isSourceGasFeeToken
-          ? new BigNumber(totals?.fees.sourceNetwork.max.usd ?? '0')
-          : '0',
-      ),
-    [isPayTokenNative, isSourceGasFeeToken, totals],
-  );
-
-  const targetAmountUsd = useMemo(() => {
-    const shortfall = totalSourceAmountUsd.minus(balanceUsd ?? '0');
-    return formatFiat(totalAmountUsd.minus(shortfall));
-  }, [balanceUsd, formatFiat, totalAmountUsd, totalSourceAmountUsd]);
-
   const totalSourceNetworkFeeRaw = useMemo(
     () => new BigNumber(totals?.fees.sourceNetwork.max.raw ?? '0'),
     [totals],
@@ -97,18 +81,23 @@ export function useInsufficientPayTokenBalanceAlert({
   );
 
   const isInsufficientForFees = useMemo(
-    () => payToken && totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
-    [balanceRaw, payToken, totalSourceAmountRaw],
+    () =>
+      !isPendingAlert &&
+      payToken &&
+      totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
+    [balanceRaw, isPendingAlert, payToken, totalSourceAmountRaw],
   );
 
   const isInsufficientForSourceNetwork = useMemo(
     () =>
       payToken &&
       !isPayTokenNative &&
+      !isPendingAlert &&
       !isSourceGasFeeToken &&
       totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
     [
       isPayTokenNative,
+      isPendingAlert,
       isSourceGasFeeToken,
       nativeToken?.balanceRaw,
       payToken,
@@ -142,8 +131,7 @@ export function useInsufficientPayTokenBalanceAlert({
           key: AlertKeys.InsufficientPayTokenFees,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_balance_fees.message',
-            { amount: targetAmountUsd },
+            'alert_system.insufficient_pay_token_balance_fees_no_target.message',
           ),
         },
       ];
@@ -168,7 +156,6 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
-    targetAmountUsd,
     ticker,
   ]);
 }

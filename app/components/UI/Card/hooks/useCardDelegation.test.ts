@@ -133,11 +133,8 @@ describe('useCardDelegation', () => {
     };
 
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK as unknown as CardSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
     });
 
     // Setup metrics mock
@@ -433,11 +430,8 @@ describe('useCardDelegation', () => {
   describe('error handling', () => {
     it('throws error when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const params = createMockDelegationParams();
