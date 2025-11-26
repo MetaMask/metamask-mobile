@@ -1,6 +1,6 @@
 import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Alert, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -25,7 +25,6 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectStablecoinLendingEnabledFlag,
   selectIsMusdConversionFlowEnabledFlag,
-  selectMusdConversionPaymentTokensAllowlist,
 } from '../../../Earn/selectors/featureFlags';
 import {
   useFeatureFlag,
@@ -43,10 +42,10 @@ import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 ///: END:ONLY_INCLUDE_IF
-import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -73,9 +72,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
-  const musdConversionPaymentTokensAllowlist = useSelector(
-    selectMusdConversionPaymentTokensAllowlist,
-  );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
@@ -94,27 +90,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   );
 
   const { initiateConversion } = useMusdConversion();
+  const { isConversionToken } = useMusdConversionTokens();
+
+  const isConvertibleStablecoin =
+    isMusdConversionFlowEnabled && isConversionToken(asset);
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
-
-  const isConvertibleStablecoin = useMemo(
-    () =>
-      isMusdConversionFlowEnabled &&
-      asset?.chainId &&
-      asset?.address &&
-      isMusdConversionPaymentToken(
-        asset.address,
-        asset.chainId,
-        musdConversionPaymentTokensAllowlist,
-      ),
-    [
-      isMusdConversionFlowEnabled,
-      asset?.chainId,
-      asset?.address,
-      musdConversionPaymentTokensAllowlist,
-    ],
-  );
 
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)

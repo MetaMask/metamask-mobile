@@ -10,22 +10,17 @@ import BottomSheetHeader from '../../../../../../component-library/components/Bo
 import { AssetType } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
-import { useSelector } from 'react-redux';
-import { selectMusdConversionPaymentTokensAllowlist } from '../../../../../UI/Earn/selectors/featureFlags';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
-import { isMusdConversionPaymentToken } from '../../../../../UI/Earn/utils/musd';
+import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 
 export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  const musdConversionPaymentTokensAllowlist = useSelector(
-    selectMusdConversionPaymentTokensAllowlist,
-  );
+  const { tokenFilter: musdTokenFilter } = useMusdConversionTokens();
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -54,24 +49,12 @@ export function PayWithModal() {
       if (
         hasTransactionType(transactionMeta, [TransactionType.musdConversion])
       ) {
-        return availableTokens.filter((token) => {
-          if (!token?.chainId) return false;
-          return isMusdConversionPaymentToken(
-            token.address,
-            token.chainId,
-            musdConversionPaymentTokensAllowlist,
-          );
-        });
+        return musdTokenFilter(availableTokens);
       }
 
       return availableTokens;
     },
-    [
-      musdConversionPaymentTokensAllowlist,
-      payToken,
-      requiredTokens,
-      transactionMeta,
-    ],
+    [musdTokenFilter, payToken, requiredTokens, transactionMeta],
   );
 
   return (

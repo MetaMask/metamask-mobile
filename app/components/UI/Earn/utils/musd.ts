@@ -97,9 +97,11 @@ export const areValidAllowedPaymentTokens = (
  */
 export const isMusdConversionPaymentToken = (
   tokenAddress: string,
-  chainId: string,
   allowlist: Record<Hex, Hex[]> = CONVERTIBLE_STABLECOINS_BY_CHAIN,
+  chainId?: string,
 ): boolean => {
+  if (!chainId) return false;
+
   const convertibleTokens = allowlist[chainId as Hex];
   if (!convertibleTokens) {
     return false;
