@@ -52,9 +52,10 @@ export const createTradingViewChartTemplate = (
         window.volumeSeries = null; // Volume histogram series
         window.isInitialDataLoad = true; // Track if this is the first data load
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
-        window.visibleCandleCount = 45; // Default visible candle count
+        window.visibleCandleCount = 30; // Default visible candle count (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
         window.allCandleData = []; // Store all loaded data for zoom functionality
         window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
+        window.currentInterval = null; // Track current interval for zoom reset on change
 
         // Helper function to get date string in user's timezone (YYYY-MM-DD)
         window.getDateString = function(date, userTimezone) {
@@ -374,7 +375,7 @@ export const createTradingViewChartTemplate = (
         window.ZOOM_LIMITS = {
             MIN_CANDLES: 10,  // Minimum candles visible when zoomed in
             MAX_CANDLES: 250, // Maximum candles visible when zoomed out
-            DEFAULT_CANDLES: 45 // Default visible candles
+            DEFAULT_CANDLES: 30 // Default visible candles (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
         };
         
         // Performance optimization variables
@@ -1143,34 +1144,40 @@ export const createTradingViewChartTemplate = (
             if (!window.chart || !window.allCandleData || window.allCandleData.length === 0) {
                 return;
             }
-            
+
             // Simple zoom without interaction restrictions
             const minCandles = window.ZOOM_LIMITS.MIN_CANDLES;
             const maxCandles = window.ZOOM_LIMITS.MAX_CANDLES;
             const actualCandleCount = Math.max(minCandles, Math.min(maxCandles, candleCount));
-            
-            // Get the last N candles to display (most recent data)
-            const startIndex = Math.max(0, window.allCandleData.length - actualCandleCount);
-            const visibleData = window.allCandleData.slice(startIndex);
-            
-            if (window.candlestickSeries && visibleData.length > 0) {
-                const firstTime = visibleData[0].time;
-                const lastTime = visibleData[visibleData.length - 1].time;
 
-                try {
-                    window.chart.timeScale().setVisibleRange({
-                        from: firstTime,
-                        to: lastTime,
-                    });
-                } catch (error) {
-                    console.error('TradingView: Error setting visible range:', error);
-                    // Fallback to fit content if setVisibleRange fails
-                    window.chart.timeScale().fitContent();
+            const dataLength = window.allCandleData.length;
+
+            try {
+                // Use setVisibleLogicalRange for consistent bar width control
+                // Logical range uses bar indices: from = first visible bar, to = last visible bar
+                // We want to show the last N candles, so:
+                // - from = dataLength - actualCandleCount (first visible bar index)
+                // - to = dataLength - 1 + small offset for right padding
+                const fromIndex = Math.max(0, dataLength - actualCandleCount);
+                const toIndex = dataLength - 1 + 2; // +2 for a small right margin
+
+                window.chart.timeScale().setVisibleLogicalRange({
+                    from: fromIndex,
+                    to: toIndex,
+                });
+
+                // Scroll to real-time to ensure latest candles are visible at the right edge
+                if (forceReset) {
+                    window.chart.timeScale().scrollToRealTime();
                 }
+            } catch (error) {
+                console.error('TradingView: Error setting visible logical range:', error);
+                // Fallback to fitContent if setVisibleLogicalRange fails
+                window.chart.timeScale().fitContent();
             }
-            
+
             window.visibleCandleCount = actualCandleCount;
-            
+
             // Update visible price range for dynamic formatting after zoom
             window.updateVisiblePriceRange();
         };
@@ -1358,18 +1365,24 @@ export const createTradingViewChartTemplate = (
                                 if (message.visibleCandleCount) {
                                     window.visibleCandleCount = message.visibleCandleCount;
                                 }
-                                
-                                // Simple auto-scale logic: ONLY on initial load
-                                const shouldAutoscale = window.isInitialDataLoad;
-                                
+
+                                // Detect interval change for zoom reset
+                                const intervalChanged = message.interval && window.currentInterval !== message.interval;
+                                if (message.interval) {
+                                    window.currentInterval = message.interval;
+                                }
+
+                                // Auto-scale on initial load OR when interval changes
+                                const shouldAutoscale = window.isInitialDataLoad || intervalChanged;
+
                                 if (shouldAutoscale) {
-                                    // Apply zoom to show only 45 candles on initial load
+                                    // Apply zoom to show configured candle count
                                     window.applyZoom(window.visibleCandleCount, true);
                                 }
-                                
+
                                 // Update visible price range for dynamic formatting
                                 window.updateVisiblePriceRange();
-                                
+
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
                                 

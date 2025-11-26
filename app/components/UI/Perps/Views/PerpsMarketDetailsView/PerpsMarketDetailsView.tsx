@@ -187,7 +187,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
-  const [visibleCandleCount, setVisibleCandleCount] = useState<number>(45);
+  const [visibleCandleCount, setVisibleCandleCount] = useState<number>(
+    PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
+  );
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
