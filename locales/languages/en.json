@@ -1497,6 +1497,7 @@
       "open_interest": "Open interest",
       "funding_rate": "Funding rate",
       "oracle_price": "Oracle price",
+      "order_book": "Order book",
       "countdown": "Countdown",
       "long": "Long",
       "short": "Short",
@@ -1806,6 +1807,21 @@
       }
     },
     "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Powered by {{source}}. Price chart powered by",
+    "order_book": {
+      "title": "Order Book",
+      "bids": "Bids",
+      "asks": "Asks",
+      "price": "Price",
+      "size": "Size",
+      "total": "Total",
+      "spread": "Spread",
+      "loading": "Loading order book...",
+      "no_data": "No order book data available",
+      "error": "Failed to load order book",
+      "depth_band": {
+        "title": "Select Price Grouping"
+      }
+    },
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",

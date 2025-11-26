@@ -20,4 +20,8 @@ export interface PerpsMarketStatisticsCardProps {
    * DEX name for HIP-3 markets (e.g., "XYZ", "Hyperliquid")
    */
   dexName?: string;
+  /**
+   * Callback when order book row is pressed
+   */
+  onOrderBookPress?: () => void;
 }

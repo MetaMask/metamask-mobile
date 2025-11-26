@@ -178,6 +178,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
     marketPrice?: string;
   };
 
+  // Order Book view - Full depth order book display
+  PerpsOrderBook: {
+    symbol: string;
+    marketData?: PerpsMarketData;
+  };
+
   // Activity view - Stack-based for proper back navigation
   // Uses the same redirect params as the tab-based TRANSACTIONS_VIEW
   PerpsActivity: {
