@@ -104,6 +104,16 @@
     "burn_address": {
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending Assets to Burn Address"
+    },
+    "token_trust_signal": {
+      "malicious": {
+        "title": "Malicious token",
+        "message": "This token has been identified as malicious. Interacting with this token may result in a loss of funds."
+      },
+      "warning": {
+        "title": "Suspicious token",
+        "message": "This token shows strong signs of malicious behavior. Continuing may result in loss of funds."
+      }
     }
   },
   "blockaid_banner": {
@@ -7003,6 +7013,9 @@
     "no_results": "No results found",
     "sites": "Sites",
     "popular_sites": "Popular Sites",
-    "search_sites": "Search sites"
+    "search_sites": "Search sites",
+    "enable_basic_functionality": "Enable basic functionality",
+    "basic_functionality_disabled_title": "Explore is not available",
+    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled."
   }
 }

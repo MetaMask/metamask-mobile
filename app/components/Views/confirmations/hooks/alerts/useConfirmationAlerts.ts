@@ -11,6 +11,7 @@ import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBa
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
+import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -28,6 +29,7 @@ function useTransactionAlerts(): Alert[] {
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
   const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
   const burnAddressAlert = useBurnAddressAlert();
+  const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
 
   return useMemo(
     () => [
@@ -39,6 +41,7 @@ function useTransactionAlerts(): Alert[] {
       ...noPayTokenQuotesAlert,
       ...insufficientPredictBalanceAlert,
       ...burnAddressAlert,
+      ...tokenTrustSignalAlerts,
     ],
     [
       insufficientBalanceAlert,
@@ -49,6 +52,7 @@ function useTransactionAlerts(): Alert[] {
       noPayTokenQuotesAlert,
       insufficientPredictBalanceAlert,
       burnAddressAlert,
+      tokenTrustSignalAlerts,
     ],
   );
 }
