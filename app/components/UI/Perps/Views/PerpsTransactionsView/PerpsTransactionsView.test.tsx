@@ -288,7 +288,11 @@ describe('PerpsTransactionsView', () => {
 
     await waitFor(() => {
       // Should show empty state when API fails
-      expect(component.getByText('No trades transactions yet')).toBeTruthy();
+      expect(
+        component.getByText(
+          'No trades transactions yet. Your trading history will appear here',
+        ),
+      ).toBeTruthy();
     });
   });
 
@@ -392,7 +396,11 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(component.getByText('No trades transactions yet')).toBeTruthy();
+      expect(
+        component.getByText(
+          'No trades transactions yet. Your trading history will appear here',
+        ),
+      ).toBeTruthy();
     });
   });
 
