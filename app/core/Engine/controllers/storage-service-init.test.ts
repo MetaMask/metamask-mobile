@@ -6,10 +6,10 @@ import { storageServiceInit } from './storage-service-init';
 import {
   StorageService,
   StorageServiceMessenger,
-} from '@metamask/storage-service';
+} from '@metamask-previews/storage-service';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('@metamask/storage-service');
+jest.mock('@metamask-previews/storage-service');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<StorageServiceMessenger>
