@@ -58,10 +58,11 @@ export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
+  hasMax?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay }) => {
+  ({ children, currency, disablePay, hasMax }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({ disable: disablePay });
     useTransactionPayMetrics();
@@ -135,6 +136,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
+              hasMax={hasMax}
             />
           )}
           {!hasTokens && <BuySection />}
