@@ -1,15 +1,7 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  Text,
-  TextVariant,
-  Icon,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   SECTIONS_CONFIG,
@@ -17,10 +9,8 @@ import {
   type SectionId,
 } from '../../../config/sections.config';
 import { useExploreSearch } from './config/useExploreSearch';
+import SitesSearchFooter from '../../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 
-function looksLikeUrl(str: string): boolean {
-  return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
-}
 interface ExploreSearchResultsProps {
   searchQuery: string;
 }
@@ -51,17 +41,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const tw = useTailwind();
   const { data, isLoading } = useExploreSearch(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
-
-  const handlePressFooterLink = useCallback(
-    (url: string) => {
-      navigation.navigate('TrendingBrowser', {
-        newTabUrl: url,
-        timestamp: Date.now(),
-        fromTrending: true,
-      });
-    },
-    [navigation],
-  );
 
   const renderSectionHeader = useCallback(
     (title: string) => (
@@ -125,84 +104,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     }
   }, [searchQuery, flatData.length]);
 
-  const finishedLoading = useMemo(
-    () => Object.values(isLoading).every((value) => !value),
-    [isLoading],
-  );
-
   const renderFooter = useMemo(() => {
-    if (!finishedLoading || searchQuery.length === 0) return null;
+    if (searchQuery.length === 0) return null;
 
-    const isUrl = looksLikeUrl(searchQuery.toLowerCase());
-
-    return (
-      <Box>
-        {isUrl && (
-          <TouchableOpacity
-            style={tw.style('flex-row items-center py-4')}
-            onPress={() => handlePressFooterLink(searchQuery)}
-            testID="trending-search-footer-url-link"
-          >
-            <Box twClassName="flex-1">
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName="text-primary"
-                numberOfLines={1}
-              >
-                {searchQuery}
-              </Text>
-            </Box>
-            <Box twClassName="ml-3">
-              <Icon
-                name={IconName.Arrow2UpRight}
-                size={IconSize.Md}
-                twClassName="text-primary"
-              />
-            </Box>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          style={tw.style('flex-row items-center py-4')}
-          onPress={() =>
-            handlePressFooterLink(
-              `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`,
-            )
-          }
-          testID="trending-search-footer-google-link"
-        >
-          <Box twClassName="flex-1 flex-row items-center">
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary shrink-0"
-            >
-              Search for {'"'}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary shrink"
-              numberOfLines={1}
-            >
-              {searchQuery}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-primary shrink-0"
-            >
-              {'"'} on Google
-            </Text>
-          </Box>
-          <Box twClassName="ml-3">
-            <Icon
-              name={IconName.Arrow2UpRight}
-              size={IconSize.Md}
-              twClassName="text-primary"
-            />
-          </Box>
-        </TouchableOpacity>
-      </Box>
-    );
-  }, [finishedLoading, searchQuery, handlePressFooterLink, tw]);
+    return <SitesSearchFooter searchQuery={searchQuery} />;
+  }, [searchQuery]);
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item }) => {
