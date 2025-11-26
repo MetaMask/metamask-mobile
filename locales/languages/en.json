@@ -1894,6 +1894,13 @@
     "prediction_markets": "Prediction Markets",
     "market_list": "Market List",
     "loading": "Loading...",
+    "buttons": {
+      "back": "Back",
+      "share": "Share"
+    },
+    "toasts": {
+      "copied_to_clipboard": "Copied to clipboard"
+    },
     "gtm_content": {
       "title": "PREDICT AND WIN",
       "title_description": "Trade on the outcome of real-world events, like sports or elections.",
