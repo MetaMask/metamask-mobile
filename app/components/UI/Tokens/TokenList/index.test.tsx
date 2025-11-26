@@ -5,11 +5,15 @@ import configureMockStore from 'redux-mock-store';
 import { TokenList } from './index';
 import { useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { useMetrics } from '../../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 // Mock external dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
+
+jest.mock('../../../hooks/useMetrics');
 
 jest.mock('../../../../util/theme', () => ({
   useTheme: () => ({
@@ -127,10 +131,12 @@ jest.mock('@shopify/flash-list', () => {
 
 const mockStore = configureMockStore();
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 
 const mockTokenKeys = [
   {
@@ -161,6 +167,20 @@ describe('TokenList', () => {
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
+
+    mockUseMetrics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      isEnabled: jest.fn(),
+      getMetaMetricsId: jest.fn(),
+    });
 
     // Mock useSelector to call the selector function with empty state
     mockUseSelector.mockImplementation((selector) => selector({}));
@@ -225,6 +245,22 @@ describe('TokenList', () => {
     fireEvent.press(viewAllButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('TokensFullView');
+  });
+
+  it('tracks analytics event when view all button is pressed', () => {
+    const { getByText } = renderComponent({ maxItems: 1 });
+
+    const viewAllButton = getByText('wallet.view_all_tokens');
+    fireEvent.press(viewAllButton);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'View All Assets Clicked',
+        properties: expect.objectContaining({
+          asset_type: 'Token',
+        }),
+      }),
+    );
   });
 
   it('renders container without items when tokenKeys is empty', () => {
