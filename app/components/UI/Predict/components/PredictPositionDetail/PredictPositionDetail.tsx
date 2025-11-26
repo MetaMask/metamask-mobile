@@ -1,6 +1,10 @@
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useIsFocused,
+  useNavigation,
+} from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { Image } from 'react-native';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
@@ -56,6 +60,9 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     navigation,
   });
 
+  // Only auto-refresh when the screen is focused to avoid duplicate fetches
+  const isFocused = useIsFocused();
+
   const { preview, error: previewError } = usePredictOrderPreview({
     providerId: currentPosition.providerId,
     marketId: currentPosition.marketId,
@@ -63,7 +70,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     outcomeTokenId: currentPosition.outcomeTokenId,
     side: Side.SELL,
     size: currentPosition.size,
-    autoRefreshTimeout: 1000,
+    autoRefreshTimeout: isFocused ? 1000 : undefined,
   });
 
   // Show skeleton when preview is loading (null and no error)
