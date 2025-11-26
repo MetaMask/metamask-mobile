@@ -1,5 +1,4 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   ACCOUNT_ADDRESS_MOCK_1,
   evmSendStateMock,
@@ -43,6 +42,7 @@ const mockState = {
 
 describe('useSendActions', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockUseSendContext.mockReturnValue({
       asset: {
         chainId: '0x1',
@@ -86,13 +86,13 @@ describe('useSendActions', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('calls navigation.navigate with WALLET_VIEW when handleCancelPress is invoked', () => {
+  it('calls navigation.goBack when handleCancelPress is invoked', () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
       mockState,
     );
     result.current.handleCancelPress();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('capture metrics when handleCancelPress is invoked', () => {

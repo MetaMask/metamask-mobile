@@ -558,6 +558,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -790,6 +791,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -1420,6 +1422,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -1666,6 +1669,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -2296,6 +2300,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -2528,6 +2533,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -3158,6 +3164,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -3404,6 +3411,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {

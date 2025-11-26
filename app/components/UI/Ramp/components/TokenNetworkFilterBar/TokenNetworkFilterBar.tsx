@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -16,7 +16,6 @@ import Text, {
 import styleSheet from './TokenNetworkFilterBar.styles';
 
 import { useStyles } from '../../../../hooks/useStyles';
-import { excludeFromArray } from '../../Deposit/utils';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -39,27 +38,17 @@ function TokenNetworkFilterBar({
     networkFilter.length === 0 ||
     networkFilter.length === networks.length;
 
-  const handleAllPress = () => {
+  const handleAllPress = useCallback(() => {
     setNetworkFilter(null);
-  };
+  }, [setNetworkFilter]);
 
-  const handleNetworkPress = (chainId: CaipChainId) => {
-    if (isAllSelected) {
+  const handleNetworkPress = useCallback(
+    (chainId: CaipChainId) => {
+      // Radio button behavior: always set to single selection
       setNetworkFilter([chainId]);
-      return;
-    }
-
-    const currentFilter = networkFilter || [];
-    const isSelected = currentFilter.includes(chainId);
-
-    if (isSelected) {
-      const newFilter = excludeFromArray(currentFilter, chainId);
-      setNetworkFilter(newFilter.length === networks.length ? null : newFilter);
-    } else {
-      const newFilter = [...currentFilter, chainId];
-      setNetworkFilter(newFilter.length === networks.length ? null : newFilter);
-    }
-  };
+    },
+    [setNetworkFilter],
+  );
 
   return (
     <ScrollView

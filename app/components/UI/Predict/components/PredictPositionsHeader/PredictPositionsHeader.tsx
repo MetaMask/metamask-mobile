@@ -224,7 +224,7 @@ const PredictPositionsHeader = forwardRef<
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  twClassName="flex-row items-center"
+                  twClassName="flex-row items-center gap-1"
                 >
                   {isBalanceLoading ? (
                     <Skeleton

@@ -60,7 +60,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     scrollViewContent: {
-      paddingBottom: 16,
+      paddingBottom: 16, // Padding for tab bar safe area
     },
     tabBarContainer: {
       position: 'absolute',
@@ -91,8 +91,24 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       marginRight: 12,
     },
-    bottomSpacer: {
-      height: 80, // Space for tab bar + safe area
+    fixedFooter: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.background.default,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      // paddingBottom is calculated dynamically in component with safe area insets
+    },
+    footerButtonsContainer: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    footerButton: {
+      flex: 1,
     },
     section: {
       marginBottom: 16,

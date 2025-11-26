@@ -41,8 +41,15 @@ import type {
 import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
+import {
+  CandlePeriod,
+  TimeDuration,
+  PERPS_CHART_CONFIG,
+} from '../../constants/chartConfig';
+import {
+  PERFORMANCE_CONFIG,
+  PERPS_CONSTANTS,
+} from '../../constants/perpsConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -77,10 +84,17 @@ import PerpsNavigationCard, {
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../utils/perpsErrorHandler';
 import TradingViewChart, {
   type TradingViewChartRef,
+  type OhlcData,
 } from '../../components/TradingViewChart';
+import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
+import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
+import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -177,8 +191,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
+  const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
+    useState(false);
+  const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
 
   const { account } = usePerpsLiveAccount();
 
@@ -339,6 +357,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const {
     candleData,
     isLoading: isLoadingHistory,
+    hasHistoricalData,
     fetchMoreHistory,
   } = usePerpsLiveCandles({
     coin: market?.symbol || '',
@@ -346,6 +365,27 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     duration: TimeDuration.YEAR_TO_DATE,
     throttleMs: 1000,
   });
+
+  // Auto-zoom to latest candle when interval changes and new data arrives
+  // This ensures the chart shows the most recent data after interval change
+  useEffect(() => {
+    // Check if the interval has actually changed
+    const hasIntervalChanged =
+      previousIntervalRef.current !== selectedCandlePeriod;
+
+    // Only zoom when:
+    // 1. The interval has changed (user pressed button)
+    // 2. New data exists and matches the selected period
+    if (
+      hasIntervalChanged &&
+      candleData &&
+      candleData.interval === selectedCandlePeriod
+    ) {
+      chartRef.current?.zoomToLatestCandle(visibleCandleCount);
+      // Update the ref to track this interval change
+      previousIntervalRef.current = selectedCandlePeriod;
+    }
+  }, [candleData, selectedCandlePeriod, visibleCandleCount]);
 
   // Check if user has an existing position for this market
   const { isLoading: isLoadingPosition, existingPosition } =
@@ -429,10 +469,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
 
-      // Zoom to latest candle when period changes
-      chartRef.current?.zoomToLatestCandle(visibleCandleCount);
+      // Note: Chart will auto-zoom to latest candle when new data arrives (see useEffect below)
     },
-    [market, track, visibleCandleCount, dispatch],
+    [market, track, dispatch],
   );
 
   const handleMorePress = useCallback(() => {
@@ -456,7 +495,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // WebSocket streaming provides real-time data - no manual refresh needed
       // Just reset the UI state and the chart will update automatically
     } catch (error) {
-      console.error('Failed to refresh chart state:', error);
+      Logger.error(ensureError(error), {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        message: 'Failed to refresh chart state',
+      });
     } finally {
       setRefreshing(false);
     }
@@ -536,13 +578,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const watchlistCount = controller.getWatchlistMarkets().length;
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PerpsEventProperties.INTERACTION_TYPE]: 'watchlist_toggled',
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.FAVORITE_TOGGLED,
       [PerpsEventProperties.ACTION_TYPE]: newWatchlistState
-        ? 'add_to_watchlist'
-        : 'remove_from_watchlist',
+        ? PerpsEventValues.ACTION_TYPE.FAVORITE_MARKET
+        : PerpsEventValues.ACTION_TYPE.UNFAVORITE_MARKET,
       [PerpsEventProperties.ASSET]: market.symbol,
-      [PerpsEventProperties.SOURCE]: 'asset_details',
-      watchlist_count: watchlistCount,
+      [PerpsEventProperties.FAVORITES_COUNT]: watchlistCount,
     });
   }, [market, isWatchlist, track]);
 
@@ -625,21 +667,45 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       // Initialize deposit in the background without blocking
       depositWithConfirmation().catch((error) => {
-        console.error('Failed to initialize deposit:', error);
+        Logger.error(ensureError(error), {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          message: 'Failed to initialize deposit',
+        });
       });
     } catch (error) {
-      console.error('Failed to navigate to deposit:', error);
+      Logger.error(ensureError(error), {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        message: 'Failed to navigate to deposit',
+      });
     }
   };
 
   const handleTradingViewPress = useCallback(() => {
     Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
-      console.error('Failed to open Trading View URL:', error);
+      Logger.error(ensureError(error), {
+        feature: PERPS_CONSTANTS.FEATURE_NAME,
+        message: 'Failed to open Trading View URL',
+      });
     });
   }, []);
 
   const handleMarketHoursInfoPress = useCallback(() => {
     setIsMarketHoursModalVisible(true);
+  }, []);
+
+  const handleFullscreenChartOpen = useCallback(() => {
+    setIsFullscreenChartVisible(true);
+  }, []);
+
+  const handleFullscreenChartClose = useCallback(() => {
+    setIsFullscreenChartVisible(false);
+  }, []);
+
+  const handleChartError = useCallback(() => {
+    // Log the error but don't block the UI
+    Logger.error(new Error('Chart rendering error in market details view'), {
+      feature: PERPS_CONSTANTS.FEATURE_NAME,
+    });
   }, []);
 
   // Determine market hours content key based on current status - recalculated on each render to stay current
@@ -713,6 +779,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           market={market}
           onBackPress={handleBackPress}
           onFavoritePress={handleWatchlistPress}
+          onFullscreenPress={handleFullscreenChartOpen}
           isFavorite={isWatchlist}
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
@@ -731,17 +798,46 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         >
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            {/* Always render chart to avoid WebView remount on interval changes */}
-            <TradingViewChart
-              ref={chartRef}
-              candleData={candleData}
-              height={350}
-              visibleCandleCount={visibleCandleCount}
-              tpslLines={tpslLines}
-              symbol={market?.symbol}
-              onNeedMoreHistory={fetchMoreHistory}
-              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-            />
+            <ComponentErrorBoundary
+              componentLabel="PerpsMarketDetailsChart"
+              onError={handleChartError}
+            >
+              {/* OHLCV Bar - Shows above chart when interacting */}
+              {ohlcData && (
+                <PerpsOHLCVBar
+                  open={ohlcData.open}
+                  high={ohlcData.high}
+                  low={ohlcData.low}
+                  close={ohlcData.close}
+                  volume={ohlcData.volume}
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`}
+                />
+              )}
+
+              {hasHistoricalData ? (
+                <>
+                  <TradingViewChart
+                    ref={chartRef}
+                    candleData={candleData}
+                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                    visibleCandleCount={visibleCandleCount}
+                    tpslLines={tpslLines}
+                    symbol={market?.symbol}
+                    showOverlay={false}
+                    coloredVolume
+                    onOhlcDataChange={setOhlcData}
+                    onNeedMoreHistory={fetchMoreHistory}
+                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+                  />
+                </>
+              ) : (
+                <Skeleton
+                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                  width="100%"
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+                />
+              )}
+            </ComponentErrorBoundary>
 
             {/* Candle Period Selector */}
             <PerpsCandlePeriodSelector
@@ -930,6 +1026,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
         />
       )}
+
+      {/* Fullscreen Chart Modal */}
+      <PerpsChartFullscreenModal
+        isVisible={isFullscreenChartVisible}
+        candleData={candleData}
+        tpslLines={tpslLines}
+        selectedInterval={selectedCandlePeriod}
+        visibleCandleCount={visibleCandleCount}
+        onClose={handleFullscreenChartClose}
+        onIntervalChange={handleCandlePeriodChange}
+      />
     </SafeAreaView>
   );
 };

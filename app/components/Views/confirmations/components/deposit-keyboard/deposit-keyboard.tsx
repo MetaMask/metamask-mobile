@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './deposit-keyboard.styles';
@@ -28,15 +28,21 @@ const PERCENTAGE_BUTTONS = [
     value: 50,
   },
   {
-    label: 'Max',
-    value: 100,
+    label: '90%',
+    value: 90,
   },
 ];
+
+const MAX_BUTTON = {
+  label: 'Max',
+  value: 100,
+};
 
 export interface DepositKeyboardProps {
   alertMessage?: string;
   doneLabel?: string;
   hasInput?: boolean;
+  hasMax?: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -48,6 +54,7 @@ export const DepositKeyboard = memo(
     alertMessage,
     doneLabel,
     hasInput,
+    hasMax,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -71,6 +78,17 @@ export const DepositKeyboard = memo(
       [onPercentagePress],
     );
 
+    const buttons = useMemo(() => {
+      const newButtons = [...PERCENTAGE_BUTTONS];
+
+      if (hasMax) {
+        newButtons.pop();
+        newButtons.push(MAX_BUTTON);
+      }
+
+      return newButtons;
+    }, [hasMax]);
+
     return (
       <View>
         <Box
@@ -91,7 +109,7 @@ export const DepositKeyboard = memo(
           )}
           {!alertMessage &&
             !hasInput &&
-            PERCENTAGE_BUTTONS.map(({ label, value: buttonValue }) => (
+            buttons.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
                 label={label}

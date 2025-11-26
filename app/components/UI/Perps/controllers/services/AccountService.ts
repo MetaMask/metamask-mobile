@@ -186,7 +186,7 @@ export class AccountService {
           MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
         ).addProperties({
           [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
           [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
         });
         context.analytics.trackEvent(eventBuilder.build());
@@ -249,7 +249,7 @@ export class AccountService {
         MetaMetricsEvents.PERPS_WITHDRAWAL_TRANSACTION,
       ).addProperties({
         [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-        [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+        [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
         [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
         [PerpsEventProperties.ERROR_MESSAGE]: result.error || 'Unknown error',
       });

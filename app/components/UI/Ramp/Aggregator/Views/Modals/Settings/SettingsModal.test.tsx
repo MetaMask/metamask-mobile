@@ -10,6 +10,18 @@ import {
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../../sdk';
+import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -175,6 +187,10 @@ describe('SettingsModal', () => {
         location: 'Buy Settings Modal',
         ramp_type: 'DEPOSIT',
         region: 'us',
+        ramp_routing: undefined,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
       });
     });
   });

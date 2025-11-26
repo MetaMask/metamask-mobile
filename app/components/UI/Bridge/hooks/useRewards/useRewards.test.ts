@@ -171,6 +171,8 @@ const mockActiveQuote = {
 
 describe('useRewards', () => {
   const mockCall = Engine.controllerMessenger.call as jest.Mock;
+  const mockSubscribe = Engine.controllerMessenger.subscribe as jest.Mock;
+  const mockUnsubscribe = Engine.controllerMessenger.unsubscribe as jest.Mock;
 
   const defaultSourceToken = {
     address: '0x0000000000000000000000000000000000000000' as Hex,
@@ -190,12 +192,15 @@ describe('useRewards', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset subscription handler storage
+    mockSubscribe.mockClear();
+    mockUnsubscribe.mockClear();
   });
 
-  describe('when rewards feature is disabled', () => {
-    it('should return default state when rewards feature is disabled', async () => {
+  describe('when there is no active season', () => {
+    it('should return default state when there is no active season', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(false);
         }
         return Promise.resolve(null);
@@ -225,11 +230,12 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: false,
           accountOptedIn: null,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:isRewardsFeatureEnabled',
+        'RewardsController:hasActiveSeason',
       );
     });
   });
@@ -237,10 +243,10 @@ describe('useRewards', () => {
   describe('when user has not opted in', () => {
     it('should return default state when user has not opted in and opt-in is not supported', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -276,11 +282,12 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: false,
           accountOptedIn: false,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getFirstSubscriptionId',
+        'RewardsController:getCandidateSubscriptionId',
       );
       expect(mockCall).toHaveBeenCalledWith(
         'RewardsController:getHasAccountOptedIn',
@@ -294,10 +301,10 @@ describe('useRewards', () => {
 
     it('should show rewards row when user has not opted in but opt-in is supported', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -333,11 +340,12 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: false,
           accountOptedIn: false,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getFirstSubscriptionId',
+        'RewardsController:getCandidateSubscriptionId',
       );
       expect(mockCall).toHaveBeenCalledWith(
         'RewardsController:getHasAccountOptedIn',
@@ -353,10 +361,10 @@ describe('useRewards', () => {
   describe('when rewards estimation is successful', () => {
     it('should return estimated points when all conditions are met', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -392,6 +400,7 @@ describe('useRewards', () => {
           estimatedPoints: 100,
           hasError: false,
           accountOptedIn: true,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
@@ -423,10 +432,10 @@ describe('useRewards', () => {
 
     it('should handle source token without exchange rate', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -499,6 +508,7 @@ describe('useRewards', () => {
         estimatedPoints: null,
         hasError: false,
         accountOptedIn: null,
+        rewardsAccountScope: expect.any(Object),
       });
 
       // Should not call Engine methods
@@ -529,6 +539,7 @@ describe('useRewards', () => {
         estimatedPoints: null,
         hasError: false,
         accountOptedIn: null,
+        rewardsAccountScope: null,
       });
     });
 
@@ -556,6 +567,7 @@ describe('useRewards', () => {
         estimatedPoints: null,
         hasError: false,
         accountOptedIn: null,
+        rewardsAccountScope: expect.any(Object),
       });
     });
 
@@ -583,6 +595,7 @@ describe('useRewards', () => {
         estimatedPoints: null,
         hasError: false,
         accountOptedIn: null,
+        rewardsAccountScope: expect.any(Object),
       });
     });
   });
@@ -590,10 +603,10 @@ describe('useRewards', () => {
   describe('when subscription ID is missing', () => {
     it('should return default state when there is no subscription', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve(null);
         }
         return Promise.resolve(null);
@@ -623,14 +636,15 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: false,
           accountOptedIn: null,
+          rewardsAccountScope: expect.any(Object),
         });
       });
 
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:isRewardsFeatureEnabled',
+        'RewardsController:hasActiveSeason',
       );
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getFirstSubscriptionId',
+        'RewardsController:getCandidateSubscriptionId',
       );
       expect(mockCall).not.toHaveBeenCalledWith(
         'RewardsController:getHasAccountOptedIn',
@@ -642,10 +656,10 @@ describe('useRewards', () => {
   describe('error handling', () => {
     it('should handle rewards estimation error gracefully', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -681,14 +695,15 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: true,
           accountOptedIn: true,
+          rewardsAccountScope: expect.any(Object),
         });
       });
     });
 
-    it('should set hasError to true when isRewardsFeatureEnabled throws an error', async () => {
+    it('should set hasError to true when hasActiveSeason throws an error', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
-          throw new Error('Feature check failed');
+        if (method === 'RewardsController:hasActiveSeason') {
+          throw new Error('Active season check failed');
         }
         return Promise.resolve(null);
       });
@@ -717,16 +732,17 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: true,
           accountOptedIn: null,
+          rewardsAccountScope: expect.any(Object),
         });
       });
     });
 
     it('should set hasError to true when getHasAccountOptedIn throws an error', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -759,6 +775,7 @@ describe('useRewards', () => {
           estimatedPoints: null,
           hasError: true,
           accountOptedIn: null,
+          rewardsAccountScope: expect.any(Object),
         });
       });
     });
@@ -766,10 +783,10 @@ describe('useRewards', () => {
     it('should reset hasError to false when estimation succeeds after previous error', async () => {
       // First mock returns error
       mockCall.mockImplementationOnce((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -805,10 +822,10 @@ describe('useRewards', () => {
 
       // Now mock successful response
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+        if (method === 'RewardsController:hasActiveSeason') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getFirstSubscriptionId') {
+        if (method === 'RewardsController:getCandidateSubscriptionId') {
           return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
@@ -840,6 +857,7 @@ describe('useRewards', () => {
           estimatedPoints: 100,
           hasError: false,
           accountOptedIn: true,
+          rewardsAccountScope: expect.any(Object),
         });
       });
     });

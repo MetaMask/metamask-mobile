@@ -28,6 +28,7 @@ import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import { colors } from '../../../../styles/common';
+import VerifyingRegistration from '../components/Onboarding/VerifyingRegistration';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
@@ -164,6 +165,11 @@ const MainRoutes = () => {
         name={Routes.CARD.ONBOARDING.ROOT}
         component={OnboardingNavigator}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.CARD.VERIFYING_REGISTRATION}
+        component={VerifyingRegistration}
+        options={cardAuthenticationNavigationOptions}
       />
     </Stack.Navigator>
   );

@@ -79,7 +79,8 @@ export const useSendActions = () => {
 
   const handleCancelPress = useCallback(() => {
     captureSendExit();
-    navigation.navigate(Routes.WALLET_VIEW);
+
+    navigation.goBack();
   }, [captureSendExit, navigation]);
 
   const handleBackPress = useCallback(() => {

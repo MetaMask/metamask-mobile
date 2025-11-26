@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
-import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
-import ElevatedView from 'react-native-elevated-view';
+import { Platform, TouchableOpacity, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TabCountIcon from '../Tabs/TabCountIcon';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -179,7 +178,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   const optionsDisabled = !toggleOptions;
 
   return (
-    <ElevatedView elevation={11} style={styles.bottomBar}>
+    <View style={styles.bottomBar}>
       <TouchableOpacity
         onPress={onBackPress}
         style={styles.iconButton}
@@ -254,7 +253,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
           style={[styles.icon, optionsDisabled && styles.disabledIcon]}
         />
       </TouchableOpacity>
-    </ElevatedView>
+    </View>
   );
 };
 

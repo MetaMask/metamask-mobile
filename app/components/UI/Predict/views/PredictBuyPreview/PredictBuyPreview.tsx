@@ -65,6 +65,7 @@ import ButtonHero from '../../../../../component-library/components-temp/Buttons
 import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { PredictBuyPreviewSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -209,6 +210,7 @@ const PredictBuyPreview = () => {
     enabled: isRewardsEnabled,
     isLoading: isRewardsLoading,
     accountOptedIn: isAccountOptedIntoRewards,
+    rewardsAccountScope,
     estimatedPoints: estimatedRewardsPoints,
     hasError: isRewardsError,
   } = usePredictRewards(
@@ -472,6 +474,7 @@ const PredictBuyPreview = () => {
 
     return (
       <ButtonHero
+        testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
         onPress={onPlaceBet}
         disabled={!canPlaceBet}
         isLoading={isLoading}
@@ -536,6 +539,7 @@ const PredictBuyPreview = () => {
         metamaskFee={metamaskFee}
         providerFee={providerFee}
         shouldShowRewardsRow={shouldShowRewardsRow}
+        rewardsAccountScope={rewardsAccountScope}
         accountOptedIn={isAccountOptedIntoRewards}
         estimatedPoints={estimatedRewardsPoints}
         isLoadingRewards={

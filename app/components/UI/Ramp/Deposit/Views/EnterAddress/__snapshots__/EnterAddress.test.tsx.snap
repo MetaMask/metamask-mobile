@@ -589,6 +589,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -1514,6 +1515,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -2268,6 +2270,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -3125,6 +3128,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -3879,6 +3883,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -4744,6 +4749,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {
@@ -5498,6 +5504,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     {
                                       "flex": 1,
@@ -6384,6 +6391,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                 [
                                   {
                                     "padding": 15,
+                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   {

@@ -580,6 +580,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     {
@@ -913,6 +914,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -1690,6 +1692,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                   [
                                     {
                                       "padding": 15,
+                                      "paddingHorizontal": 16,
                                     },
                                     undefined,
                                     {
@@ -2236,6 +2239,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,

@@ -1,8 +1,15 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Box, TextVariant } from '@metamask/design-system-react-native';
-import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
+import {
+  Box,
+  Icon,
+  IconColor,
+  IconSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SECTIONS_ARRAY } from '../../config/sections.config';
 
 /**
@@ -12,21 +19,29 @@ import { SECTIONS_ARRAY } from '../../config/sections.config';
  */
 const QuickActions: React.FC = () => {
   const navigation = useNavigation();
+  const tw = useTailwind();
 
   return (
-    <Box twClassName="mb-3">
+    <Box twClassName="mt-1 mb-4">
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <Box twClassName="flex-row gap-2">
           {SECTIONS_ARRAY.map((section) => (
-            <ButtonFilter
+            <TouchableOpacity
               key={section.id}
-              isActive={false}
               onPress={() => section.viewAllAction(navigation)}
               testID={`quick-action-${section.id}`}
-              textProps={{ variant: TextVariant.BodySm }}
+              style={tw.style(
+                'flex-row items-center justify-center gap-1 rounded-2xl bg-background-section px-3 py-2',
+              )}
             >
-              {section.title}
-            </ButtonFilter>
+              <Icon
+                name={section.icon}
+                size={IconSize.Md}
+                color={IconColor.IconAlternative}
+                style={tw.style('-ml-1')}
+              />
+              <Text variant={TextVariant.BodySm}>{section.title}</Text>
+            </TouchableOpacity>
           ))}
         </Box>
       </ScrollView>

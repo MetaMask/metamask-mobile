@@ -83,11 +83,8 @@ describe('useCardProviderAuthentication', () => {
     });
     mockGenerateState.mockReturnValue(mockStateUuid);
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSdk as unknown as CardSDK,
-      isLoading: false,
-      logoutFromProvider: jest.fn(),
-      user: null,
-      setUser: jest.fn(),
     });
     mockStrings.mockImplementation((key: string) => `mocked_${key}`);
     mockUseDispatch.mockReturnValue(mockDispatch);
@@ -423,11 +420,8 @@ describe('useCardProviderAuthentication', () => {
 
     it('throws error when SDK is not initialized', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        logoutFromProvider: jest.fn(),
-        user: null,
-        setUser: jest.fn(),
       });
 
       const loginParams = {
@@ -757,11 +751,8 @@ describe('useCardProviderAuthentication', () => {
 
     it('throws error when SDK is not initialized', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        logoutFromProvider: jest.fn(),
-        user: null,
-        setUser: jest.fn(),
       });
 
       const otpParams = {

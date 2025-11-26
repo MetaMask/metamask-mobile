@@ -848,6 +848,14 @@ export interface RewardsControllerIsRewardsFeatureEnabledAction {
 }
 
 /**
+ * Action for checking if there is an active season
+ */
+export interface RewardsControllerHasActiveSeasonAction {
+  type: 'RewardsController:hasActiveSeason';
+  handler: () => Promise<boolean>;
+}
+
+/**
  * Action for getting season metadata with caching
  */
 export interface RewardsControllerGetSeasonMetadataAction {
@@ -1009,6 +1017,7 @@ export type RewardsControllerActions =
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
   | RewardsControllerIsRewardsFeatureEnabledAction
+  | RewardsControllerHasActiveSeasonAction
   | RewardsControllerGetSeasonMetadataAction
   | RewardsControllerGetSeasonStatusAction
   | RewardsControllerGetReferralDetailsAction

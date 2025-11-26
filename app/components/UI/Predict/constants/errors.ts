@@ -28,6 +28,8 @@ export const PREDICT_ERROR_CODES = {
   ACTIVITY_NOT_AVAILABLE: 'PREDICT_ACTIVITY_NOT_AVAILABLE',
   DEPOSIT_FAILED: 'PREDICT_DEPOSIT_FAILED',
   WITHDRAW_FAILED: 'PREDICT_WITHDRAW_FAILED',
+  BUY_ORDER_NOT_FULLY_FILLED: 'PREDICT_BUY_ORDER_NOT_FULLY_FILLED',
+  SELL_ORDER_NOT_FULLY_FILLED: 'PREDICT_SELL_ORDER_NOT_FULLY_FILLED',
 } as const;
 
 export const getPredictErrorMessages = () =>
@@ -58,5 +60,11 @@ export const getPredictErrorMessages = () =>
     ),
     [PREDICT_ERROR_CODES.ORDER_NOT_FULLY_FILLED]: strings(
       'predict.error_messages.order_not_fully_filled',
+    ),
+    [PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED]: strings(
+      'predict.error_messages.buy_order_not_fully_filled',
+    ),
+    [PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED]: strings(
+      'predict.error_messages.sell_order_not_fully_filled',
     ),
   }) as const;

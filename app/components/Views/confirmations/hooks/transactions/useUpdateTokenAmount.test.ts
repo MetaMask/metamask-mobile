@@ -112,4 +112,21 @@ describe('useUpdateTokenAmount', () => {
         ) + toHex(15000).substring(2),
     });
   });
+
+  it('does not update amount if new amount is equal to current amount', () => {
+    const { result } = runHook({
+      transactionMeta: {
+        txParams: {
+          data: TOKEN_TRANSFER_DATA_MOCK,
+          from: '0x13',
+          to: tokenAddress1Mock,
+        },
+      },
+    });
+
+    result.current.updateTokenAmount('0.000000000000000001');
+
+    expect(updateEditableParamsMock).not.toHaveBeenCalled();
+    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+  });
 });

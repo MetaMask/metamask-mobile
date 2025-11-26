@@ -59,6 +59,10 @@ export function useUpdateTokenAmount() {
         decimals ?? 18,
       ).decimalPlaces(0, BigNumber.ROUND_UP);
 
+      if (newAmountRaw.isEqualTo(amountRaw)) {
+        return;
+      }
+
       const transactionData = parseStandardTokenTransactionData(data);
       const recipient = transactionData?.args?._to;
 

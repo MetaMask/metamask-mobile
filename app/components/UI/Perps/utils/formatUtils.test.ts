@@ -15,9 +15,9 @@ import {
   formatTransactionDate,
   formatDateSection,
   formatFundingRate,
-  formatFee,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
+  formatPositiveFiat,
 } from './formatUtils';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
@@ -195,13 +195,13 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('formatFee', () => {
+  describe('formatPositiveFiat', () => {
     it('returns "$0" when fee is exactly zero', () => {
       // Given a fee of exactly zero
       const fee = 0;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it returns "$0"
       expect(result).toBe('$0');
@@ -212,7 +212,7 @@ describe('formatUtils', () => {
       const fee = 0.005;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it returns "< $0.01"
       expect(result).toBe('< $0.01');
@@ -223,7 +223,7 @@ describe('formatUtils', () => {
       const fee = 0.01;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it formats normally
       expect(result).toBe('$0.01');
@@ -234,7 +234,7 @@ describe('formatUtils', () => {
       const fee = 1.5;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it formats normally
       expect(result).toBe('$1.50');
@@ -245,7 +245,7 @@ describe('formatUtils', () => {
       const fee = 0.0001;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it returns "< $0.01"
       expect(result).toBe('< $0.01');
@@ -256,7 +256,7 @@ describe('formatUtils', () => {
       const fee = 0.0099;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it returns "< $0.01"
       expect(result).toBe('< $0.01');
@@ -267,7 +267,7 @@ describe('formatUtils', () => {
       const fee = 0.0101;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it formats normally (rounded to $0.01)
       expect(result).toBe('$0.01');
@@ -278,7 +278,7 @@ describe('formatUtils', () => {
       const fee = 123.45;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it formats with proper decimals
       expect(result).toBe('$123.45');
@@ -289,7 +289,7 @@ describe('formatUtils', () => {
       const fee = 100;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then trailing zeros are stripped
       expect(result).toBe('$100');
@@ -300,7 +300,7 @@ describe('formatUtils', () => {
       const fee = 1.23456789;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it rounds appropriately
       expect(result).toBe('$1.23');
@@ -311,7 +311,7 @@ describe('formatUtils', () => {
       const fee = -0;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it returns "$0"
       expect(result).toBe('$0');
@@ -322,7 +322,7 @@ describe('formatUtils', () => {
       const fee = 0.00000001;
 
       // When formatting the fee
-      const result = formatFee(fee);
+      const result = formatPositiveFiat(fee);
 
       // Then it returns "< $0.01"
       expect(result).toBe('< $0.01');

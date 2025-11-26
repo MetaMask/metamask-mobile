@@ -1,4 +1,4 @@
-import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
+import extractURLParams from './DeeplinkManager/utils/extractURLParams';
 import { RootState } from '../reducers';
 import { Store } from 'redux';
 import Logger from '../util/Logger';

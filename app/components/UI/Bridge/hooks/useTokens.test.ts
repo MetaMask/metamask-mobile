@@ -752,7 +752,7 @@ describe('useTokens', () => {
     it('filters out non-tradable Tron tokens from remainingTokens', async () => {
       const tronMaxBandwidthToken = {
         address: '0x789',
-        symbol: 'Max Bandwidth',
+        symbol: 'Max-Bandwidth',
         name: 'Max Bandwidth',
         decimals: 6,
         chainId: TrxScope.Mainnet,

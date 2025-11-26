@@ -5,6 +5,7 @@ import { ConnectionInfo } from '../types/connection-info';
 import { RPCBridgeAdapter } from './rpc-bridge-adapter';
 import { whenEngineReady } from '../utils/when-engine-ready';
 import { whenOnboardingComplete } from '../utils/when-onboarding-complete';
+import { whenStoreReady } from '../utils/when-store-ready';
 
 jest.mock('../../BackgroundBridge/BackgroundBridge');
 jest.mock('../utils/when-engine-ready', () => ({
@@ -12,6 +13,9 @@ jest.mock('../utils/when-engine-ready', () => ({
 }));
 jest.mock('../utils/when-onboarding-complete', () => ({
   whenOnboardingComplete: jest.fn(),
+}));
+jest.mock('../utils/when-store-ready', () => ({
+  whenStoreReady: jest.fn(),
 }));
 jest.mock('../../Engine', () => ({
   controllerMessenger: {
@@ -28,6 +32,7 @@ jest.mock('../../Engine', () => ({
 const MockedBackgroundBridge = BackgroundBridge as any;
 const mockedWhenEngineReady = whenEngineReady as jest.Mock;
 const mockedWhenOnboardingComplete = whenOnboardingComplete as jest.Mock;
+const mockedWhenStoreReady = whenStoreReady as jest.Mock;
 const mockedEngine = Engine as any;
 
 describe('RPCBridgeAdapter', () => {
@@ -62,6 +67,7 @@ describe('RPCBridgeAdapter', () => {
     mockedEngine.controllerMessenger = mockMessenger;
     mockedWhenEngineReady.mockResolvedValue(undefined);
     mockedWhenOnboardingComplete.mockResolvedValue(undefined);
+    mockedWhenStoreReady.mockResolvedValue(undefined);
 
     // Capture the instance and sendMessage callback from the mock constructor
     MockedBackgroundBridge.mockImplementation((args: any) => {
@@ -89,6 +95,8 @@ describe('RPCBridgeAdapter', () => {
       await new Promise(process.nextTick);
 
       expect(mockedWhenEngineReady).toHaveBeenCalledTimes(1);
+      expect(mockedWhenOnboardingComplete).toHaveBeenCalledTimes(1);
+      expect(mockedWhenStoreReady).toHaveBeenCalledTimes(1);
       expect(mockMessenger.subscribe).toHaveBeenCalledWith(
         'KeyringController:unlock',
         expect.any(Function),
@@ -112,6 +120,8 @@ describe('RPCBridgeAdapter', () => {
       await new Promise(process.nextTick);
 
       expect(mockedWhenEngineReady).toHaveBeenCalledTimes(1);
+      expect(mockedWhenOnboardingComplete).toHaveBeenCalledTimes(1);
+      expect(mockedWhenStoreReady).toHaveBeenCalledTimes(1);
       expect(mockMessenger.subscribe).toHaveBeenCalledTimes(1);
       expect(MockedBackgroundBridge).toHaveBeenCalledTimes(1);
     });

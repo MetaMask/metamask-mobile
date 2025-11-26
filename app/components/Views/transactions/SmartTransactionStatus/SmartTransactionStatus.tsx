@@ -299,7 +299,7 @@ const SmartTransactionStatus = ({
 
   const createNewSwap = () => {
     onConfirm();
-    navigation.navigate(Routes.SWAPS);
+    navigation.navigate(Routes.BRIDGE.ROOT);
   };
 
   const createNewSend = () => {

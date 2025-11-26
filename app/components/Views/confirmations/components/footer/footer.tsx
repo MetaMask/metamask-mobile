@@ -44,6 +44,7 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+  TransactionType.musdConversion,
 ];
 
 export const Footer = () => {

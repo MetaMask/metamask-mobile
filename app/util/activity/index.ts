@@ -116,14 +116,16 @@ export const filterByAddressAndNetwork = (
     condition &&
     tx.status !== TX_UNAPPROVED
   ) {
-    return isTransfer
+    const result = isTransfer
       ? !!tokens.find(({ address }) =>
           areAddressesEqual(
             address,
             transferInformation?.contractAddress ?? '',
           ),
-        )
+        ) || areAddressesEqual(from, selectedAddress) // Allow if sender is current address
       : true;
+
+    return result;
   }
 
   return false;
@@ -150,14 +152,16 @@ export const filterByAddress = (
     isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
     tx.status !== TX_UNAPPROVED
   ) {
-    return isTransfer
+    const result = isTransfer
       ? !!tokens.find(({ address }) =>
           areAddressesEqual(
             address,
             transferInformation?.contractAddress ?? '',
           ),
-        )
+        ) || areAddressesEqual(from, selectedAddress) // Allow if sender is current address
       : true;
+
+    return result;
   }
 
   return false;
@@ -168,7 +172,21 @@ export function isTransactionOnChains(
   chainIds: Hex[],
   allTransactions: TransactionMeta[],
 ): boolean {
-  const { chainId, requiredTransactionIds } = transaction;
+  const { chainId, requiredTransactionIds, type } = transaction;
+
+  // Hide Perps deposit transaction if it was funded by a non-selected chain.
+  if (type === TransactionType.perpsDeposit && requiredTransactionIds?.length) {
+    const requiredTransaction = allTransactions.find(
+      (t) => t.id === requiredTransactionIds[0],
+    );
+
+    if (
+      requiredTransaction &&
+      !chainIds.includes(requiredTransaction.chainId)
+    ) {
+      return false;
+    }
+  }
 
   if (chainIds.includes(chainId)) {
     return true;

@@ -138,7 +138,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
     });
 
     it('returns selected account when available', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(true); // getHasAccountOptedIn
 
@@ -150,9 +150,9 @@ describe('usePerpsRewardAccountOptedIn', () => {
     });
   });
 
-  describe('Rewards feature enabled check', () => {
-    it('returns null when rewards feature is disabled', async () => {
-      mockEngineCall.mockResolvedValueOnce(false); // isRewardsFeatureEnabled
+  describe('Active season check', () => {
+    it('returns null when there is no active season', async () => {
+      mockEngineCall.mockResolvedValueOnce(false); // hasActiveSeason
 
       const { result } = renderHook(() => usePerpsRewardAccountOptedIn());
 
@@ -161,15 +161,15 @@ describe('usePerpsRewardAccountOptedIn', () => {
       });
 
       expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:isRewardsFeatureEnabled',
+        'RewardsController:hasActiveSeason',
       );
       expect(mockEngineCall).not.toHaveBeenCalledWith(
         'RewardsController:getCandidateSubscriptionId',
       );
     });
 
-    it('proceeds to check subscription when rewards feature is enabled', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+    it('proceeds to check subscription when there is an active season', async () => {
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(true); // getHasAccountOptedIn
 
@@ -177,7 +177,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
 
       await waitFor(() => {
         expect(mockEngineCall).toHaveBeenCalledWith(
-          'RewardsController:isRewardsFeatureEnabled',
+          'RewardsController:hasActiveSeason',
         );
         expect(mockEngineCall).toHaveBeenCalledWith(
           'RewardsController:getCandidateSubscriptionId',
@@ -188,7 +188,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
 
   describe('Subscription check', () => {
     it('returns null when no subscription exists', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce(null); // getCandidateSubscriptionId
 
       const { result } = renderHook(() => usePerpsRewardAccountOptedIn());
@@ -206,7 +206,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
     });
 
     it('proceeds to check opt-in when subscription exists', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(true); // getHasAccountOptedIn
 
@@ -226,7 +226,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
 
   describe('CAIP account formatting', () => {
     it('returns null when CAIP formatting fails', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockFormatAccountToCaipAccountId.mockReturnValue(null);
 
@@ -248,7 +248,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
 
     it('uses formatted CAIP account for opt-in check', async () => {
       const customCaipAccount = 'eip155:1:0xCustomAddress';
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockFormatAccountToCaipAccountId.mockReturnValue(customCaipAccount);
       mockEngineCall.mockResolvedValueOnce(true); // getHasAccountOptedIn
@@ -266,7 +266,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
 
   describe('Account opt-in status', () => {
     it('returns true when account has opted in', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(true); // getHasAccountOptedIn
 
@@ -278,7 +278,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
     });
 
     it('returns false when account has not opted in and opt-in is supported', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(false); // getHasAccountOptedIn
       mockEngineCall.mockResolvedValueOnce(true); // isOptInSupported
@@ -296,7 +296,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
     });
 
     it('returns null when account has not opted in and opt-in is not supported', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(false); // getHasAccountOptedIn
       mockEngineCall.mockResolvedValueOnce(false); // isOptInSupported
@@ -315,8 +315,10 @@ describe('usePerpsRewardAccountOptedIn', () => {
   });
 
   describe('Error handling', () => {
-    it('returns null when isRewardsFeatureEnabled throws error', async () => {
-      mockEngineCall.mockRejectedValueOnce(new Error('Feature check failed'));
+    it('returns null when hasActiveSeason throws error', async () => {
+      mockEngineCall.mockRejectedValueOnce(
+        new Error('Active season check failed'),
+      );
 
       const { result } = renderHook(() => usePerpsRewardAccountOptedIn());
 
@@ -326,7 +328,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
     });
 
     it('returns null when getCandidateSubscriptionId throws error', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockRejectedValueOnce(
         new Error('Subscription check failed'),
       );
@@ -339,7 +341,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
     });
 
     it('returns null when getHasAccountOptedIn throws error', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockRejectedValueOnce(new Error('Opt-in check failed'));
 
@@ -351,7 +353,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
     });
 
     it('returns null when isOptInSupported throws error', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(false); // getHasAccountOptedIn
       mockEngineCall.mockRejectedValueOnce(
@@ -368,7 +370,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
 
   describe('Account linked event subscription', () => {
     it('subscribes to account linked event on mount', () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(true); // getHasAccountOptedIn
 
@@ -381,7 +383,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
     });
 
     it('unsubscribes from account linked event on unmount', () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-id'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(true); // getHasAccountOptedIn
 
@@ -467,7 +469,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
 
   describe('Integration scenarios', () => {
     it('handles complete flow from account selection to opt-in check', async () => {
-      mockEngineCall.mockResolvedValueOnce(true); // isRewardsFeatureEnabled
+      mockEngineCall.mockResolvedValueOnce(true); // hasActiveSeason
       mockEngineCall.mockResolvedValueOnce('subscription-123'); // getCandidateSubscriptionId
       mockEngineCall.mockResolvedValueOnce(true); // getHasAccountOptedIn
 
@@ -479,7 +481,7 @@ describe('usePerpsRewardAccountOptedIn', () => {
       });
 
       expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:isRewardsFeatureEnabled',
+        'RewardsController:hasActiveSeason',
       );
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getCandidateSubscriptionId',

@@ -2,31 +2,17 @@
 
 import { ParseOutput } from 'eth-url-parser';
 import { Dispatch } from 'redux';
-import handleBrowserUrl from './Handlers/handleBrowserUrl';
-import handleEthereumUrl from './Handlers/handleEthereumUrl';
-import handleRampUrl from './Handlers/handleRampUrl';
-import handleDepositCashUrl from './Handlers/handleDepositCashUrl';
-import switchNetwork from './Handlers/switchNetwork';
-import parseDeeplink from './ParseManager/parseDeeplink';
-import approveTransaction from './TransactionManager/approveTransaction';
-import { RampType } from '../../reducers/fiatOrders/types';
-import { handleSwapUrl } from './Handlers/handleSwapUrl';
-import { navigateToHomeUrl } from './Handlers/handleHomeUrl';
-import Routes from '../../constants/navigation/Routes';
-import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
-import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
+import switchNetwork from './handlers/legacy/switchNetwork';
+import parseDeeplink from './parseDeeplink';
+import approveTransaction from './utils/approveTransaction';
 import { store } from '../../store';
 import NavigationService from '../NavigationService';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
-import { handleDeeplink } from './Handlers/handleDeeplink';
+import { handleDeeplink } from './handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
-import { handleRewardsUrl } from './Handlers/handleRewardsUrl';
-import { handlePredictUrl } from './Handlers/handlePredictUrl';
-import handleFastOnboarding from './Handlers/handleFastOnboarding';
-import { handleEnableCardButton } from './Handlers/handleEnableCardButton';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -68,96 +54,6 @@ class DeeplinkManager {
       ethUrl,
       origin,
     });
-
-  async _handleEthereumUrl(url: string, origin: string) {
-    return handleEthereumUrl({
-      deeplinkManager: this,
-      url,
-      origin,
-    });
-  }
-
-  _handleBrowserUrl(url: string, callback?: (url: string) => void) {
-    return handleBrowserUrl({
-      deeplinkManager: this,
-      url,
-      callback,
-    });
-  }
-
-  _handleBuyCrypto(rampPath: string) {
-    handleRampUrl({
-      rampPath,
-      navigation: this.navigation,
-      rampType: RampType.BUY,
-    });
-  }
-
-  _handleSellCrypto(rampPath: string) {
-    handleRampUrl({
-      rampPath,
-      navigation: this.navigation,
-      rampType: RampType.SELL,
-    });
-  }
-
-  _handleDepositCash(depositCashPath: string) {
-    handleDepositCashUrl({
-      depositPath: depositCashPath,
-      navigation: this.navigation,
-    });
-  }
-
-  _handleRewards(rewardsPath: string) {
-    handleRewardsUrl({
-      rewardsPath,
-    });
-  }
-
-  // NOTE: open the home screen for new subdomain
-  _handleOpenHome(homePath?: string) {
-    navigateToHomeUrl({ homePath });
-  }
-
-  // NOTE: this will be used for new deeplink subdomain
-  _handleSwap(swapPath: string) {
-    handleSwapUrl({
-      swapPath,
-    });
-  }
-
-  _handleCreateAccount(createAccountPath: string) {
-    handleCreateAccountUrl({
-      path: createAccountPath,
-      navigation: this.navigation,
-    });
-  }
-
-  _handlePerps(perpsPath: string) {
-    handlePerpsUrl({
-      perpsPath,
-    });
-  }
-
-  _handlePredict(predictPath: string, origin?: string) {
-    handlePredictUrl({
-      predictPath,
-      origin,
-    });
-  }
-
-  // NOTE: keeping this for backwards compatibility
-  _handleOpenSwap() {
-    this.navigation.navigate(Routes.SWAPS);
-  }
-
-  _handleFastOnboarding(onboardingPath: string) {
-    handleFastOnboarding({ onboardingPath });
-  }
-
-  _handleEnableCardButton() {
-    handleEnableCardButton();
-  }
 
   async parse(
     url: string,

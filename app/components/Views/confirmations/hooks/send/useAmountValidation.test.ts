@@ -19,6 +19,10 @@ import { AssetType, TokenStandard } from '../../types/token';
 import * as SendContext from '../../context/send-context/send-context';
 const MOCK_ADDRESS_1 = '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc';
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: () => ({}),
+}));
+
 describe('validateERC1155Balance', () => {
   it('return error if amount is greater than balance and not otherwise', () => {
     expect(

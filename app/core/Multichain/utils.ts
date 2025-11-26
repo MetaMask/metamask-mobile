@@ -17,6 +17,8 @@ import {
   formatBlockExplorerTransactionUrl,
 } from './networks';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
+import { base58 } from 'ethers/lib/utils';
+import Logger from '../../util/Logger';
 
 /**
  * Returns whether an account is an EVM account.
@@ -165,6 +167,34 @@ export function isBtcTestnetAddress(address: string): boolean {
  */
 export function isBtcRegtestAddress(address: string): boolean {
   return validate(address, Network.regtest);
+}
+
+/**
+ * Returns whether an address is a valid Tron address.
+ *
+ * Tron addresses are 34 characters long, start with 'T' (mainnet), and are
+ * base58 encoded. When decoded, they consist of 25 bytes: 1 byte version (0x41),
+ * 20 bytes address, and 4 bytes checksum.
+ *
+ * @param address - The address to check.
+ * @returns `true` if the address is a valid Tron address, `false` otherwise.
+ */
+export function isTronAddress(address: string): boolean {
+  if (!address || typeof address !== 'string') {
+    return false;
+  }
+
+  if (address.length !== 34 || !address.startsWith('T')) {
+    return false;
+  }
+
+  try {
+    const decoded = base58.decode(address);
+    return decoded.length === 25 && decoded[0] === 0x41;
+  } catch (error) {
+    Logger.error(new Error('Error decoding Tron address'), { error });
+    return false;
+  }
 }
 
 /**

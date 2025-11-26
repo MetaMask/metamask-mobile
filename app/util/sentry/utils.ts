@@ -76,6 +76,9 @@ export const sentryStateMask = {
       AddressBookController: {
         [AllProperties]: false,
       },
+      AppMetadataController: {
+        [AllProperties]: true,
+      },
       ApprovalController: {
         [AllProperties]: false,
       },
@@ -253,6 +256,7 @@ export const sentryStateMask = {
     protectWalletModalVisible: true,
     seedphraseBackedUp: true,
     userLoggedIn: true,
+    existingUser: true,
   },
 } as Record<string, MaskValue>;
 

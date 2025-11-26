@@ -436,6 +436,10 @@ export class RewardsController extends BaseController<
       this.isRewardsFeatureEnabled.bind(this),
     );
     this.messenger.registerActionHandler(
+      'RewardsController:hasActiveSeason',
+      this.hasActiveSeason.bind(this),
+    );
+    this.messenger.registerActionHandler(
       'RewardsController:getSeasonMetadata',
       this.getSeasonMetadata.bind(this),
     );
@@ -645,6 +649,23 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Set the active account from a candidate account
+   */
+  setActiveAccountFromCandidate(candidate: InternalAccount | null): void {
+    if (!candidate) return;
+
+    const caipAccount = this.convertInternalAccountToCaipAccountId(candidate);
+    if (!caipAccount) return;
+
+    const accountState = this.#getAccountState(caipAccount);
+    if (!accountState) return;
+
+    this.update((state: RewardsControllerState) => {
+      state.activeAccount = accountState;
+    });
+  }
+
+  /**
    * Handle authentication triggers (account changes, keyring unlock)
    */
   async handleAuthenticationTrigger(reason?: string): Promise<void> {
@@ -696,19 +717,7 @@ export class RewardsController extends BaseController<
         // Set the active account to the first successful account or the first account in the sorted accounts array
         const activeAccountCandidate: InternalAccount =
           successAccount || sortedAccounts[0];
-        if (activeAccountCandidate) {
-          const caipAccount = this.convertInternalAccountToCaipAccountId(
-            activeAccountCandidate,
-          );
-          if (caipAccount) {
-            const accountState = this.#getAccountState(caipAccount);
-            if (accountState) {
-              this.update((state: RewardsControllerState) => {
-                state.activeAccount = accountState;
-              });
-            }
-          }
-        }
+        this.setActiveAccountFromCandidate(activeAccountCandidate);
       }
     } catch (error) {
       const errorMessage =
@@ -1072,7 +1081,7 @@ export class RewardsController extends BaseController<
       } else if (account?.startsWith('eip155')) {
         coercedAccount = account.toLowerCase() as CaipAccountId;
       } else {
-        coercedAccount = account as CaipAccountId;
+        coercedAccount = account;
       }
 
       this.update((state: RewardsControllerState) => {
@@ -1583,6 +1592,10 @@ export class RewardsController extends BaseController<
   ): Promise<EstimatedPointsDto> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return { pointsEstimate: 0, bonusBips: 0 };
+
+    const activeSeason = await this.hasActiveSeason();
+    if (!activeSeason) return { pointsEstimate: 0, bonusBips: 0 };
+
     try {
       const estimatedPoints = await this.messenger.call(
         'RewardsDataService:estimatePoints',
@@ -1607,6 +1620,37 @@ export class RewardsController extends BaseController<
     const isDisabled = this.#isDisabled();
     if (isDisabled) return false;
     return true;
+  }
+
+  /**
+   * Check if there is an active season
+   * @returns Promise<boolean> - True if there is an active season, false otherwise
+   * An active season exists when getSeasonMetadata('current') returns a value
+   * and the current date is between the season's startDate and endDate
+   */
+  async hasActiveSeason(): Promise<boolean> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      return false;
+    }
+
+    try {
+      const seasonDto = await this.getSeasonMetadata('current');
+      if (!seasonDto) {
+        return false;
+      }
+
+      const now = Date.now();
+      const isActive = now >= seasonDto.startDate && now <= seasonDto.endDate;
+
+      return isActive;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to check active season:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return false;
+    }
   }
 
   /**

@@ -40,6 +40,7 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
     chartSection: {
       paddingTop: 0,
       marginTop: 16,
+      position: 'relative',
     },
     tabsSection: {
       paddingVertical: 8,

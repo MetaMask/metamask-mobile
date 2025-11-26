@@ -27,7 +27,6 @@ jest.mock('react-redux', () => ({
 }));
 
 import TrendingView from './TrendingView';
-import { updateLastTrendingScreen } from '../../Nav/Main/MainNavigator';
 import {
   selectChainId,
   selectPopularNetworkConfigurationsByCaipChainId,
@@ -50,11 +49,6 @@ jest.mock('../../../util/browser', () => ({
   appendURLParams: jest.fn((url) => ({
     href: `${url}?metamaskEntry=mobile&metricsEnabled=true&marketingEnabled=false`,
   })),
-}));
-
-jest.mock('../Browser', () => ({
-  __esModule: true,
-  default: jest.fn(() => null),
 }));
 
 // Mock the network hooks used by useTrendingRequest
@@ -94,14 +88,17 @@ jest.mock(
 );
 
 // Mock useTrendingRequest to return empty results
-jest.mock('../../../components/UI/Trending/hooks/useTrendingRequest', () => ({
-  useTrendingRequest: jest.fn(() => ({
-    results: [],
-    isLoading: false,
-    error: null,
-    fetch: jest.fn(),
-  })),
-}));
+jest.mock(
+  '../../../components/UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
+  () => ({
+    useTrendingRequest: jest.fn(() => ({
+      results: [],
+      isLoading: false,
+      error: null,
+      fetch: jest.fn(),
+    })),
+  }),
+);
 
 describe('TrendingView', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -384,52 +381,7 @@ describe('TrendingView', () => {
       expect(getByText('99')).toBeDefined();
     });
 
-    it('navigates to TrendingBrowser when button is pressed with no tabs', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        // Handle browser tabs count selector
-        if (typeof selector === 'function') {
-          const selectorStr = selector.toString();
-          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
-            return 0;
-          }
-          if (selectorStr.includes('dataCollectionForMarketing')) {
-            return false;
-          }
-        }
-        // Return default mock values for other selectors
-        if (selector === selectChainId) {
-          return '0x1';
-        }
-        if (selector === selectIsEvmNetworkSelected) {
-          return true;
-        }
-        if (selector === selectEnabledNetworksByNamespace) {
-          return { eip155: { '0x1': true } };
-        }
-        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
-          return [];
-        }
-        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
-          return [];
-        }
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
-        }
-        if (selector === selectSelectedInternalAccountByScope) {
-          return (_scope: string) => null;
-        }
-        if (typeof selector === 'function') {
-          const selectorStr = selector.toString();
-          if (
-            selectorStr.includes('selectSelectedInternalAccountByScope') ||
-            selectorStr.includes('SelectedInternalAccountByScope')
-          ) {
-            return (_scope: string) => null;
-          }
-        }
-        return undefined;
-      });
-
+    it('navigates to TrendingBrowser when button is pressed', () => {
       const { getByTestId } = render(
         <NavigationContainer>
           <TrendingView />
@@ -439,75 +391,13 @@ describe('TrendingView', () => {
       const browserButton = getByTestId('trending-view-browser-button');
       fireEvent.press(browserButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('TrendingBrowser', {
-        newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
-        timestamp: expect.any(Number),
-        fromTrending: true,
-      });
-      expect(updateLastTrendingScreen).toHaveBeenCalledWith('TrendingBrowser');
-    });
-
-    it('navigates to TrendingBrowser when button is pressed with existing tabs', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        // Handle browser tabs count selector
-        if (typeof selector === 'function') {
-          const selectorStr = selector.toString();
-          if (selectorStr.includes('browser') && selectorStr.includes('tabs')) {
-            return 3;
-          }
-          if (selectorStr.includes('dataCollectionForMarketing')) {
-            return false;
-          }
-        }
-        // Return default mock values for other selectors
-        if (selector === selectChainId) {
-          return '0x1';
-        }
-        if (selector === selectIsEvmNetworkSelected) {
-          return true;
-        }
-        if (selector === selectEnabledNetworksByNamespace) {
-          return { eip155: { '0x1': true } };
-        }
-        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
-          return [];
-        }
-        if (selector === selectCustomNetworkConfigurationsByCaipChainId) {
-          return [];
-        }
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
-        }
-        if (selector === selectSelectedInternalAccountByScope) {
-          return (_scope: string) => null;
-        }
-        if (typeof selector === 'function') {
-          const selectorStr = selector.toString();
-          if (
-            selectorStr.includes('selectSelectedInternalAccountByScope') ||
-            selectorStr.includes('SelectedInternalAccountByScope')
-          ) {
-            return (_scope: string) => null;
-          }
-        }
-        return undefined;
-      });
-
-      const { getByTestId } = render(
-        <NavigationContainer>
-          <TrendingView />
-        </NavigationContainer>,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'TrendingBrowser',
+        expect.objectContaining({
+          newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
+          fromTrending: true,
+        }),
       );
-
-      const browserButton = getByTestId('trending-view-browser-button');
-      fireEvent.press(browserButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('TrendingBrowser', {
-        newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
-        timestamp: expect.any(Number),
-        fromTrending: true,
-      });
-      expect(updateLastTrendingScreen).toHaveBeenCalledWith('TrendingBrowser');
     });
   });
 
@@ -518,46 +408,7 @@ describe('TrendingView', () => {
       </NavigationContainer>,
     );
 
-    expect(getByText('Trending')).toBeDefined();
-  });
-
-  it('navigates to TrendingBrowser route when browser button is pressed', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
-
-    const browserButton = getByTestId('trending-view-browser-button');
-
-    fireEvent.press(browserButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('TrendingBrowser', {
-      newTabUrl: expect.stringContaining('?metamaskEntry=mobile'),
-      timestamp: expect.any(Number),
-      fromTrending: true,
-    });
-    expect(updateLastTrendingScreen).toHaveBeenCalledWith('TrendingBrowser');
-  });
-
-  it('includes portfolio URL with correct parameters when browser button is pressed', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
-
-    const browserButton = getByTestId('trending-view-browser-button');
-
-    fireEvent.press(browserButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'TrendingBrowser',
-      expect.objectContaining({
-        newTabUrl: expect.stringContaining('metamaskEntry=mobile'),
-        fromTrending: true,
-      }),
-    );
+    expect(getByText('Explore')).toBeDefined();
   });
 
   it('renders search bar button', () => {

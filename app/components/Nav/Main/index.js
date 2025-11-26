@@ -37,6 +37,7 @@ import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -451,6 +452,7 @@ const Main = (props) => {
         <RampOrders />
         <SwapsLiveness />
         <CardVerification />
+        <EarnTransactionMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,

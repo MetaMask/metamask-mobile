@@ -43,7 +43,11 @@ export function PayWithModal() {
   );
 
   return (
-    <BottomSheet isFullscreen ref={bottomSheetRef}>
+    <BottomSheet
+      isFullscreen
+      ref={bottomSheetRef}
+      keyboardAvoidingViewEnabled={false}
+    >
       <BottomSheetHeader onClose={handleClose}>
         {strings('pay_with_modal.title')}
       </BottomSheetHeader>
