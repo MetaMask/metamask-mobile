@@ -140,6 +140,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     adjustMarginActionSheetRef,
     reversePositionSheetRef,
     openModifySheet,
+    openAdjustMarginSheet,
     closeModifySheet,
     closeAdjustMarginSheet,
     closeReversePositionSheet,
@@ -574,11 +575,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleMarginPress = useCallback(() => {
     if (!existingPosition) return;
-
-    navigation.navigate(Routes.PERPS.SELECT_ADJUST_MARGIN_ACTION, {
-      position: existingPosition,
-    });
-  }, [existingPosition, navigation]);
+    openAdjustMarginSheet();
+  }, [existingPosition, openAdjustMarginSheet]);
 
   const handleSharePress = useCallback(() => {
     if (!existingPosition) return;
