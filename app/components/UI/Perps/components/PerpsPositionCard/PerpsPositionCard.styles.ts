@@ -6,106 +6,152 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    // Legacy container for backward compatibility
     container: {
-      backgroundColor: colors.background.section,
+      backgroundColor: colors.background.default,
       borderRadius: 12,
-      marginVertical: 6,
-    },
-    // Container styles for different states
-    expandedContainer: {
-      backgroundColor: colors.background.section,
-      borderRadius: 12,
-      padding: 16,
-      marginVertical: 8,
-    },
-    collapsedContainer: {
-      borderRadius: 8,
-      paddingVertical: 12,
-      marginVertical: 2, // Reduced spacing between cards
     },
     header: {
       flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      marginBottom: 16,
     },
-    headerExpanded: {
-      marginBottom: 16, // Extra spacing for expanded cards before the divider
+    pnlSection: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 8,
     },
-    // Icon section styles
-    perpIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden',
-    },
-    tpslCountPress: {
-      textDecorationLine: 'underline',
-      textDecorationStyle: 'dotted',
-    },
-    headerLeft: {
+    pnlCard: {
       flex: 1,
-      alignItems: 'flex-start',
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 12,
+      gap: 4,
     },
-    headerRight: {
+    pnlCardLeft: {
+      // Left card styling if different
+    },
+    pnlCardRight: {
+      // Right card styling if different
+    },
+    sizeMarginRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 8,
+    },
+    sizeContainer: {
       flex: 1,
-      alignItems: 'flex-end',
-    },
-    headerRow: {
       flexDirection: 'row',
       alignItems: 'center',
-    },
-    // Right accessory styles
-    rightAccessory: {
-      marginLeft: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    body: {
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
-      paddingVertical: 16,
-      marginBottom: 4,
-    },
-    bodyRow: {
-      flexDirection: 'row',
       justifyContent: 'space-between',
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 12,
+    },
+    sizeLeftContent: {
+      flex: 1,
+      gap: 4,
+    },
+    sizeLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    marginContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 12,
+    },
+    marginLeftContent: {
+      flex: 1,
+      gap: 4,
+    },
+    marginLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    autoCloseSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 12,
       marginBottom: 12,
     },
-    bodyRowLast: {
-      marginBottom: 0,
-    },
-    bodyItem: {
+    autoCloseTextContainer: {
       flex: 1,
-      alignItems: 'flex-start',
+      gap: 4,
     },
-    bodyItemLabel: {
-      marginBottom: 4,
+    autoCloseButton: {
+      borderRadius: 8,
     },
-    footer: {
+    iconButton: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 8,
+    },
+    iconButtonContainer: {
+      height: '100%',
+      alignItems: 'flex-end',
+    },
+    toggleContainer: {
+      marginLeft: 16,
+    },
+    toggle: {
+      width: 48,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.background.alternative,
+      padding: 2,
+      justifyContent: 'center',
+    },
+    toggleEnabled: {
+      backgroundColor: colors.primary.default,
+    },
+    toggleThumb: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.background.default,
+      shadowColor: colors.shadow.default,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    toggleThumbEnabled: {
+      alignSelf: 'flex-end',
+    },
+    detailsSection: {
+      gap: 1,
+      marginTop: 20,
+    },
+    detailsTitle: {
+      marginBottom: 16,
+    },
+    detailRow: {
+      padding: 12,
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: 12,
+      alignItems: 'center',
+      backgroundColor: colors.background.section,
     },
-    footerButton: {
-      flex: 1,
+    detailRowFirst: {
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
     },
-    fundingCostLabelRightMargin: {
-      marginRight: 4,
+    detailRowLast: {
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
-    fundingCostLabelFlex: {
-      display: 'flex',
+    liquidationPriceValue: {
       flexDirection: 'row',
       alignItems: 'center',
-    },
-    shareButton: {
-      alignSelf: 'center',
-      backgroundColor: colors.background.muted,
-      height: 40,
-      width: 40,
     },
   });
 };

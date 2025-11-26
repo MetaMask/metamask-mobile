@@ -12,6 +12,7 @@ interface HandlePredictUrlParams {
  */
 interface PredictNavigationParams {
   market?: string; // Market ID
+  utmSource?: string; // UTM source for analytics tracking
 }
 
 /**
@@ -28,9 +29,11 @@ const parsePredictNavigationParams = (
 
   // Support both 'market' and 'marketId' parameter names
   const marketId = urlParams.get('market') || urlParams.get('marketId');
+  const utmSource = urlParams.get('utm_source');
 
   return {
     market: marketId || undefined,
+    utmSource: utmSource || undefined,
   };
 };
 
@@ -76,13 +79,14 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
  * - https://metamask.app.link/predict
  * - https://metamask.app.link/predict?market=23246
  * - https://metamask.app.link/predict?marketId=23246
+ * - https://metamask.app.link/predict?market=23246&utm_source=test
  * - https://link.metamask.io/predict?market=23246
  * - https://link.metamask.io/predict?marketId=23246
  *
- * Origin handling:
- * - Uses origin value directly as entryPoint for analytics tracking
- * - Defaults to 'deeplink' if origin is not provided
- * - Examples: 'carousel', 'notification', 'deeplink', etc.
+ * Origin/EntryPoint handling:
+ * - Base entryPoint is origin if provided, otherwise 'deeplink'
+ * - If utm_source is present, always appends '_' + utm_source to the base
+ * - Examples: 'deeplink', 'deeplink_test', 'carousel_twitter', 'notification_campaign'
  *
  * Navigation behavior:
  * - No market param: Navigate to market list
@@ -100,16 +104,25 @@ export const handlePredictUrl = async ({
   );
 
   try {
-    // Use origin as entry point, default to 'deeplink' if not provided
-    const entryPoint = origin || 'deeplink';
-    DevLogger.log('[handlePredictUrl] Entry point:', entryPoint);
-
     // Parse navigation parameters from URL
     const navParams = parsePredictNavigationParams(predictPath);
     DevLogger.log(
       '[handlePredictUrl] Parsed navigation parameters:',
       navParams,
     );
+
+    // Determine entry point:
+    // - Base is origin if provided, otherwise 'deeplink'
+    // - If utm_source is present and different from base, append '_' + utm_source
+    // - If utm_source equals base, don't append (avoid 'deeplink_deeplink')
+    // - Examples: 'deeplink_test', 'carousel_twitter', 'notification_campaign'
+    const baseEntryPoint = origin || 'deeplink';
+    const shouldAppendUtmSource =
+      navParams.utmSource && navParams.utmSource !== baseEntryPoint;
+    const entryPoint = shouldAppendUtmSource
+      ? `${baseEntryPoint}_${navParams.utmSource}`
+      : baseEntryPoint;
+    DevLogger.log('[handlePredictUrl] Entry point:', entryPoint);
 
     // If market ID is provided, navigate to market details
     if (navParams.market) {

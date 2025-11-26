@@ -185,6 +185,7 @@ describe('useSeasonStatus', () => {
       startDate: 1640995200000,
       endDate: 1672531200000,
       tiers: [],
+      activityTypes: [],
     };
 
     const mockStatusData = {
@@ -516,6 +517,7 @@ describe('useSeasonStatus', () => {
         startDate: 1640995200000,
         endDate: 1672531200000,
         tiers: [],
+        activityTypes: [],
       };
 
       const mockStatusData = {
@@ -623,6 +625,7 @@ describe('useSeasonStatus', () => {
         startDate: 1640995200000,
         endDate: 1672531200000,
         tiers: [],
+        activityTypes: [],
       };
 
       const mockStatusData = {

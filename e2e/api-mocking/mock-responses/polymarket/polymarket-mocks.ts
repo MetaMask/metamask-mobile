@@ -8,15 +8,18 @@ import {
   POLYMARKET_CURRENT_POSITIONS_RESPONSE,
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
+  POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE,
 } from './polymarket-positions-response';
 import {
   POLYMARKET_EVENT_DETAILS_BLUE_JAYS_MARINERS_RESPONSE,
   POLYMARKET_EVENT_DETAILS_SPURS_PELICANS_RESPONSE,
+  POLYMARKET_EVENT_DETAILS_CELTICS_NETS_RESPONSE,
 } from './polymarket-event-details-response';
 import { POLYMARKET_UPNL_RESPONSE } from './polymarket-upnl-response';
 import {
   POLYMARKET_ACTIVITY_RESPONSE,
   POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE,
+  POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE,
 } from './polymarket-activity-response';
 import {
   POLYMARKET_ORDER_BOOK_RESPONSE,
@@ -26,6 +29,7 @@ import {
   POLYMARKET_BILLS_ORDER_BOOK_RESPONSE,
   POLYMARKET_SPURS_ORDER_BOOK_RESPONSE,
   POLYMARKET_PELICANS_ORDER_BOOK_RESPONSE,
+  POLYMARKET_CELTICS_ORDER_BOOK_RESPONSE,
 } from './polymarket-order-book-response';
 import { POLYMARKET_SPORTS_FEED } from './market-feed-responses/polymarket-sports-feed';
 import { POLYMARKET_CRYPTO_FEED } from './market-feed-responses/polymarket-crypto-feed';
@@ -42,6 +46,7 @@ import {
   CONDITIONAL_TOKENS_CONTRACT_ADDRESS,
   POST_CASH_OUT_USDC_BALANCE_WEI,
   POST_CLAIM_USDC_BALANCE_WEI,
+  POST_OPEN_POSITION_USDC_BALANCE_WEI,
   POLYGON_EIP7702_CONTRACT_ADDRESS,
   EIP7702_CODE_FORMAT,
 } from './polymarket-constants';
@@ -54,6 +59,9 @@ import { createTransactionSentinelResponse } from './polymarket-transaction-sent
 
 // Global variable to track current USDC balance
 let currentUSDCBalance = MOCK_RPC_RESPONSES.USDC_BALANCE_RESULT;
+
+// Global Set to track when Celtics vs Nets orders have been submitted
+const celticsOrderSubmitted = new Set<string>();
 
 /**
  * Mock Priority System
@@ -153,10 +161,7 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url &&
-          /^https:\/\/gamma-api\.polymarket\.com\/events\/[0-9]+$/.test(url),
-      );
+      return Boolean(url?.includes('gamma-api.polymarket.com/events/'));
     })
     .thenCallback((request) => {
       const url = new URL(request.url).searchParams.get('url');
@@ -168,6 +173,14 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
         return {
           statusCode: 200,
           json: POLYMARKET_EVENT_DETAILS_SPURS_PELICANS_RESPONSE,
+        };
+      }
+
+      if (eventId === '79682') {
+        // Return Celtics vs Nets event details from mock response file
+        return {
+          statusCode: 200,
+          json: POLYMARKET_EVENT_DETAILS_CELTICS_NETS_RESPONSE,
         };
       }
 
@@ -192,9 +205,8 @@ export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -245,9 +257,8 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ) &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
           !url.includes('redeemable=true'),
       );
     })
@@ -288,9 +299,8 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ) &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
           url.includes('redeemable=true'),
       );
     })
@@ -388,7 +398,6 @@ export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
           '110743925263777693447488608878982152642205002490046349037358337248548507433643'
         ) {
           // Best ask (BUY) = 0.62, Best bid (SELL) = 0.61
-          // Using mid price for display: (0.62 + 0.61) / 2 = 0.615, but for accuracy use best ask for BUY and best bid for SELL
           pricesResponse[tokenId] = {
             BUY: '0.62', // Best ask - what you'd pay to buy
             SELL: '0.61', // Best bid - what you'd receive to sell
@@ -403,6 +412,29 @@ export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
           pricesResponse[tokenId] = {
             BUY: '0.38', // Best ask - what you'd pay to buy
             SELL: '0.37', // Best bid - what you'd receive to sell
+          };
+        }
+        // Celtics token (Celtics vs Nets market)
+        else if (
+          tokenId ===
+          '51851880223290407825872150827934296608070009371891114025629582819868766043137'
+        ) {
+          // Best ask (BUY) = 0.84, Best bid (SELL) = 0.83 (from HAR file)
+          pricesResponse[tokenId] = {
+            BUY: '0.84', // Best ask - what you'd pay to buy
+            SELL: '0.83', // Best bid - what you'd receive to sell
+          };
+        }
+        // Nets token (Celtics vs Nets market)
+        else if (
+          tokenId ===
+          '51090123154876409384652748958994213129207000557350215937559106819875795938227'
+        ) {
+          // Best ask (BUY) = 0.17, Best bid (SELL) = 0.17
+          // The app displays the SELL price (entry.sell), so both should be 0.17 to show 17¢
+          pricesResponse[tokenId] = {
+            BUY: '0.17', // Best ask - what you'd pay to buy
+            SELL: '0.17', // Best bid - what you'd receive to sell (this is what's displayed)
           };
         }
         // Default prices for other tokens (can be extended as needed)
@@ -432,7 +464,8 @@ export const POLYMARKET_ORDER_BOOK_MOCKS = async (mockServer: Mockttp) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/clob\.polymarket\.com\/book\?token_id=\d+$/.test(url),
+          url.includes('clob.polymarket.com/book') &&
+          url.includes('token_id='),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -486,6 +519,12 @@ export const POLYMARKET_ORDER_BOOK_MOCKS = async (mockServer: Mockttp) => {
       ) {
         // Pelicans token
         orderBookResponse = POLYMARKET_PELICANS_ORDER_BOOK_RESPONSE;
+      } else if (
+        tokenId ===
+        '51851880223290407825872150827934296608070009371891114025629582819868766043137'
+      ) {
+        // Celtics token (Celtics vs Nets)
+        orderBookResponse = POLYMARKET_CELTICS_ORDER_BOOK_RESPONSE;
       } else {
         // Default to 76ers for unknown token IDs
         orderBookResponse = POLYMARKET_ORDER_BOOK_RESPONSE;
@@ -557,9 +596,8 @@ export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/activity') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -591,9 +629,8 @@ export const POLYMARKET_UPNL_MOCKS = async (mockServer: Mockttp) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/upnl\?user=0x[a-fA-F0-9]{40}$/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/upnl') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -690,8 +727,19 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         } else if (
           toAddress?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()
         ) {
-          // USDC contract call - return current global balance
-          result = currentUSDCBalance;
+          // USDC contract call - check function selector
+          if (callData?.toLowerCase()?.startsWith('0x70a08231')) {
+            // balanceOf(address) selector - return current global balance
+            result = currentUSDCBalance;
+          } else if (callData?.toLowerCase()?.startsWith('0xdd62ed3e')) {
+            // allowance(address,address) selector - return max allowance (uint256 max)
+            // This indicates full allowance is granted
+            result =
+              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else {
+            // Other USDC contract calls - return current global balance as fallback
+            result = currentUSDCBalance;
+          }
         } else if (
           toAddress?.toLowerCase() === MULTICALL_CONTRACT_ADDRESS.toLowerCase()
         ) {
@@ -781,8 +829,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
-        url &&
-          /^https:\/\/gamma-api\.polymarket\.com\/events\/pagination/.test(url),
+        url?.includes('gamma-api.polymarket.com/events/pagination'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -839,9 +886,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url && /^https:\/\/gamma-api\.polymarket\.com\/public-search/.test(url),
-      );
+      return Boolean(url?.includes('gamma-api.polymarket.com/public-search'));
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback(() => ({
@@ -904,6 +949,152 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
       }
     });
 };
+
+/**
+ * Mock for adding Celtics vs Nets position to positions list after order is submitted
+ * This override adds the Celtics vs Nets position only after the open position flow is completed
+ *
+ * Mocks endpoint: https://data-api.polymarket.com/positions?limit=100&offset=0&user=...&sortBy=CURRENT&redeemable=false&eventId=79682
+ * - Always uses PROXY_WALLET_ADDRESS for the proxyWallet field (regardless of user in URL)
+ * - When eventId=79682 (Celtics vs Nets), returns only the Celtics position
+ * - When no eventId, returns all positions including Celtics (if order was submitted)
+ * - Also mocks the position appearing in the main positions list on the predict page
+ *
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
+          !url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base positions mock
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
+      const eventId = eventIdMatch ? eventIdMatch[1] : null;
+
+      // Check if Celtics vs Nets order has been submitted
+      const proxyAddressLower = PROXY_WALLET_ADDRESS.toLowerCase();
+      const celticsOrderSubmittedForProxy =
+        celticsOrderSubmitted.has(proxyAddressLower);
+
+      // If eventId=79682 (Celtics vs Nets), return only the Celtics position
+      if (eventId === '79682') {
+        if (!celticsOrderSubmittedForProxy) {
+          // Return empty array if order hasn't been submitted yet
+          return {
+            statusCode: 200,
+            json: [],
+          };
+        }
+
+        // Return Celtics vs Nets position with PROXY_WALLET_ADDRESS
+        const dynamicResponse =
+          POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE.map(
+            (position) => ({
+              ...position,
+              proxyWallet: PROXY_WALLET_ADDRESS,
+            }),
+          );
+
+        return {
+          statusCode: 200,
+          json: dynamicResponse,
+        };
+      }
+
+      // For main positions list (no eventId filter), combine existing positions with Celtics position
+      // only if Celtics order was submitted. Put Celtics position at the top of the list.
+      let allPositions = [...POLYMARKET_CURRENT_POSITIONS_RESPONSE];
+      if (celticsOrderSubmittedForProxy) {
+        allPositions = [
+          ...POLYMARKET_NEW_OPEN_POSITION_CELTICS_NETS_RESPONSE,
+          ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
+        ];
+      }
+
+      // Filter positions by eventId if provided (for other eventIds)
+      let filteredPositions = allPositions;
+      if (eventId) {
+        filteredPositions = allPositions.filter(
+          (position) => position.eventId === eventId,
+        );
+      }
+
+      // Always use PROXY_WALLET_ADDRESS for proxyWallet field
+      const dynamicResponse = filteredPositions.map((position) => ({
+        ...position,
+        proxyWallet: PROXY_WALLET_ADDRESS,
+      }));
+
+      return {
+        statusCode: 200,
+        json: dynamicResponse,
+      };
+    });
+};
+
+/**
+ * Mock for adding Celtics vs Nets activity entry to activity list after order is submitted
+ * This override adds the Celtics vs Nets BUY activity only after the open position flow is completed
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          url.includes('data-api.polymarket.com/activity') &&
+          url.includes('user=0x'),
+      );
+    })
+    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base activity mock
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
+
+      // Check if Celtics vs Nets order has been submitted
+      const proxyAddressLower = PROXY_WALLET_ADDRESS.toLowerCase();
+      const celticsOrderSubmittedForProxy =
+        celticsOrderSubmitted.has(proxyAddressLower);
+
+      // Combine existing activity with Celtics activity only if Celtics order was submitted
+      // Put Celtics activity at the top (most recent first)
+      let allActivity = [...POLYMARKET_ACTIVITY_RESPONSE];
+      if (celticsOrderSubmittedForProxy) {
+        allActivity = [
+          ...POLYMARKET_OPENED_POSITION_ACTIVITY_RESPONSE,
+          ...POLYMARKET_ACTIVITY_RESPONSE,
+        ];
+      }
+
+      // Update the mock response with the actual user address
+      const dynamicResponse = allActivity.map((activity) => ({
+        ...activity,
+        proxyWallet: userAddress,
+      }));
+
+      return {
+        statusCode: 200,
+        json: dynamicResponse,
+      };
+    });
+};
+
 /**
  * Sets up mocks for USDC balance refresh calls after claim or cash-out operations
  * This mock should be triggered after claim/cash-out transactions to update the displayed balance
@@ -925,6 +1116,8 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
     balance = POST_CLAIM_USDC_BALANCE_WEI; // 48.16 USDC
   } else if (positionType === 'cash-out') {
     balance = POST_CASH_OUT_USDC_BALANCE_WEI; // 58.66 USDC
+  } else if (positionType === 'open-position') {
+    balance = POST_OPEN_POSITION_USDC_BALANCE_WEI; // 17.76 USDC
   } else {
     throw new Error(`Unknown positionType: ${positionType}`);
   }
@@ -947,9 +1140,20 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
       // Handle USDC balance calls
       if (body?.method === 'eth_call') {
         const toAddress = body?.params?.[0]?.to?.toLowerCase();
+        const callData = body?.params?.[0]?.data;
         if (toAddress === USDC_CONTRACT_ADDRESS.toLowerCase()) {
-          // USDC contract call - return updated balance
-          result = balance;
+          // USDC contract call - check function selector
+          if (callData?.toLowerCase()?.startsWith('0x70a08231')) {
+            // balanceOf(address) selector - return updated balance
+            result = balance;
+          } else if (callData?.toLowerCase()?.startsWith('0xdd62ed3e')) {
+            // allowance(address,address) selector - return max allowance (uint256 max)
+            result =
+              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else {
+            // Other USDC contract calls - return updated balance as fallback
+            result = balance;
+          }
         } else {
           // For other eth_call, return empty result (let base mocks handle if needed)
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
@@ -995,9 +1199,11 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
     .matching(async (request) => {
       try {
         const urlParam = new URL(request.url).searchParams.get('url');
-        const relayerEndpointPattern =
-          /predict\.(dev-)?api\.cx\.metamask\.io\/order/;
-        if (!urlParam || !relayerEndpointPattern.test(urlParam)) {
+        if (
+          !urlParam ||
+          !urlParam.includes('predict.') ||
+          !urlParam.includes('api.cx.metamask.io/order')
+        ) {
           return false;
         }
 
@@ -1080,6 +1286,242 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mocks for opening a position (BUY order) and balance update
+ * This mock should be triggered before placing the order
+ * - Mocks the MetaMask relayer endpoint (predict.dev-api.cx.metamask.io/order)
+ * - Updates global USDC balance to post-open-position amount (18.11 USDC)
+ * - Adds position and activity only AFTER the order is successfully submitted
+ * Note: Celtics vs Nets is available in the sports feed, so no search mock is needed
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  // Track whether the order has been successfully submitted
+  // This ensures the position only appears AFTER the order is placed
+  const orderSubmitted = new Set<string>();
+
+  // Mock MetaMask relayer endpoint for order submission (BUY orders)
+  // In e2e, all requests go through /proxy with the actual URL in the url query parameter
+  // Matches request payload structure with PROXY_WALLET_ADDRESS as maker and USER_WALLET_ADDRESS as signer
+  // Response uses decimal string format (not wei)
+  // Uses flexible matching: requires BUY order to relayer endpoint, with optional strict field validation
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      try {
+        const urlParam = new URL(request.url).searchParams.get('url');
+        if (
+          !urlParam ||
+          !urlParam.includes('predict.') ||
+          !urlParam.includes('api.cx.metamask.io/order')
+        ) {
+          return false;
+        }
+
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        const order = body?.order;
+
+        // Flexible matching: require BUY order to relayer endpoint
+        // Validates key fields when present, but doesn't require all fields to match strict pattern
+        // This handles both well-formed orders and edge cases with missing/optional fields
+        if (!order || order.side !== 'BUY') {
+          return false;
+        }
+
+        // Validate orderType if present (should be FOK for open positions)
+        if (body.orderType !== undefined && body.orderType !== 'FOK') {
+          return false;
+        }
+
+        // Validate addresses if present (should match expected addresses for open positions)
+        if (order.maker !== undefined && order.signer !== undefined) {
+          const makerMatch =
+            order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase();
+          const signerMatch =
+            order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase();
+          if (!makerMatch || !signerMatch) {
+            return false;
+          }
+        }
+
+        // If order has signature field, validate it's a valid signature format
+        if (order.signature !== undefined) {
+          if (
+            typeof order.signature !== 'string' ||
+            !order.signature.startsWith('0x') ||
+            order.signature.length < 10
+          ) {
+            return false;
+          }
+        }
+
+        return true;
+      } catch {
+        return false;
+      }
+    })
+    .asPriority(PRIORITY.API_OVERRIDE)
+    .thenCallback(async (request) => {
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        const order = body?.order;
+        const userAddress =
+          order?.signer?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
+        const proxyAddress =
+          order?.maker?.toLowerCase() || PROXY_WALLET_ADDRESS.toLowerCase();
+
+        // Check if it's a Celtics vs Nets token
+        const isCelticsToken =
+          order?.tokenId ===
+          '51851880223290407825872150827934296608070009371891114025629582819868766043137';
+
+        // Track both addresses - positions/activity may use either
+        orderSubmitted.add(userAddress);
+        orderSubmitted.add(proxyAddress);
+
+        // Track Celtics orders separately for position addition
+        if (isCelticsToken) {
+          celticsOrderSubmitted.add(userAddress);
+          celticsOrderSubmitted.add(proxyAddress);
+        }
+
+        return {
+          statusCode: 200,
+          json: {
+            success: true,
+            errorMsg: '',
+            status: 'matched',
+            orderID:
+              '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
+            transactionsHashes: [
+              '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
+            ],
+            takingAmount: '11.904758', // Shares received for $10 investment
+            makingAmount: '9.999996',
+          },
+        };
+      } catch {
+        // Fallback response if parsing fails - still track the addresses
+        const userAddress = USER_WALLET_ADDRESS.toLowerCase();
+        const proxyAddress = PROXY_WALLET_ADDRESS.toLowerCase();
+        orderSubmitted.add(userAddress);
+        orderSubmitted.add(proxyAddress);
+        // Note: Can't check tokenId in catch block, so don't add to celticsOrderSubmitted
+
+        return {
+          statusCode: 200,
+          json: {
+            success: true,
+            errorMsg: '',
+            status: 'matched',
+            orderID:
+              '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
+            transactionsHashes: [
+              '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
+            ],
+            takingAmount: '11.904758',
+            makingAmount: '9.999996',
+          },
+        };
+      }
+    });
+
+  // Mock CLOB API order endpoint (called after relayer endpoint)
+  // This handles both POST /order and POST /book?token_id=... endpoints
+  // Higher priority to ensure it catches order requests before the broad cash-out CLOB mock
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        urlParam &&
+          (urlParam.includes('clob.polymarket.com/order') ||
+            (urlParam.includes('clob.polymarket.com/book') &&
+              urlParam.includes('token_id='))),
+      );
+    })
+    .asPriority(PRIORITY.API_OVERRIDE + 2) // Higher priority than cash-out CLOB mock
+    .thenCallback(async (request) => {
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        const order = body?.order;
+
+        // Check if it's a BUY order (for opening positions)
+        const isBuyOrder = order?.side === 'BUY';
+        const isCelticsToken =
+          order?.tokenId ===
+          '51851880223290407825872150827934296608070009371891114025629582819868766043137';
+
+        if (isBuyOrder) {
+          const userAddress =
+            order?.signer?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
+          const proxyAddress =
+            order?.maker?.toLowerCase() || PROXY_WALLET_ADDRESS.toLowerCase();
+
+          // Only track Celtics vs Nets orders for positions/activity
+          if (isCelticsToken) {
+            orderSubmitted.add(userAddress);
+            orderSubmitted.add(proxyAddress);
+            celticsOrderSubmitted.add(userAddress);
+            celticsOrderSubmitted.add(proxyAddress);
+          }
+
+          // Return success for any BUY order
+          // Use the amounts from the order if available, otherwise use defaults
+          const makingAmount = order?.makerAmount
+            ? (parseInt(order.makerAmount, 10) / 1000000).toString()
+            : '9.999996';
+          const takingAmount = order?.takerAmount
+            ? (parseInt(order.takerAmount, 10) / 1000000).toString()
+            : '11.904758';
+
+          return {
+            statusCode: 200,
+            json: {
+              errorMsg: '',
+              orderID:
+                '0x3bd7640f8ec62a31ab9f95f0b94582d3a7fb159dbaed773eb5fcca45c43bcdb9',
+              takingAmount, // Shares received
+              makingAmount, // Amount spent
+              status: 'matched',
+              transactionsHashes: [
+                '0x6a14089acbb670682a700ba57e10c9b1f46d188ae8eebd75cd9c62ec9ad06f8d',
+              ],
+              success: true,
+            },
+          };
+        }
+
+        // For non-BUY orders, let other mocks handle them
+        return {
+          statusCode: 200,
+          json: {
+            success: false,
+            errorMsg: 'Order not matched',
+          },
+        };
+      } catch {
+        return {
+          statusCode: 200,
+          json: {
+            success: false,
+            errorMsg: 'Invalid request',
+          },
+        };
+      }
+    });
+  await POLYMARKET_ADD_CELTICS_POSITION_MOCKS(mockServer);
+  await POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS(mockServer);
+
+  // Update balance after opening position
+  // await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
+};
+
+/**
  * Dedicated mock for loading USDC balance specifically for withdraw flow
  * This ensures balance refresh for withdraw/deposit flows doesn't interfere with cash-out
  * @param mockServer - The mockttp server instance
@@ -1141,9 +1583,8 @@ export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ) &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
           url.includes('redeemable=true'),
       );
     })
@@ -1170,9 +1611,8 @@ export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/activity') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the original activity mock
@@ -1226,9 +1666,8 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/positions\?.*user=0x[a-fA-F0-9]{40}.*$/.test(
-            url,
-          ) &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
           !url.includes('redeemable=true'),
       );
     })
@@ -1274,9 +1713,8 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
         url &&
-          /^https:\/\/data-api\.polymarket\.com\/activity\?.*user=0x[a-fA-F0-9]{40}/.test(
-            url,
-          ),
+          url.includes('data-api.polymarket.com/activity') &&
+          url.includes('user=0x'),
       );
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the original activity mock
