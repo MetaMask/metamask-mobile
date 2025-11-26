@@ -234,8 +234,6 @@ const Routes = {
   },
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
-  SWAPS: 'Swaps',
-  SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',

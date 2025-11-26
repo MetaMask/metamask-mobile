@@ -88,4 +88,20 @@ describe('DepositKeyboard', () => {
 
     expect(getByText('Test Button')).toBeDefined();
   });
+
+  it('renders max button if hasMax', () => {
+    const { getByText } = render({
+      hasMax: true,
+    });
+
+    expect(getByText('Max')).toBeDefined();
+  });
+
+  it('renders 90% button if hasMax is false', () => {
+    const { getByText } = render({
+      hasMax: false,
+    });
+
+    expect(getByText('90%')).toBeDefined();
+  });
 });
