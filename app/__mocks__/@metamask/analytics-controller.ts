@@ -1,17 +1,18 @@
 import { BaseController } from '@metamask/base-controller';
+import type { Messenger } from '@metamask/messenger';
 
-// Re-export types and utilities needed by tests when this mock is active
-const actualAnalyticsController = jest.requireActual(
-  '@metamask/analytics-controller',
-);
+// Define types directly instead of re-exporting to avoid circular dependency
+export interface AnalyticsControllerState {
+  optedInForRegularAccount: boolean;
+  optedInForSocialAccount: boolean;
+  analyticsId: string;
+}
 
-export const { getDefaultAnalyticsControllerState, controllerName } =
-  actualAnalyticsController;
-
-export type {
-  AnalyticsControllerMessenger,
-  AnalyticsControllerState,
-} from '@metamask/analytics-controller';
+export type AnalyticsControllerMessenger = Messenger<
+  'AnalyticsController',
+  never,
+  never
+>;
 
 /**
  * Creates a mock messenger with all methods required by BaseController.
@@ -34,34 +35,38 @@ const createMockMessenger = () => ({
  */
 class MockAnalyticsController extends BaseController<
   'AnalyticsController',
-  { enabled: boolean; optedIn: boolean; analyticsId: string },
+  {
+    optedInForRegularAccount: boolean;
+    optedInForSocialAccount: boolean;
+    analyticsId: string;
+  },
   never
 > {
   public trackEvent = jest.fn();
   public identify = jest.fn();
-  public trackPage = jest.fn();
-  public enable = jest.fn();
-  public disable = jest.fn();
-  public optIn = jest.fn();
-  public optOut = jest.fn();
+  public trackView = jest.fn();
+  public optInForRegularAccount = jest.fn();
+  public optOutForRegularAccount = jest.fn();
+  public optInForSocialAccount = jest.fn();
+  public optOutForSocialAccount = jest.fn();
 
   constructor() {
     super({
       name: 'AnalyticsController',
       state: {
-        enabled: true,
-        optedIn: false,
+        optedInForRegularAccount: false,
+        optedInForSocialAccount: false,
         analyticsId: 'f2673eb8-db32-40bb-88a5-97cf5107d31d',
       },
       messenger: createMockMessenger() as never,
       metadata: {
-        enabled: {
+        optedInForRegularAccount: {
           persist: true,
           includeInDebugSnapshot: true,
           includeInStateLogs: true,
           usedInUi: true,
         },
-        optedIn: {
+        optedInForSocialAccount: {
           persist: true,
           includeInDebugSnapshot: true,
           includeInStateLogs: true,
@@ -87,3 +92,22 @@ class MockAnalyticsController extends BaseController<
 export const AnalyticsController = jest
   .fn()
   .mockImplementation(() => new MockAnalyticsController());
+
+/**
+ * Mock selectors for testing
+ */
+export const analyticsControllerSelectors = {
+  selectAnalyticsId: jest.fn(
+    (state: AnalyticsControllerState) => state?.analyticsId,
+  ),
+  selectEnabled: jest.fn(
+    (state: AnalyticsControllerState) =>
+      state?.optedInForRegularAccount || state?.optedInForSocialAccount,
+  ),
+  selectOptedInForRegularAccount: jest.fn(
+    (state: AnalyticsControllerState) => state?.optedInForRegularAccount,
+  ),
+  selectOptedInForSocialAccount: jest.fn(
+    (state: AnalyticsControllerState) => state?.optedInForSocialAccount,
+  ),
+};

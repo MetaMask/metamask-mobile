@@ -13,6 +13,11 @@ import {
 import { segmentPersistor } from '../../../Analytics/SegmentPersistor';
 import Logger from '../../../../util/Logger';
 import MetaMetricsPrivacySegmentPlugin from '../../../Analytics/MetaMetricsPrivacySegmentPlugin';
+import StorageWrapper from '../../../../store/storage-wrapper';
+import {
+  ANALYTICS_OPTED_IN_REGULAR,
+  ANALYTICS_OPTED_IN_SOCIAL,
+} from '../../../../constants/storage';
 
 const getSegmentClient = (): SegmentClient => {
   const config: Config = {
@@ -74,12 +79,22 @@ export const createPlatformAdapter = (): AnalyticsPlatformAdapter => {
       }
     },
 
-    onSetupCompleted(analyticsId: string): void {
+    async onSetupCompleted(analyticsId: string): Promise<void> {
+      // Read opt-in values from MMKV asynchronously
+      const optedInForRegularAccount =
+        (await StorageWrapper.getItem(ANALYTICS_OPTED_IN_REGULAR)) === 'true';
+      const optedInForSocialAccount =
+        (await StorageWrapper.getItem(ANALYTICS_OPTED_IN_SOCIAL)) === 'true';
+
       // Add privacy plugin with analytics ID after controller is initialized
       client.add({
         plugin: new MetaMetricsPrivacySegmentPlugin(analyticsId),
       });
-      Logger.log('Analytics Adapter: Privacy plugin added to Segment client');
+      Logger.log('Analytics Adapter: Privacy plugin added to Segment client', {
+        analyticsId,
+        optedInForRegularAccount,
+        optedInForSocialAccount,
+      });
     },
   };
 };

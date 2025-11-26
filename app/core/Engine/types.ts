@@ -241,6 +241,7 @@ import {
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
+import type { AnalyticsDefaults } from '../Analytics/analytics.types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
@@ -919,10 +920,19 @@ export type ControllerInitRequest<
   getState: () => RootState;
 
   /**
-   * The MetaMetrics ID to use for tracking.
-   * This is always provided at runtime and should not be undefined.
+   * Pre-loaded analytics defaults from StorageWrapper.
+   * Values are loaded asynchronously in EngineService.start() before Engine.init().
+   *
+   * Controllers receive this state object directly (no StorageWrapper access).
+   * - RemoteFeatureFlagController: uses `analyticsDefaults.analyticsId`
+   * - AnalyticsController: passes `analyticsDefaults` as `state` to constructor
+   *
+   * The object contains:
+   * - analyticsId: UUIDv4 string (generated if missing, already in MMKV)
+   * - optedInForRegularAccount: boolean (defaults to false, already in MMKV)
+   * - optedInForSocialAccount: boolean (defaults to false, already in MMKV)
    */
-  metaMetricsId: string;
+  analyticsDefaults: AnalyticsDefaults;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
@@ -987,7 +997,7 @@ export interface InitModularizedControllersFunctionRequest {
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
-  metaMetricsId: string;
+  analyticsDefaults: AnalyticsDefaults;
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;

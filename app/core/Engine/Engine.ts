@@ -175,6 +175,7 @@ import { addressBookControllerInit } from './controllers/address-book-controller
 import { analyticsControllerInit } from './controllers/analytics-controller';
 import { multichainRouterInit } from './controllers/multichain-router-init';
 import { Messenger, MessengerEvents } from '@metamask/messenger';
+import type { AnalyticsDefaults } from '../Analytics/analytics.types';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -262,7 +263,7 @@ export class Engine {
   constructor(
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
-    metaMetricsId?: string,
+    analyticsDefaults?: AnalyticsDefaults,
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
@@ -276,12 +277,19 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
-      metaMetricsId,
+      // Analytics defaults extracted from MMKV and passed explicitly
+      // Note: Fallback with empty analyticsId will cause AnalyticsController to throw during init.
+      // This is intentional - Engine should always be initialized via EngineService.start()
+      // which calls generateDefaults() to load/persist analytics values from StorageWrapper.
+      analyticsDefaults: analyticsDefaults ?? {
+        analyticsId: '',
+        optedInForRegularAccount: false,
+        optedInForSocialAccount: false,
+      },
       initialKeyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
     };
-    // @ts-expect-error - metametrics id is required, this will be addressed on a follow up PR
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         ErrorReportingService: errorReportingServiceInit,
@@ -1427,10 +1435,10 @@ export default {
   init(
     state: Partial<EngineState> | undefined,
     keyringState: KeyringControllerState | null = null,
-    metaMetricsId?: string,
+    analyticsDefaults?: AnalyticsDefaults,
   ) {
     instance =
-      Engine.instance || new Engine(state, keyringState, metaMetricsId);
+      Engine.instance || new Engine(state, keyringState, analyticsDefaults);
     Object.freeze(instance);
     return instance;
   },

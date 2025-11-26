@@ -1,7 +1,6 @@
-import { ensureValidState, ValidState } from './util';
+import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 import StorageWrapper from '../storage-wrapper';
-import { cloneDeep } from 'lodash';
 import { validate as uuidValidate, version as uuidVersion } from 'uuid';
 import {
   AGREED,
@@ -10,21 +9,10 @@ import {
   METRICS_OPT_IN,
   METRICS_OPT_IN_SOCIAL_LOGIN,
   MIXPANEL_METAMETRICS_ID,
+  ANALYTICS_ID,
+  ANALYTICS_OPTED_IN_REGULAR,
+  ANALYTICS_OPTED_IN_SOCIAL,
 } from '../../constants/storage';
-
-interface ValidStateWithAnalytics extends ValidState {
-  engine: {
-    backgroundState: {
-      AnalyticsController?: {
-        analyticsId?: string;
-        optedInForRegularAccount?: boolean;
-        optedInForSocialAccount?: boolean;
-        [key: string]: unknown;
-      };
-      [key: string]: unknown;
-    };
-  };
-}
 
 /**
  * Validates if a string is a valid UUIDv4
@@ -37,31 +25,23 @@ const isValidUUIDv4 = (id: string | null): id is string => {
 };
 
 /**
- * Migration 108: Migrate legacy analytics storage values to AnalyticsController persisted state
+ * Migration 108: Migrate legacy analytics MMKV storage values to new MMKV keys
  *
  * This migration:
  * - Reads legacy storage values (METAMETRICS_ID, METRICS_OPT_IN, METRICS_OPT_IN_SOCIAL_LOGIN)
- * - Converts them to AnalyticsController state format
+ * - Writes them to new MMKV keys (ANALYTICS_ID, ANALYTICS_OPTED_IN_REGULAR, ANALYTICS_OPTED_IN_SOCIAL)
  * - Validates UUIDv4 format for analytics ID
- * - Sets state.engine.backgroundState.AnalyticsController with migrated data
+ * - Does NOT modify controller state (no state changes)
  * - Cleans up legacy storage keys after successful migration
  *
- * The controller will load this state on initialization, making the migration transparent.
+ * The controller will read from MMKV on initialization via generateDefaults().
  */
 const migration = async (state: unknown): Promise<unknown> => {
   if (!ensureValidState(state, 108)) {
     return state;
   }
 
-  // Skip migration if AnalyticsController state already exists (already migrated or fresh install)
-  // Check before cloning to avoid unnecessary work
-  const validState = state as ValidStateWithAnalytics;
-  if (validState.engine.backgroundState.AnalyticsController) {
-    return state;
-  }
-
-  // Read legacy storage values asynchronously before cloning
-  // (we need to check if there's anything to migrate)
+  // Read legacy storage values
   let legacyMetametricsId: string | null = null;
   let legacyMetricsOptIn: string | null = null;
   let legacySocialLoginOptIn: string | null = null;
@@ -75,7 +55,7 @@ const migration = async (state: unknown): Promise<unknown> => {
       METRICS_OPT_IN_SOCIAL_LOGIN,
     );
   } catch (error) {
-    // If we can't read storage, skip migration - controller will use defaults
+    // If we can't read storage, skip migration - generateDefaults() will handle defaults
     captureException(
       new Error(
         `Migration 108: Failed to read legacy storage values: ${error}`,
@@ -84,44 +64,50 @@ const migration = async (state: unknown): Promise<unknown> => {
     return state;
   }
 
-  // Check if we have a valid UUIDv4 ID to migrate
-
-  if (!isValidUUIDv4(legacyMetametricsId)) {
-    return state;
-  }
-
-  // Now, clone the state as we know we have to migrate
-  const newState = cloneDeep(state) as ValidStateWithAnalytics;
-
   try {
-    // Build AnalyticsController state from legacy values
-    const analyticsControllerState: ValidStateWithAnalytics['engine']['backgroundState']['AnalyticsController'] =
-      {};
-
-    // Migrate analytics ID
-    analyticsControllerState.analyticsId = legacyMetametricsId;
-
-    // Migrate regular opt-in preference
-    if (legacyMetricsOptIn === AGREED) {
-      analyticsControllerState.optedInForRegularAccount = true;
-    } else if (legacyMetricsOptIn === DENIED) {
-      analyticsControllerState.optedInForRegularAccount = false;
-    } else {
-      analyticsControllerState.optedInForRegularAccount = false;
+    // Migrate analytics ID to new MMKV key via StorageWrapper
+    if (isValidUUIDv4(legacyMetametricsId)) {
+      const existingId = await StorageWrapper.getItem(ANALYTICS_ID);
+      if (!existingId) {
+        // Only write if new key doesn't exist (don't overwrite)
+        await StorageWrapper.setItem(ANALYTICS_ID, legacyMetametricsId, {
+          emitEvent: false,
+        });
+      }
     }
 
-    // Migrate social login opt-in preference
-    if (legacySocialLoginOptIn === AGREED) {
-      analyticsControllerState.optedInForSocialAccount = true;
-    } else if (legacySocialLoginOptIn === DENIED) {
-      analyticsControllerState.optedInForSocialAccount = false;
-    } else {
-      analyticsControllerState.optedInForSocialAccount = false;
+    // Migrate regular opt-in to new MMKV key via StorageWrapper
+    if (legacyMetricsOptIn === AGREED || legacyMetricsOptIn === DENIED) {
+      const existingOptedIn = await StorageWrapper.getItem(
+        ANALYTICS_OPTED_IN_REGULAR,
+      );
+      if (existingOptedIn === null || existingOptedIn === undefined) {
+        // Only write if new key doesn't exist
+        await StorageWrapper.setItem(
+          ANALYTICS_OPTED_IN_REGULAR,
+          legacyMetricsOptIn === AGREED ? 'true' : 'false',
+          { emitEvent: false },
+        );
+      }
     }
 
-    // Set the migrated state
-    newState.engine.backgroundState.AnalyticsController =
-      analyticsControllerState;
+    // Migrate social login opt-in to new MMKV key via StorageWrapper
+    if (
+      legacySocialLoginOptIn === AGREED ||
+      legacySocialLoginOptIn === DENIED
+    ) {
+      const existingOptedIn = await StorageWrapper.getItem(
+        ANALYTICS_OPTED_IN_SOCIAL,
+      );
+      if (existingOptedIn === null || existingOptedIn === undefined) {
+        // Only write if new key doesn't exist
+        await StorageWrapper.setItem(
+          ANALYTICS_OPTED_IN_SOCIAL,
+          legacySocialLoginOptIn === AGREED ? 'true' : 'false',
+          { emitEvent: false },
+        );
+      }
+    }
 
     // Clean up legacy storage keys after successful migration
     // Use Promise.allSettled to ensure all cleanup attempts complete even if some fail
@@ -134,15 +120,16 @@ const migration = async (state: unknown): Promise<unknown> => {
     ]);
   } catch (error) {
     // Migration failures should not break the app
-    // Log error but continue - controller will initialize with defaults
+    // Log error but continue - generateDefaults() will handle defaults
     captureException(
       new Error(
-        `Migration 108: Failed to migrate legacy analytics storage: ${error}`,
+        `Migration 108: Failed to migrate legacy analytics storage to MMKV: ${error}`,
       ),
     );
   }
 
-  return newState;
+  // Return state unchanged (no state migration)
+  return state;
 };
 
 export default migration;

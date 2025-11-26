@@ -22,7 +22,7 @@ import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { MetaMetrics } from '../Analytics';
+import { generateDefaults } from '../Analytics/analytics';
 import { VaultBackupResult } from './types';
 import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
@@ -145,13 +145,15 @@ export class EngineService {
         ? reduxState?.engine?.backgroundState
         : persistedState?.backgroundState) ?? {};
 
+    // Read analytics defaults from MMKV via StorageWrapper (or generate defaults)
+    const analyticsDefaults = await generateDefaults();
+
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      Engine.init(state, null, metaMetricsId);
+      Engine.init(state, null, analyticsDefaults);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.initializeControllers(Engine as unknown as TypedEngine);
     } catch (error) {
@@ -275,8 +277,10 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      const instance = Engine.init(state, newKeyringState, metaMetricsId);
+      // Read analytics defaults from MMKV via StorageWrapper (or generate defaults)
+      const analyticsDefaults = await generateDefaults();
+
+      const instance = Engine.init(state, newKeyringState, analyticsDefaults);
       if (instance) {
         this.initializeControllers(instance);
         // this is a hack to give the engine time to reinitialize

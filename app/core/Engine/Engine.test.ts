@@ -24,6 +24,11 @@ import { SnapKeyring } from '@metamask/eth-snap-keyring';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
+  getBuildNumber: jest.fn().mockReturnValue('123'),
+  getBrand: jest.fn().mockReturnValue('Apple'),
+  getModel: jest.fn().mockReturnValue('iPhone'),
+  getSystemVersion: jest.fn().mockReturnValue('17.0'),
+  getDeviceId: jest.fn().mockReturnValue('device-id'),
 }));
 
 jest.mock('../BackupVault', () => ({
@@ -450,7 +455,6 @@ describe('Engine', () => {
       },
     };
     const keyringState = null;
-    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const enableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
       'enableRpcFailover',
@@ -469,7 +473,7 @@ describe('Engine', () => {
         },
       });
 
-    Engine.init(state, keyringState, metaMetricsId);
+    Engine.init(state, keyringState);
 
     // We can't await RemoteFeatureFlagController:stateChange because can't
     // guarantee it hasn't been called already, so this is the next best option
@@ -494,7 +498,6 @@ describe('Engine', () => {
       },
     };
     const keyringState = null;
-    const metaMetricsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const disableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
       'disableRpcFailover',
@@ -513,7 +516,7 @@ describe('Engine', () => {
         },
       });
 
-    Engine.init(state, keyringState, metaMetricsId);
+    Engine.init(state, keyringState);
 
     // We can't await RemoteFeatureFlagController:stateChange because can't
     // guarantee it hasn't been called already, so this is the next best option

@@ -4,7 +4,6 @@ import { ControllerInitRequest } from '../../types';
 import {
   AnalyticsController,
   type AnalyticsControllerMessenger,
-  type AnalyticsControllerState,
 } from '@metamask/analytics-controller';
 import { analyticsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -41,6 +40,11 @@ describe('analyticsControllerInit', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    initRequestMock.analyticsDefaults = {
+      analyticsId: 'test-analytics-id',
+      optedInForRegularAccount: false,
+      optedInForSocialAccount: false,
+    };
   });
 
   it('returns controller instance', () => {
@@ -51,36 +55,40 @@ describe('analyticsControllerInit', () => {
     expect(analyticsControllerClassMock).toHaveBeenCalledTimes(1);
   });
 
-  it('initializes controller without state when no persisted state provided', () => {
-    initRequestMock.persistedState = {};
+  it('initializes controller with analyticsDefaults from request', () => {
+    initRequestMock.analyticsDefaults = {
+      analyticsId: 'test-analytics-id',
+      optedInForRegularAccount: true,
+      optedInForSocialAccount: false,
+    };
 
     analyticsControllerInit(initRequestMock);
 
     const callArgs = analyticsControllerClassMock.mock.calls[0][0];
     expect(callArgs).toHaveProperty('messenger');
     expect(callArgs).toHaveProperty('platformAdapter');
-    expect(callArgs).not.toHaveProperty('state');
+    expect(callArgs).toHaveProperty('state');
+    expect(callArgs.state).toEqual({
+      analyticsId: 'test-analytics-id',
+      optedInForRegularAccount: true,
+      optedInForSocialAccount: false,
+    });
   });
 
-  it('uses custom state when provided', () => {
-    // state not similar to default state from mock analytics controller
-    const customState: AnalyticsControllerState = {
+  it('uses analyticsDefaults values from request', () => {
+    initRequestMock.analyticsDefaults = {
+      analyticsId: 'another-test-id',
       optedInForRegularAccount: false,
       optedInForSocialAccount: true,
-      analyticsId: 'dcc3154e-7440-4b18-81b6-d5cd1abd7a6b',
-    };
-
-    initRequestMock.persistedState = {
-      ...initRequestMock.persistedState,
-      AnalyticsController: customState,
     };
 
     analyticsControllerInit(initRequestMock);
 
-    expect(analyticsControllerClassMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        state: customState,
-      }),
-    );
+    const callArgs = analyticsControllerClassMock.mock.calls[0][0];
+    expect(callArgs.state).toEqual({
+      analyticsId: 'another-test-id',
+      optedInForRegularAccount: false,
+      optedInForSocialAccount: true,
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { createPlatformAdapter } from './platform-adapter';
 import type { SegmentClient } from '@segment/analytics-react-native';
 import MetaMetricsPrivacySegmentPlugin from '../../../Analytics/MetaMetricsPrivacySegmentPlugin';
+import StorageWrapper from '../../../../store/storage-wrapper';
 
 // Mock Logger (not in global setup)
 jest.mock('../../../../util/Logger', () => ({
@@ -12,9 +13,11 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 // Mock MetaMetricsPrivacySegmentPlugin (not in global setup)
-jest.mock('../../../Analytics/MetaMetricsPrivacySegmentPlugin', () => jest.fn().mockImplementation(() => ({
+jest.mock('../../../Analytics/MetaMetricsPrivacySegmentPlugin', () =>
+  jest.fn().mockImplementation(() => ({
     type: 'enrichment',
-  })));
+  })),
+);
 
 const mockMetaMetricsPrivacySegmentPlugin =
   MetaMetricsPrivacySegmentPlugin as jest.MockedClass<
@@ -26,6 +29,20 @@ jest.mock('../../../Analytics/SegmentPersistor', () => ({
   segmentPersistor: {
     get: jest.fn(),
     set: jest.fn(),
+  },
+}));
+
+// Mock StorageWrapper for onSetupCompleted
+jest.mock('../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+    clearAll: jest.fn(),
+    getAllKeys: jest.fn(),
+    multiGet: jest.fn(),
+    onKeyChange: jest.fn(),
   },
 }));
 
@@ -118,13 +135,44 @@ describe('createPlatformAdapter', () => {
   });
 
   describe('onSetupCompleted', () => {
-    it('adds MetaMetricsPrivacySegmentPlugin to Segment client with analyticsId', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('adds MetaMetricsPrivacySegmentPlugin to Segment client with analyticsId and reads opt-in values from MMKV', async () => {
       const adapter = createPlatformAdapter();
       const { segmentMockClient } =
         global as unknown as GlobalWithSegmentClient;
       const analyticsId = '6ba7b810-9dad-42d1-80b4-00c04fd430c8';
 
-      adapter.onSetupCompleted(analyticsId);
+      StorageWrapper.getItem = jest
+        .fn()
+        .mockResolvedValueOnce('true') // optedInForRegularAccount
+        .mockResolvedValueOnce('false'); // optedInForSocialAccount
+
+      await adapter.onSetupCompleted(analyticsId);
+
+      expect(mockMetaMetricsPrivacySegmentPlugin).toHaveBeenCalledWith(
+        analyticsId,
+      );
+      expect(segmentMockClient.add).toHaveBeenCalledWith({
+        plugin: expect.any(Object),
+      });
+      expect(StorageWrapper.getItem).toHaveBeenCalledTimes(2);
+    });
+
+    it('handles missing opt-in values gracefully', async () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const analyticsId = '6ba7b810-9dad-42d1-80b4-00c04fd430c8';
+
+      StorageWrapper.getItem = jest
+        .fn()
+        .mockResolvedValueOnce(null) // optedInForRegularAccount
+        .mockResolvedValueOnce(null); // optedInForSocialAccount
+
+      await adapter.onSetupCompleted(analyticsId);
 
       expect(mockMetaMetricsPrivacySegmentPlugin).toHaveBeenCalledWith(
         analyticsId,

@@ -1,31 +1,16 @@
-import MetaMetrics from './MetaMetrics';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
-  AGREED,
   ANALYTICS_DATA_DELETION_DATE,
-  DENIED,
   METAMETRICS_DELETION_REGULATION_ID,
-  METAMETRICS_ID,
-  METRICS_OPT_IN,
-  METRICS_OPT_IN_SOCIAL_LOGIN,
-  MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
-  ISegmentClient,
 } from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
-import { segmentPersistor } from './SegmentPersistor';
-import { createClient } from '@segment/analytics-react-native';
-import { validate } from 'uuid';
-import { isHexAddress } from '@metamask/utils';
-
-jest.mock('../../store/storage-wrapper');
-const mockGet = jest.fn();
-const mockSet = jest.fn();
-const mockClear = jest.fn();
+// StorageWrapper is already globally mocked in testSetup.js
+const mockedStorageWrapper = jest.mocked(StorageWrapper);
 
 jest.mock('./SegmentPersistor', () => ({
   segmentPersistor: {
@@ -35,6 +20,34 @@ jest.mock('./SegmentPersistor', () => ({
 }));
 
 jest.mock('axios');
+
+// Mock whenEngineReady
+jest.mock('./whenEngineReady', () => ({
+  whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Mock analytics module
+jest.mock('./analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+    trackView: jest.fn(),
+    identify: jest.fn(),
+    optIn: jest.fn(),
+    optOut: jest.fn(),
+    socialOptIn: jest.fn(),
+    socialOptOut: jest.fn(),
+    optInForRegularAccount: jest.fn(),
+    optOutForRegularAccount: jest.fn(),
+    optInForSocialAccount: jest.fn(),
+    optOutForSocialAccount: jest.fn(),
+    getAnalyticsId: jest.fn(),
+    isEnabled: jest.fn(),
+    isOptedIn: jest.fn(),
+    isSocialOptedIn: jest.fn(),
+    isOptedInForRegularAccount: jest.fn(),
+    isOptedInForSocialAccount: jest.fn(),
+  },
+}));
 
 // Mock MetaMetricsTestUtils
 const mockTrackE2EEvent = jest.fn();
@@ -49,6 +62,10 @@ jest.mock('./MetaMetricsTestUtils', () => ({
   },
 }));
 
+import MetaMetrics from './MetaMetrics';
+import { analytics } from './analytics';
+const mockAnalytics = jest.mocked(analytics);
+
 /**
  * Extend MetaMetrics to allow reset of the singleton instance
  */
@@ -58,22 +75,25 @@ class TestMetaMetrics extends MetaMetrics {
   }
 }
 
-interface GlobalWithSegmentClient {
-  segmentMockClient: ISegmentClient;
-}
-
 describe('MetaMetrics', () => {
   beforeEach(async () => {
-    StorageWrapper.getItem = mockGet;
-    StorageWrapper.setItem = mockSet;
-    StorageWrapper.clearAll = mockClear;
     TestMetaMetrics.resetInstance();
+
+    // Reset analytics mocks
+    jest.clearAllMocks();
+    mockAnalytics.isEnabled.mockReturnValue(false);
+    mockAnalytics.getAnalyticsId.mockResolvedValue('');
+    mockAnalytics.isSocialOptedIn.mockResolvedValue(false);
+    mockAnalytics.trackEvent.mockImplementation(() => Promise.resolve());
+    mockAnalytics.identify.mockImplementation(() => Promise.resolve());
+
+    // Reset StorageWrapper mocks (clearAll is not in global mock, but not used by MetaMetrics)
+    mockedStorageWrapper.getItem.mockResolvedValue(undefined);
+    mockedStorageWrapper.setItem.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    mockGet.mockReset();
-    mockSet.mockReset();
   });
 
   describe('Singleton', () => {
@@ -86,10 +106,11 @@ describe('MetaMetrics', () => {
       expect(metaMetrics2).toBeInstanceOf(MetaMetrics);
       expect(metaMetrics2).toBe(metaMetrics);
     });
-    it('uses custom persistor for Segment client', async () => {
+    it('tracks events through analytics module', async () => {
       // Reset instance to ensure fresh test
       TestMetaMetrics.resetInstance();
 
+      mockAnalytics.trackEvent.mockImplementation(() => Promise.resolve());
       const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.configure();
       await metaMetrics.enable();
@@ -100,25 +121,10 @@ describe('MetaMetrics', () => {
 
       metaMetrics.trackEvent(event);
 
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      // Verify that track is called (event is queued)
-      expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+      // Verify that analytics.trackEvent was called
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(event.name, {
         anonymous: false,
       });
-
-      // The key test: verify that createClient was called with our custom persistor
-      // This proves that the Segment client was initialized with our persistor
-      expect(createClient).toHaveBeenCalledWith(
-        expect.objectContaining({
-          storePersistor: segmentPersistor,
-        }),
-      );
-
-      // Test that the client can flush (send queued events)
-      await metaMetrics.flush();
-      expect(segmentMockClient.flush).toHaveBeenCalled();
     });
   });
 
@@ -127,107 +133,74 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
     });
-    it('fails silently', async () => {
-      StorageWrapper.getItem = jest.fn().mockRejectedValue(new Error('error'));
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeFalsy();
-    });
-
-    describe('flush policy configuration', () => {
-      it('creates flush policies with default values', () => {
-        TestMetaMetrics.resetInstance();
-        jest.clearAllMocks();
-
-        TestMetaMetrics.getInstance();
-
-        // Verify that createClient was called with flush policies
-        expect(createClient).toHaveBeenCalledWith(
-          expect.objectContaining({
-            flushPolicies: expect.arrayContaining([
-              expect.objectContaining({ count: 20 }), // default event limit
-              expect.objectContaining({ interval: 30000 }), // default 30 seconds in milliseconds
-            ]),
-          }),
-        );
-      });
-    });
   });
 
   describe('Disabling', () => {
     it('defaults to disabled metrics', async () => {
-      mockGet.mockResolvedValue(undefined);
+      mockAnalytics.getAnalyticsId.mockResolvedValue('');
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
       expect(metaMetrics.isEnabled()).toBeFalsy();
     });
 
-    it('uses preference enabled value when set', async () => {
-      mockGet.mockImplementation(async () => AGREED);
+    it('uses controller enabled value when available', async () => {
+      mockAnalytics.getAnalyticsId.mockResolvedValue('test-id');
+      mockAnalytics.isEnabled.mockReturnValue(true);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
       expect(metaMetrics.isEnabled()).toBeTruthy();
     });
 
     it('enables metrics', async () => {
+      mockAnalytics.isEnabled.mockReturnValue(true);
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.configure();
       await metaMetrics.enable();
 
-      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
-        METRICS_OPT_IN,
-        AGREED,
-      );
+      expect(mockAnalytics.optInForRegularAccount).toHaveBeenCalled();
       expect(metaMetrics.isEnabled()).toBeTruthy();
     });
 
     it('disables metrics', async () => {
+      mockAnalytics.isEnabled
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
       const metaMetrics = TestMetaMetrics.getInstance();
+      await metaMetrics.configure();
 
-      // Enable first as it is disabled by default
+      // Enable first
       await metaMetrics.enable();
-      // Test it is enabled before disabling
-      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
-        METRICS_OPT_IN,
-        AGREED,
-      );
+      expect(mockAnalytics.optInForRegularAccount).toHaveBeenCalled();
       expect(metaMetrics.isEnabled()).toBeTruthy();
 
+      // Disable
       await metaMetrics.enable(false);
-
-      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
-        METRICS_OPT_IN,
-        DENIED,
-      );
+      expect(mockAnalytics.optOutForRegularAccount).toHaveBeenCalled();
       expect(metaMetrics.isEnabled()).toBeFalsy();
     });
 
-    it('does not track event when disabled', async () => {
+    it('tracks event even when disabled (controller handles enabled check)', async () => {
+      mockAnalytics.isEnabled.mockReturnValue(false);
+      mockAnalytics.trackEvent.mockImplementation(() => Promise.resolve());
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.configure();
       const event = MetricsEventBuilder.createEventBuilder({
         category: 'test event',
       }).build();
 
       metaMetrics.trackEvent(event);
 
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
-        METRICS_OPT_IN,
-        AGREED,
-      );
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
-      expect(segmentMockClient.track).not.toHaveBeenCalled();
+      // MetaMetrics no longer checks isEnabled - controller handles it
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
     });
 
     it('tracks event when enabled', async () => {
+      mockAnalytics.isEnabled.mockReturnValue(true);
+      mockAnalytics.trackEvent.mockImplementation(() => Promise.resolve());
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.configure();
       await metaMetrics.enable();
       const event = MetricsEventBuilder.createEventBuilder({
         category: 'test event',
@@ -235,18 +208,10 @@ describe('MetaMetrics', () => {
 
       metaMetrics.trackEvent(event);
 
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      // check tracking enabling
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        METRICS_OPT_IN,
-        AGREED,
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        event.name,
+        expect.objectContaining({ anonymous: false }),
       );
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
-
-      // check that the tracking was called
-      expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -257,84 +222,59 @@ describe('MetaMetrics', () => {
     });
 
     it('enables social login metrics', async () => {
+      mockAnalytics.isSocialOptedIn.mockResolvedValue(true);
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.configure();
       await metaMetrics.enableSocialLogin(true);
 
-      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        AGREED,
-      );
-      expect(metaMetrics.isEnabled()).toBeTruthy();
+      expect(mockAnalytics.optInForSocialAccount).toHaveBeenCalled();
     });
 
     it('disables social login metrics', async () => {
+      mockAnalytics.isSocialOptedIn.mockResolvedValue(false);
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.configure();
       await metaMetrics.enableSocialLogin(false);
 
-      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        DENIED,
-      );
-      expect(metaMetrics.isEnabled()).toBeFalsy();
+      expect(mockAnalytics.optOutForSocialAccount).toHaveBeenCalled();
     });
 
     it('enables social login metrics by default when no parameter provided', async () => {
+      mockAnalytics.isSocialOptedIn.mockResolvedValue(true);
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.configure();
       await metaMetrics.enableSocialLogin();
 
-      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        AGREED,
-      );
-      expect(metaMetrics.isEnabled()).toBeTruthy();
+      expect(mockAnalytics.optInForSocialAccount).toHaveBeenCalled();
     });
 
-    it('handles storage error gracefully when enabling social login metrics', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    it('calls analytics.optInForSocialAccount when enabling social login metrics', async () => {
+      mockAnalytics.isEnabled.mockReturnValue(true);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
-
-      (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
-        new Error('Storage error'),
-      );
 
       await metaMetrics.enableSocialLogin(true);
 
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        AGREED,
-      );
-      // The method should not throw, but handle the error gracefully
-      expect(metaMetrics.isEnabled()).toBeTruthy();
-
-      consoleSpy.mockRestore();
+      expect(mockAnalytics.optInForSocialAccount).toHaveBeenCalled();
+      // No longer writes to StorageWrapper - controller handles persistence
     });
 
-    it('handles storage error gracefully when disabling social login metrics', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    it('calls analytics.optOutForSocialAccount when disabling social login metrics', async () => {
+      mockAnalytics.isEnabled.mockReturnValue(false);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
-      (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
-        new Error('Storage error'),
-      );
-
       await metaMetrics.enableSocialLogin(false);
 
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        DENIED,
-      );
-      // The method should not throw, but handle the error gracefully
-      expect(metaMetrics.isEnabled()).toBeFalsy();
-
-      consoleSpy.mockRestore();
+      expect(mockAnalytics.optOutForSocialAccount).toHaveBeenCalled();
+      // No longer writes to StorageWrapper - controller handles persistence
     });
 
-    it('maintains social login state across multiple calls', async () => {
+    it('calls analytics methods for social login state changes', async () => {
+      mockAnalytics.isEnabled
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -342,45 +282,18 @@ describe('MetaMetrics', () => {
 
       // Enable social login
       await metaMetrics.enableSocialLogin(true);
-      expect(metaMetrics.isEnabled()).toBeTruthy();
-      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        AGREED,
-      );
+      expect(mockAnalytics.optInForSocialAccount).toHaveBeenCalledTimes(1);
+      expect(mockAnalytics.optOutForSocialAccount).not.toHaveBeenCalled();
 
       // Disable social login
       await metaMetrics.enableSocialLogin(false);
-      expect(metaMetrics.isEnabled()).toBeFalsy();
-      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        DENIED,
-      );
+      expect(mockAnalytics.optOutForSocialAccount).toHaveBeenCalledTimes(1);
+      expect(mockAnalytics.optInForSocialAccount).toHaveBeenCalledTimes(1);
 
       // Re-enable social login
       await metaMetrics.enableSocialLogin(true);
-      expect(metaMetrics.isEnabled()).toBeTruthy();
-      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        AGREED,
-      );
-
-      // Verify all enableSocialLogin calls were made
-      expect(StorageWrapper.setItem).toHaveBeenCalledTimes(3);
-      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
-        1,
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        AGREED,
-      );
-      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
-        2,
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        DENIED,
-      );
-      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
-        3,
-        METRICS_OPT_IN_SOCIAL_LOGIN,
-        AGREED,
-      );
+      expect(mockAnalytics.optInForSocialAccount).toHaveBeenCalledTimes(2);
+      expect(mockAnalytics.optOutForSocialAccount).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -410,6 +323,7 @@ describe('MetaMetrics', () => {
      */
     describe('tracks event', () => {
       it('without properties (test A)', async () => {
+        mockAnalytics.trackEvent.mockImplementation(() => Promise.resolve());
         const metaMetrics = TestMetaMetrics.getInstance();
         await metaMetrics.configure();
         await metaMetrics.enable();
@@ -419,17 +333,15 @@ describe('MetaMetrics', () => {
 
         metaMetrics.trackEvent(event);
 
-        const { segmentMockClient } =
-          global as unknown as GlobalWithSegmentClient;
-
-        // check if the event was tracked
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+        // check if the event was tracked through analytics module
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(event.name, {
           anonymous: false,
         });
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
       });
 
       it('with only non-anonymous properties (test B)', async () => {
+        mockAnalytics.trackEvent.mockImplementation(() => Promise.resolve());
         const metaMetrics = TestMetaMetrics.getInstance();
         await metaMetrics.configure();
         await metaMetrics.enable();
@@ -442,18 +354,16 @@ describe('MetaMetrics', () => {
 
         metaMetrics.trackEvent(event);
 
-        const { segmentMockClient } =
-          global as unknown as GlobalWithSegmentClient;
-
-        // check if the event was tracked
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+        // check if the event was tracked through analytics module
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(event.name, {
           anonymous: false,
           ...nonAnonProp,
         });
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
       });
 
       it('with only anonymous properties group (test C)', async () => {
+        mockAnalytics.trackEvent.mockImplementation(() => Promise.resolve());
         const metaMetrics = TestMetaMetrics.getInstance();
         await metaMetrics.configure();
         await metaMetrics.enable();
@@ -466,27 +376,25 @@ describe('MetaMetrics', () => {
 
         metaMetrics.trackEvent(event);
 
-        const { segmentMockClient } =
-          global as unknown as GlobalWithSegmentClient;
-
-        // check if the event was tracked
+        // check if the event was tracked through analytics module
         // non-anonymous event has no properties.
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(event.name, {
           anonymous: false,
           ...{},
         });
 
         // anonymous event has group anon properties
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(event.name, {
           anonymous: true,
           ...groupAnonProperties,
         });
 
         // two events should be tracked, one anonymous and one non-anonymous
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
       });
 
       it('with anonymous and non-anonymous properties (test D)', async () => {
+        mockAnalytics.trackEvent.mockImplementation(() => Promise.resolve());
         const metaMetrics = TestMetaMetrics.getInstance();
         await metaMetrics.configure();
         await metaMetrics.enable();
@@ -501,30 +409,28 @@ describe('MetaMetrics', () => {
 
         metaMetrics.trackEvent(event);
 
-        const { segmentMockClient } =
-          global as unknown as GlobalWithSegmentClient;
-
         // non-anonymous event only has the non-anonymous properties.
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(event.name, {
           anonymous: false,
           ...nonAnonProperties,
         });
 
         // anonymous event has all properties
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(event.name, {
           anonymous: true,
           ...nonAnonProperties,
           ...anonProperties,
         });
 
         // Only two events should be tracked, one anonymous and one non-anonymous
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
       });
     });
 
     describe('saveDataRecording', () => {
       it('tracks event without updating dataRecorded status', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
+        mockAnalytics.trackEvent.mockImplementation(() => Promise.resolve());
         await metaMetrics.configure();
         await metaMetrics.enable();
         const event = MetricsEventBuilder.createEventBuilder({
@@ -533,430 +439,107 @@ describe('MetaMetrics', () => {
 
         metaMetrics.trackEvent(event, false);
 
-        const { segmentMockClient } =
-          global as unknown as GlobalWithSegmentClient;
-
-        expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(event.name, {
           anonymous: false,
         });
-        expect(metaMetrics.isDataRecorded()).toBeFalsy();
+        expect(await metaMetrics.isDataRecorded()).toBeFalsy();
       });
     });
   });
 
   describe('Grouping', () => {
-    it('groups user', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      await metaMetrics.enable();
-      const groupId = 'group1';
-      const groupTraits = { trait1: 'value1' };
-      metaMetrics.group(groupId, groupTraits);
-
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      expect(segmentMockClient.group).toHaveBeenCalledWith(
-        groupId,
-        groupTraits,
-      );
-    });
-
-    it('does not groups user if disabled', async () => {
+    it('is a no-op (deprecated method)', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       const groupId = 'group1';
       const groupTraits = { trait1: 'value1' };
-      metaMetrics.group(groupId, groupTraits);
 
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      expect(segmentMockClient.group).not.toHaveBeenCalled();
+      // Should not throw
+      await expect(
+        metaMetrics.group(groupId, groupTraits),
+      ).resolves.toBeUndefined();
     });
   });
 
   describe('User Traits', () => {
     it('adds traits to user', async () => {
+      mockAnalytics.isEnabled.mockReturnValue(true);
+      mockAnalytics.identify.mockImplementation(() => Promise.resolve());
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.configure();
       await metaMetrics.enable();
       const userTraits = { trait1: 'value1' };
+
       await metaMetrics.addTraitsToUser(userTraits);
 
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      expect(segmentMockClient.identify).toHaveBeenCalledWith(
-        expect.any(String),
-        userTraits,
-      );
+      expect(mockAnalytics.identify).toHaveBeenCalledWith(userTraits);
     });
 
-    it('does not add traits to user when disabled', async () => {
+    it('adds traits to user even when disabled (controller handles enabled check)', async () => {
+      mockAnalytics.isEnabled.mockReturnValue(false);
+      mockAnalytics.identify.mockImplementation(() => Promise.resolve());
       const metaMetrics = TestMetaMetrics.getInstance();
+      await metaMetrics.configure();
       const userTraits = { trait1: 'value1' };
+
       await metaMetrics.addTraitsToUser(userTraits);
 
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      expect(segmentMockClient.identify).not.toHaveBeenCalled();
+      // MetaMetrics no longer checks isEnabled - controller handles it
+      expect(mockAnalytics.identify).toHaveBeenCalledWith(userTraits);
     });
   });
 
   describe('Lifecycle', () => {
-    it('resets', async () => {
+    it('reset is a no-op (deprecated method)', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
-      await metaMetrics.reset();
 
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(METAMETRICS_ID, '');
+      // Should not throw
+      await expect(metaMetrics.reset()).resolves.toBeUndefined();
     });
 
-    it('flushes the segment client', async () => {
+    it('flush is a no-op (deprecated method)', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
-      await metaMetrics.flush();
 
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      expect(segmentMockClient.flush).toHaveBeenCalled();
+      // Should not throw
+      await expect(metaMetrics.flush()).resolves.toBeUndefined();
     });
   });
 
   describe('Ids', () => {
-    it('is returned from StorageWrapper when instance not configured', async () => {
+    it('returns ID from analytics module', async () => {
       const UUID = '12345678-1234-4234-b234-123456789012';
-      mockGet.mockImplementation(async (key: string) =>
-        key === METAMETRICS_ID ? UUID : '',
-      );
+      mockAnalytics.getAnalyticsId.mockResolvedValue(UUID);
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(METAMETRICS_ID);
+
+      const result = await metaMetrics.getMetaMetricsId();
+
+      expect(result).toEqual(UUID);
+      expect(mockAnalytics.getAnalyticsId).toHaveBeenCalled();
     });
 
-    it('is returned from memory when instance configured', async () => {
+    it('always uses analytics module for ID retrieval', async () => {
       const testID = '12345678-1234-4234-b234-123456789012';
-      mockGet.mockImplementation(async () => testID);
+      mockAnalytics.getAnalyticsId.mockResolvedValue(testID);
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.configure();
 
-      // reset the call count to checj no new calls are made
-      mockGet.mockClear();
+      // reset the call count to check analytics module is called again
+      mockAnalytics.getAnalyticsId.mockClear();
+      mockAnalytics.getAnalyticsId.mockResolvedValue(testID);
 
-      expect(await metaMetrics.getMetaMetricsId()).toEqual(testID);
-      expect(StorageWrapper.getItem).not.toHaveBeenCalled();
-    });
+      const result = await metaMetrics.getMetaMetricsId();
 
-    it('uses Mixpanel ID if it is set and is valid hex address', async () => {
-      const mixPanelHexAddress = '0x1234567890123456789012345678901234567890';
-      mockGet.mockImplementation(async (key: string) =>
-        key === MIXPANEL_METAMETRICS_ID ? mixPanelHexAddress : '',
-      );
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        3,
-        MIXPANEL_METAMETRICS_ID,
-      );
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        METAMETRICS_ID,
-        mixPanelHexAddress,
-      );
-      expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(METAMETRICS_ID);
-      expect(await metaMetrics.getMetaMetricsId()).toEqual(mixPanelHexAddress);
-      expect(isHexAddress(mixPanelHexAddress)).toBe(true);
-    });
-
-    it('uses Mixpanel ID with uppercase letters after converting to lowercase', async () => {
-      const mixPanelHexAddressUppercase =
-        '0X1234567890ABCDEF123456789012345678901234';
-      const expectedLowercase = mixPanelHexAddressUppercase.toLowerCase();
-      mockGet.mockImplementation(async (key: string) =>
-        key === MIXPANEL_METAMETRICS_ID ? mixPanelHexAddressUppercase : '',
-      );
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-
-      const metricsId = await metaMetrics.getMetaMetricsId();
-
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        3,
-        MIXPANEL_METAMETRICS_ID,
-      );
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        METAMETRICS_ID,
-        mixPanelHexAddressUppercase,
-      );
-      expect(metricsId).toEqual(mixPanelHexAddressUppercase);
-      expect(isHexAddress(expectedLowercase)).toBe(true);
-    });
-
-    it('ignores Mixpanel ID if it is not a valid hex address', async () => {
-      const invalidMixpanelId = '00000000-0000-0000-0000-000000000000';
-      mockGet.mockImplementation(async (key: string) =>
-        key === MIXPANEL_METAMETRICS_ID ? invalidMixpanelId : '',
-      );
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-
-      const metricsId = await metaMetrics.getMetaMetricsId();
-
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        3,
-        MIXPANEL_METAMETRICS_ID,
-      );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
-      expect(metricsId).not.toEqual(invalidMixpanelId);
-      expect(validate(metricsId as string)).toBe(true);
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        METAMETRICS_ID,
-        metricsId,
-      );
-    });
-
-    it('uses Metametrics ID if it is set', async () => {
-      const UUID = '12345678-1234-4234-b234-123456789012';
-      mockGet.mockImplementation(async (key: string) =>
-        key === METAMETRICS_ID ? UUID : '',
-      );
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        3,
-        MIXPANEL_METAMETRICS_ID,
-      );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
-      expect(StorageWrapper.setItem).not.toHaveBeenCalled();
-      expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
-    });
-
-    it('maintains same user id', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-      const metricsId = await metaMetrics.getMetaMetricsId();
-      expect(metricsId).not.toEqual('');
-
-      // create a new instance and check that user id was not changed
-      TestMetaMetrics.getInstance();
-
-      expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
-        METAMETRICS_ID,
-        '',
-      );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
-      expect(await metaMetrics.getMetaMetricsId()).toEqual(metricsId);
-    });
-
-    it('resets user id', async () => {
-      const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
-      const metricsId = await metaMetrics.getMetaMetricsId();
-      expect(metricsId).not.toEqual('');
-
-      // reset the instance and SDK must reset user id
-      await metaMetrics.reset();
-
-      // Check change on the MetaMerics class side
-      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
-        2,
-        METAMETRICS_ID,
-        '',
-      );
-
-      const { segmentMockClient } =
-        global as unknown as GlobalWithSegmentClient;
-
-      // Check MetaMerics class calls the Segment SDK reset
-      expect(segmentMockClient.reset).toHaveBeenCalledTimes(1);
-      expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
-
-      // create a new instance and check user id is different
-      TestMetaMetrics.getInstance();
-      const metricsId2 = await metaMetrics.getMetaMetricsId();
-
-      expect(metricsId2).not.toEqual('');
-      expect(metricsId).not.toEqual(metricsId2);
-    });
-
-    describe('corrupted ID validation', () => {
-      it('regenerates new ID when stored ID is JSON-stringified empty string', async () => {
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? '""' : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual('""');
-        expect(metricsId).not.toEqual('');
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
-        );
-      });
-
-      it('regenerates new ID when stored ID is too short', async () => {
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? 'abc' : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual('abc');
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
-        );
-      });
-
-      it('regenerates new ID when stored ID is "null" string', async () => {
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? 'null' : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual('null');
-        expect(validate(metricsId as string)).toBe(true);
-      });
-
-      it('regenerates new ID when stored ID is "undefined" string', async () => {
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? 'undefined' : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual('undefined');
-        expect(validate(metricsId as string)).toBe(true);
-      });
-
-      it('regenerates new ID when stored ID has invalid UUID format', async () => {
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? 'not-a-valid-uuid-format' : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual('not-a-valid-uuid-format');
-        // casting for testing
-        expect(validate(metricsId as unknown as string)).toBe(true);
-      });
-
-      it('regenerates new ID when stored ID is NIL UUID (all zeros)', async () => {
-        const nilUUID = '00000000-0000-0000-0000-000000000000';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? nilUUID : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual(nilUUID);
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
-        );
-      });
-
-      it('accepts valid UUIDv4 format', async () => {
-        const validUUID = '12345678-1234-4234-a234-123456789012';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? validUUID : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).toEqual(validUUID);
-        expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          expect.anything(),
-        );
-      });
-
-      it('regenerates new ID when stored ID is version 1 UUID', async () => {
-        // Example UUIDv1 format: time-based
-        const uuidV1 = '12345678-1234-1234-a234-123456789012';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? uuidV1 : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual(uuidV1);
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
-        );
-      });
-
-      it('regenerates new ID when stored ID is version 3 UUID', async () => {
-        // Example UUIDv3 format: MD5-based
-        const uuidV3 = '12345678-1234-3234-a234-123456789012';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? uuidV3 : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual(uuidV3);
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
-        );
-      });
-
-      it('regenerates new ID when stored ID is version 5 UUID', async () => {
-        // Example UUIDv5 format: SHA1-based
-        const uuidV5 = '12345678-1234-5234-a234-123456789012';
-        mockGet.mockImplementation(async (key: string) =>
-          key === METAMETRICS_ID ? uuidV5 : '',
-        );
-        const metaMetrics = TestMetaMetrics.getInstance();
-
-        await metaMetrics.configure();
-
-        const metricsId = await metaMetrics.getMetaMetricsId();
-        expect(metricsId).not.toEqual(uuidV5);
-        expect(validate(metricsId as string)).toBe(true);
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-          METAMETRICS_ID,
-          metricsId,
-        );
-      });
+      expect(result).toEqual(testID);
+      expect(mockAnalytics.getAnalyticsId).toHaveBeenCalled();
     });
   });
 
   describe('Delete regulation', () => {
     describe('delete request', () => {
       it('data deletion task succeeds', async () => {
+        // Set required environment variables
+        process.env.SEGMENT_DELETE_API_SOURCE_ID = 'test-source-id';
+        process.env.SEGMENT_REGULATIONS_ENDPOINT = 'https://api.segment.io';
+
         const metaMetrics = TestMetaMetrics.getInstance();
         (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
           status: 200,
@@ -969,7 +552,7 @@ describe('MetaMetrics', () => {
 
         expect(result).toEqual({ status: DataDeleteResponseStatus.ok });
 
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
           'TWV0YU1hc2t1c2Vzbm9wb2ludCE',
         );
@@ -978,7 +561,7 @@ describe('MetaMetrics', () => {
         const day = currentDate.getUTCDate();
         const month = currentDate.getUTCMonth() + 1;
         const year = currentDate.getUTCFullYear();
-        expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
           `${day}/${month}/${year}`,
         );
@@ -997,11 +580,11 @@ describe('MetaMetrics', () => {
 
         expect(result.status).toBe(DataDeleteResponseStatus.error);
         expect(result.error).toBe('Analytics Deletion Task Error');
-        expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
+        expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
           expect.any(String),
         );
-        expect(StorageWrapper.setItem).not.toHaveBeenCalledWith(
+        expect(mockedStorageWrapper.setItem).not.toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
           expect.any(String),
         );
@@ -1011,38 +594,49 @@ describe('MetaMetrics', () => {
     describe('Date', () => {
       it('gets date from preferences storage', async () => {
         const expectedDate = '04/05/2023';
-        StorageWrapper.getItem = jest.fn().mockResolvedValue(expectedDate);
+        mockedStorageWrapper.getItem.mockResolvedValue(expectedDate);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
+        expect(await metaMetrics.getDeleteRegulationCreationDate()).toBe(
           expectedDate,
         );
-        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
         );
       });
 
-      it('keeps date in instance', async () => {
+      it('reads from storage on each call', async () => {
         const expectedDate = '04/05/2023';
-        StorageWrapper.getItem = jest.fn().mockResolvedValue(expectedDate);
+        mockedStorageWrapper.getItem.mockResolvedValue(expectedDate);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        // this resets the call count and changes the return value to nothing
-        StorageWrapper.getItem = jest.fn().mockResolvedValue(null);
-        expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
+
+        expect(await metaMetrics.getDeleteRegulationCreationDate()).toBe(
           expectedDate,
         );
-        expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
+        expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
+          ANALYTICS_DATA_DELETION_DATE,
+        );
+
+        // this resets the call count to verify it reads from storage again
+        mockedStorageWrapper.getItem.mockClear();
+        mockedStorageWrapper.getItem.mockResolvedValue(expectedDate);
+        expect(await metaMetrics.getDeleteRegulationCreationDate()).toBe(
+          expectedDate,
+        );
+        expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
         );
       });
 
-      it('returns empty string if no date in preferences storage', async () => {
-        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
+      it('returns undefined if no date in preferences storage', async () => {
+        mockedStorageWrapper.getItem.mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        expect(metaMetrics.getDeleteRegulationCreationDate()).toBeUndefined();
-        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        expect(
+          await metaMetrics.getDeleteRegulationCreationDate(),
+        ).toBeUndefined();
+        expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
         );
       });
@@ -1051,38 +645,47 @@ describe('MetaMetrics', () => {
     describe('Regulation Id', () => {
       it('gets id from preferences storage', async () => {
         const expecterRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
-        StorageWrapper.getItem = jest
-          .fn()
-          .mockResolvedValue(expecterRegulationId);
+        mockedStorageWrapper.getItem.mockResolvedValue(expecterRegulationId);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
-        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        expect(await metaMetrics.getDeleteRegulationId()).toBe(
+          expecterRegulationId,
+        );
+        expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
         );
       });
 
-      it('keeps id in instance', async () => {
+      it('reads from storage on each call', async () => {
         const expecterRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
-        StorageWrapper.getItem = jest
-          .fn()
-          .mockResolvedValue(expecterRegulationId);
+        mockedStorageWrapper.getItem.mockResolvedValue(expecterRegulationId);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        // this resets the call count and changes the return value to nothing
-        StorageWrapper.getItem = jest.fn().mockResolvedValue(null);
-        expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
-        expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
+
+        expect(await metaMetrics.getDeleteRegulationId()).toBe(
+          expecterRegulationId,
+        );
+        expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
+          METAMETRICS_DELETION_REGULATION_ID,
+        );
+
+        // this resets the call count to verify it reads from storage again
+        mockedStorageWrapper.getItem.mockClear();
+        mockedStorageWrapper.getItem.mockResolvedValue(expecterRegulationId);
+        expect(await metaMetrics.getDeleteRegulationId()).toBe(
+          expecterRegulationId,
+        );
+        expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
         );
       });
 
-      it('returns empty string if no id in preferences storage', async () => {
-        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
+      it('returns undefined if no id in preferences storage', async () => {
+        mockedStorageWrapper.getItem.mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        expect(metaMetrics.getDeleteRegulationId()).toBeUndefined();
-        expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        expect(await metaMetrics.getDeleteRegulationId()).toBeUndefined();
+        expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
         );
       });
@@ -1090,7 +693,7 @@ describe('MetaMetrics', () => {
 
     describe('check request', () => {
       it('data deletion task check succeeds', async () => {
-        StorageWrapper.getItem = jest.fn((key) => {
+        mockedStorageWrapper.getItem.mockImplementation((key) => {
           switch (key) {
             case METAMETRICS_DELETION_REGULATION_ID:
               return Promise.resolve('TWV0YU1hc2t1c2Vzbm9wb2ludCE');
@@ -1146,7 +749,7 @@ describe('MetaMetrics', () => {
       });
 
       it('data deletion task check fails without METAMETRICS_DELETION_REGULATION_ID', async () => {
-        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
+        mockedStorageWrapper.getItem.mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
 
         const {
@@ -1165,39 +768,42 @@ describe('MetaMetrics', () => {
     });
   });
 
-  describe('E2E Mode', () => {
-    beforeEach(() => {
-      mockTrackE2EEvent.mockClear();
-    });
+  // TODO: implement e2e mode in controller init
+  // Keep this commented code for ref
+  // describe('E2E Mode', () => {
+  //   beforeEach(() => {
+  //     mockTrackE2EEvent.mockClear();
+  //   });
 
-    const testE2EMode = async (isE2E: boolean) => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const utils = require('../../util/test/utils');
-      utils.isE2E = isE2E;
+  //   const testE2EMode = async (isE2E: boolean) => {
+  //     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  //     const utils = require('../../util/test/utils');
+  //     utils.isE2E = isE2E;
 
-      const metaMetrics = MetaMetrics.getInstance();
-      await metaMetrics.configure();
-      await metaMetrics.enable();
+  //     mockAnalytics.trackEvent.mockImplementation(() => {});
+  //     const metaMetrics = MetaMetrics.getInstance();
+  //     await metaMetrics.configure();
+  //     await metaMetrics.enable();
 
-      const event = MetricsEventBuilder.createEventBuilder({
-        category: 'test event',
-      }).build();
+  //     const event = MetricsEventBuilder.createEventBuilder({
+  //       category: 'test event',
+  //     }).build();
 
-      metaMetrics.trackEvent(event);
+  //     metaMetrics.trackEvent(event);
 
-      if (isE2E) {
-        expect(mockTrackE2EEvent).toHaveBeenCalledWith(event);
-      } else {
-        expect(mockTrackE2EEvent).not.toHaveBeenCalled();
-      }
-    };
+  //     if (isE2E) {
+  //       expect(mockTrackE2EEvent).toHaveBeenCalledWith(event);
+  //     } else {
+  //       expect(mockTrackE2EEvent).not.toHaveBeenCalled();
+  //     }
+  //   };
 
-    it('calls MetaMetricsTestUtils.trackEvent when isE2E is true', async () => {
-      await testE2EMode(true);
-    });
+  //   it('calls MetaMetricsTestUtils.trackEvent when isE2E is true', async () => {
+  //     await testE2EMode(true);
+  //   });
 
-    it('does not call MetaMetricsTestUtils.trackEvent when isE2E is false', async () => {
-      await testE2EMode(false);
-    });
-  });
+  //   it('does not call MetaMetricsTestUtils.trackEvent when isE2E is false', async () => {
+  //     await testE2EMode(false);
+  //   });
+  // });
 });
