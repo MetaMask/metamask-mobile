@@ -25,10 +25,7 @@ export function getCurrencyRateControllerMessenger(
     parent: rootExtendedMessenger,
   });
   rootExtendedMessenger.delegate({
-    actions: [
-      'NetworkController:getNetworkClientById',
-      'NetworkController:getState',
-    ],
+    actions: ['NetworkController:getNetworkClientById'],
     events: [],
     messenger,
   });

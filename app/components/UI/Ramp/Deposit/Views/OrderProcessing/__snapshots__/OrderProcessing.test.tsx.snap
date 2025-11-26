@@ -42,7 +42,6 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
           [
             {
               "padding": 15,
-              "paddingHorizontal": 16,
             },
             undefined,
             {
@@ -527,7 +526,6 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
           [
             {
               "padding": 15,
-              "paddingHorizontal": 16,
             },
             undefined,
             undefined,
@@ -637,7 +635,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
           [
             {
               "padding": 15,
-              "paddingHorizontal": 16,
             },
             undefined,
             {
@@ -1118,7 +1115,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
           [
             {
               "padding": 15,
-              "paddingHorizontal": 16,
             },
             undefined,
             undefined,
@@ -1317,7 +1313,6 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
           [
             {
               "padding": 15,
-              "paddingHorizontal": 16,
             },
             undefined,
             {
@@ -1802,7 +1797,6 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
           [
             {
               "padding": 15,
-              "paddingHorizontal": 16,
             },
             undefined,
             undefined,
@@ -1912,7 +1906,6 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
           [
             {
               "padding": 15,
-              "paddingHorizontal": 16,
             },
             undefined,
             {
@@ -2393,7 +2386,6 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
           [
             {
               "padding": 15,
-              "paddingHorizontal": 16,
             },
             undefined,
             undefined,

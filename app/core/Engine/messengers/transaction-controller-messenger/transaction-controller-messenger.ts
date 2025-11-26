@@ -148,7 +148,6 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:getEIP1559Compatibility',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
-      'RemoteFeatureFlagController:getState',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
       'TransactionController:getState',

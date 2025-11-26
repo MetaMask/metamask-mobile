@@ -11,10 +11,6 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/snaps-controllers');
 
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn().mockReturnValue('7.59.0'),
-}));
-
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<SnapsRegistryMessenger>
 > {
@@ -45,10 +41,6 @@ describe('SnapsRegistryInit', () => {
       messenger: expect.any(Object),
       state: undefined,
       refetchOnAllowlistMiss: false,
-      clientConfig: {
-        type: 'mobile',
-        version: '7.59.0',
-      },
     });
   });
 });

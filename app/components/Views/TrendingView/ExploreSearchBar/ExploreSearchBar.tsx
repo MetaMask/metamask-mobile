@@ -6,28 +6,27 @@ import {
   BoxAlignItems,
   Text,
   TextVariant,
-  Icon,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Icon, {
   IconName,
   IconSize,
   IconColor,
-  TextColor,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+} from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 
 interface ExploreSearchBarButtonProps {
   type: 'button';
   onPress: () => void;
-  placeholder?: string;
 }
 
 interface ExploreSearchBarInteractiveProps {
   type: 'interactive';
+  isSearchFocused: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onCancel: () => void;
-  placeholder?: string;
 }
 
 type ExploreSearchBarProps =
@@ -40,8 +39,6 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
 
   const isInteractiveMode = props.type === 'interactive';
   const isButtonMode = props.type === 'button';
-  const placeholder =
-    props.placeholder || strings('trending.search_placeholder');
 
   const handleCancel = () => {
     if (isInteractiveMode) {
@@ -67,77 +64,77 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       <Icon
         name={IconName.Search}
         size={IconSize.Md}
-        color={IconColor.IconMuted}
+        color={IconColor.Muted}
         style={tw.style('mr-2')}
       />
       {isButtonMode ? (
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {placeholder}
+        <Text variant={TextVariant.BodyMd} style={tw.style('text-muted')}>
+          {strings('trending.search_placeholder')}
         </Text>
       ) : (
         <>
           <TextInput
             value={props.searchQuery}
             onChangeText={props.onSearchChange}
-            placeholder={placeholder}
-            placeholderTextColor={colors.text.alternative}
+            placeholder={strings('trending.search_placeholder')}
+            placeholderTextColor={colors.text.muted}
             style={tw.style('flex-1 text-base text-default py-2.5')}
             testID="explore-view-search-input"
-            autoFocus={props.type === 'interactive'}
-            autoCapitalize="none"
+            autoFocus={props.isSearchFocused}
           />
-          <TouchableOpacity
-            onPress={handleClear}
-            testID="explore-search-clear-button"
-            disabled={!props.searchQuery || props.searchQuery.length === 0}
-            style={tw.style(
-              props.searchQuery && props.searchQuery.length > 0
-                ? 'opacity-100'
-                : 'opacity-0',
-            )}
-          >
-            <Icon
-              name={IconName.CircleX}
-              size={IconSize.Md}
-              color={IconColor.IconAlternative}
-            />
-          </TouchableOpacity>
+          {props.searchQuery && props.searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={handleClear}
+              testID="explore-search-clear-button"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Icon
+                name={IconName.CircleX}
+                size={IconSize.Md}
+                color={IconColor.Muted}
+              />
+            </TouchableOpacity>
+          )}
         </>
       )}
     </Box>
   );
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-2"
-    >
-      {isButtonMode ? (
-        <TouchableOpacity
-          onPress={props.onPress}
-          testID="explore-view-search-button"
-          activeOpacity={0.7}
-          style={tw.style('flex-1')}
-        >
-          {searchBarContent}
-        </TouchableOpacity>
-      ) : (
-        <>
-          <Box twClassName="flex-1">{searchBarContent}</Box>
+    <Box twClassName="px-4 pb-3">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+      >
+        {isButtonMode ? (
           <TouchableOpacity
-            onPress={handleCancel}
-            testID="explore-search-cancel-button"
+            onPress={props.onPress}
+            testID="explore-view-search-button"
+            activeOpacity={0.7}
+            style={tw.style('flex-1')}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              style={tw.style('text-default font-medium')}
-            >
-              {strings('transaction.cancel')}
-            </Text>
+            {searchBarContent}
           </TouchableOpacity>
-        </>
-      )}
+        ) : (
+          <>
+            <Box twClassName="flex-1">{searchBarContent}</Box>
+            {props.isSearchFocused && (
+              <TouchableOpacity
+                onPress={handleCancel}
+                testID="explore-search-cancel-button"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  style={tw.style('text-default font-medium')}
+                >
+                  {strings('transaction.cancel')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+      </Box>
     </Box>
   );
 };

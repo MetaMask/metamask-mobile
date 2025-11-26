@@ -170,13 +170,20 @@ import {
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import { selectPerpsGtmOnboardingModalEnabledFlag } from '../../UI/Perps';
+import {
+  selectPerpsEnabledFlag,
+  selectPerpsGtmOnboardingModalEnabledFlag,
+} from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import { selectPredictGtmOnboardingModalEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import {
+  selectPredictEnabledFlag,
+  selectPredictGtmOnboardingModalEnabledFlag,
+} from '../../UI/Predict/selectors/featureFlags';
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
@@ -241,9 +248,7 @@ interface WalletTokensTabViewProps {
 }
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
-  const isPerpsFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -257,9 +262,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       (isEvmSelected || isMultichainAccountsState2Enabled),
     [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
-  const isPredictFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => isPredictFlagEnabled,
     [isPredictFlagEnabled],
@@ -513,16 +516,12 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
 
-  const isPerpsFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const isPredictFlagEnabled = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictGTMModalEnabled = useSelector(
     selectPredictGtmOnboardingModalEnabledFlag,
   );
@@ -695,14 +694,14 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigateToSendPage({ location: InitSendLocation.HomePage });
+      navigateToSendPage(InitSendLocation.HomePage);
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigateToSendPage({ location: InitSendLocation.HomePage });
+      navigateToSendPage(InitSendLocation.HomePage);
     }
   }, [
     trackEvent,
@@ -957,9 +956,7 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const isCarouselBannersEnabled = useFeatureFlag(
-    FeatureFlagNames.carouselBanners,
-  );
+  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -1094,6 +1091,7 @@ const Wallet = ({
   );
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
@@ -1115,6 +1113,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         shouldDisplayCardButton,
+        isRewardsEnabled,
       ),
     );
   }, [
@@ -1130,6 +1129,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     shouldDisplayCardButton,
+    isRewardsEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(

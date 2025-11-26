@@ -38,8 +38,7 @@ const CollectibleModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectChainId);
 
-  const { contractName, collectible, source } =
-    useParams<CollectibleModalParams>();
+  const { contractName, collectible } = useParams<CollectibleModalParams>();
 
   const modalRef = useRef<ReusableModalRef>(null);
 
@@ -74,23 +73,17 @@ const CollectibleModal = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NFT_DETAILS_OPENED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-          ...(source && { source }),
-        })
+        .addProperties({ chain_id: getDecimalChainId(chainId) })
         .build(),
     );
     // The linter wants `trackEvent` to be added as a dependency,
     // But the event fires twice if I do that.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, source]);
+  }, [chainId]);
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
-    navigateToSendPage({
-      location: InitSendLocation.CollectibleModal,
-      asset: collectible,
-    });
+    navigateToSendPage(InitSendLocation.CollectibleModal, collectible);
   }, [contractName, collectible, dispatch, navigateToSendPage]);
 
   const isTradable = useCallback(

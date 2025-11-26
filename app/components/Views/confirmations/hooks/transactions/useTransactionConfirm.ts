@@ -10,6 +10,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
@@ -33,8 +34,7 @@ export function useTransactionConfirm() {
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
-  const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
-    transactionMetadata ?? {};
+  const { chainId, type } = transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
 
@@ -50,7 +50,7 @@ export function useTransactionConfirm() {
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
+      if (!selectedGasFeeToken) {
         return;
       }
 
@@ -77,7 +77,6 @@ export function useTransactionConfirm() {
     },
     [
       selectedGasFeeToken,
-      isGasFeeTokenIgnoredIfBalance,
       isGaslessSupported,
       transactionMetadata?.isGasFeeSponsored,
     ],
@@ -85,7 +84,7 @@ export function useTransactionConfirm() {
 
   const handleGasless7702 = useCallback(
     (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
+      if (!selectedGasFeeToken) {
         return;
       }
 
@@ -94,7 +93,6 @@ export function useTransactionConfirm() {
         isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
     [
-      isGasFeeTokenIgnoredIfBalance,
       isGaslessSupported,
       selectedGasFeeToken,
       transactionMetadata?.isGasFeeSponsored,
@@ -143,7 +141,11 @@ export function useTransactionConfirm() {
 
     // Replace/remove this once we have redesigned send flow
     dispatch(resetTransaction());
-    tryEnableEvmNetwork(chainId);
+
+    // Enable the network if it's not enabled for the Network Manager
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      tryEnableEvmNetwork(chainId);
+    }
   }, [
     chainId,
     dispatch,

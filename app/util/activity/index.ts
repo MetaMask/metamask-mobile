@@ -116,16 +116,14 @@ export const filterByAddressAndNetwork = (
     condition &&
     tx.status !== TX_UNAPPROVED
   ) {
-    const result = isTransfer
+    return isTransfer
       ? !!tokens.find(({ address }) =>
           areAddressesEqual(
             address,
             transferInformation?.contractAddress ?? '',
           ),
-        ) || areAddressesEqual(from, selectedAddress) // Allow if sender is current address
+        )
       : true;
-
-    return result;
   }
 
   return false;
@@ -152,16 +150,14 @@ export const filterByAddress = (
     isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
     tx.status !== TX_UNAPPROVED
   ) {
-    const result = isTransfer
+    return isTransfer
       ? !!tokens.find(({ address }) =>
           areAddressesEqual(
             address,
             transferInformation?.contractAddress ?? '',
           ),
-        ) || areAddressesEqual(from, selectedAddress) // Allow if sender is current address
+        )
       : true;
-
-    return result;
   }
 
   return false;

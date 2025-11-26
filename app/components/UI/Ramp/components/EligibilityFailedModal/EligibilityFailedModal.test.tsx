@@ -9,7 +9,7 @@ import { Linking } from 'react-native';
 const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn().mockResolvedValue(undefined),
+  openURL: jest.fn(),
   addEventListener: jest.fn(() => ({ remove: jest.fn() })),
   removeEventListener: jest.fn(),
   canOpenURL: jest.fn().mockResolvedValue(true),
@@ -54,9 +54,8 @@ describe('EligibilityFailedModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders modal with title and description', () => {
+  it('renders the modal with the correct title and description', () => {
     const { toJSON } = render(EligibilityFailedModal);
-
     expect(toJSON()).toMatchSnapshot();
   });
   it('navigates to contact support when the contact support button is pressed', () => {

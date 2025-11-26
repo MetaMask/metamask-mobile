@@ -16,18 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 39,
       backgroundColor: theme.colors.background.alternativePressed,
     },
-    skeletonBorderRadiusLarge: {
-      borderRadius: 32,
-    },
-    skeletonBorderRadiusMedium: {
-      borderRadius: 6,
-      marginTop: 16,
-    },
-    skeletonBorderRadiusSmall: {
-      borderRadius: 4,
-      marginTop: 8,
-      marginBottom: 14,
-    },
   });
 };
 

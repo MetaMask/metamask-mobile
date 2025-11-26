@@ -1,12 +1,14 @@
-import { HandlerRegistry } from '../registry/HandlerRegistry';
-import { CoreLinkNormalizer } from '../normalization/CoreLinkNormalizer';
+import { HandlerRegistry } from './HandlerRegistry';
+import { CoreLinkNormalizer } from '../CoreLinkNormalizer';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
-import { LegacyLinkAdapter } from '../normalization/LegacyLinkAdapter';
-import { HandlerContext, HandlerResult } from '../types/UniversalLinkHandler';
+import { LegacyLinkAdapter } from '../adapters/LegacyLinkAdapter';
+import {
+  HandlerContext,
+  HandlerResult,
+} from './interfaces/UniversalLinkHandler';
 import Logger from '../../../util/Logger';
 import { MetaMetrics } from '../../Analytics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
-import { NavigationHandler, SwapHandler, SendHandler } from '../handlers/v2';
 
 /**
  * Universal Router for handling deep links
@@ -38,26 +40,18 @@ export class UniversalRouter {
    */
   initialize(_context?: Partial<HandlerContext>): void {
     if (this.isInitialized) return;
-    this.registry.clear();
 
     // Register built-in handlers
     try {
-      // Core functionality handlers (priority 50)
-      this.registry.register(new SwapHandler());
-      this.registry.register(new SendHandler());
-
-      // Navigation handlers (priority 10)
-      this.registry.register(new NavigationHandler());
-
-      Logger.log('✅ Universal Router initialized with handlers');
-
-      // Only mark as initialized if all handlers registered successfully
-      this.isInitialized = true;
+      // Register handlers here in subsequent PRs here
+      // Example:
+      // const { NavigationHandler } = require('./handlers/NavigationHandler');
+      // this.registry.register(new NavigationHandler());
     } catch (error) {
       Logger.error(error as Error, 'Failed to register handlers');
-      // Rethrow to prevent silent failures - caller should handle initialization errors
-      throw error;
     }
+
+    this.isInitialized = true;
   }
 
   /**

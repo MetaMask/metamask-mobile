@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { TextVariant } from '@metamask/design-system-react-native';
 import RewardPointsAnimation, { RewardAnimationState } from './index';
-import { useRewardsAnimation } from '../../hooks/useRewardsAnimation';
 
 jest.mock('../../hooks/useRewardsAnimation', () => ({
   useRewardsAnimation: jest.fn(),
@@ -47,9 +46,9 @@ jest.mock('rive-react-native', () => ({
 jest.mock('../../../../../animations/rewards_icon_animations.riv', () => ({}));
 
 describe('RewardPointsAnimation', () => {
-  const mockUseRewardsAnimation = useRewardsAnimation as jest.MockedFunction<
-    typeof useRewardsAnimation
-  >;
+  const mockUseRewardsAnimation =
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-commonjs, @typescript-eslint/no-var-requires
+    require('../../hooks/useRewardsAnimation').useRewardsAnimation;
 
   const defaultProps = {
     value: 1000,
@@ -61,7 +60,7 @@ describe('RewardPointsAnimation', () => {
     rivePositionStyle: {},
     displayValue: 1000,
     displayText: null,
-    hideValue: false,
+    isAnimating: false,
   };
 
   beforeEach(() => {
@@ -282,20 +281,20 @@ describe('RewardPointsAnimation', () => {
       expect(getByTestId('info-icon')).toBeOnTheScreen();
     });
 
-    it('does not render info icon when in error state without infoOnPress', () => {
+    it('renders info icon when in error state with default noop callback', () => {
       mockUseRewardsAnimation.mockReturnValue({
         ...mockHookReturn,
         displayText: "Couldn't Load",
       });
 
-      const { queryByTestId } = render(
+      const { getByTestId } = render(
         <RewardPointsAnimation
           {...defaultProps}
           state={RewardAnimationState.ErrorState}
         />,
       );
 
-      expect(queryByTestId('info-icon')).toBeNull();
+      expect(getByTestId('info-icon')).toBeOnTheScreen();
     });
 
     it('does not render info icon when infoOnPress is explicitly null', () => {
@@ -396,32 +395,6 @@ describe('RewardPointsAnimation', () => {
       const { getByText } = render(<RewardPointsAnimation value={888} />);
 
       expect(getByText('888')).toBeOnTheScreen();
-    });
-
-    it('handles hideValue being true', () => {
-      mockUseRewardsAnimation.mockReturnValue({
-        ...mockHookReturn,
-        displayValue: 1000,
-        displayText: null,
-        hideValue: true,
-      });
-
-      const { queryByText } = render(<RewardPointsAnimation value={1000} />);
-
-      expect(queryByText('1,000')).toBeNull();
-    });
-
-    it('shows displayText when hideValue is true but displayText is provided', () => {
-      mockUseRewardsAnimation.mockReturnValue({
-        ...mockHookReturn,
-        displayValue: 1000,
-        displayText: 'Loading...',
-        hideValue: true,
-      });
-
-      const { getByText } = render(<RewardPointsAnimation value={1000} />);
-
-      expect(getByText('Loading...')).toBeOnTheScreen();
     });
   });
 

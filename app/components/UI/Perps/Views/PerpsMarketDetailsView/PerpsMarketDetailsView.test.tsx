@@ -19,25 +19,6 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn(() => Promise.resolve(null)),
 }));
 
-jest.mock('react-native-modal', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { View } = require('react-native');
-  return ({
-    isVisible,
-    children,
-    ...props
-  }: {
-    isVisible: boolean;
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) =>
-    isVisible ? (
-      <View testID="modal-container" {...props}>
-        {children}
-      </View>
-    ) : null;
-});
-
 // Mock @consensys/native-ramps-sdk to provide missing enum
 jest.mock('@consensys/native-ramps-sdk', () => ({
   ...jest.requireActual('@consensys/native-ramps-sdk'),
@@ -76,20 +57,6 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
 // Mock Redux selectors for chart preferences
 jest.mock('../../selectors/chartPreferences', () => ({
   selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
-}));
-
-// Mock Logger
-const mockLoggerError = jest.fn();
-const mockLoggerLog = jest.fn();
-const mockLoggerWarn = jest.fn();
-
-jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: (...args: unknown[]) => mockLoggerError(...args),
-    log: (...args: unknown[]) => mockLoggerLog(...args),
-    warn: (...args: unknown[]) => mockLoggerWarn(...args),
-  },
 }));
 
 // Create mock functions that can be modified during tests
@@ -238,25 +205,23 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
   }),
 }));
 
-jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
-  usePerpsLiveCandles: () => ({
-    candleData: {
-      coin: 'BTC',
-      interval: '1h',
-      candles: [
-        {
-          time: 1234567890,
-          open: '45000',
-          high: '45500',
-          low: '44500',
-          close: '45200',
-          volume: '1000',
-        },
-      ],
-    },
-    isLoading: false,
-    hasHistoricalData: true,
+const mockRefreshCandleData = jest.fn();
+jest.mock('../../hooks/usePerpsPositionData', () => ({
+  usePerpsPositionData: () => ({
+    candleData: [
+      {
+        time: 1234567890,
+        open: 45000,
+        high: 45500,
+        low: 44500,
+        close: 45200,
+        volume: 1000,
+      },
+    ],
+    isLoadingHistory: false,
     error: null,
+    refreshCandleData: mockRefreshCandleData,
+    hasHistoricalData: true,
   }),
 }));
 
@@ -499,6 +464,7 @@ describe('PerpsMarketDetailsView', () => {
   // Clean up mocks after each test
   afterEach(() => {
     jest.clearAllMocks();
+    mockRefreshCandleData.mockClear();
     mockRefreshOrders.mockClear();
     mockRefreshMarketStats.mockClear();
     mockNavigate.mockClear();
@@ -790,8 +756,8 @@ describe('PerpsMarketDetailsView', () => {
         await refreshControl.props.onRefresh();
       });
 
-      // Note: Candle data now uses WebSocket streaming (usePerpsLiveCandles)
-      // so no manual refresh is needed - data updates automatically
+      // Should refresh candle data by default
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
     });
 
     it('refreshes candle data when position tab is active', async () => {
@@ -824,7 +790,8 @@ describe('PerpsMarketDetailsView', () => {
         await refreshControl.props.onRefresh();
       });
 
-      // Assert - Candle data uses WebSocket streaming, no manual refresh needed
+      // Assert - Only candle data refreshes since positions update via WebSocket
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
       // refreshPosition is a no-op for WebSocket, so we don't expect it to be called
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
@@ -878,8 +845,9 @@ describe('PerpsMarketDetailsView', () => {
         await refreshControl.props.onRefresh();
       });
 
-      // Assert - All data now updates via WebSocket, no manual refresh needed
-      // Market stats, candles, positions, and orders update via WebSocket
+      // Assert - Only candle data refreshes (all other data updates via WebSocket)
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+      // Market stats, positions, and orders update via WebSocket, no manual refresh
       expect(mockRefreshMarketStats).not.toHaveBeenCalled();
       expect(mockRefreshPosition).not.toHaveBeenCalled();
       expect(mockRefreshOrders).not.toHaveBeenCalled();
@@ -915,8 +883,8 @@ describe('PerpsMarketDetailsView', () => {
         await refreshControl.props.onRefresh();
       });
 
-      // Assert - Candle data now uses WebSocket streaming (no manual refresh)
-      // Positions also update via WebSocket
+      // Assert - Only candle data refreshes (positions update via WebSocket)
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
@@ -944,13 +912,15 @@ describe('PerpsMarketDetailsView', () => {
         await refreshControl.props.onRefresh();
       });
 
-      // Note: Candle data now uses WebSocket streaming (no manual refresh needed)
+      // Verify refresh functions were called
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
     });
 
-    it('handles refresh gracefully with WebSocket streaming', async () => {
-      // Note: Candle data now uses WebSocket streaming, so refresh is a no-op
-      // This test verifies the refresh control doesn't break with WebSocket data
-      const mockRefreshPosition = jest.fn();
+    it('handles errors during refresh operation', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const mockRefreshPosition = jest
+        .fn()
+        .mockRejectedValue(new Error('Refresh failed'));
 
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
@@ -959,6 +929,10 @@ describe('PerpsMarketDetailsView', () => {
         existingPosition: null,
         refreshPosition: mockRefreshPosition,
       });
+
+      mockRefreshCandleData.mockRejectedValue(
+        new Error('Candle data refresh failed'),
+      );
 
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -975,14 +949,18 @@ describe('PerpsMarketDetailsView', () => {
       );
       const refreshControl = scrollView.props.refreshControl;
 
-      // Trigger the refresh - should complete without errors
+      // Trigger the refresh
       await act(async () => {
         await refreshControl.props.onRefresh();
       });
 
-      // Refresh control should exist and be functional
-      expect(refreshControl).toBeDefined();
-      expect(refreshControl.props.refreshing).toBe(false);
+      // Should log error
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to refresh'),
+        expect.any(Error),
+      );
+
+      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -1461,7 +1439,8 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('handles error when opening TradingView URL fails', async () => {
-      mockLoggerError.mockClear();
+      // Mock console.error to avoid test output pollution
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       // Mock Linking.openURL to reject
       (Linking.openURL as jest.Mock).mockRejectedValueOnce(
@@ -1481,97 +1460,15 @@ describe('PerpsMarketDetailsView', () => {
       const tradingViewLink = getByText('TradingView.');
       fireEvent.press(tradingViewLink);
 
-      // Wait for the error to be logged using Logger.error
+      // Wait for the error to be logged
       await waitFor(() => {
-        expect(mockLoggerError).toHaveBeenCalledWith(
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Failed to open Trading View URL:',
           expect.any(Error),
-          expect.objectContaining({
-            feature: 'perps',
-            message: 'Failed to open Trading View URL',
-          }),
         );
       });
-    });
-  });
 
-  describe('Fullscreen chart functionality', () => {
-    it('opens fullscreen chart modal when fullscreen button is pressed', async () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Verify close button is not initially visible (modal is closed)
-      expect(queryByTestId('perps-chart-fullscreen-close-button')).toBeNull();
-
-      // Press fullscreen button
-      const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
-      );
-      fireEvent.press(fullscreenButton);
-
-      // Verify modal is now visible by checking for close button
-      await waitFor(() => {
-        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
-      });
-    });
-
-    it('closes fullscreen chart modal when close button is pressed', async () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Open the modal first
-      const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
-      );
-      fireEvent.press(fullscreenButton);
-
-      // Wait for modal to be visible
-      await waitFor(() => {
-        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
-      });
-
-      // Press close button
-      const closeButton = getByTestId('perps-chart-fullscreen-close-button');
-      fireEvent.press(closeButton);
-
-      // Verify modal is closed
-      await waitFor(() => {
-        expect(queryByTestId('perps-chart-fullscreen-close-button')).toBeNull();
-      });
-    });
-
-    it('renders fullscreen chart when modal is open', async () => {
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Open the modal
-      const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
-      );
-      fireEvent.press(fullscreenButton);
-
-      // Wait for modal to be visible and verify chart is rendered
-      await waitFor(() => {
-        expect(getByTestId('perps-chart-fullscreen-close-button')).toBeTruthy();
-        expect(getByTestId('fullscreen-chart')).toBeTruthy();
-      });
+      consoleErrorSpy.mockRestore();
     });
   });
 

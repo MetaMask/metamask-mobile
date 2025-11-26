@@ -22,7 +22,6 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 export interface FlashListAssetKey {
   address: string;
@@ -72,20 +71,14 @@ const TokenListComponent = ({
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   useLayoutEffect(() => {
     listRef.current?.recomputeViewableItems();
   }, [isTokenNetworkFilterEqualCurrentNetwork]);
 
   const handleViewAllTokens = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.VIEW_ALL_ASSETS_CLICKED)
-        .addProperties({ asset_type: 'Token' })
-        .build(),
-    );
     navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation]);
 
   // Apply maxItems limit if specified
   const displayTokenKeys = useMemo(
@@ -107,7 +100,6 @@ const TokenListComponent = ({
         setShowScamWarningModal={setShowScamWarningModal}
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
-        isFullView={isFullView}
       />
     ),
     [
@@ -116,7 +108,6 @@ const TokenListComponent = ({
       privacyMode,
       showPercentageChange,
       TokenListItemComponent,
-      isFullView,
     ],
   );
 
@@ -134,7 +125,6 @@ const TokenListComponent = ({
             setShowScamWarningModal={setShowScamWarningModal}
             privacyMode={privacyMode}
             showPercentageChange={showPercentageChange}
-            isFullView={isFullView}
           />
         ))}
         {shouldShowViewAllButton && (

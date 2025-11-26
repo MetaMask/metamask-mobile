@@ -16,16 +16,18 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
-import { selectStablecoinLendingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
-import { useFeatureFlag } from '../../../../../../components/hooks/useFeatureFlag';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../../Earn/constants/experiences';
 import { getMockUseEarnTokens } from '../../../../Earn/__mocks__/earnMockData';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
 
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
+type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
+  typeof selectPooledStakingEnabledFlag
 >;
 
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
@@ -77,25 +79,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../Earn/selectors/featureFlags', () => ({
-  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
+  selectPooledStakingEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),
-}));
-
-jest.mock('../../../../../../components/hooks/useFeatureFlag', () => {
-  const actual = jest.requireActual(
-    '../../../../../../components/hooks/useFeatureFlag',
-  );
-  return {
-    useFeatureFlag: jest.fn().mockReturnValue(true),
-    FeatureFlagNames: actual.FeatureFlagNames,
-  };
-});
-
-jest.mock('../../../../../../components/hooks/useFeatureFlag', () => ({
-  useFeatureFlag: jest.fn(),
-  FeatureFlagNames: {
-    earnPooledStakingEnabled: 'earnPooledStakingEnabled',
-  },
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -156,7 +141,9 @@ describe('StakingButtons', () => {
       dispatch: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>);
 
-    mockUseFeatureFlag.mockReturnValue(true);
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(true);
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingEnabledFlag
@@ -179,7 +166,9 @@ describe('StakingButtons', () => {
   });
 
   it('should not render stake/stake more button if pooled staking is disabled', () => {
-    mockUseFeatureFlag.mockReturnValue(false);
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
 
     const props = {
       style: {},

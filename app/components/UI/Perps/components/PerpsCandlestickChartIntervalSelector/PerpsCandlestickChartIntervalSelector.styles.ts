@@ -8,12 +8,9 @@ export const selectorStyleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     intervalSelector: {
-      marginTop: 24,
-    },
-    intervalSelectorContent: {
       flexDirection: 'row',
       alignSelf: 'center',
-      paddingHorizontal: 8,
+      marginTop: 24,
     },
     intervalTab: {
       paddingVertical: 6,
