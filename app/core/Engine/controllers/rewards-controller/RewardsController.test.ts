@@ -813,6 +813,7 @@ describe('RewardsController', () => {
               endDate: new Date(now + 86400000),
             },
             next: null,
+            previous: null,
           });
         }
         if (method === 'RewardsDataService:getSeasonMetadata') {
@@ -918,6 +919,7 @@ describe('RewardsController', () => {
               endDate: new Date(now + 86400000),
             },
             next: null,
+            previous: null,
           });
         }
         if (method === 'RewardsDataService:getSeasonMetadata') {
@@ -952,6 +954,7 @@ describe('RewardsController', () => {
           return Promise.resolve({
             current: null,
             next: null,
+            previous: null,
           });
         }
         return Promise.resolve(null);
@@ -999,6 +1002,7 @@ describe('RewardsController', () => {
               endDate: new Date(now + 86400000),
             },
             next: null,
+            previous: null,
           });
         }
         if (method === 'RewardsDataService:getSeasonMetadata') {
@@ -1042,6 +1046,7 @@ describe('RewardsController', () => {
           return Promise.resolve({
             current: null,
             next: null,
+            previous: null,
           });
         }
         return Promise.resolve(null);
@@ -1072,6 +1077,7 @@ describe('RewardsController', () => {
               endDate: new Date(now + 172800000),
             },
             next: null,
+            previous: null,
           });
         }
         if (method === 'RewardsDataService:getSeasonMetadata') {
@@ -1105,6 +1111,7 @@ describe('RewardsController', () => {
               endDate: new Date(now - 86400000),
             },
             next: null,
+            previous: null,
           });
         }
         if (method === 'RewardsDataService:getSeasonMetadata') {
@@ -1138,6 +1145,7 @@ describe('RewardsController', () => {
               endDate: new Date(now + 86400000),
             },
             next: null,
+            previous: null,
           });
         }
         if (method === 'RewardsDataService:getSeasonMetadata') {
@@ -1171,6 +1179,7 @@ describe('RewardsController', () => {
               endDate: new Date(now + 86400000),
             },
             next: null,
+            previous: null,
           });
         }
         if (method === 'RewardsDataService:getSeasonMetadata') {
@@ -1204,6 +1213,7 @@ describe('RewardsController', () => {
               endDate: new Date(now),
             },
             next: null,
+            previous: null,
           });
         }
         if (method === 'RewardsDataService:getSeasonMetadata') {
@@ -4640,17 +4650,16 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('returns cached season metadata when cache is fresh for next season', async () => {
-      const nextSeasonId = 'next-season-456';
-      const recentTime = Date.now() - 60000; // 1 minute ago (within 10 minute threshold)
-      const mockNextSeasonData: SeasonDtoState = {
-        id: nextSeasonId,
-        name: 'Next Season',
-        startDate: Date.now() + 86400000,
-        endDate: Date.now() + 172800000,
+    it('returns undefined from cache when current season is expired', async () => {
+      const expiredTime = Date.now() - 86400000; // 1 day ago (expired)
+      const mockExpiredSeasonData: SeasonDtoState = {
+        id: mockSeasonId,
+        name: 'Expired Season',
+        startDate: Date.now() - 172800000, // 2 days ago
+        endDate: Date.now() - 86400000, // 1 day ago (expired)
         tiers: createTestTiers(),
         activityTypes: [],
-        lastFetched: recentTime,
+        lastFetched: expiredTime,
       };
 
       controller = new RewardsController({
@@ -4660,7 +4669,7 @@ describe('RewardsController', () => {
           accounts: {},
           subscriptions: {},
           seasons: {
-            next: mockNextSeasonData, // Cache by type key
+            current: mockExpiredSeasonData, // Expired cached data
           },
           subscriptionReferralDetails: {},
           seasonStatuses: {},
@@ -4668,12 +4677,44 @@ describe('RewardsController', () => {
         },
       });
 
-      const result = await controller.getSeasonMetadata('next');
+      const tiers = createTestTiers();
+      const mockDiscoverSeasons = {
+        previous: null,
+        current: {
+          id: 'new-current-season',
+          startDate: new Date(Date.now() - 86400000),
+          endDate: new Date(Date.now() + 86400000),
+        },
+        next: null,
+      };
+      const mockSeasonMetadata = {
+        id: 'new-current-season',
+        name: 'New Current Season',
+        startDate: new Date(Date.now() - 86400000),
+        endDate: new Date(Date.now() + 86400000),
+        tiers,
+      };
 
-      expect(result).toEqual(mockNextSeasonData);
-      expect(result?.id).toBe(nextSeasonId);
-      expect(result?.name).toBe('Next Season');
-      expect(mockMessenger.call).not.toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation(
+        async (method: string, ..._args: unknown[]): Promise<any> => {
+          if (method === 'RewardsDataService:getDiscoverSeasons') {
+            return mockDiscoverSeasons;
+          }
+          if (method === 'RewardsDataService:getSeasonMetadata') {
+            return mockSeasonMetadata;
+          }
+          return undefined;
+        },
+      );
+
+      const result = await controller.getSeasonMetadata('current');
+
+      // Should fetch fresh data instead of using expired cache
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getDiscoverSeasons',
+      );
+      expect(result?.id).toBe('new-current-season');
     });
 
     it('fetches fresh season metadata when cache is stale', async () => {
@@ -4705,6 +4746,7 @@ describe('RewardsController', () => {
       });
 
       const mockDiscoverSeasons = {
+        previous: null,
         current: {
           id: mockSeasonId,
           startDate: new Date(Date.now() - 86400000),
@@ -4757,6 +4799,7 @@ describe('RewardsController', () => {
     it('fetches fresh season metadata when no cache exists', async () => {
       const tiers = createTestTiers();
       const mockDiscoverSeasons = {
+        previous: null,
         current: {
           id: mockSeasonId,
           startDate: new Date(Date.now() - 86400000),
@@ -4818,18 +4861,149 @@ describe('RewardsController', () => {
       expect(storedSeasonById.name).toBe('New Season');
     });
 
-    it('fetches next season metadata when type is next', async () => {
-      const nextSeasonId = 'next-season-456';
+    it('fetches previous season metadata when type is previous', async () => {
+      const previousSeasonId = 'previous-season-123';
       const tiers = createTestTiers();
       const mockDiscoverSeasons = {
+        previous: {
+          id: previousSeasonId,
+          startDate: new Date(Date.now() - 172800000),
+          endDate: new Date(Date.now() - 86400000),
+        },
         current: {
           id: 'current-season',
           startDate: new Date(Date.now() - 86400000),
           endDate: new Date(Date.now() + 86400000),
         },
+        next: null,
+      };
+      const mockSeasonMetadata = {
+        id: previousSeasonId,
+        name: 'Previous Season',
+        startDate: new Date(Date.now() - 172800000),
+        endDate: new Date(Date.now() - 86400000),
+        tiers,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation(
+        async (method: string, ..._args: unknown[]): Promise<any> => {
+          if (method === 'RewardsDataService:getDiscoverSeasons') {
+            return mockDiscoverSeasons;
+          }
+          if (method === 'RewardsDataService:getSeasonMetadata') {
+            return mockSeasonMetadata;
+          }
+          return undefined;
+        },
+      );
+
+      const result = await controller.getSeasonMetadata('previous');
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getDiscoverSeasons',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonMetadata',
+        previousSeasonId,
+      );
+      expect(result?.id).toBe(previousSeasonId);
+      expect(result?.name).toBe('Previous Season');
+
+      // Verify both type key and ID key are stored
+      expect(controller.state.seasons.previous).toBeDefined();
+      expect(controller.state.seasons[previousSeasonId]).toBeDefined();
+    });
+
+    it('coerces expired current to previous when requesting previous', async () => {
+      const expiredCurrentId = 'expired-current-season';
+      const tiers = createTestTiers();
+      const mockDiscoverSeasons = {
+        previous: null,
+        current: {
+          id: expiredCurrentId,
+          startDate: new Date(Date.now() - 172800000),
+          endDate: new Date(Date.now() - 86400000), // Expired
+        },
+        next: {
+          id: 'new-current-season',
+          startDate: new Date(Date.now() - 43200000), // Started recently
+          endDate: new Date(Date.now() + 86400000),
+        },
+      };
+      const mockSeasonMetadata = {
+        id: expiredCurrentId,
+        name: 'Expired Current (now previous)',
+        startDate: new Date(Date.now() - 172800000),
+        endDate: new Date(Date.now() - 86400000),
+        tiers,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          pointsEvents: {},
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation(
+        async (method: string, ..._args: unknown[]): Promise<any> => {
+          if (method === 'RewardsDataService:getDiscoverSeasons') {
+            return mockDiscoverSeasons;
+          }
+          if (method === 'RewardsDataService:getSeasonMetadata') {
+            return mockSeasonMetadata;
+          }
+          return undefined;
+        },
+      );
+
+      const result = await controller.getSeasonMetadata('previous');
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getDiscoverSeasons',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonMetadata',
+        expiredCurrentId,
+      );
+      expect(result?.id).toBe(expiredCurrentId);
+    });
+
+    it('coerces next to current when current is expired and next has not started', async () => {
+      const expiredCurrentId = 'expired-current-season';
+      const nextSeasonId = 'next-season-456';
+      const tiers = createTestTiers();
+      const mockDiscoverSeasons = {
+        previous: null,
+        current: {
+          id: expiredCurrentId,
+          startDate: new Date(Date.now() - 172800000),
+          endDate: new Date(Date.now() - 86400000), // Expired
+        },
         next: {
           id: nextSeasonId,
-          startDate: new Date(Date.now() + 86400000),
+          startDate: new Date(Date.now() + 86400000), // Future start date (hasn't started yet)
           endDate: new Date(Date.now() + 172800000),
         },
       };
@@ -4867,7 +5041,7 @@ describe('RewardsController', () => {
         },
       );
 
-      const result = await controller.getSeasonMetadata('next');
+      const result = await controller.getSeasonMetadata('current');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getDiscoverSeasons',
@@ -4876,25 +5050,14 @@ describe('RewardsController', () => {
         'RewardsDataService:getSeasonMetadata',
         nextSeasonId,
       );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching fresh season metadata via API call for type',
-        'next',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Found season with valid start date, fetching metadata for',
-        'next',
-      );
       expect(result?.id).toBe(nextSeasonId);
       expect(result?.name).toBe('Next Season');
-
-      // Verify both type key and ID key are stored
-      expect(controller.state.seasons.next).toBeDefined();
-      expect(controller.state.seasons[nextSeasonId]).toBeDefined();
     });
 
     it('throws error when current season has no start date', async () => {
       const seasonWithoutStartDate = 'season-no-start';
       const mockDiscoverSeasons = {
+        previous: null,
         current: {
           id: seasonWithoutStartDate,
           startDate: null as unknown as Date, // No valid start date
@@ -4923,70 +5086,6 @@ describe('RewardsController', () => {
       );
     });
 
-    it('throws error when next season has no start date', async () => {
-      const mockDiscoverSeasons = {
-        current: {
-          id: 'current-season',
-          startDate: new Date(Date.now() - 86400000),
-          endDate: new Date(Date.now() + 86400000),
-        },
-        next: {
-          id: 'next-season',
-          startDate: null as unknown as Date, // No valid start date
-          endDate: new Date(Date.now() + 172800000),
-        },
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: {},
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-          pointsEvents: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockDiscoverSeasons);
-
-      await expect(controller.getSeasonMetadata('next')).rejects.toThrow(
-        'No valid season metadata could be found for type: next',
-      );
-    });
-
-    it('throws error when next season does not exist in discover seasons', async () => {
-      const mockDiscoverSeasons = {
-        current: {
-          id: 'current-season',
-          startDate: new Date(Date.now() - 86400000),
-          endDate: new Date(Date.now() + 86400000),
-        },
-        next: null, // No next season
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: {},
-          subscriptions: {},
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-          pointsEvents: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockDiscoverSeasons);
-
-      await expect(controller.getSeasonMetadata('next')).rejects.toThrow(
-        'No valid season metadata could be found for type: next',
-      );
-    });
-
     it('handles errors from discover seasons API', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
@@ -5010,6 +5109,7 @@ describe('RewardsController', () => {
 
     it('handles errors from season metadata API', async () => {
       const mockDiscoverSeasons = {
+        previous: null,
         current: {
           id: mockSeasonId,
           startDate: new Date(Date.now() - 86400000),
@@ -6996,6 +7096,62 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result.balance.total).toBe(largeBalance);
+    });
+
+    it('should preserve shouldInstallNewVersion when present', () => {
+      // Arrange
+      const seasonMetadata: SeasonDtoState = {
+        id: 'season-update',
+        name: 'Update Required Season',
+        startDate: Date.now(),
+        endDate: Date.now() + 86400000,
+        tiers: createTestTiers(),
+        activityTypes: [],
+        shouldInstallNewVersion: '1.2.3',
+      };
+
+      const seasonState: SeasonStateDto = {
+        balance: 5000,
+        currentTierId: 'gold',
+        updatedAt: new Date(),
+      };
+
+      // Act
+      const result = controller.convertToSeasonStatusDto(
+        seasonMetadata,
+        seasonState,
+      );
+
+      // Assert
+      expect(result.season.shouldInstallNewVersion).toBe('1.2.3');
+    });
+
+    it('should handle shouldInstallNewVersion when undefined', () => {
+      // Arrange
+      const seasonMetadata: SeasonDtoState = {
+        id: 'season-no-update',
+        name: 'No Update Required Season',
+        startDate: Date.now(),
+        endDate: Date.now() + 86400000,
+        tiers: createTestTiers(),
+        activityTypes: [],
+        // shouldInstallNewVersion is intentionally omitted
+      };
+
+      const seasonState: SeasonStateDto = {
+        balance: 3000,
+        currentTierId: 'silver',
+        updatedAt: new Date(),
+      };
+
+      // Act
+      const result = controller.convertToSeasonStatusDto(
+        seasonMetadata,
+        seasonState,
+      );
+
+      // Assert
+      expect(result.season.shouldInstallNewVersion).toBeUndefined();
     });
   });
 

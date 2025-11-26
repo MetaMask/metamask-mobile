@@ -306,6 +306,7 @@ export class RewardsController extends BaseController<
       endDate: season.endDate.getTime(),
       tiers: season.tiers,
       activityTypes: season.activityTypes,
+      shouldInstallNewVersion: season.shouldInstallNewVersion,
     };
   }
 
@@ -324,6 +325,7 @@ export class RewardsController extends BaseController<
         endDate: new Date(seasonMetadata.endDate),
         tiers: seasonMetadata.tiers,
         activityTypes: seasonMetadata.activityTypes,
+        shouldInstallNewVersion: seasonMetadata.shouldInstallNewVersion,
       },
       balance: {
         total: seasonState.balance,
@@ -1662,7 +1664,7 @@ export class RewardsController extends BaseController<
    * @returns Promise<SeasonDtoState> - The season metadata
    */
   async getSeasonMetadata(
-    type: 'current' | 'next' = 'current',
+    type: 'current' | 'previous' = 'current',
   ): Promise<SeasonDtoState | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
@@ -1675,6 +1677,15 @@ export class RewardsController extends BaseController<
       readCache: (key) => {
         const cached = this.state.seasons[key] || undefined;
         if (!cached) return;
+        const now = Date.now();
+        if (
+          type === 'current' &&
+          this.state.seasons.current?.endDate &&
+          this.state.seasons.current.endDate < now
+        ) {
+          return undefined;
+        }
+
         return { payload: cached, lastFetched: cached.lastFetched };
       },
       fetchFresh: async () => {
@@ -1688,12 +1699,29 @@ export class RewardsController extends BaseController<
           'RewardsDataService:getDiscoverSeasons',
         )) as DiscoverSeasonsDto;
 
-        // Check if the requested season is either current or next
+        const now = Date.now();
+        const freshCurrentSeasonIsExpired =
+          discoverSeasons.current?.endDate &&
+          discoverSeasons.current.endDate.getTime() < now;
+
         let seasonInfo = null;
-        if (type === 'current') {
-          seasonInfo = discoverSeasons.current;
-        } else if (type === 'next') {
-          seasonInfo = discoverSeasons.next;
+
+        if (type === 'previous') {
+          if (freshCurrentSeasonIsExpired && discoverSeasons.current) {
+            seasonInfo = discoverSeasons.current;
+          } else {
+            seasonInfo = discoverSeasons.previous;
+          }
+        } else if (type === 'current') {
+          if (!freshCurrentSeasonIsExpired) {
+            seasonInfo = discoverSeasons.current;
+          } else if (
+            freshCurrentSeasonIsExpired &&
+            discoverSeasons.next &&
+            discoverSeasons.next.startDate.getTime() >= now
+          ) {
+            seasonInfo = discoverSeasons.next;
+          }
         }
 
         // If found with valid start date, fetch metadata and populate cache
@@ -1717,6 +1745,8 @@ export class RewardsController extends BaseController<
             endDate: seasonMetadata.endDate,
             tiers: seasonMetadata.tiers,
             activityTypes: seasonMetadata.activityTypes,
+            shouldInstallNewVersion:
+              seasonMetadata.shouldInstallNewVersion?.mobile,
           });
 
           // Add lastFetched timestamp

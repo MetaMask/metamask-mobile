@@ -5,8 +5,8 @@ import {
   RewardDto,
   SeasonRewardDto,
   SeasonRewardType,
-} from '../../../../../../core/Engine/controllers/rewards-controller/types';
-import { formatTimeRemaining, getIconName } from '../../../utils/formatUtils';
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { formatTimeRemaining, getIconName } from '../../utils/formatUtils';
 import {
   Box,
   Text,
@@ -19,25 +19,27 @@ import {
   ButtonSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { selectRewardsActiveAccountAddress } from '../../../../../../selectors/rewards';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../../../locales/i18n';
-import Routes from '../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { TouchableOpacity } from 'react-native';
-import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
+import { selectRewardsActiveAccountAddress } from '../../../../../selectors/rewards';
 
 interface RewardItemProps {
   reward?: RewardDto;
   seasonReward: SeasonRewardDto;
   isLast?: boolean;
   isLocked?: boolean;
+  canPressToNavigateToInfo?: boolean;
 }
 
 const RewardItem: React.FC<RewardItemProps> = ({
   reward,
   seasonReward,
   isLast = false,
+  canPressToNavigateToInfo = true,
   isLocked = true,
 }) => {
   const hasClaimed = reward?.claimStatus === RewardClaimStatus.CLAIMED;
@@ -203,6 +205,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
   }, [isLocked, currentAccountAddress, seasonReward.claimUrl]);
 
   const handleRewardItemPress = useCallback(() => {
+    if (!canPressToNavigateToInfo) return;
     navigation.navigate(Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL, {
       title: seasonReward.name,
       icon: getIconName(seasonReward.iconName),
@@ -217,6 +220,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
       hasClaimed,
     });
   }, [
+    canPressToNavigateToInfo,
     navigation,
     seasonReward.name,
     seasonReward.iconName,
@@ -232,7 +236,10 @@ const RewardItem: React.FC<RewardItemProps> = ({
   ]);
 
   return (
-    <TouchableOpacity onPress={handleRewardItemPress}>
+    <TouchableOpacity
+      disabled={!canPressToNavigateToInfo}
+      onPress={handleRewardItemPress}
+    >
       <Box
         twClassName={`flex-row items-center py-3 px-4 gap-4 ${
           !isLast ? 'border-b border-muted' : ''

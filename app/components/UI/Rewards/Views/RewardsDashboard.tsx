@@ -23,6 +23,8 @@ import {
   selectActiveTab,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
+  selectSeasonId,
+  selectSeasonEndDate,
 } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -40,6 +42,7 @@ import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
 
 const RewardsDashboard: React.FC = () => {
   const navigation = useNavigation();
@@ -54,6 +57,8 @@ const RewardsDashboard: React.FC = () => {
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );
+  const seasonId = useSelector(selectSeasonId);
+  const seasonEndDate = useSelector(selectSeasonEndDate);
   const hideCurrentAccountNotOptedInBannerMap = useSelector(
     selectHideCurrentAccountNotOptedInBannerArray,
   );
@@ -179,11 +184,20 @@ const RewardsDashboard: React.FC = () => {
     [getActiveIndex, handleTabChange],
   );
 
+  const showPreviousSeasonSummary = useMemo(
+    () =>
+      Boolean(seasonId) &&
+      seasonEndDate &&
+      new Date(seasonEndDate).getTime() < Date.now(),
+    [seasonId, seasonEndDate],
+  );
+
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
   // This effect runs whenever key dependencies change and determines which informational
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
   useFocusEffect(
     useCallback(() => {
+      if (!seasonId || showPreviousSeasonSummary) return;
       if (
         (totalOptedInAccountsSelectedGroup === 0 ||
           currentAccountGroupPartiallySupported === false) &&
@@ -219,18 +233,20 @@ const RewardsDashboard: React.FC = () => {
         }
       }
     }, [
-      currentAccountGroupOptedInStatus,
+      seasonId,
+      showPreviousSeasonSummary,
+      totalOptedInAccountsSelectedGroup,
       currentAccountGroupPartiallySupported,
       hideCurrentAccountNotOptedInBanner,
       selectedAccountGroup?.id,
       subscriptionId,
+      currentAccountGroupOptedInStatus,
       totalAccountGroupsWithOptedOutAccounts,
-      totalOptedInAccountsSelectedGroup,
       hideUnlinkedAccountsBanner,
+      hasShownModal,
+      showNotSupportedModal,
       showNotOptedInModal,
       showUnlinkedAccountsModal,
-      showNotSupportedModal,
-      hasShownModal,
     ]),
   );
 
@@ -264,15 +280,17 @@ const RewardsDashboard: React.FC = () => {
           </Text>
 
           <Box flexDirection={BoxFlexDirection.Row}>
-            <ButtonIcon
-              iconName={IconNameDS.UserCircleAdd}
-              size={ButtonIconSize.Lg}
-              disabled={!subscriptionId}
-              testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-              onPress={() => {
-                navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
-              }}
-            />
+            {!showPreviousSeasonSummary && (
+              <ButtonIcon
+                iconName={IconNameDS.UserCircleAdd}
+                size={ButtonIconSize.Lg}
+                disabled={!subscriptionId}
+                testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
+                onPress={() => {
+                  navigation.navigate(Routes.REFERRAL_REWARDS_VIEW);
+                }}
+              />
+            )}
 
             <ButtonIcon
               iconName={IconNameDS.Setting}
@@ -286,23 +304,29 @@ const RewardsDashboard: React.FC = () => {
           </Box>
         </Box>
 
-        <SeasonStatus />
+        {showPreviousSeasonSummary ? (
+          <PreviousSeasonSummary />
+        ) : (
+          <>
+            <SeasonStatus />
 
-        {/* Tab View */}
-        <TabsList {...tabsListProps}>
-          <RewardsOverview
-            key="overview"
-            tabLabel={strings('rewards.tab_overview_title')}
-          />
-          <RewardsLevels
-            key="levels"
-            tabLabel={strings('rewards.tab_levels_title')}
-          />
-          <RewardsActivity
-            key="activity"
-            tabLabel={strings('rewards.tab_activity_title')}
-          />
-        </TabsList>
+            {/* Tab View */}
+            <TabsList {...tabsListProps}>
+              <RewardsOverview
+                key="overview"
+                tabLabel={strings('rewards.tab_overview_title')}
+              />
+              <RewardsLevels
+                key="levels"
+                tabLabel={strings('rewards.tab_levels_title')}
+              />
+              <RewardsActivity
+                key="activity"
+                tabLabel={strings('rewards.tab_activity_title')}
+              />
+            </TabsList>
+          </>
+        )}
       </Box>
       <Toast ref={toastRef} />
     </ErrorBoundary>
