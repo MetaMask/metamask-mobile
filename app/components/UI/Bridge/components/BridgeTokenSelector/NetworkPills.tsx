@@ -18,12 +18,12 @@ const getNetworkName = (
   networkConfigurations: Record<string, MultichainNetworkConfiguration>,
 ) => {
   // Convert CAIP chain ID to hex format for network configurations lookup
-  const convertedChainId = chainId.startsWith('eip155:')
-    ? `0x${parseInt(chainId.split(':')[1]).toString(16)}`
+  const convertedChainId: Hex | CaipChainId = chainId.startsWith('eip155:')
+    ? (`0x${parseInt(chainId.split(':')[1]).toString(16)}` as Hex)
     : chainId;
 
   return (
-    NETWORK_TO_SHORT_NETWORK_NAME_MAP[convertedChainId as CaipChainId | Hex] ??
+    NETWORK_TO_SHORT_NETWORK_NAME_MAP[convertedChainId] ??
     networkConfigurations?.[convertedChainId as Hex]?.name ??
     PopularList.find((network) => network.chainId === convertedChainId)
       ?.nickname ??

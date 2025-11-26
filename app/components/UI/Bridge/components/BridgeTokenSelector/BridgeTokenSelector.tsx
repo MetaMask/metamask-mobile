@@ -5,7 +5,11 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import {
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  ListRenderItemInfo,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -300,7 +304,7 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const renderToken = useCallback(
-    ({ item }: { item: BridgeToken | null }) => {
+    ({ item }: ListRenderItemInfo<BridgeToken | null>) => {
       // This is to support a partial loading state for top tokens
       // We can show tokens with balance immediately, but we need to wait for the top tokens to load
       if (!item) {

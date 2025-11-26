@@ -86,6 +86,8 @@ const getCacheKey = (
   chainIds: CaipChainId[],
   includeAssets: string,
 ): string => {
+  // Alphabetical sort is correct for string chain IDs (e.g., 'eip155:1')
+  // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
   const sortedChainIds = [...chainIds].sort();
   return `${sortedChainIds.join(',')}_${includeAssets}`;
 };
