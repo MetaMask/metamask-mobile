@@ -1,6 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect } from 'react';
 import { setCompletedOnboarding } from '../../../../actions/onboarding';
+import { checkForDeeplink } from '../../../../actions/user';
 import { RootState } from '../../../../reducers';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 
@@ -21,6 +22,9 @@ export const useCompletedOnboardingEffect = () => {
   useEffect(() => {
     if (hasVault && !hasCompletedOnboarding) {
       dispatch(setCompletedOnboarding(true));
+      // Dispatch checkForDeeplink to wake up the deeplink saga after onboarding completes
+      // This ensures deferred deeplinks from NativeLink are processed after wallet creation
+      dispatch(checkForDeeplink());
     }
   }, [hasVault, hasCompletedOnboarding, dispatch]);
 };
