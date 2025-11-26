@@ -8,9 +8,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
   },
-  containerViewAll: {
-    paddingHorizontal: 8,
-  },
   iconSkeleton: {
     borderRadius: 20,
     marginBottom: 0,
@@ -27,12 +24,8 @@ const styles = StyleSheet.create({
   },
 });
 
-interface SiteSkeletonProps {
-  isViewAll?: boolean;
-}
-
-const SiteSkeleton = ({ isViewAll = false }: SiteSkeletonProps) => (
-  <View style={[styles.container, isViewAll && styles.containerViewAll]}>
+const SiteSkeleton = () => (
+  <View style={styles.container}>
     {/* Logo skeleton */}
     <Skeleton height={40} width={40} style={styles.iconSkeleton} />
 
