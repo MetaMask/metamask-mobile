@@ -1,4 +1,8 @@
-import { sanitizeDeviceName } from './deviceNameUtils';
+import {
+  sanitizeDeviceName,
+  ledgerDeviceUUIDToModelName,
+  LEDGER_DEVICE_BLE_UUIDS_TO_MODEL_NAME,
+} from './deviceNameUtils';
 
 describe('sanitizeDeviceName', () => {
   describe('Ledger Flex devices', () => {
@@ -118,6 +122,84 @@ describe('sanitizeDeviceName', () => {
       const result = sanitizeDeviceName('Ledger Nano X S');
 
       expect(result).toBe('Ledger Nano X');
+    });
+  });
+});
+
+describe('ledgerDeviceUUIDToModelName', () => {
+  describe('known device UUIDs', () => {
+    it('returns UUID for Ledger Nano X device', () => {
+      const uuid = LEDGER_DEVICE_BLE_UUIDS_TO_MODEL_NAME.LEDGER_NANO_X;
+
+      const result = ledgerDeviceUUIDToModelName(uuid);
+
+      expect(result).toBe('13d63400-2c97-0004-0000-4c6564676572');
+    });
+
+    it('returns UUID for Ledger Nano STAx device', () => {
+      const uuid = LEDGER_DEVICE_BLE_UUIDS_TO_MODEL_NAME.LEDGER_NANO_STAx;
+
+      const result = ledgerDeviceUUIDToModelName(uuid);
+
+      expect(result).toBe('13d63400-2c97-6004-0000-4c6564676572');
+    });
+
+    it('returns UUID for Ledger Flex device', () => {
+      const uuid = LEDGER_DEVICE_BLE_UUIDS_TO_MODEL_NAME.LEDGER_FLEX;
+
+      const result = ledgerDeviceUUIDToModelName(uuid);
+
+      expect(result).toBe('13d63400-2c97-3004-0000-4c6564676572');
+    });
+  });
+
+  describe('unknown device UUIDs', () => {
+    it('returns "Unknown" for unrecognized UUID', () => {
+      const unknownUuid = '00000000-0000-0000-0000-000000000000';
+
+      const result = ledgerDeviceUUIDToModelName(unknownUuid);
+
+      expect(result).toBe('Unknown');
+    });
+
+    it('returns "Unknown" for random string', () => {
+      const randomString = 'not-a-valid-uuid';
+
+      const result = ledgerDeviceUUIDToModelName(randomString);
+
+      expect(result).toBe('Unknown');
+    });
+
+    it('returns "Unknown" for empty string', () => {
+      const result = ledgerDeviceUUIDToModelName('');
+
+      expect(result).toBe('Unknown');
+    });
+  });
+
+  describe('edge cases', () => {
+    it('returns "Unknown" for partial UUID match', () => {
+      const partialUuid = '13d63400-2c97';
+
+      const result = ledgerDeviceUUIDToModelName(partialUuid);
+
+      expect(result).toBe('Unknown');
+    });
+
+    it('returns "Unknown" for UUID with different casing', () => {
+      const uppercaseUuid = '13D63400-2C97-0004-0000-4C6564676572';
+
+      const result = ledgerDeviceUUIDToModelName(uppercaseUuid);
+
+      expect(result).toBe('Unknown');
+    });
+
+    it('returns "Unknown" for UUID with extra whitespace', () => {
+      const uuidWithSpace = ' 13d63400-2c97-0004-0000-4c6564676572 ';
+
+      const result = ledgerDeviceUUIDToModelName(uuidWithSpace);
+
+      expect(result).toBe('Unknown');
     });
   });
 });
