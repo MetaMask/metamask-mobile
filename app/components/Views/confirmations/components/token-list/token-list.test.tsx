@@ -102,10 +102,6 @@ describe('TokenList', () => {
     } as unknown as ReturnType<typeof useSendContext>);
   });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('token rendering', () => {
     it('renders tokens when provided', () => {
       const { getByTestId } = render(<TokenList tokens={mockTokens} />);
