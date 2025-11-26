@@ -90,7 +90,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
+  const { width: screenWidth } = useWindowDimensions();
   const { trackEvent, createEventBuilder } = useMetrics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
 
@@ -162,11 +162,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     useState(false);
 
   // Animation using react-native-reanimated - only for full-page version
-  const translateY = useSharedValue(screenHeight);
+  const translateX = useSharedValue(screenWidth);
 
-  // Backdrop opacity animation - fades in as screen slides up
+  // Backdrop opacity animation - fades in as screen slides in from right
   const backdropOpacity = useDerivedValue(() =>
-    interpolate(translateY.value, [screenHeight, 0], [0, 0.5]),
+    interpolate(translateX.value, [screenWidth, 0], [0, 0.5]),
   );
 
   useEffect(() => {
@@ -185,7 +185,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       });
     };
 
-    translateY.value = withSpring(
+    translateX.value = withSpring(
       0,
       {
         damping: 20,
@@ -204,8 +204,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         navigation.goBack();
       };
 
-      translateY.value = withTiming(
-        screenHeight,
+      translateX.value = withTiming(
+        screenWidth,
         { duration: AnimationDuration.Fast },
         () => runOnJS(onCloseComplete)(),
       );
@@ -213,7 +213,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       // BottomSheet version: close the sheet
       sheetRef.current?.onCloseBottomSheet();
     }
-  }, [isFullPageAccountList, translateY, navigation, screenHeight]);
+  }, [isFullPageAccountList, translateX, navigation, screenWidth]);
 
   const _onSelectAccount = useCallback(
     (address: string) => {
@@ -412,7 +412,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   ]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
+    transform: [{ translateX: translateX.value }],
   }));
 
   const backdropStyle = useAnimatedStyle(() => ({
