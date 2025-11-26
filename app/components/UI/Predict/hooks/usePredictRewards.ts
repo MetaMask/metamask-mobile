@@ -106,12 +106,12 @@ export const usePredictRewards = (
     setHasError(false);
 
     try {
-      // Check if rewards feature is enabled
-      const isRewardsEnabled = await Engine.controllerMessenger.call(
-        'RewardsController:isRewardsFeatureEnabled',
+      // Check if there is an active season
+      const hasActiveSeason = await Engine.controllerMessenger.call(
+        'RewardsController:hasActiveSeason',
       );
 
-      if (!isRewardsEnabled) {
+      if (!hasActiveSeason) {
         setEstimatedPoints(null);
         setEnabled(false);
         setShouldShowRewardsRow(false);
