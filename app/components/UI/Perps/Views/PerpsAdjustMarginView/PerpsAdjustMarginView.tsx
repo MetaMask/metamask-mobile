@@ -45,6 +45,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { MARGIN_ADJUSTMENT_CONFIG } from '../../constants/perpsConfig';
 
 interface AdjustMarginRouteParams {
   position: Position;
@@ -80,6 +81,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     });
 
   // Get market info for max leverage (needed for remove mode)
+  // Each token has different max leverage limits - must look up from markets
   const { markets } = usePerpsMarkets();
   const marketInfo = useMemo(
     () =>
@@ -89,7 +91,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   // maxLeverage in PerpsMarketData is a formatted string (e.g., '40x'), parse to number
   const maxLeverage = marketInfo?.maxLeverage
     ? parseInt(marketInfo.maxLeverage, 10)
-    : 50;
+    : MARGIN_ADJUSTMENT_CONFIG.FALLBACK_MAX_LEVERAGE;
 
   // Add performance measurement for this view
   usePerpsMeasurement({
@@ -149,6 +151,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       currentMargin,
       positionSize,
       entryPrice,
+      currentPrice,
       maxLeverage,
     });
   }, [
@@ -157,6 +160,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     currentMargin,
     positionSize,
     entryPrice,
+    currentPrice,
     maxLeverage,
   ]);
 
@@ -232,9 +236,18 @@ const PerpsAdjustMarginView: React.FC = () => {
     setIsInputFocused(true);
   }, []);
 
-  const handleKeypadChange = useCallback(({ value }: { value: string }) => {
-    setMarginAmountString(value || '0');
-  }, []);
+  const handleKeypadChange = useCallback(
+    ({ value }: { value: string }) => {
+      const numValue = parseFloat(value) || 0;
+      // Clamp to maxAmount for remove mode to prevent invalid submissions
+      if (!isAddMode && numValue > maxAmount) {
+        setMarginAmountString(Math.floor(maxAmount).toString());
+      } else {
+        setMarginAmountString(value || '0');
+      }
+    },
+    [isAddMode, maxAmount],
+  );
 
   const handleDonePress = useCallback(() => {
     setIsInputFocused(false);
@@ -263,6 +276,11 @@ const PerpsAdjustMarginView: React.FC = () => {
   const handleConfirm = useCallback(async () => {
     if (marginAmount <= 0 || !position) return;
 
+    // Prevent submission if amount exceeds max removable (extra safety for remove mode)
+    if (!isAddMode && marginAmount > maxAmount) {
+      return;
+    }
+
     try {
       if (isAddMode) {
         await handleAddMargin(position.coin, marginAmount);
@@ -276,7 +294,14 @@ const PerpsAdjustMarginView: React.FC = () => {
       );
       // Note: Toast notification is handled by usePerpsMarginAdjustment hook
     }
-  }, [marginAmount, position, isAddMode, handleAddMargin, handleRemoveMargin]);
+  }, [
+    marginAmount,
+    position,
+    isAddMode,
+    maxAmount,
+    handleAddMargin,
+    handleRemoveMargin,
+  ]);
 
   if (!position || !mode) {
     return (
@@ -455,7 +480,11 @@ const PerpsAdjustMarginView: React.FC = () => {
             width={ButtonWidthTypes.Full}
             label={buttonLabel}
             onPress={handleConfirm}
-            isDisabled={marginAmount <= 0 || isAdjusting}
+            isDisabled={
+              marginAmount <= 0 ||
+              isAdjusting ||
+              (!isAddMode && marginAmount > maxAmount)
+            }
             loading={isAdjusting}
           />
         </View>

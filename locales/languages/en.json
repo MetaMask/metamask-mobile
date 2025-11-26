@@ -1414,6 +1414,10 @@
         "title": "Something Went Wrong",
         "description": "An unexpected error occurred. Please try again later.",
         "retry": "Retry"
+      },
+      "marginValidation": {
+        "exceedsMaxRemovable": "Amount exceeds maximum removable margin",
+        "insufficientMargin": "Position does not have sufficient margin for this reduction"
       }
     },
     "position": {

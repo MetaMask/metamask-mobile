@@ -286,6 +286,16 @@ export const MARGIN_ADJUSTMENT_CONFIG = {
   // Precision for margin calculations
   // Ensures accurate decimal handling in margin/leverage calculations
   CALCULATION_PRECISION: 6,
+
+  // Safety buffer for margin removal to account for HyperLiquid's transfer margin requirement
+  // HyperLiquid enforces: transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
+  // See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
+  MARGIN_REMOVAL_SAFETY_BUFFER: 0.1,
+
+  // Fallback max leverage when market data is unavailable
+  // Conservative value to prevent over-removal of margin
+  // Most HyperLiquid assets support at least 50x leverage
+  FALLBACK_MAX_LEVERAGE: 50,
 } as const;
 
 /**
