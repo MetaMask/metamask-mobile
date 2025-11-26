@@ -111,21 +111,6 @@ describe('UniversalRouter', () => {
     });
   });
 
-  describe('initialize', () => {
-    it('throws error and remains uninitialized when handler registration fails', () => {
-      const registrationError = new Error('Handler registration failed');
-      jest.spyOn(router.getRegistry(), 'register').mockImplementation(() => {
-        throw registrationError;
-      });
-
-      expect(() => router.initialize()).toThrow('Handler registration failed');
-
-      jest.restoreAllMocks();
-
-      expect(() => router.initialize()).not.toThrow();
-    });
-  });
-
   describe('route', () => {
     it('routes to handler based on action', async () => {
       const handleFn = jest.fn(() => ({
@@ -134,8 +119,8 @@ describe('UniversalRouter', () => {
       }));
       const handler = new MockHandler([ACTIONS.HOME], 10, handleFn);
 
-      // Don't call initialize() to avoid built-in handlers
       router.getRegistry().register(handler);
+      router.initialize(); // Initialize after registering
 
       const result = await router.route('metamask://home', 'test', mockContext);
 
@@ -174,7 +159,6 @@ describe('UniversalRouter', () => {
         }),
       );
 
-      // Don't call initialize() to avoid built-in handlers
       router.getRegistry().register(handler1);
       router.getRegistry().register(handler2);
       router.getRegistry().register(handler3);
@@ -212,24 +196,6 @@ describe('UniversalRouter', () => {
 
       expect(result.handled).toBe(false);
       expect(result.error).toBeDefined();
-    });
-
-    it('delegates to legacy when handler requests fallback', async () => {
-      const handleFn = jest.fn(() => ({
-        handled: false,
-        fallbackToLegacy: true,
-        metadata: { reason: 'authentication_required' },
-      }));
-      const handler = new MockHandler([ACTIONS.HOME], 10, handleFn);
-
-      // Don't call initialize() to avoid built-in handlers
-      router.getRegistry().register(handler);
-
-      const result = await router.route('metamask://home', 'test', mockContext);
-
-      expect(handleFn).toHaveBeenCalled();
-      expect(result.handled).toBe(true);
-      expect(result.metadata?.usedLegacy).toBe(true);
     });
   });
 

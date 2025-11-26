@@ -520,8 +520,11 @@ const PhysicalAddress = () => {
           dispatch(setConsentSetId(null));
         }
 
-        // Navigate to completion screen
-        navigation.navigate(Routes.CARD.ONBOARDING.COMPLETE);
+        // Reset the navigation stack to the verifying registration screen
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.CARD.VERIFYING_REGISTRATION }],
+        });
         return;
       }
 

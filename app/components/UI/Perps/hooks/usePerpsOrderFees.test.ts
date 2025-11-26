@@ -28,6 +28,11 @@ jest.mock('../../../../core/Engine', () => ({
   context: mockEngineContext,
 }));
 
+// Mock specific selectors directly
+jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
+  selectRewardsEnabledFlag: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest
     .fn()
@@ -419,7 +424,12 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.estimatedPoints).toBeUndefined();
     });
 
-    it('should handle rewards enabled', async () => {
+    it('should handle rewards disabled', async () => {
+      const { selectRewardsEnabledFlag } = jest.requireMock(
+        '../../../../selectors/featureFlagController/rewards',
+      );
+      selectRewardsEnabledFlag.mockReturnValue(false);
+
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
         feeAmount: 45,

@@ -50,7 +50,6 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
-import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -161,15 +160,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     [styles.fixedBottomContainer, insets.bottom],
   );
 
-  // Deferred loading: Load non-critical data after UI renders
-  const [isDataReady, setIsDataReady] = useState(false);
-  useEffect(() => {
-    // Defer data loading to next frame for faster initial render
-    requestAnimationFrame(() => {
-      setIsDataReady(true);
-    });
-  }, []);
-
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
@@ -226,9 +216,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
    * updating leverage after positions load to prevent protocol violations.
    */
 
-  // Market data hook with automatic error toast handling (deferred)
+  // Market data hook with automatic error toast handling
   const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
-    asset: isDataReady ? orderForm.asset : '', // Defer until UI renders
+    asset: orderForm.asset,
     showErrorToast: true,
   });
 
@@ -284,23 +274,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
     },
   });
 
-  // Get real-time price data using new stream architecture (deferred)
+  // Get real-time price data using new stream architecture
   // Uses single WebSocket subscription with component-level debouncing
   const prices = usePerpsLivePrices({
-    symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
+    symbols: [orderForm.asset],
     throttleMs: 1000,
   });
   const currentPrice = prices[orderForm.asset];
 
-  // Get top of book data for maker/taker fee determination (deferred)
+  // Get top of book data for maker/taker fee determination
   const currentTopOfBook = usePerpsTopOfBook({
-    symbol: isDataReady ? orderForm.asset : '', // Defer subscription
+    symbol: orderForm.asset,
   });
 
-  // Track screen load with unified hook (measure data loading, not initial render)
+  // Track screen load with unified hook
   usePerpsMeasurement({
     traceName: TraceName.PerpsOrderView,
-    conditions: [isDataReady, !!currentPrice, !!account],
+    conditions: [!!currentPrice, !!account],
   });
 
   const assetData = useMemo(() => {
@@ -767,10 +757,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         // USD as source of truth (hybrid approach)
         usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
         priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
-        maxSlippageBps:
-          orderForm.type === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DEFAULT_LIMIT_SLIPPAGE_BPS // 1% for limit orders
-            : ORDER_SLIPPAGE_CONFIG.DEFAULT_MARKET_SLIPPAGE_BPS, // 3% for market orders
+        maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DEFAULT_SLIPPAGE_BPS, // Slippage tolerance in basis points (100 = 1%)
         // Only add TP/SL/Limit if they are truthy and/or not empty strings
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }
@@ -1167,10 +1154,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
-            rewardsState.estimatedPoints !== undefined &&
-            (rewardsState.accountOptedIn ||
-              (rewardsState.accountOptedIn === false &&
-                rewardsState.account !== undefined)) && (
+            rewardsState.estimatedPoints !== undefined && (
               <View style={styles.infoRow}>
                 <View style={styles.detailLeft}>
                   <Text
@@ -1191,24 +1175,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </TouchableOpacity>
                 </View>
                 <View style={styles.pointsRightContainer}>
-                  {rewardsState.accountOptedIn ? (
-                    <RewardsAnimations
-                      value={rewardsState.estimatedPoints ?? 0}
-                      bonusBips={rewardsState.bonusBips}
-                      shouldShow={rewardsState.shouldShowRewardsRow}
-                      infoOnPress={() =>
-                        openTooltipModal(
-                          strings('perps.points_error'),
-                          strings('perps.points_error_content'),
-                        )
-                      }
-                      state={rewardAnimationState}
-                    />
-                  ) : (
-                    <AddRewardsAccount
-                      account={rewardsState.account ?? undefined}
-                    />
-                  )}
+                  <RewardsAnimations
+                    value={rewardsState.estimatedPoints ?? 0}
+                    bonusBips={rewardsState.bonusBips}
+                    shouldShow={rewardsState.shouldShowRewardsRow}
+                    infoOnPress={() =>
+                      openTooltipModal(
+                        strings('perps.points_error'),
+                        strings('perps.points_error_content'),
+                      )
+                    }
+                    state={rewardAnimationState}
+                  />
                 </View>
               </View>
             )}

@@ -138,6 +138,9 @@ const PredictBuyPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
+  const { enabled: isRewardsEnabled, isLoading: isRewardsLoading } =
+    usePredictRewards();
+
   // Track screen load performance (balance + initial preview)
   usePredictMeasurement({
     traceName: TraceName.PredictBuyPreviewView,
@@ -193,6 +196,16 @@ const PredictBuyPreview = () => {
   const providerFee = preview?.fees?.providerFee ?? 0;
   const total = currentValue + providerFee + metamaskFee;
 
+  // Calculate estimated rewards points: 1 point per cent spent on MM fee
+  // Formula: MM fee (in dollars) * 100 = points (rounded)
+  const estimatedPoints = useMemo(
+    () => Math.round(metamaskFee * 100),
+    [metamaskFee],
+  );
+
+  // Show rewards row if we have a valid amount
+  const shouldShowRewards = isRewardsEnabled && currentValue > 0;
+
   // Validation constants and states
   const MINIMUM_BET = 1; // $1 minimum bet
   const hasInsufficientFunds = total > balance;
@@ -203,22 +216,8 @@ const PredictBuyPreview = () => {
     preview &&
     !isLoading &&
     !isBalanceLoading &&
+    !isRewardsLoading &&
     !isRateLimited;
-
-  const {
-    enabled: isRewardsEnabled,
-    isLoading: isRewardsLoading,
-    accountOptedIn: isAccountOptedIntoRewards,
-    estimatedPoints: estimatedRewardsPoints,
-    hasError: isRewardsError,
-  } = usePredictRewards(
-    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
-  );
-
-  // Show rewards row if we have a valid amount
-  // && either active account address is opted in or not opted in but opt-in is supported
-  const shouldShowRewardsRow =
-    isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
@@ -535,13 +534,10 @@ const PredictBuyPreview = () => {
         total={total}
         metamaskFee={metamaskFee}
         providerFee={providerFee}
-        shouldShowRewardsRow={shouldShowRewardsRow}
-        accountOptedIn={isAccountOptedIntoRewards}
-        estimatedPoints={estimatedRewardsPoints}
-        isLoadingRewards={
-          (isCalculating && isUserInputChange) || isRewardsLoading
-        }
-        hasRewardsError={isRewardsError}
+        shouldShowRewards={shouldShowRewards}
+        estimatedPoints={estimatedPoints}
+        isLoadingRewards={isCalculating && isUserInputChange}
+        hasRewardsError={false}
         onFeesInfoPress={handleFeesInfoPress}
       />
       {renderErrorMessage()}

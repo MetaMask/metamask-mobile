@@ -83,6 +83,10 @@ export class EngineService {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
       this.updateBatcher.add(controllerName);
+
+      if (controllerName === 'ApprovalController') {
+        this.updateBatcher.flush();
+      }
     };
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
@@ -176,6 +180,14 @@ export class EngineService {
     }
     endTrace({ name: TraceName.EngineInitialization });
   };
+
+  /**
+   * Flush any pending controller state updates.
+   * Only necessary in rare cases where immediate state consistency is required.
+   */
+  flushState() {
+    this.updateBatcher.flush();
+  }
 
   /**
    * Sets up persistence subscriptions for all engine controllers.

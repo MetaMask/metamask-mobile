@@ -11,11 +11,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
-import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
-import { useNavigation } from '@react-navigation/native';
 
 interface SectionHeaderProps {
-  sectionId: SectionId;
+  title: string;
+  onViewAll: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -25,34 +24,22 @@ const styles = StyleSheet.create({
   },
 });
 
-/**
- * Displays a section header with title and "View All" button.
- * All configuration is pulled from sections.config.tsx based on the sectionId.
- *
- * This component is part of the centralized section management system that ensures
- * consistency between QuickActions buttons and section "View All" buttons.
- */
-const SectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
-  const navigation = useNavigation();
-  const sectionConfig = SECTIONS_CONFIG[sectionId];
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      justifyContent={BoxJustifyContent.Between}
-      alignItems={BoxAlignItems.Center}
-      style={styles.container}
-    >
-      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-        {sectionConfig.title}
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, onViewAll }) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    justifyContent={BoxJustifyContent.Between}
+    alignItems={BoxAlignItems.Center}
+    style={styles.container}
+  >
+    <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+      {title}
+    </Text>
+    <TouchableOpacity onPress={onViewAll}>
+      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
+        {strings('trending.view_all')}
       </Text>
-      <TouchableOpacity onPress={() => sectionConfig.viewAllAction(navigation)}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
-          {strings('trending.view_all')}
-        </Text>
-      </TouchableOpacity>
-    </Box>
-  );
-};
+    </TouchableOpacity>
+  </Box>
+);
 
 export default SectionHeader;

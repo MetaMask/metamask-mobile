@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -7,7 +7,6 @@ import { Hex, Json } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { getNativeTokenAddress } from '../../utils/asset';
 import { hasTransactionType } from '../../utils/transaction';
 import {
@@ -17,6 +16,7 @@ import {
 } from './useTransactionPayData';
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
+import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -26,10 +26,12 @@ export function useTransactionPayMetrics() {
   const automaticPayToken = useRef<BridgeToken>();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
+  const tokens = useTransactionPayAvailableTokens();
 
-  const { count: availableTokenCount } = useAutomaticTransactionPayToken({
-    countOnly: true,
-  });
+  const availableTokens = useMemo(
+    () => tokens.filter((t) => !t.disabled),
+    [tokens],
+  );
 
   const transactionId = transactionMeta?.id ?? '';
   const { chainId, type } = transactionMeta ?? {};
@@ -58,7 +60,7 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_chain_presented =
       automaticPayToken.current?.chainId ?? null;
 
-    properties.mm_pay_payment_token_list_size = availableTokenCount;
+    properties.mm_pay_payment_token_list_size = availableTokens.length;
   }
 
   if (payToken && type === TransactionType.perpsDeposit) {
