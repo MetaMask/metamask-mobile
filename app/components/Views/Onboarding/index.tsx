@@ -296,7 +296,9 @@ const Onboarding = () => {
       if (state.existingUser) {
         alertExistingUser(action);
       } else {
-        void action();
+        Promise.resolve(action()).catch(() => {
+          //errors
+        });
       }
     },
     [state.existingUser, alertExistingUser],
