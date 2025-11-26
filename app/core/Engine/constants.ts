@@ -10,6 +10,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ExecutionService',
   'NftDetectionController',
   'RewardsDataService',
+  'StorageService',
   'TokenDetectionController',
   'WebSocketService',
   'BackendWebSocketService',
