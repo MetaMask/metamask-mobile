@@ -189,11 +189,7 @@ describe('TokenSelectorItem', () => {
     const token = createMockToken();
 
     const { UNSAFE_root } = render(
-      <TokenSelectorItem
-        token={token}
-        onPress={mockOnPress}
-        isSelected
-      />,
+      <TokenSelectorItem token={token} onPress={mockOnPress} isSelected />,
     );
 
     // The component should render with selected state
@@ -247,11 +243,7 @@ describe('TokenSelectorItem', () => {
     const token = createMockToken();
 
     const { getByText } = render(
-      <TokenSelectorItem
-        token={token}
-        onPress={mockOnPress}
-        isNoFeeAsset
-      />,
+      <TokenSelectorItem token={token} onPress={mockOnPress} isNoFeeAsset />,
     );
 
     expect(getByText('No MM Fee')).toBeTruthy();
