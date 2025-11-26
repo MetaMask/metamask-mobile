@@ -53,6 +53,8 @@ import RewardsTag from '../../../../../UI/Rewards/components/RewardsTag';
 import RewardsTooltipBottomSheet from '../../../../../UI/Rewards/components/RewardsTooltipBottomSheet';
 import { useRewardsAccountOptedIn } from '../../../../../UI/Rewards/hooks/useRewardsAccountOptedIn';
 import EngineService from '../../../../../../core/EngineService';
+import MusdTag from '../../../../../UI/Earn/components/MusdTag';
+import { limitToMaximumDecimalPlaces } from '../../../../../../util/number';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -78,6 +80,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMusdConversion = hasTransactionType(transactionMeta, [
       TransactionType.musdConversion,
     ]);
+
+    const musdSymbol = 'mUSD';
 
     const { accountOptedIn } = useRewardsAccountOptedIn();
     const isOptedInToRewards = accountOptedIn ?? false;
@@ -105,11 +109,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
-    // Calculate rewards points: 5 points per $100
-    const estimatedPoints = useMemo(() => {
-      const amount = parseFloat(amountFiat) || 0;
+    // Calculate rewards points: 5 points per $100 USD
+    // amountHuman represents mUSD amount (1 mUSD = 1 USD)
+    const estimatedMusdPoints = useMemo(() => {
+      const amount = parseFloat(amountHuman) || 0;
       return Math.floor(amount / 100) * 5;
-    }, [amountFiat]);
+    }, [amountHuman]);
 
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
@@ -137,17 +142,28 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {disablePay !== true && (
+          {disablePay !== true && !isMusdConversion && (
             <PayTokenAmount amountHuman={amountHuman} disabled={!hasTokens} />
           )}
           {isMusdConversion && (
-            <RewardsTag
-              points={estimatedPoints}
-              onPress={handleRewardsTagPress}
+            <MusdTag
+              amount={limitToMaximumDecimalPlaces(
+                parseFloat(amountHuman || '0'),
+                2,
+              )}
+              symbol={musdSymbol}
+              showBackground={false}
             />
           )}
           {children}
           {disablePay !== true && hasTokens && <PayWithRow />}
+          {isMusdConversion && (
+            <RewardsTag
+              points={estimatedMusdPoints}
+              onPress={handleRewardsTagPress}
+              showBackground={false}
+            />
+          )}
         </Box>
         <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />

@@ -34,6 +34,11 @@ interface RewardsTagProps {
    */
   showInfoIcon?: boolean;
   /**
+   * Whether to show the background color
+   * @default true
+   */
+  showBackground?: boolean;
+  /**
    * Background color variant
    * @default RewardsTagBackgroundVariant.Subsection
    */
@@ -64,6 +69,7 @@ const RewardsTag: React.FC<RewardsTagProps> = ({
   points,
   onPress,
   showInfoIcon = false,
+  showBackground = true,
   backgroundVariant = RewardsTagBackgroundVariant.Subsection,
   suffix,
   testID,
@@ -72,10 +78,11 @@ const RewardsTag: React.FC<RewardsTagProps> = ({
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, {});
 
-  const backgroundColor =
-    backgroundVariant === RewardsTagBackgroundVariant.Muted
+  const backgroundColor = showBackground
+    ? backgroundVariant === RewardsTagBackgroundVariant.Muted
       ? colors.background.muted
-      : colors.background.subsection;
+      : colors.background.subsection
+    : 'transparent';
 
   const tagStyle = {
     backgroundColor,
