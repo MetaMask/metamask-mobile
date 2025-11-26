@@ -94,14 +94,17 @@ jest.mock(
 );
 
 // Mock useTrendingRequest to return empty results
-jest.mock('../../../components/UI/Assets/hooks/useTrendingRequest', () => ({
-  useTrendingRequest: jest.fn(() => ({
-    results: [],
-    isLoading: false,
-    error: null,
-    fetch: jest.fn(),
-  })),
-}));
+jest.mock(
+  '../../../components/UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
+  () => ({
+    useTrendingRequest: jest.fn(() => ({
+      results: [],
+      isLoading: false,
+      error: null,
+      fetch: jest.fn(),
+    })),
+  }),
+);
 
 describe('TrendingView', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -518,7 +521,7 @@ describe('TrendingView', () => {
       </NavigationContainer>,
     );
 
-    expect(getByText('Trending')).toBeDefined();
+    expect(getByText('Explore')).toBeDefined();
   });
 
   it('navigates to TrendingBrowser route when browser button is pressed', () => {

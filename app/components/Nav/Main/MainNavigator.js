@@ -28,6 +28,7 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
+import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -51,6 +52,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import TrendingView from '../../Views/TrendingView/TrendingView';
+import SitesListView from '../../Views/TrendingView/SitesListView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -289,6 +291,26 @@ const TrendingHome = () => (
       name={Routes.TRENDING_VIEW}
       component={TrendingView}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SITES_LIST_VIEW}
+      component={SitesListView}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
     />
   </Stack.Navigator>
 );
@@ -920,7 +942,6 @@ const MainNavigator = () => {
   const perpsEnabledFlag = useFeatureFlag(
     FeatureFlagNames.perpsPerpTradingEnabled,
   );
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
   const predictEnabledFlag = useFeatureFlag(
@@ -932,6 +953,9 @@ const MainNavigator = () => {
   );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
+  );
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
   );
 
   return (
@@ -1013,6 +1037,25 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen
+        name="TrendingTokensFullView"
+        component={TrendingTokensFullView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
@@ -1081,7 +1124,19 @@ const MainNavigator = () => {
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
             options={{
-              animationEnabled: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
             }}
           />
           <Stack.Screen

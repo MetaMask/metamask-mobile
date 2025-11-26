@@ -19,7 +19,6 @@ import {
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import { strings } from '../../../../../locales/i18n';
 
 const CHAIN_ID_MOCK = '0x1';
 const TO_MOCK = '0x0987654321098765432109876543210987654321';
@@ -198,25 +197,6 @@ describe('Transaction Pay Utils', () => {
       });
 
       expect(result).toMatchObject([tokenWithZeroBalance]);
-    });
-
-    it('returns disabled token with message if no native gas', async () => {
-      const nonNativeToken = {
-        ...TOKEN_MOCK,
-        address: '0x234',
-      } as AssetType;
-
-      const result = getAvailableTokens({
-        tokens: [nonNativeToken] as AssetType[],
-      });
-
-      expect(result).toMatchObject([
-        {
-          ...nonNativeToken,
-          disabled: true,
-          disabledMessage: strings('pay_with_modal.no_gas'),
-        },
-      ]);
     });
 
     it('does not return token if no balance', async () => {
