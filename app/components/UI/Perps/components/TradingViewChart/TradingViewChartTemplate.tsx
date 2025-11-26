@@ -958,7 +958,11 @@ export const createTradingViewChartTemplate = (
                         lineWidth: 2,
                         lineStyle: 2, // Dashed line
                         axisLabelVisible: true,
-                        title: ''
+                        title: '',
+                        // Use universal formatting to match header precision
+                        // This prevents mismatch where Y-axis shows zoom-adjusted decimals
+                        // but price line label should always match the header display
+                        axisLabelFormatter: (price) => window.formatPriceUniversal(price)
                     });
                     // Store reference for future removal
                     window.priceLines.currentPrice = priceLine;
