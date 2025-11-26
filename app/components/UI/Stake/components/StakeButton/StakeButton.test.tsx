@@ -412,27 +412,7 @@ describe('StakeButton', () => {
       expect(getByText('Convert')).toBeDefined();
     });
 
-    it('calls initiateConversion when Convert button pressed', async () => {
-      selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
-      selectMusdConversionPaymentTokensAllowlistMock.mockReturnValue({
-        '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <StakeButton asset={MOCK_USDC_MAINNET_ASSET} />,
-        {
-          state: STATE_MOCK,
-        },
-      );
-
-      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-
-      await waitFor(() => {
-        expect(mockInitiateConversion).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('calls initiateConversion with correct parameters', async () => {
+    it('calls initiateConversion with correct parameters when Convert button pressed', async () => {
       selectIsMusdConversionFlowEnabledFlagMock.mockReturnValue(true);
       const mockAllowlist = {
         '0x1': [MOCK_USDC_MAINNET_ASSET.address as Hex],
@@ -458,7 +438,6 @@ describe('StakeButton', () => {
             address: '0xaBc',
             chainId: '0x1',
           },
-          allowedPaymentTokens: mockAllowlist,
           navigationStack: Routes.EARN.ROOT,
         });
       });

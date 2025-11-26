@@ -1,8 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import {
-  useMusdConversion,
-  areValidAllowedPaymentTokens,
-} from './useMusdConversion';
+import { useMusdConversion } from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
@@ -125,7 +122,6 @@ describe('useMusdConversion', () => {
             chainId: '0x1',
           },
           outputChainId: '0x1',
-          allowedPaymentTokens: undefined,
         },
       });
     });
@@ -332,39 +328,6 @@ describe('useMusdConversion', () => {
       );
     });
 
-    it('includes allowedPaymentTokens in navigation params when provided', async () => {
-      const mockSelectorFn = jest.fn(() => mockSelectedAccount);
-      mockUseSelector.mockReturnValue(mockSelectorFn);
-      mockSelectorFn.mockReturnValue(mockSelectedAccount);
-
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
-        'mainnet',
-      );
-      mockTransactionController.addTransaction.mockResolvedValue({
-        transactionMeta: { id: 'tx-123' },
-      });
-
-      const { result } = renderHook(() => useMusdConversion());
-
-      const allowedTokens: Record<Hex, Hex[]> = {
-        '0x1': ['0xabc' as Hex],
-      };
-
-      const configWithAllowedTokens = {
-        ...mockConfig,
-        allowedPaymentTokens: allowedTokens,
-      };
-
-      await result.current.initiateConversion(configWithAllowedTokens);
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: expect.objectContaining({
-          allowedPaymentTokens: allowedTokens,
-        }),
-      });
-    });
-
     it('returns transaction ID on success', async () => {
       const mockSelectorFn = jest.fn(() => mockSelectedAccount);
       mockUseSelector.mockReturnValue(mockSelectorFn);
@@ -437,82 +400,5 @@ describe('useMusdConversion', () => {
 
       expect(result.current.error).toBeNull();
     });
-  });
-});
-
-describe('areValidAllowedPaymentTokens', () => {
-  it('returns true for valid Record<Hex, Hex[]>', () => {
-    const validInput: Record<Hex, Hex[]> = {
-      '0x1': ['0xabc' as Hex, '0xdef' as Hex],
-      '0x2': ['0x123' as Hex],
-    };
-
-    const result = areValidAllowedPaymentTokens(validInput);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false for null', () => {
-    const result = areValidAllowedPaymentTokens(null);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false for undefined', () => {
-    const result = areValidAllowedPaymentTokens(undefined);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false for arrays', () => {
-    const result = areValidAllowedPaymentTokens(['0x1', '0x2']);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when keys are not hex strings', () => {
-    const invalidInput = {
-      notHex: ['0xabc' as Hex],
-    };
-
-    const result = areValidAllowedPaymentTokens(invalidInput);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when values are not arrays', () => {
-    const invalidInput = {
-      '0x1': '0xabc',
-    };
-
-    const result = areValidAllowedPaymentTokens(invalidInput);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when array elements are not hex strings', () => {
-    const invalidInput = {
-      '0x1': ['notHex'],
-    };
-
-    const result = areValidAllowedPaymentTokens(invalidInput);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns true for empty object', () => {
-    const result = areValidAllowedPaymentTokens({});
-
-    expect(result).toBe(true);
-  });
-
-  it('returns true for object with empty arrays', () => {
-    const validInput: Record<Hex, Hex[]> = {
-      '0x1': [],
-    };
-
-    const result = areValidAllowedPaymentTokens(validInput);
-
-    expect(result).toBe(true);
   });
 });

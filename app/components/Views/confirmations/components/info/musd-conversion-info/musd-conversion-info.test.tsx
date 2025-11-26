@@ -44,12 +44,7 @@ describe('MusdConversionInfo', () => {
 
   describe('rendering', () => {
     it('renders without errors when all route params provided', () => {
-      const allowedPaymentTokens: Record<Hex, Hex[]> = {
-        '0x1': ['0xabc' as Hex],
-      };
-
       mockRoute.params = {
-        allowedPaymentTokens,
         preferredPaymentToken: {
           address: '0xdef' as Hex,
           chainId: '0x1' as Hex,
@@ -105,84 +100,6 @@ describe('MusdConversionInfo', () => {
         symbol: 'MUSD',
         tokenAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
       });
-    });
-  });
-
-  describe('allowedPaymentTokens validation', () => {
-    it('passes valid allowedPaymentTokens to CustomAmountInfo', () => {
-      const allowedPaymentTokens: Record<Hex, Hex[]> = {
-        '0x1': ['0xabc' as Hex],
-      };
-
-      mockRoute.params = {
-        allowedPaymentTokens,
-        outputChainId: '0x1' as Hex,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          allowedPaymentTokens,
-        }),
-        expect.anything(),
-      );
-    });
-
-    it('warns and passes undefined when allowedPaymentTokens is invalid', () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      const invalidAllowedTokens = {
-        notHex: ['0xabc'],
-      };
-
-      mockRoute.params = {
-        allowedPaymentTokens: invalidAllowedTokens,
-        outputChainId: '0x1' as Hex,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid allowedPaymentTokens structure'),
-        invalidAllowedTokens,
-      );
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          allowedPaymentTokens: undefined,
-        }),
-        expect.anything(),
-      );
-
-      consoleWarnSpy.mockRestore();
-    });
-
-    it('passes undefined to CustomAmountInfo when allowedPaymentTokens not provided', () => {
-      mockRoute.params = {
-        outputChainId: '0x1' as Hex,
-      };
-
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<MusdConversionInfo />, {
-        state: {},
-      });
-
-      expect(CustomAmountInfo).toHaveBeenCalledWith(
-        expect.objectContaining({
-          allowedPaymentTokens: undefined,
-        }),
-        expect.anything(),
-      );
     });
   });
 
