@@ -6,8 +6,14 @@ import {
   AddressScanResult,
 } from '@metamask/phishing-controller';
 
-const selectPhishingControllerState = (state: RootState) =>
-  state.engine.backgroundState.PhishingController;
+const selectTokenScanCache = (state: RootState) =>
+  state.engine.backgroundState.PhishingController?.tokenScanCache;
+
+const selectAddressScanCache = (state: RootState) =>
+  state.engine.backgroundState.PhishingController?.addressScanCache;
+
+const selectUrlScanCache = (state: RootState) =>
+  state.engine.backgroundState.PhishingController?.urlScanCache;
 
 /**
  * Select the scan results for multiple token addresses
@@ -18,17 +24,17 @@ const selectPhishingControllerState = (state: RootState) =>
  * @returns Array of scan results with their addresses
  */
 export const selectMultipleTokenScanResults = createDeepEqualSelector(
-  selectPhishingControllerState,
+  selectTokenScanCache,
   (
     _state: RootState,
     params: { tokens: { address: string; chainId: string }[] },
   ) => params.tokens,
-  (phishingControllerState, tokens) => {
+  (tokenScanCache, tokens) => {
     if (!tokens || tokens.length === 0) {
       return [];
     }
 
-    const tokenScanCache = phishingControllerState?.tokenScanCache || {};
+    const cache = tokenScanCache || {};
 
     return tokens.reduce<
       {
@@ -44,7 +50,7 @@ export const selectMultipleTokenScanResults = createDeepEqualSelector(
       }
 
       const cacheKey = `${chainId}:${address.toLowerCase()}`;
-      const cacheEntry = tokenScanCache[cacheKey];
+      const cacheEntry = cache[cacheKey];
 
       acc.push({
         address: address.toLowerCase(),
@@ -66,13 +72,13 @@ export const selectMultipleTokenScanResults = createDeepEqualSelector(
  * @returns Array of scan results with their addresses
  */
 export const selectMultipleAddressScanResults = createDeepEqualSelector(
-  selectPhishingControllerState,
+  selectAddressScanCache,
   (
     _state: RootState,
     params: { addresses: { address: string; chainId: string }[] },
   ) => params.addresses,
   (
-    phishingControllerState,
+    addressScanCache,
     addresses,
   ): {
     address: string;
@@ -83,7 +89,7 @@ export const selectMultipleAddressScanResults = createDeepEqualSelector(
       return [];
     }
 
-    const addressScanCache = phishingControllerState?.addressScanCache || {};
+    const cache = addressScanCache || {};
 
     return addresses.map((addressItem) => {
       const { address, chainId } = addressItem;
@@ -97,7 +103,7 @@ export const selectMultipleAddressScanResults = createDeepEqualSelector(
       }
 
       const cacheKey = generateAddressCacheKey(chainId, address);
-      const cacheEntry = addressScanCache[cacheKey];
+      const cacheEntry = cache[cacheKey];
 
       return {
         address: address.toLowerCase(),
@@ -117,16 +123,16 @@ export const selectMultipleAddressScanResults = createDeepEqualSelector(
  * @returns Scan result for the hostname
  */
 export const selectUrlScanResult = createDeepEqualSelector(
-  selectPhishingControllerState,
+  selectUrlScanCache,
   (_state: RootState, params: { hostname: string | undefined }) =>
     params.hostname,
-  (phishingControllerState, hostname) => {
+  (urlScanCache, hostname) => {
     if (!hostname) {
       return null;
     }
 
-    const urlScanCache = phishingControllerState?.urlScanCache || {};
-    const cacheEntry = urlScanCache[hostname];
+    const cache = urlScanCache || {};
+    const cacheEntry = cache[hostname];
 
     return {
       hostname,
