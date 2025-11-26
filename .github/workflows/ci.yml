@@ -236,8 +236,8 @@ jobs:
       contents: read
       pull-requests: write
     outputs:
-      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
-      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
+      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags || '' }}
+      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence || '' }}
     steps:
       - name: Check if should run
         id: should-run
