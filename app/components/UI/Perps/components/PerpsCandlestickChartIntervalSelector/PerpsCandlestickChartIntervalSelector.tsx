@@ -1,38 +1,31 @@
 import React from 'react';
-import { TouchableOpacity, ScrollView } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import {
-  CANDLE_PERIODS,
+  CHART_INTERVALS,
   PERPS_CHART_CONFIG,
-  CandlePeriod,
+  ChartInterval,
 } from '../../constants/chartConfig';
 import { selectorStyleSheet } from './PerpsCandlestickChartIntervalSelector.styles.ts';
 
 interface PerpsCandlestickChartIntervalSelectorProps {
-  selectedInterval: CandlePeriod | string;
-  onIntervalChange?: (interval: CandlePeriod) => void;
+  selectedInterval: ChartInterval | string;
+  onIntervalChange?: (interval: ChartInterval) => void;
   testID?: string;
-  style?: object; // Allow custom styles to override defaults
 }
 
 const PerpsCandlestickChartIntervalSelector: React.FC<
   PerpsCandlestickChartIntervalSelectorProps
-> = ({ selectedInterval, onIntervalChange, testID, style }) => {
+> = ({ selectedInterval, onIntervalChange, testID }) => {
   const { styles } = useStyles(selectorStyleSheet, {});
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={[styles.intervalSelector, style]}
-      contentContainerStyle={styles.intervalSelectorContent}
-      testID={testID}
-    >
-      {CANDLE_PERIODS.map((interval) => (
+    <View style={styles.intervalSelector} testID={testID}>
+      {CHART_INTERVALS.map((interval) => (
         <TouchableOpacity
           key={interval.value}
           style={[
@@ -63,7 +56,7 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
           </Text>
         </TouchableOpacity>
       ))}
-    </ScrollView>
+    </View>
   );
 };
 

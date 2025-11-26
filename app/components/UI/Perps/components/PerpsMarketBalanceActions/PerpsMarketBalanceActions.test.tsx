@@ -86,15 +86,6 @@ jest.mock('../../hooks', () => ({
   useBalanceComparison: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsNetworkManagement: jest.fn(),
-  usePerpsHomeActions: jest.fn(() => ({
-    handleAddFunds: jest.fn(),
-    handleWithdraw: jest.fn(),
-    isEligibilityModalVisible: false,
-    closeEligibilityModal: jest.fn(),
-    isEligible: true,
-    isProcessing: false,
-    error: null,
-  })),
 }));
 
 jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
@@ -310,11 +301,6 @@ describe('PerpsMarketBalanceActions', () => {
           ...getDefaultPerpsControllerState(),
           ...perpsControllerOverrides,
         },
-        MultichainNetworkController: {
-          multichainNetworkConfigurationsByChainId: {},
-          isEvmSelected: true,
-          selectedMultichainNetworkChainId: undefined, // EVM selected, non-EVM chain field is undefined
-        },
       },
     },
   });
@@ -358,18 +344,14 @@ describe('PerpsMarketBalanceActions', () => {
   describe('Rendering', () => {
     it('renders component with balance display', () => {
       // Arrange & Act
-      const { getByTestId } = renderWithProvider(
+      const { getByText, getByTestId } = renderWithProvider(
         <PerpsMarketBalanceActions />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
 
       // Assert
-      expect(
-        getByTestId(
-          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
-        ),
-      ).toBeOnTheScreen();
+      expect(getByText('perps.available_balance')).toBeOnTheScreen();
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
       ).toBeOnTheScreen();
@@ -409,20 +391,16 @@ describe('PerpsMarketBalanceActions', () => {
       expect(getByText('perps.withdraw')).toBeOnTheScreen();
     });
 
-    it('renders available balance text with funded state', () => {
+    it('renders USDC avatar with HyperLiquid badge', () => {
       // Arrange & Act
-      const { getByTestId } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <PerpsMarketBalanceActions />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
 
-      // Assert - Check that available balance text is rendered
-      expect(
-        getByTestId(
-          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
-        ),
-      ).toBeOnTheScreen();
+      // Assert - Check that the component renders (badge is complex to test directly)
+      expect(getByText('perps.available_balance')).toBeOnTheScreen();
     });
 
     it('returns null when no perps account is available', () => {
@@ -593,7 +571,7 @@ describe('PerpsMarketBalanceActions', () => {
   });
 
   describe('Edge Cases', () => {
-    it('shows empty state when balance is zero', () => {
+    it('handles zero balance formatting correctly', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
@@ -607,20 +585,17 @@ describe('PerpsMarketBalanceActions', () => {
       });
 
       // Act
-      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsMarketBalanceActions />,
         { state: createMockState() },
         false, // Disable NavigationContainer
       );
+      const balanceElement = getByTestId(
+        PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+      );
 
-      // Assert - Should show empty state UI instead of balance display
-      expect(
-        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.EMPTY_STATE_TITLE),
-      ).toBeOnTheScreen();
-      expect(getByText('perps.add_funds')).toBeOnTheScreen();
-      expect(
-        queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
-      ).toBeNull();
+      // Assert
+      expect(balanceElement.props.children).toBe('$0.00');
     });
   });
 

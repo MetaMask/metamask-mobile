@@ -558,7 +558,6 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -632,7 +631,6 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {

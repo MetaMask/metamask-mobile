@@ -8,21 +8,16 @@ jest.mock('../gas/useGasFeeEstimates', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: () => ({}),
-}));
-
 const mockState = {
   state: evmSendStateMock,
 };
 
 describe('useGasFeeEstimatesForSend', () => {
-  it('returns gas estimates', () => {
+  it('return gas estimates', () => {
     const { result } = renderHookWithProvider(
       () => useGasFeeEstimatesForSend(),
       mockState,
     );
-
     expect(result.current.gasFeeEstimates).toBeDefined();
   });
 });

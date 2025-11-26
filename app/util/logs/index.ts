@@ -16,7 +16,6 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../core/Engine/controllers/remote-feature-flag-controller/utils';
-import { OTA_VERSION, RUNTIME_VERSION } from '../../constants/ota';
 
 const getSanitizedSeedlessOnboardingControllerState = () => {
   const { SeedlessOnboardingController } = Engine.context;
@@ -152,8 +151,6 @@ export const downloadStateLogs = async (
         environment,
         remoteFeatureFlagEnvironment,
         remoteFeatureFlagDistribution,
-        otaVersion: OTA_VERSION,
-        runtimeVersion: RUNTIME_VERSION,
       },
       loggedIn,
     );

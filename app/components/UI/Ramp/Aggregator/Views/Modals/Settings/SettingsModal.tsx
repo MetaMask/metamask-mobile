@@ -9,10 +9,9 @@ import { IconName } from '../../../../../../../component-library/components/Icon
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import MenuItem from '../../../../components/MenuItem';
-import { useRampNavigation } from '../../../../hooks/useRampNavigation';
+import { createDepositNavigationDetails } from '../../../../Deposit/routes/utils';
 import useAnalytics from '../../../../hooks/useAnalytics';
 import { useRampSDK } from '../../../sdk';
-import { useRampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
 
 export const createBuySettingsModalNavigationDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -22,11 +21,9 @@ export const createBuySettingsModalNavigationDetails = createNavigationDetails(
 function SettingsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const { goToDeposit } = useRampNavigation();
   const { selectedRegion } = useRampSDK();
 
   const trackEvent = useAnalytics();
-  const buttonClickData = useRampsButtonClickData();
 
   const handleNavigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -43,21 +40,11 @@ function SettingsModal() {
       location: 'Buy Settings Modal',
       ramp_type: 'DEPOSIT',
       region: selectedRegion?.id as string,
-      ramp_routing: buttonClickData.ramp_routing,
-      is_authenticated: buttonClickData.is_authenticated,
-      preferred_provider: buttonClickData.preferred_provider,
-      order_count: buttonClickData.order_count,
     });
     sheetRef.current?.onCloseBottomSheet();
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    goToDeposit();
-  }, [
-    navigation,
-    goToDeposit,
-    selectedRegion?.id,
-    trackEvent,
-    buttonClickData,
-  ]);
+    navigation.navigate(...createDepositNavigationDetails());
+  }, [navigation, selectedRegion?.id, trackEvent]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

@@ -21,9 +21,7 @@ describe('when-store-ready', () => {
     it('should resolve immediately if the store is already ready', async () => {
       const mockStore = {
         dispatch: jest.fn(),
-        getState: jest.fn().mockImplementation(() => ({
-          engine: { backgroundState: { NetworkController: true } },
-        })),
+        getState: jest.fn(),
       };
 
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -43,9 +41,7 @@ describe('when-store-ready', () => {
       let callCount = 0;
       const mockStore = {
         dispatch: jest.fn(),
-        getState: jest.fn().mockImplementation(() => ({
-          engine: { backgroundState: { NetworkController: true } },
-        })),
+        getState: jest.fn(),
       };
 
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -64,7 +60,7 @@ describe('when-store-ready', () => {
       const promise = whenStoreReady();
 
       // Fast-forward time to trigger the check intervals
-      await jest.advanceTimersByTimeAsync(2000);
+      await jest.advanceTimersByTimeAsync(200);
 
       await expect(promise).resolves.toBeUndefined();
     });
@@ -74,9 +70,7 @@ describe('when-store-ready', () => {
       let callCount = 0;
       const mockStore = {
         dispatch: jest.fn(),
-        getState: jest.fn().mockImplementation(() => ({
-          engine: { backgroundState: { NetworkController: true } },
-        })),
+        getState: jest.fn(),
       };
 
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -95,42 +89,7 @@ describe('when-store-ready', () => {
       const promise = whenStoreReady();
 
       // Fast-forward time to trigger the check intervals
-      await jest.advanceTimersByTimeAsync(2000);
-
-      await expect(promise).resolves.toBeUndefined();
-    });
-
-    it('should wait if NetworkController is not available in store state', async () => {
-      let callCount = 0;
-      const mockReadyStore = {
-        dispatch: jest.fn(),
-        getState: jest.fn().mockImplementation(() => ({
-          engine: { backgroundState: { NetworkController: true } },
-        })),
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const storeModule = require('../../../store');
-      Object.defineProperty(storeModule, 'store', {
-        get: () => {
-          callCount++;
-          if (callCount < 3) {
-            return {
-              dispatch: jest.fn(),
-              getState: jest.fn().mockImplementation(() => ({
-                engine: { backgroundState: {} }, // NetworkController not set
-              })),
-            };
-          }
-          return mockReadyStore;
-        },
-        configurable: true,
-      });
-
-      const promise = whenStoreReady();
-
-      // Fast-forward time to trigger the check intervals
-      await jest.advanceTimersByTimeAsync(2000);
+      await jest.advanceTimersByTimeAsync(200);
 
       await expect(promise).resolves.toBeUndefined();
     });

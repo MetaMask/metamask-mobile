@@ -17,9 +17,6 @@ jest.mock('../../Permissions');
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
-    getState: jest.fn().mockImplementation(() => ({
-      engine: { backgroundState: { NetworkController: {} } },
-    })),
   },
 }));
 

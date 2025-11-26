@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 import styleSheet from './BuildQuote.styles';
@@ -70,7 +69,6 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MUSD_PLACEHOLDER } from '../../constants/constants';
 import { useDepositUser } from '../../hooks/useDepositUser';
-import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
@@ -85,7 +83,6 @@ const BuildQuote = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-  const depositOrders = useSelector(getAllDepositOrders);
 
   const {
     regions,
@@ -263,7 +260,6 @@ const BuildQuote = () => {
         ),
         currency_source: selectedRegion?.currency || '',
         is_authenticated: isAuthenticated,
-        first_time_order: depositOrders.length === 0,
       });
 
       quote = await getQuote();
@@ -395,7 +391,6 @@ const BuildQuote = () => {
     navigateToVerifyIdentity,
     shouldRouteImmediately,
     selectedWalletAddress,
-    depositOrders.length,
   ]);
 
   const handleKeypadChange = useCallback(

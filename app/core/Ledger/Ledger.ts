@@ -267,5 +267,4 @@ export const unlockLedgerWalletAccount = async (index: number) => {
   if (account && name !== account.metadata.name) {
     accountsController.setAccountName(account.id, name);
   }
-  Engine.setSelectedAddress(unlockAccount);
 };

@@ -36,8 +36,10 @@ import { formatDateSection } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
-import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
-import { ButtonSize } from '@metamask/design-system-react-native';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -223,15 +225,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       };
 
       return (
-        <ButtonFilter
+        <Button
           key={tab}
-          isActive={isActive}
-          size={ButtonSize.Md}
+          variant={isActive ? ButtonVariants.Primary : ButtonVariants.Secondary}
+          size={ButtonSize.Sm}
           onPress={handleTabPress}
           accessibilityRole="button"
-        >
-          {strings(`perps.transactions.tabs.${i18nKey}`)}
-        </ButtonFilter>
+          label={strings(`perps.transactions.tabs.${i18nKey}`)}
+        />
       );
     },
     [activeFilter],

@@ -16,6 +16,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictCashOutPage from '../../pages/Predict/PredictCashOutPage';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../pages/Transactions/predictionsActivityDetails';
 
@@ -26,6 +27,8 @@ Test Scenario: Cash out on open position - Spurs vs. Pelicans
   2. Open Spurs vs. Pelicans position details
   3. Cash out the position with updated mocks
   4. Verify cash out appears in Activities tab
+  5. Verify balance updated to $58.66 and position removed from current positions
+  6. Verify final balance consistency across views
   */
 const positionDetails = {
   name: 'Spurs vs. Pelicans',
@@ -44,7 +47,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 describe(SmokePredictions('Predictions'), () => {
-  it('should cash out on open position: Spurs vs. Pelicans', async () => {
+  it.skip('should cash out on open position: Spurs vs. Pelicans', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -68,8 +71,8 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapPositionsTab();
         // Set up cash out mocks before tapping cash out
         // POLYMARKET_POST_CASH_OUT_MOCKS handles both the transaction API and balance refresh
-        await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
+        await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
 
         await PredictDetailsPage.tapCashOutButton();
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
@@ -82,10 +85,22 @@ describe(SmokePredictions('Predictions'), () => {
         await device.enableSynchronization();
 
         await PredictDetailsPage.tapBackButton();
+        await TabBarComponent.tapActivity();
 
-        await Assertions.expectTextDisplayed(positionDetails.newBalance, {
-          description: 'Predictions balance should be updated to $58.16',
-        });
+        await ActivitiesView.tapOnPredictionsTab();
+        // await ActivitiesView.tapPredictPosition(positionDetails.name);
+        await Assertions.expectTextDisplayed('Cashed out');
+        await ActivitiesView.tapPredictPosition(positionDetails.name);
+        await Assertions.expectElementToBeVisible(
+          PredictActivityDetails.container,
+        );
+        await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
+        await PredictActivityDetails.tapBackButton();
+        await TabBarComponent.tapWallet();
+        await Assertions.expectTextDisplayed(positionDetails.newBalance);
+
+        await WalletView.tapOnPredictionsTab();
+
         // Check that Spurs vs Pelicans is removed from current positions list
         for (let i = 0; i < 4; i++) {
           const positionCard =
@@ -98,15 +113,10 @@ describe(SmokePredictions('Predictions'), () => {
             },
           );
         }
-        await TabBarComponent.tapActivity();
 
-        await ActivitiesView.tapOnPredictionsTab();
-        await Assertions.expectTextDisplayed('Cashed out');
-        await ActivitiesView.tapPredictPosition(positionDetails.name);
-        await Assertions.expectElementToBeVisible(
-          PredictActivityDetails.container,
-        );
-        await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
+        await Assertions.expectTextDisplayed(positionDetails.newBalance);
       },
     );
   });

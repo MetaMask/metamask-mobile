@@ -46,8 +46,8 @@ import {
   getErrorMessage,
   getFetchParams,
   getQuotesNavigationsParams,
+  isSwapsNativeAsset,
 } from './utils';
-import { isSwapsNativeAsset } from '../../../util/bridge';
 import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
@@ -110,7 +110,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
@@ -415,7 +415,6 @@ function SwapsQuotesView({
   /* Get params from navigation */
   const route = useRoute();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { goToBuy } = useRampNavigation();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -1504,7 +1503,7 @@ function SwapsQuotesView({
 
   const buyEth = useCallback(() => {
     try {
-      goToBuy();
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1514,7 +1513,7 @@ function SwapsQuotesView({
         MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
       ).build(),
     );
-  }, [goToBuy, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const handleTermsPress = useCallback(
     () =>

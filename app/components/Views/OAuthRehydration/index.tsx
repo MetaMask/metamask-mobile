@@ -256,32 +256,26 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           seedlessError.message ===
           SeedlessOnboardingControllerErrorMessage.IncorrectPassword
         ) {
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
-              failed_attempts: rehydrationFailedAttempts,
-              error_type: 'incorrect_password',
-            });
-          }
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
           setError(strings('login.invalid_password'));
           return;
         } else if (
           seedlessError.message ===
           SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
         ) {
-          // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
           if (seedlessError.data?.numberOfAttempts !== undefined) {
             setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
           }
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
-              failed_attempts:
-                seedlessError.data?.numberOfAttempts ??
-                rehydrationFailedAttempts,
-              error_type: 'incorrect_password',
-            });
-          }
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts:
+              seedlessError.data?.numberOfAttempts ?? rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
           if (typeof seedlessError.data?.remainingTime === 'number') {
             tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
               () => null,
@@ -294,13 +288,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           seedlessError.code ===
           SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
         ) {
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
-              failed_attempts: rehydrationFailedAttempts,
-              error_type: 'unknown_error',
-            });
-          }
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'unknown_error',
+          });
           setError(strings('login.seedless_password_outdated'));
           return;
         }
@@ -328,25 +320,23 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       );
       setError(errMessage);
 
-      if (isComingFromOauthOnboarding) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'unknown_error',
-        });
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'unknown_error',
+      });
 
-        if (isMetricsEnabled()) {
-          captureException(seedlessError, {
-            tags: {
-              view: 'Login',
-              context: 'OAuth rehydration failed - user consented to analytics',
-            },
-          });
-        } else {
-          setErrorToThrow(
-            new Error(`OAuth rehydration failed: ${seedlessError.message}`),
-          );
-        }
+      if (isMetricsEnabled()) {
+        captureException(seedlessError, {
+          tags: {
+            view: 'Login',
+            context: 'OAuth rehydration failed - user consented to analytics',
+          },
+        });
+      } else {
+        setErrorToThrow(
+          new Error(`OAuth rehydration failed: ${seedlessError.message}`),
+        );
       }
     },
     [
@@ -394,7 +384,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2);
 
-      if (isWrongPasswordError && isComingFromOauthOnboarding) {
+      if (isWrongPasswordError) {
         track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
           account_type: 'social',
           failed_attempts: rehydrationFailedAttempts,
@@ -420,13 +410,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setError(loginErrorMessage);
       }
 
-      if (isComingFromOauthOnboarding) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'unknown_error',
-        });
-      }
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+        error_type: 'unknown_error',
+      });
 
       setLoading(false);
       Logger.error(loginErr as Error, 'Failed to rehydrate');
@@ -438,7 +426,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       handlePasswordError,
       updateBiometryChoice,
       route.params?.onboardingTraceCtx,
-      isComingFromOauthOnboarding,
     ],
   );
 

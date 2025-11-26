@@ -10,8 +10,6 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
-    subscribe: jest.fn(),
-    unsubscribe: jest.fn(),
   },
 }));
 
@@ -171,8 +169,6 @@ const mockActiveQuote = {
 
 describe('useRewards', () => {
   const mockCall = Engine.controllerMessenger.call as jest.Mock;
-  const mockSubscribe = Engine.controllerMessenger.subscribe as jest.Mock;
-  const mockUnsubscribe = Engine.controllerMessenger.unsubscribe as jest.Mock;
 
   const defaultSourceToken = {
     address: '0x0000000000000000000000000000000000000000' as Hex,
@@ -192,15 +188,12 @@ describe('useRewards', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset subscription handler storage
-    mockSubscribe.mockClear();
-    mockUnsubscribe.mockClear();
   });
 
-  describe('when there is no active season', () => {
-    it('should return default state when there is no active season', async () => {
+  describe('when rewards feature is disabled', () => {
+    it('should return default state when rewards feature is disabled', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(false);
         }
         return Promise.resolve(null);
@@ -229,30 +222,22 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: false,
-          accountOptedIn: null,
-          rewardsAccountScope: expect.any(Object),
         });
       });
 
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:hasActiveSeason',
+        'RewardsController:isRewardsFeatureEnabled',
       );
     });
   });
 
   describe('when user has not opted in', () => {
-    it('should return default state when user has not opted in and opt-in is not supported', async () => {
+    it('should return default state when user has not opted in', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
         }
-        if (method === 'RewardsController:getCandidateSubscriptionId') {
-          return Promise.resolve('subscription-id-1');
-        }
         if (method === 'RewardsController:getHasAccountOptedIn') {
-          return Promise.resolve(false);
-        }
-        if (method === 'RewardsController:isOptInSupported') {
           return Promise.resolve(false);
         }
         return Promise.resolve(null);
@@ -281,79 +266,12 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: false,
-          accountOptedIn: false,
-          rewardsAccountScope: expect.any(Object),
         });
       });
 
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getCandidateSubscriptionId',
-      );
-      expect(mockCall).toHaveBeenCalledWith(
         'RewardsController:getHasAccountOptedIn',
         'eip155:1:0x1234567890123456789012345678901234567890',
-      );
-      expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:isOptInSupported',
-        expect.any(Object),
-      );
-    });
-
-    it('should show rewards row when user has not opted in but opt-in is supported', async () => {
-      mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
-          return Promise.resolve(true);
-        }
-        if (method === 'RewardsController:getCandidateSubscriptionId') {
-          return Promise.resolve('subscription-id-1');
-        }
-        if (method === 'RewardsController:getHasAccountOptedIn') {
-          return Promise.resolve(false);
-        }
-        if (method === 'RewardsController:isOptInSupported') {
-          return Promise.resolve(true);
-        }
-        return Promise.resolve(null);
-      });
-
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: defaultSourceToken,
-          destToken: defaultDestToken,
-          sourceAmount: '1',
-        },
-      });
-
-      const { result } = renderHookWithProvider(
-        () =>
-          useRewards({
-            activeQuote: mockActiveQuote,
-            isQuoteLoading: false,
-          }),
-        { state: testState },
-      );
-
-      await waitFor(() => {
-        expect(result.current).toEqual({
-          shouldShowRewardsRow: true,
-          isLoading: false,
-          estimatedPoints: null,
-          hasError: false,
-          accountOptedIn: false,
-          rewardsAccountScope: expect.any(Object),
-        });
-      });
-
-      expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getCandidateSubscriptionId',
-      );
-      expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getHasAccountOptedIn',
-        'eip155:1:0x1234567890123456789012345678901234567890',
-      );
-      expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:isOptInSupported',
-        expect.any(Object),
       );
     });
   });
@@ -361,11 +279,8 @@ describe('useRewards', () => {
   describe('when rewards estimation is successful', () => {
     it('should return estimated points when all conditions are met', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
-        }
-        if (method === 'RewardsController:getCandidateSubscriptionId') {
-          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
@@ -399,8 +314,6 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: 100,
           hasError: false,
-          accountOptedIn: true,
-          rewardsAccountScope: expect.any(Object),
         });
       });
 
@@ -432,11 +345,8 @@ describe('useRewards', () => {
 
     it('should handle source token without exchange rate', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
-        }
-        if (method === 'RewardsController:getCandidateSubscriptionId') {
-          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
@@ -507,8 +417,6 @@ describe('useRewards', () => {
         isLoading: false,
         estimatedPoints: null,
         hasError: false,
-        accountOptedIn: null,
-        rewardsAccountScope: expect.any(Object),
       });
 
       // Should not call Engine methods
@@ -538,8 +446,6 @@ describe('useRewards', () => {
         isLoading: false,
         estimatedPoints: null,
         hasError: false,
-        accountOptedIn: null,
-        rewardsAccountScope: null,
       });
     });
 
@@ -566,8 +472,6 @@ describe('useRewards', () => {
         isLoading: false,
         estimatedPoints: null,
         hasError: false,
-        accountOptedIn: null,
-        rewardsAccountScope: expect.any(Object),
       });
     });
 
@@ -594,73 +498,15 @@ describe('useRewards', () => {
         isLoading: false,
         estimatedPoints: null,
         hasError: false,
-        accountOptedIn: null,
-        rewardsAccountScope: expect.any(Object),
       });
-    });
-  });
-
-  describe('when subscription ID is missing', () => {
-    it('should return default state when there is no subscription', async () => {
-      mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
-          return Promise.resolve(true);
-        }
-        if (method === 'RewardsController:getCandidateSubscriptionId') {
-          return Promise.resolve(null);
-        }
-        return Promise.resolve(null);
-      });
-
-      const testState = createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: defaultSourceToken,
-          destToken: defaultDestToken,
-          sourceAmount: '1',
-        },
-      });
-
-      const { result } = renderHookWithProvider(
-        () =>
-          useRewards({
-            activeQuote: mockActiveQuote,
-            isQuoteLoading: false,
-          }),
-        { state: testState },
-      );
-
-      await waitFor(() => {
-        expect(result.current).toEqual({
-          shouldShowRewardsRow: false,
-          isLoading: false,
-          estimatedPoints: null,
-          hasError: false,
-          accountOptedIn: null,
-          rewardsAccountScope: expect.any(Object),
-        });
-      });
-
-      expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:hasActiveSeason',
-      );
-      expect(mockCall).toHaveBeenCalledWith(
-        'RewardsController:getCandidateSubscriptionId',
-      );
-      expect(mockCall).not.toHaveBeenCalledWith(
-        'RewardsController:getHasAccountOptedIn',
-        expect.any(String),
-      );
     });
   });
 
   describe('error handling', () => {
     it('should handle rewards estimation error gracefully', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
-        }
-        if (method === 'RewardsController:getCandidateSubscriptionId') {
-          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
@@ -694,16 +540,14 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: true,
-          accountOptedIn: true,
-          rewardsAccountScope: expect.any(Object),
         });
       });
     });
 
-    it('should set hasError to true when hasActiveSeason throws an error', async () => {
+    it('should set hasError to true when isRewardsFeatureEnabled throws an error', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
-          throw new Error('Active season check failed');
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
+          throw new Error('Feature check failed');
         }
         return Promise.resolve(null);
       });
@@ -731,19 +575,14 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: true,
-          accountOptedIn: null,
-          rewardsAccountScope: expect.any(Object),
         });
       });
     });
 
     it('should set hasError to true when getHasAccountOptedIn throws an error', async () => {
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
-        }
-        if (method === 'RewardsController:getCandidateSubscriptionId') {
-          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           throw new Error('Opt-in check failed');
@@ -774,8 +613,6 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: null,
           hasError: true,
-          accountOptedIn: null,
-          rewardsAccountScope: expect.any(Object),
         });
       });
     });
@@ -783,11 +620,8 @@ describe('useRewards', () => {
     it('should reset hasError to false when estimation succeeds after previous error', async () => {
       // First mock returns error
       mockCall.mockImplementationOnce((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
-        }
-        if (method === 'RewardsController:getCandidateSubscriptionId') {
-          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
@@ -822,11 +656,8 @@ describe('useRewards', () => {
 
       // Now mock successful response
       mockCall.mockImplementation((method) => {
-        if (method === 'RewardsController:hasActiveSeason') {
+        if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
-        }
-        if (method === 'RewardsController:getCandidateSubscriptionId') {
-          return Promise.resolve('subscription-id-1');
         }
         if (method === 'RewardsController:getHasAccountOptedIn') {
           return Promise.resolve(true);
@@ -856,8 +687,6 @@ describe('useRewards', () => {
           isLoading: false,
           estimatedPoints: 100,
           hasError: false,
-          accountOptedIn: true,
-          rewardsAccountScope: expect.any(Object),
         });
       });
     });

@@ -19,12 +19,14 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
@@ -601,8 +603,14 @@ export function getSendFlowTitle({
       <NavbarTitle
         title={titleToRender}
         disableNetwork={disableNetwork}
-        showSelectedNetwork={showSelectedNetwork}
-        networkName={globalChainId}
+        showSelectedNetwork={
+          isRemoveGlobalNetworkSelectorEnabled()
+            ? showSelectedNetwork
+            : undefined
+        }
+        networkName={
+          isRemoveGlobalNetworkSelectorEnabled() ? globalChainId : undefined
+        }
       />
     ),
     headerRight: () => (
@@ -910,6 +918,7 @@ export function getOfflineModalNavbar() {
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
  * @param {boolean} shouldDisplayCardButton - Whether to display the card button
+ * @param {boolean} isRewardsEnabled - Whether rewards are enabled
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -926,6 +935,7 @@ export function getWalletNavbarOptions(
   unreadNotificationCount,
   readNotificationCount,
   shouldDisplayCardButton,
+  isRewardsEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerContainer: {
@@ -1005,7 +1015,7 @@ export function getWalletNavbarOptions(
       );
     } else {
       setTimeout(() => {
-        SharedDeeplinkManager.parse(content, {
+        DeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
         });
       }, 500);
@@ -1051,6 +1061,8 @@ export function getWalletNavbarOptions(
     }
   }
 
+  const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
+
   const handleHamburgerPress = () => {
     trackEvent(
       MetricsEventBuilder.createEventBuilder(
@@ -1075,6 +1087,21 @@ export function getWalletNavbarOptions(
         style={innerStyles.headerContainer}
         includesTopInset
         variant={HeaderBaseVariant.Display}
+        startAccessory={
+          !isFeatureFlagEnabled && (
+            <View style={innerStyles.startAccessoryContainer}>
+              <PickerNetwork
+                onPress={onPressTitle}
+                label={networkName}
+                imageSource={networkImageSource}
+                testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+                hideNetworkName
+                hitSlop={innerStyles.touchAreaSlop}
+                style={innerStyles.networkPickerStyle}
+              />
+            </View>
+          )
+        }
         endAccessory={
           <View style={innerStyles.endAccessoryContainer}>
             {
@@ -1125,14 +1152,16 @@ export function getWalletNavbarOptions(
                     />
                   </BadgeWrapper>
                 )}
-                <ButtonIcon
-                  iconProps={{ color: MMDSIconColor.Default }}
-                  onPress={handleHamburgerPress}
-                  iconName={IconName.Menu}
-                  size={ButtonIconSize.Lg}
-                  testID="navbar-hamburger-menu-button"
-                  hitSlop={innerStyles.touchAreaSlop}
-                />
+                {isRewardsEnabled && (
+                  <ButtonIcon
+                    iconProps={{ color: MMDSIconColor.Default }}
+                    onPress={handleHamburgerPress}
+                    iconName={IconName.Menu}
+                    size={ButtonIconSize.Lg}
+                    testID="navbar-hamburger-menu-button"
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                )}
               </View>
             }
           </View>
@@ -1613,7 +1642,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
         title={title}
         disableNetwork
         translate={false}
-        showSelectedNetwork={false}
+        showSelectedNetwork={!isRemoveGlobalNetworkSelectorEnabled()}
       />
     ),
     headerLeft: () => <View />,
@@ -1996,6 +2025,7 @@ export const getSettingsNavigationOptions = (
   title,
   themeColors,
   navigation,
+  isRewardsEnabled = false,
 ) => {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -2017,15 +2047,16 @@ export const getSettingsNavigationOptions = (
         {title}
       </MorphText>
     ),
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={() => navigation?.goBack()}
-        style={innerStyles.accessories}
-        testID={NetworksViewSelectorsIDs.CLOSE_ICON}
-      />
-    ),
+    headerRight: () =>
+      isRewardsEnabled ? (
+        <ButtonIcon
+          size={ButtonIconSize.Lg}
+          iconName={IconName.Close}
+          onPress={() => navigation?.goBack()}
+          style={innerStyles.accessories}
+          testID={NetworksViewSelectorsIDs.CLOSE_ICON}
+        />
+      ) : null,
     ...innerStyles,
   };
 };

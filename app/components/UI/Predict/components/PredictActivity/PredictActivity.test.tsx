@@ -15,120 +15,144 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: (className: string) => ({ className }),
+  }),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text: RNText } = jest.requireActual('react-native');
+  return {
+    Box: 'Box',
+    Text: 'Text',
+    TextVariant: {
+      BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
+    },
+    BoxAlignItems: { Start: 'start' },
+    BoxJustifyContent: { Between: 'between' },
+    BoxFlexDirection: { Row: 'row' },
+    IconName: { Activity: 'Activity' },
+    Icon: ({ name }: { name: string }) =>
+      ReactActual.createElement(RNText, null, `Icon:${name}`),
+  };
+});
+
+jest.mock('expo-image', () => ({
+  Image: ({ accessibilityLabel }: { accessibilityLabel?: string }) => {
+    const ReactActual = jest.requireActual('react');
+    const { Text: RNText } = jest.requireActual('react-native');
+    return ReactActual.createElement(RNText, { accessibilityLabel }, 'image');
+  },
+}));
+
+// Mock navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-const createActivityItem = (
-  overrides?: Partial<PredictActivityItem>,
-): PredictActivityItem => {
-  const baseEntry = {
-    type: 'buy' as const,
+const baseItem: PredictActivityItem = {
+  id: '1',
+  type: PredictActivityType.BUY,
+  marketTitle: 'Will ETF be approved?',
+  detail: '$123.45 on Yes • 34¢',
+  amountUsd: 1234.5,
+  percentChange: 1.5,
+  icon: undefined,
+  outcome: 'Yes',
+  entry: {
+    type: 'buy',
     timestamp: 0,
     marketId: 'market-1',
     outcomeId: 'outcome-1',
     outcomeTokenId: 0,
     amount: 1234.5,
     price: 0.34,
-  };
+  },
+};
 
-  return {
-    id: '1',
-    type: PredictActivityType.BUY,
-    marketTitle: 'Will ETF be approved?',
-    detail: '$123.45 on Yes • 34¢',
-    amountUsd: 1234.5,
-    percentChange: 1.5,
-    icon: undefined,
-    outcome: 'Yes',
-    entry: baseEntry,
+const renderComponent = (overrides?: Partial<PredictActivityItem>) => {
+  const item: PredictActivityItem = {
+    ...baseItem,
     ...overrides,
+    entry: {
+      ...baseItem.entry,
+      ...(overrides?.entry ?? {}),
+    },
   };
+  render(<PredictActivity item={item} />);
+  return { item };
 };
 
 describe('PredictActivity', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  it('renders BUY activity with title, market, amount and percent', () => {
+    renderComponent();
+
+    expect(screen.getByText('Buy')).toBeOnTheScreen();
+    expect(screen.getByText(baseItem.marketTitle)).toBeOnTheScreen();
+    expect(screen.getByText('-$1,234.50')).toBeOnTheScreen();
+    expect(screen.getByText('1.5%')).toBeOnTheScreen();
   });
 
-  describe('BUY activity', () => {
-    it('displays buy title with market information and detail', () => {
-      const item = createActivityItem();
-
-      render(<PredictActivity item={item} />);
-
-      expect(screen.getByText('Buy')).toBeOnTheScreen();
-      expect(screen.getByText('Will ETF be approved?')).toBeOnTheScreen();
-      expect(screen.getByText('-$1,234.50')).toBeOnTheScreen();
-      expect(screen.getByText('1.5%')).toBeOnTheScreen();
+  it('renders SELL activity with plus-signed amount and negative percent', () => {
+    renderComponent({
+      type: PredictActivityType.SELL,
+      percentChange: -3,
+      entry: {
+        type: 'sell',
+        timestamp: 0,
+        marketId: 'market-1',
+        outcomeId: 'outcome-1',
+        outcomeTokenId: 0,
+        amount: 1234.5,
+        price: 0.34,
+      },
     });
 
-    it('displays custom icon when icon URL is provided', () => {
-      const item = createActivityItem({
-        icon: 'https://example.com/icon.png',
-      });
-
-      render(<PredictActivity item={item} />);
-
-      expect(screen.getByLabelText('activity icon')).toBeOnTheScreen();
-    });
-
-    it('navigates to activity detail when pressed', () => {
-      const item = createActivityItem();
-
-      render(<PredictActivity item={item} />);
-      const activityRow = screen.getByText('Buy');
-
-      fireEvent.press(activityRow);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.ACTIVITY_DETAIL,
-        params: { activity: item },
-      });
-    });
+    expect(screen.getByText('Sell')).toBeOnTheScreen();
+    expect(screen.getByText('+$1,234.50')).toBeOnTheScreen();
+    expect(screen.getByText('-3%')).toBeOnTheScreen();
   });
 
-  describe('SELL activity', () => {
-    it('displays sell title with positive amount and negative percent', () => {
-      const item = createActivityItem({
-        type: PredictActivityType.SELL,
-        percentChange: -3,
-        entry: {
-          type: 'sell',
-          timestamp: 0,
-          marketId: 'market-1',
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 0,
-          amount: 1234.5,
-          price: 0.34,
-        },
-      });
-
-      render(<PredictActivity item={item} />);
-
-      expect(screen.getByText('Sell')).toBeOnTheScreen();
-      expect(screen.getByText('+$1,234.50')).toBeOnTheScreen();
-      expect(screen.getByText('-3%')).toBeOnTheScreen();
+  it('renders CLAIM activity without detail', () => {
+    renderComponent({
+      type: PredictActivityType.CLAIM,
+      entry: {
+        type: 'claimWinnings',
+        timestamp: 0,
+        amount: 1234.5,
+      },
     });
+
+    expect(screen.getByText('Claim')).toBeOnTheScreen();
+    expect(screen.queryByText(baseItem.detail)).toBeNull();
   });
 
-  describe('CLAIM activity', () => {
-    it('displays claim title without detail text', () => {
-      const item = createActivityItem({
-        type: PredictActivityType.CLAIM,
-        detail: '$123.45 on Yes • 34¢',
-        entry: {
-          type: 'claimWinnings',
-          timestamp: 0,
-          amount: 1234.5,
-        },
-      });
+  it('shows provided icon image when item.icon exists', () => {
+    renderComponent({ icon: 'https://example.com/icon.png' });
 
-      render(<PredictActivity item={item} />);
+    expect(screen.getByLabelText('activity icon')).toBeOnTheScreen();
+  });
 
-      expect(screen.getByText('Claim')).toBeOnTheScreen();
-      expect(screen.queryByText('$123.45 on Yes • 34¢')).toBeNull();
+  it('falls back to Activity icon when no item.icon provided', () => {
+    renderComponent({ icon: undefined });
+
+    expect(screen.getByText('Icon:Activity')).toBeOnTheScreen();
+  });
+
+  it('calls onPress with item when pressed', () => {
+    const { item } = renderComponent({ icon: undefined });
+
+    // Press a child inside the touchable to trigger parent onPress
+    const pressTarget = screen.getByText('Icon:Activity');
+    fireEvent.press(pressTarget);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.ACTIVITY_DETAIL,
+      params: { activity: item },
     });
   });
 });

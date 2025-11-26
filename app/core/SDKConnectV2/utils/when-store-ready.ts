@@ -2,14 +2,10 @@ import { store } from '../../../store';
 
 const isStoreReady = () => {
   try {
-    return Boolean(
-      store &&
-        typeof store.dispatch === 'function' &&
-        // This check is needed because the BackgroundBridge requires the NetworkController state
-        // for initialization. This check is brittle as reliance on other controller state during
-        // resumption would not be accounted for. We should figure out something more robust.
-        store.getState().engine.backgroundState.NetworkController,
-    );
+    if (store && typeof store.dispatch === 'function') {
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -24,6 +20,6 @@ const isStoreReady = () => {
  */
 export const whenStoreReady = async (): Promise<void> => {
   while (!isStoreReady()) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 10));
   }
 };

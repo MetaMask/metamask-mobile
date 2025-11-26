@@ -1,8 +1,5 @@
 import { formatPerpsFiat } from '../utils/formatUtils';
 import BN from 'bnjs4';
-import Logger from '../../../../util/Logger';
-import { ensureError } from './perpsErrorHandler';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 /**
  * Converts various amount formats to USD display string for Perps
@@ -49,10 +46,7 @@ export const convertPerpsAmountToUSD = (amount: string): string => {
     // Invalid input - return formatted zero
     return formatPerpsFiat(0);
   } catch (error) {
-    Logger.error(ensureError(error), {
-      feature: PERPS_CONSTANTS.FEATURE_NAME,
-      message: `Error converting Perps amount to USD: ${amount}`,
-    });
+    console.error('Error converting Perps amount to USD:', error);
     return formatPerpsFiat(0);
   }
 };

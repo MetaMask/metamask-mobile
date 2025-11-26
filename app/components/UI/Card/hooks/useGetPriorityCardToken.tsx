@@ -17,7 +17,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { CardSDK } from '../sdk/CardSDK';
 import {
@@ -268,7 +268,7 @@ export const useGetPriorityCardToken = (
         const cardTokenAllowances = await fetchAllowances(
           sdk,
           selectedAddress,
-          formatChainIdToCaip(CHAIN_IDS.LINEA_MAINNET),
+          formatChainIdToCaip(LINEA_CHAIN_ID),
         );
 
         // Store all tokens for asset selection
@@ -288,7 +288,7 @@ export const useGetPriorityCardToken = (
               ...supportedTokens[0],
               allowanceState: AllowanceState.NotEnabled,
               isStaked: false,
-              caipChainId: formatChainIdToCaip(CHAIN_IDS.LINEA_MAINNET),
+              caipChainId: LINEA_CHAIN_ID,
               allowance: '0',
             } as CardTokenAllowance;
 

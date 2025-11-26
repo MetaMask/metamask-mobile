@@ -87,7 +87,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
-import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../../constants/bridge';
+import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
@@ -1281,7 +1281,7 @@ class Amount extends PureComponent {
       navigation.replace('Swaps', {
         screen: 'SwapsAmountView',
         params: {
-          sourceToken: NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
           destinationToken: selectedAsset.address,
           sourcePage: 'SendFlow',
         },

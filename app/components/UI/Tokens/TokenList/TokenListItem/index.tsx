@@ -72,16 +72,11 @@ import { makeSelectNonEvmAssetById } from '../../../../../selectors/multichain/m
 import { FlashListAssetKey } from '..';
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectMusdConversionPaymentTokensAllowlist,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../Earn/selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -89,7 +84,6 @@ interface TokenListItemProps {
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
-  isFullView?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -99,7 +93,6 @@ export const TokenListItem = React.memo(
     setShowScamWarningModal,
     privacyMode,
     showPercentageChange = true,
-    isFullView = false,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
@@ -280,31 +273,6 @@ export const TokenListItem = React.memo(
 
     const earnToken = getEarnToken(asset as TokenI);
 
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-    const musdConversionPaymentTokensAllowlist = useSelector(
-      selectMusdConversionPaymentTokensAllowlist,
-    );
-
-    const isConvertibleStablecoin = useMemo(
-      () =>
-        isMusdConversionFlowEnabled &&
-        asset?.chainId &&
-        asset?.address &&
-        isMusdConversionPaymentToken(
-          asset.address,
-          asset.chainId,
-          musdConversionPaymentTokensAllowlist,
-        ),
-      [
-        isMusdConversionFlowEnabled,
-        asset?.chainId,
-        asset?.address,
-        musdConversionPaymentTokensAllowlist,
-      ],
-    );
-
     const networkBadgeSource = useCallback(
       (currentChainId: Hex) => {
         if (isTestNet(currentChainId))
@@ -348,7 +316,7 @@ export const TokenListItem = React.memo(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
           .addProperties({
-            source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
+            source: 'mobile-token-list',
             chain_id: token.chainId,
             token_symbol: token.symbol,
           })
@@ -417,23 +385,12 @@ export const TokenListItem = React.memo(
 
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
-      const shouldShowMusdConvertCta = isConvertibleStablecoin;
 
-      if (
-        shouldShowStakeCta ||
-        shouldShowStablecoinLendingCta ||
-        shouldShowMusdConvertCta
-      ) {
+      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [
-      asset,
-      earnToken,
-      isConvertibleStablecoin,
-      isStablecoinLendingEnabled,
-      isStakeable,
-    ]);
+    }, [asset, earnToken, isStablecoinLendingEnabled, isStakeable]);
 
     if (!asset || !chainId) {
       return null;

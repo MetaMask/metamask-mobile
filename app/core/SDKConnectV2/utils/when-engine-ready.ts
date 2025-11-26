@@ -13,6 +13,6 @@ const isEngineReady = (): boolean => {
 
 export async function whenEngineReady() {
   while (!isEngineReady()) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 10));
   }
 }

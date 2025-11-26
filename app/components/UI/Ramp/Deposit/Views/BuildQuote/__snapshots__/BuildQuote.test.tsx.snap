@@ -231,7 +231,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -447,7 +447,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={29}
+              handlerTag={28}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -558,7 +558,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -1814,7 +1813,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -2107,7 +2105,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2323,7 +2321,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={31}
+              handlerTag={30}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2434,7 +2432,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -3690,7 +3687,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -3983,7 +3979,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4199,7 +4195,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={33}
+              handlerTag={32}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4310,7 +4306,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -5566,7 +5561,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -5859,7 +5853,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6186,7 +6180,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -7381,7 +7374,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -7674,7 +7666,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -8001,7 +7993,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -9196,7 +9187,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -9488,7 +9478,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -9815,7 +9805,6 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -11010,7 +10999,6 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -11303,7 +11291,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -11630,7 +11618,6 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -12918,7 +12905,6 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -13211,7 +13197,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -13538,7 +13524,6 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -14688,7 +14673,6 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -14981,7 +14965,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -15308,7 +15292,6 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -16503,7 +16486,6 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -16796,7 +16778,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -17123,7 +17105,6 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -18318,7 +18299,6 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -18611,7 +18591,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -18938,7 +18918,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -20133,7 +20112,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -20426,7 +20404,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -20753,7 +20731,6 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -21948,7 +21925,6 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -22241,7 +22217,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -22568,7 +22544,6 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -23856,7 +23831,6 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -24149,7 +24123,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -24476,7 +24450,6 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -25669,7 +25642,6 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -25962,7 +25934,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -26289,7 +26261,6 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -27575,7 +27546,6 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -27868,7 +27838,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -28195,7 +28165,6 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -29483,7 +29452,6 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -29776,7 +29744,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Buy
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -30103,7 +30071,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -31298,7 +31265,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,

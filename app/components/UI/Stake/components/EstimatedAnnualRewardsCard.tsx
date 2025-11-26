@@ -17,10 +17,12 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     rewardCard: {
-      backgroundColor: colors.background.muted,
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
       borderRadius: 8,
       paddingHorizontal: 16,
       paddingVertical: 8,
+      borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
     },

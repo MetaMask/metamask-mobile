@@ -558,7 +558,6 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -715,7 +714,6 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -1308,7 +1306,6 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -1487,7 +1484,6 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -2116,7 +2112,6 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -2281,7 +2276,6 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -2910,7 +2904,6 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -3067,7 +3060,6 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -3660,7 +3652,6 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -3825,7 +3816,6 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -4454,7 +4444,6 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 {
                                   "flex": 1,
@@ -4619,7 +4608,6 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {

@@ -12,8 +12,11 @@ import {
   selectAccountsByChainId,
 } from '../accountTrackerController';
 import {
+  selectChainId,
   selectEvmNetworkConfigurationsByChainId,
   selectEvmTicker,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
@@ -32,6 +35,7 @@ import { selectTokensBalances } from '../tokenBalancesController';
 import { isZero } from '../../util/lodash';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../preferencesController';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
+import { isTestNet } from '../../util/networks';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
@@ -389,26 +393,51 @@ export const selectEvmTokensWithZeroBalanceFilter = createDeepEqualSelector(
 
 export const selectEvmTokens = createDeepEqualSelector(
   selectEvmTokensWithZeroBalanceFilter,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectIsEvmNetworkSelected,
+  selectChainId,
   selectEnabledNetworksByNamespace,
-  (tokensToDisplay, enabledNetworksByNamespace) => {
-    // Apply network filtering based on enabled networks
+  (
+    tokensToDisplay,
+    isAllNetworks,
+    isPopularNetwork,
+    isEvmSelected,
+    currentChainId,
+    enabledNetworksByNamespace,
+  ) => {
+    // Apply network filtering
+
     const enabledEip155Networks =
       enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155];
 
-    // Filter tokens to only show those on enabled networks
-    const filteredTokens = enabledEip155Networks
-      ? tokensToDisplay.filter((currentToken: TokenI) => {
-          const chainId = currentToken.chainId || '';
-          return enabledEip155Networks[chainId as Hex];
-        })
-      : tokensToDisplay;
+    let filteredTokens: TokenI[];
+    if (!enabledEip155Networks) {
+      // Fall back to default behavior when network enablement data is unavailable
+      filteredTokens =
+        isAllNetworks && isPopularNetwork && isEvmSelected
+          ? tokensToDisplay
+          : tokensToDisplay.filter(
+              (token: TokenI) => token.chainId === currentChainId,
+            );
+    } else {
+      filteredTokens = tokensToDisplay.filter((currentToken: TokenI) => {
+        const chainId = currentToken.chainId || '';
+        return enabledEip155Networks[chainId as Hex];
+      });
+    }
 
-    // Categorize tokens as native or non-native
+    // Categorize tokens as native or non-native, filtering out testnet tokens if applicable
     const nativeTokens: TokenI[] = [];
     const nonNativeTokens: TokenI[] = [];
 
     for (const currToken of filteredTokens) {
       const token = currToken as TokenI & { chainId: string };
+
+      // Skip tokens if they are on a test network and the current chain is not a test network
+      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
+        continue;
+      }
 
       // Categorize tokens as native or non-native
       if (token.isNative) {

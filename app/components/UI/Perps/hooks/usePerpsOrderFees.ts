@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { selectChainId } from '../../../../selectors/networkController';
 
 import { setMeasurement } from '@sentry/react-native';
@@ -112,6 +113,7 @@ export function usePerpsOrderFees({
   currentBidPrice,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
+  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -151,6 +153,11 @@ export function usePerpsOrderFees({
     async (
       address: string,
     ): Promise<{ discountBips?: number; tier?: string }> => {
+      // Early return if feature flag is disabled - never make API call
+      if (!rewardsEnabled) {
+        return {};
+      }
+
       // Check cache first
       const now = Date.now();
       if (
@@ -218,7 +225,7 @@ export function usePerpsOrderFees({
         return {};
       }
     },
-    [currentChainId],
+    [rewardsEnabled, currentChainId],
   );
 
   /**
@@ -232,6 +239,11 @@ export function usePerpsOrderFees({
       isClose: boolean,
       actualFeeUSD?: number,
     ): Promise<EstimatedPointsDto | null> => {
+      // Early return if feature flag is disabled - never make API call
+      if (!rewardsEnabled) {
+        return null;
+      }
+
       try {
         const amountNum = Number.parseFloat(tradeAmount || '0');
         if (amountNum <= 0) {
@@ -302,7 +314,7 @@ export function usePerpsOrderFees({
         return null;
       }
     },
-    [currentChainId],
+    [rewardsEnabled, currentChainId],
   );
 
   // State for fees from provider
@@ -333,7 +345,7 @@ export function usePerpsOrderFees({
    */
   const applyFeeDiscount = useCallback(
     async (originalRate: number) => {
-      if (!selectedAddress) {
+      if (!rewardsEnabled || !selectedAddress) {
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
 
@@ -378,7 +390,7 @@ export function usePerpsOrderFees({
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
     },
-    [fetchFeeDiscount, amount, selectedAddress],
+    [rewardsEnabled, fetchFeeDiscount, amount, selectedAddress],
   );
 
   /**
@@ -389,7 +401,7 @@ export function usePerpsOrderFees({
       userAddress: string,
       actualFeeUSD: number,
     ): Promise<{ points?: number; bonusBips?: number }> => {
-      if (Number.parseFloat(amount) <= 0) {
+      if (!rewardsEnabled || Number.parseFloat(amount) <= 0) {
         return {};
       }
 
@@ -479,7 +491,7 @@ export function usePerpsOrderFees({
         return {};
       }
     },
-    [amount, coin, isClosing, estimatePoints],
+    [rewardsEnabled, amount, coin, isClosing, estimatePoints],
   );
 
   /**

@@ -3,7 +3,6 @@ import { Nft } from '@metamask/assets-controllers';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 
 import { strings } from '../../../../../../../locales/i18n';
 import Icon, {
@@ -29,15 +28,11 @@ import { useBalance } from '../../../hooks/send/useBalance';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
-import { useParams } from '../../../../../../util/navigation/navUtils';
 import { AmountKeyboard } from './amount-keyboard';
 import { AnimatedCursor } from './animated-cursor';
 import { styleSheet } from './amount.styles';
-import { InitSendLocation } from '../../../constants/send';
 
 export const Amount = () => {
-  const navigation = useNavigation();
-  const { location } = useParams<{ location?: string }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, value } = useSendContext();
   const { balance } = useBalance();
@@ -66,14 +61,6 @@ export const Amount = () => {
   useEffect(() => {
     setFiatMode(primaryCurrency === 'Fiat');
   }, [primaryCurrency, setFiatMode]);
-
-  useEffect(() => {
-    if (location && location === InitSendLocation.AssetOverview) {
-      navigation.setOptions({
-        headerRight: () => null,
-      });
-    }
-  }, [navigation, location]);
 
   const alternateDisplayValue = useMemo(
     () =>
@@ -109,14 +96,6 @@ export const Amount = () => {
   const balanceUnit =
     assetSymbol ??
     (parseInt(balance) === 1 ? strings('send.unit') : strings('send.units'));
-
-  const balanceDisplayValue = useMemo(
-    () =>
-      fiatMode
-        ? `${getFiatDisplayValue(balance)} ${strings('send.available')}`
-        : `${balance} ${balanceUnit} ${strings('send.available')}`,
-    [balance, balanceUnit, fiatMode, getFiatDisplayValue],
-  );
 
   const defaultValue = fiatMode ? '0.00' : '0';
   let textColor = TextColor.Default;
@@ -184,7 +163,7 @@ export const Amount = () => {
           </TouchableOpacity>
         )}
         <Text style={styles.balanceText} color={TextColor.Alternative}>
-          {balanceDisplayValue}
+          {`${balance} ${balanceUnit} ${strings('send.available')}`}
         </Text>
       </View>
       <AmountKeyboard
