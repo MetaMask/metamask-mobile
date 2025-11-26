@@ -205,11 +205,14 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         async ({ keyring }) => await keyring.getName(),
       );
       try {
-        await withQrKeyring(async ({ keyring }) => {
+        const accountToSelect = await withQrKeyring(async ({ keyring }) => {
+          let lastAccount: string | undefined;
           for (const index of accountIndexs) {
             keyring.setAccountToUnlock(index);
-            await keyring.addAccounts(1);
+            const [newAccount] = await keyring.addAccounts(1);
+            lastAccount = newAccount;
           }
+          return lastAccount;
         });
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ADD_ACCOUNT)
@@ -223,6 +226,10 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             })
             .build(),
         );
+
+        if (accountToSelect) {
+          Engine.setSelectedAddress(accountToSelect);
+        }
       } catch (err) {
         Logger.log('Error: Connecting QR hardware wallet', err);
       }
