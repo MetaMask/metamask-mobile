@@ -1,47 +1,42 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
+import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxFlexDirection,
   Text,
   TextVariant,
-  ButtonIcon,
-  ButtonIconSize,
   IconName,
+  Icon,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { appendURLParams } from '../../../util/browser';
 import { useMetrics } from '../../hooks/useMetrics';
+import { useTheme } from '../../../util/theme';
 import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
 import {
   lastTrendingScreenRef,
   updateLastTrendingScreen,
 } from '../../Nav/Main/MainNavigator';
-import TrendingTokensSection from './TrendingTokensSection/TrendingTokensSection';
-import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import ExploreSearchScreen from './ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
-import { PredictModalStack } from '../../UI/Predict/routes';
-import PredictionSection from './PredictionSection/PredictionSection';
-import PerpsSection from './PerpsSection/PerpsSection';
-import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import {
+  PredictModalStack,
+  PredictMarketDetails,
+  PredictSellPreview,
+} from '../../UI/Predict';
+import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
+import QuickActions from './components/QuickActions/QuickActions';
+import SectionHeader from './components/SectionHeader/SectionHeader';
+import { HOME_SECTIONS_ARRAY } from './config/sections.config';
 
 const Stack = createStackNavigator();
-
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-    marginTop: 10,
-    paddingLeft: 16,
-    paddingRight: 16,
-  },
-});
 
 // Wrapper component to intercept navigation
 const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
@@ -68,9 +63,13 @@ const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
 };
 
 const TrendingFeed: React.FC = () => {
+  const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
+  const { colors } = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -84,6 +83,10 @@ const TrendingFeed: React.FC = () => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: { security: { dataCollectionForMarketing?: boolean } }) =>
       state.security.dataCollectionForMarketing,
+  );
+
+  const browserTabsCount = useSelector(
+    (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
 
   const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
@@ -105,36 +108,80 @@ const TrendingFeed: React.FC = () => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
+  // Clean up timeout when component unmounts or refreshing changes
+  useEffect(() => {
+    if (refreshing) {
+      const timeoutId = setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [refreshing]);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
+
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
-      <Box twClassName="flex-row justify-between items-center px-4 py-3">
+      <Box twClassName="px-4 py-3">
         <Text variant={TextVariant.HeadingLg} twClassName="text-default">
           {strings('trending.title')}
         </Text>
-
-        <Box flexDirection={BoxFlexDirection.Row}>
-          <ButtonIcon
-            iconName={IconName.Explore}
-            size={ButtonIconSize.Lg}
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
-          />
-        </Box>
       </Box>
 
-      <ExploreSearchBar type="button" onPress={handleSearchPress} />
+      <Box twClassName="flex-row items-center gap-2 px-4 pb-3">
+        <Box twClassName="flex-1">
+          <ExploreSearchBar type="button" onPress={handleSearchPress} />
+        </Box>
+
+        <TouchableOpacity onPress={handleBrowserPress}>
+          {browserTabsCount > 0 ? (
+            <Box
+              twClassName="rounded-md items-center justify-center h-8 w-8 border-2"
+              style={{
+                borderColor: colors.text.default,
+              }}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                testID="trending-view-browser-button"
+              >
+                {browserTabsCount}
+              </Text>
+            </Box>
+          ) : (
+            <Icon
+              name={IconName.Explore}
+              size={IconSize.Xl}
+              testID="trending-view-browser-button"
+            />
+          )}
+        </TouchableOpacity>
+      </Box>
 
       <ScrollView
-        style={styles.scrollView}
+        style={tw.style('flex-1 px-4')}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.icon.default}
+            colors={[colors.primary.default]}
+          />
+        }
       >
-        <PredictionSection />
-        <TrendingTokensSection />
-        <PerpsConnectionProvider>
-          <PerpsStreamProvider>
-            <PerpsSection />
-          </PerpsStreamProvider>
-        </PerpsConnectionProvider>
+        <QuickActions />
+
+        {HOME_SECTIONS_ARRAY.map((section) => (
+          <React.Fragment key={section.id}>
+            <SectionHeader sectionId={section.id} />
+            <section.Section refreshTrigger={refreshTrigger} />
+          </React.Fragment>
+        ))}
       </ScrollView>
     </Box>
   );
@@ -165,6 +212,27 @@ const TrendingView: React.FC = () => {
             backgroundColor: 'transparent',
           },
           animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MARKET_DETAILS}
+        component={PredictMarketDetails}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.BUY_PREVIEW}
+        component={PredictBuyPreview}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PREDICT.MODALS.SELL_PREVIEW}
+        component={PredictSellPreview}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

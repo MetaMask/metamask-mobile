@@ -36,10 +36,8 @@ import { formatDateSection } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
+import { ButtonSize } from '@metamask/design-system-react-native';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -225,14 +223,15 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       };
 
       return (
-        <Button
+        <ButtonFilter
           key={tab}
-          variant={isActive ? ButtonVariants.Primary : ButtonVariants.Secondary}
-          size={ButtonSize.Sm}
+          isActive={isActive}
+          size={ButtonSize.Md}
           onPress={handleTabPress}
           accessibilityRole="button"
-          label={strings(`perps.transactions.tabs.${i18nKey}`)}
-        />
+        >
+          {strings(`perps.transactions.tabs.${i18nKey}`)}
+        </ButtonFilter>
       );
     },
     [activeFilter],
@@ -343,15 +342,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     </View>
   );
 
-  const filterTabs: FilterTab[] = useMemo(
-    () => [
-      strings('perps.transactions.tabs.trades'),
-      strings('perps.transactions.tabs.orders'),
-      strings('perps.transactions.tabs.funding'),
-      strings('perps.transactions.tabs.deposits'),
-    ],
-    [],
-  );
+  const filterTabs: FilterTab[] = ['Trades', 'Orders', 'Funding', 'Deposits'];
 
   const filterTabDescription = useMemo(() => {
     if (activeFilter === 'Funding') {

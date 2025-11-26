@@ -54,6 +54,13 @@ const createStyles = (params: { theme: Theme }) => {
     },
     tokensList: {
       marginTop: 10,
+      flex: 1,
+    },
+    tokensListContent: {
+      paddingBottom: 0,
+    },
+    tokensListContainer: {
+      flex: 1,
     },
     searchInput: {
       borderRadius: 12,
@@ -63,7 +70,7 @@ const createStyles = (params: { theme: Theme }) => {
   });
 };
 
-export const SkeletonItem = () => {
+export const SkeletonItem = React.memo(() => {
   const { styles } = useStyles(createStyles, {});
 
   return (
@@ -81,9 +88,9 @@ export const SkeletonItem = () => {
       </Box>
     </Box>
   );
-};
+});
 
-export const LoadingSkeleton = () => {
+export const LoadingSkeleton = React.memo(() => {
   const { styles } = useStyles(createStyles, {});
 
   return (
@@ -97,7 +104,7 @@ export const LoadingSkeleton = () => {
       <SkeletonItem />
     </Box>
   );
-};
+});
 
 interface BridgeTokenSelectorBaseProps {
   networksBar: React.ReactNode;
@@ -120,154 +127,157 @@ interface BridgeTokenSelectorBaseProps {
   scrollResetKey?: string | Hex | CaipChainId;
 }
 
-export const BridgeTokenSelectorBase: React.FC<
-  BridgeTokenSelectorBaseProps
-> = ({
-  networksBar,
-  renderTokenItem,
-  allTokens,
-  tokensToRender,
-  pending,
-  chainIdToFetchMetadata: chainId,
-  title,
-  scrollResetKey,
-}) => {
-  const { styles, theme } = useStyles(createStyles, {});
-  const {
-    searchString,
-    setSearchString,
-    searchResults,
-    debouncedSearchString,
-  } = useTokenSearch({
-    tokens: allTokens || [],
-  });
+export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> =
+  React.memo(
+    ({
+      networksBar,
+      renderTokenItem,
+      allTokens,
+      tokensToRender,
+      pending,
+      chainIdToFetchMetadata: chainId,
+      title,
+      scrollResetKey,
+    }) => {
+      const { styles, theme } = useStyles(createStyles);
+      const {
+        searchString,
+        setSearchString,
+        searchResults,
+        debouncedSearchString,
+      } = useTokenSearch({
+        tokens: allTokens || [],
+      });
 
-  const {
-    assetMetadata: unlistedAssetMetadata,
-    pending: unlistedAssetMetadataPending,
-  } = useAssetMetadata(
-    debouncedSearchString,
-    Boolean(debouncedSearchString && searchResults.length === 0),
-    chainId,
-  );
+      const {
+        assetMetadata: unlistedAssetMetadata,
+        pending: unlistedAssetMetadataPending,
+      } = useAssetMetadata(
+        debouncedSearchString,
+        Boolean(debouncedSearchString && searchResults.length === 0),
+        chainId,
+      );
 
-  const tokensToRenderWithSearch = useMemo(() => {
-    if (!searchString) {
-      return tokensToRender;
-    }
+      const tokensToRenderWithSearch = useMemo(() => {
+        if (!searchString) {
+          return tokensToRender;
+        }
 
-    if (searchResults.length > 0) {
-      return searchResults;
-    }
+        if (searchResults.length > 0) {
+          return searchResults;
+        }
 
-    return unlistedAssetMetadata ? [unlistedAssetMetadata] : [];
-  }, [searchString, searchResults, tokensToRender, unlistedAssetMetadata]);
+        return unlistedAssetMetadata ? [unlistedAssetMetadata] : [];
+      }, [searchString, searchResults, tokensToRender, unlistedAssetMetadata]);
 
-  const keyExtractor = useCallback(
-    (token: BridgeToken | null, index: number) =>
-      token ? `${token.chainId}-${token.address}` : `skeleton-${index}`,
-    [],
-  );
+      const keyExtractor = useCallback(
+        (token: BridgeToken | null, index: number) =>
+          token ? `${token.chainId}-${token.address}` : `skeleton-${index}`,
+        [],
+      );
 
-  const handleSearchTextChange = useCallback(
-    (text: string) => {
-      setSearchString(text);
+      const handleSearchTextChange = useCallback(
+        (text: string) => {
+          setSearchString(text);
+        },
+        [setSearchString],
+      );
+
+      const renderEmptyList = useMemo(
+        () => (
+          <Box style={styles.emptyList}>
+            <Text color={TextColor.Alternative}>
+              {strings('swaps.no_tokens_result', {
+                searchString: debouncedSearchString,
+              })}
+            </Text>
+          </Box>
+        ),
+        [debouncedSearchString, styles],
+      );
+
+      const sheetRef = useRef<BottomSheetRef>(null);
+      const dismissModal = useCallback((): void => {
+        sheetRef.current?.onCloseBottomSheet();
+      }, []);
+
+      const shouldRenderOverallLoading = useMemo(
+        () =>
+          (pending && allTokens?.length === 0) || unlistedAssetMetadataPending,
+        [pending, unlistedAssetMetadataPending, allTokens],
+      );
+
+      // We show the tokens with balance immediately, but we need to wait for the top tokens to load
+      // So we show a few skeletons for the top tokens
+      const tokensToRenderWithSearchAndSkeletons: (BridgeToken | null)[] =
+        useMemo(() => {
+          if (pending && tokensToRenderWithSearch?.length > 0) {
+            return [...tokensToRenderWithSearch, ...Array(4).fill(null)];
+          }
+
+          return tokensToRenderWithSearch;
+        }, [pending, tokensToRenderWithSearch]);
+
+      const placeholderTextColor = theme.colors.text.alternative;
+
+      return (
+        <BottomSheet
+          ref={sheetRef}
+          isFullscreen
+          keyboardAvoidingViewEnabled={false}
+        >
+          <BottomSheetHeader
+            onClose={dismissModal}
+            closeButtonProps={{
+              testID: 'bridge-token-selector-close-button',
+            }}
+          >
+            {title ?? strings('bridge.select_token')}
+          </BottomSheetHeader>
+
+          <Box style={styles.buttonContainer} gap={20}>
+            {networksBar}
+
+            <TextFieldSearch
+              value={searchString}
+              onChangeText={handleSearchTextChange}
+              placeholder={strings('swaps.search_token')}
+              testID="bridge-token-search-input"
+              style={styles.searchInput}
+              placeholderTextColor={placeholderTextColor}
+            />
+          </Box>
+
+          {/* Need this extra View to fix tokens not being reliably pressable on Android hardware, no idea why */}
+          <View style={styles.tokensListContainer}>
+            <ListComponent
+              style={styles.tokensList}
+              contentContainerStyle={styles.tokensListContent}
+              key={scrollResetKey}
+              data={
+                shouldRenderOverallLoading
+                  ? []
+                  : tokensToRenderWithSearchAndSkeletons
+              }
+              renderItem={renderTokenItem}
+              keyExtractor={keyExtractor}
+              ListEmptyComponent={
+                debouncedSearchString && !shouldRenderOverallLoading
+                  ? renderEmptyList
+                  : LoadingSkeleton
+              }
+              showsVerticalScrollIndicator
+              showsHorizontalScrollIndicator={false}
+              bounces
+              scrollEnabled
+              removeClippedSubviews
+              maxToRenderPerBatch={20}
+              windowSize={10}
+              initialNumToRender={20}
+              keyboardShouldPersistTaps="always"
+            />
+          </View>
+        </BottomSheet>
+      );
     },
-    [setSearchString],
   );
-
-  const renderEmptyList = useMemo(
-    () => (
-      <Box style={styles.emptyList}>
-        <Text color={TextColor.Alternative}>
-          {strings('swaps.no_tokens_result', {
-            searchString: debouncedSearchString,
-          })}
-        </Text>
-      </Box>
-    ),
-    [debouncedSearchString, styles],
-  );
-
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const dismissModal = (): void => {
-    sheetRef.current?.onCloseBottomSheet();
-  };
-
-  const shouldRenderOverallLoading = useMemo(
-    () => (pending && allTokens?.length === 0) || unlistedAssetMetadataPending,
-    [pending, unlistedAssetMetadataPending, allTokens],
-  );
-
-  // We show the tokens with balance immediately, but we need to wait for the top tokens to load
-  // So we show a few skeletons for the top tokens
-  const tokensToRenderWithSearchAndSkeletons: (BridgeToken | null)[] =
-    useMemo(() => {
-      if (pending && tokensToRenderWithSearch?.length > 0) {
-        return [...tokensToRenderWithSearch, ...Array(4).fill(null)];
-      }
-
-      return tokensToRenderWithSearch;
-    }, [pending, tokensToRenderWithSearch]);
-
-  const placeholderTextColor = theme.colors.text.alternative;
-
-  return (
-    <BottomSheet
-      ref={sheetRef}
-      isFullscreen
-      keyboardAvoidingViewEnabled={false}
-    >
-      <BottomSheetHeader
-        onClose={dismissModal}
-        closeButtonProps={{
-          testID: 'bridge-token-selector-close-button',
-        }}
-      >
-        {title ?? strings('bridge.select_token')}
-      </BottomSheetHeader>
-
-      <Box style={styles.buttonContainer} gap={20}>
-        {networksBar}
-
-        <TextFieldSearch
-          value={searchString}
-          onChangeText={handleSearchTextChange}
-          placeholder={strings('swaps.search_token')}
-          testID="bridge-token-search-input"
-          style={styles.searchInput}
-          placeholderTextColor={placeholderTextColor}
-        />
-      </Box>
-
-      {/* Need this extra View to fix tokens not being reliably pressable on Android hardware, no idea why */}
-      <View>
-        <ListComponent
-          style={styles.tokensList}
-          key={scrollResetKey}
-          data={
-            shouldRenderOverallLoading
-              ? []
-              : tokensToRenderWithSearchAndSkeletons
-          }
-          renderItem={renderTokenItem}
-          keyExtractor={keyExtractor}
-          ListEmptyComponent={
-            debouncedSearchString && !shouldRenderOverallLoading
-              ? renderEmptyList
-              : LoadingSkeleton
-          }
-          showsVerticalScrollIndicator
-          showsHorizontalScrollIndicator={false}
-          bounces
-          scrollEnabled
-          removeClippedSubviews
-          maxToRenderPerBatch={20}
-          windowSize={10}
-          initialNumToRender={20}
-          keyboardShouldPersistTaps="always"
-        />
-      </View>
-    </BottomSheet>
-  );
-};

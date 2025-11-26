@@ -9,7 +9,7 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import Engine from '../../../../core/Engine';
 import { balanceToFiatNumber } from '../../../../util/number';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
@@ -18,6 +18,11 @@ import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+
+const extractTrailingCurrencyCode = (value: string): string | undefined => {
+  const match = value.trim().match(/([A-Za-z]{3})$/);
+  return match ? match[1].toUpperCase() : undefined;
+};
 
 export interface AssetBalanceInfo {
   asset: TokenI | undefined;
@@ -41,7 +46,7 @@ export const useAssetBalances = (
 ): Map<string, AssetBalanceInfo> => {
   const { MultichainAssetsRatesController, TokenRatesController } =
     Engine.context;
-  const chainIds = [LINEA_CHAIN_ID, SOLANA_MAINNET.chainId];
+  const chainIds = [CHAIN_IDS.LINEA_MAINNET, SOLANA_MAINNET.chainId];
 
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
@@ -207,6 +212,7 @@ export const useAssetBalances = (
           style: 'currency',
           currency: currentCurrency?.toUpperCase() || 'USD',
         });
+
         return {
           balanceFiat,
           rawFiatNumber: 0,
@@ -314,22 +320,106 @@ export const useAssetBalances = (
 
       // Use pre-calculated fiat from filtered token
       if (balanceSource === 'filteredToken' && filteredToken?.balanceFiat) {
-        return {
-          balanceFiat: filteredToken.balanceFiat,
-          rawFiatNumber: parseFloat(
-            filteredToken.balanceFiat.replace(/[^0-9.-]/g, ''),
-          ),
-        };
+        // Handle special strings like "tokenRateUndefined" or "tokenBalanceLoading"
+        if (
+          filteredToken.balanceFiat === 'tokenRateUndefined' ||
+          filteredToken.balanceFiat === 'tokenBalanceLoading'
+        ) {
+          // Check if balance is zero
+          const balanceNum = parseFloat(balanceToUse.replace(',', '.'));
+          if (balanceNum === 0 || isNaN(balanceNum)) {
+            const balanceFiat = formatWithThreshold(0, 0.01, I18n.locale, {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            });
+            return { balanceFiat, rawFiatNumber: 0 };
+          }
+
+          // Non-zero balance but no rate - show token balance
+          return {
+            balanceFiat: `${parseFloat(balanceToUse.replace(',', '.')).toFixed(6)} ${_token.symbol}`,
+            rawFiatNumber: undefined,
+          };
+        }
+
+        // Parse the numeric value and reformat it properly
+        const rawFiatNumber = parseFloat(
+          filteredToken.balanceFiat.replace(/[^0-9.-]/g, ''),
+        );
+
+        if (!isNaN(rawFiatNumber)) {
+          const originalCurrencyCode = extractTrailingCurrencyCode(
+            filteredToken.balanceFiat,
+          );
+
+          // Use the detected currency code if available, otherwise use current currency
+          const currencyToUse =
+            originalCurrencyCode || currentCurrency?.toUpperCase() || 'USD';
+
+          const balanceFiat = formatWithThreshold(
+            rawFiatNumber,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: currencyToUse,
+            },
+          );
+
+          return { balanceFiat, rawFiatNumber };
+        }
       }
 
       // Use pre-calculated fiat from wallet asset
       if (balanceSource === 'walletAsset' && walletAsset?.balanceFiat) {
-        return {
-          balanceFiat: walletAsset.balanceFiat,
-          rawFiatNumber: parseFloat(
-            walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
-          ),
-        };
+        // Handle special strings like "tokenRateUndefined" or "tokenBalanceLoading"
+        if (
+          walletAsset.balanceFiat === 'tokenRateUndefined' ||
+          walletAsset.balanceFiat === 'tokenBalanceLoading'
+        ) {
+          // Check if balance is zero
+          const balanceNum = parseFloat(balanceToUse.replace(',', '.'));
+          if (balanceNum === 0 || isNaN(balanceNum)) {
+            const balanceFiat = formatWithThreshold(0, 0.01, I18n.locale, {
+              style: 'currency',
+              currency: currentCurrency?.toUpperCase() || 'USD',
+            });
+            return { balanceFiat, rawFiatNumber: 0 };
+          }
+
+          // Non-zero balance but no rate - show token balance
+          return {
+            balanceFiat: `${parseFloat(balanceToUse.replace(',', '.')).toFixed(6)} ${_token.symbol}`,
+            rawFiatNumber: undefined,
+          };
+        }
+
+        // Parse the numeric value and reformat it properly
+        const rawFiatNumber = parseFloat(
+          walletAsset.balanceFiat.replace(/[^0-9.-]/g, ''),
+        );
+
+        if (!isNaN(rawFiatNumber)) {
+          const originalCurrencyCode = extractTrailingCurrencyCode(
+            walletAsset.balanceFiat,
+          );
+
+          // Use the detected currency code if available, otherwise use current currency
+          const currencyToUse =
+            originalCurrencyCode || currentCurrency?.toUpperCase() || 'USD';
+
+          const balanceFiat = formatWithThreshold(
+            rawFiatNumber,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: currencyToUse,
+            },
+          );
+
+          return { balanceFiat, rawFiatNumber };
+        }
       }
 
       // For availableBalance with rates but no market data price
@@ -391,6 +481,7 @@ export const useAssetBalances = (
               currency: currentCurrency?.toUpperCase() || 'USD',
             },
           );
+
           return {
             balanceFiat,
             rawFiatNumber: derivedBalance.balanceFiatCalculation,
@@ -418,6 +509,7 @@ export const useAssetBalances = (
           style: 'currency',
           currency: currentCurrency?.toUpperCase() || 'USD',
         });
+
         return {
           balanceFiat,
           rawFiatNumber: 0,

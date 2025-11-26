@@ -10,19 +10,20 @@ import {
   buildConfidenceGuidanceSection,
   buildRiskAssessmentSection,
 } from '../shared/base-system-prompt';
+import { CLAUDE_CONFIG } from '../../config';
 
 /**
  * Builds the system prompt, i.e. the initial system message
  */
 export function buildSystemPrompt(): string {
-  const role = `You are an expert in the E2E testing of MetaMask Mobile.`;
-  const goal = `GOAL: Analyze code changes and select appropriate test tags to run.`;
-
+  const role = `You are an expert in E2E testing for MetaMask Mobile, responsible for analyzing code changes in pull requests to determine which tests are necessary for adequate validation.`;
+  const goal = `GOAL: Implement a risk-based testing strategy by identifying and running only the tests relevant to the specific changes introduced in the PR, while safely skipping unrelated tests.`;
   const guidanceSection = `GUIDANCE:
-Use your judgment - selecting 0 tags is acceptable for non-functional changes.
-Critical files (marked in file list) typically warrant testing. Use tools to investigate when uncertain.
+Use your judgment - selecting all tags is acceptable (recommended as conservative approach for risky changes), as well as selecting none of them if the changes are unrisky.
+Critical files (marked in file list) typically warrant wide testing. Use tools to investigate the impact of the changes.
 For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
-Balance thoroughness with efficiency, and be conservative in the assessment of risk and tags to run.`;
+Balance thoroughness with efficiency, and be conservative in your risk assessment. When in doubt, err on the side of running more test tags to ensure adequate coverage.
+Do not exceed the maximum number of analysis iterations which is ${CLAUDE_CONFIG.maxIterations}, i.e. try to decide before the maximum number of iterations is reached.`;
 
   const prompt = [
     role,
@@ -65,13 +66,12 @@ export function buildTaskPrompt(
     otherFiles.forEach((f) => fileList.push(`  ${f}`));
   }
 
-  const instruction = `Analyze the changed files and select the E2E test tags to run so the tests can verify the changes.`;
-  const tagsSection = `AVAILABLE TEST TAGS:\n${tagCoverageList}`;
+  const instruction = `Analyze the changed files and the impacted codebase to select the E2E test tags to run so the changes can be verified safely with minimal risk.`;
+  const tagsSection = `AVAILABLE TEST TAGS (select from these and don't search for additional tags):\n${tagCoverageList}`;
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;
-  const closing = `Use tools to investigate. Call finalize_tag_selection when ready.`;
-
+  const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready`;
   const prompt = [instruction, tagsSection, filesSection, closing].join('\n\n');
 
   return prompt;

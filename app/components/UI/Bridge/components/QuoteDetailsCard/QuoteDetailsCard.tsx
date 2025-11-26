@@ -34,6 +34,7 @@ import { useRewards } from '../../hooks/useRewards';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
@@ -69,6 +70,8 @@ const QuoteDetailsCard: React.FC = () => {
     isLoading: isRewardsLoading,
     shouldShowRewardsRow,
     hasError: hasRewardsError,
+    accountOptedIn,
+    rewardsAccountScope,
   } = useRewards({
     activeQuote,
     isQuoteLoading,
@@ -109,7 +112,10 @@ const QuoteDetailsCard: React.FC = () => {
                 alignItems={BoxAlignItems.Center}
                 gap={1}
               >
-                <Text variant={TextVariant.BodyMD}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
                   {strings('bridge.rate')}
                 </Text>
                 <QuoteCountdownTimer />
@@ -129,6 +135,7 @@ const QuoteDetailsCard: React.FC = () => {
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
+                color={TextColor.Alternative}
               >
                 {rate}
               </Text>
@@ -141,7 +148,7 @@ const QuoteDetailsCard: React.FC = () => {
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
           >
-            <Text variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {toSentenceCase(strings('bridge.network_fee'))}
             </Text>
             <Box
@@ -152,10 +159,11 @@ const QuoteDetailsCard: React.FC = () => {
               <Text
                 variant={TextVariant.BodyMD}
                 style={styles.strikethroughText}
+                color={TextColor.Alternative}
               >
                 {networkFee}
               </Text>
-              <Text variant={TextVariant.BodyMD}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('bridge.included')}
               </Text>
             </Box>
@@ -166,6 +174,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: toSentenceCase(strings('bridge.network_fee')),
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
@@ -178,6 +187,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: networkFee,
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
             }}
           />
@@ -188,6 +198,7 @@ const QuoteDetailsCard: React.FC = () => {
             label: {
               text: strings('bridge.slippage'),
               variant: TextVariant.BodyMD,
+              color: TextColor.Alternative,
             },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
@@ -204,12 +215,17 @@ const QuoteDetailsCard: React.FC = () => {
                 testID="edit-slippage-button"
                 style={styles.slippageButton}
               >
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {slippage}
+                </Text>
                 <Icon
                   name={IconName.Edit}
                   size={IconSize.Sm}
                   color={IconColor.Alternative}
                 />
-                <Text variant={TextVariant.BodyMD}>{slippage}</Text>
               </TouchableOpacity>
             ),
           }}
@@ -221,6 +237,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: toSentenceCase(strings('bridge.minimum_received')),
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
@@ -233,6 +250,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
             }}
           />
@@ -244,6 +262,7 @@ const QuoteDetailsCard: React.FC = () => {
               label: {
                 text: toSentenceCase(strings('bridge.price_impact')),
                 variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
               tooltip: {
                 title: strings('bridge.price_impact_info_title'),
@@ -260,7 +279,7 @@ const QuoteDetailsCard: React.FC = () => {
                 variant: TextVariant.BodyMD,
                 color: shouldShowPriceImpactWarning
                   ? TextColor.Error
-                  : undefined,
+                  : TextColor.Alternative,
               },
             }}
           />
@@ -270,51 +289,62 @@ const QuoteDetailsCard: React.FC = () => {
 
         {/* Estimated Points */}
         {shouldShowRewardsRow && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: toSentenceCase(strings('bridge.points')),
-                variant: TextVariant.BodyMD,
-              },
-              tooltip: {
-                title: strings('bridge.points_tooltip'),
-                content: `${strings(
-                  'bridge.points_tooltip_content_1',
-                )}\n\n${strings('bridge.points_tooltip_content_2')}`,
-                size: TooltipSizes.Sm,
-                iconName: IconName.Info,
-              },
-            }}
-            value={{
-              label: (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  gap={1}
-                >
-                  <RewardsAnimations
-                    value={estimatedPoints ?? 0}
-                    state={
-                      isRewardsLoading
-                        ? RewardAnimationState.Loading
-                        : hasRewardsError
-                          ? RewardAnimationState.ErrorState
-                          : RewardAnimationState.Idle
-                    }
-                  />
-                </Box>
-              ),
-              ...(hasRewardsError && {
+          <Box testID="bridge-rewards-row">
+            <KeyValueRow
+              field={{
+                label: {
+                  text: toSentenceCase(strings('bridge.points')),
+                  variant: TextVariant.BodyMD,
+                },
                 tooltip: {
-                  title: strings('bridge.points_error'),
-                  content: strings('bridge.points_error_content'),
+                  title: strings('bridge.points_tooltip'),
+                  content: `${strings(
+                    'bridge.points_tooltip_content_1',
+                  )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                   size: TooltipSizes.Sm,
                   iconName: IconName.Info,
                 },
-              }),
-            }}
-          />
+              }}
+              value={{
+                label: (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Center}
+                    gap={1}
+                  >
+                    {accountOptedIn ? (
+                      <RewardsAnimations
+                        value={estimatedPoints ?? 0}
+                        state={
+                          isRewardsLoading
+                            ? RewardAnimationState.Loading
+                            : hasRewardsError
+                              ? RewardAnimationState.ErrorState
+                              : RewardAnimationState.Idle
+                        }
+                      />
+                    ) : rewardsAccountScope ? (
+                      <AddRewardsAccount
+                        testID="bridge-add-rewards-account"
+                        account={rewardsAccountScope}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                  </Box>
+                ),
+                ...(hasRewardsError && {
+                  tooltip: {
+                    title: strings('bridge.points_error'),
+                    content: strings('bridge.points_error_content'),
+                    size: TooltipSizes.Sm,
+                    iconName: IconName.Info,
+                  },
+                }),
+              }}
+            />
+          </Box>
         )}
       </Box>
     </Box>

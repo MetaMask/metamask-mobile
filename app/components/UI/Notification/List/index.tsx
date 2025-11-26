@@ -3,7 +3,6 @@ import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import {
   hasNotificationComponents,
@@ -17,16 +16,20 @@ import {
   useListNotifications,
   useMarkNotificationAsRead,
 } from '../../../../util/notifications/hooks/useNotifications';
+import onChainAnalyticProperties from '../../../../util/notifications/methods/notification-analytics';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
 import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
+
+export const TEST_IDS = {
+  loadingContainer: 'notification-list-loading',
+};
+
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
   allNotifications: INotification[];
-  walletNotifications: INotification[];
-  web3Notifications: INotification[];
   loading: boolean;
 }
 
@@ -46,7 +49,7 @@ function Loading() {
   } = useStyles();
 
   return (
-    <View style={styles.loaderContainer}>
+    <View style={styles.loaderContainer} testID={TEST_IDS.loadingContainer}>
       <ActivityIndicator color={colors.primary.default} size="large" />
     </View>
   );
@@ -68,37 +71,17 @@ export function useNotificationOnClick(
         },
       ]);
 
-      const otherNotificationProperties = () => {
-        if (
-          'notification_type' in item &&
-          item.notification_type === 'on-chain' &&
-          item.payload?.chain_id
-        ) {
-          return { chain_id: item.payload.chain_id };
-        }
-
-        return undefined;
-      };
-
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
           .addProperties({
             notification_id: item.id,
             notification_type: item.type,
             previously_read: item.isRead,
-            ...otherNotificationProperties(),
+            ...onChainAnalyticProperties(item),
             data: item, // data blob for feature teams to analyse their notification shapes
           })
           .build(),
       );
-
-      NotificationsService.getBadgeCount().then((count) => {
-        if (count > 0) {
-          NotificationsService.decrementBadgeCount(1);
-        } else {
-          NotificationsService.setBadgeCount(0);
-        }
-      });
     },
     [createEventBuilder, markNotificationAsRead, trackEvent],
   );
