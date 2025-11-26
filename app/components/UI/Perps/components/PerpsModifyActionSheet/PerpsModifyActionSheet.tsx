@@ -48,7 +48,7 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
   const sheetRef = externalSheetRef || internalSheetRef;
 
   // Get direction labels for the position
-  const isLong = position?.szi ? parseFloat(position.szi) > 0 : true;
+  const isLong = position?.size ? parseFloat(position.size) > 0 : true;
   const direction = isLong
     ? strings('perps.order.long_label')
     : strings('perps.order.short_label');
