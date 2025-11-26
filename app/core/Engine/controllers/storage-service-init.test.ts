@@ -115,7 +115,7 @@ describe('mobileStorageAdapter', () => {
     });
 
     it('returns null when item does not exist', async () => {
-      mockFilesystemStorage.getItem.mockResolvedValue(null);
+      mockFilesystemStorage.getItem.mockResolvedValue(undefined);
 
       const adapter = getStorageAdapter();
       const result = await adapter.getItem('TestController', 'missingKey');
