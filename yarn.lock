@@ -28890,19 +28890,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-build-properties@npm:^0.13.1":
-  version: 0.13.2
-  resolution: "expo-build-properties@npm:0.13.2"
-  dependencies:
-    ajv: "npm:^8.11.0"
-    semver: "npm:^7.6.0"
-  peerDependencies:
-    expo: "*"
-  checksum: 10/88a2b0f491112398314502cc51172d4695d62ed9998fa96d8630450a5451f5f9779e0737c997175502ab16a3eb0194efb1cac44be44d5bfa2025054e4e4ce1c7
-  languageName: node
-  linkType: hard
-
-"expo-build-properties@npm:~0.13.3":
+"expo-build-properties@npm:^0.13.1, expo-build-properties@npm:~0.13.3":
   version: 0.13.3
   resolution: "expo-build-properties@npm:0.13.3"
   dependencies:
