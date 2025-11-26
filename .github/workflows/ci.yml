@@ -245,32 +245,18 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          SKIP_REASON=""
+          SHOULD_RUN=true
 
           if [[ "$EVENT_NAME" != "pull_request" ]]; then
-            SKIP_REASON="Not a pull request (event: $EVENT_NAME)"
+            SHOULD_RUN=false
           elif [[ "$BASE_REF" != "main" ]]; then
-            SKIP_REASON="PR targets '$BASE_REF' instead of 'main'"
+            SHOULD_RUN=false
           elif [[ "$HEAD_REF" == release/* ]]; then
-            SKIP_REASON="PR originates from release branch '$HEAD_REF'"
+            SHOULD_RUN=false
           fi
 
-          if [[ -n "$SKIP_REASON" ]]; then
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "skip_reason=$SKIP_REASON" >> "$GITHUB_OUTPUT"
-            {
-              echo "## ⏭️ Smart E2E Selection Skipped"
-              echo ""
-              echo "**Reason:** $SKIP_REASON"
-              echo ""
-              echo "Smart E2E selection only runs on PRs targeting \`main\` that don't originate from \`release/*\` branches."
-            } >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-            echo "✅ Smart E2E selection will run for PR #$PR_NUMBER"
-          fi
+          echo "should_run=$SHOULD_RUN" >> "$GITHUB_OUTPUT"
 
       - name: Checkout for action definition
         if: steps.should-run.outputs.should_run == 'true'
