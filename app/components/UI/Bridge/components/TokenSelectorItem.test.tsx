@@ -1,15 +1,13 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { TokenSelectorItem } from './TokenSelectorItem';
-import { BridgeToken } from '../types';
 import { ethers } from 'ethers';
+import { createMockTokenWithBalance } from '../testUtils/fixtures';
 
-// Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => []),
 }));
 
-// Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -19,12 +17,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
-// Mock useStyles hook
 jest.mock('../../../../component-library/hooks', () => ({
   useStyles: () => ({
     styles: {
-      tokenInfo: {},
       container: {},
+      tokenInfo: {},
       selectedIndicator: {},
       itemWrapper: {},
       balance: {},
@@ -38,13 +35,11 @@ jest.mock('../../../../component-library/hooks', () => ({
   }),
 }));
 
-// Mock wdio utils
 jest.mock('../../../../../wdio/utils/generateTestId', () => ({
   __esModule: true,
   default: () => ({}),
 }));
 
-// Mock BadgeWrapper
 jest.mock(
   '../../../../component-library/components/Badges/BadgeWrapper',
   () => ({
@@ -54,34 +49,26 @@ jest.mock(
   }),
 );
 
-// Mock Badge
 jest.mock('../../../../component-library/components/Badges/Badge', () => ({
   __esModule: true,
   default: () => null,
   BadgeVariant: { Network: 'Network' },
 }));
 
-// Mock AvatarToken
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
+  () => ({ __esModule: true, default: () => null }),
 );
 
-// Mock AvatarSize
 jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Md: 'Md' },
 }));
 
-// Mock TokenIcon
 jest.mock('../../Swaps/components/TokenIcon', () => ({
   __esModule: true,
   default: () => null,
 }));
 
-// Mock TagBase and Tag
 jest.mock('../../../../component-library/base-components/TagBase', () => {
   const { createElement } = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -103,19 +90,6 @@ jest.mock('../../../../component-library/components/Tags/Tag', () => {
   };
 });
 
-const createMockToken = (
-  overrides: Partial<BridgeToken> = {},
-): BridgeToken => ({
-  address: '0x1234567890123456789012345678901234567890',
-  symbol: 'TEST',
-  decimals: 18,
-  chainId: '0x1',
-  name: 'Test Token',
-  balance: '100.0',
-  balanceFiat: '$100',
-  ...overrides,
-});
-
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
 
@@ -123,158 +97,145 @@ describe('TokenSelectorItem', () => {
     jest.clearAllMocks();
   });
 
-  it('renders token symbol and name', () => {
-    const token = createMockToken({
-      symbol: 'ETH',
-      name: 'Ethereum',
+  describe('rendering', () => {
+    it('renders token symbol and name', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        name: 'Ethereum',
+      });
+
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(getByText('ETH')).toBeTruthy();
+      expect(getByText('Ethereum')).toBeTruthy();
     });
 
-    const { getByText } = render(
-      <TokenSelectorItem token={token} onPress={mockOnPress} />,
-    );
+    it('renders balance and fiat value when shouldShowBalance is true', () => {
+      const token = createMockTokenWithBalance({
+        balance: '50.0',
+        balanceFiat: '$500',
+        symbol: 'USDC',
+      });
 
-    expect(getByText('ETH')).toBeTruthy();
-    expect(getByText('Ethereum')).toBeTruthy();
-  });
+      const { getByText } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldShowBalance
+        />,
+      );
 
-  it('renders balance and fiat value when shouldShowBalance is true', () => {
-    const token = createMockToken({
-      balance: '50.0',
-      balanceFiat: '$500',
-      symbol: 'USDC',
+      expect(getByText('$500')).toBeTruthy();
+      expect(getByText('50 USDC')).toBeTruthy();
     });
 
-    const { getByText } = render(
-      <TokenSelectorItem
-        token={token}
-        onPress={mockOnPress}
-        shouldShowBalance
-      />,
-    );
+    it('hides balance when shouldShowBalance is false', () => {
+      const token = createMockTokenWithBalance({
+        balance: '50.0',
+        balanceFiat: '$500',
+      });
 
-    expect(getByText('$500')).toBeTruthy();
-    expect(getByText('50 USDC')).toBeTruthy();
-  });
+      const { queryByText } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldShowBalance={false}
+        />,
+      );
 
-  it('hides balance when shouldShowBalance is false', () => {
-    const token = createMockToken({
-      balance: '50.0',
-      balanceFiat: '$500',
+      expect(queryByText('$500')).toBeNull();
     });
 
-    const { queryByText } = render(
-      <TokenSelectorItem
-        token={token}
-        onPress={mockOnPress}
-        shouldShowBalance={false}
-      />,
-    );
+    it('renders selected indicator when isSelected is true', () => {
+      const token = createMockTokenWithBalance();
 
-    expect(queryByText('$500')).toBeNull();
-  });
+      const { UNSAFE_root } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} isSelected />,
+      );
 
-  it('calls onPress with token when pressed', () => {
-    const token = createMockToken();
-
-    const { getByText } = render(
-      <TokenSelectorItem token={token} onPress={mockOnPress} />,
-    );
-
-    fireEvent.press(getByText('TEST'));
-
-    expect(mockOnPress).toHaveBeenCalledWith(token);
-  });
-
-  it('renders selected indicator when isSelected is true', () => {
-    const token = createMockToken();
-
-    const { UNSAFE_root } = render(
-      <TokenSelectorItem token={token} onPress={mockOnPress} isSelected />,
-    );
-
-    // The component should render with selected state
-    expect(UNSAFE_root).toBeTruthy();
-  });
-
-  it('formats zero balance correctly', () => {
-    const token = createMockToken({
-      balance: '0',
-      balanceFiat: '$0',
-      symbol: 'TOKEN',
+      expect(UNSAFE_root).toBeTruthy();
     });
 
-    const { getByText } = render(
-      <TokenSelectorItem token={token} onPress={mockOnPress} />,
-    );
+    it('renders no fee badge when isNoFeeAsset is true', () => {
+      const token = createMockTokenWithBalance();
 
-    expect(getByText('0 TOKEN')).toBeTruthy();
-  });
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} isNoFeeAsset />,
+      );
 
-  it('formats small balance with less than symbol', () => {
-    const token = createMockToken({
-      balance: '0.000001',
-      balanceFiat: '$0.01',
-      symbol: 'TOKEN',
+      expect(getByText('No MM Fee')).toBeTruthy();
     });
 
-    const { getByText } = render(
-      <TokenSelectorItem token={token} onPress={mockOnPress} />,
-    );
+    it('renders children when provided', () => {
+      const token = createMockTokenWithBalance();
 
-    expect(getByText('< 0.00001 TOKEN')).toBeTruthy();
-  });
+      const { UNSAFE_root } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress}>
+          <></>
+        </TokenSelectorItem>,
+      );
 
-  it('renders native token with TokenIcon when address is zero address', () => {
-    const token = createMockToken({
-      address: ethers.constants.AddressZero,
-      symbol: 'ETH',
-      name: 'Ethereum',
+      expect(UNSAFE_root).toBeTruthy();
     });
 
-    const { getByText } = render(
-      <TokenSelectorItem token={token} onPress={mockOnPress} />,
-    );
+    it('renders network badge when networkImageSource is provided', () => {
+      const token = createMockTokenWithBalance();
 
-    // Native token should still render
-    expect(getByText('ETH')).toBeTruthy();
+      const { getByText } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          networkName="Ethereum"
+          networkImageSource={{ uri: 'https://example.com/network.png' }}
+        />,
+      );
+
+      expect(getByText('TEST')).toBeTruthy();
+    });
+
+    it('renders native token with TokenIcon when address is zero address', () => {
+      const token = createMockTokenWithBalance({
+        address: ethers.constants.AddressZero,
+        symbol: 'ETH',
+        name: 'Ethereum',
+      });
+
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(getByText('ETH')).toBeTruthy();
+    });
   });
 
-  it('renders no fee badge when isNoFeeAsset is true', () => {
-    const token = createMockToken();
+  describe('interactions', () => {
+    it('calls onPress with token when pressed', () => {
+      const token = createMockTokenWithBalance();
 
-    const { getByText } = render(
-      <TokenSelectorItem token={token} onPress={mockOnPress} isNoFeeAsset />,
-    );
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
 
-    expect(getByText('No MM Fee')).toBeTruthy();
+      fireEvent.press(getByText('TEST'));
+
+      expect(mockOnPress).toHaveBeenCalledWith(token);
+    });
   });
 
-  it('renders children when provided', () => {
-    const token = createMockToken();
-    const TestChild = () => <></>;
+  describe('balance formatting', () => {
+    it.each([
+      ['zero balance', '0', '0 TOKEN'],
+      ['small balance', '0.000001', '< 0.00001 TOKEN'],
+    ])('formats %s correctly', (_, balance, expected) => {
+      const token = createMockTokenWithBalance({ balance, symbol: 'TOKEN' });
 
-    const { UNSAFE_root } = render(
-      <TokenSelectorItem token={token} onPress={mockOnPress}>
-        <TestChild />
-      </TokenSelectorItem>,
-    );
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
 
-    expect(UNSAFE_root).toBeTruthy();
-  });
-
-  it('renders network badge when networkImageSource is provided', () => {
-    const token = createMockToken();
-    const networkImageSource = { uri: 'https://example.com/network.png' };
-
-    const { getByText } = render(
-      <TokenSelectorItem
-        token={token}
-        onPress={mockOnPress}
-        networkName="Ethereum"
-        networkImageSource={networkImageSource}
-      />,
-    );
-
-    expect(getByText('TEST')).toBeTruthy();
+      expect(getByText(expected)).toBeTruthy();
+    });
   });
 });

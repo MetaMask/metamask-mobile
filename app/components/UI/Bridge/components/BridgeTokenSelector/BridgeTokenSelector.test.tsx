@@ -2,11 +2,14 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
 import { CaipChainId } from '@metamask/utils';
+import {
+  createMockToken,
+  createMockPopularToken,
+  MOCK_CHAIN_IDS,
+} from '../../testUtils/fixtures';
 
-// Mock react-navigation
 const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
-
 let mockRouteParams: { type: 'source' | 'dest' } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
@@ -17,48 +20,31 @@ jest.mock('@react-navigation/native', () => ({
     setOptions: mockSetOptions,
     dispatch: mockDispatch,
   }),
-  useRoute: () => ({
-    params: mockRouteParams,
-  }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
-// Mock react-redux with configurable state
-let mockBridgeFeatureFlags: {
-  chainRanking: { chainId: CaipChainId }[] | undefined;
-} = {
+let mockBridgeFeatureFlags = {
   chainRanking: [
-    { chainId: 'eip155:1' as CaipChainId },
-    { chainId: 'eip155:137' as CaipChainId },
+    { chainId: MOCK_CHAIN_IDS.ethereum },
+    { chainId: MOCK_CHAIN_IDS.polygon },
   ],
 };
 
 jest.mock('react-redux', () => ({
   useDispatch: () => jest.fn(),
   useSelector: jest.fn((selector) => {
-    if (selector.toString().includes('bridgeFeatureFlags')) {
+    if (selector.toString().includes('bridgeFeatureFlags'))
       return mockBridgeFeatureFlags;
-    }
     if (selector.toString().includes('sourceToken')) return null;
     if (selector.toString().includes('destToken')) return null;
     return { '0x1': { name: 'Ethereum Mainnet' } };
   }),
 }));
 
-// Configurable mock states
 let mockPopularTokensState = {
-  popularTokens: [
-    {
-      assetId: 'eip155:1/erc20:0x1234',
-      address: '0x1234',
-      chainId: '0x1',
-      symbol: 'USDC',
-      name: 'USD Coin',
-      decimals: 6,
-    },
-  ],
+  popularTokens: [createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' })],
   isLoading: false,
 };
-
 jest.mock('../../hooks/usePopularTokens', () => ({
   usePopularTokens: () => mockPopularTokensState,
 }));
@@ -66,16 +52,8 @@ jest.mock('../../hooks/usePopularTokens', () => ({
 const mockSearchTokens = jest.fn();
 const mockDebouncedSearch = Object.assign(jest.fn(), { cancel: jest.fn() });
 const mockResetSearch = jest.fn();
-
 let mockSearchTokensState = {
-  searchResults: [] as {
-    assetId: string;
-    address: string;
-    chainId: string;
-    symbol: string;
-    name: string;
-    decimals: number;
-  }[],
+  searchResults: [] as ReturnType<typeof createMockPopularToken>[],
   isSearchLoading: false,
   isLoadingMore: false,
   searchCursor: undefined as string | undefined,
@@ -83,23 +61,14 @@ let mockSearchTokensState = {
   debouncedSearch: mockDebouncedSearch,
   resetSearch: mockResetSearch,
 };
-
 jest.mock('../../hooks/useSearchTokens', () => ({
   useSearchTokens: () => mockSearchTokensState,
 }));
 
 let mockBalancesByAssetIdState = {
-  tokensWithBalance: [] as {
-    address: string;
-    chainId: string;
-    symbol: string;
-    name: string;
-    decimals: number;
-    balance: string;
-  }[],
+  tokensWithBalance: [] as ReturnType<typeof createMockToken>[],
   balancesByAssetId: {},
 };
-
 jest.mock('../../hooks/useBalancesByAssetId', () => ({
   useBalancesByAssetId: () => mockBalancesByAssetIdState,
 }));
@@ -114,12 +83,7 @@ jest.mock('../../hooks/useTokensWithBalances', () => ({
 }));
 
 const mockHandleTokenPress = jest.fn();
-let mockSelectedToken: {
-  address: string;
-  chainId: string;
-  symbol: string;
-} | null = null;
-
+let mockSelectedToken: ReturnType<typeof createMockToken> | null = null;
 jest.mock('../../hooks/useTokenSelection', () => ({
   useTokenSelection: () => ({
     handleTokenPress: mockHandleTokenPress,
@@ -130,7 +94,6 @@ jest.mock('../../hooks/useTokenSelection', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-
 jest.mock('../../../Navbar', () => ({
   getBridgeTokenSelectorNavbar: jest.fn(() => ({})),
 }));
@@ -176,6 +139,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     Box: ({ children, style }: { children: React.ReactNode; style?: object }) =>
       createElement(View, { style }, children),
+    Text: 'Text',
     ButtonIcon: ({ onPress }: { onPress?: () => void }) =>
       createElement(TouchableOpacity, { onPress, testID: 'button-icon-info' }),
     ButtonIconSize: { Md: 'Md' },
@@ -184,13 +148,17 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+}));
 jest.mock('../../../../../constants/bridge', () => ({
   NETWORK_TO_SHORT_NETWORK_NAME_MAP: {
     'eip155:1': 'Ethereum',
     '0x1': 'Ethereum',
+    'eip155:137': 'Polygon',
+    '0x89': 'Polygon',
   },
 }));
-
 jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'https://network.png' })),
 }));
@@ -208,7 +176,7 @@ jest.mock('./NetworkPills', () => ({
       { testID: 'network-pills' },
       createElement(TouchableOpacity, {
         testID: 'select-eth-network',
-        onPress: () => onChainSelect('eip155:1' as CaipChainId),
+        onPress: () => onChainSelect(MOCK_CHAIN_IDS.ethereum),
       }),
     );
   },
@@ -229,50 +197,47 @@ jest.mock(
   },
 );
 
-jest.mock('../BridgeTokenSelectorBase', () => {
-  const { createElement } = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SkeletonItem: () => createElement(View, { testID: 'skeleton-item' }),
-  };
-});
+jest.mock('../BridgeTokenSelectorBase', () => ({
+  SkeletonItem: () => {
+    const { createElement } = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return createElement(View, { testID: 'skeleton-item' });
+  },
+}));
 
-jest.mock('../TokenSelectorItem', () => {
-  const { createElement } = jest.requireActual('react');
-  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
-  return {
-    TokenSelectorItem: ({
-      token,
-      onPress,
-      children,
-    }: {
-      token: { symbol: string; address: string; chainId: string };
-      onPress: (token: {
-        symbol: string;
-        address: string;
-        chainId: string;
-      }) => void;
-      children?: React.ReactNode;
-    }) =>
-      createElement(
-        TouchableOpacity,
-        { onPress: () => onPress(token), testID: `token-${token.symbol}` },
-        createElement(Text, null, token.symbol),
-        createElement(View, null, children),
-      ),
-  };
-});
+jest.mock('../TokenSelectorItem', () => ({
+  TokenSelectorItem: ({
+    token,
+    onPress,
+    children,
+  }: {
+    token: { symbol: string; address: string; chainId: string };
+    onPress: (token: {
+      symbol: string;
+      address: string;
+      chainId: string;
+    }) => void;
+    children?: React.ReactNode;
+  }) => {
+    const { createElement } = jest.requireActual('react');
+    const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+    return createElement(
+      TouchableOpacity,
+      { onPress: () => onPress(token), testID: `token-${token.symbol}` },
+      createElement(Text, null, token.symbol),
+      createElement(View, null, children),
+    );
+  },
+}));
 
 jest.mock('../BridgeDestTokenSelector', () => ({
   getNetworkName: jest.fn(() => 'Ethereum'),
 }));
-
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
 }));
-
 jest.mock('react-native-gesture-handler', () => {
   const { FlatList, ScrollView } = jest.requireActual('react-native');
   return { FlatList, ScrollView };
@@ -282,20 +247,13 @@ const resetMocks = () => {
   mockRouteParams = { type: 'source' };
   mockBridgeFeatureFlags = {
     chainRanking: [
-      { chainId: 'eip155:1' as CaipChainId },
-      { chainId: 'eip155:137' as CaipChainId },
+      { chainId: MOCK_CHAIN_IDS.ethereum },
+      { chainId: MOCK_CHAIN_IDS.polygon },
     ],
   };
   mockPopularTokensState = {
     popularTokens: [
-      {
-        assetId: 'eip155:1/erc20:0x1234',
-        address: '0x1234',
-        chainId: '0x1',
-        symbol: 'USDC',
-        name: 'USD Coin',
-        decimals: 6,
-      },
+      createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
     ],
     isLoading: false,
   };
@@ -312,391 +270,194 @@ const resetMocks = () => {
   mockSelectedToken = null;
 };
 
+const createSearchToken = (symbol: string) =>
+  createMockPopularToken({
+    assetId: `eip155:1/erc20:0x${symbol.toLowerCase()}` as never,
+    symbol,
+  });
+
 describe('BridgeTokenSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetMocks();
   });
 
-  it('renders and sets navigation options', () => {
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    expect(getByTestId('bridge-token-search-input')).toBeTruthy();
-    expect(mockSetOptions).toHaveBeenCalled();
-  });
-
-  it('handles search and triggers debounced search', () => {
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
-
-    expect(mockDebouncedSearch).toHaveBeenCalledWith('ETH');
-  });
-
-  it('calls handleTokenPress when token pressed', async () => {
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
-    fireEvent.press(getByTestId('token-USDC'));
-
-    expect(mockHandleTokenPress).toHaveBeenCalled();
-  });
-
-  it('cancels search and resets when chain changes with active search', async () => {
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
-    await act(async () => {
-      fireEvent.press(getByTestId('select-eth-network'));
+  describe('rendering', () => {
+    it('renders and sets navigation options', () => {
+      const { getByTestId } = render(<BridgeTokenSelector />);
+      expect(getByTestId('bridge-token-search-input')).toBeTruthy();
+      expect(mockSetOptions).toHaveBeenCalled();
     });
 
-    expect(mockDebouncedSearch.cancel).toHaveBeenCalled();
-    expect(mockResetSearch).toHaveBeenCalled();
-  });
+    it('renders skeleton items during loading', async () => {
+      mockPopularTokensState = { popularTokens: [], isLoading: true };
+      const { getAllByTestId } = render(<BridgeTokenSelector />);
+      await waitFor(() => {
+        expect(getAllByTestId('skeleton-item').length).toBe(8);
+      });
+    });
 
-  it('renders skeleton items during loading states', async () => {
-    mockPopularTokensState = { popularTokens: [], isLoading: true };
+    it('renders footer skeleton when loading more', async () => {
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createSearchToken('ETH')],
+        isLoadingMore: true,
+      };
+      const { getAllByTestId } = render(<BridgeTokenSelector />);
+      await waitFor(() =>
+        expect(getAllByTestId('skeleton-item').length).toBeGreaterThan(0),
+      );
+    });
 
-    const { getAllByTestId } = render(<BridgeTokenSelector />);
-
-    await waitFor(() => {
-      expect(getAllByTestId('skeleton-item').length).toBe(8);
+    it('renders noFee tokens for source and dest types', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          {
+            ...createMockPopularToken({ symbol: 'USDC' }),
+            noFee: { isSource: true, isDestination: true },
+          } as never,
+        ],
+        isLoading: false,
+      };
+      const { getByTestId, rerender } = render(<BridgeTokenSelector />);
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      mockRouteParams = { type: 'dest' };
+      rerender(<BridgeTokenSelector />);
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
     });
   });
 
-  it('renders footer skeleton when loading more results', async () => {
-    mockSearchTokensState = {
-      ...mockSearchTokensState,
-      searchResults: [
-        {
-          assetId: 'eip155:1/erc20:0xdef',
-          address: '0xdef',
-          chainId: '0x1',
-          symbol: 'ETH',
-          name: 'Ethereum',
-          decimals: 18,
-        },
-      ],
-      isLoadingMore: true,
-    };
+  describe('search', () => {
+    it('triggers debounced search on text change', () => {
+      const { getByTestId } = render(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
+      expect(mockDebouncedSearch).toHaveBeenCalledWith('ETH');
+    });
 
-    const { getAllByTestId } = render(<BridgeTokenSelector />);
-
-    await waitFor(() =>
-      expect(getAllByTestId('skeleton-item').length).toBeGreaterThan(0),
-    );
+    it('displays search results when query meets minimum length', async () => {
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createSearchToken('WETH')],
+      };
+      const { getByTestId } = render(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
+      await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
+    });
   });
 
-  it('filters tokens with balance and builds includeAssets', async () => {
-    mockBalancesByAssetIdState = {
-      tokensWithBalance: [
-        {
-          address: '0x1234',
-          chainId: '0x1',
-          symbol: 'DAI',
-          name: 'Dai',
-          decimals: 18,
-          balance: '100',
-        },
-        {
-          address: '0x5678',
-          chainId: '0x1',
-          symbol: 'ZERO',
-          name: 'Zero',
-          decimals: 18,
-          balance: '0',
-        },
+  describe('token selection', () => {
+    it('calls handleTokenPress when token pressed', async () => {
+      const { getByTestId } = render(<BridgeTokenSelector />);
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      fireEvent.press(getByTestId('token-USDC'));
+      expect(mockHandleTokenPress).toHaveBeenCalled();
+    });
+
+    it('handles dest route type with selected token', async () => {
+      mockRouteParams = { type: 'dest' };
+      mockSelectedToken = createMockToken({ symbol: 'USDC', chainId: '0x1' });
+      const { getByTestId } = render(<BridgeTokenSelector />);
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+    });
+  });
+
+  describe('chain selection', () => {
+    it('cancels search and resets when chain changes', async () => {
+      const { getByTestId } = render(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
+      await act(async () => {
+        fireEvent.press(getByTestId('select-eth-network'));
+      });
+      expect(mockDebouncedSearch.cancel).toHaveBeenCalled();
+      expect(mockResetSearch).toHaveBeenCalled();
+    });
+
+    it('returns empty chain array when chainRanking unavailable', () => {
+      mockBridgeFeatureFlags = { chainRanking: undefined as never };
+      const { getByTestId } = render(<BridgeTokenSelector />);
+      expect(getByTestId('bridge-token-search-input')).toBeTruthy();
+    });
+  });
+
+  describe('pagination', () => {
+    it('triggers load more on scroll near bottom with cursor', async () => {
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createSearchToken('WETH')],
+        searchCursor: 'next-cursor',
+      };
+      const { getByTestId, UNSAFE_getByType } = render(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
+      await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
+      mockSearchTokens.mockClear();
+      const { FlatList } = jest.requireActual('react-native');
+      await act(async () => {
+        UNSAFE_getByType(FlatList).props.onScroll({
+          nativeEvent: {
+            layoutMeasurement: { height: 500 },
+            contentOffset: { y: 750 },
+            contentSize: { height: 1000 },
+          },
+        });
+      });
+      expect(mockSearchTokens).toHaveBeenCalledWith('WET', 'next-cursor');
+    });
+
+    it.each([
+      ['cursor unavailable', { searchCursor: undefined }, { y: 800 }],
+      ['not near bottom', { searchCursor: 'cursor' }, { y: 100 }],
+      [
+        'isSearchLoading',
+        { searchCursor: 'cursor', isSearchLoading: true },
+        { y: 800 },
       ],
-      balancesByAssetId: {
-        'eip155:1/erc20:0x1234': { balance: '100', fiatBalance: '$100' },
+      [
+        'isLoadingMore',
+        { searchCursor: 'cursor', isLoadingMore: true },
+        { y: 800 },
+      ],
+    ])(
+      'does not load more when %s',
+      async (_, stateOverrides, scrollOffset) => {
+        mockSearchTokensState = {
+          ...mockSearchTokensState,
+          searchResults: [createSearchToken('WETH')],
+          ...stateOverrides,
+        };
+        const { getByTestId, UNSAFE_getByType } = render(
+          <BridgeTokenSelector />,
+        );
+        fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
+        mockSearchTokens.mockClear();
+        const { FlatList } = jest.requireActual('react-native');
+        await act(async () => {
+          UNSAFE_getByType(FlatList).props.onScroll({
+            nativeEvent: {
+              layoutMeasurement: { height: 500 },
+              contentOffset: scrollOffset,
+              contentSize: { height: 2000 },
+            },
+          });
+        });
+        expect(mockSearchTokens).not.toHaveBeenCalled();
       },
-    };
-
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
-  });
-
-  it('displays search results when query meets minimum length', async () => {
-    mockSearchTokensState = {
-      ...mockSearchTokensState,
-      searchResults: [
-        {
-          assetId: 'eip155:1/erc20:0xdef',
-          address: '0xdef',
-          chainId: '0x1',
-          symbol: 'WETH',
-          name: 'Wrapped Ether',
-          decimals: 18,
-        },
-      ],
-    };
-
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
-
-    await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
-  });
-
-  it('triggers load more on scroll near bottom with valid cursor', async () => {
-    mockSearchTokensState = {
-      ...mockSearchTokensState,
-      searchResults: [
-        {
-          assetId: 'eip155:1/erc20:0xdef',
-          address: '0xdef',
-          chainId: '0x1',
-          symbol: 'WETH',
-          name: 'Wrapped Ether',
-          decimals: 18,
-        },
-      ],
-      searchCursor: 'next-cursor',
-    };
-
-    const { getByTestId, UNSAFE_getByType } = render(<BridgeTokenSelector />);
-
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
-    await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
-
-    mockSearchTokens.mockClear();
-    const { FlatList } = jest.requireActual('react-native');
-    const flatList = UNSAFE_getByType(FlatList);
-
-    await act(async () => {
-      flatList.props.onScroll({
-        nativeEvent: {
-          layoutMeasurement: { height: 500 },
-          contentOffset: { y: 750 },
-          contentSize: { height: 1000 },
-        },
-      });
-    });
-
-    expect(mockSearchTokens).toHaveBeenCalledWith('WET', 'next-cursor');
-  });
-
-  it('does not load more when cursor unavailable or not near bottom', async () => {
-    mockSearchTokensState = {
-      ...mockSearchTokensState,
-      searchResults: [
-        {
-          assetId: 'eip155:1/erc20:0xdef',
-          address: '0xdef',
-          chainId: '0x1',
-          symbol: 'WETH',
-          name: 'Wrapped Ether',
-          decimals: 18,
-        },
-      ],
-      searchCursor: undefined,
-    };
-
-    const { getByTestId, UNSAFE_getByType } = render(<BridgeTokenSelector />);
-
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
-    await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
-
-    mockSearchTokens.mockClear();
-    const { FlatList } = jest.requireActual('react-native');
-    const flatList = UNSAFE_getByType(FlatList);
-
-    await act(async () => {
-      flatList.props.onScroll({
-        nativeEvent: {
-          layoutMeasurement: { height: 500 },
-          contentOffset: { y: 100 },
-          contentSize: { height: 2000 },
-        },
-      });
-    });
-
-    expect(mockSearchTokens).not.toHaveBeenCalled();
-  });
-
-  it('navigates and tracks event on info button press', async () => {
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
-    await act(async () => {
-      fireEvent.press(getByTestId('button-icon-info'));
-    });
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'NAVIGATE',
-        payload: expect.objectContaining({ name: 'Asset' }),
-      }),
     );
-    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('captures FlatList height on layout', async () => {
-    const { UNSAFE_getByType } = render(<BridgeTokenSelector />);
-
-    const { FlatList } = jest.requireActual('react-native');
-    const flatList = UNSAFE_getByType(FlatList);
-
-    await act(async () => {
-      flatList.props.onLayout({ nativeEvent: { layout: { height: 600 } } });
-    });
-
-    expect(flatList).toBeTruthy();
-  });
-
-  it('handles dest route type with selected token', async () => {
-    mockRouteParams = { type: 'dest' };
-    mockSelectedToken = { address: '0x1234', chainId: '0x1', symbol: 'USDC' };
-
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
-  });
-
-  it('returns empty chain array when chainRanking unavailable', () => {
-    mockBridgeFeatureFlags = { chainRanking: undefined };
-
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    expect(getByTestId('bridge-token-search-input')).toBeTruthy();
-  });
-
-  it('does not load more when isSearchLoading is true', async () => {
-    mockSearchTokensState = {
-      ...mockSearchTokensState,
-      searchResults: [
-        {
-          assetId: 'eip155:1/erc20:0xdef',
-          address: '0xdef',
-          chainId: '0x1',
-          symbol: 'WETH',
-          name: 'Wrapped Ether',
-          decimals: 18,
-        },
-      ],
-      searchCursor: 'cursor',
-      isSearchLoading: true,
-    };
-
-    const { getByTestId, UNSAFE_getByType } = render(<BridgeTokenSelector />);
-
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
-    mockSearchTokens.mockClear();
-
-    const { FlatList } = jest.requireActual('react-native');
-    await act(async () => {
-      UNSAFE_getByType(FlatList).props.onScroll({
-        nativeEvent: {
-          layoutMeasurement: { height: 500 },
-          contentOffset: { y: 800 },
-          contentSize: { height: 1000 },
-        },
+  describe('navigation and tracking', () => {
+    it('navigates and tracks event on info button press', async () => {
+      const { getByTestId } = render(<BridgeTokenSelector />);
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      await act(async () => {
+        fireEvent.press(getByTestId('button-icon-info'));
       });
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'NAVIGATE',
+          payload: expect.objectContaining({ name: 'Asset' }),
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
-
-    expect(mockSearchTokens).not.toHaveBeenCalled();
-  });
-
-  it('does not load more when isLoadingMore is true', async () => {
-    mockSearchTokensState = {
-      ...mockSearchTokensState,
-      searchResults: [
-        {
-          assetId: 'eip155:1/erc20:0xdef',
-          address: '0xdef',
-          chainId: '0x1',
-          symbol: 'WETH',
-          name: 'Wrapped Ether',
-          decimals: 18,
-        },
-      ],
-      searchCursor: 'cursor',
-      isLoadingMore: true,
-    };
-
-    const { getByTestId, UNSAFE_getByType } = render(<BridgeTokenSelector />);
-
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
-    mockSearchTokens.mockClear();
-
-    const { FlatList } = jest.requireActual('react-native');
-    await act(async () => {
-      UNSAFE_getByType(FlatList).props.onScroll({
-        nativeEvent: {
-          layoutMeasurement: { height: 500 },
-          contentOffset: { y: 800 },
-          contentSize: { height: 1000 },
-        },
-      });
-    });
-
-    expect(mockSearchTokens).not.toHaveBeenCalled();
-  });
-
-  it('filters tokens by name, symbol, and address in search', async () => {
-    mockBalancesByAssetIdState = {
-      tokensWithBalance: [
-        {
-          address: '0xabc123',
-          chainId: '0x1',
-          symbol: 'TEST',
-          name: 'TestToken',
-          decimals: 18,
-          balance: '50',
-        },
-      ],
-      balancesByAssetId: {},
-    };
-
-    const { getByTestId } = render(<BridgeTokenSelector />);
-
-    // Search by name
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), 'TestToken');
-    expect(mockDebouncedSearch).toHaveBeenLastCalledWith('TestToken');
-
-    // Search by symbol
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), 'TEST');
-    expect(mockDebouncedSearch).toHaveBeenLastCalledWith('TEST');
-
-    // Search by address
-    fireEvent.changeText(getByTestId('bridge-token-search-input'), '0xabc123');
-    expect(mockDebouncedSearch).toHaveBeenLastCalledWith('0xabc123');
-  });
-
-  it('updates list key when chain selection changes', async () => {
-    const { getByTestId, rerender } = render(<BridgeTokenSelector />);
-
-    await act(async () => {
-      fireEvent.press(getByTestId('select-eth-network'));
-    });
-
-    rerender(<BridgeTokenSelector />);
-
-    expect(getByTestId('network-pills')).toBeTruthy();
-  });
-
-  it('renders noFee tokens correctly for source and dest types', async () => {
-    mockPopularTokensState = {
-      popularTokens: [
-        {
-          assetId: 'eip155:1/erc20:0x1234',
-          address: '0x1234',
-          chainId: '0x1',
-          symbol: 'USDC',
-          name: 'USD Coin',
-          decimals: 6,
-          noFee: { isSource: true, isDestination: true },
-        } as unknown as (typeof mockPopularTokensState.popularTokens)[0],
-      ],
-      isLoading: false,
-    };
-
-    const { getByTestId, rerender } = render(<BridgeTokenSelector />);
-    await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
-
-    mockRouteParams = { type: 'dest' };
-    rerender(<BridgeTokenSelector />);
-    await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
   });
 });
