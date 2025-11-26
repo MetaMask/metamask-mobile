@@ -5,9 +5,6 @@ import styleSheet from './StakingCta.styles';
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -54,18 +51,14 @@ const StakingCta = ({
   return (
     <View style={style}>
       <View style={styles.contentMain}>
-        <Text style={styles.rightPad}>
-          {strings('stake.stake_your_eth_cta.base')}
+        <Text>
+          <Text>{strings('stake.stake_your_eth_cta.base')} </Text>
+          <Text color={TextColor.Success}>{estimatedRewardRate}</Text>
+          <Text>{` ${strings('stake.stake_your_eth_cta.annually')} `}</Text>
+          <Text color={TextColor.Primary} onPress={navigateToLearnMoreModal}>
+            {strings('stake.stake_your_eth_cta.learn_more_with_period')}
+          </Text>
         </Text>
-        <Text style={styles.rightPad} color={TextColor.Success}>
-          {estimatedRewardRate}
-        </Text>
-        <Text>{`${strings('stake.stake_your_eth_cta.annually')} `}</Text>
-        <Button
-          label={strings('stake.stake_your_eth_cta.learn_more_with_period')}
-          variant={ButtonVariants.Link}
-          onPress={navigateToLearnMoreModal}
-        />
       </View>
     </View>
   );
