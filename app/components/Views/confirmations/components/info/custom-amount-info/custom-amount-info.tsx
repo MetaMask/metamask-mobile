@@ -48,16 +48,17 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
-import { MUSD_CONVERSION_TRANSACTION_TYPE } from '../../../../../UI/Earn/constants/musd';
+import EngineService from '../../../../../../core/EngineService';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
+  hasMax?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay }) => {
+  ({ children, currency, disablePay, hasMax }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({ disable: disablePay });
     useTransactionPayMetrics();
@@ -88,8 +89,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingTokenAmount: amountHumanDebounced,
     });
 
-    const handleDone = useCallback(async () => {
-      await updateTokenAmount();
+    const handleDone = useCallback(() => {
+      updateTokenAmount();
+      EngineService.flushState();
       setIsKeyboardVisible(false);
     }, [updateTokenAmount]);
 
@@ -130,6 +132,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
+              hasMax={hasMax}
             />
           )}
           {!hasTokens && <BuySection />}
@@ -266,7 +269,7 @@ function useButtonLabel() {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
   }
 
-  if (hasTransactionType(transaction, [MUSD_CONVERSION_TRANSACTION_TYPE])) {
+  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
     return strings('earn.musd_conversion.confirmation_button');
   }
 

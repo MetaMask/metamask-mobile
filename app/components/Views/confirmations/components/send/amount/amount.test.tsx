@@ -16,6 +16,8 @@ import {
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { useSendContext } from '../../../context/send-context';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { InitSendLocation } from '../../../constants/send';
 import { Amount } from './amount';
 import { getFontSizeForInputLength } from './amount.styles';
 
@@ -26,6 +28,14 @@ jest.mock('../../../context/send-context', () => ({
 jest.mock('../../../hooks/send/useCurrencyConversions');
 
 jest.mock('../../../hooks/send/useRouteParams');
+
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({}),
+  createNavigationDetails: jest.fn(
+    (name: string, screen?: string) => (params?: unknown) =>
+      [name, screen ? { screen, params } : params] as const,
+  ),
+}));
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -70,13 +80,17 @@ jest.mock('../../../hooks/send/metrics/useAmountSelectionMetrics', () => ({
   useAmountSelectionMetrics: jest.fn(),
 }));
 
+const mockSetOptions = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
+    setOptions: mockSetOptions,
   }),
-  useRoute: jest.fn(),
+  useRoute: () => ({
+    params: {},
+  }),
 }));
 
 const mockedUseAmountSelectionMetrics = jest.mocked(useAmountSelectionMetrics);
@@ -84,6 +98,7 @@ const mockUseCurrencyConversion = jest.mocked(useCurrencyConversions);
 const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
+const mockUseParams = jest.mocked(useParams);
 const mockAmountSelectionMetrics = {
   captureAmountSelected: jest.fn(),
   setAmountInputMethodManual: jest.fn(),
@@ -103,6 +118,8 @@ const renderComponent = (mockState?: ProviderValues['state']) => {
 describe('Amount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSetOptions.mockClear();
+    mockUseParams.mockReturnValue({});
     mockedUseAmountSelectionMetrics.mockReturnValue(mockAmountSelectionMetrics);
     mockUseSendContext.mockReturnValue({
       asset: {
@@ -362,6 +379,14 @@ describe('Amount', () => {
     expect(queryByText('50%')).toBeTruthy();
     expect(queryByText('75%')).toBeTruthy();
     expect(queryByText('Max')).toBeNull();
+  });
+
+  it('hides back button when navigating from AssetOverview', () => {
+    mockUseParams.mockReturnValue({ location: InitSendLocation.AssetOverview });
+    renderComponent();
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      headerRight: expect.any(Function),
+    });
   });
 });
 

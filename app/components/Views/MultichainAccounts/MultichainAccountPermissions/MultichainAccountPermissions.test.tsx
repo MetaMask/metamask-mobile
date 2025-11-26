@@ -8,6 +8,7 @@ import { RootState } from '../../../../reducers';
 import { MultichainAccountPermissions } from './MultichainAccountPermissions';
 import Engine from '../../../../core/Engine';
 import { MAINNET_DISPLAY_NAME } from '../../../../core/Engine/constants';
+import { getNetworkImageSource } from '../../../../util/networks';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -463,6 +464,47 @@ describe('MultichainAccountPermissions', () => {
       // Assert - The component renders correctly and handles network selection
       // The console log shows the correct chain IDs are being passed to onSubmit
       expect(updateButton).toBeDefined();
+    });
+  });
+
+  describe('networkAvatars', () => {
+    it('renders successfully and filters wallet scopes when creating network avatars', () => {
+      // Arrange
+      const mockGetNetworkImageSource =
+        getNetworkImageSource as jest.MockedFunction<
+          typeof getNetworkImageSource
+        >;
+      mockGetNetworkImageSource.mockClear();
+
+      // Act - Render the component
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountPermissions
+          route={{
+            params: {
+              hostInfo: { metadata: { origin: 'test.com' } },
+            },
+          }}
+        />,
+        { state: mockInitialState() },
+      );
+
+      // Assert - Component renders successfully without crashing
+      expect(getByTestId('cancel-button')).toBeDefined();
+      expect(
+        getByTestId('navigate_to_edit_networks_permissions_button'),
+      ).toBeDefined();
+
+      // If getNetworkImageSource was called, verify no wallet scopes were passed
+      const calls = mockGetNetworkImageSource.mock.calls;
+      calls.forEach((call) => {
+        const params = call[0];
+        if (params?.chainId) {
+          // The filter should exclude wallet scopes like 'wallet:eip155'
+          expect(params.chainId).not.toMatch(/^wallet:/);
+          // Should only be valid CAIP chain IDs
+          expect(params.chainId).toMatch(/^[a-z]+:\d+$/);
+        }
+      });
     });
   });
 
