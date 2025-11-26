@@ -1,7 +1,7 @@
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image } from 'react-native';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../../../e2e/selectors/Predict/Predict.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -22,10 +22,12 @@ import {
   PredictMarket,
   PredictMarketStatus,
   PredictPosition as PredictPositionType,
+  Side,
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
+import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 
 interface PredictPositionProps {
   position: PredictPositionType;
@@ -44,16 +46,8 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     position,
   });
 
-  const {
-    icon,
-    initialValue,
-    percentPnl,
-    outcome,
-    currentValue,
-    title,
-    optimistic,
-    size,
-  } = currentPosition;
+  const { icon, initialValue, outcome, title, optimistic, size } =
+    currentPosition;
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;
@@ -61,6 +55,36 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     providerId: currentPosition.providerId,
     navigation,
   });
+
+  const { preview, error: previewError } = usePredictOrderPreview({
+    providerId: currentPosition.providerId,
+    marketId: currentPosition.marketId,
+    outcomeId: currentPosition.outcomeId,
+    outcomeTokenId: currentPosition.outcomeTokenId,
+    side: Side.SELL,
+    size: currentPosition.size,
+    autoRefreshTimeout: 1000,
+  });
+
+  // Show skeleton when preview is loading (null and no error)
+  const isPreviewLoading = preview === null && !previewError;
+
+  // Use preview data if available, fallback to position data on error or when preview is unavailable
+  const currentValue =
+    preview !== null && preview?.minAmountReceived !== undefined
+      ? preview.minAmountReceived
+      : currentPosition.currentValue;
+
+  // Recalculate PnL based on preview data
+  const cashPnl = useMemo(
+    () => currentValue - initialValue,
+    [currentValue, initialValue],
+  );
+
+  const percentPnl = useMemo(
+    () => (initialValue > 0 ? (cashPnl / initialValue) * 100 : 0),
+    [cashPnl, initialValue],
+  );
 
   const groupItemTitle = market?.outcomes.find(
     (o) => o.id === currentPosition.outcomeId && o.groupItemTitle,
@@ -84,8 +108,8 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   };
 
   const renderValueText = () => {
-    // Show skeleton for optimistic positions
-    if (optimistic) {
+    // Show skeleton for optimistic positions or while preview is loading
+    if (optimistic || isPreviewLoading) {
       return <Skeleton width={70} height={20} />;
     }
 
@@ -152,7 +176,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
         <Box twClassName="items-end justify-end ml-auto shrink-0">
           {renderValueText()}
           {marketStatus === PredictMarketStatus.OPEN &&
-            (optimistic ? (
+            (optimistic || isPreviewLoading ? (
               <Skeleton width={55} height={16} style={tw.style('mt-1')} />
             ) : (
               <Text

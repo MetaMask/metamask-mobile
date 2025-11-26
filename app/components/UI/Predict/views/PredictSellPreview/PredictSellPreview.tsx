@@ -98,7 +98,7 @@ const PredictSellPreview = () => {
     error: placeOrderError,
   } = usePredictPlaceOrder();
 
-  const { preview } = usePredictOrderPreview({
+  const { preview, error: previewError } = usePredictOrderPreview({
     providerId: position.providerId,
     marketId: position.marketId,
     outcomeId: position.outcomeId,
@@ -142,7 +142,14 @@ const PredictSellPreview = () => {
     }
   }, [dispatch, result]);
 
-  const currentValue = preview?.minAmountReceived ?? 0;
+  // Show skeleton when preview is loading (null and no error)
+  const isPreviewLoading = preview === null && !previewError;
+
+  // Use preview data if available, fallback to position data on error or when preview is unavailable
+  const currentValue =
+    preview !== null && preview?.minAmountReceived !== undefined
+      ? preview.minAmountReceived
+      : position.currentValue;
   const currentPrice = preview?.sharePrice ?? 0;
   const { avgPrice } = position;
 
@@ -229,7 +236,7 @@ const PredictSellPreview = () => {
         style={styles.container}
       >
         <View style={styles.cashOutContainer}>
-          {!preview ? (
+          {isPreviewLoading ? (
             <Box twClassName="items-center gap-2">
               <Skeleton
                 width={200}
@@ -290,6 +297,15 @@ const PredictSellPreview = () => {
               style={tw.style('text-center')}
             >
               {placeOrderError}
+            </Text>
+          )}
+          {previewError && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Error}
+              style={tw.style('text-center')}
+            >
+              {previewError}
             </Text>
           )}
           <Box twClassName="flex-row items-center gap-4">
