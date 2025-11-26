@@ -30,6 +30,9 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       saveMarketFilterPreferences: jest.fn(),
+      getActiveProvider: jest.fn(() => ({
+        protocolId: 'hyperliquid',
+      })),
     },
   },
 }));
@@ -65,6 +68,9 @@ jest.mock('../../hooks/stream', () => ({
     },
     isLoading: false,
     error: null,
+  })),
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
   })),
 }));
 
