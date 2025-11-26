@@ -28,6 +28,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const isSourceGasFeeToken = totals?.fees.isSourceGasFeeToken ?? false;
+  const isPendingAlert = Boolean(pendingAmountUsd !== undefined);
 
   const sourceChainId = payToken?.chainId ?? '0x0';
 
@@ -83,7 +84,18 @@ export function useInsufficientPayTokenBalanceAlert({
 
   const targetAmountUsd = useMemo(() => {
     const shortfall = totalSourceAmountUsd.minus(balanceUsd ?? '0');
-    return formatFiat(totalAmountUsd.minus(shortfall));
+    const targetUsdValue = totalAmountUsd.minus(shortfall);
+    const targetUsd = formatFiat(targetUsdValue);
+
+    if (targetUsdValue.isLessThanOrEqualTo(0)) {
+      return undefined;
+    }
+
+    if (targetUsdValue.isGreaterThan(totalAmountUsd)) {
+      return formatFiat(totalAmountUsd);
+    }
+
+    return targetUsd;
   }, [balanceUsd, formatFiat, totalAmountUsd, totalSourceAmountUsd]);
 
   const totalSourceNetworkFeeRaw = useMemo(
@@ -97,18 +109,23 @@ export function useInsufficientPayTokenBalanceAlert({
   );
 
   const isInsufficientForFees = useMemo(
-    () => payToken && totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
-    [balanceRaw, payToken, totalSourceAmountRaw],
+    () =>
+      !isPendingAlert &&
+      payToken &&
+      totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
+    [balanceRaw, isPendingAlert, payToken, totalSourceAmountRaw],
   );
 
   const isInsufficientForSourceNetwork = useMemo(
     () =>
       payToken &&
       !isPayTokenNative &&
+      !isPendingAlert &&
       !isSourceGasFeeToken &&
       totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
     [
       isPayTokenNative,
+      isPendingAlert,
       isSourceGasFeeToken,
       nativeToken?.balanceRaw,
       payToken,
@@ -141,10 +158,14 @@ export function useInsufficientPayTokenBalanceAlert({
           ...baseAlert,
           key: AlertKeys.InsufficientPayTokenFees,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
-          message: strings(
-            'alert_system.insufficient_pay_token_balance_fees.message',
-            { amount: targetAmountUsd },
-          ),
+          message: targetAmountUsd
+            ? strings(
+                'alert_system.insufficient_pay_token_balance_fees.message',
+                { amount: targetAmountUsd },
+              )
+            : strings(
+                'alert_system.insufficient_pay_token_balance_fees_no_target.message',
+              ),
         },
       ];
     }

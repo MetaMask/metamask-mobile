@@ -13,6 +13,8 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../reducers/fiatOrders';
+import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
+import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -45,8 +47,26 @@ export const useRampNavigation = () => {
         options || {};
 
       if (isRampsUnifiedV1Enabled && !overrideUnifiedRouting) {
+        if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
+          navigation.navigate(
+            ...createEligibilityFailedModalNavigationDetails(),
+          );
+          return;
+        }
+
+        if (rampRoutingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
+          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+          return;
+        }
+
         // If no assetId is provided, route to TokenSelection
         if (!intent?.assetId) {
+          navigation.navigate(...createTokenSelectionNavDetails());
+          return;
+        }
+
+        // If routing decision hasn't been determined yet, route to TokenSelection
+        if (rampRoutingDecision === null) {
           navigation.navigate(...createTokenSelectionNavDetails());
           return;
         }
@@ -54,7 +74,7 @@ export const useRampNavigation = () => {
         // If assetId is provided, route based on rampRoutingDecision
         if (rampRoutingDecision === UnifiedRampRoutingType.DEPOSIT) {
           navigation.navigate(...createDepositNavigationDetails(intent));
-        } else {
+        } else if (rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR) {
           navigation.navigate(
             ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
           );

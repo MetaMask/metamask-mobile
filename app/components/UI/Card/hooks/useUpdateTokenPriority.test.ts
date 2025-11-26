@@ -97,11 +97,8 @@ describe('useUpdateTokenPriority', () => {
     };
 
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK as unknown as CardSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
     });
 
     mockOnSuccess = jest.fn();
@@ -164,11 +161,8 @@ describe('useUpdateTokenPriority', () => {
 
     it('returns false when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
       const { result } = renderHook(() =>
         useUpdateTokenPriority({
