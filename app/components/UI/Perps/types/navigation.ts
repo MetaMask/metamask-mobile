@@ -23,6 +23,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     size?: string;
     price?: string;
     orderType?: OrderType;
+    existingPosition?: Position; // Pass existing position for leverage consistency when adding to position
     hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
   };
 

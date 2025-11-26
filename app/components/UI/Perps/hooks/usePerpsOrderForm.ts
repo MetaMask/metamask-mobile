@@ -108,6 +108,21 @@ export function usePerpsOrderForm(
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
+    // If adding to existing position (has existingPositionLeverage but no explicit initialAmount),
+    // calculate amount using the existing position's leverage for consistency
+    if (!initialAmount && existingPositionLeverage && availableBalance > 0) {
+      // Use existing position's leverage to calculate a proportional amount
+      // This ensures the new order uses the same leverage as the existing position
+      const amountBasedOnExistingLeverage =
+        availableBalance * existingPositionLeverage;
+      // Cap at max allowed amount to prevent errors
+      const cappedAmount = Math.min(
+        amountBasedOnExistingLeverage,
+        tempMaxAmount,
+      );
+      return cappedAmount.toString();
+    }
+
     // Return the target amount directly (USD as source of truth, no optimization)
     const targetAmount =
       initialAmount ||
@@ -123,6 +138,7 @@ export function usePerpsOrderForm(
     currentPrice?.price,
     marketData?.szDecimals,
     defaultLeverage,
+    existingPositionLeverage,
   ]);
 
   // Calculate initial balance percentage
