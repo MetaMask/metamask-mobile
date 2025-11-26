@@ -51,12 +51,11 @@ module.exports = function (baseConfig) {
   // if you have 10 cores but only 16GB, only 3 workers would get used.
   const paralel = os.availableParallelism();
   const totalmem = os.totalmem();
-  const divider = 32 * 1024 * 1024 * 1024
-  const maxWorkers = Math.ceil(
-    paralel *
-      Math.min(1, totalmem / divider),
+  const divider = 32 * 1024 * 1024 * 1024;
+  const maxWorkers = Math.ceil(paralel * Math.min(1, totalmem / divider));
+  console.log(
+    `paralel:${paralel} totalmem:${totalmem} divider:${divider} maxworkers: ${maxWorkers}`,
   );
-  console.log(`paralel:${paralel} totalmem:${totalmem} divider:${divider} maxworkers: ${maxWorkers}`);
 
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
