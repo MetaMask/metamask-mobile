@@ -430,4 +430,3 @@ describe('useLedgerDeviceForAccount', () => {
     });
   });
 });
-
