@@ -1143,6 +1143,8 @@
       "tp_sl": "Auto close",
       "tp": "TP",
       "sl": "SL",
+      "long_label": "Long",
+      "short_label": "Short",
       "button": {
         "long": "Long {{asset}}",
         "short": "Short {{asset}}"
@@ -1259,6 +1261,23 @@
       "order_type_reverted_to_market_order": "Changed to market order",
       "you_need_set_price_limit_order": "You need to set a price for a limit order.",
       "your_pnl_is": "Your P&L is"
+    },
+    "modify": {
+      "title": "Modify Position",
+      "add_to_position": "Add to Position",
+      "add_to_position_description": "Increase your position size",
+      "reduce_position": "Reduce Position",
+      "reduce_position_description": "Decrease your position size",
+      "flip_position": "Flip Position",
+      "flip_position_description": "Reverse your position direction"
+    },
+    "flip_position": {
+      "title": "Flip Position",
+      "direction": "Direction",
+      "est_size": "Est. Size",
+      "flip": "Flip",
+      "flipping": "Flipping...",
+      "cancel": "Cancel"
     },
     "tpsl": {
       "title": "Auto close",
@@ -1440,6 +1459,9 @@
       "short": "Short",
       "long_lowercase": "long",
       "short_lowercase": "short",
+      "modify": "Modify",
+      "close_long": "Close long",
+      "close_short": "Close short",
       "add_funds": "Add funds",
       "add_funds_to_start_trading_perps": "Add funds to start trading perps",
       "position": "Position",
