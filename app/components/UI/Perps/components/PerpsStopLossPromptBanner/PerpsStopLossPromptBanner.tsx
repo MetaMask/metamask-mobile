@@ -12,7 +12,10 @@ import Button, {
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsStopLossPromptSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import styleSheet from './PerpsStopLossPromptBanner.styles';
 import type { PerpsStopLossPromptBannerProps } from './PerpsStopLossPromptBanner.types';
 
@@ -166,10 +169,7 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('perps.stop_loss_prompt.protect_losses_title')}
               </Text>
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-              >
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.stop_loss_prompt.set_stop_loss_subtitle', {
                   price: formattedStopLossPrice,
                   percent: formattedPercent,

@@ -935,7 +935,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               isLoading={isSettingStopLoss}
               isSuccess={isStopLossSuccess}
               onFadeOutComplete={handleBannerFadeOutComplete}
-              testID={PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER}
+              testID={
+                PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
+              }
             />
           )}
 

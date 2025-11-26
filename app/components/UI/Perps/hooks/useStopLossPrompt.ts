@@ -119,8 +119,7 @@ export const useStopLossPrompt = ({
         setRoeDebounceComplete(true);
       } else {
         // Set up timer to check again
-        const remainingTime =
-          STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS - elapsed;
+        const remainingTime = STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS - elapsed;
         const timer = setTimeout(() => {
           // Re-check if still below threshold
           if (roeBelowThresholdSinceRef.current !== null) {
@@ -160,7 +159,8 @@ export const useStopLossPrompt = ({
     }
 
     // Target ROE is configurable (default -50%)
-    const targetRoeDecimal = STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE / 100;
+    const targetRoeDecimal =
+      STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE / 100;
 
     // Calculate price at target ROE
     // ROE = (priceChange / entryPrice) * leverage * direction
@@ -241,7 +241,8 @@ export const useStopLossPrompt = ({
     // Priority 1: Near liquidation → Add margin variant
     if (
       liquidationDistance !== null &&
-      liquidationDistance < STOP_LOSS_PROMPT_CONFIG.LIQUIDATION_DISTANCE_THRESHOLD
+      liquidationDistance <
+        STOP_LOSS_PROMPT_CONFIG.LIQUIDATION_DISTANCE_THRESHOLD
     ) {
       return { shouldShowBanner: true, variant: 'add_margin' };
     }
