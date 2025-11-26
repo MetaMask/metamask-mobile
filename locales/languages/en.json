@@ -1811,8 +1811,7 @@
       },
       "view_on_explorer": "View on block explorer",
       "empty_state": {
-        "no_transactions": "No {{type}} transactions yet",
-        "history_will_appear": "Your trading history will appear here"
+        "no_transactions": "No {{type}} transactions yet. Your trading history will appear here"
       }
     },
     "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Powered by {{source}}. Price chart powered by",
@@ -6800,7 +6799,8 @@
       "points": "Points",
       "points_base": "Base",
       "points_boost": "Boost",
-      "points_total": "Total"
+      "points_total": "Total",
+      "description": "Description"
     },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
