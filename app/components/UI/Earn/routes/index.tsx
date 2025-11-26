@@ -32,8 +32,7 @@ const EarnScreenStack = () => (
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
       options={{
-        title: '',
-        headerShown: true,
+        headerShown: false,
       }}
     />
   </Stack.Navigator>

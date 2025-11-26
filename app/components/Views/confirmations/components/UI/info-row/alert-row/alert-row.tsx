@@ -49,7 +49,7 @@ const AlertRow = ({
   const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
   const alertSelected = fieldAlerts.find((a) => a.field === alertField);
   const { styles } = useStyles(styleSheet, {});
-  const { rowVariant } = props;
+  const { rowVariant, style } = props;
 
   const handleLabelClick = useCallback(() => {
     if (!alertSelected) return;
@@ -85,7 +85,7 @@ const AlertRow = ({
   return (
     <InfoRow
       {...alertRowProps}
-      style={isSmall ? undefined : styles.infoRowOverride}
+      style={style ?? (isSmall ? undefined : styles.infoRowOverride)}
       labelChildren={inlineAlert}
     />
   );
