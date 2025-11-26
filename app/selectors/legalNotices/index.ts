@@ -36,7 +36,8 @@ export const shouldShowNewPrivacyToastSelector = (
  * @param state - Redux state
  * @returns Boolean indicating whether or not the user has acknowledged PNA25
  */
-export const selectIsPna25Acknowledged = (state: RootState): boolean => state.legalNotices.isPna25Acknowledged;
+export const selectIsPna25Acknowledged = (state: RootState): boolean =>
+  state.legalNotices.isPna25Acknowledged;
 
 /**
  * Determines if the PNA25 toast should be shown based on:
