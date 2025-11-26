@@ -7,6 +7,7 @@ import {
   DelegationSettingsResponse,
   DelegationSettingsNetwork,
 } from '../types';
+import { CardSDK } from '../sdk/CardSDK';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -29,7 +30,6 @@ const mockUseWrapWithCache = useWrapWithCache as jest.MockedFunction<
 
 describe('useGetDelegationSettings', () => {
   const mockGetDelegationSettings = jest.fn();
-  const mockLogoutFromProvider = jest.fn();
   const mockFetchData = jest.fn();
 
   const mockSDK = {
@@ -90,11 +90,8 @@ describe('useGetDelegationSettings', () => {
     mockUseSelector.mockReturnValue(true); // isAuthenticated
 
     mockUseCardSDK.mockReturnValue({
+      ...jest.requireMock('../sdk'),
       sdk: mockSDK,
-      isLoading: false,
-      user: null,
-      setUser: jest.fn(),
-      logoutFromProvider: mockLogoutFromProvider,
     });
 
     mockUseWrapWithCache.mockImplementation((_key, fetchFn, _options) => {
@@ -158,11 +155,8 @@ describe('useGetDelegationSettings', () => {
   describe('Prerequisites Check', () => {
     it('returns null when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: null,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       renderHook(() => useGetDelegationSettings());
@@ -424,11 +418,8 @@ describe('useGetDelegationSettings', () => {
       } as any;
 
       mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
         sdk: newMockSDK,
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
       });
 
       rerender();
@@ -513,12 +504,8 @@ describe('useGetDelegationSettings', () => {
 
     it('handles SDK method not available', async () => {
       mockUseCardSDK.mockReturnValue({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        sdk: {} as any, // SDK without getDelegationSettings method
-        isLoading: false,
-        user: null,
-        setUser: jest.fn(),
-        logoutFromProvider: mockLogoutFromProvider,
+        ...jest.requireMock('../sdk'),
+        sdk: {} as unknown as CardSDK, // SDK wi thout getDelegationSettings method
       });
 
       renderHook(() => useGetDelegationSettings());

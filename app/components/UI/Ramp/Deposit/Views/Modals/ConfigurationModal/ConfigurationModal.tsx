@@ -9,11 +9,7 @@ import {
 } from '../../../../../../../component-library/components/Icons/Icon';
 
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../../hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../../../../Aggregator/types';
+import { useRampNavigation } from '../../../../hooks/useRampNavigation';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
@@ -27,6 +23,7 @@ import Logger from '../../../../../../../util/Logger';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MenuItem from '../../../../components/MenuItem';
 import useAnalytics from '../../../../hooks/useAnalytics';
+import { useRampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
 
 export const createConfigurationModalNavigationDetails =
   createNavigationDetails(
@@ -40,9 +37,10 @@ function ConfigurationModal() {
   const { toastRef } = useContext(ToastContext);
   const trackEvent = useAnalytics();
 
-  const { goToRamps } = useRampNavigation();
+  const { goToAggregator } = useRampNavigation();
   const { logoutFromProvider, isAuthenticated, selectedRegion } =
     useDepositSDK();
+  const buttonClickData = useRampsButtonClickData();
 
   const navigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -64,14 +62,20 @@ function ConfigurationModal() {
       location: 'Deposit Settings Modal',
       ramp_type: 'BUY',
       region: selectedRegion?.isoCode as string,
+      ramp_routing: buttonClickData.ramp_routing,
+      is_authenticated: buttonClickData.is_authenticated,
+      preferred_provider: buttonClickData.preferred_provider,
+      order_count: buttonClickData.order_count,
     });
     navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
-    goToRamps({
-      mode: RampMode.AGGREGATOR,
-      params: { rampType: AggregatorRampType.BUY },
-      overrideUnifiedBuyFlag: true,
-    });
-  }, [navigation, selectedRegion?.isoCode, trackEvent, goToRamps]);
+    goToAggregator();
+  }, [
+    navigation,
+    selectedRegion?.isoCode,
+    trackEvent,
+    goToAggregator,
+    buttonClickData,
+  ]);
 
   const handleLogOut = useCallback(async () => {
     try {

@@ -1,14 +1,11 @@
-import { HandlerRegistry } from './HandlerRegistry';
-import { CoreLinkNormalizer } from '../CoreLinkNormalizer';
+import { HandlerRegistry } from '../registry/HandlerRegistry';
+import { CoreLinkNormalizer } from '../normalization/CoreLinkNormalizer';
 import { CoreUniversalLink } from '../types/CoreUniversalLink';
-import {
-  HandlerContext,
-  HandlerResult,
-} from './interfaces/UniversalLinkHandler';
+import { HandlerContext, HandlerResult } from '../types/UniversalLinkHandler';
 import Logger from '../../../util/Logger';
 import { MetaMetrics } from '../../Analytics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
-import { NavigationHandler, SwapHandler, SendHandler } from './handlers';
+import { NavigationHandler, SwapHandler, SendHandler } from '../handlers/v2';
 
 /**
  * Universal Router for handling deep links

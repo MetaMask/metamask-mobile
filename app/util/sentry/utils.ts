@@ -2,6 +2,12 @@
 import * as Sentry from '@sentry/react-native';
 import { dedupeIntegration, extraErrorDataIntegration } from '@sentry/browser';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';
+import {
+  updateId,
+  manifest,
+  isEmbeddedLaunch,
+  runtimeVersion,
+} from 'expo-updates';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { regex } from '../regex';
 import { isE2E, isQa } from '../test/utils';
@@ -11,6 +17,8 @@ import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
 import { getTraceTags } from './tags';
 import { ReduxStore } from '../../core/redux';
+import { OTA_VERSION } from '../../constants/ota';
+
 /**
  * This symbol matches all object properties when used in a mask
  */
@@ -67,6 +75,9 @@ export const sentryStateMask = {
       },
       AddressBookController: {
         [AllProperties]: false,
+      },
+      AppMetadataController: {
+        [AllProperties]: true,
       },
       ApprovalController: {
         [AllProperties]: false,
@@ -245,6 +256,7 @@ export const sentryStateMask = {
     protectWalletModalVisible: true,
     seedphraseBackedUp: true,
     userLoggedIn: true,
+    existingUser: true,
   },
 } as Record<string, MaskValue>;
 
@@ -576,6 +588,46 @@ export function deriveSentryEnvironment(
   return `${metamaskBuildType}-${metamaskEnvironment}`;
 }
 
+/**
+ * Sets EAS update context in Sentry to track which errors come from OTA updates.
+ * This adds tags like expo-update-id, expo-channel, and expo-runtime-version
+ * to help identify and debug issues specific to EAS updates.
+ * reference: https://docs.expo.dev/guides/using-sentry/#install-and-configure-sentry
+ */
+export function setEASUpdateContext(): void {
+  try {
+    const metadata = 'metadata' in manifest ? manifest.metadata : undefined;
+    const extra = 'extra' in manifest ? manifest.extra : undefined;
+    const updateGroup =
+      metadata && 'updateGroup' in metadata ? metadata.updateGroup : undefined;
+
+    const scope = Sentry.getGlobalScope();
+
+    scope.setTag('expo-update-id', updateId);
+    scope.setTag('expo-is-embedded-update', isEmbeddedLaunch);
+    scope.setTag('expo-ota-version', OTA_VERSION);
+    scope.setTag('expo-runtime-version', runtimeVersion);
+
+    if (typeof updateGroup === 'string') {
+      scope.setTag('expo-update-group-id', updateGroup);
+
+      const owner = extra?.expoClient?.owner ?? '[account]';
+      const slug = extra?.expoClient?.slug ?? '[project]';
+      scope.setTag(
+        'expo-update-debug-url',
+        `https://expo.dev/accounts/${owner}/projects/${slug}/updates/${updateGroup}`,
+      );
+    } else if (isEmbeddedLaunch) {
+      scope.setTag(
+        'expo-update-debug-url',
+        'not applicable for embedded updates',
+      );
+    }
+  } catch (error) {
+    console.warn('Failed to set EAS update context in Sentry:', error);
+  }
+}
+
 // Setup sentry remote error reporting
 export async function setupSentry(
   forceEnabled: boolean = false,
@@ -621,6 +673,9 @@ export async function setupSentry(
       // Use tracePropagationTargets from v5 SDK as default
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
     });
+
+    // Set EAS update context after Sentry initialization
+    setEASUpdateContext();
   };
   await init();
 }

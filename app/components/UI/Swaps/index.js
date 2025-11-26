@@ -27,6 +27,7 @@ import {
   safeNumberToBN,
 } from '../../../util/number';
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -45,10 +46,10 @@ import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import {
   setQuotesNavigationsParams,
-  isSwapsNativeAsset,
   isDynamicToken,
   shouldShowMaxBalanceLink,
 } from './utils';
+import { isSwapsNativeAsset } from '../../../util/bridge';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import useModalHandler from '../../Base/hooks/useModalHandler';
@@ -87,9 +88,9 @@ import {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
 import { selectNetworkImageSourceByChainId } from '../../../selectors/networkInfos';
 import ContextualNetworkPicker from '../ContextualNetworkPicker/ContextualNetworkPicker';
+import { useStablecoinsDefaultSlippage } from '../Bridge/hooks/useStablecoinsDefaultSlippage';
 import Routes from '../../../constants/navigation/Routes';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useChainRedirect } from './useChainRedirect';
@@ -189,7 +190,7 @@ const createStyles = (colors) =>
     },
   });
 
-const SWAPS_NATIVE_ADDRESS = swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
+const SWAPS_NATIVE_ADDRESS = NATIVE_SWAPS_TOKEN_ADDRESS;
 const TOKEN_MINIMUM_SOURCES = 1;
 const MAX_TOP_ASSETS = 20;
 

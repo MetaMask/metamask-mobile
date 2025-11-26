@@ -41,7 +41,7 @@ export function BridgeTimeRow() {
       label={strings('confirm.label.bridge_estimated_time')}
       rowVariant={InfoRowVariant.Small}
     >
-      <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {formattedSeconds}
       </Text>
     </InfoRow>

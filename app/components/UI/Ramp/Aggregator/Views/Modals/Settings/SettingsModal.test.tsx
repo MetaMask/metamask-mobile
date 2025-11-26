@@ -10,11 +10,23 @@ import {
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../../sdk';
+import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
-const mockGoToRamps = jest.fn();
+const mockGoToDeposit = jest.fn();
 const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -33,8 +45,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToRamps: mockGoToRamps })),
-  RampMode: { AGGREGATOR: 'AGGREGATOR', DEPOSIT: 'DEPOSIT' },
+  useRampNavigation: jest.fn(() => ({ goToDeposit: mockGoToDeposit })),
 }));
 
 const mockUseRampSDKValues: DeepPartial<RampSDK> = {
@@ -117,10 +128,7 @@ describe('SettingsModal', () => {
     fireEvent.press(newBuyExperienceButton);
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
-    expect(mockGoToRamps).toHaveBeenCalledWith({
-      mode: 'DEPOSIT',
-      overrideUnifiedBuyFlag: true,
-    });
+    expect(mockGoToDeposit).toHaveBeenCalled();
   });
 
   it('navigates back through parent navigation when deposit is pressed', () => {
@@ -179,6 +187,10 @@ describe('SettingsModal', () => {
         location: 'Buy Settings Modal',
         ramp_type: 'DEPOSIT',
         region: 'us',
+        ramp_routing: undefined,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
       });
     });
   });
