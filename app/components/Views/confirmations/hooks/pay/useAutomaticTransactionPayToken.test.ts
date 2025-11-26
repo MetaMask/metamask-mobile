@@ -51,13 +51,13 @@ const STATE_MOCK = merge(
 
 function runHook({
   disable = false,
-  preferredPaymentToken,
+  preferredToken,
 }: {
   disable?: boolean;
-  preferredPaymentToken?: SetPayTokenRequest;
+  preferredToken?: SetPayTokenRequest;
 } = {}) {
   return renderHookWithProvider(
-    () => useAutomaticTransactionPayToken({ disable, preferredPaymentToken }),
+    () => useAutomaticTransactionPayToken({ disable, preferredToken }),
     {
       state: STATE_MOCK,
     },
@@ -196,7 +196,7 @@ describe('useAutomaticTransactionPayToken', () => {
     ] as AssetType[]);
 
     runHook({
-      preferredPaymentToken: {
+      preferredToken: {
         address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
         chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
       },
@@ -223,7 +223,7 @@ describe('useAutomaticTransactionPayToken', () => {
     isHardwareAccountMock.mockReturnValue(true);
 
     runHook({
-      preferredPaymentToken: {
+      preferredToken: {
         address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
         chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
       },
@@ -239,7 +239,7 @@ describe('useAutomaticTransactionPayToken', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue([] as AssetType[]);
 
     runHook({
-      preferredPaymentToken: {
+      preferredToken: {
         address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
         chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
       },
@@ -264,7 +264,7 @@ describe('useAutomaticTransactionPayToken', () => {
     ] as AssetType[]);
 
     runHook({
-      preferredPaymentToken: {
+      preferredToken: {
         address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
         chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
       },
