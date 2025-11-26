@@ -9,6 +9,7 @@ import {
   IconColor,
   Text,
   TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks';
 import AnimatedSpinner, {
@@ -152,7 +153,7 @@ const AccountListFooter = memo(
           </View>
           <Text
             variant={TextVariant.BodyMd}
-            style={styles.buttonText}
+            color={TextColor.PrimaryDefault}
             testID={AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT}
           >
             {actionLabel}

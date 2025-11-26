@@ -133,7 +133,6 @@ const MultichainAccountsIntroModal = () => {
         <View style={styles.header}>
           <Text
             variant={TextVariant.BodyMd}
-            style={styles.title}
             testID={MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.TITLE}
           >
             {strings('multichain_accounts.intro.title')}

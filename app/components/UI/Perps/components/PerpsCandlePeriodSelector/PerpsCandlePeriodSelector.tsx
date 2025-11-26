@@ -1,6 +1,11 @@
 import React from 'react';
 import { Pressable } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { CandlePeriod, CANDLE_PERIODS } from '../../constants/chartConfig';
@@ -105,12 +110,11 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
       >
         <Text
           variant={TextVariant.BodySm}
-          style={[
-            styles.moreText,
+          color={
             isMorePeriodSelected
-              ? styles.moreTextSelected
-              : styles.moreTextUnselected,
-          ]}
+              ? TextColor.TextDefault
+              : TextColor.TextAlternative
+          }
         >
           {isMorePeriodSelected
             ? getCandlePeriodLabel(selectedPeriod)

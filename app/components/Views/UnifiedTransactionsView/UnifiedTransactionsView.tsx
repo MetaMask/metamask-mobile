@@ -4,7 +4,7 @@ import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { CHAIN_IDS, TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -573,7 +573,7 @@ const UnifiedTransactionsView = ({
     }
   }, []);
 
-  const listRef = useRef<FlashListRef<UnifiedItem>>(null);
+  const listRef = useRef<FlashList<UnifiedItem>>(null);
 
   const renderEmptyList = () => (
     <View style={styles.emptyList}>

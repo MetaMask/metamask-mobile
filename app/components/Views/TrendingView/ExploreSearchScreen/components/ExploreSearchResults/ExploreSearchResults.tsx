@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -50,7 +50,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const navigation = useNavigation();
   const tw = useTailwind();
   const { data, isLoading } = useExploreSearch(searchQuery);
-  const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
+  const flashListRef = useRef<FlashList<FlatListItem>>(null);
 
   const handlePressFooterLink = useCallback(
     (url: string) => {

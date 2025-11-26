@@ -60,16 +60,5 @@ export const styleSheet = (params: { theme: Theme }) => {
     moreButtonPressed: {
       opacity: 0.7,
     },
-    moreText: {
-      fontSize: 14,
-      ...fontStyles.normal,
-      marginRight: 4,
-    },
-    moreTextSelected: {
-      color: theme.colors.text.default,
-    },
-    moreTextUnselected: {
-      color: theme.colors.text.alternative,
-    },
   });
 };

@@ -2,7 +2,7 @@ import { Box, BoxBorderColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useRef, useEffect } from 'react';
 import { Dimensions } from 'react-native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
 import { useNavigation } from '@react-navigation/native';
 
@@ -22,7 +22,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
 }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const flashListRef = useRef<FlashListRef<unknown>>(null);
+  const flashListRef = useRef<FlashList<unknown>>(null);
 
   const section = SECTIONS_CONFIG[sectionId];
   const { data, isLoading, refetch } = section.useSectionData();

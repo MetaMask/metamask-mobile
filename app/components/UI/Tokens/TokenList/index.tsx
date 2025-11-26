@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef, useMemo } from 'react';
 import { RefreshControl } from 'react-native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -69,7 +69,7 @@ const TokenListComponent = ({
     ? TokenListItemBip44
     : TokenListItem;
 
-  const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
+  const listRef = useRef<FlashList<FlashListAssetKey>>(null);
 
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
