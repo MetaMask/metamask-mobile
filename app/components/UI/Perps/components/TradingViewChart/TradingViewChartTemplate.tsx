@@ -56,6 +56,22 @@ export const createTradingViewChartTemplate = (
         window.allCandleData = []; // Store all loaded data for zoom functionality
         window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
 
+        // Helper function to get date string in user's timezone (YYYY-MM-DD)
+        window.getDateString = function(date, userTimezone) {
+            const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
+            const month = date.toLocaleString('en-US', { month: '2-digit', timeZone: userTimezone });
+            const day = date.toLocaleString('en-US', { day: '2-digit', timeZone: userTimezone });
+            return year + '-' + month + '-' + day;
+        };
+        
+        // Helper function to check if a date is today in user's timezone
+        window.isToday = function(date, userTimezone) {
+            const now = new Date();
+            const todayString = window.getDateString(now, userTimezone);
+            const dateString = window.getDateString(date, userTimezone);
+            return todayString === dateString;
+        };
+
         // Cache for Intl.NumberFormat instances to avoid expensive recreation
         // Key: decimal count (e.g., "0", "2", "4"), Value: NumberFormat instance
         window.formatterCache = new Map();
@@ -200,25 +216,46 @@ export const createTradingViewChartTemplate = (
                                 timeZone: userTimezone
                             });
                         case 'DayOfMonth':
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
+                            // Always show day + month for DayOfMonth tick type (e.g., 1D candles)
+                            // Format: "17 Nov" (day before month)
+                            const day = date.toLocaleString('en-US', { 
                                 day: 'numeric',
                                 timeZone: userTimezone
                             });
+                            const month = date.toLocaleString('en-US', { 
+                                month: 'short',
+                                timeZone: userTimezone
+                            });
+                            return day + ' ' + month;
                         case 'Hour':
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
                         case 'Minute':
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
+                            // Show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "17 Nov 00:15"
+                                const day = date.toLocaleString('en-US', { 
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const month = date.toLocaleString('en-US', { 
+                                    month: 'short',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return day + ' ' + month + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         case 'Second':
                             return date.toLocaleString('en-US', { 
                                 hour: '2-digit', 
@@ -241,46 +278,95 @@ export const createTradingViewChartTemplate = (
                         const timeSpanHours = (visibleRange.to - visibleRange.from) / 3600;
 
                         if (timeSpanHours <= 24) {
-                            // Less than 24 hours: show time only
-                            return date.toLocaleString('en-US', { 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: userTimezone
-                            });
+                            // Less than 24 hours: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "17 Nov 00:15"
+                                const day = date.toLocaleString('en-US', { 
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const month = date.toLocaleString('en-US', { 
+                                    month: 'short',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return day + ' ' + month + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         } else if (timeSpanHours <= 24 * 7) {
-                            // Less than a week: show date only
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                timeZone: userTimezone
-                            });
-                        } else if (timeSpanHours <= 24 * 30) {
-                            // Less than a month: show date only
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                timeZone: userTimezone
-                            });
+                           // Less than a week: show date + time if not today, otherwise just time
+                            if (!window.isToday(date, userTimezone)) {
+                                // Format: "17 Nov 00:15"
+                                const day = date.toLocaleString('en-US', { 
+                                    day: 'numeric',
+                                    timeZone: userTimezone
+                                });
+                                const month = date.toLocaleString('en-US', { 
+                                    month: 'short',
+                                    timeZone: userTimezone
+                                });
+                                const timeStr = date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                                return day + ' ' + month + ' ' + timeStr;
+                            } else {
+                                // Show time only for today
+                                return date.toLocaleString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: false,
+                                    timeZone: userTimezone
+                                });
+                            }
                         } else {
-                            // More than a month: show month only
-                            return date.toLocaleString('en-US', { 
+                             // Longer ranges: always show day + month (e.g., "17 Nov")
+                            // This is especially important for 1D candles
+                            const day = date.toLocaleString('en-US', { 
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                            const month = date.toLocaleString('en-US', { 
                                 month: 'short',
                                 timeZone: userTimezone
                             });
+                            return day + ' ' + month;
                         }
                     }
                 }
                 
                 // Final fallback: show date and time
-                return date.toLocaleString('en-US', { 
-                    month: 'short',
+                // Format: "17 Nov 00:15"
+                const day = date.toLocaleString('en-US', { 
                     day: 'numeric',
+                    timeZone: userTimezone
+                });
+                const month = date.toLocaleString('en-US', { 
+                    month: 'short',
+                    timeZone: userTimezone
+                });
+                const timeStr = date.toLocaleString('en-US', { 
                     hour: '2-digit', 
                     minute: '2-digit',
                     hour12: false,
                     timeZone: userTimezone
                 });
+
+                return day + ' ' + month + ' ' + timeStr;
             }
         };
         

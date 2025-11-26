@@ -14,24 +14,23 @@ import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigatio
 import PredictMarketSkeleton from '../../../UI/Predict/components/PredictMarketSkeleton';
 import SectionCard from '../components/SectionCard/SectionCard';
 import SectionCarrousel from '../components/SectionCarrousel/SectionCarrousel';
-import { useTrendingRequest } from '../../../UI/Trending/hooks/useTrendingRequest';
-import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
-import {
-  PriceChangeOption,
-  SortDirection,
-} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { usePredictMarketData } from '../../../UI/Predict/hooks/usePredictMarketData';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
-import { useSearchRequest } from '../../../UI/Trending/hooks/useSearchRequest';
-import { IconName } from '@metamask/design-system-react-native';
+import { Box, IconName } from '@metamask/design-system-react-native';
+import type { SiteData } from '../SectionSites/SiteRowItem/SiteRowItem';
+import SiteRowItemWrapper from '../SectionSites/SiteRowItemWrapper';
+import SiteSkeleton from '../SectionSites/SiteSkeleton/SiteSkeleton';
+import { useSitesData } from '../SectionSites/hooks/useSitesData';
+import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 
-export type SectionId = 'predictions' | 'tokens' | 'perps';
+export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
 interface SectionData {
   data: unknown[];
   isLoading: boolean;
+  refetch?: () => void;
 }
 
 interface SectionConfig {
@@ -46,10 +45,11 @@ interface SectionConfig {
   Skeleton: React.ComponentType;
   getSearchableText: (item: unknown) => string;
   keyExtractor: (item: unknown) => string;
-  Section: React.ComponentType;
+  Section: React.ComponentType<{ refreshTrigger?: number }>;
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
+    refetch: () => void;
   };
 }
 
@@ -84,59 +84,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     getSearchableText: (item) =>
       `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
     keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
-    Section: () => <SectionCard sectionId="tokens" />,
-    useSectionData: (searchQuery?: string) => {
-      // Trending will return tokens that have just been created which wont be picked up by search API
-      // so if you see a token on trending and search on omnisearch which uses the search endpoint...
-      // There is a chance you will get 0 results
-      const { results: searchResults, isLoading: isSearchLoading } =
-        useSearchRequest({
-          query: searchQuery || '',
-          limit: 20,
-          chainIds: [],
-        });
-
-      const { results: trendingResults, isLoading: isTrendingLoading } =
-        useTrendingRequest({});
-
-      if (!searchQuery) {
-        const sortedResults = sortTrendingTokens(
-          trendingResults,
-          PriceChangeOption.PriceChange,
-          SortDirection.Descending,
-        );
-        return {
-          data: sortedResults,
-          isLoading: isTrendingLoading,
-        };
-      }
-
-      const resultMap = new Map(
-        trendingResults.map((result) => [result.assetId, result]),
-      );
-
-      searchResults.forEach((asset) => {
-        if (!resultMap.has(asset.assetId)) {
-          const formattedAsset: TrendingAsset = {
-            assetId: asset.assetId,
-            symbol: asset.symbol,
-            name: asset.name,
-            decimals: asset.decimals,
-            price: asset.price,
-            aggregatedUsdVolume: asset.totalVolume,
-            marketCap: asset.marketCap,
-            priceChangePct: {
-              h24: asset.pricePercentChange1d,
-            },
-          };
-          resultMap.set(asset.assetId, formattedAsset);
-        }
-      });
-
-      return {
-        data: Array.from(resultMap.values()),
-        isLoading: isSearchLoading,
-      };
+    Section: ({ refreshTrigger }) => (
+      <SectionCard sectionId="tokens" refreshTrigger={refreshTrigger} />
+    ),
+    useSectionData: (searchQuery) => {
+      const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
+      return { data, isLoading, refetch };
     },
   },
   perps: {
@@ -170,17 +123,21 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     getSearchableText: (item) =>
       `${(item as PerpsMarketData).symbol} ${(item as PerpsMarketData).name || ''}`.toLowerCase(),
     keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
-    Section: () => (
+    Section: ({ refreshTrigger }) => (
       <PerpsConnectionProvider>
         <PerpsStreamProvider>
-          <SectionCard sectionId="perps" />
+          <SectionCard sectionId="perps" refreshTrigger={refreshTrigger} />
         </PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
     useSectionData: () => {
-      const { markets, isLoading } = usePerpsMarkets();
+      const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
 
-      return { data: markets, isLoading };
+      return {
+        data: markets,
+        isLoading: isLoading || isRefreshing,
+        refetch: refresh,
+      };
     },
   },
   predictions: {
@@ -193,21 +150,50 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       });
     },
     RowItem: ({ item }) => (
-      <PredictMarket market={item as PredictMarketType} isCarousel />
+      <Box twClassName="py-2">
+        <PredictMarket market={item as PredictMarketType} isCarousel />
+      </Box>
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
     getSearchableText: (item) =>
       (item as PredictMarketType).title.toLowerCase(),
     keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
-    Section: () => <SectionCarrousel sectionId="predictions" />,
-    useSectionData: (searchQuery?: string) => {
-      const { marketData, isFetching } = usePredictMarketData({
+    Section: ({ refreshTrigger }) => (
+      <SectionCarrousel
+        sectionId="predictions"
+        refreshTrigger={refreshTrigger}
+      />
+    ),
+    useSectionData: (searchQuery) => {
+      const { marketData, isFetching, refetch } = usePredictMarketData({
         category: 'trending',
         pageSize: searchQuery ? 20 : 6,
         q: searchQuery || undefined,
       });
 
-      return { data: marketData, isLoading: isFetching };
+      return { data: marketData, isLoading: isFetching, refetch };
+    },
+  },
+  sites: {
+    id: 'sites',
+    title: strings('trending.sites'),
+    icon: IconName.Global,
+    viewAllAction: (navigation) => {
+      navigation.navigate(Routes.SITES_LIST_VIEW);
+    },
+    RowItem: ({ item, navigation }) => (
+      <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
+    ),
+    Skeleton: () => <SiteSkeleton />,
+    getSearchableText: (item) =>
+      `${(item as SiteData).name} ${(item as SiteData).displayUrl}`.toLowerCase(),
+    keyExtractor: (item) => `site-${(item as SiteData).id}`,
+    Section: ({ refreshTrigger }) => (
+      <SectionCard sectionId="sites" refreshTrigger={refreshTrigger} />
+    ),
+    useSectionData: () => {
+      const { sites, isLoading, refetch } = useSitesData({ limit: 100 });
+      return { data: sites, isLoading, refetch };
     },
   },
 };
@@ -217,6 +203,7 @@ export const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.sites,
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
@@ -224,6 +211,7 @@ export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
+  SECTIONS_CONFIG.sites,
 ];
 
 /**
@@ -239,10 +227,15 @@ export const useSectionsData = (
 ): Record<SectionId, SectionData> => {
   const { data: trendingTokens, isLoading: isTokensLoading } =
     SECTIONS_CONFIG.tokens.useSectionData(searchQuery);
+
   const { data: perpsMarkets, isLoading: isPerpsLoading } =
-    SECTIONS_CONFIG.perps.useSectionData();
+    SECTIONS_CONFIG.perps.useSectionData(searchQuery);
+
   const { data: predictionMarkets, isLoading: isPredictionsLoading } =
     SECTIONS_CONFIG.predictions.useSectionData(searchQuery);
+
+  const { data: sites, isLoading: isSitesLoading } =
+    SECTIONS_CONFIG.sites.useSectionData(searchQuery);
 
   return {
     tokens: {
@@ -256,6 +249,10 @@ export const useSectionsData = (
     predictions: {
       data: predictionMarkets,
       isLoading: isPredictionsLoading,
+    },
+    sites: {
+      data: sites,
+      isLoading: isSitesLoading,
     },
   };
 };

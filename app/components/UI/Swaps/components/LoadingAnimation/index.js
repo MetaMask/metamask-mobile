@@ -18,7 +18,7 @@ import Text from '../../../../Base/Text';
 import Title from '../../../../Base/Title';
 import { useTheme } from '../../../../../util/theme';
 import foxImage from '../../../../../images/branding/fox.png';
-import ShapesBackgroundAnimation from './ShapesBackgroundAnimation';
+import ShapesBackgroundAnimation from '../../../Ramp/Aggregator/components/ShapesBackgroundAnimation';
 
 const ANIM_MULTIPLIER = 0.67;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;

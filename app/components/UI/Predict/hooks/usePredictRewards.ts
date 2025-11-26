@@ -22,11 +22,13 @@ import {
 } from '../providers/polymarket/constants';
 import { parseUnits } from 'ethers/lib/utils';
 import Logger from '../../../../util/Logger';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface UsePredictRewardsResult {
   enabled: boolean;
   isLoading: boolean;
   accountOptedIn: boolean | null;
+  rewardsAccountScope: InternalAccount | null;
   shouldShowRewardsRow: boolean;
   estimatedPoints: number | null;
   hasError: boolean;
@@ -104,12 +106,12 @@ export const usePredictRewards = (
     setHasError(false);
 
     try {
-      // Check if rewards feature is enabled
-      const isRewardsEnabled = await Engine.controllerMessenger.call(
-        'RewardsController:isRewardsFeatureEnabled',
+      // Check if there is an active season
+      const hasActiveSeason = await Engine.controllerMessenger.call(
+        'RewardsController:hasActiveSeason',
       );
 
-      if (!isRewardsEnabled) {
+      if (!hasActiveSeason) {
         setEstimatedPoints(null);
         setEnabled(false);
         setShouldShowRewardsRow(false);
@@ -119,11 +121,11 @@ export const usePredictRewards = (
       }
 
       // Check if there's a subscription first
-      const firstSubscriptionId = await Engine.controllerMessenger.call(
-        'RewardsController:getFirstSubscriptionId',
+      const candidateSubscriptionId = await Engine.controllerMessenger.call(
+        'RewardsController:getCandidateSubscriptionId',
       );
 
-      if (!firstSubscriptionId) {
+      if (!candidateSubscriptionId) {
         setEstimatedPoints(null);
         setEnabled(false);
         setShouldShowRewardsRow(false);
@@ -261,6 +263,7 @@ export const usePredictRewards = (
     enabled,
     isLoading,
     accountOptedIn,
+    rewardsAccountScope: selectedAccount ?? null,
     shouldShowRewardsRow,
     estimatedPoints,
     hasError,

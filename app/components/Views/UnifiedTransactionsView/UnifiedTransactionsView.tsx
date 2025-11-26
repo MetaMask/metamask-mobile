@@ -235,7 +235,7 @@ const UnifiedTransactionsView = ({
     let allConfirmedFiltered: TransactionMetaWithImport[] = [];
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       allConfirmedFiltered = allConfirmed.filter((tx) =>
-        isTransactionOnChains(tx, enabledEVMChainIds, allConfirmed),
+        isTransactionOnChains(tx, enabledEVMChainIds, transactionMetaPool),
       );
     } else if (isPopularNetwork) {
       const popularChainIds: Hex[] = [
@@ -244,14 +244,14 @@ const UnifiedTransactionsView = ({
         ...PopularList.map((n) => n.chainId as Hex),
       ];
       allConfirmedFiltered = allConfirmed.filter((tx) =>
-        isTransactionOnChains(tx, popularChainIds, allConfirmed),
+        isTransactionOnChains(tx, popularChainIds, transactionMetaPool),
       );
     } else {
       allConfirmedFiltered = allConfirmed.filter((tx) =>
         isTransactionOnChains(
           tx,
           currentEvmChainId ? [currentEvmChainId as Hex] : [],
-          allConfirmed,
+          transactionMetaPool,
         ),
       );
     }

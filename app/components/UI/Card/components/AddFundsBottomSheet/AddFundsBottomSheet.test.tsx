@@ -12,6 +12,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 
 // Mock hooks first - must be hoisted before imports
 const mockUseParams = jest.fn();
@@ -87,6 +88,17 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (params?: any) => [stackId, { screen: screenName, params }],
   ),
+}));
+
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
+
+jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -229,6 +241,18 @@ describe('AddFundsBottomSheet', () => {
     );
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Deposit',
+        location: 'CardHome',
+        chain_id_destination: '59144',
+        ramp_type: 'DEPOSIT',
+        ramp_routing: undefined,
+        is_authenticated: false,
+        preferred_provider: undefined,
+        order_count: 0,
+      }),
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith({
