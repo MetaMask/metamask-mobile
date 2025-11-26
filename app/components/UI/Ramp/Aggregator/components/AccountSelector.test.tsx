@@ -140,7 +140,7 @@ describe('AccountSelector', () => {
         screen: 'AccountSelector',
         params: expect.objectContaining({
           isEvmOnly: true,
-          showAddAccountButton: false,
+          disableAddAccountButton: true,
         }),
       }),
     );
@@ -158,7 +158,7 @@ describe('AccountSelector', () => {
         screen: 'AccountSelector',
         params: expect.objectContaining({
           isEvmOnly: false,
-          showAddAccountButton: false,
+          disableAddAccountButton: true,
         }),
       }),
     );
@@ -176,7 +176,7 @@ describe('AccountSelector', () => {
         screen: 'AccountSelector',
         params: expect.objectContaining({
           isEvmOnly: undefined,
-          showAddAccountButton: false,
+          disableAddAccountButton: true,
         }),
       }),
     );
@@ -195,7 +195,7 @@ describe('AccountSelector', () => {
         screen: 'AccountSelector',
         params: {
           isEvmOnly: undefined,
-          showAddAccountButton: false,
+          disableAddAccountButton: true,
         },
       },
     ];
