@@ -22,4 +22,4 @@ jobs:
     with:
       pr-number: ${{ github.event.issue.number }}
     secrets:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
+      github-token: ${{ secrets.METAMASK_MOBILE_BRANCH_SYNC_TOKEN }}
