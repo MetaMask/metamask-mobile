@@ -1,6 +1,6 @@
 import React from 'react';
 import { Share } from 'react-native';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import PredictShareButton from './PredictShareButton';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
@@ -54,6 +54,7 @@ describe('PredictShareButton', () => {
     });
 
     it('sets accessibility role and label for screen readers', () => {
+      const { strings } = jest.requireMock('../../../../../../locales/i18n');
       renderShareButton('market-123');
 
       const button = screen.getByTestId(
@@ -62,6 +63,7 @@ describe('PredictShareButton', () => {
 
       expect(button.props.accessibilityRole).toBe('button');
       expect(button.props.accessible).toBe(true);
+      expect(strings).toHaveBeenCalledWith('predict.buttons.share');
     });
   });
 
@@ -75,16 +77,17 @@ describe('PredictShareButton', () => {
       const button = screen.getByTestId(
         PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
       );
-      fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalledWith(
-          expect.objectContaining({
-            url: 'https://link.metamask.io/predict?market=market-123&utm_source=user_shared',
-          }),
-          {},
-        );
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
+      expect(Share.share).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: 'https://link.metamask.io/predict?market=market-123&utm_source=user_shared',
+        }),
+        {},
+      );
     });
 
     it('generates URL with empty marketId when prop is undefined', async () => {
@@ -96,16 +99,17 @@ describe('PredictShareButton', () => {
       const button = screen.getByTestId(
         PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
       );
-      fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalledWith(
-          expect.objectContaining({
-            url: 'https://link.metamask.io/predict?market=&utm_source=user_shared',
-          }),
-          {},
-        );
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
+      expect(Share.share).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: 'https://link.metamask.io/predict?market=&utm_source=user_shared',
+        }),
+        {},
+      );
     });
 
     it('passes message containing the share URL', async () => {
@@ -117,18 +121,19 @@ describe('PredictShareButton', () => {
       const button = screen.getByTestId(
         PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
       );
-      fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: expect.stringContaining(
-              'https://link.metamask.io/predict?market=market-456&utm_source=user_shared',
-            ),
-          }),
-          {},
-        );
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
+      expect(Share.share).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'https://link.metamask.io/predict?market=market-456&utm_source=user_shared',
+          ),
+        }),
+        {},
+      );
     });
   });
 
@@ -143,21 +148,22 @@ describe('PredictShareButton', () => {
       const button = screen.getByTestId(
         PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
       );
-      fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            variant: 'Icon',
-            hasNoTimeout: false,
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                isBold: true,
-              }),
-            ]),
-          }),
-        );
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          hasNoTimeout: false,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              isBold: true,
+            }),
+          ]),
+        }),
+      );
     });
 
     it('does not display toast for other share actions', async () => {
@@ -170,11 +176,12 @@ describe('PredictShareButton', () => {
       const button = screen.getByTestId(
         PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
       );
-      fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalled();
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
+      expect(Share.share).toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
@@ -189,11 +196,12 @@ describe('PredictShareButton', () => {
       const button = screen.getByTestId(
         PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
       );
-      fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalled();
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
+      expect(Share.share).toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
@@ -207,12 +215,13 @@ describe('PredictShareButton', () => {
       const button = screen.getByTestId(
         PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
       );
-      fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalled();
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
       // No toast for non-clipboard share actions
+      expect(Share.share).toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
@@ -227,11 +236,11 @@ describe('PredictShareButton', () => {
       );
 
       // Pressing button should not throw
-      expect(() => fireEvent.press(button)).not.toThrow();
-
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalled();
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
+      expect(Share.share).toHaveBeenCalled();
     });
 
     it('does not display error toast when sharing fails', async () => {
@@ -241,11 +250,12 @@ describe('PredictShareButton', () => {
       const button = screen.getByTestId(
         PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
       );
-      fireEvent.press(button);
 
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalled();
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
+      expect(Share.share).toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
@@ -276,11 +286,11 @@ describe('PredictShareButton', () => {
       );
 
       // Should not throw even when toastRef.current is null
-      expect(() => fireEvent.press(button)).not.toThrow();
-
-      await waitFor(() => {
-        expect(Share.share).toHaveBeenCalled();
+      await act(async () => {
+        await fireEvent.press(button);
       });
+
+      expect(Share.share).toHaveBeenCalled();
     });
   });
 });
