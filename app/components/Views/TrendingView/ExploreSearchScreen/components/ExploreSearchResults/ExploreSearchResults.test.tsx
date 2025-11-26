@@ -2,6 +2,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ExploreSearchResults from './ExploreSearchResults';
 import { useExploreSearch } from './config/useExploreSearch';
+import { useSelector } from 'react-redux';
+import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
 
 const mockNavigate = jest.fn();
 
@@ -12,10 +14,16 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('./config/useExploreSearch');
 const mockUseExploreSearch = useExploreSearch as jest.MockedFunction<
   typeof useExploreSearch
 >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock child components that render individual items
 jest.mock(
@@ -36,6 +44,14 @@ jest.mock(
 describe('ExploreSearchResults', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock selectBasicFunctionalityEnabled to return true by default
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectBasicFunctionalityEnabled) {
+        return true;
+      }
+      return undefined;
+    });
   });
 
   it('renders list when data is available', () => {

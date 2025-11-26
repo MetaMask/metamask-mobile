@@ -37,7 +37,9 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { useSelector } from 'react-redux';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -142,6 +144,10 @@ describe('TrendingView', () => {
       if (selector === selectMultichainAccountsState2Enabled) {
         // Return false to use default networks behavior
         return false;
+      }
+      if (selector === selectBasicFunctionalityEnabled) {
+        // Return true by default (enabled)
+        return true;
       }
       // Handle selectSelectedInternalAccountByScope which is a selector factory
       // It returns a function that takes a scope and returns an account
@@ -587,5 +593,53 @@ describe('TrendingView', () => {
     fireEvent.press(searchButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
+  });
+
+  describe('basic functionality toggle', () => {
+    it('displays empty state when basic functionality is disabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBasicFunctionalityEnabled) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByText } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      expect(getByText('Explore is not available')).toBeDefined();
+      expect(
+        getByText(
+          "We can't fetch the required metadata when basic functionality is disabled.",
+        ),
+      ).toBeDefined();
+      expect(getByText('Enable basic functionality')).toBeDefined();
+    });
+
+    it('navigates to bottom sheet when enable button is pressed', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBasicFunctionalityEnabled) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByText } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      const enableButton = getByText('Enable basic functionality');
+
+      fireEvent.press(enableButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+      });
+    });
   });
 });
