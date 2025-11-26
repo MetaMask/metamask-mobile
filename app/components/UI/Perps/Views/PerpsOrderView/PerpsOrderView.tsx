@@ -100,6 +100,7 @@ import {
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import {
   formatPerpsFiat,
@@ -204,6 +205,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
     handleMaxAmount,
     maxPossibleAmount,
   } = usePerpsOrderContext();
+
+  // Save pending trade config when user navigates away
+  usePerpsSavePendingConfig(orderForm);
 
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage
