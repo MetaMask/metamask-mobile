@@ -13,6 +13,8 @@ export * from '../../types/navigation';
 
 // Import adapter types
 import type { RawHyperLiquidLedgerUpdate } from '../../utils/hyperLiquidAdapter';
+import type { CandleData } from '../../types/perps-types';
+import type { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 
 // User history item for deposits and withdrawals
 export interface UserHistoryItem {
@@ -63,22 +65,23 @@ export type InputMethod =
   | 'max';
 
 // Unified tracking data interface for analytics events (never persisted in state)
+// Note: Numeric values are already parsed by hooks (usePerpsOrderFees, etc.) from API responses
 export interface TrackingData {
   // Common to all operations
-  totalFee: number; // Total fee for the operation
-  marketPrice: number; // Market price at operation time
-  metamaskFee?: number; // MetaMask fee amount
-  metamaskFeeRate?: number; // MetaMask fee rate
-  feeDiscountPercentage?: number; // Fee discount percentage
-  estimatedPoints?: number; // Estimated reward points
+  totalFee: number; // Total fee for the operation (parsed by hooks)
+  marketPrice: number; // Market price at operation time (parsed by hooks)
+  metamaskFee?: number; // MetaMask fee amount (parsed by hooks)
+  metamaskFeeRate?: number; // MetaMask fee rate (parsed by hooks)
+  feeDiscountPercentage?: number; // Fee discount percentage (parsed by hooks)
+  estimatedPoints?: number; // Estimated reward points (parsed by hooks)
 
   // Order-specific (used for trade operations)
-  marginUsed?: number; // Margin required for this order
+  marginUsed?: number; // Margin required for this order (calculated by hooks)
   inputMethod?: InputMethod; // How user set the amount
 
   // Close-specific (used for position close operations)
-  receivedAmount?: number; // Amount user receives after close
-  realizedPnl?: number; // Realized P&L from close
+  receivedAmount?: number; // Amount user receives after close (calculated by hooks)
+  realizedPnl?: number; // Realized P&L from close (calculated by hooks)
 }
 
 // TP/SL-specific tracking data for analytics events
@@ -611,6 +614,14 @@ export interface SubscribeOICapsParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
 
+export interface SubscribeCandlesParams {
+  coin: string;
+  interval: CandlePeriod;
+  duration?: TimeDuration;
+  callback: (data: CandleData) => void;
+  onError?: (error: Error) => void;
+}
+
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -798,6 +809,7 @@ export interface IPerpsProvider {
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
   subscribeToAccount(params: SubscribeAccountParams): () => void;
   subscribeToOICaps(params: SubscribeOICapsParams): () => void;
+  subscribeToCandles(params: SubscribeCandlesParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

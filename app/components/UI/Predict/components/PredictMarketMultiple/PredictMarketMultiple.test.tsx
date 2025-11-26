@@ -119,27 +119,27 @@ describe('PredictMarketMultiple', () => {
 
     // Press the "Yes" button
     fireEvent.press(buttons[0]);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[0],
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
-    );
+    });
 
     // Press the "No" button
     fireEvent.press(buttons[1]);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: {
         market: mockMarket,
         outcome: mockMarket.outcomes[0],
         outcomeToken: mockMarket.outcomes[0].tokens[1],
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       },
-    );
+    });
   });
 
   it('handle missing or invalid market data gracefully', () => {
@@ -296,11 +296,14 @@ describe('PredictMarketMultiple', () => {
     );
     fireEvent.press(marketTitle);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_DETAILS, {
-      marketId: mockMarket.id,
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      title: mockMarket.title,
-      image: mockMarket.image,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: mockMarket.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        title: mockMarket.title,
+        image: mockMarket.image,
+      },
     });
   });
 

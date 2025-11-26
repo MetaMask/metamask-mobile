@@ -50,6 +50,7 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -160,6 +161,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
     [styles.fixedBottomContainer, insets.bottom],
   );
 
+  // Deferred loading: Load non-critical data after UI renders
+  const [isDataReady, setIsDataReady] = useState(false);
+  useEffect(() => {
+    // Defer data loading to next frame for faster initial render
+    requestAnimationFrame(() => {
+      setIsDataReady(true);
+    });
+  }, []);
+
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
@@ -216,9 +226,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
    * updating leverage after positions load to prevent protocol violations.
    */
 
-  // Market data hook with automatic error toast handling
+  // Market data hook with automatic error toast handling (deferred)
   const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
-    asset: orderForm.asset,
+    asset: isDataReady ? orderForm.asset : '', // Defer until UI renders
     showErrorToast: true,
   });
 
@@ -274,23 +284,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
     },
   });
 
-  // Get real-time price data using new stream architecture
+  // Get real-time price data using new stream architecture (deferred)
   // Uses single WebSocket subscription with component-level debouncing
   const prices = usePerpsLivePrices({
-    symbols: [orderForm.asset],
+    symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
     throttleMs: 1000,
   });
   const currentPrice = prices[orderForm.asset];
 
-  // Get top of book data for maker/taker fee determination
+  // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
-    symbol: orderForm.asset,
+    symbol: isDataReady ? orderForm.asset : '', // Defer subscription
   });
 
-  // Track screen load with unified hook
+  // Track screen load with unified hook (measure data loading, not initial render)
   usePerpsMeasurement({
     traceName: TraceName.PerpsOrderView,
-    conditions: [!!currentPrice, !!account],
+    conditions: [isDataReady, !!currentPrice, !!account],
   });
 
   const assetData = useMemo(() => {
@@ -349,7 +359,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
       [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
-      [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
+      [PerpsEventProperties.LEVERAGE_USED]: parseFloat(
+        String(orderForm.leverage),
+      ),
       [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
     },
   });
@@ -770,20 +782,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
         // Add tracking data for MetaMetrics events
         trackingData: {
           marginUsed: Number(marginRequired),
-          totalFee: Number(feeResults.totalFee),
-          marketPrice: Number(currentPrice?.price || assetData.price),
-          metamaskFee: feeResults.metamaskFee
-            ? Number(feeResults.metamaskFee)
-            : undefined,
-          metamaskFeeRate: feeResults.metamaskFeeRate
-            ? Number(feeResults.metamaskFeeRate)
-            : undefined,
-          feeDiscountPercentage: feeResults.feeDiscountPercentage
-            ? Number(feeResults.feeDiscountPercentage)
-            : undefined,
-          estimatedPoints: feeResults.estimatedPoints
-            ? Number(feeResults.estimatedPoints)
-            : undefined,
+          totalFee: feeResults.totalFee,
+          marketPrice: assetData.price,
+          metamaskFee: feeResults.metamaskFee,
+          metamaskFeeRate: feeResults.metamaskFeeRate,
+          feeDiscountPercentage: feeResults.feeDiscountPercentage,
+          estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
         },
       };
@@ -841,7 +845,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
-    currentPrice?.price,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -1157,7 +1160,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
-            rewardsState.estimatedPoints !== undefined && (
+            rewardsState.estimatedPoints !== undefined &&
+            (rewardsState.accountOptedIn ||
+              (rewardsState.accountOptedIn === false &&
+                rewardsState.account !== undefined)) && (
               <View style={styles.infoRow}>
                 <View style={styles.detailLeft}>
                   <Text
@@ -1178,18 +1184,24 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </TouchableOpacity>
                 </View>
                 <View style={styles.pointsRightContainer}>
-                  <RewardsAnimations
-                    value={rewardsState.estimatedPoints ?? 0}
-                    bonusBips={rewardsState.bonusBips}
-                    shouldShow={rewardsState.shouldShowRewardsRow}
-                    infoOnPress={() =>
-                      openTooltipModal(
-                        strings('perps.points_error'),
-                        strings('perps.points_error_content'),
-                      )
-                    }
-                    state={rewardAnimationState}
-                  />
+                  {rewardsState.accountOptedIn ? (
+                    <RewardsAnimations
+                      value={rewardsState.estimatedPoints ?? 0}
+                      bonusBips={rewardsState.bonusBips}
+                      shouldShow={rewardsState.shouldShowRewardsRow}
+                      infoOnPress={() =>
+                        openTooltipModal(
+                          strings('perps.points_error'),
+                          strings('perps.points_error_content'),
+                        )
+                      }
+                      state={rewardAnimationState}
+                    />
+                  ) : (
+                    <AddRewardsAccount
+                      account={rewardsState.account ?? undefined}
+                    />
+                  )}
                 </View>
               </View>
             )}

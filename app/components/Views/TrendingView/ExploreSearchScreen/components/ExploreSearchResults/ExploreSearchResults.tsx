@@ -1,26 +1,17 @@
-import React, { useMemo, useCallback } from 'react';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  BoxAlignItems,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../locales/i18n';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   SECTIONS_CONFIG,
   SECTIONS_ARRAY,
   type SectionId,
 } from '../../../config/sections.config';
 import { useExploreSearch } from './config/useExploreSearch';
-import { StyleSheet } from 'react-native';
-
-const styles = StyleSheet.create({
-  contentContainer: {
-    paddingHorizontal: 16,
-  },
-});
+import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
+import SitesSearchFooter from '../../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useSelector } from 'react-redux';
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
@@ -49,12 +40,17 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
 }) => {
   const navigation = useNavigation();
+  const tw = useTailwind();
   const { data, isLoading } = useExploreSearch(searchQuery);
+  const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
 
   const renderSectionHeader = useCallback(
     (title: string) => (
       <Box twClassName="py-2 bg-default">
-        <Text variant={TextVariant.HeadingSm} twClassName="text-muted">
+        <Text variant={TextVariant.HeadingSm} twClassName="text-alternative">
           {title}
         </Text>
       </Box>
@@ -66,7 +62,10 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const flatData = useMemo(() => {
     const result: FlatListItem[] = [];
 
-    SECTIONS_ARRAY.forEach((section) => {
+    // Filter sections based on basic functionality toggle
+    const sectionsToShow = isBasicFunctionalityEnabled ? SECTIONS_ARRAY : [];
+
+    sectionsToShow.forEach((section) => {
       const items = data[section.id];
       const sectionIsLoading = isLoading[section.id];
 
@@ -101,7 +100,23 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     });
 
     return result;
-  }, [data, isLoading]);
+  }, [data, isLoading, isBasicFunctionalityEnabled]);
+
+  // Scroll to top when search query changes
+  useEffect(() => {
+    if (flatData.length > 0) {
+      flashListRef.current?.scrollToIndex({
+        index: 0,
+        animated: false,
+      });
+    }
+  }, [searchQuery, flatData.length]);
+
+  const renderFooter = useMemo(() => {
+    if (searchQuery.length === 0) return null;
+
+    return <SitesSearchFooter searchQuery={searchQuery} />;
+  }, [searchQuery]);
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item }) => {
@@ -113,11 +128,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       if (!section) return null;
 
       if (item.type === 'skeleton') {
-        return section.renderSkeleton();
+        return <section.Skeleton />;
       }
 
       // Cast navigation to 'never' to satisfy different navigation param list types
-      return section.renderRowItem(item.data, navigation);
+      return <section.RowItem item={item.data} navigation={navigation} />;
     },
     [navigation, renderSectionHeader],
   );
@@ -131,33 +146,17 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     return section ? section.keyExtractor(item.data) : `item-${index}`;
   }, []);
 
-  if (flatData.length === 0) {
-    return (
-      <Box
-        twClassName="flex-1 items-center justify-center px-5 py-10"
-        alignItems={BoxAlignItems.Center}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-muted text-center"
-          testID="trending-search-no-results"
-        >
-          {strings('trending.no_results')}
-        </Text>
-      </Box>
-    );
-  }
-
   return (
     <Box twClassName="flex-1 bg-default">
       <FlashList
+        ref={flashListRef}
         data={flatData}
         renderItem={renderFlatItem}
         keyExtractor={keyExtractor}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={tw.style('px-4')}
         showsVerticalScrollIndicator={false}
-        removeClippedSubviews
         testID="trending-search-results-list"
+        ListFooterComponent={renderFooter}
       />
     </Box>
   );

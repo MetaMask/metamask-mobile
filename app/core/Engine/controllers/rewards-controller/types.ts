@@ -133,6 +133,17 @@ export interface EstimatePerpsContextDto {
   coin: string;
 }
 
+export interface EstimatePredictContextDto {
+  /**
+   * Fee asset information, in caip19 format
+   * @example {
+   *   id: 'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+   *   amount: '1000000'
+   * }
+   */
+  feeAsset: EstimateAssetDto;
+}
+
 export interface EstimatePointsContextDto {
   /**
    * Swap context data, must be present for SWAP activity
@@ -147,6 +158,11 @@ export interface EstimatePointsContextDto {
    * @example Batch positions: [{ type: 'CLOSE_POSITION', coin: 'USDC', usdFeeValue: '1.00' }, ...]
    */
   perpsContext?: EstimatePerpsContextDto | EstimatePerpsContextDto[];
+
+  /**
+   * Predict context data, must be present for PREDICT activity
+   */
+  predictContext?: EstimatePredictContextDto;
 }
 
 /**
@@ -156,6 +172,7 @@ export interface EstimatePointsContextDto {
 export type PointsEventEarnType =
   | 'SWAP'
   | 'PERPS'
+  | 'PREDICT'
   | 'REFERRAL'
   | 'SIGN_UP_BONUS'
   | 'LOYALTY_BONUS'
@@ -831,6 +848,14 @@ export interface RewardsControllerIsRewardsFeatureEnabledAction {
 }
 
 /**
+ * Action for checking if there is an active season
+ */
+export interface RewardsControllerHasActiveSeasonAction {
+  type: 'RewardsController:hasActiveSeason';
+  handler: () => Promise<boolean>;
+}
+
+/**
  * Action for getting season metadata with caching
  */
 export interface RewardsControllerGetSeasonMetadataAction {
@@ -992,6 +1017,7 @@ export type RewardsControllerActions =
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
   | RewardsControllerIsRewardsFeatureEnabledAction
+  | RewardsControllerHasActiveSeasonAction
   | RewardsControllerGetSeasonMetadataAction
   | RewardsControllerGetSeasonStatusAction
   | RewardsControllerGetReferralDetailsAction

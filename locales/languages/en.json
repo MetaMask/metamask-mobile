@@ -83,15 +83,19 @@
       "message": "Insufficient funds"
     },
     "insufficient_pay_token_balance_fees": {
-      "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
+      "message": "Add less than {{amount}} or use a different token.",
       "title": "Insufficient funds"
+    },
+    "insufficient_pay_token_balance_fees_no_target": {
+      "message": "Add less or use a different token."
     },
     "insufficient_pay_token_native": {
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
       "title": "Insufficient funds"
     },
     "no_pay_token_quotes": {
-      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
+      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+      "title": "No quotes"
     },
     "perps_hardware_account": {
       "title": "Wallet not supported",
@@ -544,7 +548,7 @@
     "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards",
-    "trending": "Trending"
+    "trending": "Explore"
   },
   "drawer": {
     "send_button": "Send",
@@ -628,7 +632,7 @@
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms.",
-      "title": "Deposit",
+      "title": "Buy",
       "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
       "limitError": "Failed to check your deposit limits. Please try again later."
     },
@@ -638,7 +642,8 @@
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\"",
       "unsupported_token_title": "Not available",
-      "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers"
+      "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers",
+      "error_loading_tokens": "Unable to load tokens. Please try again later."
     },
     "networks_filter_bar": {
       "all_networks": "All networks"
@@ -935,6 +940,9 @@
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
     "add_funds": "Add funds",
+    "trade_perps": "Trade perps",
+    "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
+    "available": "available to trade",
     "deposit_in_progress": "Deposit in progress",
     "withdraw_in_progress": "Withdraw in progress",
     "multiple_transactions_in_progress": "Transactions in progress",
@@ -1421,6 +1429,8 @@
       "position": "Position",
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
+      "recent_trades": "Recent activity",
+      "no_trades": "No recent activity",
       "trading_24_7": "This asset may be traded 24/7",
       "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
@@ -1552,6 +1562,13 @@
         "minutes": "Minutes",
         "hours": "Hours",
         "days": "Days"
+      },
+      "ohlc": {
+        "open": "Open",
+        "high": "High",
+        "low": "Low",
+        "close": "Close",
+        "volume": "Volume"
       }
     },
     "cancel": "Cancel",
@@ -1786,9 +1803,11 @@
       "won": "Won",
       "lost": "Lost",
       "market_unavailable": "Market unavailable",
-      "amount_on_outcome": "${{amount}} on {{outcome}}",
+      "amount_on_outcome": "{{amount}} on {{outcome}}",
       "outcome_at_price": "{{outcome}} at {{price}}¢",
-      "fee_exemption": "We don't charge any fees on this market."
+      "fee_exemption": "We don't charge any fees on this market.",
+      "ended": "Ended",
+      "resolved_early": "Resolved early"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -1804,10 +1823,10 @@
     "sell_position": "Sell Position",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
-    "at_price_per_share": "At price: {{price}}¢ per share",
-    "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}¢",
-    "position_info_plural": "{{amount}} on {{outcome}} · {{shares}} shares at {{priceCents}}",
-    "position_info_singular": "{{amount}} on {{outcome}} · {{shares}} share at {{priceCents}}",
+    "at_price_per_share": "Selling {{size}} shares at {{price}}",
+    "cashout_info": "{{amount}} on {{outcome}} at {{initialPrice}}",
+    "cashout_info_multiple": "{{amount}} on {{outcomeGroupTitle}} • {{outcome}} at {{initialPrice}}",
+    "position_info": "{{initialValue}} on {{outcome}} to win {{shares}}",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
@@ -1937,10 +1956,10 @@
       "order_failed_generic": "Transaction failed. Please try again."
     },
     "withdraw": {
-      "withdrawing": "Withdrawing {{amount}} USDC",
-      "withdrawing_subtitle": "Est. {{time}} seconds",
-      "withdraw_completed": "Withdrawal completed",
-      "withdraw_completed_subtitle": "{{amount}} USDC added to your balance",
+      "withdrawing": "Withdrawal in progress",
+      "withdrawing_subtitle": "Available in about 1 minute",
+      "withdraw_completed": "Withdrawal complete",
+      "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
@@ -1968,11 +1987,13 @@
       "place_order_failed": "Failed to place order",
       "preview_failed": "Failed to preview order",
       "preview_no_order_book": "No order book found",
-      "preview_no_order_match_buy": "No order match found for buy",
-      "preview_no_order_match_sell": "No order match found for sell",
+      "preview_no_order_match_buy": "Not enough shares available at market price to place your order right now.",
+      "preview_no_order_match_sell": "There isn't enough demand at market price to cash out right now.",
       "claim_failed": "Failed to claim",
       "unknown_error": "An unknown error occurred",
-      "order_not_fully_filled": "Failed to fill your order"
+      "order_not_fully_filled": "Failed to fill your order",
+      "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
+      "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now."
     }
   },
   "receive": {
@@ -3020,14 +3041,14 @@
     "buy_description": "Good for buying a specific token",
     "buy_unified": "Buy",
     "buy_unified_description": "Buy crypto with cash",
-    "sell": "Withdraw",
+    "sell": "Sell",
     "sell_description": "Sell crypto for cash"
   },
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
     "token_marketplace": "Token marketplace",
-    "sell_button": "Withdraw",
+    "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
     "deposit_button": "Deposit",
@@ -3039,8 +3060,9 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
+    "convert": "Convert",
     "tron": {
-      "daily_resource": "Daily resource",
+      "daily_resource": "Daily resources",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
       "daily_resource_description": "This is your daily allowance based on your staked TRX. You get 600 bandwidth for free daily.",
@@ -3108,7 +3130,7 @@
       "show_less": "Show less"
     },
     "activity": "{{symbol}} activity",
-    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "disclaimer": "Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Account Details",
@@ -3470,6 +3492,7 @@
     "tx_review_predict_deposit": "Funded Predictions",
     "tx_review_predict_claim": "Claimed Wins",
     "tx_review_predict_withdraw": "Predictions Withdraw",
+    "tx_review_musd_conversion": "mUSD Conversion",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -3497,6 +3520,7 @@
     "interaction": "Interaction",
     "contract_deploy": "Contract Deployment",
     "to_contract": "New Contract",
+    "mint": "Mint",
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
     "smart_contract_interaction": "Smart contract interaction",
@@ -4534,8 +4558,8 @@
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
     "terms_of_service": "Terms of Service",
-    "amount_to_buy": "Amount to buy",
-    "amount_to_sell": "Amount to sell",
+    "amount_to_buy": "Buy",
+    "amount_to_sell": "Sell",
     "want_to_buy": "You want to buy",
     "want_to_sell": "You want to sell",
     "current_balance": "Current balance",
@@ -4592,6 +4616,11 @@
       "title": "Eligibility Check Failed",
       "description": "We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.",
       "contact_support": "Contact Support",
+      "got_it": "Got It"
+    },
+    "unsupported_region_modal": {
+      "title": "Unavailable in your region",
+      "description": "Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.",
       "got_it": "Got It"
     },
     "region": {
@@ -5454,7 +5483,16 @@
       "lending": "Position history",
       "staking": "Payout history"
     },
-    "allowance_reset": "Allowance Reset"
+    "allowance_reset": "Allowance Reset",
+    "musd_conversion": {
+      "confirmation_button": "Convert to mUSD",
+      "earn_rewards_with": "Earn rewards with mUSD",
+      "toasts": {
+        "in_progress": "mUSD conversion in progress",
+        "success": "mUSD conversion succeeded",
+        "failed": "mUSD conversion failed"
+      }
+    }
   },
   "stake": {
     "stake": "Stake",
@@ -5736,6 +5774,9 @@
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predict. Swap providers may charge a fee, but MetaMask won't."
       },
+      "musd_conversion": {
+        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+      },
       "title": {
         "transaction_fee": "Fees"
       }
@@ -5847,7 +5888,8 @@
     "available_balance": "Available: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
-    "deposit_edit_amount_predict_withdraw": "Withdraw"
+    "deposit_edit_amount_predict_withdraw": "Withdraw",
+    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -6298,6 +6340,22 @@
         "title": "Validating your KYC...",
         "timeout_button": "Restart verification"
       },
+      "verifying_registration": {
+        "title": "Verifying your identity",
+        "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
+        "verified_title": "Approved!",
+        "verified_description": "Your KYC was approved. You can now use MetaMask Card.",
+        "continue_button": "Continue",
+        "timeout_title": "Verification in progress",
+        "timeout_description": "Your verification will take up to 12 hours. Please come back to the Card section in that time or contact support at\n{{email}}\nfor assistance.",
+        "rejected_title": "Verification incomplete",
+        "rejected_description": "We need a bit more information to complete your verification.",
+        "rejected_message": "Please reach out to our support team and we'll help you complete the process:\n{{email}}",
+        "server_error_title_main": "Something went wrong",
+        "server_error_title": "We're experiencing server issues",
+        "server_error_message": "Please try again later or contact support at\n{{email}}\nfor assistance.",
+        "success_toast": "Your ID was verified!"
+      },
       "kyc_failed": {
         "title": "Rejected",
         "description": "Your KYC was rejected. Please try again."
@@ -6414,6 +6472,26 @@
           "description": "Please contact support to unblock your card"
         }
       },
+      "kyc_status": {
+        "pending": {
+          "title": "Verification in Progress",
+          "description": "Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card."
+        },
+        "rejected": {
+          "title": "Verification Not Approved",
+          "description": "We were unable to verify your identity. Please contact support for assistance.",
+          "support_description": "We were unable to verify your identity at this time. Please contact our support team at {{email}} for assistance and we'll help you resolve this issue."
+        },
+        "unverified": {
+          "title": "Verification Required",
+          "description": "You need to complete identity verification before enabling your card. Please contact support team at {{email}} for assistance."
+        },
+        "error": {
+          "title": "Verification Status Unavailable",
+          "description": "We couldn't check your verification status. Please try again later or contact support if the issue persists."
+        },
+        "ok_button": "OK"
+      },
       "manage_card_options": {
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
@@ -6473,7 +6551,7 @@
       "email_placeholder": "Enter your email address",
       "password_placeholder": "Enter your password",
       "login_button": "Log in",
-      "signup_button": "Sign up",
+      "signup_button": "I don't have an account",
       "errors": {
         "invalid_credentials": "Invalid login details",
         "unknown_error": "Unknown error, please try again later",
@@ -6635,13 +6713,13 @@
       "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
       "not_supported_account_type_title": "Account type not supported",
-      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication Failed",
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
       "gtm_title": "Rewards are here",
       "gtm_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "gtm_confirm": "Get started",
@@ -6688,7 +6766,7 @@
       "link_account_success_title": "{{accountName}} successfully added",
       "link_account_error_title": "Failed to add account",
       "link_account_button": "Add",
-      "link_account_failed_error": "Failed to link account",
+      "link_account_failed_error": "Failed to add account",
       "link_account_unknown_error": "Unknown error occurred"
     },
     "optout": {
@@ -6811,10 +6889,10 @@
     },
     "link_account_group": {
       "link_account": "Add account",
-      "tracked": "Tracked",
-      "untracked": "Untracked",
-      "unsupported": "Unsupported",
-      "tracked_count": "{{optedIn}}/{{total}} tracked",
+      "tracked": "Enrolled",
+      "untracked": "Not enrolled",
+      "unsupported": "Not supported",
+      "tracked_count": "{{optedIn}}/{{total}} enrolled",
       "link_account_success": "{{accountName}} added successfully",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}",
       "link_account_address_error": "Failed to add {{address}}"
@@ -6899,12 +6977,35 @@
     "check_network_connectivity_or": "Check your network connectivity or"
   },
   "trending": {
-    "title": "Trending",
+    "title": "Explore",
     "view_all": "View all",
-    "search_placeholder": "Search tokens, sites, URLs",
     "tokens": "Tokens",
+    "trending_tokens": "Trending Tokens",
+    "price_change": "Price change",
+    "all_networks": "All networks",
+    "24h": "24h",
+    "time": "Time",
+    "24_hours": "24 hours",
+    "6_hours": "6 hours",
+    "1_hour": "1 hour",
+    "5_minutes": "5 minutes",
+    "networks": "Networks",
+    "sort_by": "Sort by",
+    "volume": "Volume",
+    "market_cap": "Market cap",
+    "high_to_low": "High to low",
+    "low_to_high": "Low to high",
+    "apply": "Apply",
+    "search_placeholder": "Search tokens, sites, URLs",
+    "cancel": "Cancel",
     "perps": "Perps",
     "predictions": "Predictions",
-    "no_results": "No results found"
+    "no_results": "No results found",
+    "sites": "Sites",
+    "popular_sites": "Popular Sites",
+    "search_sites": "Search sites",
+    "enable_basic_functionality": "Enable basic functionality",
+    "basic_functionality_disabled_title": "Explore is not available",
+    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled."
   }
 }
