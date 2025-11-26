@@ -224,10 +224,28 @@ jobs:
           else
             echo "No changes detected"
           fi
-
   needs_e2e_build:
-    uses: ./.github/workflows/needs-e2e-build.yml
-
+    uses: ./.github/workflows/needs-e2e-build.yml          
+  component-view-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - run: yarn test:view --coverage=false --forceExit --silent
+        env:
+          NODE_OPTIONS: --max_old_space_size=20480
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest

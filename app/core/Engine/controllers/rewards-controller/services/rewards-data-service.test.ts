@@ -1298,6 +1298,7 @@ describe('RewardsDataService', () => {
           rewards: [],
         },
       ],
+      activityTypes: [],
     };
 
     beforeEach(() => {

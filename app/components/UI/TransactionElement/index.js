@@ -323,10 +323,7 @@ class TransactionElement extends PureComponent {
     let incoming = false;
     let selfSent = false;
 
-    if (
-      this.props.isMultichainAccountsState2Enabled &&
-      process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true'
-    ) {
+    if (this.props.isMultichainAccountsState2Enabled) {
       const selectedAddresses = selectSelectedAccountGroupInternalAccounts.map(
         (account) => account.address,
       );
