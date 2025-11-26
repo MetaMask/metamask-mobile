@@ -89,6 +89,7 @@ export interface Resource {
   stop(): Promise<void>;
   start(): Promise<void>;
   isStarted(): boolean;
+  setServerPort(port: number): void;
   getServerPort(): number;
   getServerStatus(): ServerStatus;
   getServerUrl?: string;

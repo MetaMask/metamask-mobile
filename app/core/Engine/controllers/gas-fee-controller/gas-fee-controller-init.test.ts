@@ -2,7 +2,7 @@ import {
   GasFeeController,
   GasFeeMessenger,
 } from '@metamask/gas-fee-controller';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkController } from '@metamask/network-controller';
 
 import { addHexPrefix } from '../../../../util/number';
@@ -170,9 +170,7 @@ describe('GasFeeController Init', () => {
 
       it('returns true for BSC', () => {
         const requestMock = buildInitRequestMock({
-          getGlobalChainId: jest
-            .fn()
-            .mockReturnValue(`0x${swapsUtils.BSC_CHAIN_ID}`),
+          getGlobalChainId: jest.fn().mockReturnValue(CHAIN_IDS.BSC),
         });
         isMainnetByChainIdMock.mockReturnValue(false);
 
@@ -186,9 +184,7 @@ describe('GasFeeController Init', () => {
 
       it('returns true for Polygon', () => {
         const requestMock = buildInitRequestMock({
-          getGlobalChainId: jest
-            .fn()
-            .mockReturnValue(`0x${swapsUtils.POLYGON_CHAIN_ID}`),
+          getGlobalChainId: jest.fn().mockReturnValue(CHAIN_IDS.POLYGON),
         });
         isMainnetByChainIdMock.mockReturnValue(false);
 

@@ -39,22 +39,50 @@ export const getCandlestickChartSelector = {
 };
 
 // ========================================
+// PERPS OHLCV BAR SELECTORS
+// ========================================
+
+export const PerpsOHLCVBarSelectorsIDs = {
+  CONTAINER: 'perps-ohlcv-bar',
+  VALUES_ROW: 'perps-ohlcv-bar-values-row',
+  LABELS_ROW: 'perps-ohlcv-bar-labels-row',
+};
+
+// ========================================
+// PERPS CHART FULLSCREEN MODAL SELECTORS
+// ========================================
+
+export const PerpsChartFullscreenModalSelectorsIDs = {
+  MODAL: 'modal-container',
+  CONTAINER: 'perps-chart-fullscreen-container',
+  HEADER: 'perps-chart-fullscreen-header',
+  CLOSE_BUTTON: 'perps-chart-fullscreen-close-button',
+  CHART: 'fullscreen-chart',
+  INTERVAL_SELECTOR: 'perps-chart-fullscreen-interval-selector',
+  OHLCV_BAR: 'fullscreen-chart-ohlcv-bar',
+} as const;
+
+// ========================================
 // PERPS POSITION CARD SELECTORS
 // ========================================
 
 export const PerpsPositionCardSelectorsIDs = {
   CARD: 'PerpsPositionCard',
-  // Test mock selectors (for component testing)
-  COIN: 'position-card-coin',
-  SIZE: 'position-card-size',
-  PNL: 'position-card-pnl',
-  CLOSE_BUTTON: 'position-card-close',
-  EDIT_BUTTON: 'position-card-edit',
+  HEADER: 'position-card-header',
   SHARE_BUTTON: 'position-card-share',
-  TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON:
-    'position-card-tpsl-count-warning-tooltip-view-orders',
-  TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON:
-    'position-card-tpsl-count-warning-tooltip-got-it',
+  PNL_CARD: 'position-card-pnl',
+  PNL_VALUE: 'position-card-pnl-value',
+  RETURN_CARD: 'position-card-return',
+  RETURN_VALUE: 'position-card-return-value',
+  SIZE_CONTAINER: 'position-card-size',
+  SIZE_VALUE: 'position-card-size-value',
+  FLIP_ICON: 'position-card-flip-icon',
+  MARGIN_CONTAINER: 'position-card-margin',
+  MARGIN_VALUE: 'position-card-margin-value',
+  MARGIN_CHEVRON: 'position-card-margin-chevron',
+  AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
+  DETAILS_SECTION: 'position-card-details',
+  DIRECTION_VALUE: 'position-card-direction-value',
 };
 
 // ========================================
@@ -190,6 +218,8 @@ export const PerpsHomeViewSelectorsIDs = {
   SEARCH_TOGGLE: 'perps-home-search-toggle',
   SEARCH_INPUT: 'perps-home-search',
   SCROLL_CONTENT: 'scroll-content',
+  WITHDRAW_BUTTON: 'perps-home-withdraw-button',
+  ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
@@ -307,6 +337,12 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   ADD_FUNDS_BUTTON: 'perps-market-details-add-funds-button',
   LONG_BUTTON: 'perps-market-details-long-button',
   SHORT_BUTTON: 'perps-market-details-short-button',
+  CLOSE_BUTTON: 'perps-market-details-close-button',
+  MODIFY_BUTTON: 'perps-market-details-modify-button',
+  SHARE_BUTTON: 'perps-market-details-share-button',
+  ADD_TPSL_BUTTON: 'perps-market-details-add-tpsl-button',
+  MODIFY_ACTION_SHEET: 'perps-market-details-modify-action-sheet',
+  ADJUST_MARGIN_ACTION_SHEET: 'perps-market-details-adjust-margin-action-sheet',
   CANDLE_PERIOD_BOTTOM_SHEET: 'perps-market-candle-period-bottom-sheet',
   OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
@@ -380,9 +416,14 @@ export const PerpsChartGridLinesSelectorsIDs = {
 export const PerpsMarketBalanceActionsSelectorsIDs = {
   CONTAINER: 'perps-market-balance-actions',
   BALANCE_VALUE: 'perps-market-balance-value',
+  AVAILABLE_BALANCE_TEXT: 'perps-market-available-balance-text',
+  PNL_VALUE: 'perps-market-pnl-value',
   ADD_FUNDS_BUTTON: 'perps-market-add-funds-button',
   WITHDRAW_BUTTON: 'perps-market-withdraw-button',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP: 'perps-market-balance-geo-block-tooltip',
+  LEARN_MORE_BUTTON: 'perps-market-balance-learn-more-button',
+  EMPTY_STATE_TITLE: 'perps-market-empty-state-title',
+  EMPTY_STATE_DESCRIPTION: 'perps-market-empty-state-description',
 };
 
 export const PerpsChartAuxiliaryLinesSelectorsIDs = {

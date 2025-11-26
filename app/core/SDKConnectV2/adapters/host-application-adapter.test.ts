@@ -118,6 +118,22 @@ describe('HostApplicationAdapter', () => {
       });
       expect(store.dispatch).toHaveBeenCalledTimes(1);
     });
+
+    it('dispatches an error notification when request is rejected or fails', () => {
+      adapter.showConnectionError(
+        createMockConnectionInfo('session-123', 'Test DApp'),
+      );
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: 'session-123',
+        autodismiss: 5000,
+        title: 'sdk_connect_v2.show_error.title',
+        description: 'sdk_connect_v2.show_error.description',
+        status: 'error',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('showReturnToApp', () => {

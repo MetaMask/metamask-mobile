@@ -1,22 +1,20 @@
 import { useNavigation } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
-  KeyboardAvoidingView,
   Platform,
-  ScrollView,
   TouchableOpacity,
   View,
   TextInput,
   StyleSheet,
+  TextInputProps,
 } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import Icon, {
   IconName,
@@ -46,6 +44,7 @@ import Logger from '../../../../../util/Logger';
 import {
   CodeField,
   Cursor,
+  useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -54,8 +53,14 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useDispatch } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { CardActions, CardScreens } from '../../util/metrics';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const CELL_COUNT = 6;
+const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+  android: 'sms-otp',
+  default: 'one-time-code',
+});
 
 // Styles for the OTP CodeField
 const createOtpStyles = (params: { theme: Theme }) => {
@@ -102,7 +107,6 @@ const CardAuthentication = () => {
     string | null
   >(null);
   const [resendCountdown, setResendCountdown] = useState(60);
-  const otpInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
   const theme = useTheme();
   const {
@@ -114,9 +118,9 @@ const CardAuthentication = () => {
     clearOtpError,
     otpLoading,
   } = useCardProviderAuthentication();
-
   const styles = createStyles(theme);
   const { styles: otpStyles } = useStyles(createOtpStyles, {});
+  const tw = useTailwind();
 
   const handleEmailChange = (newEmail: string) => {
     setEmail(newEmail);
@@ -174,12 +178,18 @@ const CardAuthentication = () => {
     }
   }, [step, resendCountdown]);
 
+  const otpInputRef =
+    useBlurOnFulfill({
+      value: confirmCode,
+      cellCount: CELL_COUNT,
+    }) || null;
+
   // Focus OTP input when entering OTP step
   useEffect(() => {
     if (step === 'otp') {
       otpInputRef.current?.focus();
     }
-  }, [step]);
+  }, [step, otpInputRef]);
 
   useEffect(() => {
     const screenName =
@@ -230,13 +240,17 @@ const CardAuthentication = () => {
           return;
         }
 
-        if (
-          loginResponse?.verificationState === 'PENDING' ||
-          loginResponse?.phase
-        ) {
-          // Switch to OTP step instead of navigating
+        if (loginResponse?.phase) {
           dispatch(setOnboardingId(loginResponse.userId));
-          navigation.navigate(Routes.CARD.ONBOARDING.ROOT);
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.CARD.ONBOARDING.ROOT,
+                params: { cardUserPhase: loginResponse.phase },
+              },
+            ],
+          });
           return;
         }
 
@@ -316,102 +330,76 @@ const CardAuthentication = () => {
     clearOtpError();
   }, [clearOtpError]);
 
-  // Render OTP step
-  if (step === 'otp') {
-    return (
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+  return (
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      edges={['bottom']}
+    >
+      <KeyboardAwareScrollView
+        contentContainerStyle={tw.style('flex-grow px-4')}
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={false}
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={Platform.OS === 'android' ? 20 : 0}
       >
-        <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
-          <ScrollView
-            contentContainerStyle={styles.scrollViewContentContainer}
-            showsVerticalScrollIndicator={false}
-            alwaysBounceVertical={false}
-          >
-            <Box style={styles.containerSpaceAround}>
-              <Box>
-                <Box style={styles.imageWrapper}>
-                  <Image
-                    source={FoxImage}
-                    style={styles.image}
-                    resizeMode="contain"
-                    testID={CardAuthenticationSelectors.FOX_IMAGE}
-                  />
-                </Box>
-                <Text variant={TextVariant.HeadingMd} style={styles.title}>
-                  {strings('card.card_otp_authentication.title')}
-                </Text>
-                <Text variant={TextVariant.BodyMd} style={styles.title}>
-                  {otpData?.maskedPhoneNumber
-                    ? strings(
-                        'card.card_otp_authentication.description_with_phone_number',
-                        { maskedPhoneNumber: otpData.maskedPhoneNumber },
-                      )
-                    : strings(
-                        'card.card_otp_authentication.description_without_phone_number',
-                      )}
-                </Text>
-                <Box style={styles.textFieldsContainer}>
-                  <Box>
-                    <Label style={styles.label}>
-                      {strings(
-                        'card.card_otp_authentication.confirm_code_label',
-                      )}
-                    </Label>
-                    <CodeField
-                      ref={otpInputRef}
-                      {...props}
-                      value={confirmCode}
-                      onChangeText={handleOtpValueChange}
-                      cellCount={CELL_COUNT}
-                      rootStyle={otpStyles.codeFieldRoot}
-                      keyboardType="number-pad"
-                      textContentType="oneTimeCode"
-                      autoComplete="one-time-code"
-                      renderCell={({ index, symbol, isFocused }) => (
-                        <View
-                          onLayout={getCellOnLayoutHandler(index)}
-                          key={index}
-                          style={[
-                            otpStyles.cellRoot,
-                            isFocused && otpStyles.focusCell,
-                          ]}
-                        >
-                          <Text
-                            variant={TextVariant.BodyLg}
-                            twClassName="text-text-default font-bold text-center"
-                          >
-                            {symbol || (isFocused ? <Cursor /> : null)}
-                          </Text>
-                        </View>
-                      )}
-                    />
-                  </Box>
-                  <Box twClassName="mt-4 items-center">
-                    {resendCountdown > 0 ? (
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        twClassName="text-text-alternative"
-                      >
-                        {strings('card.card_otp_authentication.resend_timer', {
-                          seconds: resendCountdown,
-                        })}
-                      </Text>
-                    ) : (
-                      <TouchableOpacity
-                        onPress={handleResendOtp}
-                        disabled={otpLoading}
+        {step === 'otp' ? (
+          <Box style={styles.containerSpaceAround}>
+            <Box>
+              <Box style={styles.imageWrapper}>
+                <Image
+                  source={FoxImage}
+                  style={styles.image}
+                  resizeMode="contain"
+                  testID={CardAuthenticationSelectors.FOX_IMAGE}
+                />
+              </Box>
+              <Text variant={TextVariant.HeadingMd} style={styles.title}>
+                {strings('card.card_otp_authentication.title')}
+              </Text>
+              <Text variant={TextVariant.BodyMd} style={styles.title}>
+                {otpData?.maskedPhoneNumber
+                  ? strings(
+                      'card.card_otp_authentication.description_with_phone_number',
+                      { maskedPhoneNumber: otpData.maskedPhoneNumber },
+                    )
+                  : strings(
+                      'card.card_otp_authentication.description_without_phone_number',
+                    )}
+              </Text>
+              <Box style={styles.textFieldsContainer}>
+                <Box>
+                  <Label style={styles.label}>
+                    {strings('card.card_otp_authentication.confirm_code_label')}
+                  </Label>
+                  <CodeField
+                    ref={otpInputRef as React.RefObject<TextInput>}
+                    {...props}
+                    value={confirmCode}
+                    onChangeText={handleOtpValueChange}
+                    cellCount={CELL_COUNT}
+                    rootStyle={otpStyles.codeFieldRoot}
+                    keyboardType="number-pad"
+                    textContentType="oneTimeCode"
+                    autoComplete={autoComplete}
+                    renderCell={({ index, symbol, isFocused }) => (
+                      <View
+                        onLayout={getCellOnLayoutHandler(index)}
+                        key={index}
+                        style={[
+                          otpStyles.cellRoot,
+                          isFocused && otpStyles.focusCell,
+                        ]}
                       >
                         <Text
-                          variant={TextVariant.BodyMd}
-                          twClassName="text-primary-default font-medium"
+                          variant={TextVariant.BodyLg}
+                          twClassName="text-text-default font-bold text-center"
                         >
-                          {strings('card.card_otp_authentication.resend_code')}
+                          {symbol || (isFocused ? <Cursor /> : null)}
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     )}
-                  </Box>
+                  />
                 </Box>
                 {otpError && (
                   <Box style={styles.errorBox}>
@@ -423,47 +411,55 @@ const CardAuthentication = () => {
                     </Text>
                   </Box>
                 )}
-              </Box>
-              <Box twClassName="gap-2">
-                <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('card.card_otp_authentication.confirm_button')}
-                  size={ButtonSize.Lg}
-                  onPress={() => performLogin(confirmCode)}
-                  loading={loading || otpLoading}
-                  disabled={isOtpDisabled}
-                  width={ButtonWidthTypes.Full}
-                />
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  label={strings(
-                    'card.card_otp_authentication.back_to_login_button',
+                <Box twClassName="mt-4 items-center">
+                  {resendCountdown > 0 ? (
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      twClassName="text-text-alternative"
+                    >
+                      {strings('card.card_otp_authentication.resend_timer', {
+                        seconds: resendCountdown,
+                      })}
+                    </Text>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={handleResendOtp}
+                      disabled={otpLoading}
+                    >
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        twClassName="text-primary-default font-medium"
+                      >
+                        {strings('card.card_otp_authentication.resend_code')}
+                      </Text>
+                    </TouchableOpacity>
                   )}
-                  size={ButtonSize.Lg}
-                  onPress={handleBackToLogin}
-                  disabled={loading || otpLoading}
-                  width={ButtonWidthTypes.Full}
-                />
+                </Box>
               </Box>
             </Box>
-          </ScrollView>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
-    );
-  }
-
-  // Render login step
-  return (
-    <KeyboardAvoidingView
-      style={styles.keyboardAvoidingView}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <SafeAreaView style={styles.safeAreaView} edges={['bottom']}>
-        <ScrollView
-          contentContainerStyle={styles.scrollViewContentContainer}
-          showsVerticalScrollIndicator={false}
-          alwaysBounceVertical={false}
-        >
+            <Box twClassName="gap-2">
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('card.card_otp_authentication.confirm_button')}
+                size={ButtonSize.Lg}
+                onPress={() => performLogin(confirmCode)}
+                loading={loading || otpLoading}
+                disabled={isOtpDisabled}
+                width={ButtonWidthTypes.Full}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                label={strings(
+                  'card.card_otp_authentication.back_to_login_button',
+                )}
+                size={ButtonSize.Lg}
+                onPress={handleBackToLogin}
+                disabled={loading || otpLoading}
+                width={ButtonWidthTypes.Full}
+              />
+            </Box>
+          </Box>
+        ) : (
           <Box style={styles.container}>
             <Box style={styles.imageWrapper}>
               <Image
@@ -603,19 +599,23 @@ const CardAuthentication = () => {
                 width={ButtonWidthTypes.Full}
                 disabled={isLoginDisabled || loading}
               />
-              <Button
-                variant={ButtonVariants.Secondary}
-                label={strings('card.card_authentication.signup_button')}
-                size={ButtonSize.Lg}
-                testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
+              <TouchableOpacity
                 onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
-                width={ButtonWidthTypes.Full}
-              />
+              >
+                <Text
+                  testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-default text-center p-4"
+                >
+                  {strings('card.card_authentication.signup_button')}
+                </Text>
+              </TouchableOpacity>
             </Box>
           </Box>
-        </ScrollView>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+        )}
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 };
 

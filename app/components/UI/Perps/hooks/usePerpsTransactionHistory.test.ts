@@ -249,10 +249,67 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Verify accountId is passed to all provider methods
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
+        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        aggregateByTime: false,
+      });
+      expect(mockProvider.getOrders).toHaveBeenCalledWith({
+        accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+      });
       expect(mockProvider.getFunding).toHaveBeenCalledWith({
         accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
         startTime: 1640995200000,
         endTime: 1640995300000,
+      });
+    });
+
+    it('passes accountId to useUserHistory hook', async () => {
+      const accountId =
+        'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
+
+      renderHook(() =>
+        usePerpsTransactionHistory({
+          accountId,
+        }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Verify useUserHistory was called with accountId
+      expect(mockUseUserHistory).toHaveBeenCalledWith({
+        startTime: undefined,
+        endTime: undefined,
+        accountId,
+      });
+    });
+
+    it('handles undefined accountId correctly', async () => {
+      renderHook(() => usePerpsTransactionHistory({ accountId: undefined }));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Verify all methods are called with undefined accountId
+      expect(mockProvider.getOrderFills).toHaveBeenCalledWith({
+        accountId: undefined,
+        aggregateByTime: false,
+      });
+      expect(mockProvider.getOrders).toHaveBeenCalledWith({
+        accountId: undefined,
+      });
+      expect(mockProvider.getFunding).toHaveBeenCalledWith({
+        accountId: undefined,
+        startTime: 0,
+        endTime: undefined,
+      });
+      expect(mockUseUserHistory).toHaveBeenCalledWith({
+        startTime: undefined,
+        endTime: undefined,
+        accountId: undefined,
       });
     });
 

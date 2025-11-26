@@ -38,7 +38,7 @@ jest.mock('../../../../core/redux/slices/card', () => ({
 
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 
 const mockSelectAllTokenBalances =
@@ -112,7 +112,7 @@ describe('useGetPriorityCardToken', () => {
     getPriorityToken: mockGetPriorityToken,
     getSupportedTokensAllowances: mockFetchAllowances,
     getSupportedTokensByChainId: jest.fn(() => mockSupportedTokens),
-    lineaChainId: LINEA_CHAIN_ID,
+    lineaChainId: CHAIN_IDS.LINEA_MAINNET,
     supportedTokens: mockSupportedTokens,
   };
 
@@ -418,12 +418,12 @@ describe('useGetPriorityCardToken', () => {
       address: '0xCachedToken',
       symbol: 'CACHED',
       name: 'Cached Token',
-      caipChainId: `eip155:${LINEA_CHAIN_ID}`,
+      caipChainId: `eip155:${CHAIN_IDS.LINEA_MAINNET}`,
       allowance: '1000000000000',
       decimals: 18,
       allowanceState: AllowanceState.Enabled,
       isStaked: false,
-      chainId: LINEA_CHAIN_ID,
+      chainId: CHAIN_IDS.LINEA_MAINNET,
     } as CardTokenAllowance;
 
     mockPriorityToken = cachedToken;
@@ -1124,7 +1124,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1227,7 +1228,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1266,7 +1268,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1305,7 +1308,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '5000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1344,7 +1348,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '0',
         allowanceState: AllowanceState.NotEnabled,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1382,7 +1387,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '5000',
         allowanceState: AllowanceState.Limited,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1420,7 +1426,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '5000',
         allowanceState: AllowanceState.Limited,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
         availableBalance: '5000',
       };
 
@@ -1480,7 +1487,7 @@ describe('useGetPriorityCardToken', () => {
         decimals: 18,
         allowanceState: AllowanceState.Enabled,
         isStaked: false,
-        chainId: LINEA_CHAIN_ID,
+        chainId: CHAIN_IDS.LINEA_MAINNET,
       };
 
       // Test the cache validation logic directly with a fixed "now" reference
@@ -1529,7 +1536,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1563,7 +1571,8 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1640,13 +1649,313 @@ describe('useGetPriorityCardToken', () => {
         }),
       );
     });
+
+    it('returns null and sets warning when priorityWalletDetail is undefined', async () => {
+      const externalWalletDetailsData = {
+        priorityWalletDetail: undefined,
+        mappedWalletDetails: [],
+      };
+
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(result.current.warning).toBe('need_delegation');
+      expect(result.current.priorityToken).toBeNull();
+    });
+
+    it('handles multiple wallet details and returns priority token', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const secondWalletDetail: CardTokenAllowance = {
+        address: '0xToken2',
+        symbol: 'TKN2',
+        name: 'Token 2',
+        decimals: 18,
+        allowance: '500000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet456',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail, secondWalletDetail],
+      };
+
+      renderHook(() => useGetPriorityCardToken(externalWalletDetailsData));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+          }),
+        }),
+      );
+    });
+
+    it('manually calls fetchPriorityToken and returns priority wallet detail', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
+
+      let fetchResult: CardTokenAllowance | null = null;
+      await act(async () => {
+        fetchResult = await result.current.fetchPriorityToken();
+      });
+
+      expect(fetchResult).toEqual(priorityWalletDetail);
+      expect(result.current.error).toBe(false);
+    });
+
+    it('returns null when manually calling fetchPriorityToken with null priorityWalletDetail', async () => {
+      const externalWalletDetailsData = {
+        priorityWalletDetail: null,
+        mappedWalletDetails: [],
+      };
+
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
+
+      let fetchResult: CardTokenAllowance | null | undefined;
+      await act(async () => {
+        fetchResult = await result.current.fetchPriorityToken();
+      });
+
+      expect(fetchResult).toBeNull();
+      expect(result.current.warning).toBe('need_delegation');
+    });
+
+    it('dispatches both setAuthenticatedPriorityToken and setAuthenticatedPriorityTokenLastFetched', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      renderHook(() => useGetPriorityCardToken(externalWalletDetailsData));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: priorityWalletDetail,
+        }),
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining(
+            'setAuthenticatedPriorityTokenLastFetched',
+          ),
+          payload: expect.any(Date),
+        }),
+      );
+    });
+
+    it('clears error state when fetchPriorityToken succeeds', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
+
+      await act(async () => {
+        await result.current.fetchPriorityToken();
+      });
+
+      expect(result.current.error).toBe(false);
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('maintains state consistency when external wallet data changes', async () => {
+      const initialPriorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail: initialPriorityWalletDetail,
+        mappedWalletDetails: [initialPriorityWalletDetail],
+      };
+
+      const { rerender } = renderHook(
+        (props) => useGetPriorityCardToken(props),
+        {
+          initialProps: externalWalletDetailsData,
+        },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const updatedPriorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken2',
+        symbol: 'TKN2',
+        name: 'Token 2',
+        decimals: 18,
+        allowance: '2000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet456',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const updatedWalletDetailsData = {
+        priorityWalletDetail: updatedPriorityWalletDetail,
+        mappedWalletDetails: [updatedPriorityWalletDetail],
+      };
+
+      mockDispatch.mockClear();
+
+      await act(async () => {
+        rerender(updatedWalletDetailsData);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setAuthenticatedPriorityToken'),
+          payload: updatedPriorityWalletDetail,
+        }),
+      );
+    });
+
+    it('handles walletDetails being undefined', async () => {
+      const { result } = renderHook(() => useGetPriorityCardToken(undefined));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(result.current.priorityToken).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('handles walletDetails being null', async () => {
+      const { result } = renderHook(() => useGetPriorityCardToken(null));
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(result.current.priorityToken).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('sets error state false and loading state false on successful fetch', async () => {
+      const priorityWalletDetail: CardTokenAllowance = {
+        address: '0xToken1',
+        symbol: 'TKN1',
+        name: 'Token 1',
+        decimals: 18,
+        allowance: '1000000000000',
+        allowanceState: AllowanceState.Enabled,
+        walletAddress: '0xWallet123',
+        caipChainId:
+          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+      };
+
+      const externalWalletDetailsData = {
+        priorityWalletDetail,
+        mappedWalletDetails: [priorityWalletDetail],
+      };
+
+      const { result } = renderHook(() =>
+        useGetPriorityCardToken(externalWalletDetailsData),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(result.current.error).toBe(false);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.warning).toBeNull();
+    });
   });
 
   describe('Token Adding Functionality', () => {
     // Pre-create static objects to avoid recreating them in each test
     const STATIC_TOKEN_BALANCES = {
       [mockAddress.toLowerCase()]: {
-        [LINEA_CHAIN_ID]: {
+        [CHAIN_IDS.LINEA_MAINNET]: {
           '0xToken1': '1000000000000000000',
         },
       },
@@ -1657,9 +1966,9 @@ describe('useGetPriorityCardToken', () => {
       symbol: 'TKN1',
       name: 'Token 1',
       decimals: 18,
-      chainId: LINEA_CHAIN_ID,
+      chainId: CHAIN_IDS.LINEA_MAINNET,
       caipChainId:
-        `eip155:${parseInt(LINEA_CHAIN_ID, 16)}` as `${string}:${string}`,
+        `eip155:${parseInt(CHAIN_IDS.LINEA_MAINNET, 16)}` as `${string}:${string}`,
       allowanceState: AllowanceState.Enabled,
       isStaked: false,
     };
@@ -1713,7 +2022,7 @@ describe('useGetPriorityCardToken', () => {
       mockTokensController = {
         state: {
           allTokens: {
-            [LINEA_CHAIN_ID]: {
+            [CHAIN_IDS.LINEA_MAINNET]: {
               [mockAddress.toLowerCase()]: STATIC_EMPTY_TOKEN_LIST,
             },
           },
@@ -1845,7 +2154,7 @@ describe('useGetPriorityCardToken', () => {
       mockEngine.context.TokensController = {
         state: {
           allTokens: {
-            // LINEA_CHAIN_ID is '0xe708' in hex format
+            // CHAIN_IDS.LINEA_MAINNET is '0xe708' in hex format
             '0xe708': {
               [mockAddress.toLowerCase()]: STATIC_EXISTING_TOKEN_LIST,
             },

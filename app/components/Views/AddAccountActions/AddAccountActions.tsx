@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
@@ -137,10 +136,6 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   return (
     <SafeAreaView>
       <Fragment>
-        <SheetHeader
-          title={strings('account_actions.add_account')}
-          onBack={onBack}
-        />
         <View>
           <Text
             style={styles.subHeaders}

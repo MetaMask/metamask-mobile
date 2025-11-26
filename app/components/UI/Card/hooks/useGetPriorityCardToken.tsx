@@ -17,7 +17,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { CardSDK } from '../sdk/CardSDK';
 import {
@@ -268,7 +268,7 @@ export const useGetPriorityCardToken = (
         const cardTokenAllowances = await fetchAllowances(
           sdk,
           selectedAddress,
-          formatChainIdToCaip(LINEA_CHAIN_ID),
+          formatChainIdToCaip(CHAIN_IDS.LINEA_MAINNET),
         );
 
         // Store all tokens for asset selection
@@ -288,7 +288,7 @@ export const useGetPriorityCardToken = (
               ...supportedTokens[0],
               allowanceState: AllowanceState.NotEnabled,
               isStaked: false,
-              caipChainId: LINEA_CHAIN_ID,
+              caipChainId: formatChainIdToCaip(CHAIN_IDS.LINEA_MAINNET),
               allowance: '0',
             } as CardTokenAllowance;
 
@@ -389,7 +389,7 @@ export const useGetPriorityCardToken = (
                 validAllowances,
                 chainBalances,
               );
-            finalToken = positiveBalanceAllowance || matchingAllowance;
+            finalToken = positiveBalanceAllowance ?? matchingAllowance;
           }
         } else {
           finalToken = cardTokenAllowances[0] || null;
@@ -440,10 +440,7 @@ export const useGetPriorityCardToken = (
         // Use provided data if available (to avoid duplicate calls)
         let priorityWalletDetail: CardTokenAllowance | null = null;
 
-        if (
-          externalWalletDetailsData &&
-          externalWalletDetailsData.priorityWalletDetail
-        ) {
+        if (externalWalletDetailsData?.priorityWalletDetail) {
           priorityWalletDetail = externalWalletDetailsData.priorityWalletDetail;
         }
 
