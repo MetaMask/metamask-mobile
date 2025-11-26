@@ -9,7 +9,7 @@ const createStyles = (params: { theme: Theme }) =>
       alignItems: 'center',
       paddingVertical: 12,
       paddingHorizontal: 16,
-      backgroundColor: params.theme.colors.background.default,
+      backgroundColor: params.theme.colors.background.section,
       borderRadius: 8,
       marginBottom: 8,
     },

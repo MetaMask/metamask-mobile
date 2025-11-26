@@ -93,7 +93,7 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
     >
       <View style={styles.leftSection}>
         {/* Token icon */}
-        <PerpsTokenLogo symbol={order.symbol} size={24} />
+        <PerpsTokenLogo symbol={order.symbol} size={40} />
 
         {/* Order info */}
         <View style={styles.infoContainer}>

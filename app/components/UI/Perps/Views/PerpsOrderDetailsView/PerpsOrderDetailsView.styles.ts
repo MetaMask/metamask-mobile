@@ -51,7 +51,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 16,
     },
     detailsCard: {
-      backgroundColor: colors.background.alternative,
       borderRadius: 8,
       padding: 16,
     },

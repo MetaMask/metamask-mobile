@@ -38,7 +38,7 @@ interface PerpsModifyActionSheetProps {
 const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
   isVisible = true,
   onClose,
-  position: _position,
+  position,
   onActionSelect,
   sheetRef: externalSheetRef,
   testID,
@@ -46,6 +46,16 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
+
+  // Get direction labels for the position
+  const isLong = position?.szi ? parseFloat(position.szi) > 0 : true;
+  const direction = isLong
+    ? strings('perps.order.long_label')
+    : strings('perps.order.short_label');
+  const fromDirection = direction.toLowerCase();
+  const toDirection = isLong
+    ? strings('perps.order.short_label').toLowerCase()
+    : strings('perps.order.long_label').toLowerCase();
 
   useEffect(() => {
     if (isVisible && !externalSheetRef) {
@@ -57,19 +67,26 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
     {
       action: 'add_to_position',
       label: strings('perps.modify.add_to_position'),
-      description: strings('perps.modify.add_to_position_description'),
+      description: strings('perps.modify.add_to_position_description', {
+        direction: fromDirection,
+      }),
       iconName: IconName.Add,
     },
     {
       action: 'reduce_position',
       label: strings('perps.modify.reduce_position'),
-      description: strings('perps.modify.reduce_position_description'),
+      description: strings('perps.modify.reduce_position_description', {
+        direction: fromDirection,
+      }),
       iconName: IconName.Minus,
     },
     {
       action: 'flip_position',
       label: strings('perps.modify.flip_position'),
-      description: strings('perps.modify.flip_position_description'),
+      description: strings('perps.modify.flip_position_description', {
+        fromDirection,
+        toDirection,
+      }),
       iconName: IconName.SwapHorizontal,
     },
   ];

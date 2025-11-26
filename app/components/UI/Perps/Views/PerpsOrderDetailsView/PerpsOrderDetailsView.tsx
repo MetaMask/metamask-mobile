@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -24,7 +23,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { usePerpsTrading } from '../../hooks/usePerpsTrading';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderFees } from '../../hooks/usePerpsOrderFees';
-import { usePerpsBlockExplorerUrl } from '../../hooks/usePerpsBlockExplorerUrl';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { TraceName } from '../../../../../util/trace';
 import type { Order } from '../../controllers/types';
@@ -36,7 +34,6 @@ import {
   formatOrderCardDate,
 } from '../../utils/formatUtils';
 import { useTheme } from '../../../../../util/theme';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 
 interface OrderDetailsRouteParams {
   order: Order;
@@ -50,8 +47,6 @@ const PerpsOrderDetailsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const { cancelOrder } = usePerpsTrading();
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const { getExplorerUrl } = usePerpsBlockExplorerUrl();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [isCanceling, setIsCanceling] = useState(false);
@@ -156,22 +151,6 @@ const PerpsOrderDetailsView: React.FC = () => {
       setIsCanceling(false);
     }
   }, [order, cancelOrder, navigation, showToast, PerpsToastOptions]);
-
-  const handleViewOnExplorer = useCallback(() => {
-    if (!selectedInternalAccount) {
-      return;
-    }
-    const explorerUrl = getExplorerUrl(selectedInternalAccount.address);
-    if (!explorerUrl) {
-      return;
-    }
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: explorerUrl,
-      },
-    });
-  }, [selectedInternalAccount, getExplorerUrl, navigation]);
 
   if (!order) {
     return (
@@ -354,20 +333,12 @@ const PerpsOrderDetailsView: React.FC = () => {
       {/* Footer Actions */}
       <View style={styles.footer}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariants.Secondary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
           label={strings('perps.order_details.cancel_order')}
           onPress={handleCancelOrder}
           loading={isCanceling}
-          isDanger
-        />
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.order_details.view_explorer')}
-          onPress={handleViewOnExplorer}
         />
       </View>
     </SafeAreaView>

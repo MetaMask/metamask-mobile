@@ -22,8 +22,6 @@ const styleSheet = (params: { theme: Theme }) => {
     actionIconContainer: {
       width: 40,
       height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.background.alternative,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 12,

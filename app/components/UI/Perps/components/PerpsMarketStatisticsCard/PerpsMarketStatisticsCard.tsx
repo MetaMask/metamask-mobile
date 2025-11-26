@@ -17,7 +17,11 @@ import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import { formatFundingRate } from '../../utils/formatUtils';
+import {
+  formatFundingRate,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 
@@ -37,8 +41,10 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     throttleMs: 2000, // Update every 2 seconds for funding rate
   });
 
-  // Get live funding rate from WebSocket subscription
+  // Get live funding rate and oracle price from WebSocket subscription
   const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
+  // Use markPrice (oracle/mark price) for oracle price display, not price (mid price)
+  const liveOraclePrice = symbol ? livePrices[symbol]?.markPrice : undefined;
 
   // Compute funding rate value and display once
   const fundingRateData = useMemo(() => {
@@ -115,44 +121,6 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 
       {/* Stats rows with card background */}
       <View style={styles.statsRowsContainer}>
-        {/* 24h low */}
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('perps.market.24h_low'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
-            },
-          }}
-          value={{
-            label: {
-              text: marketStats.low24h,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
-            },
-          }}
-          style={[styles.statsRow, styles.statsRowFirst]}
-        />
-
-        {/* 24h high */}
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('perps.market.24h_high'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
-            },
-          }}
-          value={{
-            label: {
-              text: marketStats.high24h,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
-            },
-          }}
-          style={styles.statsRow}
-        />
-
         {/* 24h volume */}
         <KeyValueRow
           field={{
@@ -169,7 +137,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               color: TextColor.Default,
             },
           }}
-          style={styles.statsRow}
+          style={[styles.statsRow, styles.statsRowFirst]}
         />
 
         {/* Open interest with tooltip */}
@@ -206,7 +174,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           style={styles.statsRow}
         />
 
-        {/* Funding rate with tooltip and countdown - last row without bottom border */}
+        {/* Funding rate with tooltip and countdown */}
         <KeyValueRow
           field={{
             label: (
@@ -232,6 +200,29 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           }}
           value={{
             label: fundingValueContent,
+          }}
+          style={styles.statsRow}
+        />
+
+        {/* Oracle price (markPrice) - last row without bottom border */}
+        <KeyValueRow
+          field={{
+            label: {
+              text: strings('perps.market.oracle_price'),
+              variant: TextVariant.BodyMD,
+              color: TextColor.Alternative,
+            },
+          }}
+          value={{
+            label: {
+              text: liveOraclePrice
+                ? formatPerpsFiat(parseFloat(liveOraclePrice), {
+                    ranges: PRICE_RANGES_UNIVERSAL,
+                  })
+                : '-',
+              variant: TextVariant.BodyMD,
+              color: TextColor.Default,
+            },
           }}
           style={styles.statsRowLast}
         />

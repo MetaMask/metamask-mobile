@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -20,8 +20,11 @@ import { useTheme } from '../../../../../util/theme';
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import PerpsOrderHeader from '../../components/PerpsOrderHeader';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
@@ -34,6 +37,9 @@ import {
 } from '../../utils/marginUtils';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import Keypad from '../../../../Base/Keypad';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -54,7 +60,16 @@ const PerpsAdjustMarginView: React.FC = () => {
   const { colors } = useTheme();
   const { account } = usePerpsLiveAccount();
 
-  const [marginAmount, setMarginAmount] = useState(0);
+  const [marginAmountString, setMarginAmountString] = useState('0');
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [selectedTooltip, setSelectedTooltip] =
+    useState<PerpsTooltipContentKey | null>(null);
+
+  // Derived numeric value from string
+  const marginAmount = useMemo(
+    () => parseFloat(marginAmountString) || 0,
+    [marginAmountString],
+  );
 
   const isAddMode = mode === 'add';
 
@@ -83,17 +98,13 @@ const PerpsAdjustMarginView: React.FC = () => {
     debugContext: { mode },
   });
 
-  // Get live prices for the header
+  // Get live prices for liquidation distance calculation
   const livePrices = usePerpsLivePrices({
     symbols: position?.coin ? [position.coin] : [],
     throttleMs: 1000,
   });
   const currentPrice = useMemo(
     () => parseFloat(livePrices?.[position?.coin]?.price || '0'),
-    [livePrices, position?.coin],
-  );
-  const priceChange = useMemo(
-    () => parseFloat(livePrices?.[position?.coin]?.percentChange24h || '0'),
     [livePrices, position?.coin],
   );
 
@@ -193,9 +204,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       if (currentPrice === 0 || !currentPrice || liquidationPrice === 0) {
         return 0;
       }
-      const percentageDistance =
-        (Math.abs(currentPrice - liquidationPrice) / currentPrice) * 100;
-      return percentageDistance >= 99.9 ? 100 : percentageDistance;
+      return (Math.abs(currentPrice - liquidationPrice) / currentPrice) * 100;
     },
     [currentPrice],
   );
@@ -211,12 +220,45 @@ const PerpsAdjustMarginView: React.FC = () => {
   );
 
   const handleSliderChange = useCallback((value: number) => {
-    setMarginAmount(value);
+    setMarginAmountString(Math.floor(value).toString());
   }, []);
 
   const handleMaxPress = useCallback(() => {
-    setMarginAmount(maxAmount);
+    setMarginAmountString(Math.floor(maxAmount).toString());
   }, [maxAmount]);
+
+  // Keypad handlers
+  const handleAmountPress = useCallback(() => {
+    setIsInputFocused(true);
+  }, []);
+
+  const handleKeypadChange = useCallback(({ value }: { value: string }) => {
+    setMarginAmountString(value || '0');
+  }, []);
+
+  const handleDonePress = useCallback(() => {
+    setIsInputFocused(false);
+  }, []);
+
+  const handlePercentagePress = useCallback(
+    (percentage: number) => {
+      const amount = Math.floor(maxAmount * percentage);
+      setMarginAmountString(amount.toString());
+    },
+    [maxAmount],
+  );
+
+  // Tooltip handlers
+  const handleTooltipPress = useCallback(
+    (contentKey: PerpsTooltipContentKey) => {
+      setSelectedTooltip(contentKey);
+    },
+    [],
+  );
+
+  const handleTooltipClose = useCallback(() => {
+    setSelectedTooltip(null);
+  }, []);
 
   const handleConfirm = useCallback(async () => {
     if (marginAmount <= 0 || !position) return;
@@ -258,43 +300,47 @@ const PerpsAdjustMarginView: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <PerpsOrderHeader
-        asset={position.coin}
-        price={currentPrice}
-        priceChange={priceChange}
-        title={title}
-        isLoading={isAdjusting}
-      />
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.header}>
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          onPress={() => navigation.goBack()}
+          iconColor={IconColor.Default}
+          size={ButtonIconSizes.Md}
+        />
+        <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
+          {title}
+        </Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      <View style={styles.contentContainer}>
         {/* Amount Display */}
         <View style={styles.amountSection}>
           <PerpsAmountDisplay
-            amount={marginAmount.toFixed(2)}
-            onPress={handleMaxPress}
-            isActive={false}
+            amount={marginAmountString}
+            onPress={handleAmountPress}
+            isActive={isInputFocused}
             hasError={false}
             isLoading={false}
           />
         </View>
 
-        {/* Slider */}
-        <View style={styles.sliderSection}>
-          <PerpsSlider
-            value={marginAmount}
-            onValueChange={handleSliderChange}
-            minimumValue={0}
-            maximumValue={maxAmount}
-            step={0.01}
-            showPercentageLabels
-            disabled={false}
-          />
-        </View>
+        {/* Slider - Hide when keypad is active */}
+        {!isInputFocused && (
+          <View style={styles.sliderSection}>
+            <PerpsSlider
+              value={marginAmount}
+              onValueChange={handleSliderChange}
+              minimumValue={0}
+              maximumValue={maxAmount}
+              step={0.01}
+              showPercentageLabels
+              disabled={false}
+            />
+          </View>
+        )}
 
-        {/* Info Section */}
+        {/* Info Section - Always visible */}
         <View style={styles.infoSection}>
           {/* First row: Perps balance or Margin in position */}
           <View style={styles.infoRow}>
@@ -312,9 +358,21 @@ const PerpsAdjustMarginView: React.FC = () => {
 
           {/* Second row: Liquidation price with transition */}
           <View style={styles.infoRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.adjust_margin.liquidation_price')}
-            </Text>
+            <View style={styles.labelWithIcon}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('perps.adjust_margin.liquidation_price')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleTooltipPress('liquidation_price')}
+                style={styles.infoIcon}
+              >
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.Alternative}
+                />
+              </TouchableOpacity>
+            </View>
             {marginAmount > 0 ? (
               <View style={styles.changeContainer}>
                 <Text
@@ -347,9 +405,21 @@ const PerpsAdjustMarginView: React.FC = () => {
 
           {/* Third row: Liquidation distance with transition */}
           <View style={styles.infoRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.adjust_margin.liquidation_distance')}
-            </Text>
+            <View style={styles.labelWithIcon}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('perps.adjust_margin.liquidation_distance')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleTooltipPress('liquidation_distance')}
+                style={styles.infoIcon}
+              >
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.Alternative}
+                />
+              </TouchableOpacity>
+            </View>
             {marginAmount > 0 ? (
               <View style={styles.changeContainer}>
                 <Text
@@ -374,20 +444,73 @@ const PerpsAdjustMarginView: React.FC = () => {
             )}
           </View>
         </View>
-      </ScrollView>
-
-      {/* Footer Actions */}
-      <View style={styles.footer}>
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={buttonLabel}
-          onPress={handleConfirm}
-          isDisabled={marginAmount <= 0 || isAdjusting}
-          loading={isAdjusting}
-        />
       </View>
+
+      {/* Footer - Shows either Add Margin button or Keypad */}
+      {!isInputFocused ? (
+        <View style={styles.footer}>
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={buttonLabel}
+            onPress={handleConfirm}
+            isDisabled={marginAmount <= 0 || isAdjusting}
+            loading={isAdjusting}
+          />
+        </View>
+      ) : (
+        <View style={styles.keypadFooter}>
+          <View style={styles.percentageButtonsContainer}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="25%"
+              onPress={() => handlePercentagePress(0.25)}
+              style={styles.percentageButton}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="50%"
+              onPress={() => handlePercentagePress(0.5)}
+              style={styles.percentageButton}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label={strings('perps.deposit.max_button')}
+              onPress={handleMaxPress}
+              style={styles.percentageButton}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label={strings('perps.deposit.done_button')}
+              onPress={handleDonePress}
+              style={styles.percentageButton}
+            />
+          </View>
+
+          <Keypad
+            value={marginAmountString}
+            onChange={handleKeypadChange}
+            currency="USD"
+            decimals={0}
+            style={styles.keypad}
+          />
+        </View>
+      )}
+
+      {/* Tooltip Bottom Sheet */}
+      {selectedTooltip && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={handleTooltipClose}
+          contentKey={selectedTooltip}
+          key={selectedTooltip}
+        />
+      )}
     </SafeAreaView>
   );
 };

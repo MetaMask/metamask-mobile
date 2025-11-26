@@ -23,6 +23,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     size?: string;
     price?: string;
     orderType?: OrderType;
+    hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
   };
 
   PerpsOrderSuccess: {

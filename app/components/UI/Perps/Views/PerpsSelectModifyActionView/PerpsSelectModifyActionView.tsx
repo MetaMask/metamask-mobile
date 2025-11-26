@@ -51,6 +51,7 @@ const PerpsSelectModifyActionView: React.FC<
             navigateToOrder({
               direction,
               asset: position.coin,
+              hideTPSL: true, // Hide TP/SL when adding to existing position
             });
           }
           break;

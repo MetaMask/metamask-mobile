@@ -10,6 +10,24 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       backgroundColor: colors.background.default,
     },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    headerTitle: {
+      textAlign: 'center',
+    },
+    headerSpacer: {
+      width: 32,
+    },
+    contentContainer: {
+      flex: 1,
+      paddingHorizontal: 16,
+      justifyContent: 'space-between',
+    },
     scrollView: {
       flex: 1,
     },
@@ -35,8 +53,32 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     infoSection: {
       gap: 16,
-      marginTop: 40,
+      marginBottom: 16,
     },
+    labelWithIcon: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    infoIcon: {
+      marginLeft: 4,
+      padding: 4,
+    },
+    keypadFooter: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 16,
+      backgroundColor: colors.background.default,
+    },
+    percentageButtonsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 8,
+      marginBottom: 16,
+    },
+    percentageButton: {
+      flex: 1,
+    },
+    keypad: {},
     infoCard: {
       backgroundColor: colors.background.alternative,
       borderRadius: 8,

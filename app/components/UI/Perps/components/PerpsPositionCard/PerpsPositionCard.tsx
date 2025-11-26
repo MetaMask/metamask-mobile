@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -9,9 +9,10 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-import {
+import Icon, {
   IconColor,
   IconName,
+  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
@@ -125,6 +126,40 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const handleSizeToggle = () => {
     setShowSizeInUSD(!showSizeInUSD);
   };
+
+  // Calculate liquidation distance percentage
+  const liquidationDistance = useMemo(() => {
+    if (!currentPrice || !position.liquidationPrice) return null;
+    const liqPrice = parseFloat(String(position.liquidationPrice));
+    if (liqPrice <= 0 || currentPrice <= 0) return null;
+    return (Math.abs(currentPrice - liqPrice) / currentPrice) * 100;
+  }, [currentPrice, position.liquidationPrice]);
+
+  // Compute whether TPSL is configured (for button label)
+  const hasTPSLConfigured = useMemo(() => {
+    // First, check position-level TP/SL (from separate trigger orders)
+    let takeProfitPrice = position.takeProfitPrice;
+    let stopLossPrice = position.stopLossPrice;
+
+    // If position-level TP/SL is undefined, check order-level TP/SL (from child orders)
+    if ((!takeProfitPrice || !stopLossPrice) && orders && orders.length > 0) {
+      const parentOrder = orders.find(
+        (order) =>
+          order.symbol === position.coin &&
+          !order.isTrigger &&
+          (order.takeProfitPrice || order.stopLossPrice),
+      );
+
+      if (parentOrder) {
+        takeProfitPrice = takeProfitPrice || parentOrder.takeProfitPrice;
+        stopLossPrice = stopLossPrice || parentOrder.stopLossPrice;
+      }
+    }
+
+    const hasTakeProfit = takeProfitPrice && parseFloat(takeProfitPrice) > 0;
+    const hasStopLoss = stopLossPrice && parseFloat(stopLossPrice) > 0;
+    return Boolean(hasTakeProfit || hasStopLoss);
+  }, [position.takeProfitPrice, position.stopLossPrice, position.coin, orders]);
 
   const handleAutoCloseButtonPress = () => {
     if (onAutoClosePress) {
@@ -243,7 +278,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           {onMarginPress && (
             <View style={styles.iconButtonContainer}>
               <ButtonIcon
-                iconName={IconName.Arrow2Right}
+                iconName={IconName.ArrowRight}
                 size={ButtonIconSizes.Sm}
                 iconColor={IconColor.Default}
                 onPress={onMarginPress}
@@ -316,10 +351,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               }
 
               return (
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {parts.join(', ')}
                 </Text>
               );
@@ -337,7 +369,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Sm}
-              label={strings('perps.auto_close.set_button')}
+              label={
+                hasTPSLConfigured
+                  ? strings('perps.auto_close.edit_button')
+                  : strings('perps.auto_close.set_button')
+              }
               labelTextVariant={TextVariant.BodyMD}
               onPress={handleAutoCloseButtonPress}
               style={styles.autoCloseButton}
@@ -392,22 +428,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </Text>
         </View>
 
-        {currentPrice !== undefined && currentPrice > 0 && (
-          <View style={styles.detailRow}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {strings('perps.position.card.oracle_price_label')}
-            </Text>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {formatPerpsFiat(currentPrice, {
-                ranges: PRICE_RANGES_UNIVERSAL,
-              })}
-            </Text>
-          </View>
-        )}
-
         <View style={styles.detailRow}>
           <Text
             variant={TextVariant.BodyMDMedium}
@@ -415,14 +435,32 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           >
             {strings('perps.position.card.liquidation_price_label')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {position.liquidationPrice !== undefined &&
-            position.liquidationPrice !== null
-              ? formatPerpsFiat(position.liquidationPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                })
-              : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
-          </Text>
+          <View style={styles.liquidationPriceValue}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {position.liquidationPrice !== undefined &&
+              position.liquidationPrice !== null
+                ? formatPerpsFiat(position.liquidationPrice, {
+                    ranges: PRICE_RANGES_UNIVERSAL,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
+            </Text>
+            {liquidationDistance !== null && (
+              <>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {' '}
+                  {Math.round(liquidationDistance)}%
+                </Text>
+                <Icon
+                  name={isLong ? IconName.TrendDown : IconName.TrendUp}
+                  size={IconSize.Sm}
+                  color={IconColor.Alternative}
+                />
+              </>
+            )}
+          </View>
         </View>
 
         <View style={[styles.detailRow, styles.detailRowLast]}>

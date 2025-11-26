@@ -149,6 +149,10 @@ const styleSheet = (params: { theme: Theme }) => {
       borderBottomLeftRadius: 8,
       borderBottomRightRadius: 8,
     },
+    liquidationPriceValue: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
   });
 };
 

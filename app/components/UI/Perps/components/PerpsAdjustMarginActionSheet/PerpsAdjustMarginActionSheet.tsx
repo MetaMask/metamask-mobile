@@ -97,7 +97,7 @@ const PerpsAdjustMarginActionSheet: React.FC<
               <Icon
                 name={option.iconName}
                 size={IconSize.Lg}
-                color={IconColor.Primary}
+                color={IconColor.Default}
               />
               <View style={styles.actionContent}>
                 <Text variant={TextVariant.BodyMDBold}>{option.label}</Text>
@@ -108,11 +108,6 @@ const PerpsAdjustMarginActionSheet: React.FC<
                   {option.description}
                 </Text>
               </View>
-              <Icon
-                name={IconName.Arrow2Right}
-                size={IconSize.Md}
-                color={IconColor.Alternative}
-              />
             </TouchableOpacity>
             {index < actionOptions.length - 1 && (
               <View

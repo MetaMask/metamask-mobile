@@ -953,7 +953,8 @@
     "auto_close": {
       "title": "Auto close",
       "description": "Protect your margin, lock in gains",
-      "set_button": "Set"
+      "set_button": "Set",
+      "edit_button": "Edit"
     },
     "deposit": {
       "title": "Amount to deposit",
@@ -1228,7 +1229,11 @@
       "cancel_order": "Cancel Order",
       "date": "Date",
       "fee": "Fee",
+      "limit_buy": "Limit Long",
       "limit_price": "Limit Price",
+      "limit_sell": "Limit Short",
+      "market_buy": "Market Long",
+      "market_sell": "Market Short",
       "open": "Open",
       "size": "Size",
       "status": "Status",
@@ -1274,13 +1279,13 @@
       "your_pnl_is": "Your P&L is"
     },
     "modify": {
-      "title": "Modify Position",
-      "add_to_position": "Add to Position",
-      "add_to_position_description": "Increase your position size",
-      "reduce_position": "Reduce Position",
-      "reduce_position_description": "Decrease your position size",
-      "flip_position": "Flip Position",
-      "flip_position_description": "Reverse your position direction"
+      "title": "Modify",
+      "add_to_position": "Increase exposure",
+      "add_to_position_description": "Increase the size of your {{direction}} position",
+      "reduce_position": "Reduce exposure",
+      "reduce_position_description": "Decrease the size of your {{direction}} position by closing it partially",
+      "flip_position": "Reverse position",
+      "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
     },
     "flip_position": {
       "title": "Flip Position",
@@ -1297,7 +1302,7 @@
       "reduce_margin": "Reduce Margin",
       "reduce_margin_description": "Withdraw excess margin from position",
       "add_title": "Add Margin",
-      "remove_title": "Remove Margin",
+      "remove_title": "Reduce Margin",
       "margin_in_position": "Margin in position",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
@@ -1421,8 +1426,8 @@
         "margin_label": "Margin",
         "direction_label": "Direction",
         "entry_label": "Entry price",
-        "liquidation_price_label": "Liq. price",
-        "funding_payments_label": "Funding",
+        "liquidation_price_label": "Liquidation price",
+        "funding_payments_label": "Funding payments",
         "oracle_price_label": "Oracle price",
         "details_title": "Details",
         "entry_price": "Entry price",
@@ -1465,6 +1470,11 @@
       "tpsl": {
         "update_success": "TP/SL updated successfully",
         "update_failed": "Failed to update TP/SL"
+      },
+      "margin": {
+        "add_success": "Added ${{amount}} margin to {{asset}} position",
+        "remove_success": "Removed ${{amount}} margin from {{asset}} position",
+        "adjustment_failed": "Margin adjustment failed"
       }
     },
     "markets": {
@@ -1482,6 +1492,7 @@
       "24h_volume": "24h volume",
       "open_interest": "Open interest",
       "funding_rate": "Funding rate",
+      "oracle_price": "Oracle price",
       "countdown": "Countdown",
       "long": "Long",
       "short": "Short",
@@ -1525,6 +1536,10 @@
       "liquidation_price": {
         "title": "Liquidation price",
         "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "liquidation_distance": {
+        "title": "Liquidation distance",
+        "content": "The percentage the price needs to move against your position before liquidation. A higher percentage means more room before liquidation."
       },
       "margin": {
         "title": "Margin",
