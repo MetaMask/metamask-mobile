@@ -145,11 +145,16 @@ const PredictSellPreview = () => {
   // Show skeleton when preview is loading (null and no error)
   const isPreviewLoading = preview === null && !previewError;
 
+  // Check if we have valid preview data to use
+  const hasValidPreview =
+    preview !== null &&
+    !previewError &&
+    preview?.minAmountReceived !== undefined;
+
   // Use preview data if available, fallback to position data on error or when preview is unavailable
-  const currentValue =
-    preview !== null && preview?.minAmountReceived !== undefined
-      ? preview.minAmountReceived
-      : position.currentValue;
+  const currentValue = hasValidPreview
+    ? preview.minAmountReceived
+    : position.currentValue;
   const currentPrice = preview?.sharePrice ?? 0;
   const { avgPrice } = position;
 

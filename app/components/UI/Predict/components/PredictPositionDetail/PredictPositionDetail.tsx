@@ -76,11 +76,16 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   // Show skeleton when preview is loading (null and no error)
   const isPreviewLoading = preview === null && !previewError;
 
+  // Check if we have valid preview data to use
+  const hasValidPreview =
+    preview !== null &&
+    !previewError &&
+    preview?.minAmountReceived !== undefined;
+
   // Use preview data if available, fallback to position data on error or when preview is unavailable
-  const currentValue =
-    preview !== null && preview?.minAmountReceived !== undefined
-      ? preview.minAmountReceived
-      : currentPosition.currentValue;
+  const currentValue = hasValidPreview
+    ? preview.minAmountReceived
+    : currentPosition.currentValue;
 
   // Recalculate PnL based on preview data
   const cashPnl = useMemo(
