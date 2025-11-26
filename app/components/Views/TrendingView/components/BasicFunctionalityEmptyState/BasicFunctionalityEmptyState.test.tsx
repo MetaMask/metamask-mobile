@@ -1,53 +1,43 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import BasicFunctionalityEmptyState from './BasicFunctionalityEmptyState';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 describe('BasicFunctionalityEmptyState', () => {
-  it('renders title text', () => {
-    const mockOnEnablePress = jest.fn();
-
-    const { getByText } = render(
-      <BasicFunctionalityEmptyState onEnablePress={mockOnEnablePress} />,
-    );
-
-    expect(getByText('Explore is not available')).toBeDefined();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('renders description text', () => {
-    const mockOnEnablePress = jest.fn();
+  it('renders empty state', () => {
+    const { getByText } = render(<BasicFunctionalityEmptyState />);
 
-    const { getByText } = render(
-      <BasicFunctionalityEmptyState onEnablePress={mockOnEnablePress} />,
-    );
-
+    expect(getByText('Explore is not available')).toBeDefined();
     expect(
       getByText(
         "We can't fetch the required metadata when basic functionality is disabled.",
       ),
     ).toBeDefined();
-  });
-
-  it('renders enable button with correct text', () => {
-    const mockOnEnablePress = jest.fn();
-
-    const { getByText } = render(
-      <BasicFunctionalityEmptyState onEnablePress={mockOnEnablePress} />,
-    );
-
     expect(getByText('Enable basic functionality')).toBeDefined();
   });
 
-  it('calls onEnablePress when button is pressed', () => {
-    const mockOnEnablePress = jest.fn();
-
-    const { getByText } = render(
-      <BasicFunctionalityEmptyState onEnablePress={mockOnEnablePress} />,
-    );
+  it('navigates to basic functionality settings when button is pressed', () => {
+    const { getByText } = render(<BasicFunctionalityEmptyState />);
 
     const enableButton = getByText('Enable basic functionality');
 
     fireEvent.press(enableButton);
 
-    expect(mockOnEnablePress).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+    });
   });
 });

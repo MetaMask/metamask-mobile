@@ -34,9 +34,9 @@ import {
 import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
-import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 
 const Stack = createStackNavigator();
 
@@ -109,12 +109,6 @@ const TrendingFeed: React.FC = () => {
       fromTrending: true,
     });
   }, [navigation, portfolioUrl.href]);
-
-  const handleEnableBasicFunctionality = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-    });
-  }, [navigation]);
 
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
@@ -197,9 +191,7 @@ const TrendingFeed: React.FC = () => {
           ))}
         </ScrollView>
       ) : (
-        <BasicFunctionalityEmptyState
-          onEnablePress={handleEnableBasicFunctionality}
-        />
+        <BasicFunctionalityEmptyState />
       )}
     </Box>
   );
