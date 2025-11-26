@@ -133,6 +133,7 @@ import {
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
+import BrowserWrapper from '../../Views/TrendingView/components/BrowserWrapper/BrowserWrapper';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -291,26 +292,6 @@ const TrendingHome = () => (
       name={Routes.TRENDING_VIEW}
       component={TrendingView}
       options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SITES_FULL_VIEW}
-      component={SitesFullView}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
     />
   </Stack.Navigator>
 );
@@ -994,6 +975,26 @@ const MainNavigator = () => {
       />
       <Stack.Screen name="Home" component={HomeTabs} />
       <Stack.Screen
+        name="TrendingBrowser"
+        component={BrowserWrapper}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
+      <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
         options={{ headerShown: false }}
@@ -1040,6 +1041,25 @@ const MainNavigator = () => {
       <Stack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
+      <Stack.Screen
+        name={Routes.SITES_FULL_VIEW}
+        component={SitesFullView}
         options={{
           animationEnabled: true,
           cardStyleInterpolator: ({ current, layouts }) => ({

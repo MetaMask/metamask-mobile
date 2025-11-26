@@ -6,13 +6,11 @@ import { updateLastTrendingScreen } from '../../../../Nav/Main/MainNavigator';
 interface SiteRowItemWrapperProps {
   site: SiteData;
   navigation: NavigationProp<ParamListBase>;
-  isViewAll?: boolean;
 }
 
 const SiteRowItemWrapper: React.FC<SiteRowItemWrapperProps> = ({
   site,
   navigation,
-  isViewAll = false,
 }) => {
   const handlePress = () => {
     // Update last trending screen state
@@ -26,9 +24,7 @@ const SiteRowItemWrapper: React.FC<SiteRowItemWrapperProps> = ({
     });
   };
 
-  return (
-    <SiteRowItem site={site} onPress={handlePress} isViewAll={isViewAll} />
-  );
+  return <SiteRowItem site={site} onPress={handlePress} />;
 };
 
 export default SiteRowItemWrapper;

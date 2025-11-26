@@ -1,47 +1,53 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 // eslint-disable-next-line no-duplicate-imports
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
-  Box,
-  Icon,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { useAppThemeFromContext } from '../../../util/theme';
+import { Theme } from '../../../util/theme/models';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
-import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
+import SitesList from '../../UI/Sites/components/SitesList/SitesList';
 import SiteSkeleton from '../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
-import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
-import HeaderBase, {
-  HeaderBaseVariant,
-} from '../../../component-library/components/HeaderBase';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import { IconName as IconNameType } from '../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import SitesSearchFooter from '../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../locales/i18n';
-import ExploreSearchBar from '../TrendingView/ExploreSearchBar/ExploreSearchBar';
+import ListHeaderWithSearch from '../../UI/shared/ListHeaderWithSearch/ListHeaderWithSearch';
 
-function looksLikeUrl(str: string): boolean {
-  return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
-}
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
+      paddingBottom: 16,
+    },
+    headerContainer: {
+      backgroundColor: theme.colors.background.default,
+    },
+    listContainer: {
+      flex: 1,
+      paddingLeft: 16,
+      paddingRight: 16,
+    },
+  });
 
 const SitesFullView: React.FC = () => {
-  const tw = useTailwind();
+  const theme = useAppThemeFromContext();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch all sites (no limit)
-  const { sites, isLoading } = useSitesData({ limit: 100 });
+  const {
+    sites,
+    isLoading,
+    refetch: refetchSites,
+  } = useSitesData({ limit: 100 });
 
   // Filter sites based on search query
   const filteredSites = useMemo(() => {
@@ -59,168 +65,90 @@ const SitesFullView: React.FC = () => {
   }, [sites, searchQuery]);
 
   const handleBackPress = useCallback(() => {
-    if (isSearchActive) {
-      setIsSearchActive(false);
-      setSearchQuery('');
-    } else {
-      navigation.goBack();
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleSearchToggle = useCallback(() => {
+    setIsSearchActive((prev) => {
+      if (prev) {
+        // Closing search, clear the query
+        setSearchQuery('');
+      }
+      return !prev;
+    });
+  }, []);
+
+  // Handle pull-to-refresh
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      refetchSites?.();
+    } catch (error) {
+      console.warn('Failed to refresh sites:', error);
+    } finally {
+      setRefreshing(false);
     }
-  }, [navigation, isSearchActive]);
-
-  const handleSearchPress = useCallback(() => {
-    setIsSearchActive(true);
-  }, []);
-
-  const handleCancelSearch = useCallback(() => {
-    setIsSearchActive(false);
-    setSearchQuery('');
-  }, []);
-
-  const handlePressFooterLink = useCallback(
-    (url: string) => {
-      navigation.navigate('TrendingBrowser', {
-        newTabUrl: url,
-        timestamp: Date.now(),
-        fromTrending: true,
-      });
-    },
-    [navigation],
-  );
-
-  const renderSiteItem = ({ item }: { item: SiteData }) => (
-    <SiteRowItemWrapper site={item} navigation={navigation} isViewAll />
-  );
+  }, [refetchSites]);
 
   const renderSkeleton = () => (
     <>
       {[...Array(10)].map((_, index) => (
-        <SiteSkeleton key={`skeleton-${index}`} isViewAll />
+        <SiteSkeleton key={`skeleton-${index}`} />
       ))}
     </>
   );
 
   const renderFooter = useMemo(() => {
-    if (!isSearchActive || searchQuery.length === 0) return null;
+    if (!isSearchActive) return null;
 
-    const isUrl = looksLikeUrl(searchQuery.toLowerCase());
-    const urlWithProtocol =
-      isUrl && !searchQuery.startsWith('http')
-        ? `https://${searchQuery}`
-        : searchQuery;
-
-    return (
-      <Box>
-        {isUrl && (
-          <TouchableOpacity
-            style={tw.style('flex-row items-center py-4 px-4')}
-            onPress={() => handlePressFooterLink(urlWithProtocol)}
-            testID="url-item"
-          >
-            <Box twClassName="flex-1">
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Primary}
-                numberOfLines={1}
-              >
-                {searchQuery}
-              </Text>
-            </Box>
-            <Box twClassName="ml-3">
-              <Icon name={IconName.Arrow2UpRight} size={IconSize.Md} />
-            </Box>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          style={tw.style('flex-row items-center py-4 px-4')}
-          onPress={() =>
-            handlePressFooterLink(
-              `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`,
-            )
-          }
-          testID="search-on-google-button"
-        >
-          <Box twClassName="flex-1 flex-row items-center">
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              Search for {'"'}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Primary}
-              numberOfLines={1}
-              style={tw.style('shrink')}
-            >
-              {searchQuery}
-            </Text>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {'"'} on Google
-            </Text>
-          </Box>
-          <Box twClassName="ml-3">
-            <Icon name={IconName.Arrow2UpRight} size={IconSize.Md} />
-          </Box>
-        </TouchableOpacity>
-      </Box>
-    );
-  }, [isSearchActive, searchQuery, handlePressFooterLink, tw]);
+    return <SitesSearchFooter searchQuery={searchQuery} />;
+  }, [isSearchActive, searchQuery]);
 
   return (
-    <Box twClassName="flex-1 bg-default" style={{ paddingTop: insets.top }}>
-      {/* Header */}
-      <Box twClassName="px-4 pt-4 pb-2">
-        {isSearchActive ? (
-          <ExploreSearchBar
-            type="interactive"
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onCancel={handleCancelSearch}
-            placeholder={strings('trending.search_sites')}
-          />
-        ) : (
-          <HeaderBase
-            variant={HeaderBaseVariant.Display}
-            startAccessory={
-              <ButtonIcon
-                size={ButtonIconSizes.Lg}
-                onPress={handleBackPress}
-                iconName={IconNameType.ArrowLeft}
-                testID="back-button"
-              />
-            }
-            endAccessory={
-              <ButtonIcon
-                size={ButtonIconSizes.Lg}
-                onPress={handleSearchPress}
-                iconName={IconNameType.Search}
-                testID="search-button"
-              />
-            }
-            style={tw.style('flex-row items-center gap-1')}
-          >
-            <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
-              {strings('trending.popular_sites')}
-            </Text>
-          </HeaderBase>
-        )}
-      </Box>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+      <View
+        style={[
+          styles.headerContainer,
+          {
+            paddingTop: insets.top,
+          },
+        ]}
+      >
+        <ListHeaderWithSearch
+          defaultTitle={strings('trending.popular_sites')}
+          isSearchVisible={isSearchActive}
+          searchQuery={searchQuery}
+          searchPlaceholder={strings('trending.search_sites')}
+          cancelText={strings('browser.cancel')}
+          onSearchQueryChange={setSearchQuery}
+          onBack={handleBackPress}
+          onSearchToggle={handleSearchToggle}
+          testID="sites-full-view-header"
+        />
+      </View>
 
-      {/* Sites List */}
-      <Box twClassName="flex-1">
-        {isLoading ? (
-          renderSkeleton()
-        ) : (
-          <FlatList
-            data={filteredSites}
-            renderItem={renderSiteItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={tw.style('pb-4')}
-            showsVerticalScrollIndicator={false}
+      {isLoading ? (
+        <View style={styles.listContainer}>{renderSkeleton()}</View>
+      ) : (
+        <View style={styles.listContainer}>
+          <SitesList
+            sites={filteredSites}
+            refreshControl={
+              <RefreshControl
+                colors={[theme.colors.primary.default]}
+                tintColor={theme.colors.icon.default}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
             ListFooterComponent={renderFooter}
           />
-        )}
-      </Box>
-    </Box>
+        </View>
+      )}
+    </SafeAreaView>
   );
 };
+
+SitesFullView.displayName = 'SitesFullView';
 
 export default SitesFullView;

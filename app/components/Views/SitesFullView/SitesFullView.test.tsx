@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import SitesFullView from './SitesFullView';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
@@ -8,6 +8,7 @@ import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem
 jest.mock('../../UI/Sites/hooks/useSiteData/useSitesData');
 
 jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: jest.requireActual('react-native').View,
   useSafeAreaInsets: () => ({ top: 50, bottom: 34, left: 0, right: 0 }),
 }));
 
@@ -21,36 +22,87 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const mockTwStyle = jest.fn((...args: unknown[]) => {
-  const flatArgs = args.flat().filter(Boolean);
-  return flatArgs.reduce((acc: Record<string, unknown>, arg) => {
-    if (typeof arg === 'string') {
-      return { ...acc, [arg]: true };
-    }
-    if (typeof arg === 'object') {
-      return { ...acc, ...arg };
-    }
-    return acc;
-  }, {});
-});
-
-// Make mockTw callable as both function and object with style method
-const mockTw = Object.assign(mockTwStyle, { style: mockTwStyle });
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => mockTw,
+jest.mock('../../../util/theme', () => ({
+  useAppThemeFromContext: () => ({
+    colors: {
+      background: { default: '#FFFFFF' },
+      primary: { default: '#037DD6' },
+      icon: { default: '#24272A' },
+    },
+  }),
 }));
 
-jest.mock('../SectionSites/SiteRowItemWrapper', () => {
+jest.mock('../../UI/shared/ListHeaderWithSearch/ListHeaderWithSearch', () => {
   const ReactNative = jest.requireActual('react-native');
-  return jest.fn(({ site }) => (
-    <ReactNative.View testID={`site-item-${site.id}`}>
-      <ReactNative.Text>{site.name}</ReactNative.Text>
+  return jest.fn(
+    ({
+      defaultTitle,
+      isSearchVisible,
+      searchQuery,
+      onSearchQueryChange,
+      onBack,
+      onSearchToggle,
+      testID,
+    }) => (
+      <ReactNative.View testID={testID}>
+        {!isSearchVisible ? (
+          <>
+            <ReactNative.TouchableOpacity
+              testID={`${testID}-back-button`}
+              onPress={onBack}
+            >
+              <ReactNative.Text>Back</ReactNative.Text>
+            </ReactNative.TouchableOpacity>
+            <ReactNative.Text testID={`${testID}-title`}>
+              {defaultTitle}
+            </ReactNative.Text>
+            <ReactNative.TouchableOpacity
+              testID={`${testID}-search-toggle`}
+              onPress={onSearchToggle}
+            >
+              <ReactNative.Text>Search</ReactNative.Text>
+            </ReactNative.TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <ReactNative.TextInput
+              testID={`${testID}-search-bar`}
+              value={searchQuery}
+              onChangeText={onSearchQueryChange}
+            />
+            <ReactNative.TouchableOpacity
+              testID={`${testID}-search-close`}
+              onPress={onSearchToggle}
+            >
+              <ReactNative.Text>Cancel</ReactNative.Text>
+            </ReactNative.TouchableOpacity>
+          </>
+        )}
+      </ReactNative.View>
+    ),
+  );
+});
+
+jest.mock('../../UI/Sites/components/SitesList/SitesList', () => {
+  const ReactNative = jest.requireActual('react-native');
+  return jest.fn(({ sites, refreshControl, ListFooterComponent }) => (
+    <ReactNative.View testID="sites-list">
+      {sites.map((site: SiteData) => (
+        <ReactNative.View key={site.id} testID={`site-item-${site.id}`}>
+          <ReactNative.Text>{site.name}</ReactNative.Text>
+        </ReactNative.View>
+      ))}
+      {refreshControl && (
+        <ReactNative.View testID="refresh-control">
+          {refreshControl}
+        </ReactNative.View>
+      )}
+      {ListFooterComponent}
     </ReactNative.View>
   ));
 });
 
-jest.mock('../SectionSites/SiteSkeleton/SiteSkeleton', () =>
+jest.mock('../../UI/Sites/components/SiteSkeleton/SiteSkeleton', () =>
   jest.fn(() => {
     const ReactNative = jest.requireActual('react-native');
     return (
@@ -61,62 +113,22 @@ jest.mock('../SectionSites/SiteSkeleton/SiteSkeleton', () =>
   }),
 );
 
-jest.mock('../../../../component-library/components/HeaderBase', () => ({
-  __esModule: true,
-  default: jest.fn(({ children, startAccessory, endAccessory }) => {
-    const ReactNative = jest.requireActual('react-native');
-    return (
-      <ReactNative.View testID="header-base">
-        {startAccessory}
-        {children}
-        {endAccessory}
-      </ReactNative.View>
-    );
-  }),
-  HeaderBaseVariant: {
-    Display: 'Display',
-  },
-}));
-
 jest.mock(
-  '../../../../component-library/components/Buttons/ButtonIcon',
-  () => ({
-    __esModule: true,
-    default: jest.fn(({ onPress, iconName, testID }) => {
-      const ReactNative = jest.requireActual('react-native');
-      return (
-        <ReactNative.TouchableOpacity testID={testID} onPress={onPress}>
-          <ReactNative.Text>{iconName}</ReactNative.Text>
-        </ReactNative.TouchableOpacity>
-      );
-    }),
-    ButtonIconSizes: {
-      Lg: 'Lg',
-    },
-  }),
+  '../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter',
+  () => {
+    const ReactNative = jest.requireActual('react-native');
+    return jest.fn(({ searchQuery }) =>
+      searchQuery ? (
+        <ReactNative.View testID="sites-search-footer">
+          <ReactNative.Text>{searchQuery}</ReactNative.Text>
+        </ReactNative.View>
+      ) : null,
+    );
+  },
 );
 
-jest.mock('../ExploreSearchBar/ExploreSearchBar', () => {
-  const ReactNative = jest.requireActual('react-native');
-  return jest.fn(({ searchQuery, onSearchChange, onCancel, placeholder }) => (
-    <ReactNative.View testID="explore-search-bar">
-      <ReactNative.TextInput
-        testID="explore-view-search-input"
-        value={searchQuery}
-        onChangeText={onSearchChange}
-        placeholder={placeholder || 'Search'}
-      />
-      <ReactNative.TouchableOpacity
-        testID="explore-search-cancel-button"
-        onPress={onCancel}
-      >
-        <ReactNative.Text>Cancel</ReactNative.Text>
-      </ReactNative.TouchableOpacity>
-    </ReactNative.View>
-  ));
-});
-
 const mockUseSitesData = useSitesData as jest.Mock;
+const mockRefetch = jest.fn();
 
 describe('SitesFullView', () => {
   const mockSites: SiteData[] = [
@@ -148,32 +160,39 @@ describe('SitesFullView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRefetch.mockClear();
   });
 
   describe('Rendering', () => {
-    it('renders header with back and search buttons', () => {
+    it('renders header with back button and title', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
       const { getByTestId } = render(<SitesFullView />);
 
-      expect(getByTestId('header-base')).toBeOnTheScreen();
-      expect(getByTestId('back-button')).toBeOnTheScreen();
-      expect(getByTestId('search-button')).toBeOnTheScreen();
+      expect(getByTestId('sites-full-view-header')).toBeOnTheScreen();
+      expect(
+        getByTestId('sites-full-view-header-back-button'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('sites-full-view-header-title')).toBeOnTheScreen();
+      expect(
+        getByTestId('sites-full-view-header-search-toggle'),
+      ).toBeOnTheScreen();
     });
 
-    it('renders all site items', () => {
+    it('renders SitesList component with all site items', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
       const { getByTestId } = render(<SitesFullView />);
 
+      expect(getByTestId('sites-list')).toBeOnTheScreen();
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
       expect(getByTestId('site-item-2')).toBeOnTheScreen();
       expect(getByTestId('site-item-3')).toBeOnTheScreen();
@@ -183,7 +202,7 @@ describe('SitesFullView', () => {
       mockUseSitesData.mockReturnValue({
         sites: [],
         isLoading: true,
-        error: null,
+        refetch: mockRefetch,
       });
 
       const { getAllByTestId } = render(<SitesFullView />);
@@ -191,124 +210,79 @@ describe('SitesFullView', () => {
       const skeletons = getAllByTestId('site-skeleton');
       expect(skeletons.length).toBe(10);
     });
+
+    it('renders RefreshControl', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId } = render(<SitesFullView />);
+
+      expect(getByTestId('refresh-control')).toBeOnTheScreen();
+    });
   });
 
   describe('Navigation', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('navigates back when back button is pressed', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
       const { getByTestId } = render(<SitesFullView />);
-      const backButton = getByTestId('back-button');
+      const backButton = getByTestId('sites-full-view-header-back-button');
 
       fireEvent.press(backButton);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
-
-    it('activates search mode when search button is pressed', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId, queryByTestId } = render(<SitesFullView />);
-      const searchButton = getByTestId('search-button');
-
-      expect(queryByTestId('explore-search-bar')).toBeNull();
-
-      fireEvent.press(searchButton);
-
-      expect(getByTestId('explore-search-bar')).toBeOnTheScreen();
-    });
-
-    it('closes search mode when cancel button is pressed', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId, queryByTestId } = render(<SitesFullView />);
-
-      // Activate search
-      fireEvent.press(getByTestId('search-button'));
-      expect(getByTestId('explore-search-bar')).toBeOnTheScreen();
-
-      // Press cancel
-      fireEvent.press(getByTestId('explore-search-cancel-button'));
-
-      // Search should be closed
-      expect(queryByTestId('explore-search-bar')).toBeNull();
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
   });
 
   describe('Search Functionality', () => {
-    it('filters sites by name', () => {
+    it('filters sites by name, URL, and display URL', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
-      fireEvent.press(getByTestId('search-button'));
-      const searchInput = getByTestId('explore-view-search-input');
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      const searchInput = getByTestId('sites-full-view-header-search-bar');
 
-      // Search for "Meta"
+      // Search by name
       fireEvent.changeText(searchInput, 'Meta');
-
-      // Only MetaMask should be visible
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
       expect(queryByTestId('site-item-2')).toBeNull();
-      expect(queryByTestId('site-item-3')).toBeNull();
-    });
 
-    it('filters sites by URL', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId, queryByTestId } = render(<SitesFullView />);
-
-      // Activate search
-      fireEvent.press(getByTestId('search-button'));
-      const searchInput = getByTestId('explore-view-search-input');
-
-      // Search for "opensea"
+      // Search by URL
       fireEvent.changeText(searchInput, 'opensea');
-
-      // Only OpenSea should be visible
       expect(queryByTestId('site-item-1')).toBeNull();
       expect(getByTestId('site-item-2')).toBeOnTheScreen();
-      expect(queryByTestId('site-item-3')).toBeNull();
+
+      // Search by display URL
+      fireEvent.changeText(searchInput, 'uniswap.org');
+      expect(queryByTestId('site-item-2')).toBeNull();
+      expect(getByTestId('site-item-3')).toBeOnTheScreen();
     });
 
     it('shows all sites when search query is empty', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
       const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
-      fireEvent.press(getByTestId('search-button'));
-      const searchInput = getByTestId('explore-view-search-input');
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      const searchInput = getByTestId('sites-full-view-header-search-bar');
 
       // Empty search
       fireEvent.changeText(searchInput, '');
@@ -319,255 +293,73 @@ describe('SitesFullView', () => {
       expect(getByTestId('site-item-3')).toBeOnTheScreen();
     });
 
-    it('shows cancel button when search is active', () => {
+    it('clears search query when search is closed', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
-      const { getByTestId, queryByTestId } = render(<SitesFullView />);
-
-      // Initially no cancel button
-      expect(queryByTestId('explore-search-cancel-button')).toBeNull();
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
-      fireEvent.press(getByTestId('search-button'));
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      const searchInput = getByTestId('sites-full-view-header-search-bar');
 
-      // Cancel button should appear
-      expect(getByTestId('explore-search-cancel-button')).toBeOnTheScreen();
-    });
-
-    it('clears search and closes search mode when cancel button is pressed', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId, queryByTestId } = render(<SitesFullView />);
-
-      // Activate search and type
-      fireEvent.press(getByTestId('search-button'));
-      const searchInput = getByTestId('explore-view-search-input');
+      // Type search query
       fireEvent.changeText(searchInput, 'test');
 
-      // Cancel
-      fireEvent.press(getByTestId('explore-search-cancel-button'));
+      // Close search
+      fireEvent.press(getByTestId('sites-full-view-header-search-close'));
 
-      // Search should be closed
-      expect(queryByTestId('explore-search-bar')).toBeNull();
+      // Reopen search
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+
+      // Search input should be empty
+      const newSearchInput = getByTestId('sites-full-view-header-search-bar');
+      expect(newSearchInput.props.value).toBe('');
     });
 
-    it('shows search on Google option when there is a search query', () => {
+    it('displays SitesSearchFooter when search is active', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
+      // Initially no footer
+      expect(queryByTestId('sites-search-footer')).toBeNull();
+
       // Activate search
-      fireEvent.press(getByTestId('search-button'));
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      const searchInput = getByTestId('sites-full-view-header-search-bar');
 
-      // Initially no Google search option
-      expect(queryByTestId('search-on-google-button')).toBeNull();
+      // Type search query
+      fireEvent.changeText(searchInput, 'test');
 
-      // Type any search query
-      fireEvent.changeText(getByTestId('explore-view-search-input'), 'test');
-
-      // Google search option should appear
-      expect(getByTestId('search-on-google-button')).toBeOnTheScreen();
+      // Footer should appear
+      expect(getByTestId('sites-search-footer')).toBeOnTheScreen();
     });
 
-    it('navigates to Google search when search on Google button is pressed', () => {
+    it('hides SitesSearchFooter when search query is empty or search is inactive', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(<SitesFullView />);
-
-      // Activate search and type
-      fireEvent.press(getByTestId('search-button'));
-      fireEvent.changeText(
-        getByTestId('explore-view-search-input'),
-        'test query',
-      );
-
-      // Press Google search button
-      fireEvent.press(getByTestId('search-on-google-button'));
-
-      // Should navigate to TrendingBrowser with Google search URL
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'TrendingBrowser',
-        expect.objectContaining({
-          newTabUrl: 'https://www.google.com/search?q=test%20query',
-          fromTrending: true,
-        }),
-      );
-    });
-
-    it('displays URL item when search query is a valid URL', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: [],
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(<SitesFullView />);
-
-      // Activate search
-      fireEvent.press(getByTestId('search-button'));
-
-      // Type a valid URL
-      fireEvent.changeText(
-        getByTestId('explore-view-search-input'),
-        'example.com',
-      );
-
-      // Should show the URL item
-      expect(getByTestId('url-item')).toBeOnTheScreen();
-    });
-
-    it('displays URL item with https protocol', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: [],
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(<SitesFullView />);
-
-      // Activate search
-      fireEvent.press(getByTestId('search-button'));
-
-      // Type a valid URL with protocol
-      fireEvent.changeText(
-        getByTestId('explore-view-search-input'),
-        'https://example.com',
-      );
-
-      // Should show the URL item
-      expect(getByTestId('url-item')).toBeOnTheScreen();
-    });
-
-    it('shows URL item separately from matching sites', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(<SitesFullView />);
-
-      // Activate search
-      fireEvent.press(getByTestId('search-button'));
-
-      // Type a URL that also matches existing sites
-      fireEvent.changeText(
-        getByTestId('explore-view-search-input'),
-        'metamask.io',
-      );
-
-      // URL item should appear
-      expect(getByTestId('url-item')).toBeOnTheScreen();
-      // Original matching sites should still appear
-      expect(getByTestId('site-item-1')).toBeOnTheScreen();
-    });
-
-    it('shows both URL item and Google search option for valid URLs', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: [],
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(<SitesFullView />);
-
-      // Activate search
-      fireEvent.press(getByTestId('search-button'));
-
-      // Type a valid URL
-      fireEvent.changeText(
-        getByTestId('explore-view-search-input'),
-        'example.com',
-      );
-
-      // Should show both URL item
-      expect(getByTestId('url-item')).toBeOnTheScreen();
-
-      // AND Google search option
-      expect(getByTestId('search-on-google-button')).toBeOnTheScreen();
-    });
-
-    it('navigates to URL when URL item is pressed', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: [],
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId } = render(<SitesFullView />);
-
-      // Activate search and type URL
-      fireEvent.press(getByTestId('search-button'));
-      fireEvent.changeText(
-        getByTestId('explore-view-search-input'),
-        'example.com',
-      );
-
-      // Press URL item
-      fireEvent.press(getByTestId('url-item'));
-
-      // Should navigate to the URL
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'TrendingBrowser',
-        expect.objectContaining({
-          newTabUrl: 'https://example.com',
-          fromTrending: true,
-        }),
-      );
-    });
-
-    it('does not show URL item for non-URL search queries', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
-      // Activate search
-      fireEvent.press(getByTestId('search-button'));
-
-      // Type a non-URL query
-      fireEvent.changeText(getByTestId('explore-view-search-input'), 'meta');
-
-      // URL item should not appear
-      expect(queryByTestId('url-item')).toBeNull();
-
-      // But matching sites should appear
-      expect(getByTestId('site-item-1')).toBeOnTheScreen();
-    });
-
-    it('hides Google search option when search query is empty', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      const { getByTestId, queryByTestId } = render(<SitesFullView />);
+      // Footer should not appear when search is inactive
+      expect(queryByTestId('sites-search-footer')).toBeNull();
 
       // Activate search
-      fireEvent.press(getByTestId('search-button'));
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
 
-      // Google search should not appear with empty query
-      expect(queryByTestId('search-on-google-button')).toBeNull();
+      // Footer should not appear with empty query
+      expect(queryByTestId('sites-search-footer')).toBeNull();
     });
   });
 
@@ -576,7 +368,7 @@ describe('SitesFullView', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
       render(<SitesFullView />);
@@ -584,54 +376,37 @@ describe('SitesFullView', () => {
       expect(mockUseSitesData).toHaveBeenCalledWith({ limit: 100 });
     });
 
-    it('passes isViewAll prop to child components', () => {
+    it('calls refetch when refresh is triggered', async () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
-
-      const SiteRowItemWrapper = jest.requireMock(
-        '../SectionSites/SiteRowItemWrapper',
-      );
 
       render(<SitesFullView />);
 
-      expect(SiteRowItemWrapper).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isViewAll: true,
-        }),
-        expect.anything(),
+      const SitesListMock = jest.requireMock(
+        '../../UI/Sites/components/SitesList/SitesList',
       );
+
+      // Get the refreshControl prop passed to SitesList
+      const sitesListProps = SitesListMock.mock.calls[0][0];
+      const refreshControl = sitesListProps.refreshControl;
+
+      expect(refreshControl).toBeDefined();
+
+      // Simulate refresh
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      await waitFor(() => {
+        expect(mockRefetch).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
   describe('Edge Cases', () => {
-    it('handles transition from loading to loaded', () => {
-      mockUseSitesData.mockReturnValue({
-        sites: [],
-        isLoading: true,
-        error: null,
-      });
-
-      const { rerender, getAllByTestId, queryByTestId, getByTestId } = render(
-        <SitesFullView />,
-      );
-
-      expect(getAllByTestId('site-skeleton').length).toBe(10);
-
-      mockUseSitesData.mockReturnValue({
-        sites: mockSites,
-        isLoading: false,
-        error: null,
-      });
-
-      rerender(<SitesFullView />);
-
-      expect(queryByTestId('site-skeleton')).toBeNull();
-      expect(getByTestId('site-item-1')).toBeOnTheScreen();
-    });
-
     it('handles sites with missing optional fields', () => {
       const minimalSites: SiteData[] = [
         {
@@ -645,12 +420,46 @@ describe('SitesFullView', () => {
       mockUseSitesData.mockReturnValue({
         sites: minimalSites,
         isLoading: false,
-        error: null,
+        refetch: mockRefetch,
       });
 
       const { getByTestId } = render(<SitesFullView />);
 
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
+    });
+
+    it('handles empty sites array', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: [],
+        isLoading: false,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
+
+      expect(getByTestId('sites-list')).toBeOnTheScreen();
+      expect(queryByTestId('site-item-1')).toBeNull();
+    });
+
+    it('performs case-insensitive search', () => {
+      mockUseSitesData.mockReturnValue({
+        sites: mockSites,
+        isLoading: false,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
+
+      // Activate search
+      fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
+      const searchInput = getByTestId('sites-full-view-header-search-bar');
+
+      // Search with different case
+      fireEvent.changeText(searchInput, 'METAMASK');
+
+      // MetaMask should still be found
+      expect(getByTestId('site-item-1')).toBeOnTheScreen();
+      expect(queryByTestId('site-item-2')).toBeNull();
     });
   });
 });

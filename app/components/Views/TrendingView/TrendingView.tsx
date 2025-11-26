@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -18,7 +18,6 @@ import AppConstants from '../../../core/AppConstants';
 import { appendURLParams } from '../../../util/browser';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
-import Browser from '../Browser';
 import Routes from '../../../constants/navigation/Routes';
 import {
   lastTrendingScreenRef,
@@ -31,30 +30,6 @@ import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
 
 const Stack = createStackNavigator();
-
-// Wrapper component to intercept navigation
-const BrowserWrapper: React.FC<{ route: object }> = ({ route }) => {
-  const navigation = useNavigation();
-
-  // Create a custom navigation object that intercepts navigate calls
-  const customNavigation = useMemo(() => {
-    const originalNavigate = navigation.navigate.bind(navigation);
-
-    return {
-      ...navigation,
-      navigate: (routeName: string, params?: object) => {
-        // If trying to navigate to TRENDING_VIEW, go back in stack instead
-        if (routeName === Routes.TRENDING_VIEW) {
-          navigation.goBack();
-        } else {
-          originalNavigate(routeName, params);
-        }
-      },
-    };
-  }, [navigation]);
-
-  return <Browser navigation={customNavigation} route={route} />;
-};
 
 const TrendingFeed: React.FC = () => {
   const tw = useTailwind();
@@ -192,7 +167,6 @@ const TrendingView: React.FC = () => {
       }}
     >
       <Stack.Screen name="TrendingFeed" component={TrendingFeed} />
-      <Stack.Screen name="TrendingBrowser" component={BrowserWrapper} />
       <Stack.Screen
         name={Routes.EXPLORE_SEARCH}
         component={ExploreSearchScreen}

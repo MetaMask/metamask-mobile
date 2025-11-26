@@ -15,13 +15,12 @@ jest.mock('../SiteRowItem/SiteRowItem', () => {
 
   return {
     __esModule: true,
-    default: jest.fn(({ onPress, site, isViewAll }) => (
+    default: jest.fn(({ onPress, site }) => (
       <TouchableOpacity testID="site-row-item" onPress={onPress}>
         <Text testID="site-id">{site.id}</Text>
         <Text testID="site-name">{site.name}</Text>
         <Text testID="site-url">{site.url}</Text>
         <Text testID="site-display-url">{site.displayUrl}</Text>
-        <Text testID="is-view-all">{String(isViewAll)}</Text>
         {site.logoUrl && <Text testID="site-logo-url">{site.logoUrl}</Text>}
         {site.featured && <Text testID="site-featured">Featured</Text>}
       </TouchableOpacity>
@@ -85,26 +84,6 @@ describe('SiteRowItemWrapper', () => {
       expect(getByTestId('site-display-url').props.children).toBe(
         'example.com',
       );
-    });
-
-    it('should pass isViewAll as false by default', () => {
-      const { getByTestId } = render(
-        <SiteRowItemWrapper site={mockSiteData} navigation={mockNavigation} />,
-      );
-
-      expect(getByTestId('is-view-all').props.children).toBe('false');
-    });
-
-    it('should pass isViewAll as true when provided', () => {
-      const { getByTestId } = render(
-        <SiteRowItemWrapper
-          site={mockSiteData}
-          navigation={mockNavigation}
-          isViewAll
-        />,
-      );
-
-      expect(getByTestId('is-view-all').props.children).toBe('true');
     });
 
     it('should render site with logoUrl', () => {
@@ -271,40 +250,6 @@ describe('SiteRowItemWrapper', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(3);
     });
 
-    it('should use current timestamp on each press', () => {
-      dateNowSpy.mockRestore();
-      const timestamps = [1000000000, 2000000000, 3000000000];
-      let callCount = 0;
-
-      dateNowSpy = jest
-        .spyOn(Date, 'now')
-        .mockImplementation(() => timestamps[callCount++]);
-
-      const { getByTestId } = render(
-        <SiteRowItemWrapper site={mockSiteData} navigation={mockNavigation} />,
-      );
-
-      const siteRowItem = getByTestId('site-row-item');
-
-      fireEvent.press(siteRowItem);
-      expect(mockNavigation.navigate).toHaveBeenLastCalledWith(
-        'TrendingBrowser',
-        expect.objectContaining({ timestamp: 1000000000 }),
-      );
-
-      fireEvent.press(siteRowItem);
-      expect(mockNavigation.navigate).toHaveBeenLastCalledWith(
-        'TrendingBrowser',
-        expect.objectContaining({ timestamp: 2000000000 }),
-      );
-
-      fireEvent.press(siteRowItem);
-      expect(mockNavigation.navigate).toHaveBeenLastCalledWith(
-        'TrendingBrowser',
-        expect.objectContaining({ timestamp: 3000000000 }),
-      );
-    });
-
     it('should always pass fromTrending as true', () => {
       const { getByTestId } = render(
         <SiteRowItemWrapper site={mockSiteData} navigation={mockNavigation} />,
@@ -342,18 +287,6 @@ describe('SiteRowItemWrapper', () => {
         timestamp: 1234567890,
         fromTrending: true,
       });
-    });
-
-    it('should work with isViewAll explicitly set to false', () => {
-      const { getByTestId } = render(
-        <SiteRowItemWrapper
-          site={mockSiteData}
-          navigation={mockNavigation}
-          isViewAll={false}
-        />,
-      );
-
-      expect(getByTestId('is-view-all').props.children).toBe('false');
     });
   });
 });
