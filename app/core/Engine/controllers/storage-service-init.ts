@@ -4,7 +4,7 @@ import {
   StorageServiceMessenger,
   StorageAdapter,
   STORAGE_KEY_PREFIX,
-} from '@metamask/storage-service';
+} from '@metamask-previews/storage-service';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';

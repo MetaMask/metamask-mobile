@@ -6815,6 +6815,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/storage-service@npm:1.0.0-preview-f5c5aecd":
+  version: 1.0.0-preview-f5c5aecd
+  resolution: "@metamask-previews/storage-service@npm:1.0.0-preview-f5c5aecd"
+  dependencies:
+    "@metamask/messenger": "npm:^0.3.0"
+  checksum: 10/6855e8b511acb246f8d63c2c6a50261e91033cab8ff567d694ee723346bc7c8b5609cc1e440538682eb5fa92b1e8386d8449e0126cbf647ea039d979202d8c82
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^0.3.0":
   version: 0.3.0
   resolution: "@metamask/7715-permission-types@npm:0.3.0"
@@ -8748,15 +8757,6 @@ __metadata:
   version: 3.3.0
   resolution: "@metamask/stake-sdk@npm:3.3.0"
   checksum: 10/69f745168726cb435402dd3279227bb7994715131c2066075c07b924c0caaaf9adbc4f41a73f8baa0cbdbb48cb0b832f25373d2d5730b26a364970299d052df9
-  languageName: node
-  linkType: hard
-
-"@metamask/storage-service@file:./storage-service-package.tgz::locator=metamask%40workspace%3A.":
-  version: 1.0.0
-  resolution: "@metamask/storage-service@file:./storage-service-package.tgz#./storage-service-package.tgz::hash=1a487e&locator=metamask%40workspace%3A."
-  dependencies:
-    "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/da9213dd92c80475b75b3ff72b9ce13a07739e848d387e21591439ac417af0689cc6f49ea49c9c68b0878d3cedc2c0b6026c64c0fef91302db637d01421178d9
   languageName: node
   linkType: hard
 
@@ -34328,6 +34328,7 @@ __metadata:
     "@lavamoat/git-safe-dependencies": "npm:^0.2.1"
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.34.1"
+    "@metamask-previews/storage-service": "npm:1.0.0-preview-f5c5aecd"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^0.12.0"
     "@metamask/account-tree-controller": "npm:^3.0.0"
@@ -34430,7 +34431,6 @@ __metadata:
     "@metamask/solana-wallet-snap": "npm:^2.4.6"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.2.0"
-    "@metamask/storage-service": "file:./storage-service-package.tgz"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
     "@metamask/swaps-controller": "npm:^15.0.0"
     "@metamask/test-dapp": "npm:9.5.0"
