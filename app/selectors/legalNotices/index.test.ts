@@ -1,4 +1,8 @@
-import { shouldShowNewPrivacyToastSelector, shouldShowPna25Toast } from '.';
+import {
+  shouldShowNewPrivacyToastSelector,
+  selectShouldShowPna25Toast,
+  selectIsPna25Acknowledged,
+} from '.';
 import { RootState } from '../../reducers';
 import { selectIsPna25FlagEnabled } from '../featureFlagController/legalNotices';
 import { MetaMetrics } from '../../core/Analytics';
@@ -89,7 +93,7 @@ describe('legalNotices selectors', () => {
     });
   });
 
-  describe('shouldShowPna25Toast', () => {
+  describe('selectShouldShowPna25Toast', () => {
     const createMockState = (overrides: {
       completedOnboarding?: boolean;
       isPna25Acknowledged?: boolean;
@@ -123,7 +127,7 @@ describe('legalNotices selectors', () => {
       const state = createMockState({ completedOnboarding: false });
       mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
-      const result = shouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Toast(state);
 
       expect(result).toBe(false);
     });
@@ -132,7 +136,7 @@ describe('legalNotices selectors', () => {
       const state = createMockState({ socialLoginUserId: 'social-user-123' });
       mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
-      const result = shouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Toast(state);
 
       expect(result).toBe(false);
     });
@@ -141,7 +145,7 @@ describe('legalNotices selectors', () => {
       const state = createMockState({});
       mockSelectIsPna25FlagEnabled.mockReturnValue(false);
 
-      const result = shouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Toast(state);
 
       expect(result).toBe(false);
     });
@@ -150,7 +154,7 @@ describe('legalNotices selectors', () => {
       const state = createMockState({ isPna25Acknowledged: true });
       mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
-      const result = shouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Toast(state);
 
       expect(result).toBe(false);
     });
@@ -162,7 +166,7 @@ describe('legalNotices selectors', () => {
         isEnabled: jest.fn().mockReturnValue(false),
       } as never);
 
-      const result = shouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Toast(state);
 
       expect(result).toBe(false);
     });
@@ -171,9 +175,36 @@ describe('legalNotices selectors', () => {
       const state = createMockState({});
       mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
-      const result = shouldShowPna25Toast(state);
+      const result = selectShouldShowPna25Toast(state);
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('selectIsPna25Acknowledged', () => {
+    const createMockState = (isPna25Acknowledged: boolean): RootState =>
+      ({
+        legalNotices: {
+          isPna25Acknowledged,
+          newPrivacyPolicyToastClickedOrClosed: false,
+          newPrivacyPolicyToastShownDate: null,
+        },
+      }) as RootState;
+
+    it('returns true when PNA25 is acknowledged', () => {
+      const state = createMockState(true);
+
+      const result = selectIsPna25Acknowledged(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when PNA25 is not acknowledged', () => {
+      const state = createMockState(false);
+
+      const result = selectIsPna25Acknowledged(state);
+
+      expect(result).toBe(false);
     });
   });
 });

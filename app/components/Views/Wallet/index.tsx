@@ -28,7 +28,7 @@ import {
 import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
 import {
   shouldShowNewPrivacyToastSelector,
-  shouldShowPna25Toast as shouldShowPna25ToastSelector,
+  selectShouldShowPna25Toast,
 } from '../../../selectors/legalNotices';
 import {
   storePna25Acknowledged as storePna25AcknowledgedAction,
@@ -942,7 +942,8 @@ const Wallet = ({
     if (!shouldShowPna25Toast) return;
 
     currentToast?.showToast({
-      variant: ToastVariants.Plain,
+      variant: ToastVariants.Icon,
+      iconName: IconName.Info,
       labelOptions: [
         {
           label: strings(`privacy_policy.pna25_toast_message`),
@@ -950,7 +951,7 @@ const Wallet = ({
         },
       ],
       closeButtonOptions: {
-        label: strings(`privacy_policy.toast_action_button`),
+        label: 'x', // Hacky solution as there isn't a close icon button variant
         variant: ButtonVariants.Primary,
         onPress: () => {
           storePna25Acknowledged();
@@ -967,7 +968,8 @@ const Wallet = ({
       },
       hasNoTimeout: true,
     });
-  }, [shouldShowPna25Toast, storePna25Acknowledged, currentToast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldShowPna25Toast]);
 
   /**
    * Network onboarding state
@@ -1459,7 +1461,7 @@ const Wallet = ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
-  shouldShowPna25Toast: shouldShowPna25ToastSelector(state),
+  shouldShowPna25Toast: selectShouldShowPna25Toast(state),
 });
 
 // TODO: Replace "any" with type

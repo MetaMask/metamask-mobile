@@ -12,7 +12,7 @@ export interface LegalNoticesState {
 }
 
 const currentDate = new Date(Date.now());
-const newPrivacyPolicyDate = new Date('2024-06-18T12:00:00Z');
+export const newPrivacyPolicyDate = new Date('2024-06-18T12:00:00Z');
 export const isPastPrivacyPolicyDate = currentDate >= newPrivacyPolicyDate;
 
 const initialState: LegalNoticesState = {

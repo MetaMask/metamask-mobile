@@ -1,9 +1,11 @@
 import { RootState } from '../../reducers';
 import { selectIsPna25FlagEnabled } from '../featureFlagController/legalNotices';
 import { MetaMetrics } from '../../core/Analytics';
+import { newPrivacyPolicyDate } from '../../reducers/legalNotices';
+import { selectSeedlessOnboardingUserId } from '../seedlessOnboardingController';
+import { selectCompletedOnboarding } from '../onboarding';
 
 const currentDate = new Date(Date.now());
-const newPrivacyPolicyDate = new Date('2024-06-18T12:00:00Z');
 
 export const shouldShowNewPrivacyToastSelector = (
   state: RootState,
@@ -29,6 +31,14 @@ export const shouldShowNewPrivacyToastSelector = (
 };
 
 /**
+ * Selector for PNA25 acknowledgement
+ *
+ * @param state - Redux state
+ * @returns Boolean indicating whether or not the user has acknowledged PNA25
+ */
+export const selectIsPna25Acknowledged = (state: RootState): boolean => state.legalNotices.isPna25Acknowledged;
+
+/**
  * Determines if the PNA25 toast should be shown based on:
  * - User has completed onboarding (completedOnboarding === true)
  * - User is not a social login user
@@ -41,14 +51,11 @@ export const shouldShowNewPrivacyToastSelector = (
  * @param state - Redux state
  * @returns Boolean indicating whether or not to show the PNA25 toast
  */
-export const shouldShowPna25Toast = (state: RootState): boolean => {
-  const { completedOnboarding } = state.onboarding;
-  const { isPna25Acknowledged } = state.legalNotices;
-  const { userId: socialLoginUserId } =
-    state.engine.backgroundState.SeedlessOnboardingController;
+export const selectShouldShowPna25Toast = (state: RootState): boolean => {
+  const completedOnboarding = selectCompletedOnboarding(state);
+  const isPna25Acknowledged = selectIsPna25Acknowledged(state);
+  const socialLoginUserId = selectSeedlessOnboardingUserId(state);
   const isPna25Enabled = selectIsPna25FlagEnabled(state);
-
-  const areMetametricsEnabled = MetaMetrics.getInstance().isEnabled();
 
   if (
     !completedOnboarding ||
@@ -58,6 +65,8 @@ export const shouldShowPna25Toast = (state: RootState): boolean => {
   ) {
     return false;
   }
+
+  const areMetametricsEnabled = MetaMetrics.getInstance().isEnabled();
 
   if (areMetametricsEnabled === false) {
     return false;
