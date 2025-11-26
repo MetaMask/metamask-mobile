@@ -120,7 +120,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="bg-muted rounded-t-xl p-4 border-b border-muted"
+          twClassName="bg-muted rounded-t-xl p-4 mx-4 border-b border-muted"
         >
           <Text style={tw.style('text-body-sm')}>
             {strings('predict.deposit.adding_your_funds')}
