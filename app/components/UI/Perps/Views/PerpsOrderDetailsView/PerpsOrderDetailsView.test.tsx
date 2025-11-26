@@ -222,11 +222,12 @@ describe('PerpsOrderDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders view explorer button', () => {
+  it('renders cancel order button label', () => {
     render(<PerpsOrderDetailsView />);
 
+    // Verify cancel button is rendered (this is one of the key actions)
     expect(
-      screen.getByText('perps.order_details.view_explorer'),
+      screen.getByText('perps.order_details.cancel_order'),
     ).toBeOnTheScreen();
   });
 
@@ -294,26 +295,6 @@ describe('PerpsOrderDetailsView', () => {
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalled();
     });
-  });
-
-  it('navigates to explorer when view explorer button is pressed', () => {
-    render(<PerpsOrderDetailsView />);
-
-    fireEvent.press(screen.getByText('perps.order_details.view_explorer'));
-
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: { url: 'https://explorer.test.com' },
-    });
-  });
-
-  it('does not navigate to explorer when no explorer URL is available', () => {
-    mockGetExplorerUrl.mockReturnValue(null);
-    render(<PerpsOrderDetailsView />);
-
-    fireEvent.press(screen.getByText('perps.order_details.view_explorer'));
-
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('shows fill percentage for partially filled orders', () => {

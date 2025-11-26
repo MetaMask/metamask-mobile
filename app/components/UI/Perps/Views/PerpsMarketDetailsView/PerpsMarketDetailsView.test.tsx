@@ -336,6 +336,22 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+// Mock usePerpsABTest to return default variant
+jest.mock('../../utils/abTesting/usePerpsABTest', () => ({
+  usePerpsABTest: () => ({
+    variantName: 'semantic',
+    isEnabled: false,
+  }),
+}));
+
+// Mock usePerpsOICap to return not at cap by default
+jest.mock('../../hooks/usePerpsOICap', () => ({
+  usePerpsOICap: () => ({
+    isAtCap: false,
+    capPercentage: 50,
+  }),
+}));
+
 // Mock PerpsMarketStatisticsCard to simplify the test
 jest.mock('../../components/PerpsMarketStatisticsCard', () => {
   const { View, TouchableOpacity } = jest.requireActual('react-native');
@@ -701,7 +717,7 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeNull();
     });
 
-    it('renders long/short buttons when user has balance and existing position', () => {
+    it('renders modify/close buttons when user has balance and existing position', () => {
       // Override with non-zero balance and existing position
       mockUsePerpsAccount.mockReturnValue({
         account: {
@@ -738,7 +754,7 @@ describe('PerpsMarketDetailsView', () => {
         refreshPosition: jest.fn(),
       });
 
-      const { getByTestId, queryByText } = renderWithProvider(
+      const { getByTestId, queryByText, queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -747,13 +763,21 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Shows long/short buttons even with existing position
+      // Shows modify/close buttons when existing position exists (not long/short buttons)
       expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON),
       ).toBeTruthy();
       expect(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON),
       ).toBeTruthy();
+
+      // Long/short buttons should NOT be shown when position exists
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeNull();
 
       // Does not show add funds message
       expect(queryByText('Add funds to start trading perps')).toBeNull();
@@ -844,7 +868,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
-    it('refreshes statistics data when statistics tab is active', async () => {
+    it('refreshes statistics data via WebSocket', async () => {
       // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
@@ -871,7 +895,7 @@ describe('PerpsMarketDetailsView', () => {
         refreshPosition: mockRefreshPosition,
       });
 
-      const { getByTestId, getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -879,10 +903,6 @@ describe('PerpsMarketDetailsView', () => {
           state: initialState,
         },
       );
-
-      // Act - Switch to statistics tab
-      const statisticsTab = getByText('Overview');
-      fireEvent.press(statisticsTab);
 
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
