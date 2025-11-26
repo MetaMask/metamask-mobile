@@ -600,6 +600,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:137',
         rpc_endpoint_url: 'polygon-rpc.com',
+        rpc_domain: 'polygon-rpc.com',
       });
     });
 
@@ -783,6 +784,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:137',
         rpc_endpoint_url: 'polygon-rpc.com',
+        rpc_domain: 'polygon-rpc.com',
       });
     });
 
