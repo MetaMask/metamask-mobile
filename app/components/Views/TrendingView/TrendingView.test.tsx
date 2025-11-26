@@ -36,6 +36,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { useSelector } from 'react-redux';
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
@@ -136,6 +137,10 @@ describe('TrendingView', () => {
       if (selector === selectMultichainAccountsState2Enabled) {
         // Return false to use default networks behavior
         return false;
+      }
+      if (selector === selectBasicFunctionalityEnabled) {
+        // Return true by default (enabled)
+        return true;
       }
       // Handle selectSelectedInternalAccountByScope which is a selector factory
       // It returns a function that takes a scope and returns an account
@@ -435,5 +440,24 @@ describe('TrendingView', () => {
     fireEvent.press(searchButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
+  });
+
+  describe('basic functionality toggle', () => {
+    it('displays empty state when basic functionality is disabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBasicFunctionalityEnabled) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      expect(getByTestId('basic-functionality-empty-state')).toBeDefined();
+    });
   });
 });
