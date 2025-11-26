@@ -10,7 +10,6 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   addCurrencySymbol,
-  limitToMaximumDecimalPlaces,
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import {
