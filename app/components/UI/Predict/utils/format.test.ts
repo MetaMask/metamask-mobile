@@ -12,6 +12,11 @@ import {
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
 
+// Mock the formatWithThreshold utility
+jest.mock('../../../../util/assets', () => ({
+  formatWithThreshold: jest.fn(),
+}));
+
 // Mock Dimensions from react-native
 const mockDimensionsGet = jest.fn(() => ({
   width: 375,

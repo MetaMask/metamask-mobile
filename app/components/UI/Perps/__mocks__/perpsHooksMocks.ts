@@ -153,8 +153,6 @@ export const defaultPerpsRewardsMock = {
   feeDiscountPercentage: undefined,
   hasError: false,
   isRefresh: false,
-  accountOptedIn: null,
-  account: null,
 };
 
 /**

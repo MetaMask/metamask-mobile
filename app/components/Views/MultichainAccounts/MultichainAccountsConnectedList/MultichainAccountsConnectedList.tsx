@@ -38,12 +38,10 @@ const MultichainAccountsConnectedList = ({
   privacyMode,
   selectedAccountGroups,
   handleEditAccountsButtonPress,
-  isConnectionFlow = false,
 }: {
   privacyMode: boolean;
   selectedAccountGroups: AccountGroupObject[];
   handleEditAccountsButtonPress: () => void;
-  isConnectionFlow?: boolean;
 }) => {
   const { styles } = useStyles(styleSheet, {
     itemHeight: 64,
@@ -69,12 +67,6 @@ const MultichainAccountsConnectedList = ({
     (accountGroup: AccountGroupObject) => {
       const { AccountTreeController } = Engine.context;
       AccountTreeController.setSelectedAccountGroup(accountGroup.id);
-
-      // During connection flow, clicking an account should only change the selected account group instead of navigating
-      if (isConnectionFlow) {
-        return;
-      }
-
       const address = iconSeedAddresses[accountGroup.id];
       const activeAccountName = accountGroups.find(
         (group) => group.id === accountGroup.id,
@@ -96,14 +88,7 @@ const MultichainAccountsConnectedList = ({
       });
       navigation.navigate(Routes.BROWSER.HOME);
     },
-    [
-      isConnectionFlow,
-      navigation,
-      iconSeedAddresses,
-      accountAvatarType,
-      toastRef,
-      accountGroups,
-    ],
+    [navigation, iconSeedAddresses, accountAvatarType, toastRef, accountGroups],
   );
 
   const renderItem = useCallback(

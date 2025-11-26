@@ -27,7 +27,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
 import { useDepositSDK } from '../../../sdk';
-import { useRampNavigation } from '../../../../hooks/useRampNavigation';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
 export interface UnsupportedStateModalParams {
   stateCode?: string;
@@ -47,7 +47,6 @@ function UnsupportedStateModal() {
   const { selectedRegion } = useDepositSDK();
   const { stateCode, stateName, onStateSelect } =
     useParams<UnsupportedStateModalParams>();
-  const { goToAggregator } = useRampNavigation();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -73,9 +72,9 @@ function UnsupportedStateModal() {
     closeBottomSheetAndNavigate(() => {
       // @ts-expect-error navigation prop mismatch
       navigation.dangerouslyGetParent()?.pop();
-      goToAggregator();
+      navigation.navigate(...createBuyNavigationDetails());
     });
-  }, [closeBottomSheetAndNavigate, navigation, goToAggregator]);
+  }, [closeBottomSheetAndNavigate, navigation]);
 
   const handleClose = useCallback(() => {
     closeBottomSheetAndNavigate(() => {

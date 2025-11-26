@@ -1,1 +1,1 @@
-export { default, AdvancedDetailsRowSkeleton } from './advanced-details-row';
+export { default } from './advanced-details-row';

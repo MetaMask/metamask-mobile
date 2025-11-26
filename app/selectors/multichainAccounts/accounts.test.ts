@@ -1393,7 +1393,6 @@ describe('accounts selectors', () => {
         selectInternalAccountListSpreadByScopesByGroupId(mockState)(
           ENTROPY_GROUP_ID,
         );
-      // Results should be sorted: Ethereum (priority 0), Solana (priority 2), then other networks alphabetically
       expect(result).toEqual([
         {
           account: mockEvmAccount,
@@ -1401,9 +1400,9 @@ describe('accounts selectors', () => {
           networkName: 'Ethereum',
         },
         {
-          account: mockSolanaAccount,
-          scope: SOLANA_MAINNET_SCOPE,
-          networkName: 'Solana Mainnet',
+          account: mockEvmAccount,
+          scope: 'eip155:33875',
+          networkName: 'Base',
         },
         {
           account: mockEvmAccount,
@@ -1411,9 +1410,9 @@ describe('accounts selectors', () => {
           networkName: 'Arbitrum One',
         },
         {
-          account: mockEvmAccount,
-          scope: 'eip155:33875',
-          networkName: 'Base',
+          account: mockSolanaAccount,
+          scope: SOLANA_MAINNET_SCOPE,
+          networkName: 'Solana Mainnet',
         },
       ]);
     });

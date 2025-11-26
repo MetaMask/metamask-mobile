@@ -202,7 +202,6 @@ function render(Component: React.ReactElement, orders = testOrders) {
 }
 
 const mockNavigate = jest.fn();
-const mockGoToDeposit = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -213,10 +212,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToDeposit: mockGoToDeposit })),
-}));
 
 describe('OrdersList', () => {
   it('renders correctly', () => {
@@ -311,7 +306,25 @@ describe('OrdersList', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     fireEvent.press(screen.getByRole('button', { name: /USDT Deposit/ }));
-
-    expect(mockGoToDeposit).toHaveBeenCalledWith();
+    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          "OrderDetails",
+          {
+            "orderId": "test-order-2",
+          },
+        ],
+        [
+          "DepositOrderDetails",
+          {
+            "orderId": "test-deposit-order-1",
+          },
+        ],
+        [
+          "Deposit",
+        ],
+      ]
+    `);
   });
 });
