@@ -1423,6 +1423,7 @@
         "entry_label": "Entry price",
         "liquidation_price_label": "Liq. price",
         "funding_payments_label": "Funding",
+        "oracle_price_label": "Oracle price",
         "details_title": "Details",
         "entry_price": "Entry price",
         "funding_cost": "Funding",

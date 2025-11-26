@@ -9,7 +9,7 @@ const styleSheet = (params: { theme: Theme }) =>
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      gap: 8,
     },
     statsRowsContainer: {
       gap: 1,
@@ -40,6 +40,11 @@ const styleSheet = (params: { theme: Theme }) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
+    },
+    dexTag: {
+      backgroundColor: params.theme.colors.background.default,
+      borderWidth: 1,
+      borderColor: params.theme.colors.border.default,
     },
   });
 

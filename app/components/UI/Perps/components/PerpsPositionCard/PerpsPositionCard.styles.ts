@@ -129,6 +129,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     detailsSection: {
       gap: 1,
+      marginTop: 20,
     },
     detailsTitle: {
       marginBottom: 16,

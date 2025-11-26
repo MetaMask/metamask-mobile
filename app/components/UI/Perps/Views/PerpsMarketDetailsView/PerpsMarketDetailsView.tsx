@@ -796,6 +796,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onTooltipPress={handleTooltipPress}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
+              dexName={market?.marketSource || undefined}
             />
           </View>
 

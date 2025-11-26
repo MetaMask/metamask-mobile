@@ -392,6 +392,22 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </Text>
         </View>
 
+        {currentPrice !== undefined && currentPrice > 0 && (
+          <View style={styles.detailRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('perps.position.card.oracle_price_label')}
+            </Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {formatPerpsFiat(currentPrice, {
+                ranges: PRICE_RANGES_UNIVERSAL,
+              })}
+            </Text>
+          </View>
+        )}
+
         <View style={styles.detailRow}>
           <Text
             variant={TextVariant.BodyMDMedium}

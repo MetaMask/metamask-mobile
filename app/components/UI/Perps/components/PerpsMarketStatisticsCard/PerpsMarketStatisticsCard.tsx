@@ -19,7 +19,7 @@ import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatFundingRate } from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
-import PerpsBadge from '../PerpsBadge';
+import Tag from '../../../../../component-library/components/Tags/Tag';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -110,7 +110,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
         <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
           {strings('perps.market.stats')}
         </Text>
-        {dexName && <PerpsBadge type="experimental" customLabel={dexName} />}
+        {dexName && <Tag label={dexName.toUpperCase()} style={styles.dexTag} />}
       </View>
 
       {/* Stats rows with card background */}
