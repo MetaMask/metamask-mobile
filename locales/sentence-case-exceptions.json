@@ -45,9 +45,21 @@
     "Perps",
     "Polymarket",
     "Hyperliquid",
+    "HyperCore",
     "Fox Points",
     "Redux",
-    "U.S."
+    "U.S.",
+    "Sentry",
+    "Privacy Policy",
+    "Privacy Notice",
+    "Remember Me",
+    "Terms of Use",
+    "Face ID",
+    "Touch ID",
+    "Biometrics",
+    "Apple Pay",
+    "MoonPay",
+    "Wyre"
   ],
   "acronyms": [
     "NFT",
@@ -65,7 +77,14 @@
     "PnL",
     "P&L",
     "TP",
-    "SL"
+    "SL",
+    "GWEI",
+    "SSN",
+    "KYC",
+    "SDK",
+    "ETH",
+    "USDC",
+    "DAI"
   ],
   "patterns": {
     "testNetworks": "\\b(Goerli|Sepolia|Rinkeby|Ropsten|Kovan)\\s+Test\\s+Network\\b",
