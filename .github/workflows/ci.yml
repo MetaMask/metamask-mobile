@@ -241,28 +241,35 @@ jobs:
     steps:
       - name: Check if should run
         id: should-run
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           SKIP_REASON=""
 
-          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
-            SKIP_REASON="Not a pull request (event: ${{ github.event_name }})"
-          elif [[ "${{ github.event.pull_request.base.ref }}" != "main" ]]; then
-            SKIP_REASON="PR targets '${{ github.event.pull_request.base.ref }}' instead of 'main'"
-          elif [[ "${{ github.event.pull_request.head.ref }}" == release/* ]]; then
-            SKIP_REASON="PR originates from release branch '${{ github.event.pull_request.head.ref }}'"
+          if [[ "$EVENT_NAME" != "pull_request" ]]; then
+            SKIP_REASON="Not a pull request (event: $EVENT_NAME)"
+          elif [[ "$BASE_REF" != "main" ]]; then
+            SKIP_REASON="PR targets '$BASE_REF' instead of 'main'"
+          elif [[ "$HEAD_REF" == release/* ]]; then
+            SKIP_REASON="PR originates from release branch '$HEAD_REF'"
           fi
 
           if [[ -n "$SKIP_REASON" ]]; then
-            echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "skip_reason=$SKIP_REASON" >> $GITHUB_OUTPUT
-            echo "## ⏭️ Smart E2E Selection Skipped" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Reason:** $SKIP_REASON" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Smart E2E selection only runs on PRs targeting \`main\` that don't originate from \`release/*\` branches." >> $GITHUB_STEP_SUMMARY
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "skip_reason=$SKIP_REASON" >> "$GITHUB_OUTPUT"
+            {
+              echo "## ⏭️ Smart E2E Selection Skipped"
+              echo ""
+              echo "**Reason:** $SKIP_REASON"
+              echo ""
+              echo "Smart E2E selection only runs on PRs targeting \`main\` that don't originate from \`release/*\` branches."
+            } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "✅ Smart E2E selection will run for PR #${{ github.event.pull_request.number }}"
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Smart E2E selection will run for PR #$PR_NUMBER"
           fi
 
       - name: Checkout for action definition
@@ -376,8 +383,8 @@ jobs:
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
