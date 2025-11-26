@@ -960,6 +960,12 @@
     "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
     "no_open_orders": "No open orders",
+    "auto_close": {
+      "title": "Auto close",
+      "description": "Protect your margin, lock in gains",
+      "set_button": "Set",
+      "edit_button": "Edit"
+    },
     "deposit": {
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
@@ -1148,6 +1154,8 @@
       "tp_sl": "Auto close",
       "tp": "TP",
       "sl": "SL",
+      "long_label": "Long",
+      "short_label": "Short",
       "button": {
         "long": "Long {{asset}}",
         "short": "Short {{asset}}"
@@ -1226,6 +1234,21 @@
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
       "order_cancelled_success": "{{detailedOrderType}} order cancelled"
     },
+    "order_details": {
+      "title": "Order Details",
+      "cancel_order": "Cancel Order",
+      "date": "Date",
+      "fee": "Fee",
+      "limit_buy": "Limit Long",
+      "limit_price": "Limit Price",
+      "limit_sell": "Limit Short",
+      "market_buy": "Market Long",
+      "market_sell": "Market Short",
+      "open": "Open",
+      "size": "Size",
+      "status": "Status",
+      "view_explorer": "View on Explorer"
+    },
     "close_position": {
       "title": "Close position",
       "button": "Close position",
@@ -1264,6 +1287,36 @@
       "order_type_reverted_to_market_order": "Changed to market order",
       "you_need_set_price_limit_order": "You need to set a price for a limit order.",
       "your_pnl_is": "Your P&L is"
+    },
+    "modify": {
+      "title": "Modify",
+      "add_to_position": "Increase exposure",
+      "add_to_position_description": "Increase the size of your {{direction}} position",
+      "reduce_position": "Reduce exposure",
+      "reduce_position_description": "Decrease the size of your {{direction}} position by closing it partially",
+      "flip_position": "Reverse position",
+      "flip_position_description": "Flip your {{fromDirection}} to a {{toDirection}}"
+    },
+    "flip_position": {
+      "title": "Flip Position",
+      "direction": "Direction",
+      "est_size": "Est. Size",
+      "flip": "Flip",
+      "flipping": "Flipping...",
+      "cancel": "Cancel"
+    },
+    "adjust_margin": {
+      "title": "Adjust Margin",
+      "add_margin": "Add Margin",
+      "add_margin_description": "Increase margin to reduce liquidation risk",
+      "reduce_margin": "Reduce Margin",
+      "reduce_margin_description": "Withdraw excess margin from position",
+      "add_title": "Add Margin",
+      "remove_title": "Reduce Margin",
+      "margin_in_position": "Margin in position",
+      "perps_balance": "Perps balance",
+      "liquidation_price": "Liquidation price",
+      "liquidation_distance": "Liquidation distance"
     },
     "tpsl": {
       "title": "Auto close",
@@ -1304,6 +1357,9 @@
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} not supported for deposits",
       "unknownError": "Unknown error occurred",
+      "unknown": "Unknown error occurred",
+      "position_not_found": "Position not found",
+      "order_not_found": "Order not found",
       "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
       "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
       "infoClientNotAvailable": "InfoClient not available after initialization",
@@ -1368,11 +1424,26 @@
         "title": "Something Went Wrong",
         "description": "An unexpected error occurred. Please try again later.",
         "retry": "Retry"
+      },
+      "marginValidation": {
+        "exceedsMaxRemovable": "Amount exceeds maximum removable margin",
+        "insufficientMargin": "Position does not have sufficient margin for this reduction"
       }
     },
     "position": {
       "title": "Positions",
       "card": {
+        "position_title": "Position",
+        "pnl_label": "P&L",
+        "return_label": "Return",
+        "size_label": "Size",
+        "margin_label": "Margin",
+        "direction_label": "Direction",
+        "entry_label": "Entry price",
+        "liquidation_price_label": "Liquidation price",
+        "funding_payments_label": "Funding payments",
+        "oracle_price_label": "Oracle price",
+        "details_title": "Details",
         "entry_price": "Entry price",
         "funding_cost": "Funding",
         "liquidation_price": "Liq. Price",
@@ -1413,6 +1484,11 @@
       "tpsl": {
         "update_success": "TP/SL updated successfully",
         "update_failed": "Failed to update TP/SL"
+      },
+      "margin": {
+        "add_success": "Added ${{amount}} margin to {{asset}} position",
+        "remove_success": "Removed ${{amount}} margin from {{asset}} position",
+        "adjustment_failed": "Margin adjustment failed"
       }
     },
     "markets": {
@@ -1424,16 +1500,21 @@
         "error_message": "Market data not found. Please go back and try again."
       },
       "statistics": "Overview",
+      "stats": "Stats",
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",
       "open_interest": "Open interest",
       "funding_rate": "Funding rate",
+      "oracle_price": "Oracle price",
       "countdown": "Countdown",
       "long": "Long",
       "short": "Short",
       "long_lowercase": "long",
       "short_lowercase": "short",
+      "modify": "Modify",
+      "close_long": "Close long",
+      "close_short": "Close short",
       "add_funds": "Add funds",
       "add_funds_to_start_trading_perps": "Add funds to start trading perps",
       "position": "Position",
@@ -1469,6 +1550,10 @@
       "liquidation_price": {
         "title": "Liquidation price",
         "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "liquidation_distance": {
+        "title": "Liquidation distance",
+        "content": "The percentage the price needs to move against your position before liquidation. A higher percentage means more room before liquidation."
       },
       "margin": {
         "title": "Margin",
@@ -1726,8 +1811,7 @@
       },
       "view_on_explorer": "View on block explorer",
       "empty_state": {
-        "no_transactions": "No {{type}} transactions yet",
-        "history_will_appear": "Your trading history will appear here"
+        "no_transactions": "No {{type}} transactions yet. Your trading history will appear here"
       }
     },
     "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk. Powered by {{source}}. Price chart powered by",
@@ -6715,7 +6799,8 @@
       "points": "Points",
       "points_base": "Base",
       "points_boost": "Boost",
-      "points_total": "Total"
+      "points_total": "Total",
+      "description": "Description"
     },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
