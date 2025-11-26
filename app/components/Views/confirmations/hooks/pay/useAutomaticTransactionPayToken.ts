@@ -88,14 +88,14 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
+  preferredToken,
   targetToken,
   tokens,
-  preferredToken,
 }: {
   isHardwareWallet: boolean;
+  preferredToken?: SetPayTokenRequest;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
-  preferredToken?: SetPayTokenRequest;
 }): { address: Hex; chainId: Hex } | undefined {
   const targetTokenFallback = targetToken
     ? {
@@ -109,7 +109,7 @@ function getBestToken({
   }
 
   if (preferredToken) {
-    const preferredTokenAvailable = tokens.find(
+    const preferredTokenAvailable = tokens.some(
       (token) =>
         token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
         token.chainId === preferredToken.chainId,
