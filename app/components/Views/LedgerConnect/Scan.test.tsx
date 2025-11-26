@@ -69,6 +69,7 @@ describe('Scan', () => {
     const selectedDevice = {
       id: 'device1',
       name: 'Device 1',
+      serviceUUIDs: ['service1'],
     };
 
     jest.mocked(useBluetoothDevices).mockReturnValue({
@@ -192,10 +193,12 @@ describe('Scan', () => {
     const device1 = {
       id: 'device1',
       name: 'Device 1',
+      serviceUUIDs: ['service1'],
     };
     const device2 = {
       id: 'device2',
       name: 'Device 2',
+      serviceUUIDs: ['service2'],
     };
 
     const onDeviceSelected = jest.fn();
