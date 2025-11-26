@@ -195,12 +195,19 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       resetError();
       setBlockingModalVisible(true);
       try {
-        await withQrKeyring(async ({ keyring }) => {
+        const accountToSelect = await withQrKeyring(async ({ keyring }) => {
+          let lastAccount: string | undefined;
           for (const index of accountIndexs) {
             keyring.setAccountToUnlock(index);
-            await keyring.addAccounts(1);
+            const [newAccount] = await keyring.addAccounts(1);
+            lastAccount = newAccount;
           }
+          return lastAccount;
         });
+
+        if (accountToSelect) {
+          Engine.setSelectedAddress(accountToSelect);
+        }
       } catch (err) {
         Logger.log('Error: Connecting QR hardware wallet', err);
       }
