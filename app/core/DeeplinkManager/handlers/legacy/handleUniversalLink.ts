@@ -269,12 +269,14 @@ async function handleUniversalLink({
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     const homePath = urlObj.href.replace(BASE_URL_ACTION, '');
     navigateToHomeUrl({ homePath });
+    handled();
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
     const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
     handleSwapUrl({
       swapPath,
     });
+    handled();
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
     const deeplinkUrl = urlObj.href.replace(
