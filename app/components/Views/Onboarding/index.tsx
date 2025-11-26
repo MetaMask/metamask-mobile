@@ -292,13 +292,15 @@ const Onboarding = () => {
   }, [navigation, passwordSet]);
 
   const handleExistingUser = useCallback(
-    (action: () => void | Promise<void>): void => {
+    async (action: () => void | Promise<void>): Promise<void> => {
       if (state.existingUser) {
         alertExistingUser(action);
       } else {
-        Promise.resolve(action()).catch(() => {
-          //errors
-        });
+        try {
+          await action();
+        } catch (error) {
+          // errors
+        }
       }
     },
     [state.existingUser, alertExistingUser],
