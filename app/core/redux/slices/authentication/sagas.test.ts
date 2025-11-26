@@ -294,12 +294,10 @@ describe('requestAuthenticationSaga', () => {
     jest.restoreAllMocks();
   });
 
-  it('authenticates with password and navigates to home', async () => {
-    const mockNavigate = jest.fn();
-    NavigationService.navigation = {
-      navigate: mockNavigate,
-    } as unknown as typeof NavigationService.navigation;
-
+  it('authenticates with password successfully', async () => {
+    // Navigation is handled by manageAuthenticationLifecycleSaga after logIn() action
+    // This test verifies that requestAuthenticationSaga does NOT handle navigation
+    // to avoid race conditions with manageAuthenticationLifecycleSaga
     await expectSaga(requestAuthenticationSaga, {
       type: 'authentication/requestAuthentication',
       payload: {
@@ -319,11 +317,12 @@ describe('requestAuthenticationSaga', () => {
         }),
       )
       .run();
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
   });
 
-  it('restores navigation state after successful authentication', async () => {
+  it('does not handle navigation - managed by manageAuthenticationLifecycleSaga', async () => {
+    // Navigation state restoration is handled by manageAuthenticationLifecycleSaga
+    // after it receives the logIn() action. This test verifies that requestAuthenticationSaga
+    // does NOT handle navigation to avoid duplicate navigation commands.
     const testRoute = 'SecuritySettings';
     const mockNavigationState = {
       index: 0,
@@ -367,10 +366,12 @@ describe('requestAuthenticationSaga', () => {
           timestamp: 123,
         }),
       )
-      .put(clearNavigationStateBeforeLock())
+      .not.put(clearNavigationStateBeforeLock())
       .run();
 
-    expect(mockReset).toHaveBeenCalledWith(mockNavigationState);
+    // Verify navigation was NOT called by requestAuthenticationSaga
+    // Navigation will be handled by manageAuthenticationLifecycleSaga after logIn() action
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('handles password authentication failure', async () => {

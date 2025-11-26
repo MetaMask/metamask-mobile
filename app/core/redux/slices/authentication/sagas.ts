@@ -62,7 +62,11 @@ import {
 } from '.';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import Routes from '../../../../constants/navigation/Routes';
-import { BIOMETRY_CHOICE } from '../../../../constants/storage';
+import {
+  BIOMETRY_CHOICE,
+  OPTIN_META_METRICS_UI_SEEN,
+} from '../../../../constants/storage';
+import { MetaMetrics } from '../../../Analytics';
 import { selectExistingUser } from '../../../../reducers/user/selectors';
 import {
   UserActionType,
@@ -329,45 +333,15 @@ export function* requestAuthenticationSaga(
     }
     Logger.log('AuthSaga: Authentication result:', authSuccess);
     if (authSuccess === true) {
-      // Authentication successful
-      Logger.log('AuthSaga: Dispatching authenticationSuccess action');
+      Logger.log(
+        'AuthSaga: Authentication successful - navigation will be handled by manageAuthenticationLifecycleSaga after logIn() action',
+      );
       yield put(
         actions.authenticationSuccess({
           method,
           timestamp: Date.now(),
         }),
       );
-
-      // Check if we should restore previous navigation state (for background/foreground flow)
-      // Navigation state from React Navigation is complex and not fully typed
-      const savedNavigationState: unknown = yield select(
-        selectors.selectNavigationStateBeforeLock,
-      );
-
-      Logger.log('AuthSaga: Checking for saved navigation state:', {
-        hasSavedState: !!savedNavigationState,
-        savedState: JSON.stringify(savedNavigationState),
-      });
-
-      if (savedNavigationState) {
-        // Restore the full navigation state
-        Logger.log('AuthSaga: Restoring navigation state after unlock');
-
-        // Use reset() to restore the full navigation stack
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        NavigationService.navigation?.reset(savedNavigationState as any);
-
-        // Clear the stored state
-        yield put(actions.clearNavigationStateBeforeLock());
-        Logger.log('AuthSaga: Navigation state restored and cleared');
-      } else {
-        // No stored state - navigate to HOME (normal flow)
-        Logger.log(
-          'AuthSaga: No saved navigation state - navigating to HOME_NAV',
-        );
-        NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
-      }
-      Logger.log('AuthSaga: Navigation command sent');
 
       // If biometric was shown and successful, store preference
       if (method === AuthenticationMethod.BIOMETRIC && showBiometric) {
@@ -1172,10 +1146,39 @@ function* manageAuthenticationLifecycleSaga() {
           'AuthSaga: Navigation state restored and cleared after LOGIN',
         );
       } else {
-        // No saved state - component will handle navigation for normal login flow
-        Logger.log(
-          'AuthSaga: No saved navigation state after LOGIN - component will handle navigation',
+        // No saved state - handle navigation for normal login flow
+        // Check if metrics opt-in UI needs to be shown
+        const isOptinMetaMetricsUISeen: string | null = yield call(
+          [StorageWrapper, 'getItem'],
+          OPTIN_META_METRICS_UI_SEEN,
         );
+        const isMetricsEnabled = MetaMetrics.getInstance().isEnabled();
+
+        if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
+          // Navigate to metrics opt-in screen
+          Logger.log(
+            'AuthSaga: Metrics opt-in not seen - navigating to OPTIN_METRICS',
+          );
+          NavigationService.navigation?.reset({
+            routes: [
+              {
+                name: Routes.ONBOARDING.ROOT_NAV,
+                params: {
+                  screen: Routes.ONBOARDING.NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.OPTIN_METRICS,
+                  },
+                },
+              },
+            ],
+          });
+        } else {
+          // Navigate to home
+          Logger.log(
+            'AuthSaga: No saved navigation state - navigating to HOME_NAV',
+          );
+          NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
+        }
       }
 
       // Update state

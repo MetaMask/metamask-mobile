@@ -38,7 +38,6 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
-  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -96,12 +95,10 @@ import {
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../hooks/useMetrics';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { RootState } from '../../../reducers';
-import { selectNavigationStateBeforeLock } from '../../../core/redux/slices/authentication';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -120,8 +117,6 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const { isEnabled: isMetricsEnabled } = useMetrics();
-
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
@@ -154,8 +149,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const allowLoginWithRememberMeFromRedux = useSelector(
     (state: RootState) => state.security.allowLoginWithRememberMe,
   );
-
-  const savedNavigationState = useSelector(selectNavigationStateBeforeLock);
 
   // coming from vault recovery flow flag
   const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
@@ -332,49 +325,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   }, [password, biometryChoice, rememberMe, navigation]);
 
-  const navigateToHome = useCallback(async () => {
-    // Skip navigation if there's a saved navigation state - the saga will handle restoration
-    if (savedNavigationState) {
-      Logger.log(
-        'Login: Skipping navigation to HOME - saga will restore saved navigation state',
-      );
-      return;
-    }
-    // Normal login flow - navigate to home
-    navigation.replace(Routes.ONBOARDING.HOME_NAV);
-  }, [navigation, savedNavigationState]);
-
-  const checkMetricsUISeen = useCallback(async (): Promise<void> => {
-    const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-      OPTIN_META_METRICS_UI_SEEN,
-    );
-
-    if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
-      // Skip navigation if there's a saved navigation state - the saga will handle restoration
-      if (savedNavigationState) {
-        Logger.log(
-          'Login: Skipping metrics navigation - saga will restore saved navigation state',
-        );
-        return;
-      }
-      navigation.reset({
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-              },
-            },
-          },
-        ],
-      });
-    } else {
-      navigateToHome();
-    }
-  }, [navigation, navigateToHome, isMetricsEnabled, savedNavigationState]);
-
   const handlePasswordError = useCallback((loginErrorMessage: string) => {
     setLoading(false);
     setError(strings('login.invalid_password'));
@@ -464,7 +414,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         dispatch(setExistingUser(true));
       }
 
-      await checkMetricsUISeen();
+      // Navigation is now handled by manageAuthenticationLifecycleSaga after logIn() action
+      // No need to call checkMetricsUISeen() or navigateToHome() here
 
       setLoading(false);
       setError(null);
@@ -477,7 +428,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     rememberMe,
     loading,
     handleLoginError,
-    checkMetricsUISeen,
     dispatch,
     isComingFromVaultRecovery,
   ]);
@@ -502,8 +452,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
 
-      await checkMetricsUISeen();
-
       setLoading(false);
     } catch (tryBiometricError) {
       setHasBiometricCredentials(true);
@@ -521,7 +469,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         );
       }
     }
-  }, [checkMetricsUISeen]);
+  }, []);
 
   const handleTryBiometric = async () => {
     fieldRef.current?.blur();
