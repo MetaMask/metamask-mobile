@@ -325,6 +325,7 @@ import type {
 import type {
   StorageService,
   StorageServiceActions,
+  StorageServiceEvents,
 } from '@metamask-previews/storage-service';
 import {
   AccountTreeController,
@@ -534,6 +535,7 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
+  | StorageServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
