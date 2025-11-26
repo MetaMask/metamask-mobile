@@ -2,6 +2,7 @@ import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Text,
@@ -17,6 +18,7 @@ import {
   type SectionId,
 } from '../../../config/sections.config';
 import { useExploreSearch } from './config/useExploreSearch';
+import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
 
 function looksLikeUrl(str: string): boolean {
   return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
@@ -51,6 +53,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const tw = useTailwind();
   const { data, isLoading } = useExploreSearch(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
 
   const handlePressFooterLink = useCallback(
     (url: string) => {
@@ -78,7 +83,12 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const flatData = useMemo(() => {
     const result: FlatListItem[] = [];
 
-    SECTIONS_ARRAY.forEach((section) => {
+    // Filter sections based on basic functionality toggle
+    const sectionsToShow = isBasicFunctionalityEnabled
+      ? SECTIONS_ARRAY
+      : SECTIONS_ARRAY.filter((section) => section.id === 'sites');
+
+    sectionsToShow.forEach((section) => {
       const items = data[section.id];
       const sectionIsLoading = isLoading[section.id];
 
@@ -113,7 +123,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     });
 
     return result;
-  }, [data, isLoading]);
+  }, [data, isLoading, isBasicFunctionalityEnabled]);
 
   // Scroll to top when search query changes
   useEffect(() => {
