@@ -41,7 +41,7 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
     navigation.navigate(
       ...createAccountSelectorNavDetails({
         isEvmOnly,
-        showAddAccountButton: false,
+        disableAddAccountButton: true,
       }),
     );
   }, [isEvmOnly, navigation]);
