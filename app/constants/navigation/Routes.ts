@@ -79,6 +79,7 @@ const Routes = {
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   TRENDING_VIEW: 'TrendingView',
+  SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
@@ -233,8 +234,6 @@ const Routes = {
   },
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
-  SWAPS: 'Swaps',
-  SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',

@@ -46,10 +46,10 @@ import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import {
   setQuotesNavigationsParams,
-  isSwapsNativeAsset,
   isDynamicToken,
   shouldShowMaxBalanceLink,
 } from './utils';
+import { isSwapsNativeAsset } from '../../../util/bridge';
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import useModalHandler from '../../Base/hooks/useModalHandler';
@@ -85,9 +85,9 @@ import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
 import { selectNetworkImageSourceByChainId } from '../../../selectors/networkInfos';
 import ContextualNetworkPicker from '../ContextualNetworkPicker/ContextualNetworkPicker';
+import { useStablecoinsDefaultSlippage } from '../Bridge/hooks/useStablecoinsDefaultSlippage';
 import Routes from '../../../constants/navigation/Routes';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useChainRedirect } from './useChainRedirect';

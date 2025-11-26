@@ -65,6 +65,7 @@ const useNetworkConnectionBanner = (): {
       network: rpcUrl,
       shouldNetworkSwitchPopToWallet: false,
       shouldShowPopularNetworks: false,
+      trackRpcUpdateFromBanner: true,
     });
 
     trackEvent(
