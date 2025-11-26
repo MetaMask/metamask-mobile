@@ -56,7 +56,8 @@ const convertAPITokensToBridgeTokens = (
 export const useTokensWithBalances = (
   apiTokens: PopularToken[],
   balancesByAssetId: BalancesByAssetId,
-): BridgeToken[] => useMemo(() => {
+): BridgeToken[] =>
+  useMemo(() => {
     const convertedTokens = convertAPITokensToBridgeTokens(apiTokens);
 
     return convertedTokens.map((token) => {
