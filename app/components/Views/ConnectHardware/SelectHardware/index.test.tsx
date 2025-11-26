@@ -283,5 +283,33 @@ describe('SelectHardwareWallet', () => {
 
       consoleSpy.mockRestore();
     });
+
+    it('does not track analytics event when getConnectedDevicesCount fails for Ledger', async () => {
+      const error = new Error('Failed to get device count');
+      mockGetConnectedDevicesCount.mockRejectedValue(error);
+
+      const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
+        state: initialState,
+      });
+      const ledgerButton = getByTestId('ledger-hardware-button');
+
+      await ledgerButton.props.onPress();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track analytics event when getConnectedDevicesCount fails for QR', async () => {
+      const error = new Error('Failed to get device count');
+      mockGetConnectedDevicesCount.mockRejectedValue(error);
+
+      const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
+        state: initialState,
+      });
+      const qrButton = getByTestId('qr-hardware-button');
+
+      await qrButton.props.onPress();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
   });
 });

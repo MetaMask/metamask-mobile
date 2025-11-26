@@ -63,9 +63,23 @@ jest.mock('react-native-vision-camera');
 
 jest.mock('react-native-modal', () => {
   const { View } = jest.requireActual('react-native');
-  return jest.fn(({ children, isVisible }) =>
-    isVisible ? <View testID="modal">{children}</View> : null,
-  );
+  let previousVisible: boolean | undefined;
+  return jest.fn(({ children, isVisible, onModalWillShow, onModalHide }) => {
+    const wasVisible = previousVisible;
+
+    if (isVisible && wasVisible !== isVisible && onModalWillShow) {
+      setImmediate(() => {
+        onModalWillShow();
+      });
+    }
+    if (!isVisible && wasVisible === true && onModalHide) {
+      setImmediate(() => {
+        onModalHide();
+      });
+    }
+    previousVisible = isVisible;
+    return isVisible ? <View testID="modal">{children}</View> : null;
+  });
 });
 
 const mockURRegistryDecoder = URRegistryDecoder as jest.MockedClass<
@@ -91,6 +105,8 @@ describe('AnimatedQRScannerModal - Metrics', () => {
     jest.clearAllMocks();
     mockBuild.mockReturnValue({});
     resetCapturedCallbacks();
+    const modalMock = jest.requireMock('react-native-modal');
+    modalMock.mockClear();
   });
 
   describe('Camera Error Metrics', () => {
@@ -126,6 +142,56 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         expect(mockOnScanError).toHaveBeenCalledWith(
           'Camera initialization failed',
         );
+      });
+    });
+
+    it('does not track metrics when error is falsy', async () => {
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onError).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onError) {
+        throw new Error('onError callback is null');
+      }
+
+      const onError = callbacks.onError;
+      await act(async () => {
+        await onError(null as unknown as Error);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockOnScanError).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not track metrics when error is null or undefined', async () => {
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onError).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onError) {
+        throw new Error('onError callback is null');
+      }
+
+      const onError = callbacks.onError;
+      await act(async () => {
+        await onError(null as unknown as Error);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+        expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+        expect(mockOnScanError).not.toHaveBeenCalled();
       });
     });
   });
@@ -376,6 +442,222 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         expect(mockOnScanError).not.toHaveBeenCalled();
       });
     });
+
+    it('does not process QR code when modal is not visible', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 0.5),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(<AnimatedQRScannerModal {...defaultProps} visible={false} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([{ value: 'mock-qr-data', type: 'qr' }]);
+      });
+
+      await waitFor(() => {
+        expect(mockDecoderInstance.receivePart).not.toHaveBeenCalled();
+        expect(mockOnScanSuccess).not.toHaveBeenCalled();
+        expect(mockOnScanError).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not process QR code when codes array is empty', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 0.5),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([]);
+      });
+
+      await waitFor(() => {
+        expect(mockDecoderInstance.receivePart).not.toHaveBeenCalled();
+        expect(mockOnScanSuccess).not.toHaveBeenCalled();
+        expect(mockOnScanError).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not process QR code when code value is null or undefined', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 0.5),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([{ value: null as unknown as string, type: 'qr' }]);
+      });
+
+      await waitFor(() => {
+        expect(mockDecoderInstance.receivePart).not.toHaveBeenCalled();
+        expect(mockOnScanSuccess).not.toHaveBeenCalled();
+        expect(mockOnScanError).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not process QR code when code value is empty string', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 0.5),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([{ value: '', type: 'qr' }]);
+      });
+
+      await waitFor(() => {
+        expect(mockDecoderInstance.receivePart).not.toHaveBeenCalled();
+        expect(mockOnScanSuccess).not.toHaveBeenCalled();
+        expect(mockOnScanError).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Camera Permission Error', () => {
+    it('calls onScanError when camera permission is not granted', async () => {
+      const mockUseCameraPermission = jest.requireMock(
+        'react-native-vision-camera',
+      ).useCameraPermission;
+
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: jest.fn(),
+      });
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockOnScanError).toHaveBeenCalledWith(
+          'transaction.no_camera_permission',
+        );
+      });
+    });
+
+    it('does not call onScanError when camera permission is granted', async () => {
+      const mockUseCameraPermission = jest.requireMock(
+        'react-native-vision-camera',
+      ).useCameraPermission;
+
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: true,
+        requestPermission: jest.fn(),
+      });
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      expect(mockOnScanError).not.toHaveBeenCalled();
+    });
+
+    it('does not call onScanError when modal is not visible', async () => {
+      const mockUseCameraPermission = jest.requireMock(
+        'react-native-vision-camera',
+      ).useCameraPermission;
+
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: jest.fn(),
+      });
+
+      const propsWithoutVisibility = { ...defaultProps, visible: false };
+
+      render(<AnimatedQRScannerModal {...propsWithoutVisibility} />);
+
+      await waitFor(() => {
+        expect(mockOnScanError).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('Device Information in Metrics', () => {
@@ -417,6 +699,221 @@ describe('AnimatedQRScannerModal - Metrics', () => {
             device_type: HardwareDeviceTypes.QR,
           }),
         );
+      });
+    });
+
+    it('uses "Unknown" device name when withQrKeyring fails during camera error', async () => {
+      const { withQrKeyring } = jest.requireMock(
+        '../../../core/QrKeyring/QrKeyring',
+      );
+      withQrKeyring.mockRejectedValueOnce(new Error('Keyring not initialized'));
+
+      const mockUseCameraPermission = jest.requireMock(
+        'react-native-vision-camera',
+      ).useCameraPermission;
+
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: true,
+        requestPermission: jest.fn(),
+      });
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onError).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onError) {
+        throw new Error('onError callback is null');
+      }
+
+      const onError = callbacks.onError;
+      const mockError = new Error('Camera error');
+      await act(async () => {
+        await onError(mockError);
+      });
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          error: 'Camera error',
+          device_model: 'Unknown',
+          device_type: HardwareDeviceTypes.QR,
+        });
+        expect(mockOnScanError).toHaveBeenCalledWith('Camera error');
+      });
+    });
+
+    it('uses "Unknown" device name when withQrKeyring fails during QR scanning', async () => {
+      const { withQrKeyring } = jest.requireMock(
+        '../../../core/QrKeyring/QrKeyring',
+      );
+      withQrKeyring.mockRejectedValueOnce(new Error('Keyring not initialized'));
+
+      const mockDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 0.5),
+        isError: jest.fn(() => true),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(() => 'Decoder error'),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([{ value: 'mock-qr-data', type: 'qr' }]);
+      });
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          error: 'Decoder error',
+          device_model: 'Unknown',
+          device_type: HardwareDeviceTypes.QR,
+        });
+        expect(mockOnScanError).toHaveBeenCalledWith(
+          'transaction.unknown_qr_code',
+        );
+      });
+    });
+  });
+
+  describe('Modal Lifecycle', () => {
+    it('calls pauseQRCode with true when modal is shown', async () => {
+      const propsHidden = { ...defaultProps, visible: false };
+      const propsVisible = { ...defaultProps, visible: true };
+
+      const { rerender } = render(<AnimatedQRScannerModal {...propsHidden} />);
+
+      mockPauseQRCode.mockClear();
+      rerender(<AnimatedQRScannerModal {...propsVisible} />);
+
+      await waitFor(() => {
+        expect(mockPauseQRCode).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it('calls pauseQRCode with false and resets state when modal is hidden', async () => {
+      const propsHidden = { ...defaultProps, visible: false };
+      const propsVisible = { ...defaultProps, visible: true };
+
+      // Start with hidden modal
+      const { rerender } = render(<AnimatedQRScannerModal {...propsHidden} />);
+
+      // Show modal
+      rerender(<AnimatedQRScannerModal {...propsVisible} />);
+
+      // Wait for initial show callback
+      await waitFor(
+        () => {
+          expect(mockPauseQRCode).toHaveBeenCalledWith(true);
+        },
+        { timeout: 2000 },
+      );
+
+      mockPauseQRCode.mockClear();
+
+      // Hide modal
+      rerender(<AnimatedQRScannerModal {...propsHidden} />);
+
+      await waitFor(
+        () => {
+          expect(mockPauseQRCode).toHaveBeenCalledWith(false);
+        },
+        { timeout: 2000 },
+      );
+    });
+
+    it('does not throw error when pauseQRCode is not provided', async () => {
+      const propsWithoutPauseHidden = {
+        ...defaultProps,
+        pauseQRCode: undefined,
+        visible: false,
+      };
+      const propsWithoutPauseVisible = {
+        ...defaultProps,
+        pauseQRCode: undefined,
+        visible: true,
+      };
+
+      const { rerender } = render(
+        <AnimatedQRScannerModal {...propsWithoutPauseHidden} />,
+      );
+
+      expect(() => {
+        rerender(<AnimatedQRScannerModal {...propsWithoutPauseVisible} />);
+      }).not.toThrow();
+
+      expect(() => {
+        rerender(<AnimatedQRScannerModal {...propsWithoutPauseHidden} />);
+      }).not.toThrow();
+    });
+
+    it('resets progress and decoder when modal is hidden', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 0.5),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      const propsVisible = { ...defaultProps, visible: true };
+      const propsHidden = { ...defaultProps, visible: false };
+
+      const { rerender } = render(<AnimatedQRScannerModal {...propsVisible} />);
+
+      // Simulate scanning to set progress
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onCodeScanned).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      if (!callbacks.onCodeScanned) {
+        throw new Error('onCodeScanned callback is null');
+      }
+
+      const onCodeScanned = callbacks.onCodeScanned;
+      await act(async () => {
+        await onCodeScanned([{ value: 'mock-qr-data', type: 'qr' }]);
+      });
+
+      // Hide modal to trigger reset
+      mockPauseQRCode.mockClear();
+      rerender(<AnimatedQRScannerModal {...propsHidden} />);
+
+      await waitFor(() => {
+        expect(mockPauseQRCode).toHaveBeenCalledWith(false);
+      });
+
+      // When modal is shown again, it should start fresh
+      mockPauseQRCode.mockClear();
+      rerender(<AnimatedQRScannerModal {...propsVisible} />);
+
+      await waitFor(() => {
+        expect(mockPauseQRCode).toHaveBeenCalledWith(true);
       });
     });
   });
