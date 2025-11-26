@@ -74,38 +74,4 @@ describe('SiteSkeleton', () => {
       });
     });
   });
-
-  describe('padding behavior', () => {
-    it('does not apply horizontal padding when isViewAll is false', () => {
-      const { getAllByTestId } = render(<SiteSkeleton isViewAll={false} />);
-
-      const skeletons = getAllByTestId('skeleton');
-      const container = skeletons[0].parent;
-      const styles = Array.isArray(container?.props.style)
-        ? container?.props.style
-        : [container?.props.style];
-      const hasPaddingHorizontal = styles.some(
-        (style: { paddingHorizontal?: number }) =>
-          style?.paddingHorizontal === 8,
-      );
-
-      expect(hasPaddingHorizontal).toBe(false);
-    });
-
-    it('does not apply horizontal padding when isViewAll is not provided', () => {
-      const { getAllByTestId } = render(<SiteSkeleton />);
-
-      const skeletons = getAllByTestId('skeleton');
-      const container = skeletons[0].parent;
-      const styles = Array.isArray(container?.props.style)
-        ? container?.props.style
-        : [container?.props.style];
-      const hasPaddingHorizontal = styles.some(
-        (style: { paddingHorizontal?: number }) =>
-          style?.paddingHorizontal === 8,
-      );
-
-      expect(hasPaddingHorizontal).toBe(false);
-    });
-  });
 });

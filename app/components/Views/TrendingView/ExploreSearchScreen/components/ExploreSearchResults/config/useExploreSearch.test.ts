@@ -66,7 +66,7 @@ jest.mock('../../../../../../UI/Predict/hooks/usePredictMarketData', () => ({
   usePredictMarketData: () => mockUsePredictMarketData(),
 }));
 
-jest.mock('../../../../SectionSites/hooks/useSitesData', () => ({
+jest.mock('../../../../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
   useSitesData: () => mockUseSitesData(),
 }));
 
