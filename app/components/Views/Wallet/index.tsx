@@ -21,13 +21,20 @@ import {
   TabsList,
   TabsListRef,
 } from '../../../component-library/components-temp/Tabs';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
-  isPastPrivacyPolicyDate,
+  CONSENSYS_PRIVACY_POLICY,
+  HOWTO_MANAGE_METAMETRICS,
+} from '../../../constants/urls';
+import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
+import {
   shouldShowNewPrivacyToastSelector,
+  shouldShowPna25Toast as shouldShowPna25ToastSelector,
+} from '../../../selectors/legalNotices';
+import {
+  storePna25Acknowledged as storePna25AcknowledgedAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
-} from '../../../reducers/legalNotices';
+} from '../../../actions/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
 import {
@@ -221,6 +228,8 @@ interface WalletProps {
   navigation: NavigationProp<ParamListBase>;
   storePrivacyPolicyShownDate: () => void;
   shouldShowNewPrivacyToast: boolean;
+  shouldShowPna25Toast: boolean;
+  storePna25Acknowledged: () => void;
   currentRouteName: string;
   storePrivacyPolicyClickedOrClosed: () => void;
   showNftFetchingLoadingIndicator: () => void;
@@ -504,6 +513,8 @@ const Wallet = ({
   navigation,
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
+  shouldShowPna25Toast,
+  storePna25Acknowledged,
   storePrivacyPolicyClickedOrClosed,
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
@@ -926,6 +937,37 @@ const Wallet = ({
     storePrivacyPolicyClickedOrClosed,
     currentToast,
   ]);
+
+  useEffect(() => {
+    if (!shouldShowPna25Toast) return;
+
+    currentToast?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings(`privacy_policy.pna25_toast_message`),
+          isBold: false,
+        },
+      ],
+      closeButtonOptions: {
+        label: strings(`privacy_policy.toast_action_button`),
+        variant: ButtonVariants.Primary,
+        onPress: () => {
+          storePna25Acknowledged();
+          currentToast?.closeToast();
+        },
+      },
+      linkButtonOptions: {
+        label: strings(`privacy_policy.gather_basic_usage_learn_more`),
+        onPress: () => {
+          storePna25Acknowledged();
+          currentToast?.closeToast();
+          Linking.openURL(HOWTO_MANAGE_METAMETRICS);
+        },
+      },
+      hasNoTimeout: true,
+    });
+  }, [shouldShowPna25Toast, storePna25Acknowledged, currentToast]);
 
   /**
    * Network onboarding state
@@ -1417,6 +1459,7 @@ const Wallet = ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+  shouldShowPna25Toast: shouldShowPna25ToastSelector(state),
 });
 
 // TODO: Replace "any" with type
@@ -1430,6 +1473,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(showNftFetchingLoadingIndicatorAction()),
   hideNftFetchingLoadingIndicator: () =>
     dispatch(hideNftFetchingLoadingIndicatorAction()),
+  storePna25Acknowledged: () => dispatch(storePna25AcknowledgedAction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

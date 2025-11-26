@@ -1,4 +1,5 @@
-import React, { useCallback, useLayoutEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button, {
@@ -29,6 +30,8 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
+import { storePna25Acknowledged } from '../../../actions/legalNotices';
+import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -45,9 +48,12 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   successFlow,
 }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -60,6 +66,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
     });
   };
+
+  // When a new user has onboarded and the PNA25 feature flag is on,
+  // set the PNA25 acknowledgement as true
+  useEffect(() => {
+    if (isPna25FlagEnabled) {
+      dispatch(storePna25Acknowledged());
+    }
+  }, [isPna25FlagEnabled, dispatch]);
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
