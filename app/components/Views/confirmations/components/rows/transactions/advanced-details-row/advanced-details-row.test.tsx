@@ -155,19 +155,6 @@ describe('AdvancedDetailsRow', () => {
       expect(mockSetShowNonceModal).toHaveBeenCalledTimes(1);
       expect(mockSetShowNonceModal).toHaveBeenCalledWith(true);
     });
-
-    it('nonce is always editable by default', () => {
-      const { getByText } = renderWithProvider(
-        <AdvancedDetailsRow />,
-        { state: generateContractInteractionState },
-        false,
-      );
-
-      fireEvent.press(getByText('Advanced details'));
-      fireEvent.press(getByText('42'));
-      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(1);
-      expect(mockSetShowNonceModal).toHaveBeenCalledWith(true);
-    });
   });
 
   it('display correct information for downgrade confirmation', () => {
