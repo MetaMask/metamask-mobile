@@ -17,6 +17,7 @@ import {
   selectSeasonId,
 } from '../../../../../reducers/rewards/selectors';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 const PreviousSeasonReferralDetails = () => {
   const { fetchReferralDetails } = useReferralDetails();
@@ -49,6 +50,7 @@ const PreviousSeasonReferralDetails = () => {
     <PreviousSeasonSummaryTile
       twClassName="flex-col gap-2"
       isLoading={referralDetailsLoading}
+      testID={REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_REFERRAL_DETAILS}
       loadingHeight={72}
     >
       <Box twClassName="flex-row gap-2 items-center">

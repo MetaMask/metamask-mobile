@@ -40,6 +40,8 @@ export const REWARDS_VIEW_SELECTORS = {
   PREVIOUS_SEASON_SUMMARY: 'rewards-view-previous-season-summary',
   PREVIOUS_SEASON_BALANCE: 'rewards-view-previous-season-balance',
   PREVIOUS_SEASON_LEVEL: 'rewards-view-previous-season-level',
+  PREVIOUS_SEASON_REFERRAL_DETAILS:
+    'rewards-view-previous-season-referral-details',
   FLATLIST: 'flatlist',
   ACTIVITY_ROW: 'activity-row',
   ACTIVITY_EVENT_ROW_TITLE: 'activity-event-row-title',

@@ -1,29 +1,17 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PreviousSeasonLevel from './PreviousSeasonLevel';
-import {
-  selectCurrentTier,
-  selectSeasonId,
-  selectSeasonStatusError,
-  selectSeasonStatusLoading,
-} from '../../../../../reducers/rewards/selectors';
 import { SeasonTierDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { AppThemeKey } from '../../../../../util/theme/models';
-
-// Mock dependencies
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock theme
 const mockUseTheme = jest.fn();
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => mockUseTheme(),
+  useAssetFromTheme: jest.requireActual('../../../../../util/theme')
+    .useAssetFromTheme,
   AppThemeKey: {
     os: 'os',
     light: 'light',
@@ -48,6 +36,102 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
+// Mock design system components
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  const Box = ({
+    children,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    [key: string]: unknown;
+  }) => ReactActual.createElement(View, props, children);
+
+  const TextComponent = ({
+    children,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    [key: string]: unknown;
+  }) => ReactActual.createElement(Text, props, children);
+
+  const Icon = ({ name, ...props }: { name: string; [key: string]: unknown }) =>
+    ReactActual.createElement(
+      View,
+      props,
+      ReactActual.createElement(Text, null, `Icon-${name}`),
+    );
+
+  return {
+    Box,
+    Text: TextComponent,
+    Icon,
+    BoxFlexDirection: {
+      Row: 'row',
+      Column: 'column',
+    },
+    TextVariant: {
+      BodyLg: 'BodyLg',
+      BodyMd: 'BodyMd',
+    },
+    FontWeight: {
+      Bold: 'bold',
+      Medium: 'medium',
+    },
+    IconName: {
+      Star: 'Star',
+    },
+    IconSize: {
+      Md: 'Md',
+    },
+  };
+});
+
+// Mock PreviousSeasonSummaryTile
+jest.mock('./PreviousSeasonSummaryTile', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  const PreviousSeasonSummaryTile = ({
+    children,
+    isLoading,
+    testID,
+  }: {
+    children: React.ReactNode;
+    isLoading?: boolean;
+    testID?: string;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID, 'data-loading': isLoading },
+      isLoading
+        ? ReactActual.createElement(
+            Text,
+            { testID: 'loading-skeleton' },
+            'Loading',
+          )
+        : children,
+    );
+
+  return PreviousSeasonSummaryTile;
+});
+
+// Mock RewardsThemeImageComponent
+jest.mock('../ThemeImageComponent', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  const RewardsThemeImageComponent = (props: {
+    themeImage?: unknown;
+    style?: unknown;
+    [key: string]: unknown;
+  }) => ReactActual.createElement(View, { testID: 'theme-image', ...props });
+
+  return RewardsThemeImageComponent;
+});
+
 describe('PreviousSeasonLevel', () => {
   const mockSeasonId = 'season-123';
   const mockCurrentTier: SeasonTierDto = {
@@ -70,65 +154,93 @@ describe('PreviousSeasonLevel', () => {
     },
   };
 
+  const defaultState = {
+    user: {
+      appTheme: AppThemeKey.light,
+    },
+    engine: {
+      backgroundState: {
+        RewardsController: {},
+      },
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTheme.mockReturnValue(mockTheme);
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return mockSeasonId;
-      if (selector === selectSeasonStatusLoading) return false;
-      if (selector === selectSeasonStatusError) return null;
-      if (selector === selectCurrentTier) return mockCurrentTier;
-      return undefined;
-    });
   });
 
   it('returns null when seasonId is missing', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return null;
-      if (selector === selectSeasonStatusLoading) return false;
-      if (selector === selectSeasonStatusError) return null;
-      if (selector === selectCurrentTier) return mockCurrentTier;
-      return undefined;
-    });
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: null,
+        seasonStatusLoading: false,
+        seasonStatusError: null,
+        currentTier: mockCurrentTier,
+      },
+    };
 
-    const { getByTestId } = render(<PreviousSeasonLevel />);
+    const { queryByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
     expect(
-      getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL),
+      queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL),
     ).toBeNull();
   });
 
   it('returns null when currentTier is missing', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return mockSeasonId;
-      if (selector === selectSeasonStatusLoading) return false;
-      if (selector === selectSeasonStatusError) return null;
-      if (selector === selectCurrentTier) return null;
-      return undefined;
-    });
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: false,
+        seasonStatusError: null,
+        currentTier: null,
+      },
+    };
 
-    const { getByTestId } = render(<PreviousSeasonLevel />);
+    const { queryByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
     expect(
-      getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL),
+      queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL),
     ).toBeNull();
   });
 
   it('returns null when there is an error and not loading', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return mockSeasonId;
-      if (selector === selectSeasonStatusLoading) return false;
-      if (selector === selectSeasonStatusError) return 'Error message';
-      if (selector === selectCurrentTier) return mockCurrentTier;
-      return undefined;
-    });
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: false,
+        seasonStatusError: 'Error message',
+        currentTier: mockCurrentTier,
+      },
+    };
 
-    const { getByTestId } = render(<PreviousSeasonLevel />);
+    const { queryByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
     expect(
-      getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL),
+      queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL),
     ).toBeNull();
   });
 
   it('renders component with tier image when image exists', () => {
-    const { getByTestId } = render(<PreviousSeasonLevel />);
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: false,
+        seasonStatusError: null,
+        currentTier: mockCurrentTier,
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
 
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL),
@@ -142,44 +254,77 @@ describe('PreviousSeasonLevel', () => {
       image: null as unknown as SeasonTierDto['image'],
     };
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return mockSeasonId;
-      if (selector === selectSeasonStatusLoading) return false;
-      if (selector === selectSeasonStatusError) return null;
-      if (selector === selectCurrentTier) return tierWithoutImage;
-      return undefined;
-    });
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: false,
+        seasonStatusError: null,
+        currentTier: tierWithoutImage,
+      },
+    };
 
-    const { getByText } = render(<PreviousSeasonLevel />);
+    const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
 
     expect(getByText('Icon-Star')).toBeOnTheScreen();
   });
 
   it('renders tier level number', () => {
-    const { getByText } = render(<PreviousSeasonLevel />);
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: false,
+        seasonStatusError: null,
+        currentTier: mockCurrentTier,
+      },
+    };
+
+    const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
 
     expect(getByText(mockCurrentTier.levelNumber)).toBeOnTheScreen();
   });
 
   it('renders tier name', () => {
-    const { getByText } = render(<PreviousSeasonLevel />);
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: false,
+        seasonStatusError: null,
+        currentTier: mockCurrentTier,
+      },
+    };
+
+    const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
 
     expect(getByText(mockCurrentTier.name)).toBeOnTheScreen();
   });
 
-  it('shows loading state when seasonLoading is true and seasonId is missing', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return null;
-      if (selector === selectSeasonStatusLoading) return true;
-      if (selector === selectSeasonStatusError) return null;
-      if (selector === selectCurrentTier) return mockCurrentTier;
-      return undefined;
+  it('returns null when seasonLoading is true and seasonId is missing', () => {
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: null,
+        seasonStatusLoading: true,
+        seasonStatusError: null,
+        currentTier: mockCurrentTier,
+      },
+    };
+
+    const { queryByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
     });
 
-    const { getByTestId } = render(<PreviousSeasonLevel />);
-
-    const tile = getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL);
-    expect(tile.props['data-loading']).toBe(true);
+    expect(
+      queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL),
+    ).toBeNull();
   });
 
   it('uses light theme colors for fallback icon background when theme is light', () => {
@@ -193,15 +338,19 @@ describe('PreviousSeasonLevel', () => {
       image: null as unknown as SeasonTierDto['image'],
     };
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return mockSeasonId;
-      if (selector === selectSeasonStatusLoading) return false;
-      if (selector === selectSeasonStatusError) return null;
-      if (selector === selectCurrentTier) return tierWithoutImage;
-      return undefined;
-    });
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: false,
+        seasonStatusError: null,
+        currentTier: tierWithoutImage,
+      },
+    };
 
-    const { getByText } = render(<PreviousSeasonLevel />);
+    const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
 
     expect(getByText('Icon-Star')).toBeOnTheScreen();
   });
@@ -217,29 +366,37 @@ describe('PreviousSeasonLevel', () => {
       image: null as unknown as SeasonTierDto['image'],
     };
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return mockSeasonId;
-      if (selector === selectSeasonStatusLoading) return false;
-      if (selector === selectSeasonStatusError) return null;
-      if (selector === selectCurrentTier) return tierWithoutImage;
-      return undefined;
-    });
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: false,
+        seasonStatusError: null,
+        currentTier: tierWithoutImage,
+      },
+    };
 
-    const { getByText } = render(<PreviousSeasonLevel />);
+    const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
 
     expect(getByText('Icon-Star')).toBeOnTheScreen();
   });
 
   it('does not show loading state when seasonId exists even if loading', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectSeasonId) return mockSeasonId;
-      if (selector === selectSeasonStatusLoading) return true;
-      if (selector === selectSeasonStatusError) return null;
-      if (selector === selectCurrentTier) return mockCurrentTier;
-      return undefined;
-    });
+    const state = {
+      ...defaultState,
+      rewards: {
+        seasonId: mockSeasonId,
+        seasonStatusLoading: true,
+        seasonStatusError: null,
+        currentTier: mockCurrentTier,
+      },
+    };
 
-    const { getByTestId } = render(<PreviousSeasonLevel />);
+    const { getByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
+      state,
+    });
 
     const tile = getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_LEVEL);
     expect(tile.props['data-loading']).toBe(false);

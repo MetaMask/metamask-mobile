@@ -40,15 +40,80 @@ jest.mock('../../utils/formatUtils', () => ({
   }),
 }));
 
+// Mock Tailwind
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const mockTw = jest.fn(() => ({}));
+    Object.assign(mockTw, {
+      style: jest.fn((styles) => {
+        if (Array.isArray(styles)) {
+          return styles.reduce((acc, style) => ({ ...acc, ...style }), {});
+        }
+        return styles || {};
+      }),
+    });
+    return mockTw;
+  },
+}));
+
+// Mock design system components
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  const Box = ({
+    children,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    [key: string]: unknown;
+  }) => ReactActual.createElement(View, props, children);
+
+  const TextComponent = ({
+    children,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    [key: string]: unknown;
+  }) => ReactActual.createElement(Text, props, children);
+
+  return {
+    Box,
+    Text: TextComponent,
+    BoxFlexDirection: {
+      Row: 'row',
+      Column: 'column',
+    },
+    TextVariant: {
+      BodyLg: 'BodyLg',
+      BodyMd: 'BodyMd',
+    },
+    FontWeight: {
+      Bold: 'bold',
+      Medium: 'medium',
+    },
+  };
+});
+
 // Mock SVG component
 jest.mock(
   '../../../../../images/rewards/metamask-rewards-points-alternative.svg',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
-    return ReactActual.createElement(View, {
-      testID: 'metamask-rewards-points-alternative-image',
-    });
+
+    const SvgComponent = ReactActual.forwardRef(
+      (props: Record<string, unknown>, ref: unknown) =>
+        ReactActual.createElement(View, {
+          testID: 'metamask-rewards-points-alternative-image',
+          ref,
+          ...props,
+        }),
+    );
+
+    SvgComponent.displayName = 'MetamaskRewardsPointsAlternativeImage';
+
+    return SvgComponent;
   },
 );
 
@@ -56,21 +121,29 @@ jest.mock(
 jest.mock('./PreviousSeasonSummaryTile', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
-  return ReactActual.forwardRef(
-    ({
-      children,
-      isLoading,
-      testID,
-    }: {
-      children: React.ReactNode;
-      isLoading?: boolean;
-      testID?: string;
-    }) => (
-      <View testID={testID}>
-        {isLoading ? <Text testID="loading-skeleton">Loading</Text> : children}
-      </View>
-    ),
-  );
+
+  const PreviousSeasonSummaryTile = ({
+    children,
+    isLoading,
+    testID,
+  }: {
+    children: React.ReactNode;
+    isLoading?: boolean;
+    testID?: string;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID },
+      isLoading
+        ? ReactActual.createElement(
+            Text,
+            { testID: 'loading-skeleton' },
+            'Loading',
+          )
+        : children,
+    );
+
+  return PreviousSeasonSummaryTile;
 });
 
 describe('PreviousSeasonBalance', () => {
@@ -143,7 +216,7 @@ describe('PreviousSeasonBalance', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows loading state when loading and no seasonId', () => {
+  it('returns null when loading and no seasonId', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonId) return null;
       if (selector === selectSeasonStatusLoading) return true;
@@ -152,12 +225,11 @@ describe('PreviousSeasonBalance', () => {
       return undefined;
     });
 
-    const { getByTestId } = render(<PreviousSeasonBalance />);
+    const { queryByTestId } = render(<PreviousSeasonBalance />);
 
     expect(
-      getByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_BALANCE),
-    ).toBeOnTheScreen();
-    expect(getByTestId('loading-skeleton')).toBeOnTheScreen();
+      queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_BALANCE),
+    ).toBeNull();
   });
 
   it('does not show loading state when seasonId is present even if loading', () => {
