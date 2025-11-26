@@ -38,9 +38,5 @@ export const MusdConversionInfo = () => {
     tokenAddress: tokenToAddAddress,
   });
 
-  if (!outputChainId) {
-    return null;
-  }
-
   return <CustomAmountInfo />;
 };
