@@ -9454,10 +9454,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.4.7":
-  version: 2.4.7
-  resolution: "@metamask/solana-wallet-snap@npm:2.4.7"
-  checksum: 10/3867ddf07c5cf2cdd50cd000b39c8e97a1fd6ef8d8270820c07f7b4d2edcc0fed383ac9015afe8827c0a46dc94ae9623c447dec32980219c5cd83a20cae145a0
+"@metamask/solana-wallet-snap@npm:^2.5.0":
+  version: 2.5.0
+  resolution: "@metamask/solana-wallet-snap@npm:2.5.0"
+  checksum: 10/cee4cbece192269fb02a59a90cbb8369dd6af3dab33eaecbb40fdb9723568c2da1dcd98b214063f34268696074a438a895cff40a421231e05cfab0afb1c71ea6
   languageName: node
   linkType: hard
 
@@ -9721,10 +9721,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.12.1":
-  version: 1.12.1
-  resolution: "@metamask/tron-wallet-snap@npm:1.12.1"
-  checksum: 10/6f48c8dd6f625d7bb290bf3d39978839a0f4b905c14883e43fb35538b5ffa822f9611b8977fc54e9cb83711a95a9cbce93ad6a0149c4c31cfd1272af4b7055b0
+"@metamask/tron-wallet-snap@npm:^1.13.0":
+  version: 1.13.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.13.0"
+  checksum: 10/de3fc0ab146e0fab5f8d2f69e6dda918c22f40158ec770b24850ddb424114116dd74b1efdae119ef3bb716e6b2c96b12eb131ea2d63da89f692a756208f6be90
   languageName: node
   linkType: hard
 
@@ -35746,7 +35746,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^14.1.1"
     "@metamask/snaps-sdk": "npm:^10.1.0"
     "@metamask/snaps-utils": "npm:^11.6.1"
-    "@metamask/solana-wallet-snap": "npm:^2.4.7"
+    "@metamask/solana-wallet-snap": "npm:^2.5.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.2.0"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
@@ -35757,7 +35757,7 @@ __metadata:
     "@metamask/token-search-discovery-controller": "npm:^4.0.0"
     "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A62.3.0#~/.yarn/patches/@metamask-transaction-controller-npm-61.0.0-cccac388c7.patch"
     "@metamask/transaction-pay-controller": "npm:^10.1.0"
-    "@metamask/tron-wallet-snap": "npm:^1.12.1"
+    "@metamask/tron-wallet-snap": "npm:^1.13.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.25.9"
