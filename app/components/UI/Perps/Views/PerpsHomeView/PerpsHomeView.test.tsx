@@ -106,12 +106,16 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
-      build: jest.fn(),
+      addProperties: jest.fn((props: Record<string, unknown>) => ({
+        build: jest.fn(() => props),
+      })),
+      build: jest.fn(() => ({})),
     })),
   }),
   MetaMetricsEvents: {
     NAVIGATION_TAPS_GET_HELP: 'NAVIGATION_TAPS_GET_HELP',
     PERPS_SCREEN_VIEWED: 'PERPS_SCREEN_VIEWED',
+    PERPS_UI_INTERACTION: 'PERPS_UI_INTERACTION',
   },
 }));
 
@@ -499,6 +503,8 @@ describe('PerpsHomeView', () => {
       defaultSearchVisible: true,
       source: 'homescreen_tab',
       fromHome: true,
+      button_clicked: 'magnifying_glass',
+      button_location: 'perps_home',
     });
     // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
