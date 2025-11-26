@@ -236,30 +236,10 @@ jobs:
       contents: read
       pull-requests: write
     outputs:
-      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags || '' }}
-      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence || '' }}
+      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
+      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
     steps:
-      - name: Check if should run
-        id: should-run
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          SHOULD_RUN=true
-
-          if [[ "$EVENT_NAME" != "pull_request" ]]; then
-            SHOULD_RUN=false
-          elif [[ "$BASE_REF" != "main" ]]; then
-            SHOULD_RUN=false
-          elif [[ "$HEAD_REF" == release/* ]]; then
-            SHOULD_RUN=false
-          fi
-
-          echo "should_run=$SHOULD_RUN" >> "$GITHUB_OUTPUT"
-
       - name: Checkout for action definition
-        if: steps.should-run.outputs.should_run == 'true'
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
@@ -268,16 +248,17 @@ jobs:
           fetch-depth: 1
 
       - name: Run Smart E2E Selection
-        if: steps.should-run.outputs.should_run == 'true'
         id: e2e-selection
         uses: ./.github/actions/smart-e2e-selection
         with:
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
-          pr-number: ${{ github.event.pull_request.number}}
+          pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
           post-comment: 'true'
+          base-ref: ${{ github.event.pull_request.base.ref }}
+          head-ref: ${{ github.event.pull_request.head.ref }}
 
   # Main E2E tests
   
