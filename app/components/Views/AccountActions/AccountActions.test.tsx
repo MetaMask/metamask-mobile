@@ -19,6 +19,7 @@ import {
 import { BITCOIN_WALLET_SNAP_ID } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { SOLANA_WALLET_SNAP_ID } from '../../../core/SnapKeyring/SolanaWalletSnap';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
@@ -226,6 +227,11 @@ jest.mock('@react-navigation/native', () => {
 import { useRoute } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { forgetLedger } from '../../../core/Ledger/Ledger';
+import {
+  forgetQrDevice,
+  withQrKeyring,
+} from '../../../core/QrKeyring/QrKeyring';
 
 // Set the implementation after the mock is defined
 const mockedUseRoute = jest.mocked(useRoute);
@@ -323,6 +329,15 @@ const customRpcState = {
 
 jest.mock('../../../core/Multichain/utils', () => ({
   isNonEvmChainId: jest.fn(() => false),
+}));
+
+jest.mock('../../../core/Ledger/Ledger', () => ({
+  forgetLedger: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../core/QrKeyring/QrKeyring', () => ({
+  forgetQrDevice: jest.fn().mockResolvedValue(undefined),
+  withQrKeyring: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('AccountActions', () => {
