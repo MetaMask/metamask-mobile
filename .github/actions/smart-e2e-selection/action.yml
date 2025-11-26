@@ -43,35 +43,12 @@ runs:
         git sparse-checkout disable
         git checkout HEAD -- .
 
-    - name: Fetch base branch for comparison
+    - name: Fetch main branch for comparison
       shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github-token }}
       run: |
         # Unshallow the repository first (if it's shallow)
         git fetch --unshallow 2>/dev/null || true
-
-        # Get the actual PR base branch (for PRs targeting release branches, etc.)
-        if [[ -n "${{ inputs.pr-number }}" ]]; then
-          # Attempt to get PR base branch with error handling
-          if BASE_BRANCH=$(gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json baseRefName --jq '.baseRefName' 2>/dev/null); then
-            if [[ -n "$BASE_BRANCH" && "$BASE_BRANCH" != "null" ]]; then
-              echo "📍 PR base branch detected: ${BASE_BRANCH}"
-              echo "PR_BASE_BRANCH=${BASE_BRANCH}" >> $GITHUB_ENV
-
-              # Fetch the actual base branch
-              if ! git fetch origin "${BASE_BRANCH}" 2>/dev/null; then
-                echo "⚠️ Warning: Could not fetch ${BASE_BRANCH}, will fall back to main"
-              fi
-            else
-              echo "⚠️ Warning: Could not determine PR base branch, defaulting to main"
-            fi
-          else
-            echo "⚠️ Warning: gh pr view failed (network/auth issue?), defaulting to main"
-          fi
-        fi
-
-        # Always fetch main as fallback
+        # Fetch main branch for diff comparison
         git fetch origin main 2>/dev/null || true
 
     - name: Setup Node.js
@@ -120,7 +97,6 @@ runs:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
         EVENT_NAME: ${{ inputs.event-name }}
         PR_NUMBER: ${{ inputs.pr-number }}
-        PR_BASE_BRANCH: ${{ env.PR_BASE_BRANCH }}
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}

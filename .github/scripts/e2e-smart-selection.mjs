@@ -9,7 +9,6 @@ import { appendFileSync, writeFileSync, readFileSync } from 'fs';
 
 const env = {
   PR_NUMBER: process.env.PR_NUMBER || '',
-  PR_BASE_BRANCH: process.env.PR_BASE_BRANCH || '',
   GITHUB_OUTPUT: process.env.GITHUB_OUTPUT || '',
   GITHUB_STEP_SUMMARY: process.env.GITHUB_STEP_SUMMARY || '',
 };
@@ -73,14 +72,9 @@ async function main() {
       return;
     }
 
-    // Build command with optional base branch
-    let baseCmd = `node -r esbuild-register e2e/tools/e2e-ai-analyzer --mode select-tags --pr ${env.PR_NUMBER}`;
-    if (env.PR_BASE_BRANCH && env.PR_BASE_BRANCH !== 'null' && env.PR_BASE_BRANCH !== '') {
-      baseCmd += ` --base-branch origin/${env.PR_BASE_BRANCH}`;
-      console.log(`🎯 Using PR base branch: origin/${env.PR_BASE_BRANCH}`);
-    } else {
-      console.log(`ℹ️ No PR base branch specified, analyzer will use default (origin/main)`);
-    }
+    // Build command - always uses origin/main as base (job only runs on PRs targeting main)
+    const baseCmd = `node -r esbuild-register e2e/tools/e2e-ai-analyzer --mode select-tags --pr ${env.PR_NUMBER}`;
+    console.log(`🎯 Analyzing PR against origin/main`);
 
     try {
       execSync(baseCmd, {

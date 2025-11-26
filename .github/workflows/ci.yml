@@ -239,7 +239,34 @@ jobs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
     steps:
+      - name: Check if should run
+        id: should-run
+        run: |
+          SKIP_REASON=""
+
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            SKIP_REASON="Not a pull request (event: ${{ github.event_name }})"
+          elif [[ "${{ github.event.pull_request.base.ref }}" != "main" ]]; then
+            SKIP_REASON="PR targets '${{ github.event.pull_request.base.ref }}' instead of 'main'"
+          elif [[ "${{ github.event.pull_request.head.ref }}" == release/* ]]; then
+            SKIP_REASON="PR originates from release branch '${{ github.event.pull_request.head.ref }}'"
+          fi
+
+          if [[ -n "$SKIP_REASON" ]]; then
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "skip_reason=$SKIP_REASON" >> $GITHUB_OUTPUT
+            echo "## ⏭️ Smart E2E Selection Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** $SKIP_REASON" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Smart E2E selection only runs on PRs targeting \`main\` that don't originate from \`release/*\` branches." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "✅ Smart E2E selection will run for PR #${{ github.event.pull_request.number }}"
+          fi
+
       - name: Checkout for action definition
+        if: steps.should-run.outputs.should_run == 'true'
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
@@ -248,6 +275,7 @@ jobs:
           fetch-depth: 1
 
       - name: Run Smart E2E Selection
+        if: steps.should-run.outputs.should_run == 'true'
         id: e2e-selection
         uses: ./.github/actions/smart-e2e-selection
         with:
