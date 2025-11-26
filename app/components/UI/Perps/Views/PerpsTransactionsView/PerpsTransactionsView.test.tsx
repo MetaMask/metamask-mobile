@@ -265,9 +265,10 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(component.getByText('No trades transactions yet')).toBeTruthy();
       expect(
-        component.getByText('Your trading history will appear here'),
+        component.getByText(
+          'No trades transactions yet. Your trading history will appear here',
+        ),
       ).toBeTruthy();
     });
   });

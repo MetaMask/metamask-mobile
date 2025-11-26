@@ -333,13 +333,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <TabEmptyState
-        description={`${strings(
-          'perps.transactions.empty_state.no_transactions',
-          {
-            type: activeFilter.toLowerCase(),
-          },
-        )}${strings('perps.transactions.empty_state.history_will_appear')}`}
-      />
+        description={strings('perps.transactions.empty_state.no_transactions', {
+          type: activeFilter.toLowerCase(),
+        })}
+      ></TabEmptyState>
     </View>
   );
 
