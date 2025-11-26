@@ -46,7 +46,7 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
 }));
 
 jest.mock('../../../util/browser', () => ({
-  appendURLParams: jest.fn((url) => ({
+  buildPortfolioUrl: jest.fn((url) => ({
     href: `${url}?metamaskEntry=mobile&metricsEnabled=true&marketingEnabled=false`,
   })),
 }));

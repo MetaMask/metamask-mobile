@@ -18,7 +18,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { SectionId, SECTIONS_CONFIG } from '../../config/sections.config';
 import { useNavigation } from '@react-navigation/native';
 
-interface SectionHeaderProps {
+export interface SectionHeaderProps {
   sectionId: SectionId;
 }
 
