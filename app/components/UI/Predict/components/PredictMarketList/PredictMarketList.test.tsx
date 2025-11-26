@@ -40,7 +40,6 @@ let mockOnChangeTab:
 
 jest.mock('../../../../../component-library/components-temp/Tabs', () => {
   const { View } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
 
   return {
     TabsList: function MockTabsList({
@@ -53,11 +52,7 @@ jest.mock('../../../../../component-library/components-temp/Tabs', () => {
       testID?: string;
     }) {
       mockOnChangeTab = onChangeTab;
-      return (
-        <View testID={testID}>
-          {React.Children.map(children, (child) => child)}
-        </View>
-      );
+      return <View testID={testID}>{children}</View>;
     },
   };
 });
