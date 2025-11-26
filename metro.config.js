@@ -59,8 +59,6 @@ module.exports = function (baseConfig) {
     ),
   );
 
-  console.log(`Metro max workers: ${maxWorkers}`);
-
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
