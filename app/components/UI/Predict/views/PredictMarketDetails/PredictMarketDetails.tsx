@@ -22,10 +22,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
@@ -41,6 +37,9 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   ButtonSize as ButtonSizeHero,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
@@ -680,9 +679,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${index}`}
           >
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
               color={
-                activeTab === index ? TextColor.Default : TextColor.Alternative
+                activeTab === index
+                  ? TextColor.TextDefault
+                  : TextColor.TextAlternative
               }
               style={tw.style('text-center')}
             >
@@ -742,7 +744,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           }
           style={titleLineCount >= 2 ? tw.style('mt-[-5px]') : undefined}
         >
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
             {title || market?.title || ''}
           </Text>
         </Box>
@@ -767,8 +769,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   color={colors.text.alternative}
                 />
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
                 >
                   {strings('predict.market_details.market_resulted_to', {
                     outcome: winningOutcomeToken.title,
@@ -783,8 +786,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                   color={colors.text.alternative}
                 />
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
                 >
                   {strings('predict.market_details.market_ended_on', {
                     outcome: winningOutcomeToken.title,
@@ -807,8 +811,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 color={colors.text.default}
               />
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
+                variant={TextVariant.BodyMd}
+                twClassName="font-medium"
+                color={TextColor.TextDefault}
               >
                 {strings('predict.market_details.waiting_for_final_resolution')}
               </Text>
@@ -847,7 +852,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
     return (
       <Box twClassName="space-y-4">
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="font-medium"
+          color={TextColor.TextAlternative}
+        >
           {strings('predict.market_details.no_positions_found')}
         </Text>
       </Box>
@@ -873,11 +882,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               size={IconSize.Md}
               color={colors.text.muted}
             />
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={TextColor.TextDefault}
+            >
               {strings('predict.market_details.volume')}
             </Text>
           </Box>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="font-medium"
+            color={TextColor.TextDefault}
+          >
             ${formatVolume(market?.outcomes[0].volume || 0)}
           </Text>
         </Box>
@@ -897,11 +914,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               size={IconSize.Md}
               color={colors.text.muted}
             />
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={TextColor.TextDefault}
+            >
               {strings('predict.market_details.end_date')}
             </Text>
           </Box>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="font-medium"
+            color={TextColor.TextDefault}
+          >
             {market?.endDate
               ? new Date(market?.endDate).toLocaleDateString()
               : 'N/A'}
@@ -923,7 +948,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               size={IconSize.Md}
               color={colors.text.muted}
             />
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="font-medium"
+              color={TextColor.TextDefault}
+            >
               {strings('predict.market_details.resolution_details')}
             </Text>
           </Box>
@@ -934,8 +963,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           >
             <Pressable onPress={handlePolymarketResolution}>
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={colors.primary.default}
+                variant={TextVariant.BodyMd}
+                twClassName="font-medium"
+                color={TextColor.PrimaryDefault}
               >
                 Polymarket
               </Text>
@@ -949,7 +979,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </Box>
       </Box>
       <Box twClassName="w-full border-t border-muted" />
-      <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {market?.description}
       </Text>
     </Box>
@@ -971,8 +1001,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
               onPress={handleClaimPress}
             >
               <Text
-                variant={TextVariant.BodyMDMedium}
-                style={tw.style('text-white')}
+                variant={TextVariant.BodyMd}
+                style={tw.style('text-white font-medium')}
               >
                 {strings('confirm.predict_claim.button_label')}
               </Text>
@@ -999,7 +1029,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 width={ButtonWidthTypes.Full}
                 style={tw.style('flex-1 bg-success-muted')}
                 label={
-                  <Text style={tw.style('font-bold')} color={TextColor.Success}>
+                  <Text
+                    style={tw.style('font-bold')}
+                    color={TextColor.SuccessDefault}
+                  >
                     {firstOpenOutcome?.tokens[0].title} • {getYesPercentage()}¢
                   </Text>
                 }
@@ -1016,7 +1049,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 width={ButtonWidthTypes.Full}
                 style={tw.style('flex-1 bg-error-muted')}
                 label={
-                  <Text style={tw.style('font-bold')} color={TextColor.Error}>
+                  <Text
+                    style={tw.style('font-bold')}
+                    color={TextColor.ErrorDefault}
+                  >
                     {firstOpenOutcome?.tokens[1].title} •{' '}
                     {100 - getYesPercentage()}¢
                   </Text>
@@ -1111,15 +1147,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
                 twClassName="gap-2"
               >
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.TextDefault}
                 >
                   {strings('predict.resolved_outcomes')}
                 </Text>
                 <Box twClassName="px-2 py-0.5 rounded bg-muted">
                   <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
                   >
                     {closedOutcomes.length}
                   </Text>
@@ -1269,7 +1306,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           justifyContent={BoxJustifyContent.Center}
           twClassName="gap-1"
         >
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('predict.market_details.fee_exemption')}
           </Text>
         </Box>
