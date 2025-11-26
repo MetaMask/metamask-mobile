@@ -585,7 +585,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         : PerpsEventValues.ACTION_TYPE.UNFAVORITE_MARKET,
       [PerpsEventProperties.ASSET]: market.symbol,
       [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
-      watchlist_count: watchlistCount,
+      [PerpsEventProperties.FAVORITES_COUNT]: watchlistCount,
     });
   }, [market, isWatchlist, track]);
 

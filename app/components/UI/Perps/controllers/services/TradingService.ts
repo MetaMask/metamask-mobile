@@ -90,29 +90,47 @@ export class TradingService {
         ? PerpsEventValues.DIRECTION.LONG
         : PerpsEventValues.DIRECTION.SHORT,
       [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-      [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-      [PerpsEventProperties.ORDER_SIZE]: result?.filledSize || params.size,
+      [PerpsEventProperties.LEVERAGE]: parseFloat(String(params.leverage || 1)),
+      [PerpsEventProperties.ORDER_SIZE]: parseFloat(
+        result?.filledSize || params.size,
+      ),
       [PerpsEventProperties.COMPLETION_DURATION]: duration,
-      [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
-      [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
-      [PerpsEventProperties.ASSET_PRICE]:
-        result?.averagePrice || params.trackingData?.marketPrice,
-      ...(params.orderType === 'limit' && {
-        [PerpsEventProperties.LIMIT_PRICE]: params.price,
+      ...(params.trackingData?.marginUsed != null && {
+        [PerpsEventProperties.MARGIN_USED]: params.trackingData.marginUsed,
       }),
       ...(perpDex && { [PerpsEventProperties.PERP_DEX]: perpDex }),
+      ...(params.trackingData?.totalFee != null && {
+        [PerpsEventProperties.FEES]: params.trackingData.totalFee,
+      }),
+      ...((result?.averagePrice || params.trackingData?.marketPrice) && {
+        [PerpsEventProperties.ASSET_PRICE]: result?.averagePrice
+          ? parseFloat(result.averagePrice)
+          : params.trackingData?.marketPrice,
+      }),
+      ...(params.orderType === 'limit' &&
+        params.price && {
+          [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
+        }),
     });
 
     // Add success-specific properties
     if (status === PerpsEventValues.STATUS.EXECUTED) {
       eventBuilder.addProperties({
-        [PerpsEventProperties.METAMASK_FEE]: params.trackingData?.metamaskFee,
-        [PerpsEventProperties.METAMASK_FEE_RATE]:
-          params.trackingData?.metamaskFeeRate,
-        [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-          params.trackingData?.feeDiscountPercentage,
-        [PerpsEventProperties.ESTIMATED_REWARDS]:
-          params.trackingData?.estimatedPoints,
+        ...(params.trackingData?.metamaskFee != null && {
+          [PerpsEventProperties.METAMASK_FEE]: params.trackingData.metamaskFee,
+        }),
+        ...(params.trackingData?.metamaskFeeRate != null && {
+          [PerpsEventProperties.METAMASK_FEE_RATE]:
+            params.trackingData.metamaskFeeRate,
+        }),
+        ...(params.trackingData?.feeDiscountPercentage != null && {
+          [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+            params.trackingData.feeDiscountPercentage,
+        }),
+        ...(params.trackingData?.estimatedPoints != null && {
+          [PerpsEventProperties.ESTIMATED_REWARDS]:
+            params.trackingData.estimatedPoints,
+        }),
         ...(params.takeProfitPrice && {
           [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
             params.takeProfitPrice,
@@ -474,27 +492,44 @@ export class TradingService {
         parseFloat(position.size),
       ),
       [PerpsEventProperties.PERCENTAGE_CLOSED]: metrics.closePercentage,
-      [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
-        ? parseFloat(position.unrealizedPnl)
-        : null,
-      [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
-        ? parseFloat(position.returnOnEquity) * 100
-        : null,
-      [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
-      [PerpsEventProperties.METAMASK_FEE]:
-        params.trackingData?.metamaskFee || null,
-      [PerpsEventProperties.METAMASK_FEE_RATE]:
-        params.trackingData?.metamaskFeeRate || null,
-      [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-        params.trackingData?.feeDiscountPercentage || null,
-      [PerpsEventProperties.ESTIMATED_REWARDS]:
-        params.trackingData?.estimatedPoints || null,
-      [PerpsEventProperties.ASSET_PRICE]:
-        params.trackingData?.marketPrice || result?.averagePrice || null,
-      [PerpsEventProperties.LIMIT_PRICE]:
-        params.orderType === 'limit' ? params.price : null,
-      [PerpsEventProperties.RECEIVED_AMOUNT]:
-        params.trackingData?.receivedAmount || null,
+      ...(position.unrealizedPnl && {
+        [PerpsEventProperties.PNL_DOLLAR]: parseFloat(position.unrealizedPnl),
+      }),
+      ...(position.returnOnEquity && {
+        [PerpsEventProperties.PNL_PERCENT]:
+          parseFloat(position.returnOnEquity) * 100,
+      }),
+      ...(params.trackingData?.totalFee != null && {
+        [PerpsEventProperties.FEE]: params.trackingData.totalFee,
+      }),
+      ...(params.trackingData?.metamaskFee != null && {
+        [PerpsEventProperties.METAMASK_FEE]: params.trackingData.metamaskFee,
+      }),
+      ...(params.trackingData?.metamaskFeeRate != null && {
+        [PerpsEventProperties.METAMASK_FEE_RATE]:
+          params.trackingData.metamaskFeeRate,
+      }),
+      ...(params.trackingData?.feeDiscountPercentage != null && {
+        [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+          params.trackingData.feeDiscountPercentage,
+      }),
+      ...(params.trackingData?.estimatedPoints != null && {
+        [PerpsEventProperties.ESTIMATED_REWARDS]:
+          params.trackingData.estimatedPoints,
+      }),
+      ...((params.trackingData?.marketPrice || result?.averagePrice) && {
+        [PerpsEventProperties.ASSET_PRICE]: result?.averagePrice
+          ? parseFloat(result.averagePrice)
+          : params.trackingData?.marketPrice,
+      }),
+      ...(params.orderType === 'limit' &&
+        params.price && {
+          [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
+        }),
+      ...(params.trackingData?.receivedAmount != null && {
+        [PerpsEventProperties.RECEIVED_AMOUNT]:
+          params.trackingData.receivedAmount,
+      }),
     };
 
     // Add success-specific properties

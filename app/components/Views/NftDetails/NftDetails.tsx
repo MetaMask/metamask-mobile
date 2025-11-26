@@ -190,7 +190,10 @@ const NftDetails = () => {
     dispatch(
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
-    navigateToSendPage(InitSendLocation.NftDetails, collectible);
+    navigateToSendPage({
+      location: InitSendLocation.NftDetails,
+      asset: collectible,
+    });
   }, [collectible, chainId, dispatch, navigateToSendPage]);
 
   const isTradable = useCallback(

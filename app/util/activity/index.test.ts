@@ -279,7 +279,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     expect(result).toEqual(false);
   });
 
-  it('should return false if the transaction does not meet the token condition for transfers', () => {
+  it('returns true for outgoing transfer even when token is not in list', () => {
     const chainId = '0x1';
     const transaction = {
       chainId,
@@ -287,6 +287,32 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    // Empty tokens array so matching token is not found.
+    const tokens = [] as Token[];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+    );
+    expect(result).toEqual(true);
+  });
+
+  it('returns false for incoming transfer when token is not in list', () => {
+    const chainId = '0x1';
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_TWO,
+        to: TEST_ADDRESS_ONE,
       },
       isTransfer: true,
       transferInformation: {
@@ -625,12 +651,31 @@ describe('Activity utils :: filterByAddress', () => {
     expect(result).toEqual(false);
   });
 
-  it('returns false for transfer when token is not in list', () => {
+  it('returns true for outgoing transfer even when token is not in list', () => {
     const transaction = {
       status: TX_SUBMITTED,
       txParams: {
         from: TEST_ADDRESS_ONE,
         to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const tokens = [] as Token[];
+
+    const result = filterByAddress(transaction, tokens, TEST_ADDRESS_ONE);
+    expect(result).toEqual(true);
+  });
+
+  it('returns false for incoming transfer when token is not in list', () => {
+    const transaction = {
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_TWO,
+        to: TEST_ADDRESS_ONE,
       },
       isTransfer: true,
       transferInformation: {

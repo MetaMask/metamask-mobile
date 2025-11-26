@@ -124,6 +124,8 @@ export const PerpsEventProperties = {
   HAS_STOP_LOSS: 'has_stop_loss',
   TAKE_PROFIT_PERCENTAGE: 'take_profit_percentage',
   STOP_LOSS_PERCENTAGE: 'stop_loss_percentage',
+  // Watchlist/Favorites properties
+  FAVORITES_COUNT: 'favorites_count',
 } as const;
 
 /**
@@ -209,6 +211,7 @@ export const PerpsEventValues = {
     STOP_LOSS_SET: 'stop_loss_set',
     TAKE_PROFIT_SET: 'take_profit_set',
     ADL_LEARN_MORE: 'adl_learn_more',
+    LEARN_MORE: 'learn_more',
     FAVORITE_MARKET: 'favorite_market',
     UNFAVORITE_MARKET: 'unfavorite_market',
   },
@@ -256,6 +259,7 @@ export const PerpsEventValues = {
     CLOSE_ALL_POSITIONS: 'close_all_positions',
     CANCEL_ALL_ORDERS: 'cancel_all_orders',
     PNL_HERO_CARD: 'pnl_hero_card',
+    ERROR: 'error',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
