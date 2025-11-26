@@ -44,6 +44,19 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   default: () => ({ getEarnToken: jest.fn() }),
 }));
 
+jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: () => ({
+    initiateConversion: jest.fn(),
+    error: null,
+  }),
+}));
+
+jest.mock('../../../../../selectors/earnController/earn', () => ({
+  earnSelectors: {
+    selectPrimaryEarnExperienceTypeForAsset: jest.fn(() => 'pooled-staking'),
+  },
+}));
+
 jest.mock('../../../Stake/hooks/useStakingChain', () => ({
   __esModule: true,
   default: () => ({ isStakingSupportedChain: false }),
@@ -51,8 +64,10 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
 }));
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
-  selectPooledStakingEnabledFlag: () => false,
+  selectPooledStakingEnabledFlag: () => true, // Enable to show Earn button
   selectStablecoinLendingEnabledFlag: () => false,
+  selectIsMusdConversionFlowEnabledFlag: () => false,
+  selectMusdConversionPaymentTokensAllowlist: () => ({}),
 }));
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -66,18 +81,30 @@ jest.mock('../../../../../util/assets', () => ({
   formatWithThreshold: jest.fn((value) => `${value} TEST`),
 }));
 
-jest.mock('../../../../../util/networks', () => ({
-  getDefaultNetworkByChainId: jest.fn(),
-  getTestNetImageByChainId: jest.fn(() => 'testnet.png'),
-  isTestNet: jest.fn(),
-}));
+jest.mock('../../../../../util/networks', () => {
+  const actual = jest.requireActual('../../../../../util/networks');
 
-jest.mock('../../../../../util/networks/customNetworks', () => ({
-  CustomNetworkImgMapping: {},
-  PopularList: [],
-  UnpopularNetworkList: [],
-  getNonEvmNetworkImageSourceByChainId: jest.fn(),
-}));
+  return {
+    ...actual,
+    getDefaultNetworkByChainId: jest.fn(),
+    getTestNetImageByChainId: jest.fn(() => 'testnet.png'),
+    isTestNet: jest.fn(),
+  };
+});
+
+jest.mock('../../../../../util/networks/customNetworks', () => {
+  const actual = jest.requireActual(
+    '../../../../../util/networks/customNetworks',
+  );
+
+  return {
+    ...actual,
+    CustomNetworkImgMapping: {},
+    PopularList: [],
+    UnpopularNetworkList: [],
+    getNonEvmNetworkImageSourceByChainId: jest.fn(),
+  };
+});
 
 jest.mock('../../../../../constants/network', () => ({
   NETWORKS_CHAIN_ID: {
@@ -170,12 +197,42 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     // Default mock setup
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
-        if (selector.toString().includes('selectAsset')) {
+        if (!selector || typeof selector !== 'function') {
+          return {};
+        }
+
+        const selectorString = selector.toString();
+
+        // TokenListItemBip44 selectors
+        if (selectorString.includes('selectAsset')) {
           return asset;
         }
 
-        if (selector.toString().includes('selectShowFiatInTestnets')) {
+        if (selectorString.includes('selectShowFiatInTestnets')) {
           return false;
+        }
+
+        // StakeButton selectors
+        if (selectorString.includes('selectIsStakeableToken')) {
+          return true; // Enable to show Earn button
+        }
+
+        if (selectorString.includes('state.browser.tabs')) {
+          return [];
+        }
+
+        if (selectorString.includes('selectEvmChainId')) {
+          return '0x1';
+        }
+
+        if (selectorString.includes('selectNetworkConfigurationByChainId')) {
+          return { name: 'Ethereum Mainnet' };
+        }
+
+        if (
+          selectorString.includes('selectPrimaryEarnExperienceTypeForAsset')
+        ) {
+          return 'pooled-staking';
         }
 
         return {};

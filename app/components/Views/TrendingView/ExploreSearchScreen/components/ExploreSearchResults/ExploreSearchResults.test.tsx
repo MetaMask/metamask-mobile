@@ -2,24 +2,30 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import ExploreSearchResults from './ExploreSearchResults';
 import { useExploreSearch } from './config/useExploreSearch';
-
-const mockNavigate = jest.fn();
+import { useSelector } from 'react-redux';
+import { selectBasicFunctionalityEnabled } from '../../../../../../selectors/settings';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
+    navigate: jest.fn(),
   }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('./config/useExploreSearch');
 const mockUseExploreSearch = useExploreSearch as jest.MockedFunction<
   typeof useExploreSearch
 >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock child components that render individual items
 jest.mock(
-  '../../../TrendingTokensSection/TrendingTokensList/TrendingTokenRowItem/TrendingTokenRowItem',
+  '../../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
   () => () => null,
 );
 
@@ -33,98 +39,34 @@ jest.mock(
   () => () => null,
 );
 
+jest.mock(
+  '../../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter',
+  () => {
+    const ReactNative = jest.requireActual('react-native');
+    return jest.fn(({ searchQuery }) =>
+      searchQuery ? (
+        <ReactNative.View testID="sites-search-footer">
+          <ReactNative.Text>{searchQuery}</ReactNative.Text>
+        </ReactNative.View>
+      ) : null,
+    );
+  },
+);
+
 describe('ExploreSearchResults', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
 
-  it('displays no results message when no data is available', () => {
-    mockUseExploreSearch.mockReturnValue({
-      data: {
-        tokens: [],
-        perps: [],
-        predictions: [],
-      },
-      isLoading: {
-        tokens: false,
-        perps: false,
-        predictions: false,
-      },
+    // Mock selectBasicFunctionalityEnabled to return true by default
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectBasicFunctionalityEnabled) {
+        return true;
+      }
+      return undefined;
     });
-
-    const { getByTestId } = render(<ExploreSearchResults searchQuery="" />);
-
-    expect(getByTestId('trending-search-no-results')).toBeDefined();
   });
 
-  it('renders list when data is available', () => {
-    mockUseExploreSearch.mockReturnValue({
-      data: {
-        tokens: [
-          { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
-          { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
-        ],
-        perps: [],
-        predictions: [],
-      },
-      isLoading: {
-        tokens: false,
-        perps: false,
-        predictions: false,
-      },
-    });
-
-    const { getByTestId, queryByTestId } = render(
-      <ExploreSearchResults searchQuery="btc" />,
-    );
-
-    expect(getByTestId('trending-search-results-list')).toBeDefined();
-    expect(queryByTestId('trending-search-no-results')).toBeNull();
-  });
-
-  it('renders section headers when sections have data', () => {
-    mockUseExploreSearch.mockReturnValue({
-      data: {
-        tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
-        perps: [{ symbol: 'ETH-USD', name: 'Ethereum' }],
-        predictions: [],
-      },
-      isLoading: {
-        tokens: false,
-        perps: false,
-        predictions: false,
-      },
-    });
-
-    const { getByText } = render(<ExploreSearchResults searchQuery="" />);
-
-    expect(getByText('Tokens')).toBeDefined();
-    expect(getByText('Perps')).toBeDefined();
-  });
-
-  it('displays skeleton loaders when loading', () => {
-    mockUseExploreSearch.mockReturnValue({
-      data: {
-        tokens: [],
-        perps: [],
-        predictions: [],
-      },
-      isLoading: {
-        tokens: true,
-        perps: false,
-        predictions: false,
-      },
-    });
-
-    const { getByTestId, getByText } = render(
-      <ExploreSearchResults searchQuery="" />,
-    );
-
-    expect(getByTestId('trending-search-results-list')).toBeDefined();
-    expect(getByText('Tokens')).toBeDefined();
-  });
-
-  it('renders multiple sections with data simultaneously', () => {
+  it('renders section headers for sections with data or loading', () => {
     mockUseExploreSearch.mockReturnValue({
       data: {
         tokens: [
@@ -133,16 +75,21 @@ describe('ExploreSearchResults', () => {
         ],
         perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
         predictions: [{ id: '1', title: 'Will Bitcoin reach 100k?' }],
+        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
-    const { getByText } = render(<ExploreSearchResults searchQuery="btc" />);
+    const { getByText, getByTestId } = render(
+      <ExploreSearchResults searchQuery="btc" />,
+    );
 
+    expect(getByTestId('trending-search-results-list')).toBeDefined();
     expect(getByText('Tokens')).toBeDefined();
     expect(getByText('Perps')).toBeDefined();
     expect(getByText('Predictions')).toBeDefined();
@@ -154,11 +101,13 @@ describe('ExploreSearchResults', () => {
         tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
         perps: [],
         predictions: [],
+        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
@@ -177,11 +126,13 @@ describe('ExploreSearchResults', () => {
         tokens: [],
         perps: [],
         predictions: [],
+        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
@@ -190,26 +141,49 @@ describe('ExploreSearchResults', () => {
     expect(mockUseExploreSearch).toHaveBeenCalledWith('ethereum');
   });
 
-  it('handles empty query by displaying top results', () => {
-    mockUseExploreSearch.mockReturnValue({
-      data: {
-        tokens: [
-          { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
-          { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
-          { assetId: '3', symbol: 'SOL', name: 'Solana' },
-        ],
-        perps: [],
-        predictions: [],
-      },
-      isLoading: {
-        tokens: false,
-        perps: false,
-        predictions: false,
-      },
+  describe('Footer', () => {
+    it('displays SitesSearchFooter when search query is provided', () => {
+      mockUseExploreSearch.mockReturnValue({
+        data: {
+          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
+          perps: [],
+          predictions: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          sites: false,
+        },
+      });
+
+      const { getByTestId } = render(
+        <ExploreSearchResults searchQuery="bitcoin" />,
+      );
+
+      expect(getByTestId('sites-search-footer')).toBeDefined();
     });
 
-    const { getByTestId } = render(<ExploreSearchResults searchQuery="" />);
+    it('does not display footer when search query is empty', () => {
+      mockUseExploreSearch.mockReturnValue({
+        data: {
+          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
+          perps: [],
+          predictions: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          sites: false,
+        },
+      });
 
-    expect(getByTestId('trending-search-results-list')).toBeDefined();
+      const { queryByTestId } = render(<ExploreSearchResults searchQuery="" />);
+
+      expect(queryByTestId('sites-search-footer')).toBeNull();
+    });
   });
 });

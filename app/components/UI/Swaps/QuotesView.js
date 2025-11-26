@@ -46,8 +46,8 @@ import {
   getErrorMessage,
   getFetchParams,
   getQuotesNavigationsParams,
-  isSwapsNativeAsset,
 } from './utils';
+import { isSwapsNativeAsset } from '../../../util/bridge';
 import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
@@ -110,8 +110,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import { useRampNavigation, RampMode } from '../Ramp/hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../Ramp/Aggregator/types';
+import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
 import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
@@ -416,7 +415,7 @@ function SwapsQuotesView({
   /* Get params from navigation */
   const route = useRoute();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -1505,10 +1504,7 @@ function SwapsQuotesView({
 
   const buyEth = useCallback(() => {
     try {
-      goToRamps({
-        mode: RampMode.AGGREGATOR,
-        params: { rampType: AggregatorRampType.BUY },
-      });
+      goToBuy();
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1518,7 +1514,7 @@ function SwapsQuotesView({
         MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
       ).build(),
     );
-  }, [goToRamps, trackEvent, createEventBuilder]);
+  }, [goToBuy, trackEvent, createEventBuilder]);
 
   const handleTermsPress = useCallback(
     () =>

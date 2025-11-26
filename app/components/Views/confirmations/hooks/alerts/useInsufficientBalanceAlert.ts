@@ -9,11 +9,7 @@ import {
 } from '../../../../../util/conversions';
 import { strings } from '../../../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import {
-  useRampNavigation,
-  RampMode,
-} from '../../../../UI/Ramp/hooks/useRampNavigation';
-import { RampType as AggregatorRampType } from '../../../../UI/Ramp/Aggregator/types';
+import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
@@ -24,12 +20,10 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../utils/transaction';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
 
-const IGNORE_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.predictDeposit,
-  TransactionType.predictWithdraw,
-];
+const IGNORE_TYPES = [TransactionType.predictWithdraw];
 
 const HEX_ZERO = '0x0';
 
@@ -38,7 +32,7 @@ export const useInsufficientBalanceAlert = ({
 }: {
   ignoreGasFeeToken?: boolean;
 } = {}): Alert[] => {
-  const { goToRamps } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const { balanceWeiInHex } = useAccountNativeBalance(
@@ -48,9 +42,25 @@ export const useInsufficientBalanceAlert = ({
   const { isTransactionValueUpdating } = useConfirmationContext();
   const { onReject } = useConfirmActions();
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const { payToken } = useTransactionPayToken();
+  const requiredTokens = useTransactionPayRequiredTokens();
+
+  const primaryRequiredToken = (requiredTokens ?? []).find(
+    (token) => !token.skipIfBalance,
+  );
+
+  const isPayTokenTarget =
+    payToken &&
+    payToken.chainId === primaryRequiredToken?.chainId &&
+    payToken.address.toLowerCase() ===
+      primaryRequiredToken?.address.toLowerCase();
 
   return useMemo(() => {
-    if (!transactionMetadata || isTransactionValueUpdating) {
+    if (
+      !transactionMetadata ||
+      isTransactionValueUpdating ||
+      (payToken && !isPayTokenTarget)
+    ) {
       return [];
     }
 
@@ -95,10 +105,7 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            goToRamps({
-              mode: RampMode.AGGREGATOR,
-              params: { rampType: AggregatorRampType.BUY },
-            });
+            goToBuy();
             onReject(undefined, true);
           },
         },
@@ -117,10 +124,12 @@ export const useInsufficientBalanceAlert = ({
     balanceWeiInHex,
     ignoreGasFeeToken,
     isGaslessSupported,
+    isPayTokenTarget,
     isTransactionValueUpdating,
     networkConfigurations,
     onReject,
+    payToken,
     transactionMetadata,
-    goToRamps,
+    goToBuy,
   ]);
 };

@@ -28,6 +28,7 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
+import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -100,13 +101,9 @@ import {
   PerpsScreenStack,
   PerpsModalStack,
   PerpsTutorialCarousel,
-  selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import {
-  PredictScreenStack,
-  PredictModalStack,
-  selectPredictEnabledFlag,
-} from '../../UI/Predict';
+import { PredictScreenStack, PredictModalStack } from '../../UI/Predict';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -135,6 +132,9 @@ import {
   TOKEN,
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
+import SitesFullView from '../../Views/SitesFullView/SitesFullView';
+import BrowserWrapper from '../../Views/TrendingView/components/BrowserWrapper/BrowserWrapper';
+import BridgeView from '../../UI/Bridge/Views/BridgeView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -320,16 +320,6 @@ const BrowserFlow = (props) => (
       name={Routes.BROWSER.ASSET_VIEW}
       component={Asset}
       initialParams={props.route.params}
-    />
-    <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
-    />
-    <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -856,21 +846,6 @@ const NotificationsModeView = (props) => (
   </Stack.Navigator>
 );
 
-const Swaps = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
-    />
-    <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -921,17 +896,23 @@ const SampleFeatureFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
-  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const perpsEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  );
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
+  const predictEnabledFlag = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
+  );
+  const isAssetsTrendingTokensEnabled = useSelector(
+    selectAssetsTrendingTokensEnabled,
   );
 
   return (
@@ -969,6 +950,26 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      <Stack.Screen
+        name="TrendingBrowser"
+        component={BrowserWrapper}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
@@ -1013,6 +1014,44 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen
+        name="TrendingTokensFullView"
+        component={TrendingTokensFullView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
+      <Stack.Screen
+        name={Routes.SITES_FULL_VIEW}
+        component={SitesFullView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
@@ -1056,7 +1095,6 @@ const MainNavigator = () => {
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen name="Swaps" component={Swaps} />
       <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
@@ -1081,7 +1119,19 @@ const MainNavigator = () => {
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
             options={{
-              animationEnabled: false,
+              animationEnabled: true,
+              cardStyleInterpolator: ({ current, layouts }) => ({
+                cardStyle: {
+                  transform: [
+                    {
+                      translateX: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layouts.screen.width, 0],
+                      }),
+                    },
+                  ],
+                },
+              }),
             }}
           />
           <Stack.Screen

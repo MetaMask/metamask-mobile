@@ -77,6 +77,7 @@ enum EVENT_NAME {
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
   DEFI_PROTOCOL_DETAILS_OPENED = 'DeFi Protocol Details Opened',
+  VIEW_ALL_ASSETS_CLICKED = 'View All Assets Clicked',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -513,6 +514,7 @@ enum EVENT_NAME {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
+  NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
 
   // Deep Link Modal Viewed
   DEEP_LINK_PRIVATE_MODAL_VIEWED = 'Deep Link Private Modal Viewed',
@@ -555,6 +557,7 @@ enum EVENT_NAME {
   CARD_DELEGATION_PROCESS_STARTED = 'Card Delegation Process Started',
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
+  CARD_DELEGATION_PROCESS_USER_CANCELED = 'Card Delegation Process User Canceled',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -681,6 +684,7 @@ const events = {
   DEFI_PROTOCOL_DETAILS_OPENED: generateOpt(
     EVENT_NAME.DEFI_PROTOCOL_DETAILS_OPENED,
   ),
+  VIEW_ALL_ASSETS_CLICKED: generateOpt(EVENT_NAME.VIEW_ALL_ASSETS_CLICKED),
   CURRENCY_CHANGED: generateOpt(EVENT_NAME.CURRENCY_CHANGED),
   NETWORK_SWITCHED: generateOpt(EVENT_NAME.NETWORK_SWITCHED),
   NETWORK_ADDED: generateOpt(EVENT_NAME.NETWORK_ADDED),
@@ -1329,6 +1333,9 @@ const events = {
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
   ),
+  NetworkConnectionBannerRpcUpdated: generateOpt(
+    EVENT_NAME.NetworkConnectionBannerRpcUpdated,
+  ),
 
   // Multi SRP
   IMPORT_SECRET_RECOVERY_PHRASE_CLICKED: generateOpt(
@@ -1423,6 +1430,9 @@ const events = {
   ),
   CARD_DELEGATION_PROCESS_FAILED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_FAILED,
+  ),
+  CARD_DELEGATION_PROCESS_USER_CANCELED: generateOpt(
+    EVENT_NAME.CARD_DELEGATION_PROCESS_USER_CANCELED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
