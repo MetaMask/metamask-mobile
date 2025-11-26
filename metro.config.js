@@ -47,6 +47,17 @@ module.exports = function (baseConfig) {
     process.env.IS_TEST === 'true' ||
     process.env.METAMASK_ENVIRONMENT === 'e2e';
 
+  // For less powerful machines, leave room to do other tasks. For instance,
+  // if you have 10 cores but only 16GB, only 3 workers would get used.
+  const paralel = os.availableParallelism();
+  const totalmem = os.totalmem();
+  const divider = 32 * 1024 * 1024 * 1024
+  const maxWorkers = Math.ceil(
+    paralel *
+      Math.min(1, totalmem / divider),
+  );
+  console.log(`paralel:${paralel} totalmem:${totalmem} divider:${divider} maxworkers: ${maxWorkers}`);
+
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
@@ -127,6 +138,7 @@ module.exports = function (baseConfig) {
         },
       ),
       resetCache: true,
+      maxWorkers,
     }),
   );
 };
