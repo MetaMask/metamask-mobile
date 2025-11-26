@@ -61,6 +61,7 @@ export default function InlineAlert({
       testID={AlertTypeIDs.INLINE_ALERT}
       onPress={handleInlineAlertClick}
       style={[styles.iconContainer, style]}
+      disabled={disabled}
     >
       <Icon
         name={severity === Severity.Danger ? IconName.Danger : IconName.Info}

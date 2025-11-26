@@ -70,7 +70,8 @@ const AlertRow = ({
     tooltipColor: isSmall
       ? getAlertIconColors(alertSelected?.severity)
       : undefined,
-    onLabelClick: alertSelected ? handleLabelClick : undefined,
+    onLabelClick:
+      alertSelected && !disableAlertInteraction ? handleLabelClick : undefined,
   };
 
   const inlineAlert =
