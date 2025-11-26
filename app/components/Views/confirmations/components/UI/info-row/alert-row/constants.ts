@@ -9,5 +9,6 @@ export enum RowAlertKey {
   PayWithFee = 'payWithFee',
   PendingTransaction = 'pendingTransaction',
   RequestFrom = 'requestFrom',
-  IncomingTokens = 'incomingTokens',
+  IncomingTokens = 'IncomingTokens',
+  InteractingWith = 'interactingWith',
 }
