@@ -70,6 +70,7 @@ import {
   usePerpsDataMonitor,
   type DataMonitorParams,
 } from '../../hooks/usePerpsDataMonitor';
+import { useIsPriceDeviatedAboveThreshold } from '../../hooks/useIsPriceDeviatedAboveThreshold';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
@@ -220,6 +221,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Check if market is at open interest cap
   const { isAtCap: isAtOICap } = usePerpsOICap(market?.symbol);
+
+  // Check if trading is halted due to price deviation
+  const {
+    isDeviatedAboveThreshold: isTradingHalted,
+    isLoading: isLoadingTradingHalted,
+  } = useIsPriceDeviatedAboveThreshold(market?.symbol);
 
   // Programmatic tab control state for data-driven navigation
   const [programmaticActiveTab, setProgrammaticActiveTab] = useState<
@@ -816,21 +823,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               )}
 
               {hasHistoricalData ? (
-                <>
-                  <TradingViewChart
-                    ref={chartRef}
-                    candleData={candleData}
-                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                    visibleCandleCount={visibleCandleCount}
-                    tpslLines={tpslLines}
-                    symbol={market?.symbol}
-                    showOverlay={false}
-                    coloredVolume
-                    onOhlcDataChange={setOhlcData}
-                    onNeedMoreHistory={fetchMoreHistory}
-                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-                  />
-                </>
+                <TradingViewChart
+                  ref={chartRef}
+                  candleData={candleData}
+                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                  visibleCandleCount={visibleCandleCount}
+                  tpslLines={tpslLines}
+                  symbol={market?.symbol}
+                  showOverlay={false}
+                  coloredVolume
+                  onOhlcDataChange={setOhlcData}
+                  onNeedMoreHistory={fetchMoreHistory}
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+                />
               ) : (
                 <Skeleton
                   height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
@@ -849,9 +854,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
 
             {/* Price Deviation Warning - Shows when price has deviated too much from spot price */}
-            {market?.symbol && (
+            {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
               <PerpsPriceDeviationWarning
-                symbol={market.symbol}
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
               />
             )}
@@ -937,7 +941,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {hasLongShortButtons && !isAtOICap && (
+          {hasLongShortButtons && !isAtOICap && !isTradingHalted && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
                 {buttonColorVariant === 'monochrome' ? (
