@@ -97,6 +97,11 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       borderRadius: 12,
       width: '100%',
     },
+    skeletonContainer: {
+      alignItems: 'center',
+      paddingTop: 24,
+      paddingBottom: 24,
+    },
   });
 
 export default styleSheet;

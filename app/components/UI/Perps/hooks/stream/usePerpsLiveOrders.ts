@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import type { Order } from '../../controllers/types';
 import { isTPSLOrder } from '../../constants/orderTypes';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_ORDERS: Order[] = [];
@@ -72,8 +73,21 @@ export function usePerpsLiveOrders(
       throttleMs,
     });
 
+    // Add timeout: If no data arrives within 5 seconds, stop loading
+    const timeoutId = setTimeout(() => {
+      if (!hasReceivedFirstUpdate.current) {
+        DevLogger.log(
+          'usePerpsLiveOrders: Timeout reached, marking as loaded with empty data',
+        );
+        hasReceivedFirstUpdate.current = true;
+        setIsInitialLoading(false);
+        setOrders(EMPTY_ORDERS);
+      }
+    }, 5000);
+
     return () => {
       unsubscribe();
+      clearTimeout(timeoutId);
     };
   }, [stream, throttleMs]);
 

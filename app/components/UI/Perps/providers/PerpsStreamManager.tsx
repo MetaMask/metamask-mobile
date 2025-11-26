@@ -413,6 +413,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 class OrderStreamChannel extends StreamChannel<Order[]> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
+  private hasReceivedFirstData = false; // Track if first WebSocket data has arrived
 
   protected connect() {
     if (this.wsSubscription) return;
@@ -478,6 +479,9 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
           this.firstDataTraceId = undefined;
         }
 
+        // Mark that we've received first data from WebSocket
+        this.hasReceivedFirstData = true;
+
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
       },
@@ -485,9 +489,18 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   }
 
   protected getCachedData() {
-    // Return null if no cache exists to distinguish from empty array
     const cached = this.cache.get('orders');
-    return cached !== undefined ? cached : null;
+    // If we have cached data, return it
+    if (cached !== undefined) {
+      return cached;
+    }
+    // If we've received first data from WebSocket, return empty array
+    // This distinguishes "loading" (null) from "no data" (empty array)
+    if (this.hasReceivedFirstData) {
+      return [];
+    }
+    // Still waiting for first data, return null to indicate loading state
+    return null;
   }
 
   protected getClearedData(): Order[] {
@@ -532,6 +545,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
 
   public disconnect() {
     this.firstDataTraceId = undefined;
+    this.hasReceivedFirstData = false; // Reset on disconnect
     super.disconnect();
   }
 
@@ -539,6 +553,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
     this.firstDataTraceId = undefined;
+    this.hasReceivedFirstData = false; // Reset on cache clear
     // Call parent clearCache
     super.clearCache();
   }
@@ -548,6 +563,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
 class PositionStreamChannel extends StreamChannel<Position[]> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
+  private hasReceivedFirstData = false; // Track if first WebSocket data has arrived
 
   protected connect() {
     if (this.wsSubscription) return;
@@ -617,6 +633,9 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
           this.firstDataTraceId = undefined;
         }
 
+        // Mark that we've received first data from WebSocket
+        this.hasReceivedFirstData = true;
+
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
       },
@@ -624,9 +643,18 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
   }
 
   protected getCachedData() {
-    // Return null if no cache exists to distinguish from empty array
     const cached = this.cache.get('positions');
-    return cached !== undefined ? cached : null;
+    // If we have cached data, return it
+    if (cached !== undefined) {
+      return cached;
+    }
+    // If we've received first data from WebSocket, return empty array
+    // This distinguishes "loading" (null) from "no data" (empty array)
+    if (this.hasReceivedFirstData) {
+      return [];
+    }
+    // Still waiting for first data, return null to indicate loading state
+    return null;
   }
 
   protected getClearedData(): Position[] {
@@ -661,6 +689,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
   public disconnect() {
     this.firstDataTraceId = undefined;
+    this.hasReceivedFirstData = false; // Reset on disconnect
     super.disconnect();
   }
 
@@ -668,6 +697,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
     this.firstDataTraceId = undefined;
+    this.hasReceivedFirstData = false; // Reset on cache clear
     // Call parent clearCache
     super.clearCache();
   }

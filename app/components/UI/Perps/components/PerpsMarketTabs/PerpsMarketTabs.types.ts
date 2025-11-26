@@ -39,4 +39,12 @@ export interface PerpsMarketTabsProps {
    * ID of the currently active SL order shown on chart
    */
   activeSLOrderId?: string | null;
+  /**
+   * Whether position data is still loading
+   */
+  isLoadingPosition?: boolean;
+  /**
+   * Whether orders data is still loading
+   */
+  isLoadingOrders?: boolean;
 }
