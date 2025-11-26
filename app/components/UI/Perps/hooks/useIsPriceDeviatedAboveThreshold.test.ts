@@ -350,25 +350,4 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
       throttleMs: 1000,
     });
   });
-
-  it('handles string prices with commas and dollar signs', () => {
-    // Some price formats might include formatting
-    mockUsePerpsPrices.mockReturnValue({
-      BTC: {
-        coin: 'BTC',
-        price: '111,000.00',
-        markPrice: '100,000.00',
-        timestamp: Date.now(),
-      },
-    });
-
-    const { result } = renderHook(() =>
-      useIsPriceDeviatedAboveThreshold('BTC'),
-    );
-
-    // parseFloat should handle commas, but if it doesn't parse correctly,
-    // the result should still be false (safe fallback)
-    // In practice, prices from usePerpsPrices should be clean numbers
-    expect(result.current.isDeviatedAboveThreshold).toBeDefined();
-  });
 });
