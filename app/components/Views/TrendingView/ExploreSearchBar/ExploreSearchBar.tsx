@@ -48,7 +48,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
   const placeholder =
     props.placeholder || isBasicFunctionalityEnabled
       ? strings('trending.search_placeholder')
-      : strings('trending.search_sites_placeholder');
+      : strings('trending.search_sites');
 
   const handleCancel = () => {
     if (isInteractiveMode) {

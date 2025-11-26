@@ -12,8 +12,6 @@ import {
   IconName,
   Icon,
   IconSize,
-  Button,
-  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -36,6 +34,7 @@ import {
 import PredictBuyPreview from '../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
+import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
@@ -116,32 +115,6 @@ const TrendingFeed: React.FC = () => {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
   }, [navigation]);
-
-  const renderEmptyState = () => (
-    <Box twClassName="flex-col w-[393px] pt-9 pb-24 justify-center items-center gap-3 flex-1">
-      <Box twClassName="flex-col w-[337px] items-stretch">
-        <Text
-          variant={TextVariant.HeadingSm}
-          twClassName="text-default text-center self-stretch mb-2"
-        >
-          {strings('trending.basic_functionality_disabled_title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-alternative text-center self-stretch font-medium"
-        >
-          {strings('trending.basic_functionality_disabled_description')}
-        </Text>
-        <Button
-          variant={ButtonVariant.Primary}
-          twClassName="h-[48px] self-stretch mt-6"
-          onPress={handleEnableBasicFunctionality}
-        >
-          {strings('trending.enable_basic_functionality')}
-        </Button>
-      </Box>
-    </Box>
-  );
 
   const handleSearchPress = useCallback(() => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
@@ -224,7 +197,9 @@ const TrendingFeed: React.FC = () => {
           ))}
         </ScrollView>
       ) : (
-        renderEmptyState()
+        <BasicFunctionalityEmptyState
+          onEnablePress={handleEnableBasicFunctionality}
+        />
       )}
     </Box>
   );

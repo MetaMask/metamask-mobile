@@ -86,7 +86,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     // Filter sections based on basic functionality toggle
     const sectionsToShow = isBasicFunctionalityEnabled
       ? SECTIONS_ARRAY
-      : SECTIONS_ARRAY.filter((section) => section.id === 'sites');
+      : [SECTIONS_CONFIG.sites];
 
     sectionsToShow.forEach((section) => {
       const items = data[section.id];
