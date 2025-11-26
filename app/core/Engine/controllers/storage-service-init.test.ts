@@ -327,7 +327,7 @@ describe('mobileStorageAdapter', () => {
       expect(mockFilesystemStorage.removeItem).not.toHaveBeenCalled();
     });
 
-    it('handles empty namespace gracefully', async () => {
+    it('removes zero keys and logs count when namespace has no matching entries', async () => {
       mockFilesystemStorage.getAllKeys.mockResolvedValue([
         `${STORAGE_KEY_PREFIX}OtherController:key1`,
       ]);
