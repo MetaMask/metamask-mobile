@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
+import { ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -71,6 +71,8 @@ const TrendingFeed: React.FC = () => {
   const navigation = useNavigation();
   const { isEnabled } = useMetrics();
   const { colors } = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Update state when returning to TrendingFeed
   useEffect(() => {
@@ -145,6 +147,22 @@ const TrendingFeed: React.FC = () => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
+  // Clean up timeout when component unmounts or refreshing changes
+  useEffect(() => {
+    if (refreshing) {
+      const timeoutId = setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [refreshing]);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
+
   return (
     <Box style={{ paddingTop: insets.top }} twClassName="flex-1 bg-default">
       <Box twClassName="px-4 py-3">
@@ -187,13 +205,21 @@ const TrendingFeed: React.FC = () => {
         <ScrollView
           style={tw.style('flex-1 px-4')}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.icon.default}
+              colors={[colors.primary.default]}
+            />
+          }
         >
           <QuickActions />
 
           {HOME_SECTIONS_ARRAY.map((section) => (
             <React.Fragment key={section.id}>
               <SectionHeader sectionId={section.id} />
-              <section.Section />
+              <section.Section refreshTrigger={refreshTrigger} />
             </React.Fragment>
           ))}
         </ScrollView>

@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import { debounce } from 'lodash';
 import type { CaipChainId } from '@metamask/utils';
 import {
   getTrendingTokens,
@@ -12,8 +11,6 @@ import {
   ProcessedNetwork,
 } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworksToUse } from '../../../../hooks/useNetworksToUse/useNetworksToUse';
-
-export const DEBOUNCE_WAIT = 0;
 
 /**
  * Hook for handling trending tokens request
@@ -61,43 +58,20 @@ export const useTrendingRequest = (options: {
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
 
-  // Stabilize the chainIds array reference to prevent unnecessary re-memoization
+  // Stabilize the chainIds array reference to prevent unnecessary re-fetching
   const stableChainIds = useStableArray(chainIds);
 
-  // Memoize the options object to ensure stable reference
-  const memoizedOptions = useMemo(
-    () => ({
-      chainIds: stableChainIds,
-      sortBy,
-      minLiquidity,
-      minVolume24hUsd,
-      maxVolume24hUsd,
-      minMarketCap,
-      maxMarketCap,
-    }),
-    [
-      stableChainIds,
-      sortBy,
-      minLiquidity,
-      minVolume24hUsd,
-      maxVolume24hUsd,
-      minMarketCap,
-      maxMarketCap,
-    ],
-  );
-
-  const [results, setResults] = useState<Awaited<
-    ReturnType<typeof getTrendingTokens>
-  > | null>(null);
+  const [results, setResults] = useState<
+    Awaited<ReturnType<typeof getTrendingTokens>>
+  >([]);
 
   const [isLoading, setIsLoading] = useState(false);
 
   const [error, setError] = useState<Error | null>(null);
 
   const fetchTrendingTokens = useCallback(async () => {
-    if (!memoizedOptions.chainIds.length) {
-      ++requestIdRef.current;
-      setResults(null);
+    if (!stableChainIds.length) {
+      setResults([]);
       setIsLoading(false);
       return;
     }
@@ -109,13 +83,13 @@ export const useTrendingRequest = (options: {
 
     try {
       const resultsToStore = await getTrendingTokens({
-        chainIds: memoizedOptions.chainIds,
-        sortBy: memoizedOptions.sortBy,
-        minLiquidity: memoizedOptions.minLiquidity,
-        minVolume24hUsd: memoizedOptions.minVolume24hUsd,
-        maxVolume24hUsd: memoizedOptions.maxVolume24hUsd,
-        minMarketCap: memoizedOptions.minMarketCap,
-        maxMarketCap: memoizedOptions.maxMarketCap,
+        chainIds: stableChainIds,
+        sortBy,
+        minLiquidity,
+        minVolume24hUsd,
+        maxVolume24hUsd,
+        minMarketCap,
+        maxMarketCap,
       });
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
@@ -125,7 +99,7 @@ export const useTrendingRequest = (options: {
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setError(err as Error);
-        setResults(null);
+        setResults([]);
       }
     } finally {
       // Only update loading state if this is still the current request
@@ -133,42 +107,25 @@ export const useTrendingRequest = (options: {
         setIsLoading(false);
       }
     }
-  }, [memoizedOptions]);
-
-  const debouncedFetchTrendingTokens = useMemo(
-    () => debounce(fetchTrendingTokens, DEBOUNCE_WAIT),
-    [fetchTrendingTokens],
-  );
+  }, [
+    stableChainIds,
+    sortBy,
+    minLiquidity,
+    minVolume24hUsd,
+    maxVolume24hUsd,
+    minMarketCap,
+    maxMarketCap,
+  ]);
 
   // Automatically trigger fetch when options change
-  // Cancel previous debounced function BEFORE triggering new one to prevent race conditions
   useEffect(() => {
-    // Cancel any pending debounced calls from previous render
-    debouncedFetchTrendingTokens.cancel();
-
-    // If chainIds is empty, don't trigger fetch
-    if (!stableChainIds.length) {
-      setResults(null);
-      setIsLoading(false);
-      return;
-    }
-
-    // Immediately show loading state so UI can render skeleton right away
-    setIsLoading(true);
-
-    // Fetch new data
-    debouncedFetchTrendingTokens();
-
-    // Cleanup: cancel on unmount or when dependencies change
-    return () => {
-      debouncedFetchTrendingTokens.cancel();
-    };
-  }, [debouncedFetchTrendingTokens, stableChainIds, memoizedOptions]);
+    fetchTrendingTokens();
+  }, [fetchTrendingTokens]);
 
   return {
-    results: results || [],
+    results,
     isLoading,
     error,
-    fetch: debouncedFetchTrendingTokens,
+    fetch: fetchTrendingTokens,
   };
 };

@@ -46,8 +46,8 @@ import {
   getErrorMessage,
   getFetchParams,
   getQuotesNavigationsParams,
-  isSwapsNativeAsset,
 } from './utils';
+import { isSwapsNativeAsset } from '../../../util/bridge';
 import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
