@@ -9,9 +9,6 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       backgroundColor: colors.background.default,
       borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      padding: 16,
     },
     header: {
       flexDirection: 'row',
@@ -21,12 +18,12 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     pnlSection: {
       flexDirection: 'row',
-      gap: 12,
-      marginBottom: 12,
+      gap: 8,
+      marginBottom: 8,
     },
     pnlCard: {
       flex: 1,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 12,
       gap: 4,
@@ -39,15 +36,15 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     sizeMarginRow: {
       flexDirection: 'row',
-      gap: 12,
-      marginBottom: 12,
+      gap: 8,
+      marginBottom: 8,
     },
     sizeContainer: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 12,
     },
@@ -55,12 +52,17 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       gap: 4,
     },
+    sizeLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
     marginContainer: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 12,
     },
@@ -68,11 +70,16 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       gap: 4,
     },
+    marginLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
     autoCloseSection: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 12,
       marginBottom: 12,
@@ -80,6 +87,17 @@ const styleSheet = (params: { theme: Theme }) => {
     autoCloseTextContainer: {
       flex: 1,
       gap: 4,
+    },
+    autoCloseButton: {
+      borderRadius: 8,
+    },
+    iconButton: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 8,
+    },
+    iconButtonContainer: {
+      height: '100%',
+      alignItems: 'flex-end',
     },
     toggleContainer: {
       marginLeft: 16,
@@ -110,15 +128,25 @@ const styleSheet = (params: { theme: Theme }) => {
       alignSelf: 'flex-end',
     },
     detailsSection: {
-      gap: 12,
+      gap: 1,
     },
     detailsTitle: {
-      marginBottom: 4,
+      marginBottom: 16,
     },
     detailRow: {
+      padding: 12,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      backgroundColor: colors.background.section,
+    },
+    detailRowFirst: {
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+    },
+    detailRowLast: {
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
   });
 };

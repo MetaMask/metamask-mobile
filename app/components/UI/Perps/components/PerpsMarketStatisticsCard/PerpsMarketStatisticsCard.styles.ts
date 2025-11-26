@@ -10,20 +10,23 @@ const styleSheet = (params: { theme: Theme }) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: 8,
     },
     statsRowsContainer: {
-      backgroundColor: params.theme.colors.background.alternative,
-      borderRadius: 8,
-      padding: 16,
+      gap: 1,
     },
     statsRow: {
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: params.theme.colors.border.muted,
+      padding: 12,
+      backgroundColor: params.theme.colors.background.section,
+    },
+    statsRowFirst: {
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
     },
     statsRowLast: {
-      paddingVertical: 12,
+      padding: 12,
+      backgroundColor: params.theme.colors.background.section,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
     fundingRateContainer: {
       flexDirection: 'row',

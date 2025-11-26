@@ -950,6 +950,11 @@
     "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
     "no_open_orders": "No open orders",
+    "auto_close": {
+      "title": "Auto close",
+      "description": "Protect your margin, lock in gains",
+      "set_button": "Set"
+    },
     "deposit": {
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
@@ -1424,6 +1429,7 @@
         "error_message": "Market data not found. Please go back and try again."
       },
       "statistics": "Overview",
+      "stats": "Stats",
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",
