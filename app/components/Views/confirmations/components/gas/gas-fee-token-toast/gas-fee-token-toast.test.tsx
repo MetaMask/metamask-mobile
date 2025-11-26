@@ -184,4 +184,24 @@ describe('GasFeeTokenToast', () => {
 
     expect(mockCloseToast).toHaveBeenCalledTimes(1);
   });
+
+  it('uses default chainId when chainId is undefined', () => {
+    (useGasFeeToken as jest.Mock).mockReturnValue(GAS_FEE_TOKEN_MOCK);
+    (useSelectedGasFeeToken as jest.Mock).mockReturnValue(
+      GAS_FEE_TOKEN_USDC_MOCK,
+    );
+    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+      chainId: undefined,
+    });
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <GasFeeTokenToast />
+      </ToastContext.Provider>,
+      { state: TOKENS_CONTROLLER_STATE },
+    );
+
+    // The component should still work with undefined chainId, defaulting to '0x1'
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+  });
 });

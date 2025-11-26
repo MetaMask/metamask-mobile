@@ -205,4 +205,67 @@ describe('useConfirmAction', () => {
     result?.current?.onReject(undefined, true);
     expect(goBackSpy).not.toHaveBeenCalled();
   });
+
+  it('sets waitForResult to false when approvalType is TransactionBatch', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
+    const transactionBatchState = {
+      engine: {
+        backgroundState: {
+          ...stakingDepositConfirmationState.engine.backgroundState,
+          ApprovalController: {
+            pendingApprovals: {
+              'batch-approval-id': {
+                id: 'batch-approval-id',
+                origin: 'metamask',
+                type: 'transaction_batch',
+                time: 1738825814816,
+                requestData: { batchId: '0x123456789abcdef' },
+                requestState: null,
+                expectsResult: false,
+              },
+            },
+            pendingApprovalCount: 1,
+            approvalFlows: [],
+          },
+        },
+      },
+    };
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: transactionBatchState,
+    });
+
+    result?.current?.onConfirm();
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    const callArgs = (Engine.acceptPendingApproval as jest.Mock).mock.calls[0];
+    expect(callArgs[0]).toBe('batch-approval-id');
+    expect(callArgs[2]).toEqual({
+      waitForResult: false,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
+    await flushPromises();
+  });
+
+  it('sets waitForResult to true when approvalType is not TransactionBatch', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    result?.current?.onConfirm();
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    const callArgs = (Engine.acceptPendingApproval as jest.Mock).mock.calls[0];
+    expect(callArgs[0]).toBe('76b33b40-7b5c-11ef-bc0a-25bce29dbc09');
+    expect(callArgs[2]).toEqual({
+      waitForResult: true,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
+    await flushPromises();
+  });
 });

@@ -1622,5 +1622,275 @@ describe('EarnInputView', () => {
         }),
       );
     });
+
+    it('handles missing selectedAccount address gracefully in lending flow', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+            },
+          },
+        })),
+        getOutputToken: jest.fn(),
+      });
+
+      const mockSelector = jest.requireMock(
+        '../../../../../selectors/multichainAccounts/accounts',
+      );
+      mockSelector.selectSelectedInternalAccountByScope = jest.fn(
+        () => () => undefined,
+      );
+
+      const { getByText } = render(EarnInputView, {
+        params: { token: MOCK_USDC_MAINNET_ASSET },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Review'));
+      });
+
+      // Should not navigate when selectedAccount is undefined
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('handles missing earnToken experience market data gracefully', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            // Missing market data
+          },
+        })),
+        getOutputToken: jest.fn(),
+      });
+
+      const { getByText } = render(EarnInputView, {
+        params: { token: MOCK_USDC_MAINNET_ASSET },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Review'));
+      });
+
+      // Should not navigate when market data is missing
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('handles lending flow when token requires allowance reset', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const mockUSDT = {
+        ...MOCK_USDC_MAINNET_ASSET,
+        symbol: 'USDT',
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      };
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...mockUSDT,
+          chainId: CHAIN_IDS.MAINNET,
+          balance: '100',
+          balanceMinimalUnit: '100000000',
+          balanceFiatNumber: 100,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '2.5%',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: mockUSDT.address,
+              },
+            },
+          },
+        })),
+        getOutputToken: jest.fn(),
+      });
+
+      // Mock that there's existing allowance but less than needed
+      (
+        Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
+      ).mockResolvedValue(EthersBigNumber.from('1000000'));
+
+      const { getByText } = render(EarnInputView, {
+        params: { token: mockUSDT },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('25%'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Review'));
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.EARN.ROOT,
+          expect.objectContaining({
+            screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
+            params: expect.objectContaining({
+              action: 'ALLOWANCE_INCREASE',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('handles lending flow when networkClientId is undefined', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags);
+
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: '0x999', // Non-existent chain
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+            },
+          },
+        })),
+        getOutputToken: jest.fn(),
+      });
+
+      (
+        Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
+      ).mockResolvedValue(EthersBigNumber.from('0'));
+
+      const { getByText } = render(EarnInputView, {
+        params: { token: { ...MOCK_USDC_MAINNET_ASSET, chainId: '0x999' } },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Review'));
+      });
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Cannot create lending deposit confirmation - networkClientId is undefined',
+        );
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('handles pooled staking when attemptDepositTransaction is undefined', async () => {
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: undefined,
+      });
+
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags);
+
+      const { getByText } = renderComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Review'));
+      });
+
+      // Should not navigate when attemptDepositTransaction is undefined
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('tracks staking events when shouldLogStakingEvent returns true', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+
+      const { getByText } = renderComponent();
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByText('25%'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Stake input quick amount clicked',
+          properties: expect.objectContaining({
+            location: 'EarnInputView',
+            amount: 0.25,
+            is_max: false,
+            mode: 'native',
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+          }),
+        }),
+      );
+    });
+
+    it('navigates to STABLECOIN_LENDING learn more modal', () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '2.5%',
+          },
+        })),
+        getOutputToken: jest.fn(),
+      });
+
+      const { getByLabelText } = render(EarnInputView, {
+        params: { token: MOCK_USDC_MAINNET_ASSET },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      mockNavigate.mockClear();
+
+      fireEvent.press(getByLabelText('Learn More'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.MODALS.ROOT, {
+        screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
+        params: expect.objectContaining({
+          asset: expect.any(Object),
+        }),
+      });
+    });
   });
 });
