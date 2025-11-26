@@ -68,7 +68,6 @@ jobs:
         run: node scripts/repack.js
         env:
           PLATFORM: android
-          SOURCE_APK: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           METAMASK_ENVIRONMENT: e2e
           METAMASK_BUILD_TYPE: flask
           IS_TEST: 'true'

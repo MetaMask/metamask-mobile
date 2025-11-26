@@ -50,7 +50,7 @@ function getKeystoreConfig() {
  */
 async function repackAndroid() {
   const startTime = Date.now();
-  const sourceApk = process.env.SOURCE_APK ||  'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const sourceApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
   const repackedApk = 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
   const finalApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
   const sourcemapPath = 'sourcemaps/android/index.android.bundle.map';
