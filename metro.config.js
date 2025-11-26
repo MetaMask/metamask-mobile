@@ -48,11 +48,18 @@ module.exports = function (baseConfig) {
     process.env.METAMASK_ENVIRONMENT === 'e2e';
 
   // For less powerful machines, leave room to do other tasks. For instance,
-  // if you have 10 cores but only 16GB, only 6 workers would get used.
+  // if you have 10 cores but only 16GB, only 3 workers would get used.
+  // Also forces maxWorkers value to be no less than 2, ensuring
+  // worker code runs concurrently and not on the main Metro process
   const maxWorkers = Math.ceil(
-    os.availableParallelism() *
-      Math.min(1, os.totalmem() / (32 * 1024 * 1024 * 1024)),
+    Math.max(
+      2,
+      os.availableParallelism() *
+        Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
+    ),
   );
+
+  console.log(`Metro max workers: ${maxWorkers}`);
 
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
