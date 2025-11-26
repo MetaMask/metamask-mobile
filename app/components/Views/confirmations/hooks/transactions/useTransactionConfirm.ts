@@ -34,7 +34,8 @@ export function useTransactionConfirm() {
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
-  const { chainId, type } = transactionMetadata ?? {};
+  const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
+    transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
 
@@ -50,7 +51,7 @@ export function useTransactionConfirm() {
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken) {
+      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
         return;
       }
 
@@ -77,6 +78,7 @@ export function useTransactionConfirm() {
     },
     [
       selectedGasFeeToken,
+      isGasFeeTokenIgnoredIfBalance,
       isGaslessSupported,
       transactionMetadata?.isGasFeeSponsored,
     ],
@@ -84,7 +86,7 @@ export function useTransactionConfirm() {
 
   const handleGasless7702 = useCallback(
     (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken) {
+      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
         return;
       }
 
@@ -93,6 +95,7 @@ export function useTransactionConfirm() {
         isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
     [
+      isGasFeeTokenIgnoredIfBalance,
       isGaslessSupported,
       selectedGasFeeToken,
       transactionMetadata?.isGasFeeSponsored,
