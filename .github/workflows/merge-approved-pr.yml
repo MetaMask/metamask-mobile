@@ -15,10 +15,7 @@ jobs:
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'OWNER'
       )
-    permissions:
-      pull-requests: write # Required to merge PRs
-      contents: write      # Required to update the repository content
-    uses: MetaMask/github-tools/.github/workflows/merge-approved-pr.yml@INFRA-2925-AddMergingGithubAction
+    uses: MetaMask/github-tools/.github/workflows/merge-approved-pr.yml@30baa9da0b80d94dd8bdf0b6a932c46506664857
     with:
       pr-number: ${{ github.event.issue.number }}
     secrets:
