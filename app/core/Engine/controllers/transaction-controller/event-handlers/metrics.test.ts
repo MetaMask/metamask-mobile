@@ -302,7 +302,7 @@ describe('Transaction Metric Event Handlers', () => {
     });
 
     describe('hash property', () => {
-      it('included when extensionUxPna25 is enabled', async () => {
+      it('included when extensionUxPna25 is enabled and pna25 is acknowledged', async () => {
         const mockRequest = {
           ...mockTransactionMetricRequest,
           getState: jest.fn().mockReturnValue(
@@ -317,6 +317,9 @@ describe('Transaction Metric Event Handlers', () => {
                       },
                     },
                   },
+                },
+                legalNotices: {
+                  isPna25Acknowledged: true,
                 },
               },
               mockTransactionMetricRequest.getState(),
@@ -336,34 +339,71 @@ describe('Transaction Metric Event Handlers', () => {
         );
       });
 
-      it('not included when extensionUxPna25 is disabled', async () => {
-        const mockRequest = {
-          ...mockTransactionMetricRequest,
-          getState: jest.fn().mockReturnValue(
-            merge({}, mockTransactionMetricRequest.getState(), {
-              engine: {
-                backgroundState: {
-                  RemoteFeatureFlagController: {
-                    remoteFeatureFlags: {
-                      extensionUxPna25: false,
+      describe('not included', () => {
+        it('extensionUxPna25 flag is disabled', async () => {
+          const mockRequest = {
+            ...mockTransactionMetricRequest,
+            getState: jest.fn().mockReturnValue(
+              merge({}, mockTransactionMetricRequest.getState(), {
+                engine: {
+                  backgroundState: {
+                    RemoteFeatureFlagController: {
+                      remoteFeatureFlags: {
+                        extensionUxPna25: false,
+                      },
                     },
                   },
                 },
-              },
+                legalNotices: {
+                  isPna25Acknowledged: true,
+                },
+              }),
+            ),
+          } as unknown as TransactionEventHandlerRequest;
+
+          await handleTransactionFinalizedEventForMetrics(
+            mockTransactionMeta,
+            mockRequest,
+          );
+
+          expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              transaction_hash: mockTransactionMeta.hash,
             }),
-          ),
-        } as unknown as TransactionEventHandlerRequest;
+          );
+        });
+        it('pna25 is not acknowledged', async () => {
+          const mockRequest = {
+            ...mockTransactionMetricRequest,
+            getState: jest.fn().mockReturnValue(
+              merge({}, mockTransactionMetricRequest.getState(), {
+                engine: {
+                  backgroundState: {
+                    RemoteFeatureFlagController: {
+                      remoteFeatureFlags: {
+                        extensionUxPna25: true,
+                      },
+                    },
+                  },
+                },
+                legalNotices: {
+                  isPna25Acknowledged: false,
+                },
+              }),
+            ),
+          } as unknown as TransactionEventHandlerRequest;
 
-        await handleTransactionFinalizedEventForMetrics(
-          mockTransactionMeta,
-          mockRequest,
-        );
+          await handleTransactionFinalizedEventForMetrics(
+            mockTransactionMeta,
+            mockRequest,
+          );
 
-        expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
-          expect.objectContaining({
-            transaction_hash: mockTransactionMeta.hash,
-          }),
-        );
+          expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              transaction_hash: mockTransactionMeta.hash,
+            }),
+          );
+        });
       });
     });
   });

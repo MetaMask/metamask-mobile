@@ -228,12 +228,12 @@ function generateHashProperty(
   const state = transactionEventHandlerRequest.getState();
 
   const isExtensionUxPna25Enabled =
-    state.engine.backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags
-      ?.extensionUxPna25;
+    state?.engine?.backgroundState?.RemoteFeatureFlagController
+      ?.remoteFeatureFlags?.extensionUxPna25;
 
-  // This is object to change - waiting for mobile PR
-  // const isPna25Acknowledged = state.getPna25Acknowledged();
-  if (isExtensionUxPna25Enabled) {
+  const isPna25Acknowledged = state?.legalNotices?.isPna25Acknowledged;
+
+  if (isExtensionUxPna25Enabled && isPna25Acknowledged) {
     return {
       properties: {
         transaction_hash: transactionMeta.hash,
