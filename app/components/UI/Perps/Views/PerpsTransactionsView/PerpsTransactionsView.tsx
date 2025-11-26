@@ -38,6 +38,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
 import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
 import { ButtonSize } from '@metamask/design-system-react-native';
+import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -331,14 +332,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>
-        {strings('perps.transactions.empty_state.no_transactions', {
-          type: activeFilter.toLowerCase(),
-        })}
-      </Text>
-      <Text style={styles.emptyText}>
-        {strings('perps.transactions.empty_state.history_will_appear')}
-      </Text>
+      <TabEmptyState
+        description={`${strings(
+          'perps.transactions.empty_state.no_transactions',
+          {
+            type: activeFilter.toLowerCase(),
+          },
+        )}${strings('perps.transactions.empty_state.history_will_appear')}`}
+      />
     </View>
   );
 

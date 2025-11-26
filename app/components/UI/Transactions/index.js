@@ -23,11 +23,7 @@ import Engine from '../../../core/Engine';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
-import {
-  CancelTransactionError,
-  SpeedupTransactionError,
-  TransactionError,
-} from '../../../core/Transaction/TransactionError';
+import { TransactionError } from '../../../core/Transaction/TransactionError';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -72,6 +68,7 @@ import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -393,7 +390,7 @@ class Transactions extends PureComponent {
     }
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+        <TabEmptyState description={strings('wallet.no_transactions')} />
       </View>
     );
   };
@@ -781,39 +778,7 @@ class Transactions extends PureComponent {
     return (
       <View style={styles.wrapper}>
         <PriceChartContext.Consumer>
-          {({ isChartBeingTouched }) => (
-            <FlatList
-              testID={ActivitiesViewSelectorsIDs.CONTAINER}
-              ref={this.flatList}
-              getItemLayout={this.getItemLayout}
-              data={filteredTransactions}
-              extraData={this.state}
-              keyExtractor={this.keyExtractor}
-              refreshControl={
-                <RefreshControl
-                  colors={[colors.primary.default]}
-                  tintColor={colors.icon.default}
-                  refreshing={this.state.refreshing}
-                  onRefresh={this.onRefresh}
-                />
-              }
-              renderItem={this.renderItem}
-              initialNumToRender={10}
-              maxToRenderPerBatch={2}
-              onEndReachedThreshold={0.5}
-              ListHeaderComponent={header}
-              ListFooterComponent={
-                filteredTransactions.length > 0
-                  ? this.footer
-                  : this.renderEmpty()
-              }
-              contentContainerStyle={styles.listContentContainer}
-              style={baseStyles.flexGrow}
-              scrollIndicatorInsets={{ right: 1 }}
-              onScroll={this.onScroll}
-              scrollEnabled={!isChartBeingTouched}
-            />
-          )}
+          {({ isChartBeingTouched }) => this.renderEmpty()}
         </PriceChartContext.Consumer>
 
         {!isSigningQRObject && this.state.cancelIsOpen && (
