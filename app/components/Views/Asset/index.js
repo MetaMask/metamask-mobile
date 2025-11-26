@@ -1,11 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import {
-  ActivityIndicator,
-  InteractionManager,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -66,11 +61,9 @@ import {
   selectSwapsTransactions,
   selectTransactions,
 } from '../../../selectors/transactionController';
-import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
