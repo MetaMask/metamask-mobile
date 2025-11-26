@@ -658,6 +658,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const handleAddFundsPress = async () => {
+    // Track deposit button click from asset screen
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PerpsEventProperties.BUTTON_CLICKED]:
+        PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
+      [PerpsEventProperties.BUTTON_LOCATION]:
+        PerpsEventValues.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
+    });
+
     try {
       if (!isEligible) {
         setIsEligibilityModalVisible(true);

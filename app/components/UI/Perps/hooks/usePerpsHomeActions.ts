@@ -27,6 +27,8 @@ export interface UsePerpsHomeActionsOptions {
   onWithdrawSuccess?: () => void;
   /** Callback invoked when an error occurs */
   onError?: (error: Error, action: PerpsHomeActionType) => void;
+  /** Button location for tracking deposit entry point */
+  buttonLocation?: string;
 }
 
 export interface UsePerpsHomeActionsReturn {
@@ -75,7 +77,8 @@ export const usePerpsHomeActions = (
   const [error, setError] = useState<Error | null>(null);
   const { track } = usePerpsEventTracking();
 
-  const { onAddFundsSuccess, onWithdrawSuccess, onError } = options || {};
+  const { onAddFundsSuccess, onWithdrawSuccess, onError, buttonLocation } =
+    options || {};
 
   const handleAddFunds = useCallback(async () => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -84,7 +87,7 @@ export const usePerpsHomeActions = (
       [PerpsEventProperties.BUTTON_CLICKED]:
         PerpsEventValues.BUTTON_CLICKED.DEPOSIT,
       [PerpsEventProperties.BUTTON_LOCATION]:
-        PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        buttonLocation || PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
     });
 
     if (!isEligible) {
@@ -136,6 +139,7 @@ export const usePerpsHomeActions = (
     onAddFundsSuccess,
     onError,
     track,
+    buttonLocation,
   ]);
 
   const handleWithdraw = useCallback(async () => {

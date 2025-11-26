@@ -78,12 +78,15 @@ const PerpsHomeView = () => {
   const cancelAllSheetRef = useRef<BottomSheetRef>(null);
 
   // Use hook for eligibility checks and action handlers
+  // Pass button location for tracking deposit entry point
   const {
     handleAddFunds,
     handleWithdraw,
     isEligibilityModalVisible,
     closeEligibilityModal,
-  } = usePerpsHomeActions();
+  } = usePerpsHomeActions({
+    buttonLocation: PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+  });
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -175,10 +178,23 @@ const PerpsHomeView = () => {
   }, [perpsNavigation, trackEvent, createEventBuilder]);
 
   const navigtateToTutorial = useCallback(() => {
+    // Track tutorial button click
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
+        .addProperties({
+          [PerpsEventProperties.INTERACTION_TYPE]:
+            PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PerpsEventProperties.BUTTON_CLICKED]:
+            PerpsEventValues.BUTTON_CLICKED.TUTORIAL,
+          [PerpsEventProperties.BUTTON_LOCATION]:
+            PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        })
+        .build(),
+    );
     navigation.navigate(Routes.PERPS.TUTORIAL, {
       source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
     });
-  }, [navigation]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const navigateToContactSupport = useCallback(() => {
     navigation.navigate(Routes.WEBVIEW.MAIN, {

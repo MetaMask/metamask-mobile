@@ -122,8 +122,6 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
               [PerpsEventProperties.ACTION]:
                 PerpsEventValues.ACTION.CONNECTION_RETRY,
               [PerpsEventProperties.ATTEMPT_NUMBER]: retryAttempts + 1,
-              [PerpsEventProperties.INTERACTION_TYPE]:
-                PerpsEventValues.INTERACTION_TYPE.TAP,
             });
             onRetry();
           }}

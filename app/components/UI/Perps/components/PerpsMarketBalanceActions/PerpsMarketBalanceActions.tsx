@@ -47,6 +47,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { RootState } from '../../../../../reducers';
+import { PerpsEventValues } from '../../constants/eventNames';
 
 interface PerpsMarketBalanceActionsProps {
   positions?: Position[];
@@ -92,13 +93,28 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     string | null
   >(null);
 
+  // Use live account data with 1 second throttle for balance display
+  const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
+    throttleMs: 1000,
+  });
+
+  const totalBalance = perpsAccount?.totalBalance || '0';
+  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+
   // Use hook for eligibility checks and action handlers
+  // Determine button location based on whether balance is empty (empty state) or not (home)
+  const buttonLocation = isBalanceEmpty
+    ? PerpsEventValues.BUTTON_LOCATION.PERPS_HOME_EMPTY_STATE
+    : PerpsEventValues.BUTTON_LOCATION.PERPS_HOME;
+
   const {
     handleAddFunds,
     handleWithdraw,
     isEligibilityModalVisible,
     closeEligibilityModal,
-  } = usePerpsHomeActions();
+  } = usePerpsHomeActions({
+    buttonLocation,
+  });
 
   // Extract all transaction state logic
   const {
@@ -133,11 +149,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
       withdrawalAmount,
     ],
   );
-
-  // Use live account data with 1 second throttle for balance display
-  const { account: perpsAccount, isInitialLoading } = usePerpsLiveAccount({
-    throttleMs: 1000,
-  });
 
   // Use the reusable hooks for balance animation
   const {
@@ -183,12 +194,9 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     [stopBalanceAnimation],
   );
 
-  const totalBalance = perpsAccount?.totalBalance || '0';
-
   const availableBalance = perpsAccount?.availableBalance || '0';
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
   const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
   const hasPositions = positions.length > 0;
 
   const pnlNum = useMemo(() => parseFloat(unrealizedPnl), [unrealizedPnl]);

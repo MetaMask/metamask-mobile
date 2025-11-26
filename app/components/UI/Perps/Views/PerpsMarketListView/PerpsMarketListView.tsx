@@ -210,15 +210,37 @@ const PerpsMarketListView = ({
     return index >= 0 ? index : 0;
   }, [marketTypeFilter, tabsData]);
 
+  const { track } = usePerpsEventTracking();
+
   // Handle tab press
   const handleTabPress = useCallback(
     (index: number) => {
       const tab = tabsData[index];
       if (tab) {
+        // Track button click based on filter type
+        if (tab.filter === 'crypto') {
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PerpsEventProperties.INTERACTION_TYPE]:
+              PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+            [PerpsEventProperties.BUTTON_CLICKED]:
+              PerpsEventValues.BUTTON_CLICKED.CRYPTO,
+            [PerpsEventProperties.BUTTON_LOCATION]:
+              PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+          });
+        } else if (tab.filter === 'stocks_and_commodities') {
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PerpsEventProperties.INTERACTION_TYPE]:
+              PerpsEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+            [PerpsEventProperties.BUTTON_CLICKED]:
+              PerpsEventValues.BUTTON_CLICKED.STOCKS,
+            [PerpsEventProperties.BUTTON_LOCATION]:
+              PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+          });
+        }
         setMarketTypeFilter(tab.filter);
       }
     },
-    [tabsData, setMarketTypeFilter],
+    [tabsData, setMarketTypeFilter, track],
   );
 
   // Handle scroll to sync active tab (for swipe gestures)
@@ -276,8 +298,6 @@ const PerpsMarketListView = ({
   useEffect(() => {
     setStocksCommoditiesFilter('all');
   }, [marketTypeFilter]);
-
-  const { track } = usePerpsEventTracking();
 
   // Use navigation hook for back button
   const handleBackPressed = perpsNavigation.navigateBack;
