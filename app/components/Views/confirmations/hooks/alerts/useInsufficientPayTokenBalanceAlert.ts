@@ -28,6 +28,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const isSourceGasFeeToken = totals?.fees.isSourceGasFeeToken ?? false;
+  const isPendingAlert = Boolean(pendingAmountUsd !== undefined);
 
   const sourceChainId = payToken?.chainId ?? '0x0';
 
@@ -86,7 +87,15 @@ export function useInsufficientPayTokenBalanceAlert({
     const targetUsdValue = totalAmountUsd.minus(shortfall);
     const targetUsd = formatFiat(targetUsdValue);
 
-    return targetUsdValue.isLessThanOrEqualTo(0) ? undefined : targetUsd;
+    if (targetUsdValue.isLessThanOrEqualTo(0)) {
+      return undefined;
+    }
+
+    if (targetUsdValue.isGreaterThan(totalAmountUsd)) {
+      return formatFiat(totalAmountUsd);
+    }
+
+    return targetUsd;
   }, [balanceUsd, formatFiat, totalAmountUsd, totalSourceAmountUsd]);
 
   const totalSourceNetworkFeeRaw = useMemo(
@@ -100,18 +109,23 @@ export function useInsufficientPayTokenBalanceAlert({
   );
 
   const isInsufficientForFees = useMemo(
-    () => payToken && totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
-    [balanceRaw, payToken, totalSourceAmountRaw],
+    () =>
+      !isPendingAlert &&
+      payToken &&
+      totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
+    [balanceRaw, isPendingAlert, payToken, totalSourceAmountRaw],
   );
 
   const isInsufficientForSourceNetwork = useMemo(
     () =>
       payToken &&
       !isPayTokenNative &&
+      !isPendingAlert &&
       !isSourceGasFeeToken &&
       totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
     [
       isPayTokenNative,
+      isPendingAlert,
       isSourceGasFeeToken,
       nativeToken?.balanceRaw,
       payToken,

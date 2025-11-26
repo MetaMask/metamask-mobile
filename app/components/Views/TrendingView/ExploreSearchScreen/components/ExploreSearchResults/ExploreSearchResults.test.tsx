@@ -47,11 +47,13 @@ describe('ExploreSearchResults', () => {
         ],
         perps: [],
         predictions: [],
+        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
@@ -66,11 +68,13 @@ describe('ExploreSearchResults', () => {
         tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
         perps: [{ symbol: 'ETH-USD', name: 'Ethereum' }],
         predictions: [],
+        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
@@ -86,11 +90,13 @@ describe('ExploreSearchResults', () => {
         tokens: [],
         perps: [],
         predictions: [],
+        sites: [],
       },
       isLoading: {
         tokens: true,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
@@ -111,11 +117,13 @@ describe('ExploreSearchResults', () => {
         ],
         perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
         predictions: [{ id: '1', title: 'Will Bitcoin reach 100k?' }],
+        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
@@ -132,11 +140,13 @@ describe('ExploreSearchResults', () => {
         tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
         perps: [],
         predictions: [],
+        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
@@ -155,11 +165,13 @@ describe('ExploreSearchResults', () => {
         tokens: [],
         perps: [],
         predictions: [],
+        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
@@ -178,11 +190,13 @@ describe('ExploreSearchResults', () => {
         ],
         perps: [],
         predictions: [],
+        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        sites: false,
       },
     });
 
@@ -198,11 +212,13 @@ describe('ExploreSearchResults', () => {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [],
           predictions: [],
+          sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          sites: false,
         },
       });
 
@@ -221,11 +237,13 @@ describe('ExploreSearchResults', () => {
           tokens: [],
           perps: [],
           predictions: [],
+          sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          sites: false,
         },
       });
 
@@ -244,11 +262,13 @@ describe('ExploreSearchResults', () => {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [],
           predictions: [],
+          sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          sites: false,
         },
       });
 
@@ -264,11 +284,13 @@ describe('ExploreSearchResults', () => {
           tokens: [],
           perps: [],
           predictions: [],
+          sites: [],
         },
         isLoading: {
           tokens: true,
           perps: false,
           predictions: false,
+          sites: false,
         },
       });
 
@@ -286,11 +308,13 @@ describe('ExploreSearchResults', () => {
           tokens: [],
           perps: [],
           predictions: [],
+          sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          sites: false,
         },
       });
 
@@ -317,11 +341,13 @@ describe('ExploreSearchResults', () => {
           tokens: [],
           perps: [],
           predictions: [],
+          sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          sites: false,
         },
       });
 

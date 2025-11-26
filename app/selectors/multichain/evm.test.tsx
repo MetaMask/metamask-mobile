@@ -26,10 +26,7 @@ import {
   AccountTrackerController,
   TokensController,
 } from '@metamask/assets-controllers';
-import {
-  ETH_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-} from '@metamask/swaps-controller/dist/constants';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { zeroAddress } from 'ethereumjs-util';
 
@@ -159,7 +156,7 @@ describe('Multichain Selectors', () => {
         '0x1': {
           balance: '0x1',
           stakedBalance: '0x2',
-          isStaked: true,
+          isStaked: false,
           name: '',
         },
         '0x89': {
@@ -503,11 +500,13 @@ describe('Multichain Selectors', () => {
       } as unknown as RootState;
 
       const result = selectEvmTokensWithZeroBalanceFilter(testState);
-
       expect(result).toBeDefined();
       expect(result.every((token) => token.isNative === true)).toBeTruthy();
       expect(result.every((token) => token.balance === '0')).toBeTruthy();
-      expect(result.length).toBe(2); // Native tokens should remain
+      expect(
+        result.some((token) => token.name === 'Staked Ethereum'),
+      ).toBeTruthy();
+      expect(result.length).toBe(3); // Native tokens should remain and Staked Ethereum
     });
   });
 
@@ -747,7 +746,7 @@ describe('Multichain Selectors', () => {
             },
             AccountTrackerController: {
               accountsByChainId: {
-                [ETH_CHAIN_ID]: {
+                [CHAIN_IDS.MAINNET]: {
                   '0xAddress1': {
                     balance: '0x1',
                     stakedBalance: '0x2',
@@ -765,26 +764,26 @@ describe('Multichain Selectors', () => {
 
       // Check for Staked Ethereum
       const stakedEth = result.find(
-        (token) => token.isStaked && token.chainId === ETH_CHAIN_ID,
+        (token) => token.isStaked && token.chainId === CHAIN_IDS.MAINNET,
       );
       expect(stakedEth).toBeDefined();
-      expect(stakedEth?.chainId).toBe(ETH_CHAIN_ID);
+      expect(stakedEth?.chainId).toBe(CHAIN_IDS.MAINNET);
       expect(stakedEth?.name).toBe('Staked Ethereum');
 
       // Check for Native Ethereum
       const nativeEth = result.find(
-        (token) => !token.isStaked && token.chainId === ETH_CHAIN_ID,
+        (token) => !token.isStaked && token.chainId === CHAIN_IDS.MAINNET,
       );
       expect(nativeEth).toBeDefined();
-      expect(nativeEth?.chainId).toBe(ETH_CHAIN_ID);
+      expect(nativeEth?.chainId).toBe(CHAIN_IDS.MAINNET);
       expect(nativeEth?.name).toBe('Ethereum');
 
       // Check for Native Polygon
       const nativePol = result.find(
-        (token) => !token.isStaked && token.chainId === POLYGON_CHAIN_ID,
+        (token) => !token.isStaked && token.chainId === CHAIN_IDS.POLYGON,
       );
       expect(nativePol).toBeDefined();
-      expect(nativePol?.chainId).toBe(POLYGON_CHAIN_ID);
+      expect(nativePol?.chainId).toBe(CHAIN_IDS.POLYGON);
       expect(nativePol?.name).toBe('POL');
     });
   });
@@ -972,7 +971,7 @@ describe('Multichain Selectors', () => {
   describe('makeSelectAssetByAddressAndChainId', () => {
     const mockAccountId = '0xAddress1';
     const mockAllTokens = {
-      [ETH_CHAIN_ID]: {
+      [CHAIN_IDS.MAINNET]: {
         [mockAccountId]: [
           {
             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -988,7 +987,7 @@ describe('Multichain Selectors', () => {
           },
         ],
       },
-      [POLYGON_CHAIN_ID]: {
+      [CHAIN_IDS.POLYGON]: {
         [mockAccountId]: [
           {
             address: '0x0D1E753a25eBda689453309112904807625bEFBe',
@@ -1082,14 +1081,14 @@ describe('Multichain Selectors', () => {
       const selector = makeSelectAssetByAddressAndChainId();
       const result = selector(testState, {
         address: '0x0D1E753a25eBda689453309112904807625bEFBe',
-        chainId: POLYGON_CHAIN_ID,
+        chainId: CHAIN_IDS.POLYGON,
       });
 
       expect(result).toHaveProperty(
         'address',
         '0x0D1E753a25eBda689453309112904807625bEFBe',
       );
-      expect(result).toHaveProperty('chainId', POLYGON_CHAIN_ID);
+      expect(result).toHaveProperty('chainId', CHAIN_IDS.POLYGON);
       expect(result).toHaveProperty('symbol', 'CAKE');
       expect(result).toHaveProperty('aggregators', [
         'CoinGecko',
@@ -1102,14 +1101,14 @@ describe('Multichain Selectors', () => {
       const selector = makeSelectAssetByAddressAndChainId();
       const result = selector(testState, {
         address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-        chainId: ETH_CHAIN_ID,
+        chainId: CHAIN_IDS.MAINNET,
       });
 
       expect(result).toHaveProperty(
         'address',
         '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       );
-      expect(result).toHaveProperty('chainId', ETH_CHAIN_ID);
+      expect(result).toHaveProperty('chainId', CHAIN_IDS.MAINNET);
       expect(result).toHaveProperty('symbol', 'DAI');
       expect(result).toHaveProperty('name', 'Dai Stablecoin');
     });
@@ -1118,14 +1117,14 @@ describe('Multichain Selectors', () => {
       const selector = makeSelectAssetByAddressAndChainId();
       const result = selector(testState, {
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // Different case
-        chainId: ETH_CHAIN_ID,
+        chainId: CHAIN_IDS.MAINNET,
       });
 
       expect(result).toHaveProperty(
         'address',
         '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       );
-      expect(result).toHaveProperty('chainId', ETH_CHAIN_ID);
+      expect(result).toHaveProperty('chainId', CHAIN_IDS.MAINNET);
       expect(result).toHaveProperty('symbol', 'USDC');
       expect(result).toHaveProperty('name', 'USDC');
     });
@@ -1135,7 +1134,7 @@ describe('Multichain Selectors', () => {
 const mockAccountId = '0xAddress1';
 
 const mockAllTokens = {
-  [ETH_CHAIN_ID]: {
+  [CHAIN_IDS.MAINNET]: {
     [mockAccountId]: [
       {
         address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -1151,7 +1150,7 @@ const mockAllTokens = {
       },
     ],
   },
-  [POLYGON_CHAIN_ID]: {
+  [CHAIN_IDS.POLYGON]: {
     [mockAccountId]: [
       {
         address: '0x0D1E753a25eBda689453309112904807625bEFBe',
@@ -1166,26 +1165,26 @@ const mockAllTokens = {
 };
 
 const mockNetworkConfigurationsByChainId = {
-  [ETH_CHAIN_ID]: {
-    chainId: ETH_CHAIN_ID,
+  [CHAIN_IDS.MAINNET]: {
+    chainId: CHAIN_IDS.MAINNET,
     name: 'Ethereum Mainnet',
     nativeCurrency: 'ETH',
   },
-  [POLYGON_CHAIN_ID]: {
-    chainId: POLYGON_CHAIN_ID,
+  [CHAIN_IDS.POLYGON]: {
+    chainId: CHAIN_IDS.POLYGON,
     name: 'Polygon',
     nativeCurrency: 'POL',
   },
 };
 
 const mockAccountsByChainId = {
-  [ETH_CHAIN_ID]: {
+  [CHAIN_IDS.MAINNET]: {
     [mockAccountId]: {
       balance: '0x1',
       stakedBalance: '0x2',
     },
   },
-  [POLYGON_CHAIN_ID]: {
+  [CHAIN_IDS.POLYGON]: {
     [mockAccountId]: {
       balance: '0x3',
     },
@@ -1217,7 +1216,7 @@ jest.mock('../../core/Engine', () => ({
     AccountsController: {
       internalAccounts: mockInternalAccounts,
     } as unknown as Partial<AccountsControllerState>,
-  } as EngineState,
+  } as unknown as EngineState,
 }));
 
 describe('re-renders', () => {
@@ -1254,7 +1253,7 @@ describe('re-renders', () => {
       mockRenderCall();
       return (
         <>
-          {selectedAccountTokensChains[ETH_CHAIN_ID]?.map((token) => (
+          {selectedAccountTokensChains[CHAIN_IDS.MAINNET]?.map((token) => (
             <Text key={token.address}>{token.name}</Text>
           ))}
         </>
@@ -1283,10 +1282,10 @@ describe('re-renders', () => {
 
     Engine.state.TokensController.allTokens = {
       ...mockAllTokens,
-      [ETH_CHAIN_ID]: {
-        ...mockAllTokens[ETH_CHAIN_ID],
+      [CHAIN_IDS.MAINNET]: {
+        ...mockAllTokens[CHAIN_IDS.MAINNET],
         [mockAccountId]: [
-          ...mockAllTokens[ETH_CHAIN_ID][mockAccountId],
+          ...mockAllTokens[CHAIN_IDS.MAINNET][mockAccountId],
           newToken,
         ],
       },
