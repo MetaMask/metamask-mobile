@@ -74,20 +74,26 @@ function hasTitleCaseViolation(text) {
 function convertToSentenceCase(text) {
   if (!text) return text;
 
-  // Extract quoted text (single quotes and escaped double quotes) and preserve them
-  const quotedTexts = [];
-  const placeholder = '___QUOTED___';
+  // Extract quoted text, interpolations, and other special patterns to preserve them
+  const preservedTexts = [];
+  const placeholder = '___PRESERVED___';
   let textToProcess = text;
+
+  // Find all interpolations {{...}} and replace with placeholders
+  textToProcess = textToProcess.replace(/\{\{[^}]+\}\}/g, (match) => {
+    preservedTexts.push(match); // Store the full match including braces
+    return placeholder;
+  });
 
   // Find all single-quoted text and replace with placeholders
   textToProcess = textToProcess.replace(/'([^']*)'/g, (match) => {
-    quotedTexts.push(match); // Store the full match including quotes
+    preservedTexts.push(match); // Store the full match including quotes
     return placeholder;
   });
 
   // Find all escaped double-quoted text and replace with placeholders
   textToProcess = textToProcess.replace(/\\"([^"]*)\\" /g, (match) => {
-    quotedTexts.push(match); // Store the full match including escaped quotes
+    preservedTexts.push(match); // Store the full match including escaped quotes
     return placeholder;
   });
 
@@ -111,9 +117,9 @@ function convertToSentenceCase(text) {
     return word.toLowerCase();
   }).join(' ');
 
-  // Restore quoted text
-  quotedTexts.forEach((quotedText) => {
-    converted = converted.replace(placeholder, quotedText);
+  // Restore preserved text
+  preservedTexts.forEach((preservedText) => {
+    converted = converted.replace(placeholder, preservedText);
   });
 
   return converted;
