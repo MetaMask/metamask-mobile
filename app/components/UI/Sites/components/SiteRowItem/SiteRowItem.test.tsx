@@ -66,44 +66,6 @@ describe('SiteRowItem', () => {
     });
   });
 
-  describe('padding behavior', () => {
-    it('renders with isViewAll prop set to true', () => {
-      const site = createSite();
-
-      const { getByTestId } = render(
-        <SiteRowItem site={site} onPress={mockOnPress} isViewAll />,
-      );
-
-      const pressable = getByTestId('site-row-item');
-      expect(pressable).toBeOnTheScreen();
-      // Component renders successfully with isViewAll={true}
-    });
-
-    it('renders with isViewAll prop set to false', () => {
-      const site = createSite();
-
-      const { getByTestId } = render(
-        <SiteRowItem site={site} onPress={mockOnPress} isViewAll={false} />,
-      );
-
-      const pressable = getByTestId('site-row-item');
-      expect(pressable).toBeOnTheScreen();
-      // Component renders successfully with isViewAll={false}
-    });
-
-    it('renders with isViewAll prop not provided', () => {
-      const site = createSite();
-
-      const { getByTestId } = render(
-        <SiteRowItem site={site} onPress={mockOnPress} />,
-      );
-
-      const pressable = getByTestId('site-row-item');
-      expect(pressable).toBeOnTheScreen();
-      // Component renders successfully with default isViewAll
-    });
-  });
-
   describe('interaction', () => {
     it('calls onPress when pressed', () => {
       const site = createSite();

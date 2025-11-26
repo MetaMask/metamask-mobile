@@ -22,14 +22,9 @@ export interface SiteData {
 interface SiteRowItemProps {
   site: SiteData;
   onPress: () => void;
-  isViewAll?: boolean;
 }
 
-const SiteRowItem = ({
-  site,
-  onPress,
-  isViewAll = false,
-}: SiteRowItemProps) => {
+const SiteRowItem = ({ site, onPress }: SiteRowItemProps) => {
   const tw = useTailwind();
   const [imageError, setImageError] = useState(false);
 
@@ -42,7 +37,7 @@ const SiteRowItem = ({
     <TouchableOpacity
       testID="site-row-item"
       onPress={onPress}
-      style={tw.style('flex-row items-center py-2', isViewAll && 'px-4')}
+      style={tw.style('flex-row items-center py-2')}
     >
       {/* Logo */}
       <Box twClassName="flex-row items-center flex-1">
