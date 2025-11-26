@@ -288,23 +288,19 @@ const NetworkMultiSelectList = ({
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
             title={
-              <Box twClassName="flex-col">
-                <Text
-                  variant={TextVariant.BodyMD}
-                  testID={`network-name-${name}`}
-                >
-                  {name}
-                </Text>
-                {isGasSponsored ? (
+              isGasSponsored ? (
+                <Box twClassName="flex-col">
+                  <Text variant={TextVariant.BodyMD}>{name}</Text>
                   <Text
                     variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
-                    testID={`network-sponsored-label-${name}`}
                   >
                     {strings('networks.no_network_fee')}
                   </Text>
-                ) : null}
-              </Box>
+                </Box>
+              ) : (
+                name
+              )
             }
             secondaryText={
               networkTypeOrRpcUrl && hasMultipleRpcs
