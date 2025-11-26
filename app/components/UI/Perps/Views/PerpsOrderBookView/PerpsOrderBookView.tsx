@@ -46,14 +46,13 @@ import type {
 } from './PerpsOrderBookView.types';
 import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
-// Available depth band options (nSigFigs values)
+// Available depth band options (nSigFigs values: 2-5 are valid per HyperLiquid API)
+// Higher nSigFigs = finer price granularity (more decimal places)
 const DEPTH_BAND_OPTIONS = [
-  { value: 1, label: '0.1' },
-  { value: 2, label: '0.2' },
-  { value: 3, label: '0.5' },
-  { value: 4, label: '1' },
-  { value: 5, label: '10' },
-  { value: 6, label: '100' },
+  { value: 2, label: '2' },
+  { value: 3, label: '3' },
+  { value: 4, label: '4' },
+  { value: 5, label: '5' },
 ];
 
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
@@ -107,7 +106,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Get current depth band label for display
   const currentDepthBandLabel =
-    DEPTH_BAND_OPTIONS.find((opt) => opt.value === depthBand)?.label || '10';
+    DEPTH_BAND_OPTIONS.find((opt) => opt.value === depthBand)?.label || '5';
 
   // Handle depth band dropdown press
   const handleDepthBandPress = useCallback(() => {
