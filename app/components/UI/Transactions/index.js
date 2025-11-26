@@ -23,11 +23,7 @@ import Engine from '../../../core/Engine';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
-import {
-  CancelTransactionError,
-  SpeedupTransactionError,
-  TransactionError,
-} from '../../../core/Transaction/TransactionError';
+import { TransactionError } from '../../../core/Transaction/TransactionError';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';

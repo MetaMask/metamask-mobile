@@ -18,6 +18,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { toTokenMinimalUnit } from '../../../../util/number';
 import AppConstants from '../../../../core/AppConstants';
+import { safeToChecksumAddress } from '../../../../util/address';
 
 /**
  * Custom error class for user-initiated cancellations
@@ -170,6 +171,18 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
                   );
                   reject(error);
                 }
+              } else if (transactionMeta.status === TransactionStatus.failed) {
+                Logger.error(
+                  new Error(
+                    transactionMeta.error?.message ?? 'Transaction failed',
+                  ),
+                  'Transaction failed',
+                );
+                reject(
+                  new Error(
+                    transactionMeta.error?.message ?? 'Transaction failed',
+                  ),
+                );
               }
             },
             (transactionMeta) => transactionMeta.id === transactionId,
@@ -226,7 +239,10 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         const userAccount = selectAccountByScope(
           params.network === 'solana' ? SolScope.Mainnet : 'eip155:0',
         );
-        const address = userAccount?.address;
+        const address =
+          params.network === 'solana'
+            ? userAccount?.address
+            : safeToChecksumAddress(userAccount?.address);
 
         if (!address) {
           throw new Error('No account found');
@@ -263,15 +279,25 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         );
         setState({ isLoading: false, error: null });
       } catch (error) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED)
-            .addProperties(metricsProps)
-            .build(),
-        );
+        if (error instanceof UserCancelledError) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.CARD_DELEGATION_PROCESS_USER_CANCELED,
+            )
+              .addProperties(metricsProps)
+              .build(),
+          );
+        } else {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.CARD_DELEGATION_PROCESS_FAILED)
+              .addProperties(metricsProps)
+              .build(),
+          );
+          Logger.error(error as Error, 'useCardDelegation: Delegation failed');
+        }
         const errorMessage =
           error instanceof Error ? error.message : 'Delegation failed';
         setState({ isLoading: false, error: errorMessage });
-        Logger.error(error as Error, 'useCardDelegation: Delegation failed');
         throw error;
       }
     },

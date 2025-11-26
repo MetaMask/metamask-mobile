@@ -5,6 +5,8 @@ import AlertRow, { AlertRowProps } from './alert-row';
 import { Severity } from '../../../../types/alerts';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
 import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
+import { InfoRowVariant } from '../info-row';
+import styleSheet from './alert-row.styles';
 
 jest.mock('../../../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
@@ -123,5 +125,30 @@ describe('AlertRow', () => {
     expect(mockTrackInlineAlertClicked).toHaveBeenCalledWith(
       ALERT_FIELD_DANGER,
     );
+  });
+
+  it('does not render inline alert for small variant', () => {
+    const { getByText, queryByTestId } = render(
+      <AlertRow {...baseProps} rowVariant={InfoRowVariant.Small} />,
+    );
+
+    expect(getByText(LABEL_MOCK)).toBeDefined();
+    expect(getByText(CHILDREN_MOCK)).toBeDefined();
+    expect(queryByTestId('inline-alert')).toBeNull();
+  });
+
+  it('renders with the given style if provided', () => {
+    const props = { ...baseProps, style: { backgroundColor: 'red' } };
+    const { getByTestId } = render(<AlertRow {...props} />);
+    const infoRow = getByTestId('info-row');
+    expect(infoRow.props.style.backgroundColor).toBe('red');
+  });
+
+  it('renders with styles.infoRowOverride if no style is provided', () => {
+    const styles = styleSheet();
+    const { getByTestId } = render(<AlertRow {...baseProps} />);
+    const infoRow = getByTestId('info-row');
+
+    expect(infoRow.props.style).toMatchObject(styles.infoRowOverride);
   });
 });

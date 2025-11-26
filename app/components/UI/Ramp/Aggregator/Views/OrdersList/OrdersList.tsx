@@ -1,19 +1,14 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, TouchableHighlight, View } from 'react-native';
+import { FlatList, TouchableHighlight } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
-import { createDepositNavigationDetails } from '../../../Deposit/routes/utils';
+import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import OrderListItem from '../../components/OrderListItem';
 import createStyles from './OrdersList.styles';
-
-import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
-import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
-import { Box, ButtonBaseSize } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import {
   FIAT_ORDER_PROVIDERS,
@@ -23,16 +18,21 @@ import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
+import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
+import { Box, ButtonBaseSize } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
 function OrdersList() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const tw = useTailwind();
   const navigation = useNavigation();
   const allOrders = useSelector(getOrders);
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
+  const { goToDeposit } = useRampNavigation();
+  const tw = useTailwind();
   const orders = allOrders.filter((order) => {
     if (currentFilter === 'PURCHASE') {
       return (
@@ -62,7 +62,7 @@ function OrdersList() {
       const order = orders.find((o) => o.id === orderId);
 
       if (order?.state === FIAT_ORDER_STATES.CREATED) {
-        navigation.navigate(...createDepositNavigationDetails());
+        goToDeposit();
       } else {
         navigation.navigate(
           ...createDepositOrderDetailsNavDetails({
@@ -71,7 +71,7 @@ function OrdersList() {
         );
       }
     },
-    [navigation, orders],
+    [navigation, orders, goToDeposit],
   );
 
   const renderItem = ({ item }: { item: FiatOrder }) => (
@@ -133,7 +133,7 @@ function OrdersList() {
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       ListEmptyComponent={
-        <View style={styles.emptyContainer}>
+        <Box twClassName="w-full items-center py-10">
           <TabEmptyState
             description={
               currentFilter === 'ALL'
@@ -143,7 +143,7 @@ function OrdersList() {
                   : strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
             }
           />
-        </View>
+        </Box>
       }
     />
   );

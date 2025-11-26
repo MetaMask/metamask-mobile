@@ -8,18 +8,21 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Text,
   TextVariant,
-  ButtonBaseSize,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { selectChainId } from '../../../../../selectors/networkController';
+import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
 
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
@@ -37,6 +40,7 @@ import { formatDateSection } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -53,6 +57,19 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   const { isConnected, isConnecting } = usePerpsConnection();
 
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const currentChainId = useSelector(selectChainId);
+  const accountId = useMemo(() => {
+    if (!selectedAddress || !currentChainId) {
+      return undefined;
+    }
+    return (
+      formatAccountToCaipAccountId(selectedAddress, currentChainId) ?? undefined
+    );
+  }, [selectedAddress, currentChainId]);
+
   // Use single source of truth for all transaction data (includes deposits/withdrawals from user history)
   const {
     transactions: allTransactions,
@@ -60,6 +77,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     refetch: refreshTransactions,
   } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
+    accountId,
   });
 
   // Helper function to group transactions by date
@@ -211,9 +229,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       return (
         <ButtonFilter
           key={tab}
-          onPress={handleTabPress}
           isActive={isActive}
-          size={ButtonBaseSize.Md}
+          size={ButtonSize.Md}
+          onPress={handleTabPress}
+          accessibilityRole="button"
         >
           {strings(`perps.transactions.tabs.${i18nKey}`)}
         </ButtonFilter>
@@ -317,25 +336,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <TabEmptyState
-        description={`${strings(
-          'perps.transactions.empty_state.no_transactions',
-          {
-            type: activeFilter.toLowerCase(),
-          },
-        )}\n\n${strings('perps.transactions.empty_state.history_will_appear')}`}
-      />
+        description={strings('perps.transactions.empty_state.no_transactions', {
+          type: activeFilter.toLowerCase(),
+        })}
+      ></TabEmptyState>
     </View>
   );
 
-  const filterTabs: FilterTab[] = useMemo(
-    () => [
-      strings('perps.transactions.tabs.trades'),
-      strings('perps.transactions.tabs.orders'),
-      strings('perps.transactions.tabs.funding'),
-      strings('perps.transactions.tabs.deposits'),
-    ],
-    [],
-  );
+  const filterTabs: FilterTab[] = ['Trades', 'Orders', 'Funding', 'Deposits'];
 
   const filterTabDescription = useMemo(() => {
     if (activeFilter === 'Funding') {

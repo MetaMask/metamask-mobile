@@ -972,6 +972,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -2017,7 +2018,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -2759,6 +2760,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -3804,7 +3806,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -4546,6 +4548,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -5632,7 +5635,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -6374,6 +6377,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -7419,7 +7423,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -8161,6 +8165,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -9206,7 +9211,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -9948,6 +9953,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -11034,7 +11040,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -12308,6 +12314,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -13353,7 +13360,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -14095,6 +14102,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -15140,7 +15148,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>

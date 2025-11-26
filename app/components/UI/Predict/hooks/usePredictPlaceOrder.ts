@@ -1,18 +1,24 @@
 import { useCallback, useContext, useState } from 'react';
-import { captureException } from '@sentry/react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { PlaceOrderParams } from '../providers/types';
 import { Side, type Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
-import { parseErrorMessage } from '../utils/predictErrorHandler';
-import { PREDICT_ERROR_CODES } from '../constants/errors';
+import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -50,6 +56,17 @@ export function usePredictPlaceOrder(
 
   const showCashedOutToast = useCallback(
     (amount: string) => {
+      // Track cashout confirmation toast display performance
+      const traceId = `cashout-toast-${Date.now()}`;
+      trace({
+        name: TraceName.PredictCashoutConfirmationToast,
+        op: TraceOperation.PredictOperation,
+        id: traceId,
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        },
+      });
+
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Check,
@@ -65,22 +82,45 @@ export function usePredictPlaceOrder(
         ],
         hasNoTimeout: false,
       });
+
+      // End trace immediately after toast is shown
+      endTrace({
+        name: TraceName.PredictCashoutConfirmationToast,
+        id: traceId,
+        data: { success: true },
+      });
     },
     [toastRef],
   );
 
-  const showOrderPlacedToast = useCallback(
-    () =>
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Check,
-        labelOptions: [
-          { label: strings('predict.order.prediction_placed'), isBold: true },
-        ],
-        hasNoTimeout: false,
-      }),
-    [toastRef],
-  );
+  const showOrderPlacedToast = useCallback(() => {
+    // Track order confirmation toast display performance
+    const traceId = `order-toast-${Date.now()}`;
+    trace({
+      name: TraceName.PredictOrderConfirmationToast,
+      op: TraceOperation.PredictOperation,
+      id: traceId,
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      },
+    });
+
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Check,
+      labelOptions: [
+        { label: strings('predict.order.prediction_placed'), isBold: true },
+      ],
+      hasNoTimeout: false,
+    });
+
+    // End trace immediately after toast is shown
+    endTrace({
+      name: TraceName.PredictOrderConfirmationToast,
+      id: traceId,
+      data: { success: true },
+    });
+  }, [toastRef]);
 
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams) => {
@@ -119,15 +159,18 @@ export function usePredictPlaceOrder(
           orderParams,
         });
 
-        // Capture exception with order context (no sensitive data like amounts)
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        // Log error with order context (no sensitive data like amounts)
+        Logger.error(ensureError(err), {
           tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
             component: 'usePredictPlaceOrder',
-            action: 'order_placement',
-            operation: 'order_management',
           },
-          extra: {
-            orderContext: {
+          context: {
+            name: 'usePredictPlaceOrder',
+            data: {
+              method: 'placeOrder',
+              action: 'order_placement',
+              operation: 'order_management',
               providerId: orderParams.providerId,
               side: orderParams.preview?.side,
               marketId: orderParams.analyticsProperties?.marketId,

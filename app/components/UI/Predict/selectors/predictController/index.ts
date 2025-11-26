@@ -70,7 +70,24 @@ const selectPredictPendingDepositByAddress = ({
 }) =>
   createSelector(
     selectPredictPendingDeposits,
-    (pendingDeposits) => pendingDeposits[providerId]?.[address] || false,
+    (pendingDeposits) => pendingDeposits[providerId]?.[address] || undefined,
+  );
+
+const selectPredictAccountMeta = createSelector(
+  selectPredictControllerState,
+  (predictControllerState) => predictControllerState?.accountMeta || {},
+);
+
+const selectPredictAccountMetaByAddress = ({
+  providerId,
+  address,
+}: {
+  providerId: string;
+  address: string;
+}) =>
+  createSelector(
+    selectPredictAccountMeta,
+    (accountMeta) => accountMeta[providerId]?.[address] || {},
   );
 
 export {
@@ -84,4 +101,6 @@ export {
   selectPredictBalances,
   selectPredictBalanceByAddress,
   selectPredictPendingDepositByAddress,
+  selectPredictAccountMeta,
+  selectPredictAccountMetaByAddress,
 };

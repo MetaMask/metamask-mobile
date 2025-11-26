@@ -52,6 +52,16 @@ export class AuthorizationFailedError extends Error {
 }
 
 /**
+ * Custom error for season not found
+ */
+export class SeasonNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SeasonNotFoundError';
+  }
+}
+
+/**
  * Custom error for account already registered (409 conflict)
  */
 export class AccountAlreadyRegisteredError extends Error {
@@ -645,6 +655,12 @@ export class RewardsDataService {
         );
       }
 
+      if (errorData?.message?.includes('Season not found')) {
+        throw new SeasonNotFoundError(
+          'Season not found. Please try again with a different season.',
+        );
+      }
+
       throw new Error(`Get season state failed: ${response.status}`);
     }
 
@@ -954,6 +970,11 @@ export class RewardsDataService {
     }
     if (data.endDate) {
       data.endDate = new Date(data.endDate);
+    }
+
+    // Ensure activityTypes is always an array per SeasonMetadataDto
+    if (!Array.isArray(data.activityTypes)) {
+      data.activityTypes = [];
     }
 
     return data as SeasonMetadataDto;

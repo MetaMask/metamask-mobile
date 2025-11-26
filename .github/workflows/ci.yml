@@ -185,6 +185,7 @@ jobs:
   merge-unit-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
+    if: always()
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -223,39 +224,60 @@ jobs:
           else
             echo "No changes detected"
           fi
-
   needs_e2e_build:
-    uses: ./.github/workflows/needs-e2e-build.yml
-
-  ai-e2e-analysis:
-    name: 'AI E2E Analysis'
+    uses: ./.github/workflows/needs-e2e-build.yml          
+  component-view-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - run: yarn test:view --coverage=false --forceExit --silent
+        env:
+          NODE_OPTIONS: --max_old_space_size=20480
+  smart-e2e-selection:
+    name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
     continue-on-error: true
     permissions:
       contents: read
       pull-requests: write
     outputs:
-      test-matrix: ${{ steps.ai-analysis.outputs.test-matrix }}
+      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
+      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
     steps:
       - name: Checkout for action definition
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            .github/actions/ai-e2e-analysis
+            .github/actions/smart-e2e-selection
           sparse-checkout-cone-mode: false
           fetch-depth: 1
 
-      - name: Run AI E2E Analysis
-        id: ai-analysis
-        uses: ./.github/actions/ai-e2e-analysis
+      - name: Run Smart E2E Selection
+        id: e2e-selection
+        uses: ./.github/actions/smart-e2e-selection
         with:
           event-name: ${{ github.event_name }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           github-token: ${{ github.token }}
-          pr-number: ${{ github.event.pull_request.number }}
+          pr-number: ${{ github.event.pull_request.number}}
           repository: ${{ github.repository }}
-          post-comment: 'false'
+          post-comment: 'true'
 
+  # Main E2E tests
+  
   build-android-apks:
     name: 'Build Android APKs'
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
@@ -313,6 +335,34 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
     secrets: inherit
 
+  # Flask E2E tests
+
+  build-android-flask-apks:
+    name: 'Build Android Flask APKs'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'flask'
+      metamask_environment: 'e2e'
+      keystore_target: 'flask'
+    secrets: inherit
+
+  e2e-smoke-tests-android-flask:
+    name: 'Android Flask E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-android-flask-apks]
+    uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+    secrets: inherit
+
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
@@ -333,9 +383,11 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 50
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
@@ -365,6 +417,7 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-tests
+    if: always()
     steps:
       - uses: actions/checkout@v3
         with:
@@ -407,6 +460,7 @@ jobs:
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
+    if: always()
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -498,6 +552,7 @@ jobs:
       - needs_e2e_build
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
+      - e2e-smoke-tests-android-flask
     steps:
       - run: |
           # Check if all non-E2E jobs passed
@@ -514,6 +569,10 @@ jobs:
             fi
             if [[ "${{ needs.e2e-smoke-tests-ios.result }}" == "failure" ]]; then
               echo "iOS E2E tests failed"
+              exit 1
+            fi
+            if [[ "${{ needs.e2e-smoke-tests-android-flask.result }}" == "failure" ]]; then
+              echo "Android Flask E2E tests failed"
               exit 1
             fi
           fi

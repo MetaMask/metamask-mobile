@@ -1,8 +1,7 @@
 import { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
-import { CHAIN_IDS, TransactionMeta } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -17,8 +16,6 @@ import { selectCurrentCurrency } from '../../../selectors/currencyRateController
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import {
-  selectChainId,
-  selectIsPopularNetwork,
   selectEvmNetworkConfigurationsByChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -35,11 +32,7 @@ import {
   sortTransactions,
 } from '../../../util/activity';
 import { areAddressesEqual, isHardwareAccount } from '../../../util/address';
-import {
-  getBlockExplorerAddressUrl,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
-import { PopularList } from '../../../util/networks/customNetworks';
+import { getBlockExplorerAddressUrl } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -62,6 +55,8 @@ import UpdateEIP1559Tx from '../confirmations/legacy/components/UpdateEIP1559Tx'
 import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 
 type SmartTransactionWithId = SmartTransaction & { id: string };
 type EvmTransaction = TransactionMeta | SmartTransactionWithId;
@@ -138,7 +133,7 @@ const UnifiedTransactionsView = ({
     );
     return solanaAccount?.address ?? '';
   }, [selectedAccountGroupInternalAccounts]);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+
   const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
   const enabledEVMChainIds = useMemo(
     () => enabledEVMNetworks ?? [],
@@ -154,9 +149,7 @@ const UnifiedTransactionsView = ({
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  // TODO: This should be deleted once we deprecate the global network selector,
-  // we need to use the selected account group chain ids
-  const currentEvmChainId = useSelector(selectChainId);
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
   const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
     data: UnifiedItem[];
@@ -199,7 +192,7 @@ const UnifiedTransactionsView = ({
 
       const isReceivedOrSentTransaction =
         selectedAccountGroupInternalAccountsAddresses.some((addr) =>
-          filterByAddress(tx, tokens, addr, transactionMetaPool),
+          filterByAddress(tx, tokens, addr, transactionMetaPool, bridgeHistory),
         );
       if (!isReceivedOrSentTransaction) return false;
 
@@ -229,29 +222,10 @@ const UnifiedTransactionsView = ({
     }) as TransactionMetaWithImport[];
 
     // Network filtering for confirmed EVM txs
-    let allConfirmedFiltered: TransactionMetaWithImport[] = [];
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      allConfirmedFiltered = allConfirmed.filter((tx) =>
-        isTransactionOnChains(tx, enabledEVMChainIds, allConfirmed),
+    const allConfirmedFiltered: TransactionMetaWithImport[] =
+      allConfirmed.filter((tx) =>
+        isTransactionOnChains(tx, enabledEVMChainIds, transactionMetaPool),
       );
-    } else if (isPopularNetwork) {
-      const popularChainIds: Hex[] = [
-        CHAIN_IDS.MAINNET as Hex,
-        CHAIN_IDS.LINEA_MAINNET as Hex,
-        ...PopularList.map((n) => n.chainId as Hex),
-      ];
-      allConfirmedFiltered = allConfirmed.filter((tx) =>
-        isTransactionOnChains(tx, popularChainIds, allConfirmed),
-      );
-    } else {
-      allConfirmedFiltered = allConfirmed.filter((tx) =>
-        isTransactionOnChains(
-          tx,
-          currentEvmChainId ? [currentEvmChainId as Hex] : [],
-          allConfirmed,
-        ),
-      );
-    }
     // Deduplicate submitted by (address + chain + nonce) and drop if already confirmed
     const seenSubmittedNonces = new Set<string>();
     const submittedTxsFiltered = submittedTxs.filter(
@@ -352,10 +326,9 @@ const UnifiedTransactionsView = ({
     selectedAccountGroupInternalAccountsAddresses,
     enabledEVMChainIds,
     enabledNonEVMChainIds,
-    isPopularNetwork,
     selectedInternalAccount,
     tokens,
-    currentEvmChainId,
+    bridgeHistory,
   ]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
@@ -366,18 +339,11 @@ const UnifiedTransactionsView = ({
   const configBlockExplorerUrl = useMemo(() => {
     // When using the per-dapp/multiselect network selector, only return a block
     // explorer if exactly one EVM chain is selected. Otherwise, undefined.
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      if (!enabledEVMChainIds?.length || enabledEVMChainIds.length !== 1) {
-        return undefined;
-      }
-      const selectedChainId = enabledEVMChainIds[0];
-      const config = evmNetworkConfigurationsByChainId?.[selectedChainId];
-      if (!config) return undefined;
-      const index = config.defaultBlockExplorerUrlIndex ?? 0;
-      return config.blockExplorerUrls?.[index];
+    if (!enabledEVMChainIds?.length || enabledEVMChainIds.length !== 1) {
+      return undefined;
     }
-
-    const config = evmNetworkConfigurationsByChainId?.[enabledEVMChainIds[0]];
+    const selectedChainId = enabledEVMChainIds[0];
+    const config = evmNetworkConfigurationsByChainId?.[selectedChainId];
     if (!config) return undefined;
     const index = config.defaultBlockExplorerUrlIndex ?? 0;
     return config.blockExplorerUrls?.[index];
@@ -592,6 +558,7 @@ const UnifiedTransactionsView = ({
           i={index}
           navigation={navigation}
           txChainId={getEvmChainId(item.tx)}
+          selectedAddress={selectedInternalAccount?.address}
           onSpeedUpAction={onSpeedUpAction}
           onCancelAction={onCancelAction}
           signQRTransaction={signQRTransaction}
@@ -626,8 +593,8 @@ const UnifiedTransactionsView = ({
         transaction={item.tx}
         navigation={navigation}
         index={index}
-        // Fallback to provided prop; component expects SupportedCaipChainId but only used for links
-        chainId={(chainId ?? item.tx.chain) as unknown as SupportedCaipChainId}
+        // Use the transaction's chain property for non-EVM transactions (contains CAIP chainId)
+        chainId={item.tx.chain as unknown as SupportedCaipChainId}
       />
     );
   };

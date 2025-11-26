@@ -60,7 +60,6 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { StakeButton } from '../../../Stake/components/StakeButton';
-import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../../constants';
 import createStyles from '../../styles';
 import { TokenI } from '../../types';
@@ -74,11 +73,15 @@ import { FlashListAssetKey } from '..';
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
-  selectPooledStakingEnabledFlag,
+  selectIsMusdConversionFlowEnabledFlag,
+  selectMusdConversionPaymentTokensAllowlist,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
+
+import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
+import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -86,6 +89,7 @@ interface TokenListItemProps {
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
+  isFullView?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -95,6 +99,7 @@ export const TokenListItem = React.memo(
     setShowScamWarningModal,
     privacyMode,
     showPercentageChange = true,
+    isFullView = false,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
@@ -140,7 +145,6 @@ export const TokenListItem = React.memo(
     const { getEarnToken } = useEarnTokens();
 
     // Earn feature flags
-    const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
@@ -274,8 +278,32 @@ export const TokenListItem = React.memo(
 
     asset = asset && { ...asset, balanceFiat, isStaked: asset?.isStaked };
 
-    const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
     const earnToken = getEarnToken(asset as TokenI);
+
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const musdConversionPaymentTokensAllowlist = useSelector(
+      selectMusdConversionPaymentTokensAllowlist,
+    );
+
+    const isConvertibleStablecoin = useMemo(
+      () =>
+        isMusdConversionFlowEnabled &&
+        asset?.chainId &&
+        asset?.address &&
+        isMusdConversionPaymentToken(
+          asset.address,
+          asset.chainId,
+          musdConversionPaymentTokensAllowlist,
+        ),
+      [
+        isMusdConversionFlowEnabled,
+        asset?.chainId,
+        asset?.address,
+        musdConversionPaymentTokensAllowlist,
+      ],
+    );
 
     const networkBadgeSource = useCallback(
       (currentChainId: Hex) => {
@@ -320,7 +348,7 @@ export const TokenListItem = React.memo(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
           .addProperties({
-            source: 'mobile-token-list',
+            source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
             chain_id: token.chainId,
             token_symbol: token.symbol,
           })
@@ -376,29 +404,35 @@ export const TokenListItem = React.memo(
       );
     }, [asset, styles.ethLogo, chainId]);
 
+    const isStakeable = useSelector((state: RootState) =>
+      selectIsStakeableToken(state, asset as TokenI),
+    );
+
     const renderEarnCta = useCallback(() => {
       if (!asset) {
         return null;
       }
-      const isCurrentAssetEth = evmAsset?.isETH && !evmAsset?.isStaked;
-      const shouldShowPooledStakingCta =
-        isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
+
+      const shouldShowStakeCta = isStakeable && !asset?.isStaked;
 
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
+      const shouldShowMusdConvertCta = isConvertibleStablecoin;
 
-      if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
+      if (
+        shouldShowStakeCta ||
+        shouldShowStablecoinLendingCta ||
+        shouldShowMusdConvertCta
+      ) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
     }, [
       asset,
       earnToken,
-      evmAsset?.isETH,
-      evmAsset?.isStaked,
-      isPooledStakingEnabled,
+      isConvertibleStablecoin,
       isStablecoinLendingEnabled,
-      isStakingSupportedChain,
+      isStakeable,
     ]);
 
     if (!asset || !chainId) {

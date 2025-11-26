@@ -41,7 +41,11 @@ jest.mock(
 
 // Mock hooks (consolidated to avoid conflicts)
 const mockNavigateBack = jest.fn();
+const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockHandleAddFunds = jest.fn();
+const mockHandleWithdraw = jest.fn();
+const mockCloseEligibilityModal = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -49,14 +53,51 @@ jest.mock('../../hooks', () => ({
     navigateTo: jest.fn(),
     navigateToMarketDetails: jest.fn(),
     navigateToMarketList: mockNavigateToMarketList,
+    navigateToWallet: mockNavigateToWallet,
     navigateBack: mockNavigateBack,
     goBack: jest.fn(),
+  })),
+  usePerpsHomeActions: jest.fn(() => ({
+    handleAddFunds: mockHandleAddFunds,
+    handleWithdraw: mockHandleWithdraw,
+    isEligibilityModalVisible: false,
+    closeEligibilityModal: mockCloseEligibilityModal,
+    isEligible: true,
+    isProcessing: false,
+    error: null,
+  })),
+}));
+
+// Mock direct import of usePerpsHomeActions (component imports it directly now)
+jest.mock('../../hooks/usePerpsHomeActions', () => ({
+  usePerpsHomeActions: jest.fn(() => ({
+    handleAddFunds: mockHandleAddFunds,
+    handleWithdraw: mockHandleWithdraw,
+    isEligibilityModalVisible: false,
+    closeEligibilityModal: mockCloseEligibilityModal,
+    isEligible: true,
+    isProcessing: false,
+    error: null,
   })),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
+
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      totalBalance: '0',
+      availableBalance: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    },
+    isInitialLoading: false,
+  })),
+}));
+
+// Use real BigNumber library - mocking it causes issues with module initialization
 
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -392,6 +433,7 @@ describe('PerpsHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigateBack.mockClear();
+    mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
   });
@@ -537,15 +579,15 @@ describe('PerpsHomeView', () => {
     expect(queryByText('perps.home.orders')).toBeNull();
   });
 
-  it('handles back button press', () => {
+  it('navigates to wallet home when back button is pressed', () => {
     // Arrange
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Act
     fireEvent.press(getByTestId('back-button'));
 
-    // Assert
-    expect(mockNavigateBack).toHaveBeenCalled();
+    // Assert - Always navigates to wallet home to avoid loops (e.g., from tutorial)
+    expect(mockNavigateToWallet).toHaveBeenCalled();
   });
 
   it('navigates to close all modal when close all is pressed', () => {

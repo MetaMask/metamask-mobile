@@ -31,12 +31,14 @@ import {
   adaptAccountStateFromSDK,
   parseAssetName,
 } from '../utils/hyperLiquidAdapter';
+import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../utils/perpsErrorHandler';
 import { processL2BookData } from '../utils/hyperLiquidOrderBookProcessor';
+import { calculateOpenInterestUSD } from '../utils/marketDataTransform';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions
@@ -158,6 +160,7 @@ export class HyperLiquidSubscriptionService {
     this.walletService = walletService;
     this.hip3Enabled = hip3Enabled ?? false;
     this.enabledDexs = enabledDexs ?? [];
+    this.discoveredDexNames = enabledDexs ?? [];
     this.allowlistMarkets = allowlistMarkets ?? [];
     this.blocklistMarkets = blocklistMarkets ?? [];
   }
@@ -474,6 +477,12 @@ export class HyperLiquidSubscriptionService {
     let totalMarginUsed = 0;
     let totalUnrealizedPnl = 0;
 
+    // Collect account states for weighted ROE calculation
+    const accountStatesForROE: {
+      unrealizedPnl: string;
+      returnOnEquity: string;
+    }[] = [];
+
     // Aggregate all cached account states
     Array.from(this.dexAccountCache.entries()).forEach(
       ([currentDex, state]) => {
@@ -486,12 +495,21 @@ export class HyperLiquidSubscriptionService {
         totalBalance += parseFloat(state.totalBalance);
         totalMarginUsed += parseFloat(state.marginUsed);
         totalUnrealizedPnl += parseFloat(state.unrealizedPnl);
+
+        // Collect data for weighted ROE calculation
+        accountStatesForROE.push({
+          unrealizedPnl: state.unrealizedPnl,
+          returnOnEquity: state.returnOnEquity,
+        });
       },
     );
 
     // Use first DEX's account state as base and override aggregated values
     const firstDexAccount =
       this.dexAccountCache.values().next().value || ({} as AccountState);
+
+    // Calculate weighted returnOnEquity across all DEXs
+    const returnOnEquity = calculateWeightedReturnOnEquity(accountStatesForROE);
 
     return {
       ...firstDexAccount,
@@ -500,6 +518,7 @@ export class HyperLiquidSubscriptionService {
       marginUsed: totalMarginUsed.toString(),
       unrealizedPnl: totalUnrealizedPnl.toString(),
       subAccountBreakdown,
+      returnOnEquity,
     };
   }
 
@@ -1511,6 +1530,10 @@ export class HyperLiquidSubscriptionService {
 
             // Cache market data for consolidation with price updates
             const ctxPrice = ctx.midPx || ctx.markPx;
+            const openInterestUSD =
+              isPerpsContext(data) && ctxPrice
+                ? calculateOpenInterestUSD(data.ctx.openInterest, ctxPrice)
+                : NaN;
             const marketData = {
               prevDayPx: ctx.prevDayPx
                 ? parseFloat(ctx.prevDayPx.toString())
@@ -1520,13 +1543,9 @@ export class HyperLiquidSubscriptionService {
               funding: isPerpsContext(data)
                 ? parseFloat(data.ctx.funding.toString())
                 : undefined,
-              // Convert openInterest from token units to USD by multiplying by current price
-              // Note: openInterest from API is in token units (e.g., BTC), while volume is already in USD
-              openInterest:
-                isPerpsContext(data) && ctxPrice
-                  ? parseFloat(data.ctx.openInterest.toString()) *
-                    parseFloat(ctxPrice.toString())
-                  : undefined,
+              openInterest: !isNaN(openInterestUSD)
+                ? openInterestUSD
+                : undefined,
               volume24h: ctx.dayNtlVlm
                 ? parseFloat(ctx.dayNtlVlm.toString())
                 : undefined,
@@ -1576,7 +1595,12 @@ export class HyperLiquidSubscriptionService {
       // Last subscriber, cleanup subscription
       const subscription = this.globalActiveAssetSubscriptions.get(symbol);
       if (subscription) {
-        subscription.unsubscribe().catch(console.error);
+        subscription.unsubscribe().catch((error: unknown) => {
+          Logger.error(ensureError(error), {
+            feature: PERPS_CONSTANTS.FEATURE_NAME,
+            message: `Failed to cleanup active asset subscription for ${symbol}`,
+          });
+        });
         this.globalActiveAssetSubscriptions.delete(symbol);
         this.symbolSubscriberCounts.delete(symbol);
         DevLogger.log(
@@ -1675,14 +1699,17 @@ export class HyperLiquidSubscriptionService {
             if (ctx && 'funding' in ctx) {
               // This is a perps context
               const ctxPrice = ctx.midPx || ctx.markPx;
+              const openInterestUSD = calculateOpenInterestUSD(
+                ctx.openInterest,
+                ctxPrice,
+              );
               const marketData = {
                 prevDayPx: ctx.prevDayPx
                   ? parseFloat(ctx.prevDayPx.toString())
                   : undefined,
                 funding: parseFloat(ctx.funding.toString()),
-                openInterest: ctxPrice
-                  ? parseFloat(ctx.openInterest.toString()) *
-                    parseFloat(ctxPrice.toString())
+                openInterest: !isNaN(openInterestUSD)
+                  ? openInterestUSD
                   : undefined,
                 volume24h: ctx.dayNtlVlm
                   ? parseFloat(ctx.dayNtlVlm.toString())
@@ -1812,7 +1839,12 @@ export class HyperLiquidSubscriptionService {
   private cleanupL2BookSubscription(symbol: string): void {
     const subscription = this.globalL2BookSubscriptions.get(symbol);
     if (subscription) {
-      subscription.unsubscribe().catch(console.error);
+      subscription.unsubscribe().catch((error: unknown) => {
+        Logger.error(ensureError(error), {
+          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          message: `Failed to cleanup L2 book subscription for ${symbol}`,
+        });
+      });
       this.globalL2BookSubscriptions.delete(symbol);
       this.orderBookCache.delete(symbol);
       DevLogger.log(

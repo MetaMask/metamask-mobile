@@ -44,7 +44,7 @@ import {
   getProviderName,
   setFiatSellTxHash,
 } from '../../../../../../reducers/fiatOrders';
-import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
   addHexPrefix,
@@ -81,10 +81,8 @@ function SendTransaction() {
 
   const [isConfirming, setIsConfirming] = useState(false);
 
-  const {
-    styles,
-    theme: { colors, themeAppearance },
-  } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { colors, themeAppearance } = theme;
 
   const orderData = order?.data as SellOrder;
 
@@ -105,19 +103,18 @@ function SendTransaction() {
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(
+      getDepositNavbarOptions(
         navigation,
         {
           title: strings(
             'fiat_on_ramp_aggregator.send_transaction.sell_crypto',
           ),
-          showCancel: false,
-          showNetwork: false,
+          showClose: false,
         },
-        colors,
+        theme,
       ),
     );
-  }, [colors, navigation]);
+  }, [theme, navigation]);
 
   const transactionAnalyticsPayload = useMemo(
     () => ({
@@ -255,11 +252,9 @@ function SendTransaction() {
         <ScreenLayout.Content grow>
           <View style={styles.content}>
             <Row>
-              <Text style={styles.centered}>
+              <View style={styles.textRow}>
                 <Text variant={TextVariant.HeadingMD} style={styles.normal}>
-                  {strings(
-                    'fiat_on_ramp_aggregator.send_transaction.send',
-                  )}{' '}
+                  {strings('fiat_on_ramp_aggregator.send_transaction.send')}
                 </Text>
                 <Text variant={TextVariant.HeadingMD}>
                   {fromTokenMinimalUnitString(
@@ -268,18 +263,18 @@ function SendTransaction() {
                       orderData.cryptoCurrency.decimals,
                     ).toString(),
                     orderData.cryptoCurrency.decimals,
-                  )}{' '}
+                  )}
                 </Text>
                 <Avatar
                   size={AvatarSize.Sm}
                   variant={AvatarVariant.Token}
                   name={order.cryptocurrency}
                   imageSource={tokenIcon}
-                />{' '}
+                />
                 <Text variant={TextVariant.HeadingMD}>
                   {order.cryptocurrency}
                 </Text>
-              </Text>
+              </View>
             </Row>
 
             <Row>

@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 
-import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectFilteredAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { isTestNet } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -11,31 +11,23 @@ import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
-import { useSendScope } from './useSendScope';
 
-export function useAccountTokens() {
-  const assets = useSelector(selectAssetsBySelectedAccountGroup);
-  const { isEvmOnly, isSolanaOnly } = useSendScope();
+export function useAccountTokens({
+  includeNoBalance = false,
+}: {
+  includeNoBalance?: boolean;
+} = {}): AssetType[] {
+  const assets = useSelector(selectFilteredAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
 
-    let filteredAssets;
+    const assetsWithBalance = flatAssets.filter((asset) => {
+      if (includeNoBalance) {
+        return true;
+      }
 
-    if (isEvmOnly) {
-      filteredAssets = flatAssets.filter((asset) =>
-        asset.accountType.includes('eip155'),
-      );
-    } else if (isSolanaOnly) {
-      filteredAssets = flatAssets.filter((asset) =>
-        asset.accountType.includes('solana'),
-      );
-    } else {
-      filteredAssets = flatAssets;
-    }
-
-    const assetsWithBalance = filteredAssets.filter((asset) => {
       const haveBalance =
         (asset.fiat?.balance &&
           new BigNumber(asset.fiat.balance).isGreaterThan(0)) ||
@@ -79,5 +71,5 @@ export function useAccountTokens() {
           new BigNumber(a.fiat?.balance || 0),
         ) || 0,
     );
-  }, [assets, isEvmOnly, isSolanaOnly, fiatCurrency]) as unknown as AssetType[];
+  }, [assets, includeNoBalance, fiatCurrency]) as unknown as AssetType[];
 }

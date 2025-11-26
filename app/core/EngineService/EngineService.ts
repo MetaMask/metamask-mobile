@@ -83,6 +83,10 @@ export class EngineService {
         Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
       this.updateBatcher.add(controllerName);
+
+      if (controllerName === 'ApprovalController') {
+        this.updateBatcher.flush();
+      }
     };
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
@@ -99,6 +103,11 @@ export class EngineService {
         update_bg_state_cb(controllerName),
       );
     });
+
+    // CRITICAL: Set up filesystem persistence for all controllers
+    // This is called automatically after Redux subscriptions to ensure
+    // both Redux and filesystem are kept in sync when controller state changes
+    this.setupEnginePersistence();
   };
 
   /**
@@ -149,8 +158,6 @@ export class EngineService {
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.initializeControllers(Engine as unknown as TypedEngine);
-
-      this.setupEnginePersistence();
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
@@ -173,6 +180,14 @@ export class EngineService {
     }
     endTrace({ name: TraceName.EngineInitialization });
   };
+
+  /**
+   * Flush any pending controller state updates.
+   * Only necessary in rare cases where immediate state consistency is required.
+   */
+  flushState() {
+    this.updateBatcher.flush();
+  }
 
   /**
    * Sets up persistence subscriptions for all engine controllers.
@@ -206,7 +221,6 @@ export class EngineService {
             eventName,
             async (controllerState: StateConstraint) => {
               try {
-                // Filter out non-persistent fields based on controller metadata
                 const filteredState = getPersistentState(
                   controllerState,
                   // @ts-expect-error - Engine context has stateless controllers, so metadata may not be available

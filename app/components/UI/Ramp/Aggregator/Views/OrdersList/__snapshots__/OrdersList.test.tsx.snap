@@ -3,23 +3,17 @@
 exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
 <RCTScrollView
   ListEmptyComponent={
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "paddingVertical": 40,
-          "width": "100%",
-        }
-      }
+    <Box
+      twClassName="w-full items-center py-10"
     >
       <TabEmptyState
         description="You don't have any buy orders"
       />
-    </View>
+    </Box>
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -165,6 +159,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
             "name": "Tether USD",
             "symbol": "USDT",
+            "unsupported": true,
           },
         },
         "id": "test-deposit-order-2",
@@ -203,6 +198,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               "backgroundColor": "#ffffff",
               "display": "flex",
               "paddingBottom": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "paddingTop": 8,
             },
             undefined,
@@ -2082,23 +2079,17 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
 exports[`OrdersList renders correctly 1`] = `
 <RCTScrollView
   ListEmptyComponent={
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "paddingVertical": 40,
-          "width": "100%",
-        }
-      }
+    <Box
+      twClassName="w-full items-center py-10"
     >
       <TabEmptyState
         description="No bank or card transfers yet."
       />
-    </View>
+    </Box>
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -2267,6 +2258,7 @@ exports[`OrdersList renders correctly 1`] = `
             "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
             "name": "Tether USD",
             "symbol": "USDT",
+            "unsupported": true,
           },
         },
         "id": "test-deposit-order-2",
@@ -2305,6 +2297,8 @@ exports[`OrdersList renders correctly 1`] = `
               "backgroundColor": "#ffffff",
               "display": "flex",
               "paddingBottom": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "paddingTop": 8,
             },
             undefined,
@@ -4450,23 +4444,17 @@ exports[`OrdersList renders correctly 1`] = `
 exports[`OrdersList renders empty buy message 1`] = `
 <RCTScrollView
   ListEmptyComponent={
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "paddingVertical": 40,
-          "width": "100%",
-        }
-      }
+    <Box
+      twClassName="w-full items-center py-10"
     >
       <TabEmptyState
         description="You don't have any buy orders"
       />
-    </View>
+    </Box>
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -4534,6 +4522,8 @@ exports[`OrdersList renders empty buy message 1`] = `
               "backgroundColor": "#ffffff",
               "display": "flex",
               "paddingBottom": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "paddingTop": 8,
             },
             undefined,
@@ -5079,11 +5069,16 @@ exports[`OrdersList renders empty buy message 1`] = `
     <View
       onLayout={[Function]}
       style={
-        {
-          "alignItems": "center",
-          "paddingVertical": 40,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "paddingBottom": 40,
+            "paddingTop": 40,
+            "width": "100%",
+          },
+          undefined,
+        ]
       }
     >
       <View
@@ -5130,23 +5125,17 @@ exports[`OrdersList renders empty buy message 1`] = `
 exports[`OrdersList renders empty sell message 1`] = `
 <RCTScrollView
   ListEmptyComponent={
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "paddingVertical": 40,
-          "width": "100%",
-        }
-      }
+    <Box
+      twClassName="w-full items-center py-10"
     >
       <TabEmptyState
         description="You don't have any sell orders"
       />
-    </View>
+    </Box>
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -5214,6 +5203,8 @@ exports[`OrdersList renders empty sell message 1`] = `
               "backgroundColor": "#ffffff",
               "display": "flex",
               "paddingBottom": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "paddingTop": 8,
             },
             undefined,
@@ -5759,11 +5750,16 @@ exports[`OrdersList renders empty sell message 1`] = `
     <View
       onLayout={[Function]}
       style={
-        {
-          "alignItems": "center",
-          "paddingVertical": 40,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "paddingBottom": 40,
+            "paddingTop": 40,
+            "width": "100%",
+          },
+          undefined,
+        ]
       }
     >
       <View
@@ -5810,23 +5806,17 @@ exports[`OrdersList renders empty sell message 1`] = `
 exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = `
 <RCTScrollView
   ListEmptyComponent={
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "paddingVertical": 40,
-          "width": "100%",
-        }
-      }
+    <Box
+      twClassName="w-full items-center py-10"
     >
       <TabEmptyState
         description="You don't have any sell orders"
       />
-    </View>
+    </Box>
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -5920,6 +5910,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               "backgroundColor": "#ffffff",
               "display": "flex",
               "paddingBottom": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "paddingTop": 8,
             },
             undefined,
@@ -6735,23 +6727,17 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
 exports[`OrdersList resets filter to all after other filter was set 1`] = `
 <RCTScrollView
   ListEmptyComponent={
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "paddingVertical": 40,
-          "width": "100%",
-        }
-      }
+    <Box
+      twClassName="w-full items-center py-10"
     >
       <TabEmptyState
         description="You don't have any sell orders"
       />
-    </View>
+    </Box>
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -6845,6 +6831,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               "backgroundColor": "#ffffff",
               "display": "flex",
               "paddingBottom": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "paddingTop": 8,
             },
             undefined,
@@ -7660,23 +7648,17 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
 exports[`OrdersList resets filter to all after other filter was set 2`] = `
 <RCTScrollView
   ListEmptyComponent={
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "paddingVertical": 40,
-          "width": "100%",
-        }
-      }
+    <Box
+      twClassName="w-full items-center py-10"
     >
       <TabEmptyState
         description="No bank or card transfers yet."
       />
-    </View>
+    </Box>
   }
   ListHeaderComponent={
     <Box
-      twClassName="py-2 bg-default"
+      twClassName="px-4 py-2 bg-default"
     >
       <ForwardRef
         contentContainerStyle={
@@ -7845,6 +7827,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
             "name": "Tether USD",
             "symbol": "USDT",
+            "unsupported": true,
           },
         },
         "id": "test-deposit-order-2",
@@ -7883,6 +7866,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               "backgroundColor": "#ffffff",
               "display": "flex",
               "paddingBottom": 8,
+              "paddingLeft": 16,
+              "paddingRight": 16,
               "paddingTop": 8,
             },
             undefined,

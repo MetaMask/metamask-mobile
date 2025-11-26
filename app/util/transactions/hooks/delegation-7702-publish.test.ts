@@ -24,6 +24,8 @@ import {
   waitForRelayResult,
 } from '../transaction-relay';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
+import { NetworkClientId } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../transaction-relay');
 jest.mock('../../../core/Delegation/delegation', () => ({
@@ -98,6 +100,9 @@ describe('Delegation 7702 Publish Hook', () => {
   const signDelegationControllerMock: jest.MockedFn<
     DelegationControllerSignDelegationAction['handler']
   > = jest.fn();
+  const getNextNonceMock: jest.MockedFn<
+    (address: string, networkClientId: NetworkClientId) => Promise<Hex>
+  > = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -144,6 +149,7 @@ describe('Delegation 7702 Publish Hook', () => {
     hookClass = new Delegation7702PublishHook({
       isAtomicBatchSupported: isAtomicBatchSupportedMock,
       messenger,
+      getNextNonce: getNextNonceMock,
     });
 
     isAtomicBatchSupportedMock.mockResolvedValue([]);

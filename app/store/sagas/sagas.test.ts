@@ -17,6 +17,7 @@ import {
   startAppServices,
   initializeSDKServices,
   handleDeeplinkSaga,
+  handleSnapsRegistry,
 } from './';
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
@@ -25,7 +26,7 @@ import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkMana
 import Engine from '../../core/Engine';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import branch from 'react-native-branch';
-import { handleDeeplink } from '../../core/DeeplinkManager/Handlers/handleDeeplink';
+import { handleDeeplink } from '../../core/DeeplinkManager/handleDeeplink';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
@@ -86,6 +87,9 @@ jest.mock('../../core/Engine', () => ({
     KeyringController: {
       isUnlocked: jest.fn().mockReturnValue(false),
     },
+    SnapController: {
+      updateRegistry: jest.fn(),
+    },
   },
 }));
 
@@ -114,7 +118,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
-jest.mock('../../core/DeeplinkManager/Handlers/handleDeeplink', () => ({
+jest.mock('../../core/DeeplinkManager/handleDeeplink', () => ({
   handleDeeplink: jest.fn(),
 }));
 
@@ -595,5 +599,47 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     callback({ uri: mockUri });
     await new Promise((resolve) => setImmediate(resolve));
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+});
+
+describe('handleSnapsRegistry', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('triggers on login', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: true } })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).toHaveBeenCalled();
+  });
+
+  it('triggers when onboarding has finished', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch(setCompletedOnboarding(true))
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).toHaveBeenCalled();
+  });
+
+  it('does not trigger if onboarding has not been completed', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).not.toHaveBeenCalled();
+  });
+
+  it('does not trigger when onboarding is reset', async () => {
+    await expectSaga(handleSnapsRegistry)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch(setCompletedOnboarding(false))
+      .silentRun();
+
+    expect(Engine.context.SnapController.updateRegistry).not.toHaveBeenCalled();
   });
 });

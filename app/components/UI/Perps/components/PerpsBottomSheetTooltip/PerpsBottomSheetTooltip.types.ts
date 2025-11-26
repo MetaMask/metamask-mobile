@@ -36,6 +36,7 @@ export interface PerpsBottomSheetTooltipProps {
 export type PerpsTooltipContentKey =
   | 'leverage'
   | 'liquidation_price'
+  | 'liquidation_distance'
   | 'margin'
   | 'fees'
   | 'closing_fees'
@@ -43,6 +44,7 @@ export type PerpsTooltipContentKey =
   | 'receive'
   | 'open_interest'
   | 'funding_rate'
+  | 'funding_payments'
   | 'geo_block'
   | 'estimated_pnl'
   | 'limit_price'

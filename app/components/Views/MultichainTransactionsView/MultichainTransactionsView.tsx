@@ -27,7 +27,6 @@ import MultichainBridgeTransactionListItem from '../../../components/UI/Multicha
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
-
 interface MultichainTransactionsViewProps {
   /**
    * Override transactions instead of using selector

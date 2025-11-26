@@ -30,7 +30,10 @@ import {
 } from '../../../reducers/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
-import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
+import {
+  PERPS_GTM_MODAL_SHOWN,
+  PREDICT_GTM_MODAL_SHOWN,
+} from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
 
@@ -102,7 +105,6 @@ import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccou
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  isRemoveGlobalNetworkSelectorEnabled,
   isTestNet,
 } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
@@ -168,17 +170,13 @@ import {
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import {
-  selectPerpsEnabledFlag,
-  selectPerpsGtmOnboardingModalEnabledFlag,
-} from '../../UI/Perps';
+import { selectPerpsGtmOnboardingModalEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import { selectPredictGtmOnboardingModalEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
-import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
+import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
 import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
@@ -243,7 +241,9 @@ interface WalletTokensTabViewProps {
 }
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
-  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsFlagEnabled = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  );
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -257,10 +257,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       (isEvmSelected || isMultichainAccountsState2Enabled),
     [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
-  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictFlagEnabled = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
   const isPredictEnabled = useMemo(
-    () => isPredictFlagEnabled && isEvmSelected,
-    [isPredictFlagEnabled, isEvmSelected],
+    () => isPredictFlagEnabled,
+    [isPredictFlagEnabled],
   );
 
   const {
@@ -439,7 +441,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (collectiblesEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
+    if (collectiblesEnabled) {
       tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
     }
 
@@ -511,9 +513,18 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
 
-  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsFlagEnabled = useFeatureFlag(
+    FeatureFlagNames.perpsPerpTradingEnabled,
+  );
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
+  );
+
+  const isPredictFlagEnabled = useFeatureFlag(
+    FeatureFlagNames.predictTradingEnabled,
+  );
+  const isPredictGTMModalEnabled = useSelector(
+    selectPredictGtmOnboardingModalEnabledFlag,
   );
 
   const { toastRef } = useContext(ToastContext);
@@ -561,18 +572,8 @@ const Wallet = ({
       }
       return false;
     }
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      return enabledNetworks.some((network) => isTestNet(network));
-    }
-    return Object.keys(tokenNetworkFilter).some((network) =>
-      isTestNet(network),
-    );
-  }, [
-    enabledNetworks,
-    tokenNetworkFilter,
-    isMultichainAccountsState2Enabled,
-    allEnabledNetworks,
-  ]);
+    return enabledNetworks.some((network) => isTestNet(network));
+  }, [enabledNetworks, isMultichainAccountsState2Enabled, allEnabledNetworks]);
 
   const prevChainId = usePrevious(chainId);
 
@@ -693,14 +694,14 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigateToSendPage(InitSendLocation.HomePage);
+      navigateToSendPage({ location: InitSendLocation.HomePage });
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigateToSendPage(InitSendLocation.HomePage);
+      navigateToSendPage({ location: InitSendLocation.HomePage });
     }
   }, [
     trackEvent,
@@ -736,9 +737,7 @@ const Wallet = ({
   const collectiblesEnabled = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
       if (allEnabledNetworks.length === 1) {
-        return allEnabledNetworks.some(
-          (network) => network.chainId !== SolScope.Mainnet,
-        );
+        return isEvmSelected;
       }
       return true;
     }
@@ -841,6 +840,26 @@ const Wallet = ({
     }
   }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
 
+  const checkAndNavigateToPredictGTM = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(PREDICT_GTM_MODAL_SHOWN);
+
+    if (hasSeenModal !== 'true') {
+      navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.GTM_MODAL,
+      });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (isPredictFlagEnabled && isPredictGTMModalEnabled) {
+      checkAndNavigateToPredictGTM();
+    }
+  }, [
+    isPredictFlagEnabled,
+    isPredictGTMModalEnabled,
+    checkAndNavigateToPredictGTM,
+  ]);
+
   useEffect(() => {
     addTraitsToUser({
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
@@ -937,7 +956,9 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
+  const isCarouselBannersEnabled = useFeatureFlag(
+    FeatureFlagNames.carouselBanners,
+  );
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -999,10 +1020,7 @@ const Wallet = ({
       });
     }
 
-    if (
-      isRemoveGlobalNetworkSelectorEnabled() &&
-      enabledEVMNetworks.length === 0
-    ) {
+    if (enabledEVMNetworks.length === 0) {
       selectNetwork(chainId);
     }
   }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
@@ -1075,7 +1093,6 @@ const Wallet = ({
   );
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
@@ -1097,7 +1114,6 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         shouldDisplayCardButton,
-        isRewardsEnabled,
       ),
     );
   }, [
@@ -1113,7 +1129,6 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     shouldDisplayCardButton,
-    isRewardsEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -1298,7 +1313,7 @@ const Wallet = ({
   }, [navigation]);
 
   const defiEnabled =
-    (isEvmSelected || isMultichainAccountsState2Enabled) &&
+    isEvmSelected &&
     !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;

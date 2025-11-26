@@ -2,12 +2,12 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import UnsupportedRegionModal from './UnsupportedRegionModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
-import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { MOCK_REGIONS } from '../../../testUtils';
 
 const mockNavigate = jest.fn();
+const mockGoToAggregator = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockGoBack = jest.fn();
 const mockPop = jest.fn();
@@ -29,6 +29,10 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
+}));
+
+jest.mock('../../../../hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({ goToAggregator: mockGoToAggregator })),
 }));
 
 const mockUseParams = jest.fn().mockReturnValue({
@@ -94,7 +98,7 @@ describe('UnsupportedRegionModal', () => {
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(...createBuyNavigationDetails());
+    expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
   it('navigates to region selector when Change region button is pressed', () => {

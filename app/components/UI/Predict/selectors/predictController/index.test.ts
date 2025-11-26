@@ -7,6 +7,8 @@ import {
   selectPredictWinPnl,
   selectPredictBalances,
   selectPredictBalanceByAddress,
+  selectPredictAccountMeta,
+  selectPredictAccountMetaByAddress,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
@@ -22,7 +24,7 @@ describe('Predict Controller Selectors', () => {
               lastUpdateTimestamp: 0,
               claimTransaction: null,
               depositTransaction: null,
-              isOnboarded: {},
+              accountMeta: {},
             },
           },
         },
@@ -892,6 +894,338 @@ describe('Predict Controller Selectors', () => {
       const result = selector(mockState as any);
 
       expect(result).toBe(0);
+    });
+  });
+
+  describe('selectPredictAccountMeta', () => {
+    it('returns account meta object when it exists', () => {
+      const accountMeta = {
+        polymarket: {
+          '0x123': {
+            isOnboarded: true,
+          },
+        },
+        kalshi: {
+          '0xabc': {
+            isOnboarded: false,
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictAccountMeta(mockState as any);
+
+      expect(result).toEqual(accountMeta);
+    });
+
+    it('returns empty object when accountMeta does not exist', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta: {},
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictAccountMeta(mockState as any);
+
+      expect(result).toEqual({});
+    });
+
+    it('returns empty object when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictAccountMeta(mockState as any);
+
+      expect(result).toEqual({});
+    });
+
+    it('returns multiple provider account metadata', () => {
+      const accountMeta = {
+        polymarket: {
+          '0x123': {
+            isOnboarded: true,
+          },
+          '0x456': {
+            isOnboarded: false,
+          },
+        },
+        kalshi: {
+          '0xabc': {
+            isOnboarded: true,
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictAccountMeta(mockState as any);
+
+      expect(result).toEqual(accountMeta);
+    });
+  });
+
+  describe('selectPredictAccountMetaByAddress', () => {
+    it('returns account meta when it exists for provider and address', () => {
+      const accountMeta = {
+        polymarket: {
+          '0x123': {
+            isOnboarded: true,
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictAccountMetaByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toEqual({ isOnboarded: true });
+    });
+
+    it('returns account meta with false values when not onboarded or accepted', () => {
+      const accountMeta = {
+        polymarket: {
+          '0x123': {
+            isOnboarded: false,
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictAccountMetaByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toEqual({ isOnboarded: false });
+    });
+
+    it('returns empty object when provider does not exist', () => {
+      const accountMeta = {
+        polymarket: {
+          '0x123': {
+            isOnboarded: true,
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictAccountMetaByAddress({
+        providerId: 'kalshi',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toEqual({});
+    });
+
+    it('returns empty object when address does not exist for provider', () => {
+      const accountMeta = {
+        polymarket: {
+          '0x123': {
+            isOnboarded: true,
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictAccountMetaByAddress({
+        providerId: 'polymarket',
+        address: '0xNonExistent',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toEqual({});
+    });
+
+    it('returns empty object when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+          },
+        },
+      };
+
+      const selector = selectPredictAccountMetaByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toEqual({});
+    });
+
+    it('returns correct value for different provider and address combinations', () => {
+      const accountMeta = {
+        polymarket: {
+          '0x123': {
+            isOnboarded: true,
+          },
+          '0x456': {
+            isOnboarded: false,
+          },
+        },
+        kalshi: {
+          '0xabc': {
+            isOnboarded: true,
+          },
+          '0xdef': {
+            isOnboarded: false,
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta,
+            },
+          },
+        },
+      };
+
+      const selector1 = selectPredictAccountMetaByAddress({
+        providerId: 'polymarket',
+        address: '0x456',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result1 = selector1(mockState as any);
+
+      const selector2 = selectPredictAccountMetaByAddress({
+        providerId: 'kalshi',
+        address: '0xabc',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result2 = selector2(mockState as any);
+
+      expect(result1).toEqual({ isOnboarded: false });
+      expect(result2).toEqual({ isOnboarded: true });
+    });
+
+    it('returns account meta with partial onboarding', () => {
+      const accountMeta = {
+        polymarket: {
+          '0x123': {
+            isOnboarded: true,
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta,
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictAccountMetaByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toEqual({ isOnboarded: true });
+    });
+
+    it('returns empty object when accountMeta object is empty', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              accountMeta: {},
+            },
+          },
+        },
+      };
+
+      const selector = selectPredictAccountMetaByAddress({
+        providerId: 'polymarket',
+        address: '0x123',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selector(mockState as any);
+
+      expect(result).toEqual({});
     });
   });
 });

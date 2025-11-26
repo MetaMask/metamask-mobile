@@ -3,7 +3,7 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -16,7 +16,15 @@ import {
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
 
-// Mock Engine
+/**
+ * Mock Strategy:
+ * - Only mock external dependencies (Engine, Alert, navigation, hooks with API calls)
+ * - Do NOT mock: Internal components, design system, styling hooks, format utilities
+ * - Navigation and order hooks are mocked because they have external side effects
+ * and we're testing the component's orchestration and user interaction logic
+ */
+
+// Mock Engine for analytics tracking
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
@@ -25,7 +33,7 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-// Mock Alert
+// Mock React Native Alert API
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
@@ -41,7 +49,7 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockUseRoute(),
 }));
 
-// Mock usePredictPlaceOrder hook
+// Mock usePredictPlaceOrder hook - external API dependency
 const mockPlaceOrder = jest.fn();
 const mockReset = jest.fn();
 let mockLoadingState = false;
@@ -64,15 +72,12 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
       placeOrder: async (...args: unknown[]) => {
         mockLoadingState = true;
         try {
-          // Call the mock - jest mocks automatically return resolved promises
           const result = mockPlaceOrder(...args);
           mockLoadingState = false;
-          // Call onComplete after successful operation with the result
           if (onComplete && result) onComplete(result);
           return result;
         } catch (error) {
           mockLoadingState = false;
-          // Call onError with the error message
           if (onError && error instanceof Error) {
             onError(error.message);
           }
@@ -88,7 +93,7 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   },
 }));
 
-// Mock usePredictOrderPreview hook
+// Mock usePredictOrderPreview hook - external API dependency
 let mockPreview = {
   marketId: 'market-1',
   outcomeId: 'outcome-456',
@@ -110,100 +115,6 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
     error: null,
   }),
 }));
-
-// Let renderWithProvider handle theme mocking
-
-// Mock useStyles
-const mockUseStyles = jest.fn();
-jest.mock('../../../../../component-library/hooks/useStyles', () => ({
-  useStyles: (styleSheet: Record<string, unknown>) => mockUseStyles(styleSheet),
-}));
-
-// Mock SafeArea hooks
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-  SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
-  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
-  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
-}));
-
-// Mock format utilities
-const mockFormatPrice = jest.fn();
-const mockFormatPercentage = jest.fn();
-
-jest.mock('../../utils/format', () => ({
-  formatPrice: (value: number, options?: { maximumDecimals?: number }) =>
-    mockFormatPrice(value, options),
-  formatPercentage: (value: number) => mockFormatPercentage(value),
-}));
-
-// Mock BottomSheetHeader to avoid Icon component issues
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        children,
-        onClose,
-      }: {
-        children: React.ReactNode;
-        onClose?: () => void;
-      }) => (
-        <TouchableOpacity onPress={onClose} testID="bottom-sheet-header">
-          {children}
-        </TouchableOpacity>
-      ),
-    };
-  },
-);
-
-// Mock Button component to avoid theme issues
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      label,
-      onPress,
-      disabled,
-      loading,
-      style,
-      variant,
-      ...props
-    }: {
-      label: string;
-      onPress?: () => void;
-      disabled?: boolean;
-      loading?: boolean;
-      style?: Record<string, unknown>;
-      variant?: string;
-      [key: string]: unknown;
-    }) => (
-      <TouchableOpacity
-        onPress={!disabled ? onPress : undefined}
-        style={style}
-        testID={`button-${variant || 'default'}`}
-        disabled={disabled}
-        data-disabled={disabled}
-        {...props}
-      >
-        <Text>{loading ? 'Loading...' : label}</Text>
-      </TouchableOpacity>
-    ),
-    ButtonVariants: {
-      Primary: 'primary',
-      Secondary: 'secondary',
-    },
-    ButtonSize: {
-      Lg: 'lg',
-    },
-    ButtonWidthTypes: {
-      Full: 'full',
-    },
-  };
-});
 
 const mockPosition: PredictPosition = {
   id: 'position-1',
@@ -327,40 +238,13 @@ describe('PredictSellPreview', () => {
     mockPlaceOrderResult = null;
     mockPlaceOrderError = undefined;
 
-    // Setup default mocks
+    // Setup default navigation mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUseRoute.mockReturnValue(mockRoute);
 
     // Reset mock functions
     mockPlaceOrder.mockReset();
     mockReset.mockReset();
-    mockUseStyles.mockReturnValue({
-      styles: {
-        container: {},
-        cashOutContainer: {},
-        currentValue: {},
-        percentPnl: {},
-        bottomContainer: {},
-        positionContainer: {},
-        positionDetails: {},
-        detailsLine: {},
-        detailsLeft: {},
-        detailsResolves: {},
-        detailsRight: {},
-        positionIcon: {},
-        cashOutButtonContainer: {},
-        cashOutButton: {},
-        cashOutButtonText: {},
-      },
-    });
-
-    mockFormatPrice.mockImplementation((value, options) => {
-      if (options?.maximumDecimals === 2) {
-        return `$${value.toFixed(2)}`;
-      }
-      return `$${value}`;
-    });
-    mockFormatPercentage.mockImplementation((value) => `${value}% return`);
   });
 
   afterEach(() => {
@@ -368,45 +252,39 @@ describe('PredictSellPreview', () => {
   });
 
   describe('rendering', () => {
-    it('renders cash out screen with position details', () => {
-      const { getByText, queryByText } = renderWithProvider(
+    it('shows cash out heading with market title and share details', () => {
+      const { getAllByText, getByText, queryByText } = renderWithProvider(
         <PredictSellPreview />,
         {
           state: initialState,
         },
       );
 
-      expect(getByText('Cash Out')).toBeOnTheScreen();
+      expect(getAllByText('Cash out').length).toBeGreaterThan(0);
       expect(getByText('Will Bitcoin reach $150,000?')).toBeOnTheScreen();
-      expect(getByText('$50.00 on Yes')).toBeOnTheScreen();
-
+      expect(getByText('$50 on Bitcoin Price • Yes at 50¢')).toBeOnTheScreen();
       expect(
         queryByText('Funds will be added to your available balance'),
       ).toBeOnTheScreen();
     });
 
-    it('displays current value and P&L correctly', () => {
+    it('shows current value from preview minAmountReceived', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      // Component uses preview.minAmountReceived for current value
-      expect(mockFormatPrice).toHaveBeenCalledWith(60, { maximumDecimals: 2 });
-      // PnL is calculated from position data, not preview
-      expect(mockFormatPercentage).toHaveBeenCalledWith(20);
+      expect(screen.getByText('$60')).toBeOnTheScreen();
     });
 
-    it('displays positive P&L in success color', () => {
+    it('shows P&L percentage calculated from position data', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      // The component should render with positive P&L styling
-      // This is tested implicitly by the mock setup
+      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
     });
 
-    it('displays negative P&L in error color', () => {
-      // Set mock to return negative P&L
+    it('shows negative P&L when minAmountReceived is less than initial value', () => {
       mockPreview = {
         marketId: 'market-1',
         outcomeId: 'outcome-456',
@@ -421,12 +299,10 @@ describe('PredictSellPreview', () => {
         minOrderSize: 1,
         negRisk: false,
       };
-
       const negativePnLPosition = {
         ...mockPosition,
-        percentPnl: -20, // Will be overridden by calculation
+        percentPnl: -20,
       };
-
       mockUseRoute.mockReturnValue({
         ...mockRoute,
         params: {
@@ -438,33 +314,45 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(mockFormatPercentage).toHaveBeenCalledWith(-20);
+      expect(screen.getByText('-$10 (-20%)')).toBeOnTheScreen();
     });
 
-    it('renders position icon with correct source', () => {
-      renderWithProvider(<PredictSellPreview />, {
+    it('shows zero cents when preview sharePrice is zero', () => {
+      mockPreview = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        timestamp: Date.now(),
+        side: 'SELL',
+        sharePrice: 0,
+        maxAmountSpent: 100,
+        minAmountReceived: 60,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
+      const { getByText } = renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      // Note: Testing Image component source would require additional setup
-      // This test focuses on the basic rendering - component renders without crashing
+      expect(getByText('Selling 50 shares at 0¢')).toBeOnTheScreen();
     });
   });
 
   describe('user interactions', () => {
-    it('calls placeOrder when cash out button is pressed', async () => {
+    it('invokes placeOrder with correct parameters when cash out button pressed', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
       };
-
       const { getByTestId, rerender } = renderWithProvider(
         <PredictSellPreview />,
         {
           state: initialState,
         },
       );
-
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
       await fireEvent.press(cashOutButton);
@@ -490,132 +378,53 @@ describe('PredictSellPreview', () => {
           minAmountReceived: 60,
         }),
       });
-
-      // Rerender to trigger useEffect with result
       rerender(<PredictSellPreview />);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
 
-    it('disables cash out button when loading', () => {
+    it('shows loading text when order executes', () => {
       mockLoadingState = true;
-
-      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
-
-      const loadingButton = getByTestId('button-primary');
-      expect(loadingButton.props['data-disabled']).toBe(true);
-
-      // Reset loading state for other tests
-      mockLoadingState = false;
-    });
-
-    it('shows loading state when loading is true', () => {
-      mockLoadingState = true;
-
       const { getByText } = renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
       expect(getByText('Cashing out...')).toBeOnTheScreen();
-
-      // Reset loading state for other tests
       mockLoadingState = false;
     });
-
-    it('calls goBack when close button is pressed', () => {
-      renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
-
-      // BottomSheetHeader close button - would need testId or accessibilityLabel
-      // This test shows the pattern for testing header close functionality
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
   });
 
-  describe('error handling', () => {
-    it('calls dispatch when result is successful', async () => {
+  describe('navigation after successful order', () => {
+    it('dispatches navigation pop action when placeOrder succeeds', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
       };
-
       const { getByTestId, rerender } = renderWithProvider(
         <PredictSellPreview />,
         {
           state: initialState,
         },
       );
-
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
       await fireEvent.press(cashOutButton);
 
-      // PlaceOrder is called when button is pressed
       expect(mockPlaceOrder).toHaveBeenCalled();
-
-      // Rerender to trigger useEffect with result
-      rerender(<PredictSellPreview />);
-
-      // Dispatch is called via useEffect when result is successful
-      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
-    });
-  });
-
-  describe('navigation integration', () => {
-    it('navigates to market list after successful cash out', async () => {
-      mockPlaceOrderResult = {
-        success: true,
-        response: { transactionHash: '0xabc123' },
-      };
-
-      const { getByTestId, rerender } = renderWithProvider(
-        <PredictSellPreview />,
-        {
-          state: initialState,
-        },
-      );
-
-      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
-
-      await fireEvent.press(cashOutButton);
-
-      // Rerender to trigger useEffect with result
       rerender(<PredictSellPreview />);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
 
-    it('uses correct route params', () => {
+    it('reads market and position data from route params', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
       expect(mockUseRoute).toHaveBeenCalled();
-      // Verify the component renders with preview data
-      expect(mockFormatPrice).toHaveBeenCalled();
-    });
-  });
-
-  describe('styling and theming', () => {
-    it('applies correct theme colors to button', () => {
-      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
-
-      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
-      // Button should have the primary color background
-      expect(cashOutButton.props.style).toBeDefined();
-    });
-
-    it('uses useStyles hook for styling', () => {
-      renderWithProvider(<PredictSellPreview />, {
-        state: initialState,
-      });
-
-      expect(mockUseStyles).toHaveBeenCalled();
+      expect(
+        screen.getByText('Will Bitcoin reach $150,000?'),
+      ).toBeOnTheScreen();
     });
   });
 });
