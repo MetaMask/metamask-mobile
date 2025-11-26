@@ -76,7 +76,9 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
   }),
-  useRoute: jest.fn(),
+  useRoute: () => ({
+    params: {},
+  }),
 }));
 
 const mockedUseAmountSelectionMetrics = jest.mocked(useAmountSelectionMetrics);

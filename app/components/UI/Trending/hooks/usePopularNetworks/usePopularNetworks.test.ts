@@ -1,19 +1,20 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
-import { isTestNet } from '../../util/networks';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { isTestNet } from '../../../../../util/networks';
 import { usePopularNetworks } from './usePopularNetworks';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../util/networks', () => ({
+jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(),
   isTestNet: jest.fn(),
 }));
 
-jest.mock('../../util/networks/customNetworks', () => ({
+jest.mock('../../../../../util/networks/customNetworks', () => ({
   PopularList: [
     {
       chainId: '0xa86a',
@@ -139,6 +140,116 @@ describe('usePopularNetworks', () => {
       expect(result.current.some((n) => n.name === 'Avalanche')).toBe(true);
       expect(result.current.some((n) => n.name === 'Arbitrum')).toBe(true);
       expect(result.current.some((n) => n.name === 'BNB Chain')).toBe(true);
+    });
+
+    it('filters out Bitcoin testnets from networkConfigurations', () => {
+      const mockNetworkConfigurations = {
+        // Bitcoin mainnet example
+        [BtcScope.Mainnet]: {
+          caipChainId: BtcScope.Mainnet as CaipChainId,
+          name: 'Bitcoin',
+        },
+        // Bitcoin testnet variants using full CAIP IDs from BtcScope
+        [BtcScope.Testnet]: {
+          caipChainId: BtcScope.Testnet as CaipChainId,
+          name: 'Bitcoin Testnet',
+        },
+        [BtcScope.Testnet4]: {
+          caipChainId: BtcScope.Testnet4 as CaipChainId,
+          name: 'Bitcoin Testnet4',
+        },
+        [BtcScope.Regtest]: {
+          caipChainId: BtcScope.Regtest as CaipChainId,
+          name: 'Bitcoin Regtest',
+        },
+        [BtcScope.Signet]: {
+          caipChainId: BtcScope.Signet as CaipChainId,
+          name: 'Bitcoin Signet',
+        },
+      };
+
+      mockUseSelector.mockReturnValue(mockNetworkConfigurations);
+
+      const { result } = renderHook(() => usePopularNetworks());
+
+      expect(result.current.some((n) => n.name === 'Bitcoin')).toBe(true);
+      expect(result.current.some((n) => n.name === 'Bitcoin Testnet')).toBe(
+        false,
+      );
+      expect(result.current.some((n) => n.name === 'Bitcoin Testnet4')).toBe(
+        false,
+      );
+      expect(result.current.some((n) => n.name === 'Bitcoin Regtest')).toBe(
+        false,
+      );
+      expect(result.current.some((n) => n.name === 'Bitcoin Signet')).toBe(
+        false,
+      );
+    });
+
+    it('filters out Solana Devnet from networkConfigurations', () => {
+      const mockNetworkConfigurations = {
+        [SolScope.Mainnet]: {
+          caipChainId: SolScope.Mainnet as CaipChainId,
+          name: 'Solana Mainnet',
+        },
+        [SolScope.Devnet]: {
+          caipChainId: SolScope.Devnet as CaipChainId,
+          name: 'Solana Devnet',
+        },
+      };
+
+      mockUseSelector.mockReturnValue(mockNetworkConfigurations);
+
+      const { result } = renderHook(() => usePopularNetworks());
+
+      expect(result.current.some((n) => n.name === 'Solana Mainnet')).toBe(
+        true,
+      );
+      expect(result.current.some((n) => n.name === 'Solana Devnet')).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('custom network filtering', () => {
+    it('filters EVM custom networks from networkConfigurations', () => {
+      const mockNetworkConfigurations = {
+        'eip155:1': {
+          caipChainId: 'eip155:1' as CaipChainId,
+          name: 'Ethereum Mainnet',
+        },
+        'eip155:81457': {
+          caipChainId: 'eip155:81457' as CaipChainId,
+          chainId: '0x13e31',
+          name: 'blast',
+          rpcEndpoints: [
+            {
+              url: 'https://blast-rpc.publicnode.com',
+              name: '',
+              // Match RpcEndpointType.Custom value used in the hook
+              type: 'custom',
+              networkClientId: '0c8dd6d9-a167-4656-9057-b5daf33dbbde',
+            },
+          ],
+          nativeCurrency: 'ETH',
+          defaultRpcEndpointIndex: 0,
+          lastUpdatedAt: 1763644775633,
+        },
+      };
+
+      mockUseSelector.mockReturnValue(mockNetworkConfigurations);
+
+      const { result } = renderHook(() => usePopularNetworks());
+
+      expect(
+        result.current.some(
+          (network) => network.caipChainId === 'eip155:81457',
+        ),
+      ).toBe(false);
+      expect(
+        result.current.some((network) => network.caipChainId === 'eip155:1'),
+      ).toBe(true);
     });
   });
 
