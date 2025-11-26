@@ -328,7 +328,7 @@ const isOptedInForSocialAccount = async (): Promise<boolean> => {
  *
  * @returns Promise resolving to AnalyticsDefaults object with analyticsId and opt-in preferences
  */
-export const generateDefaults = async (): Promise<AnalyticsDefaults> => {
+const generateDefaults = async (): Promise<AnalyticsDefaults> => {
   // Read existing values from MMKV via StorageWrapper
   const existingId = await StorageWrapper.getItem(ANALYTICS_ID);
   const existingOptedInRegular = await StorageWrapper.getItem(

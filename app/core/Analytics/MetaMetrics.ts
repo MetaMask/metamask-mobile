@@ -6,6 +6,7 @@ import type {
 import axios, { AxiosHeaderValue } from 'axios';
 import StorageWrapper from '../../store/storage-wrapper';
 import { analytics } from './analytics';
+import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import { whenEngineReady } from './whenEngineReady';
 import Logger from '../../util/Logger';
 import {
@@ -247,8 +248,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   configure = async (): Promise<boolean> =>
     // Kept for backward compatibility
-     true
-  ;
+    true;
 
   /**
    * Enable or disable regular analytics opt-in
@@ -337,8 +337,7 @@ class MetaMetrics implements IMetaMetrics {
   group = (_groupId: string, _groupTraits?: GroupTraits): Promise<void> =>
     // Deprecated method - kept as no-op for backward compatibility
     // This method is never used in production code
-     Promise.resolve()
-  ;
+    Promise.resolve();
 
   /**
    * Track an event
@@ -353,75 +352,16 @@ class MetaMetrics implements IMetaMetrics {
     event: ITrackingEvent,
     saveDataRecording: boolean = true,
   ): void => {
-    // if event does not have properties, only send the non-anonymous empty event
-    // and return to prevent any additional processing
-    if (!event.hasProperties) {
-      analytics.trackEvent(event.name, {
-        anonymous: false,
-      } as AnalyticsEventProperties);
-
-      // Handle data recording flag (kept for backward compatibility)
-      // TODO: Move this to the future analytics privacy controller
-      if (saveDataRecording) {
-        this.#getIsDataRecordedFromPrefs().then((dataRecorded) => {
-          if (!dataRecorded) {
-            this.#setIsDataRecorded(true).catch((error) => {
-              // here we don't want to handle the error, there's nothing we can do
-              // so we just catch and log it async and do not await for return
-              // as this must not block the event tracking
-              Logger.error(error, 'Analytics Data Record Error');
-            });
-          }
-        });
-      }
-      return;
-    }
-
-    // Log all non-anonymous properties, or an empty event if there's no non-anon props.
-    // In any case, there's a non-anon event tracked, see MetaMetrics.test.ts Tracking table.
-    analytics.trackEvent(event.name, {
-      anonymous: false,
-      ...event.properties,
-    } as AnalyticsEventProperties);
-
-    // Handle data recording flag (kept for backward compatibility)
-    // TODO: Move this to the future analytics privacy controller
-    if (saveDataRecording) {
-      this.#getIsDataRecordedFromPrefs().then((dataRecorded: boolean) => {
-        if (!dataRecorded) {
-          this.#setIsDataRecorded(true).catch((error) => {
-            // here we don't want to handle the error, there's nothing we can do
-            // so we just catch and log it async and do not await for return
-            // as this must not block the event tracking
-            Logger.error(error, 'Analytics Data Record Error');
-          });
-        }
-      });
-    }
-
-    // Track all anonymous properties in an anonymous event
-    if (event.isAnonymous) {
-      analytics.trackEvent(event.name, {
-        anonymous: true,
-        ...event.properties,
-        ...event.sensitiveProperties,
-      } as AnalyticsEventProperties);
-
-      // Handle data recording flag (kept for backward compatibility)
-      // TODO: Move this to the future analytics privacy controller
-      if (saveDataRecording) {
-        this.#getIsDataRecordedFromPrefs().then((dataRecorded) => {
-          if (!dataRecorded) {
-            this.#setIsDataRecorded(true).catch((error) => {
-              // here we don't want to handle the error, there's nothing we can do
-              // so we just catch and log it async and do not await for return
-              // as this must not block the event tracking
-              Logger.error(error, 'Analytics Data Record Error');
-            });
-          }
-        });
-      }
-    }
+    // Forward to analytics module - controller handles anonymous logic and data recording
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(event.name)
+        .addProperties(event.properties as AnalyticsEventProperties)
+        .addSensitiveProperties(
+          event.sensitiveProperties as AnalyticsEventProperties,
+        )
+        .setSaveDataRecording(saveDataRecording && event.saveDataRecording)
+        .build(),
+    );
   };
 
   /**
@@ -536,8 +476,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   getMetaMetricsId = async (): Promise<string> =>
     // Only rely on controller - no fallback logic
-     await analytics.getAnalyticsId()
-  ;
+    await analytics.getAnalyticsId();
 }
 
 export default MetaMetrics;

@@ -7296,15 +7296,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/analytics-controller@npm:@metamask-previews/analytics-controller@0.0.0-preview-21a5ddac":
-  version: 0.0.0-preview-21a5ddac
-  resolution: "@metamask-previews/analytics-controller@npm:0.0.0-preview-21a5ddac"
+"@metamask/analytics-controller@npm:@metamask-previews/analytics-controller@0.0.0-preview-a5935709":
+  version: 0.0.0-preview-a5935709
+  resolution: "@metamask-previews/analytics-controller@npm:0.0.0-preview-a5935709"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.8.1"
-    uuid: "npm:^8.3.2"
-  checksum: 10/b44e704ff65c09b086df85f164e23a0bc0454765329d3236284bf7fb3cac5595343d92a4e49e6c66a70a95955b472397e7d0439af739cfc2d128c733c90398ef
+  checksum: 10/80984565b788d2fb95158137db78105f87840192886d48a5cea2effe3008c61c3b1ffeca732587f9b6934a656a4ca1eadcef6f6a26707f5b0760758da7d2482c
   languageName: node
   linkType: hard
 
