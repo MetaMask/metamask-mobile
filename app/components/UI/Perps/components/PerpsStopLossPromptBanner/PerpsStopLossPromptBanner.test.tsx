@@ -96,7 +96,7 @@ describe('PerpsStopLossPromptBanner', () => {
           variant="stop_loss"
           liquidationDistance={15}
           suggestedStopLossPrice="47500"
-          suggestedStopLossPercent={-5}
+          suggestedStopLossPercent={-50}
           onSetStopLoss={jest.fn()}
         />,
         { state: initialState },
@@ -107,7 +107,7 @@ describe('PerpsStopLossPromptBanner', () => {
       ).toBeTruthy();
       expect(getByTestId(PerpsStopLossPromptSelectorsIDs.TOGGLE)).toBeTruthy();
       expect(getByText(/\$47,500/)).toBeTruthy();
-      expect(getByText(/-5%/)).toBeTruthy();
+      expect(getByText(/-50%/)).toBeTruthy();
     });
 
     it('should call onSetStopLoss when toggle switched on', () => {
@@ -117,7 +117,7 @@ describe('PerpsStopLossPromptBanner', () => {
           variant="stop_loss"
           liquidationDistance={15}
           suggestedStopLossPrice="47500"
-          suggestedStopLossPercent={-5}
+          suggestedStopLossPercent={-50}
           onSetStopLoss={onSetStopLoss}
         />,
         { state: initialState },
@@ -135,7 +135,7 @@ describe('PerpsStopLossPromptBanner', () => {
           variant="stop_loss"
           liquidationDistance={15}
           suggestedStopLossPrice="47500"
-          suggestedStopLossPercent={-5}
+          suggestedStopLossPercent={-50}
           onSetStopLoss={onSetStopLoss}
         />,
         { state: initialState },
@@ -152,7 +152,7 @@ describe('PerpsStopLossPromptBanner', () => {
           variant="stop_loss"
           liquidationDistance={15}
           suggestedStopLossPrice="47500"
-          suggestedStopLossPercent={-5}
+          suggestedStopLossPercent={-50}
           onSetStopLoss={jest.fn()}
           isLoading
         />,
@@ -170,7 +170,7 @@ describe('PerpsStopLossPromptBanner', () => {
           variant="stop_loss"
           liquidationDistance={15}
           suggestedStopLossPrice="47500"
-          suggestedStopLossPercent={-5}
+          suggestedStopLossPercent={-50}
           onSetStopLoss={onSetStopLoss}
           isLoading
         />,
@@ -224,7 +224,7 @@ describe('PerpsStopLossPromptBanner', () => {
           variant="stop_loss"
           liquidationDistance={15}
           suggestedStopLossPrice="47500"
-          suggestedStopLossPercent={-5}
+          suggestedStopLossPercent={-50}
           onSetStopLoss={jest.fn()}
           isSuccess
           onFadeOutComplete={onFadeOutComplete}
@@ -250,7 +250,7 @@ describe('PerpsStopLossPromptBanner', () => {
           variant="stop_loss"
           liquidationDistance={15}
           suggestedStopLossPrice="47500"
-          suggestedStopLossPercent={-5}
+          suggestedStopLossPercent={-50}
           onSetStopLoss={jest.fn()}
           isSuccess={false}
           onFadeOutComplete={onFadeOutComplete}
@@ -289,7 +289,7 @@ describe('PerpsStopLossPromptBanner', () => {
           variant="stop_loss"
           liquidationDistance={15}
           suggestedStopLossPrice="47500"
-          suggestedStopLossPercent={-5}
+          suggestedStopLossPercent={-50}
         />,
         { state: initialState },
       );

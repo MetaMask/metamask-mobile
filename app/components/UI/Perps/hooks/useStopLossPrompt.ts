@@ -178,25 +178,21 @@ export const useStopLossPrompt = ({
     return slPrice.toString();
   }, [position]);
 
-  // Calculate suggested stop loss as percentage from entry
+  // Return the target ROE percentage used to calculate the stop loss
+  // This represents the ROE the user will experience if the stop loss triggers
   const suggestedStopLossPercent = useMemo(() => {
     // Dev override: provide mock percentage for stop_loss variant without position
     if (__DEV__ && FORCE_BANNER_VARIANT === 'stop_loss' && !position) {
-      return -50; // Mock -50% for display
+      return STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE;
     }
 
-    if (!suggestedStopLossPrice || !position?.entryPrice) {
+    // Return the configured target ROE if we have a valid stop loss price
+    if (!suggestedStopLossPrice) {
       return null;
     }
 
-    const slPrice = parseFloat(suggestedStopLossPrice);
-    const entryPrice = parseFloat(position.entryPrice);
-
-    if (isNaN(slPrice) || isNaN(entryPrice) || entryPrice <= 0) {
-      return null;
-    }
-
-    return ((slPrice - entryPrice) / entryPrice) * 100;
+    // The stop loss price was calculated to achieve this specific ROE
+    return STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE;
   }, [suggestedStopLossPrice, position]);
 
   // Determine if banner should show and which variant

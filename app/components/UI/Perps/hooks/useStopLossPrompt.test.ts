@@ -245,7 +245,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.suggestedStopLossPrice).toBe('52500');
     });
 
-    it('should calculate suggested stop loss percent', () => {
+    it('should return target ROE as suggested stop loss percent', () => {
       const position = createMockPosition({
         entryPrice: '50000',
         size: '1',
@@ -259,8 +259,10 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // SL at 47500, entry at 50000: (47500 - 50000) / 50000 * 100 = -5%
-      expect(result.current.suggestedStopLossPercent).toBe(-5);
+      // Should return the configured target ROE (-50%), not the price change (-5%)
+      expect(result.current.suggestedStopLossPercent).toBe(
+        STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE,
+      );
     });
 
     it('should return null for suggested price when no position', () => {
