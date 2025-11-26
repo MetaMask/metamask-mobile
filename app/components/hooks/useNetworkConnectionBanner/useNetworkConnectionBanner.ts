@@ -67,6 +67,7 @@ const useNetworkConnectionBanner = (): {
       shouldShowPopularNetworks: false,
     });
 
+    const sanitizedUrl = sanitizeRpcUrl(rpcUrl);
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
@@ -74,7 +75,9 @@ const useNetworkConnectionBanner = (): {
         .addProperties({
           banner_type: status,
           chain_id_caip: `eip155:${hexToNumber(chainId)}`,
-          rpc_endpoint_url: sanitizeRpcUrl(rpcUrl),
+          // @deprecated: will be removed in a future release
+          rpc_endpoint_url: sanitizedUrl,
+          rpc_domain: sanitizedUrl,
         })
         .build(),
     );
@@ -196,6 +199,7 @@ const useNetworkConnectionBanner = (): {
 
   useEffect(() => {
     if (networkConnectionBannerState.visible) {
+      const sanitizedUrl = sanitizeRpcUrl(networkConnectionBannerState.rpcUrl);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN)
           .addProperties({
@@ -203,9 +207,8 @@ const useNetworkConnectionBanner = (): {
             chain_id_caip: `eip155:${hexToNumber(
               networkConnectionBannerState.chainId,
             )}`,
-            rpc_endpoint_url: sanitizeRpcUrl(
-              networkConnectionBannerState.rpcUrl,
-            ),
+            rpc_endpoint_url: sanitizedUrl,
+            rpc_domain: sanitizedUrl,
           })
           .build(),
       );
