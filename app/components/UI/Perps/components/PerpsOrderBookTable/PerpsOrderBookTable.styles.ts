@@ -4,7 +4,7 @@ import type { Theme } from '../../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      flex: 1,
+      // Let content determine height
     },
     header: {
       flexDirection: 'row',
@@ -25,7 +25,6 @@ const styleSheet = (params: { theme: Theme }) =>
       alignItems: 'flex-end',
     },
     bookContainer: {
-      flex: 1,
       flexDirection: 'row',
     },
     bidsSide: {
@@ -37,7 +36,7 @@ const styleSheet = (params: { theme: Theme }) =>
     row: {
       flexDirection: 'row',
       paddingHorizontal: 16,
-      paddingVertical: 6,
+      paddingVertical: 2,
       position: 'relative',
     },
     bidRow: {
@@ -83,24 +82,21 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingLeft: 8,
       zIndex: 1,
     },
-    spreadContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 8,
-      borderTopWidth: 1,
-      borderBottomWidth: 1,
-      borderColor: params.theme.colors.border.muted,
-      backgroundColor: params.theme.colors.background.default,
-    },
-    spreadText: {
-      marginHorizontal: 8,
-    },
     emptyState: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       paddingVertical: 48,
+    },
+    spreadContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      gap: 4,
+      borderTopWidth: 1,
+      borderTopColor: params.theme.colors.border.muted,
     },
   });
 

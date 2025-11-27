@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState, useRef, useMemo } from 'react';
 import { View, ScrollView, Pressable, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -45,15 +45,12 @@ import type {
   OrderBookRouteParams,
 } from './PerpsOrderBookView.types';
 import { PerpsOrderBookViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-
-// Available depth band options (nSigFigs values: 2-5 are valid per HyperLiquid API)
-// Higher nSigFigs = finer price granularity (more decimal places)
-const DEPTH_BAND_OPTIONS = [
-  { value: 2, label: '2' },
-  { value: 3, label: '3' },
-  { value: 4, label: '4' },
-  { value: 5, label: '5' },
-];
+import {
+  calculateGroupingOptions,
+  formatGroupingLabel,
+  selectDefaultGrouping,
+  aggregateOrderBookLevels,
+} from '../../utils/orderBookGrouping';
 
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
@@ -69,18 +66,93 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Unit display state (base currency or USD)
   const [unitDisplay, setUnitDisplay] = useState<UnitDisplay>('usd');
 
-  // Depth band state (nSigFigs value)
-  const [depthBand, setDepthBand] = useState(5); // Default to "10"
+  // Price grouping state (actual price value, e.g., 10 for $10 grouping)
+  const [selectedGrouping, setSelectedGrouping] = useState<number | null>(null);
   const [isDepthBandSheetVisible, setIsDepthBandSheetVisible] = useState(false);
   const depthBandSheetRef = useRef<BottomSheetRef>(null);
 
-  // Subscribe to live order book data
-  const { orderBook, isLoading, error } = usePerpsLiveOrderBook({
+  // Subscribe to live order book data with finest granularity (nSigFigs: 5)
+  // We'll aggregate client-side based on selected grouping
+  const {
+    orderBook: rawOrderBook,
+    isLoading,
+    error,
+  } = usePerpsLiveOrderBook({
     symbol: symbol || '',
-    levels: 10,
-    nSigFigs: depthBand,
+    levels: 50, // Request more levels for aggregation
+    nSigFigs: 5, // Always use finest granularity
     throttleMs: 100,
   });
+
+  // Calculate mid price from order book
+  const midPrice = useMemo(() => {
+    if (!rawOrderBook?.bids?.length || !rawOrderBook?.asks?.length) {
+      return null;
+    }
+    const bestBid = parseFloat(rawOrderBook.bids[0].price);
+    const bestAsk = parseFloat(rawOrderBook.asks[0].price);
+    return (bestBid + bestAsk) / 2;
+  }, [rawOrderBook]);
+
+  // Calculate dynamic grouping options based on mid price
+  const groupingOptions = useMemo(() => {
+    if (!midPrice) return [];
+    return calculateGroupingOptions(midPrice);
+  }, [midPrice]);
+
+  // Current grouping value (use selected or auto-select default)
+  const currentGrouping = useMemo(() => {
+    if (
+      selectedGrouping !== null &&
+      groupingOptions.includes(selectedGrouping)
+    ) {
+      return selectedGrouping;
+    }
+    if (groupingOptions.length > 0) {
+      return selectDefaultGrouping(groupingOptions);
+    }
+    return null;
+  }, [selectedGrouping, groupingOptions]);
+
+  // Maximum levels to display per side
+  const MAX_DISPLAY_LEVELS = 15;
+
+  // Aggregate order book based on current grouping
+  const orderBook = useMemo(() => {
+    if (!rawOrderBook || !currentGrouping) {
+      return rawOrderBook;
+    }
+
+    const aggregatedBids = aggregateOrderBookLevels(
+      rawOrderBook.bids,
+      currentGrouping,
+      'bid',
+    ).slice(0, MAX_DISPLAY_LEVELS);
+
+    const aggregatedAsks = aggregateOrderBookLevels(
+      rawOrderBook.asks,
+      currentGrouping,
+      'ask',
+    ).slice(0, MAX_DISPLAY_LEVELS);
+
+    // Calculate new max total for depth bars
+    const maxBidTotal =
+      aggregatedBids.length > 0
+        ? parseFloat(aggregatedBids[aggregatedBids.length - 1].total)
+        : 0;
+    const maxAskTotal =
+      aggregatedAsks.length > 0
+        ? parseFloat(aggregatedAsks[aggregatedAsks.length - 1].total)
+        : 0;
+    const maxTotal = Math.max(maxBidTotal, maxAskTotal).toString();
+
+    return {
+      ...rawOrderBook,
+      bids: aggregatedBids,
+      asks: aggregatedAsks,
+      maxTotal,
+    };
+  }, [rawOrderBook, currentGrouping]);
 
   // Performance measurement
   usePerpsMeasurement({
@@ -104,19 +176,21 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     navigation.goBack();
   }, [navigation]);
 
-  // Get current depth band label for display
-  const currentDepthBandLabel =
-    DEPTH_BAND_OPTIONS.find((opt) => opt.value === depthBand)?.label || '5';
+  // Get current grouping label for display
+  const currentGroupingLabel = useMemo(() => {
+    if (currentGrouping === null) return '—';
+    return formatGroupingLabel(currentGrouping);
+  }, [currentGrouping]);
 
-  // Handle depth band dropdown press
+  // Handle grouping dropdown press
   const handleDepthBandPress = useCallback(() => {
     setIsDepthBandSheetVisible(true);
   }, []);
 
-  // Handle depth band selection
-  const handleDepthBandSelect = useCallback(
+  // Handle grouping selection
+  const handleGroupingSelect = useCallback(
     (value: number) => {
-      setDepthBand(value);
+      setSelectedGrouping(value);
       setIsDepthBandSheetVisible(false);
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -128,7 +202,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     [symbol, track],
   );
 
-  // Handle depth band sheet close
+  // Handle grouping sheet close
   const handleDepthBandSheetClose = useCallback(() => {
     setIsDepthBandSheetVisible(false);
   }, []);
@@ -260,7 +334,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
-        {/* Depth Band Dropdown */}
+        {/* Price Grouping Dropdown */}
         <Pressable
           style={({ pressed }) => [
             styles.depthBandButton,
@@ -270,7 +344,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
         >
           <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-            {currentDepthBandLabel}
+            {currentGroupingLabel}
           </Text>
           <Icon
             name={IconName.ArrowDown}
@@ -308,8 +382,24 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         </View>
       </ScrollView>
 
-      {/* Footer Actions */}
+      {/* Footer with Spread and Actions */}
       <View style={styles.footer}>
+        {/* Spread Row */}
+        {orderBook && (
+          <View style={styles.spreadContainer}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {strings('perps.order_book.spread')}:
+            </Text>
+            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              ${parseFloat(orderBook.spread).toLocaleString()}
+            </Text>
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              ({orderBook.spreadPercentage}%)
+            </Text>
+          </View>
+        )}
+
+        {/* Action Buttons */}
         <View style={styles.actionsContainer}>
           <View style={styles.actionButtonWrapper}>
             <Button
@@ -335,7 +425,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         </View>
       </View>
 
-      {/* Depth Band Selection Bottom Sheet */}
+      {/* Price Grouping Selection Bottom Sheet */}
       {isDepthBandSheetVisible && (
         <BottomSheet
           ref={depthBandSheetRef}
@@ -348,25 +438,25 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             </Text>
           </BottomSheetHeader>
           <View style={styles.depthBandSheetContent}>
-            {DEPTH_BAND_OPTIONS.map((option) => (
+            {groupingOptions.map((value) => (
               <TouchableOpacity
-                key={option.value}
+                key={value}
                 style={[
                   styles.depthBandOption,
-                  depthBand === option.value && styles.depthBandOptionSelected,
+                  currentGrouping === value && styles.depthBandOptionSelected,
                 ]}
-                onPress={() => handleDepthBandSelect(option.value)}
-                testID={`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-${option.value}`}
+                onPress={() => handleGroupingSelect(value)}
+                testID={`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-${value}`}
               >
                 <Text
                   variant={TextVariant.BodyLGMedium}
                   color={
-                    depthBand === option.value
+                    currentGrouping === value
                       ? TextColor.Primary
                       : TextColor.Default
                   }
                 >
-                  {option.label}
+                  {formatGroupingLabel(value)}
                 </Text>
               </TouchableOpacity>
             ))}

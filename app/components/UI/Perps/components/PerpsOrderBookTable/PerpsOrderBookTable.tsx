@@ -39,7 +39,6 @@ export interface PerpsOrderBookTableProps {
  * - Bid/Ask split view with prices meeting in the center
  * - Depth bars showing relative size at each level
  * - Unit toggle (base currency vs USD)
- * - Spread indicator
  */
 const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
   orderBook,
@@ -169,13 +168,10 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
     [orderBook, styles, formatTotal, formatPrice, getDepthBarWidth],
   );
 
-  // Memoize bid rows
+  // Memoize bid rows - highest bids at top (price descending)
   const bidRows = useMemo(() => {
     if (!orderBook?.bids) return null;
-    // Reverse bids so lowest bid is at top (closest to spread)
-    return [...orderBook.bids]
-      .reverse()
-      .map((level, index) => renderBidRow(level, index));
+    return orderBook.bids.map((level, index) => renderBidRow(level, index));
   }, [orderBook?.bids, renderBidRow]);
 
   // Memoize ask rows
@@ -232,26 +228,6 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
 
         {/* Asks Side (Right) */}
         <View style={styles.asksSide}>{askRows}</View>
-      </View>
-
-      {/* Spread Indicator */}
-      <View
-        style={styles.spreadContainer}
-        testID={PerpsOrderBookTableSelectorsIDs.SPREAD}
-      >
-        <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-          {strings('perps.order_book.spread')}:
-        </Text>
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Default}
-          style={styles.spreadText}
-        >
-          {formatPrice(orderBook.spread)}
-        </Text>
-        <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-          ({orderBook.spreadPercentage}%)
-        </Text>
       </View>
     </View>
   );

@@ -44,7 +44,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: 120,
+      paddingBottom: 140,
     },
     section: {
       paddingHorizontal: 16,
@@ -54,8 +54,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 16,
     },
     tableSection: {
-      flex: 1,
-      minHeight: 300,
+      // No flex or minHeight - let content determine size
     },
     footer: {
       position: 'absolute',
@@ -68,6 +67,13 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
+    },
+    spreadContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingBottom: 12,
+      gap: 4,
     },
     actionsContainer: {
       flexDirection: 'row',

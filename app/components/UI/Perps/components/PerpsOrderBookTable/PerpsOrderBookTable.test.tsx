@@ -330,7 +330,7 @@ describe('PerpsOrderBookTable', () => {
       ).toBeOnTheScreen();
     });
 
-    it('reverses bid order so lowest bid is at top', () => {
+    it('displays bids with highest price at top', () => {
       const { getByTestId } = render(
         <PerpsOrderBookTable
           orderBook={mockOrderBookData}
@@ -339,7 +339,7 @@ describe('PerpsOrderBookTable', () => {
         />,
       );
 
-      // Bids should be reversed, so index 0 should be the lowest bid (49800)
+      // Bids should be in order, so index 0 should be the highest bid (50000)
       expect(
         getByTestId(`${PerpsOrderBookTableSelectorsIDs.BID_ROW}-0`),
       ).toBeOnTheScreen();
@@ -421,82 +421,7 @@ describe('PerpsOrderBookTable', () => {
     });
   });
 
-  describe('spread display', () => {
-    it('displays spread value', () => {
-      const { getByText } = render(
-        <PerpsOrderBookTable
-          orderBook={mockOrderBookData}
-          symbol="BTC"
-          unit="base"
-        />,
-      );
-
-      expect(getByText('Spread:')).toBeOnTheScreen();
-      expect(getByText('$100')).toBeOnTheScreen();
-    });
-
-    it('displays spread percentage', () => {
-      const { getByText } = render(
-        <PerpsOrderBookTable
-          orderBook={mockOrderBookData}
-          symbol="BTC"
-          unit="base"
-        />,
-      );
-
-      expect(getByText('(0.2%)')).toBeOnTheScreen();
-    });
-
-    it('renders spread with correct testID', () => {
-      const { getByTestId } = render(
-        <PerpsOrderBookTable
-          orderBook={mockOrderBookData}
-          symbol="BTC"
-          unit="base"
-        />,
-      );
-
-      expect(
-        getByTestId(PerpsOrderBookTableSelectorsIDs.SPREAD),
-      ).toBeOnTheScreen();
-    });
-
-    it('handles very small spread values', () => {
-      const smallSpreadData: OrderBookData = {
-        ...mockOrderBookData,
-        spread: '0.01',
-        spreadPercentage: '0.00002',
-      };
-
-      const { getByText } = render(
-        <PerpsOrderBookTable
-          orderBook={smallSpreadData}
-          symbol="BTC"
-          unit="base"
-        />,
-      );
-
-      expect(getByText('(0.00002%)')).toBeOnTheScreen();
-    });
-
-    it('handles large spread values', () => {
-      const largeSpreadData: OrderBookData = {
-        ...mockOrderBookData,
-        spread: '5000',
-        spreadPercentage: '10.5',
-      };
-
-      const { getByText } = render(
-        <PerpsOrderBookTable
-          orderBook={largeSpreadData}
-          symbol="BTC"
-          unit="base"
-        />,
-      );
-
-      expect(getByText('(10.5%)')).toBeOnTheScreen();
-    });
-  });
+  // Note: Spread row was removed from the component - no longer displaying spread in table
 
   describe('unit display - base currency', () => {
     it('formats totals with 4 decimals for values >= 1', () => {
@@ -841,29 +766,11 @@ describe('PerpsOrderBookTable', () => {
         getByTestId(PerpsOrderBookTableSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
     });
-
-    it('handles zero spread', () => {
-      const zeroSpreadData: OrderBookData = {
-        ...mockOrderBookData,
-        spread: '0',
-        spreadPercentage: '0',
-      };
-
-      const { getByText } = render(
-        <PerpsOrderBookTable
-          orderBook={zeroSpreadData}
-          symbol="BTC"
-          unit="base"
-        />,
-      );
-
-      expect(getByText('(0%)')).toBeOnTheScreen();
-    });
   });
 
   describe('re-rendering behavior', () => {
     it('re-renders when orderBook data changes', () => {
-      const { rerender, getByText } = render(
+      const { rerender, getByTestId } = render(
         <PerpsOrderBookTable
           orderBook={mockOrderBookData}
           symbol="BTC"
@@ -871,11 +778,21 @@ describe('PerpsOrderBookTable', () => {
         />,
       );
 
-      expect(getByText('(0.2%)')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookTableSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
 
       const updatedOrderBook: OrderBookData = {
         ...mockOrderBookData,
-        spreadPercentage: '0.5',
+        bids: [
+          {
+            price: '51000',
+            size: '2.0',
+            total: '2.0',
+            notional: '102000',
+            totalNotional: '102000',
+          },
+        ],
       };
 
       rerender(
@@ -886,7 +803,9 @@ describe('PerpsOrderBookTable', () => {
         />,
       );
 
-      expect(getByText('(0.5%)')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookTableSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('re-renders when symbol changes', () => {
@@ -938,7 +857,7 @@ describe('PerpsOrderBookTable', () => {
     });
 
     it('transitions from loading to loaded', () => {
-      const { rerender, getByText, queryByText } = render(
+      const { rerender, getByText, queryByText, getByTestId } = render(
         <PerpsOrderBookTable
           orderBook={null}
           symbol="BTC"
@@ -959,11 +878,13 @@ describe('PerpsOrderBookTable', () => {
       );
 
       expect(queryByText('Loading...')).not.toBeOnTheScreen();
-      expect(getByText('Spread:')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookTableSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('transitions from null to valid orderBook', () => {
-      const { rerender, getByText, queryByText } = render(
+      const { rerender, getByText, queryByText, getByTestId } = render(
         <PerpsOrderBookTable orderBook={null} symbol="BTC" unit="base" />,
       );
 
@@ -978,11 +899,13 @@ describe('PerpsOrderBookTable', () => {
       );
 
       expect(queryByText('No data available')).not.toBeOnTheScreen();
-      expect(getByText('Spread:')).toBeOnTheScreen();
+      expect(
+        getByTestId(`${PerpsOrderBookTableSelectorsIDs.BID_ROW}-0`),
+      ).toBeOnTheScreen();
     });
 
     it('transitions from valid orderBook to null', () => {
-      const { rerender, getByText, queryByText } = render(
+      const { rerender, getByText, queryByTestId } = render(
         <PerpsOrderBookTable
           orderBook={mockOrderBookData}
           symbol="BTC"
@@ -990,13 +913,17 @@ describe('PerpsOrderBookTable', () => {
         />,
       );
 
-      expect(getByText('Spread:')).toBeOnTheScreen();
+      expect(
+        queryByTestId(`${PerpsOrderBookTableSelectorsIDs.BID_ROW}-0`),
+      ).toBeOnTheScreen();
 
       rerender(
         <PerpsOrderBookTable orderBook={null} symbol="BTC" unit="base" />,
       );
 
-      expect(queryByText('Spread:')).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(`${PerpsOrderBookTableSelectorsIDs.BID_ROW}-0`),
+      ).not.toBeOnTheScreen();
       expect(getByText('No data available')).toBeOnTheScreen();
     });
   });
@@ -1046,20 +973,6 @@ describe('PerpsOrderBookTable', () => {
           getByTestId(`${PerpsOrderBookTableSelectorsIDs.ASK_ROW}-${index}`),
         ).toBeOnTheScreen();
       });
-    });
-
-    it('provides testID for spread', () => {
-      const { getByTestId } = render(
-        <PerpsOrderBookTable
-          orderBook={mockOrderBookData}
-          symbol="BTC"
-          unit="base"
-        />,
-      );
-
-      expect(
-        getByTestId(PerpsOrderBookTableSelectorsIDs.SPREAD),
-      ).toBeOnTheScreen();
     });
   });
 });

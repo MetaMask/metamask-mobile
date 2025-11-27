@@ -381,16 +381,19 @@ describe('PerpsOrderBookView', () => {
     });
   });
 
-  describe('depth band selection', () => {
-    it('displays default depth band label (5)', () => {
+  describe('price grouping selection', () => {
+    // For BTC at $50,050 mid price, grouping options are: 1, 2, 5, 10, 100, 1000
+    // Default selection is the 4th option (index 3): 10
+    it('displays default grouping label based on price', () => {
       const { getByText } = renderWithProvider(<PerpsOrderBookView />, {
         state: initialState,
       });
 
-      expect(getByText('5')).toBeOnTheScreen();
+      // For mid price $50,050, default is 10 (4th option in 1, 2, 5, 10, 100, 1000)
+      expect(getByText('10')).toBeOnTheScreen();
     });
 
-    it('opens depth band bottom sheet when button is pressed', async () => {
+    it('opens grouping bottom sheet when button is pressed', async () => {
       const { getByTestId, getByText } = renderWithProvider(
         <PerpsOrderBookView />,
         { state: initialState },
@@ -407,10 +410,11 @@ describe('PerpsOrderBookView', () => {
       });
     });
 
-    it('displays all depth band options in bottom sheet', async () => {
-      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
-        state: initialState,
-      });
+    it('displays dynamic grouping options in bottom sheet', async () => {
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsOrderBookView />,
+        { state: initialState },
+      );
 
       const depthBandButton = getByTestId(
         PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON,
@@ -418,23 +422,17 @@ describe('PerpsOrderBookView', () => {
 
       fireEvent.press(depthBandButton);
 
+      // For BTC at $50,050, options are 1, 2, 5, 10, 100, 1000
       await waitFor(() => {
-        expect(
-          getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-2`),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-3`),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-4`),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-5`),
-        ).toBeOnTheScreen();
+        expect(getByText('1')).toBeOnTheScreen();
+        expect(getByText('2')).toBeOnTheScreen();
+        expect(getByText('5')).toBeOnTheScreen();
+        expect(getByText('100')).toBeOnTheScreen();
+        expect(getByText('1000')).toBeOnTheScreen();
       });
     });
 
-    it('selects depth band option when pressed', async () => {
+    it('selects grouping option when pressed', async () => {
       const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
         state: initialState,
       });
@@ -446,52 +444,30 @@ describe('PerpsOrderBookView', () => {
       fireEvent.press(depthBandButton);
 
       await waitFor(() => {
-        const option2 = getByTestId(
-          `${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-2`,
+        const option = getByTestId(
+          `${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-1`,
         );
-        expect(option2).toBeOnTheScreen();
+        expect(option).toBeOnTheScreen();
       });
 
-      const option2 = getByTestId(
-        `${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-2`,
+      const option = getByTestId(
+        `${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-1`,
       );
 
-      fireEvent.press(option2);
+      fireEvent.press(option);
 
       expect(mockTrack).toHaveBeenCalled();
     });
 
-    it('updates usePerpsLiveOrderBook with new depth band', async () => {
-      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
-        state: initialState,
-      });
+    it('always uses nSigFigs: 5 for API (client-side aggregation)', () => {
+      renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
-      const depthBandButton = getByTestId(
-        PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON,
+      // nSigFigs should always be 5 (finest granularity) regardless of grouping selection
+      expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nSigFigs: 5,
+        }),
       );
-
-      fireEvent.press(depthBandButton);
-
-      await waitFor(() => {
-        const option3 = getByTestId(
-          `${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-3`,
-        );
-        expect(option3).toBeOnTheScreen();
-      });
-
-      const option3 = getByTestId(
-        `${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-3`,
-      );
-
-      fireEvent.press(option3);
-
-      await waitFor(() => {
-        expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
-          expect.objectContaining({
-            nSigFigs: 3,
-          }),
-        );
-      });
     });
   });
 
@@ -649,12 +625,12 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
-    it('subscribes to live order book with correct levels', () => {
+    it('subscribes to live order book with 50 levels for client-side aggregation', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          levels: 10,
+          levels: 50,
         }),
       );
     });
@@ -669,7 +645,7 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
-    it('subscribes to live order book with default nSigFigs', () => {
+    it('subscribes to live order book with finest nSigFigs (5) for aggregation', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
