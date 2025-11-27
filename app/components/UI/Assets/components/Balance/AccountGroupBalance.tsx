@@ -81,7 +81,9 @@ const AccountGroupBalance = () => {
       // Mark as fetched if either balance has changed from initial 0, or if both exist and are non-zero
       const hasChanged = currentBalance !== initialBalanceRef.current;
       const bothExistAndNonZero =
-        currentBalance > 0 && accountGroupCurrentBalance !== null;
+        currentBalance > 0 &&
+        accountGroupCurrentBalance !== null &&
+        accountGroupCurrentBalance > 0;
 
       if (hasChanged || bothExistAndNonZero) {
         setHasBalanceFetched(true);
