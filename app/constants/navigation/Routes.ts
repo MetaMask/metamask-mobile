@@ -79,7 +79,7 @@ const Routes = {
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   TRENDING_VIEW: 'TrendingView',
-  SITES_LIST_VIEW: 'SitesListView',
+  SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
@@ -264,6 +264,11 @@ const Routes = {
     CLOSE_POSITION: 'PerpsClosePosition',
     HIP3_DEBUG: 'PerpsHIP3Debug',
     TPSL: 'PerpsTPSL',
+    ADJUST_MARGIN: 'PerpsAdjustMargin',
+    SELECT_MODIFY_ACTION: 'PerpsSelectModifyAction',
+    SELECT_ADJUST_MARGIN_ACTION: 'PerpsSelectAdjustMarginAction',
+    SELECT_ORDER_TYPE: 'PerpsSelectOrderType',
+    ORDER_DETAILS: 'PerpsOrderDetailsView',
     PNL_HERO_CARD: 'PerpsPnlHeroCard',
     ACTIVITY: 'PerpsActivity', // Stack-based activity view for proper back navigation
     MODALS: {
