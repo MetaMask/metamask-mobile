@@ -84,9 +84,9 @@ export function getAvailableTokens({
   requiredTokens,
   tokens,
 }: {
-  tokens: AssetType[];
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
+  tokens: AssetType[];
 }): AssetType[] {
   return tokens
     .filter((token) => {
