@@ -255,7 +255,10 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     const isPreinstalled = isSnapPreinstalled(snapId);
 
     // Since the introduction of BIP-44, multichain wallet Snaps will skip them automatically too!
-    let skipAll = isPreinstalled && isMultichainWalletSnap(snapId);
+    let skipAll =
+      isMultichainAccountsState2Enabled() &&
+      isPreinstalled &&
+      isMultichainWalletSnap(snapId);
     // FIXME: We still rely on the old behavior in some e2e, so we do not skip them in this case.
     if (isE2E) {
       skipAll = false;
