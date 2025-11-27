@@ -16,7 +16,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getBridgeTokenSelectorNavbar } from '../../../Navbar';
 import { FlatList } from 'react-native-gesture-handler';
-import { NetworkPills } from './NetworkPills';
+import { getNetworkName, NetworkPills } from './NetworkPills';
 import { CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
@@ -45,9 +45,8 @@ import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
-import { getNetworkName } from '../BridgeDestTokenSelector';
-import { Hex } from 'viem';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export interface BridgeTokenSelectorRouteParams {
   type: 'source' | 'dest';
@@ -277,12 +276,13 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const handleInfoButtonPress = useCallback(
     (item: BridgeToken) => {
-      navigation.dispatch({
-        type: 'NAVIGATE',
-        payload: {
-          name: 'Asset',
-          key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
-          params: { ...item },
+      const networkName = getNetworkName(item.chainId, networkConfigurations);
+
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.TOKEN_INSIGHTS,
+        params: {
+          token: item,
+          networkName,
         },
       });
 
@@ -292,10 +292,7 @@ export const BridgeTokenSelector: React.FC = () => {
           token_name: item.name ?? 'Unknown',
           token_symbol: item.symbol,
           token_contract: item.address,
-          chain_name: getNetworkName(
-            item.chainId as Hex,
-            networkConfigurations,
-          ),
+          chain_name: networkName,
           chain_id: item.chainId,
         },
       );

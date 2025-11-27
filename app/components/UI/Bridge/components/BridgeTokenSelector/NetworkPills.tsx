@@ -13,7 +13,7 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { ScrollView } from 'react-native-gesture-handler';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 
-const getNetworkName = (
+export const getNetworkName = (
   chainId: Hex | CaipChainId,
   networkConfigurations: Record<string, MultichainNetworkConfiguration>,
 ) => {
