@@ -21,13 +21,13 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const comments = await github.rest.issues.listComments({
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number
             });
 
-            const hasCursorComment = comments.data.some(comment => 
+            const hasCursorComment = comments.some(comment => 
               comment.body.trim().startsWith('@cursor')
             );
 
