@@ -75,7 +75,7 @@ const PerpsSelectModifyActionView: React.FC<
             navigateToOrder({
               direction: oppositeDirection,
               asset: position.coin,
-              size: positionSize.toString(),
+              amount: positionSize.toString(),
               leverage: positionLeverage,
             });
           }

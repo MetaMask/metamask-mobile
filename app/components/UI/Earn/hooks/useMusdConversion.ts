@@ -49,10 +49,9 @@ export interface MusdConversionConfig {
  * await initiateConversion({
  *   outputChainId: CHAIN_IDS.MAINNET,
  *   preferredPaymentToken: {
- *     address: USDC_ADDRESS_ARBITRUM,
+ *     address: USDC_ADDRESS_MAINNET,
  *     chainId: CHAIN_IDS.MAINNET,
  *   },
- *   allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
  *   navigationStack: Routes.EARN.ROOT,
  * });
  */
@@ -67,8 +66,8 @@ export const useMusdConversion = () => {
   const selectedAddress = selectedAccount?.address;
 
   /**
-   * Creates a placeholder transaction and navigating to confirmation.
-   * Navigation happens immediately, then transaction creation happens in background.
+   * Creates a placeholder transaction and navigates to confirmation.
+   * Navigation happens immediately. Transaction creation and gas estimation happen asynchronously.
    */
   const initiateConversion = useCallback(
     async (config: MusdConversionConfig): Promise<string> => {

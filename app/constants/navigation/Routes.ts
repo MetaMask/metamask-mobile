@@ -271,6 +271,7 @@ const Routes = {
     ORDER_DETAILS: 'PerpsOrderDetailsView',
     PNL_HERO_CARD: 'PerpsPnlHeroCard',
     ACTIVITY: 'PerpsActivity', // Stack-based activity view for proper back navigation
+    ORDER_BOOK: 'PerpsOrderBook', // Full order book depth view
     MODALS: {
       ROOT: 'PerpsModals',
       CLOSE_POSITION_MODALS: 'PerpsClosePositionModals',

@@ -46,6 +46,17 @@ const styleSheet = (params: { theme: Theme }) =>
       borderWidth: 1,
       borderColor: params.theme.colors.border.default,
     },
+    orderBookRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 12,
+      backgroundColor: params.theme.colors.background.section,
+    },
+    orderBookRowContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
   });
 
 export default styleSheet;

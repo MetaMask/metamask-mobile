@@ -8,15 +8,14 @@ import {
 } from '../../../../../UI/Earn/constants/musd';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { MusdConversionConfig } from '../../../../../UI/Earn/hooks/useMusdConversion';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useParams } from '../../../../../../util/navigation/navUtils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const MusdConversionInfo = () => {
-  // TEMP: Will be brought back in subsequent PR.
-  // const preferredPaymentToken = route.params?.preferredPaymentToken;
-  const { outputChainId } = useParams<MusdConversionConfig>({
-    outputChainId: CHAIN_IDS.MAINNET,
-  });
+  const { outputChainId, preferredPaymentToken } =
+    useParams<MusdConversionConfig>({
+      outputChainId: CHAIN_IDS.MAINNET,
+    });
 
   useNavbar(strings('earn.musd_conversion.earn_rewards_with'));
 
@@ -38,5 +37,5 @@ export const MusdConversionInfo = () => {
     tokenAddress: tokenToAddAddress,
   });
 
-  return <CustomAmountInfo />;
+  return <CustomAmountInfo preferredToken={preferredPaymentToken} />;
 };
