@@ -342,6 +342,7 @@ describe('useTransactionConfirm', () => {
         maxPriorityFeePerGas: '0x2',
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
     });
+
     it('adds batchTransactions and gas properties when smart transaction is enabled', async () => {
       const { result } = renderHook();
 
@@ -367,6 +368,25 @@ describe('useTransactionConfirm', () => {
       useSelectedGasFeeTokenMock.mockReturnValue(
         undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
       );
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.not.objectContaining({
+          batchTransactions: expect.any(Array),
+        }),
+      });
+    });
+
+    it('does nothing if isGasFeeTokenIgnoredIfBalance', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        isGasFeeTokenIgnoredIfBalance: true,
+      } as unknown as TransactionMeta);
 
       const { result } = renderHook();
 
@@ -427,6 +447,29 @@ describe('useTransactionConfirm', () => {
       useSelectedGasFeeTokenMock.mockReturnValue(
         undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
       );
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.not.objectContaining({ isExternalSign: true }),
+      });
+    });
+
+    it('does nothing if isGasFeeTokenIgnoredIfBalance', async () => {
+      isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
+
+      useSelectedGasFeeTokenMock.mockReturnValue({
+        transferTransaction: { data: '0xabc' },
+      } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        isGasFeeTokenIgnoredIfBalance: true,
+      } as unknown as TransactionMeta);
 
       const { result } = renderHook();
 

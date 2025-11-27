@@ -1,10 +1,10 @@
 import {
-  PerpsPositionCardSelectorsIDs,
   PerpsGeneralSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
   PerpsPositionDetailsViewSelectorsIDs,
+  PerpsMarketDetailsViewSelectorsIDs,
   getPerpsTPSLViewSelector,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
@@ -14,7 +14,9 @@ import Utilities from '../../framework/Utilities';
 
 class PerpsView {
   get closePositionButton() {
-    return Matchers.getElementByID(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON);
+    return Matchers.getElementByID(
+      PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+    );
   }
 
   getPositionItem(

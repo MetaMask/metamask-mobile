@@ -94,7 +94,20 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
 }));
 
 // Mock usePredictOrderPreview hook - external API dependency
-let mockPreview = {
+let mockPreview: {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  timestamp: number;
+  side: string;
+  sharePrice: number;
+  maxAmountSpent: number;
+  minAmountReceived: number;
+  slippage: number;
+  tickSize: number;
+  minOrderSize: number;
+  negRisk: boolean;
+} | null = {
   marketId: 'market-1',
   outcomeId: 'outcome-456',
   outcomeTokenId: 'outcome-token-789',
@@ -108,11 +121,14 @@ let mockPreview = {
   minOrderSize: 1,
   negRisk: false,
 };
+let mockPreviewError: string | null = null;
+let mockIsCalculating = false;
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: () => ({
     preview: mockPreview,
-    isCalculating: false,
-    error: null,
+    isCalculating: mockIsCalculating,
+    isLoading: mockPreview === null && !mockPreviewError && mockIsCalculating,
+    error: mockPreviewError,
   }),
 }));
 
@@ -234,6 +250,8 @@ describe('PredictSellPreview', () => {
       minOrderSize: 1,
       negRisk: false,
     };
+    mockPreviewError = null;
+    mockIsCalculating = false;
     mockLoadingState = false;
     mockPlaceOrderResult = null;
     mockPlaceOrderError = undefined;
@@ -391,6 +409,81 @@ describe('PredictSellPreview', () => {
 
       expect(getByText('Cashing out...')).toBeOnTheScreen();
       mockLoadingState = false;
+    });
+  });
+
+  describe('preview loading and error states', () => {
+    it('shows skeleton when preview is null', () => {
+      mockPreview = null;
+      mockIsCalculating = true;
+      mockPreviewError = null;
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      // Should not show the current value when loading
+      expect(screen.queryByText('$60')).toBeNull();
+    });
+
+    it('falls back to position currentValue when preview has error', () => {
+      mockPreview = null;
+      mockPreviewError = 'Failed to fetch preview';
+      mockIsCalculating = false;
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      // Should display position's currentValue when preview errors
+      expect(screen.getByText('$60')).toBeOnTheScreen();
+      // Should still show PnL from position data
+      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+    });
+
+    it('displays preview error message when preview fails', () => {
+      mockPreview = null;
+      mockPreviewError = 'Network error: Unable to fetch preview data';
+      mockIsCalculating = false;
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(
+        screen.getByText('Network error: Unable to fetch preview data'),
+      ).toBeOnTheScreen();
+    });
+
+    it('calculates PnL from position data when preview has error', () => {
+      mockPreview = null;
+      mockPreviewError = 'Preview unavailable';
+      mockIsCalculating = false;
+
+      const positionWithDifferentValue = {
+        ...mockPosition,
+        initialValue: 100,
+        currentValue: 150,
+        percentPnl: 50,
+        cashPnl: 50,
+      };
+
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          position: positionWithDifferentValue,
+        },
+      });
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      // Should show position's current value
+      expect(screen.getByText('$150')).toBeOnTheScreen();
+      // Should calculate PnL from position data
+      expect(screen.getByText('+$50 (50%)')).toBeOnTheScreen();
     });
   });
 

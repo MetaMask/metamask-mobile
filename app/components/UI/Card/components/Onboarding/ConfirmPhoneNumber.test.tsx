@@ -344,6 +344,7 @@ const createTestStore = (initialState = {}) =>
 
 describe('ConfirmPhoneNumber Component', () => {
   const mockNavigate = jest.fn();
+  const mockReset = jest.fn();
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
@@ -358,6 +359,7 @@ describe('ConfirmPhoneNumber Component', () => {
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
     } as never);
     mockUseParams.mockReturnValue({
       phoneCountryCode: '1',
@@ -559,7 +561,7 @@ describe('ConfirmPhoneNumber Component', () => {
       expect(button.props.disabled).toBe(false);
     });
 
-    it('should navigate to VERIFY_IDENTITY when continue button is pressed', async () => {
+    it('navigates to VERIFY_IDENTITY when continue button is pressed', async () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -571,18 +573,22 @@ describe('ConfirmPhoneNumber Component', () => {
       fireEvent.changeText(codeFieldInput, '123456');
 
       const button = getByTestId('confirm-phone-number-continue-button');
-      fireEvent.press(button);
+
+      await act(async () => {
+        fireEvent.press(button);
+      });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
-        );
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
+        });
       });
     });
   });
 
   describe('Auto-submit Functionality', () => {
-    it('should auto-submit when 6 digits are entered', async () => {
+    it('auto-submits when 6 digits are entered', async () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -591,16 +597,20 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       const codeFieldInput = getByTestId('confirm-phone-number-code-field');
-      fireEvent.changeText(codeFieldInput, '123456');
+
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
-        );
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
+        });
       });
     });
 
-    it('should not auto-submit when less than 6 digits are entered', async () => {
+    it('does not auto-submit when less than 6 digits are entered', async () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -615,10 +625,10 @@ describe('ConfirmPhoneNumber Component', () => {
       act(() => {
         jest.runOnlyPendingTimers();
       });
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
     });
 
-    it('should not auto-submit the same code twice', async () => {
+    it('does not auto-submit the same code twice', async () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -629,21 +639,26 @@ describe('ConfirmPhoneNumber Component', () => {
       const codeFieldInput = getByTestId('confirm-phone-number-code-field');
 
       // First submission
-      fireEvent.changeText(codeFieldInput, '123456');
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockReset).toHaveBeenCalledTimes(1);
       });
 
       // Clear the mock to reset call count
-      mockNavigate.mockClear();
+      mockReset.mockClear();
 
       // Clear and enter different code
-      fireEvent.changeText(codeFieldInput, '');
-      fireEvent.changeText(codeFieldInput, '654321');
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '');
+        fireEvent.changeText(codeFieldInput, '654321');
+      });
 
-      // Should navigate again with new code
+      // Should reset navigation again with new code
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockReset).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -1069,9 +1084,10 @@ describe('ConfirmPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          'CardOnboardingVerifyIdentity',
-        );
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.ONBOARDING.VERIFY_IDENTITY }],
+        });
       });
     });
 
