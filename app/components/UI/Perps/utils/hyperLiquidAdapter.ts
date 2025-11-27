@@ -290,8 +290,8 @@ export function adaptAccountStateFromSDK(
   // CURRENT IMPLEMENTATION: Option 2 (Combined balance)
   // This matches the HyperLiquid web UI behavior but should be reviewed
 
-  // Get Perps balance
-  const perpsBalance = parseFloat(perpsState.crossMarginSummary.accountValue);
+  // marginSummary.accountValue includes all margin (isolated positions)
+  const perpsBalance = parseFloat(perpsState.marginSummary.accountValue);
 
   // Get Spot balance (if available)
   let spotBalance = 0;
@@ -307,9 +307,9 @@ export function adaptAccountStateFromSDK(
   const totalBalance = (spotBalance + perpsBalance).toString();
 
   const accountState: AccountState = {
-    availableBalance: perpsState.withdrawable || '0', // Always Perps withdrawable
-    totalBalance: totalBalance || '0', // Combined or Perps-only? See TODO above
-    marginUsed: perpsState.marginSummary.totalMarginUsed || '0', // margin used including cross margin
+    availableBalance: perpsState.withdrawable || '0',
+    totalBalance: totalBalance || '0',
+    marginUsed: perpsState.marginSummary.totalMarginUsed || '0',
     unrealizedPnl: totalUnrealizedPnl.toString() || '0',
     returnOnEquity: totalReturnOnEquityPercentage || '0',
   };
