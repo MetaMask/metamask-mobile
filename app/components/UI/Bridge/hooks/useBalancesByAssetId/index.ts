@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 import { useTokensWithBalance } from '../useTokensWithBalance';
 import { CaipChainId, Hex } from '@metamask/utils';
 
@@ -40,7 +43,11 @@ export const useBalancesByAssetId = ({
     tokensWithBalance.forEach((token) => {
       const assetId = formatAddressToAssetId(token.address, token.chainId);
       if (assetId && token.balance) {
-        balancesMap[assetId] = {
+        // Normalize assetId because API returns assetId in lowercase for EVM chains
+        const normalizedAssetId = isNonEvmChainId(token.chainId)
+          ? assetId
+          : assetId?.toLowerCase();
+        balancesMap[normalizedAssetId ?? ''] = {
           balance: token.balance,
           balanceFiat: token.balanceFiat,
           tokenFiatAmount: token.tokenFiatAmount,

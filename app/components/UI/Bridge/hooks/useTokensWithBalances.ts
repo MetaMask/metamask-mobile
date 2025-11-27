@@ -61,7 +61,11 @@ export const useTokensWithBalances = (
     const convertedTokens = convertAPITokensToBridgeTokens(apiTokens);
 
     return convertedTokens.map((token) => {
-      const balanceData = balancesByAssetId[token.assetId ?? ''];
+      // Normalize assetId because API returns assetId in lowercase for EVM chains
+      const normalizedAssetId = isNonEvmChainId(token.chainId)
+        ? token.assetId
+        : token.assetId?.toLowerCase();
+      const balanceData = balancesByAssetId[normalizedAssetId ?? ''];
       if (balanceData) {
         return {
           ...token,

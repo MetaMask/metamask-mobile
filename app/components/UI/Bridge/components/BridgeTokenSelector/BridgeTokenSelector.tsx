@@ -17,7 +17,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { getBridgeTokenSelectorNavbar } from '../../../Navbar';
 import { FlatList } from 'react-native-gesture-handler';
 import { getNetworkName, NetworkPills } from './NetworkPills';
-import { CaipChainId } from '@metamask/utils';
+import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
@@ -47,6 +47,7 @@ import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export interface BridgeTokenSelectorRouteParams {
   type: 'source' | 'dest';
@@ -153,8 +154,11 @@ export const BridgeTokenSelector: React.FC = () => {
     >((acc, token) => {
       const assetId = formatAddressToAssetId(token.address, token.chainId);
       if (assetId) {
+        const normalizedAssetId = isNonEvmChainId(token.chainId)
+          ? assetId
+          : (assetId?.toLowerCase() as CaipAssetType);
         acc.push({
-          assetId,
+          assetId: normalizedAssetId,
           name: token.name ?? '',
           symbol: token.symbol,
           decimals: token.decimals,
