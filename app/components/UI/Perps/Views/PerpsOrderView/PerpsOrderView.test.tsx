@@ -70,6 +70,7 @@ import PerpsOrderView from './PerpsOrderView';
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
+  useFocusEffect: jest.fn((callback) => callback()),
 }));
 
 // Mock i18n strings
