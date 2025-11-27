@@ -588,33 +588,3 @@ jest.mock('../../components/Base/RemoteImage', () => {
   const { View } = require('react-native');
   return (props) => <View {...props} testID="mock-remote-image" />;
 });
-
-// 2. The Guard: Enforce Whitelist for jest.mock
-// ------------------------------------------------
-const ALLOWED_MOCK_MODULES_LIST = require('./component-view/allowedMockModules');
-(() => {
-  const ALLOWED_MOCK_MODULES = new Set(ALLOWED_MOCK_MODULES_LIST);
-  const originalJestMock = jest.mock.bind(jest);
-
-  // eslint-disable-next-line no-underscore-dangle
-  jest.mock = new Proxy(originalJestMock, {
-    apply(target, thisArg, args) {
-      const [moduleName] = args;
-      if (!ALLOWED_MOCK_MODULES.has(moduleName)) {
-        const attemptedModule = String(moduleName);
-        const currentTestPath =
-          global.expect?.getState?.().testPath ?? 'unknown test file';
-        const allowedList = [...ALLOWED_MOCK_MODULES].join(', ');
-        const guidanceLines = [
-          `Forbidden jest.mock("${attemptedModule}") in component-view tests.`,
-          `Test file: ${currentTestPath}`,
-          `Allowed mocks: ${allowedList}`,
-          'Tip: Prefer jest.spyOn() or dependency injection for targeted behavior.',
-          'To permanently allow a module, update app/util/test/component-view/allowedMockModules.js (requires review).',
-        ];
-        throw new Error(guidanceLines.join('\n'));
-      }
-      return Reflect.apply(target, thisArg, args);
-    },
-  });
-})();

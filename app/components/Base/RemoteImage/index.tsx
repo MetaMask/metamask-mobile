@@ -72,11 +72,6 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
         setResolvedIpfsUrl(false);
         return;
       }
-      // Only resolve IPFS URLs; otherwise exit early
-      if (!source.uri.startsWith('ipfs:')) {
-        setResolvedIpfsUrl(false);
-        return;
-      }
       try {
         const ipfsUrl = await getFormattedIpfsUrl(
           ipfsGateway,
