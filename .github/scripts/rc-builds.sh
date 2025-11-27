@@ -5,7 +5,7 @@ set -euo pipefail
 METAMASK_WORKFLOW="pr_rc_rwy_pipeline"
 GH_REF_NAME="release/${SEMVER}"
 
-./scripts/set-build-version.sh $BUILD_NUMBER
+../../scripts/set-build-version.sh $BUILD_NUMBER
 git diff
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
