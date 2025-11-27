@@ -353,6 +353,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   MARKET_HOURS_INFO_BUTTON: 'perps-market-hours-banner-info-button',
   MARKET_HOURS_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-market-hours-bottom-sheet-tooltip',
+  STOP_LOSS_PROMPT_BANNER: 'perps-market-details-stop-loss-prompt-banner',
 };
 
 // ========================================
@@ -458,6 +459,17 @@ export const PerpsTutorialSelectorsIDs = {
   CAROUSEL: 'perps-tutorial-carousel',
   CHARACTER_IMAGE: 'perps-tutorial-character-image',
   TUTORIAL_CARD: 'perps-tutorial-card',
+} as const;
+
+// ========================================
+// PERPS STOP LOSS PROMPT BANNER SELECTORS
+// ========================================
+
+export const PerpsStopLossPromptSelectorsIDs = {
+  CONTAINER: 'perps-stop-loss-prompt-container',
+  ADD_MARGIN_BUTTON: 'perps-stop-loss-prompt-add-margin-button',
+  TOGGLE: 'perps-stop-loss-prompt-toggle',
+  LOADING: 'perps-stop-loss-prompt-loading',
 } as const;
 
 // ========================================
