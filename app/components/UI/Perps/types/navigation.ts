@@ -20,7 +20,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     direction: 'long' | 'short';
     asset: string;
     leverage?: number;
-    size?: string;
+    amount?: string;
     price?: string;
     orderType?: OrderType;
     hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
