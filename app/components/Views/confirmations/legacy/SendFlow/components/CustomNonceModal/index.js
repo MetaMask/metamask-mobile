@@ -43,7 +43,8 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     nonceInput: {
-      width: 80,
+      minWidth: 80,
+      maxWidth: 200,
       fontSize: 36,
       ...fontStyles.bold,
       color: colors.text.default,
