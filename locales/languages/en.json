@@ -3856,7 +3856,8 @@
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
     "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask.",
-    "edit_networks_title": "Edit networks"
+    "edit_networks_title": "Edit networks",
+    "no_network_fee": "No network fee"
   },
   "permissions": {
     "title_this_site_wants_to": "This site wants to:",
@@ -6049,6 +6050,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network fee",
+    "gas_fees_sponsored": "Paid by MetaMask",
     "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
@@ -6060,6 +6062,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network Fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can swap without {{nativeToken}} in your account.",
     "points": "Est. points",
     "points_tooltip": "Points",
     "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
