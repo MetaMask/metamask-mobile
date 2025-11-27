@@ -22,7 +22,7 @@ import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { generateDefaults } from '../Analytics/analytics';
+import { analytics } from '../Analytics/analytics';
 import { VaultBackupResult } from './types';
 import { isE2E } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
@@ -150,7 +150,7 @@ export class EngineService {
         : persistedState?.backgroundState) ?? {};
 
     // Read analytics defaults from MMKV via StorageWrapper (or generate defaults)
-    const analyticsDefaults = await generateDefaults();
+    const analyticsDefaults = await analytics.generateDefaults();
 
     const Engine = UntypedEngine;
     try {
@@ -290,11 +290,14 @@ export class EngineService {
       });
 
       // Read analytics defaults from MMKV via StorageWrapper (or generate defaults)
-      const analyticsDefaults = await generateDefaults();
+      const analyticsDefaults = await analytics.generateDefaults();
 
       const instance = Engine.init(state, newKeyringState, analyticsDefaults);
       if (instance) {
         this.initializeControllers(instance);
+
+        // Set up SecureKeychain analytics callbacks after Engine is initialized
+
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return {

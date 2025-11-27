@@ -2,6 +2,7 @@ import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import { Engine as EngineClass } from '../Engine/Engine';
 import {
+  BIOMETRY_CHOICE,
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
@@ -73,6 +74,8 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
+import { analytics } from '../Analytics/analytics';
+import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -398,23 +401,50 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       switch (authType) {
-        case AUTHENTICATION_TYPE.BIOMETRIC:
+        case AUTHENTICATION_TYPE.BIOMETRIC: {
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.BIOMETRICS,
           );
+          // Check if biometrics were actually set (iOS cancellation falls back to password silently)
+          const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
+          if (biometryChoice === TRUE) {
+            // Track analytics for authentication type change (biometrics successfully set)
+            analytics.identify({
+              [UserProfileProperty.AUTHENTICATION_TYPE]:
+                AUTHENTICATION_TYPE.BIOMETRIC,
+            });
+          } else {
+            // iOS biometric cancellation: SecureKeychain silently fell back to password
+            // Track analytics for password authentication
+            analytics.identify({
+              [UserProfileProperty.AUTHENTICATION_TYPE]:
+                AUTHENTICATION_TYPE.PASSWORD,
+            });
+          }
           break;
+        }
         case AUTHENTICATION_TYPE.PASSCODE:
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.PASSCODE,
           );
+          // Track analytics for authentication type change
+          analytics.identify({
+            [UserProfileProperty.AUTHENTICATION_TYPE]:
+              AUTHENTICATION_TYPE.PASSCODE,
+          });
           break;
         case AUTHENTICATION_TYPE.REMEMBER_ME:
           await SecureKeychain.setGenericPassword(
             password,
             SecureKeychain.TYPES.REMEMBER_ME,
           );
+          // Track analytics for authentication type change
+          analytics.identify({
+            [UserProfileProperty.AUTHENTICATION_TYPE]:
+              AUTHENTICATION_TYPE.REMEMBER_ME,
+          });
           break;
         case AUTHENTICATION_TYPE.PASSWORD:
           await SecureKeychain.setGenericPassword(password, undefined);
@@ -436,6 +466,10 @@ class AuthenticationService {
   resetPassword = async () => {
     try {
       await SecureKeychain.resetGenericPassword();
+      // Track analytics for authentication type change (back to password)
+      analytics.identify({
+        [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
+      });
     } catch (error) {
       throw new AuthenticationError(
         `${AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE} ${

@@ -1,11 +1,14 @@
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+// Import directly from source files to avoid circular dependency
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import MetaMetrics from '../../../../core/Analytics/MetaMetrics';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useAnalytics from './useAnalytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
-jest.mock('../../../../core/Analytics', () => ({
-  ...jest.requireActual('../../../../core/Analytics'),
-  MetaMetrics: {
+// Mock MetaMetrics directly from source file to avoid circular dependency
+jest.mock('../../../../core/Analytics/MetaMetrics', () => ({
+  __esModule: true,
+  default: {
     getInstance: jest.fn().mockReturnValue({
       trackEvent: jest.fn(),
     }),

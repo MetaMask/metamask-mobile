@@ -1,4 +1,5 @@
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+// Import directly from source file to avoid circular dependency
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import {
   securityAlertResponse,
   typedSignV4ConfirmationState,
@@ -22,12 +23,19 @@ jest.mock('../../../../../util/address', () => ({
 }));
 
 const mockTrackEvent = jest.fn().mockImplementation();
-jest.mock('../../../../../core/Analytics', () => ({
-  ...jest.requireActual('../../../../../core/Analytics'),
-  MetaMetrics: {
+// Import directly from source files to avoid circular dependency
+jest.mock('../../../../../core/Analytics/MetaMetrics', () => ({
+  __esModule: true,
+  default: {
     getInstance: () => ({ trackEvent: mockTrackEvent }),
   },
 }));
+jest.mock('../../../../../core/Analytics/MetaMetrics.events', () =>
+  jest.requireActual('../../../../../core/Analytics/MetaMetrics.events'),
+);
+jest.mock('../../../../../core/Analytics/MetaMetrics.types', () =>
+  jest.requireActual('../../../../../core/Analytics/MetaMetrics.types'),
+);
 
 const mockAddProperties = jest
   .fn()

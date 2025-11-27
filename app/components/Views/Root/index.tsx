@@ -6,6 +6,11 @@ import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
+import { analytics } from '../../../core/Analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../core/Analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import Device from '../../../util/device';
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import ErrorBoundary from '../ErrorBoundary';
 import ThemeProvider from '../../../component-library/providers/ThemeProvider/ThemeProvider';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
@@ -49,6 +54,21 @@ const Root = ({ foxCode }: RootProps) => {
       Logger.error(foxCodeError);
     }
     SecureKeychain.init(foxCode);
+
+    // Track Android Hardware Keystore availability
+    // This is called early in app initialization, so analytics may queue the event
+    if (Device.isAndroid() && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE) {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE.category,
+        )
+          .addProperties({})
+          .addSensitiveProperties({})
+          .setSaveDataRecording(true)
+          .build(),
+      );
+    }
+
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
     // Wait for store to be initialized in Detox tests
