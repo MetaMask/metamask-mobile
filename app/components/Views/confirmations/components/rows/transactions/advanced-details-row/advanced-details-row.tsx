@@ -52,6 +52,8 @@ const AdvancedDetailsRow = () => {
   const isSTXOptIn = useSelector((state: RootState) =>
     selectSmartTransactionsOptInStatus(state),
   );
+
+  // Nonce is always editable unless smart transactions are enabled
   const isNonceChangeDisabled = isSTXEnabledForChain && isSTXOptIn;
 
   const { styles } = useStyles(styleSheet, {
