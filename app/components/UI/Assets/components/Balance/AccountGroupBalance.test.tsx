@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react-native';
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -56,6 +57,16 @@ const testState = {
 };
 
 describe('AccountGroupBalance', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
   it('renders loader when balance is not ready', () => {
     const { queryByTestId } = renderWithProvider(<AccountGroupBalance />, {
       state: testState,
@@ -64,7 +75,7 @@ describe('AccountGroupBalance', () => {
     expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
   });
 
-  it('renders formatted balance when selector returns data', () => {
+  it('renders formatted balance when selector returns data and timeout expires', () => {
     const { selectBalanceBySelectedAccountGroup } = jest.requireMock(
       '../../../../../selectors/assets/balances',
     );
@@ -77,24 +88,37 @@ describe('AccountGroupBalance', () => {
       }),
     );
 
-    const { getByTestId } = renderWithProvider(<AccountGroupBalance />, {
-      state: testState,
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AccountGroupBalance />,
+      {
+        state: testState,
+      },
+    );
+
+    // Initially shows loader because hasBalanceFetched is false
+    expect(queryByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeNull();
+
+    // After timeout expires (3 seconds), balance should display
+    act(() => {
+      jest.advanceTimersByTime(3000);
     });
 
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
     expect(el).toBeTruthy();
   });
 
-  it('renders empty state when account group balance is zero', () => {
+  it('renders empty state when account group balance is zero after timeout', () => {
     const {
       selectAccountGroupBalanceForEmptyState,
       selectBalanceBySelectedAccountGroup,
     } = jest.requireMock('../../../../../selectors/assets/balances');
 
-    // Mock the regular balance selector to return data (prevents skeleton loader)
+    // Mock the regular balance selector to return zero balance data
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
       () => ({
-        totalBalanceInUserCurrency: 100, // Some non-zero amount for current network
+        walletId: 'wallet-1',
+        groupId: 'wallet-1/group-1',
+        totalBalanceInUserCurrency: 0, // Zero on current network
         userCurrency: 'usd',
       }),
     );
@@ -107,8 +131,21 @@ describe('AccountGroupBalance', () => {
       }),
     );
 
-    const { getByTestId } = renderWithProvider(<AccountGroupBalance />, {
-      state: testState,
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AccountGroupBalance />,
+      {
+        state: testState,
+      },
+    );
+
+    // Initially shows loader because hasBalanceFetched is false
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeNull();
+
+    // After timeout expires (3 seconds), empty state should display
+    act(() => {
+      jest.advanceTimersByTime(3000);
     });
 
     const el = getByTestId(
