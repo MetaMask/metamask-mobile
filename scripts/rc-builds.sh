@@ -18,7 +18,7 @@ git push origin HEAD:release/$SEMVER --force-with-lease
 COMMIT_HASH=$(git rev-parse HEAD)
 
 
-BUILD_RESPONSE=$(curl --proxy localhost:8000 -v --max-time 1 POST \
+BUILD_RESPONSE=$(curl -s -X POST \
   "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
   -H "Content-Type: application/json" \
   -d '{
