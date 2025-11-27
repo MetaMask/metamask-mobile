@@ -3,7 +3,8 @@
 set -euo pipefail
 
 METAMASK_WORKFLOW="pr_rc_rwy_pipeline"
-GH_REF_NAME="release/${SEMVER}"
+#GH_REF_NAME="release/${SEMVER}"
+GH_REF_NAME="rc-builds-gh-workflow"
 
 ./scripts/set-build-version.sh $BUILD_NUMBER
 git diff
