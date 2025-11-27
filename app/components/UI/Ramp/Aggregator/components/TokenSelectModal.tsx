@@ -14,7 +14,7 @@ import Fuse from 'fuse.js';
 import { strings } from '../../../../../../locales/i18n';
 import ScreenLayout from './ScreenLayout';
 import ModalDragger from '../../../../Base/ModalDragger';
-import TokenIcon from '../../../Swaps/components/TokenIcon';
+import TokenIcon from '../../../../Base/TokenIcon';
 import { useTheme } from '../../../../../util/theme';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { Colors } from '../../../../../util/theme/models';
