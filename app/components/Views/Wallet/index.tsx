@@ -522,6 +522,7 @@ const Wallet = ({
   const { navigate } = useNavigation();
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
+  const pna25ToastShownRef = useRef(false);
   const theme = useTheme();
 
   const isPerpsFlagEnabled = useFeatureFlag(
@@ -938,7 +939,7 @@ const Wallet = ({
   ]);
 
   useEffect(() => {
-    if (!shouldShowPna25Toast) return;
+    if (!shouldShowPna25Toast || pna25ToastShownRef.current) return;
 
     currentToast?.showToast({
       variant: ToastVariants.Icon,
@@ -965,8 +966,9 @@ const Wallet = ({
       },
       hasNoTimeout: true,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldShowPna25Toast]);
+
+    pna25ToastShownRef.current = true;
+  }, [shouldShowPna25Toast, storePna25Acknowledged, currentToast]);
 
   /**
    * Network onboarding state
