@@ -5,8 +5,8 @@ import {
   RewardDto,
   SeasonRewardDto,
   SeasonRewardType,
-} from '../../../../../../core/Engine/controllers/rewards-controller/types';
-import { formatTimeRemaining, getIconName } from '../../../utils/formatUtils';
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { formatTimeRemaining, getIconName } from '../../utils/formatUtils';
 import {
   Box,
   Text,
@@ -19,26 +19,30 @@ import {
   ButtonSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { selectRewardsActiveAccountAddress } from '../../../../../../selectors/rewards';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../../../locales/i18n';
-import Routes from '../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { TouchableOpacity } from 'react-native';
-import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
+import { selectRewardsActiveAccountAddress } from '../../../../../selectors/rewards';
 
 interface RewardItemProps {
   reward?: RewardDto;
   seasonReward: SeasonRewardDto;
   isLast?: boolean;
   isLocked?: boolean;
+  canPressToNavigateToInfo?: boolean;
+  isEndOfSeasonReward?: boolean;
 }
 
 const RewardItem: React.FC<RewardItemProps> = ({
   reward,
   seasonReward,
   isLast = false,
+  canPressToNavigateToInfo = true,
   isLocked = true,
+  isEndOfSeasonReward = false,
 }) => {
   const hasClaimed = reward?.claimStatus === RewardClaimStatus.CLAIMED;
   const timeRemaining = (reward?.claim?.data as PointsBoostRewardData)
@@ -59,6 +63,18 @@ const RewardItem: React.FC<RewardItemProps> = ({
   }, [reward?.claim?.data]);
 
   const shortDescription = useMemo(() => {
+    if (isEndOfSeasonReward && seasonReward.endOfSeasonShortDescription) {
+      return (
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-text-alternative"
+        >
+          {seasonReward.endOfSeasonShortDescription}
+        </Text>
+      );
+    }
+
     if (isLocked) {
       return (
         <Text
@@ -154,11 +170,13 @@ const RewardItem: React.FC<RewardItemProps> = ({
       </Text>
     );
   }, [
-    isLocked,
-    hasClaimed,
+    isEndOfSeasonReward,
+    seasonReward.endOfSeasonShortDescription,
+    seasonReward.shortUnlockedDescription,
     seasonReward.shortDescription,
     seasonReward.rewardType,
-    seasonReward.shortUnlockedDescription,
+    isLocked,
+    hasClaimed,
     hasExpired,
     timeRemaining,
   ]);
@@ -203,6 +221,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
   }, [isLocked, currentAccountAddress, seasonReward.claimUrl]);
 
   const handleRewardItemPress = useCallback(() => {
+    if (!canPressToNavigateToInfo) return;
     navigation.navigate(Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL, {
       title: seasonReward.name,
       icon: getIconName(seasonReward.iconName),
@@ -217,6 +236,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
       hasClaimed,
     });
   }, [
+    canPressToNavigateToInfo,
     navigation,
     seasonReward.name,
     seasonReward.iconName,
@@ -232,7 +252,10 @@ const RewardItem: React.FC<RewardItemProps> = ({
   ]);
 
   return (
-    <TouchableOpacity onPress={handleRewardItemPress}>
+    <TouchableOpacity
+      disabled={!canPressToNavigateToInfo}
+      onPress={handleRewardItemPress}
+    >
       <Box
         twClassName={`flex-row items-center py-3 px-4 gap-4 ${
           !isLast ? 'border-b border-muted' : ''
@@ -258,7 +281,9 @@ const RewardItem: React.FC<RewardItemProps> = ({
             twClassName="text-text-default mb-1"
             testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
           >
-            {seasonReward.name}
+            {isEndOfSeasonReward && seasonReward.endOfSeasonName
+              ? seasonReward.endOfSeasonName
+              : seasonReward.name}
           </Text>
           <Box testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}>
             {shortDescription}

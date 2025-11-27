@@ -440,6 +440,9 @@ export interface SeasonRewardDto {
   claimUrl?: string;
   iconName: string;
   rewardType: SeasonRewardType;
+  isEndOfSeasonReward?: boolean;
+  endOfSeasonName?: string;
+  endOfSeasonShortDescription?: string;
 }
 
 export enum SeasonRewardType {
@@ -456,6 +459,7 @@ export interface SeasonDto {
   endDate: Date;
   tiers: SeasonTierDto[];
   activityTypes: SeasonActivityTypeDto[];
+  shouldInstallNewVersion?: string | undefined;
 }
 
 export interface SeasonStatusBalanceDto {
@@ -496,6 +500,7 @@ export interface RewardDto {
   seasonRewardId: string;
   claimStatus: RewardClaimStatus;
   claim?: RewardClaim;
+  createdAt?: string;
 }
 
 export type RewardClaimData =
@@ -556,6 +561,9 @@ export type SeasonRewardDtoState = {
   claimUrl?: string;
   iconName: string;
   rewardType: SeasonRewardType;
+  isEndOfSeasonReward?: boolean;
+  endOfSeasonName?: string;
+  endOfSeasonShortDescription?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -580,6 +588,7 @@ export type SeasonDtoState = {
   tiers: SeasonTierDtoState[];
   activityTypes: SeasonActivityTypeDto[];
   lastFetched?: number;
+  shouldInstallNewVersion?: string | undefined;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -863,7 +872,7 @@ export interface RewardsControllerHasActiveSeasonAction {
  */
 export interface RewardsControllerGetSeasonMetadataAction {
   type: 'RewardsController:getSeasonMetadata';
-  handler: (type?: 'current' | 'next') => Promise<SeasonDtoState | null>;
+  handler: (type?: 'current' | 'previous') => Promise<SeasonDtoState | null>;
 }
 
 /**
@@ -1111,6 +1120,11 @@ export interface SeasonInfoDto {
  */
 export interface DiscoverSeasonsDto {
   /**
+   * Previous season information
+   */
+  previous: SeasonInfoDto | null;
+
+  /**
    * Current season information
    */
   current: SeasonInfoDto | null;
@@ -1158,6 +1172,14 @@ export interface SeasonMetadataDto {
    * Activity types for the season
    */
   activityTypes: SeasonActivityTypeDto[];
+
+  /**
+   * Optional version requirements for mobile and extension
+   */
+  shouldInstallNewVersion?: {
+    mobile: string | undefined;
+    extension: string | undefined;
+  };
 }
 
 /**
