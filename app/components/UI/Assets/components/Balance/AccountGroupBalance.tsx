@@ -22,6 +22,13 @@ import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 import BalanceEmptyState from '../../../BalanceEmptyState';
 
+/**
+ * Timeout for account group balance fetch
+ * This is to prevent a flash of empty state when the balance is not yet fetched
+ * !TODO: This is a temporary fix for an artificial loading state should be refactored after Account API v4 integration
+ */
+const ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT = 3000;
+
 const AccountGroupBalance = () => {
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
@@ -63,7 +70,7 @@ const AccountGroupBalance = () => {
       // Start new timeout for this account (3 seconds)
       timeoutRef.current = setTimeout(() => {
         setHasBalanceFetched(true);
-      }, 3000);
+      }, ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT);
     }
 
     // Store initial balance when it first appears
