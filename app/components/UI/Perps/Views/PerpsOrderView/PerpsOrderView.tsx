@@ -604,6 +604,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             [PerpsEventProperties.ERROR_TYPE]:
               PerpsEventValues.ERROR_TYPE.VALIDATION,
             [PerpsEventProperties.ERROR_MESSAGE]: error,
+            [PerpsEventProperties.SCREEN_NAME]:
+              PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
             [PerpsEventProperties.SCREEN_TYPE]:
               PerpsEventValues.SCREEN_TYPE.TRADING,
             [PerpsEventProperties.ASSET]: orderForm.asset,
@@ -634,6 +636,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             [PerpsEventProperties.WARNING_MESSAGE]: warning,
             [PerpsEventProperties.WARNING_TYPE]:
               PerpsEventValues.WARNING_TYPE.MINIMUM_ORDER_SIZE,
+            [PerpsEventProperties.SCREEN_NAME]:
+              PerpsEventValues.SCREEN_NAME.PERPS_ORDER,
             [PerpsEventProperties.SCREEN_TYPE]:
               PerpsEventValues.SCREEN_TYPE.TRADING,
             [PerpsEventProperties.ASSET]: orderForm.asset,
