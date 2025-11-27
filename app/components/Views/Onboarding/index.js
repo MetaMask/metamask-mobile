@@ -24,7 +24,11 @@ import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../actions/legalNotices';
+import {
+  storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
+  storePna25Acknowledged as storePna25AcknowledgedAction,
+} from '../../../actions/legalNotices';
+import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -213,6 +217,14 @@ class Onboarding extends PureComponent {
   static propTypes = {
     disableNewPrivacyPolicyToast: PropTypes.func,
     /**
+     * Flag that indicates if the PNA25 feature flag is enabled
+     */
+    isPna25FlagEnabled: PropTypes.bool,
+    /**
+     * Action to store PNA25 acknowledgement
+     */
+    storePna25Acknowledged: PropTypes.func,
+    /**
      * The navigator object
      */
     navigation: PropTypes.object,
@@ -327,6 +339,11 @@ class Onboarding extends PureComponent {
     this.mounted = true;
     this.checkIfExistingUser();
     this.props.disableNewPrivacyPolicyToast();
+    // When a new user has onboarded and the PNA25 feature flag is on,
+    // set the PNA25 acknowledgement as true to prevent the toast from showing
+    if (this.props.isPna25FlagEnabled) {
+      this.props.storePna25Acknowledged();
+    }
 
     InteractionManager.runAfterInteractions(() => {
       this.checkForMigrationFailureAndVaultBackup();
@@ -970,6 +987,7 @@ const mapStateToProps = (state) => ({
   existingUser: selectExistingUser(state),
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
+  isPna25FlagEnabled: selectIsPna25FlagEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -978,6 +996,7 @@ const mapDispatchToProps = (dispatch) => ({
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
+  storePna25Acknowledged: () => dispatch(storePna25AcknowledgedAction()),
 });
 
 export default connect(
