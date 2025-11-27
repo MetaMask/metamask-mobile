@@ -23,6 +23,7 @@ import {
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
+import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -48,6 +49,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../useHasInsufficientBalance');
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayToken');
@@ -83,6 +85,7 @@ describe('useInsufficientBalanceAlert', () => {
     useTransactionPayRequiredTokens,
   );
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useHasInsufficientBalanceMock = jest.mocked(useHasInsufficientBalance);
 
   const mockChainId = '0x1' as Hex;
   const mockFromAddress = '0x123';
@@ -103,6 +106,7 @@ describe('useInsufficientBalanceAlert', () => {
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: false,
       isSupported: false,
+      pending: false,
     });
     mockUseAccountNativeBalance.mockReturnValue({
       balanceWeiInHex: '0x8', // 8 wei
@@ -149,6 +153,10 @@ describe('useInsufficientBalanceAlert', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
       setPayToken: jest.fn(),
+    });
+
+    useHasInsufficientBalanceMock.mockReturnValue({
+      hasInsufficientBalance: true,
     });
   });
 
