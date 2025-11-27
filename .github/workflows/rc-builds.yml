@@ -34,7 +34,7 @@ jobs:
 
       - name: Build RC
         env:
-          SEMVER: $ {{ inputs.semver }}
+          SEMVER: "7.60.0"
           BUILD_NUMBER: ${{ needs.generate-build-version.outputs.build-version }}
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
