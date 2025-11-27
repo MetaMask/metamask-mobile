@@ -116,7 +116,7 @@ describe('TokenIcon', () => {
       expect(getByText('D')).toBeOnTheScreen();
     });
 
-    it('handles single character symbols', () => {
+    it('displays single character symbol as uppercase', () => {
       const { getByText } = render(<TokenIcon symbol="X" />);
 
       expect(getByText('X')).toBeOnTheScreen();
