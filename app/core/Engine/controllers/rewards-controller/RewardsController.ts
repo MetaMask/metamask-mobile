@@ -305,6 +305,7 @@ export class RewardsController extends BaseController<
       startDate: season.startDate.getTime(),
       endDate: season.endDate.getTime(),
       tiers: season.tiers,
+      activityTypes: season.activityTypes,
     };
   }
 
@@ -322,6 +323,7 @@ export class RewardsController extends BaseController<
         startDate: new Date(seasonMetadata.startDate),
         endDate: new Date(seasonMetadata.endDate),
         tiers: seasonMetadata.tiers,
+        activityTypes: seasonMetadata.activityTypes,
       },
       balance: {
         total: seasonState.balance,
@@ -1655,7 +1657,7 @@ export class RewardsController extends BaseController<
 
   /**
    * Get season metadata with caching. This fetches and caches the season metadata
-   * including id, name, dates, and tiers.
+   * including id, name, dates, tiers, and activity types.
    * @param type - The type of season to get
    * @returns Promise<SeasonDtoState> - The season metadata
    */
@@ -1714,6 +1716,7 @@ export class RewardsController extends BaseController<
             startDate: seasonMetadata.startDate,
             endDate: seasonMetadata.endDate,
             tiers: seasonMetadata.tiers,
+            activityTypes: seasonMetadata.activityTypes,
           });
 
           // Add lastFetched timestamp
