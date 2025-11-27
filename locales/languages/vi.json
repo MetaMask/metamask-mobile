@@ -2598,8 +2598,6 @@
     "show_fiat_on_testnets_modal_button": "Tiếp tục",
     "show_hex_data": "Hiển thị dữ liệu với mã Hex",
     "show_hex_data_desc": "Chọn mục này để hiển thị trường dữ liệu với mã hex trên màn hình gửi.",
-    "show_custom_nonce": "Tùy chỉnh nonce (số chỉ được sử dụng một lần) của giao dịch",
-    "custom_nonce_desc": "Bật chế độ này để thay đổi số nonce (số giao dịch) trên màn hình xác nhận. Đây là tính năng nâng cao, hãy sử dụng cẩn trọng.",
     "accounts_identicon_title": "Biểu tượng tài khoản",
     "accounts_identicon_desc": "Chọn trong số ba kiểu biểu tượng độc đáo khác nhau để giúp bạn nhận diện tài khoản một cách nhanh chóng.",
     "jazzicons": "Jazzicons",

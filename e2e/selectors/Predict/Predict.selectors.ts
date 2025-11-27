@@ -53,6 +53,7 @@ export const PredictMarketDetailsSelectorsIDs = {
 
   // Header
   BACK_BUTTON: 'predict-market-details-back-button',
+  SHARE_BUTTON: 'predict-market-details-share-button',
 
   // Tabs
   TAB_BAR: 'predict-market-details-tab-bar',

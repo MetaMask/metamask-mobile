@@ -16,6 +16,7 @@ import { handleFetch } from '@metamask/controller-utils';
 import {
   formatAddressToCaipReference,
   formatChainIdToHex,
+  isNonEvmChainId,
 } from '@metamask/bridge-controller';
 
 const TOKEN_API_V3_BASE_URL = 'https://tokens.api.cx.metamask.io/v3';
@@ -103,8 +104,8 @@ export const fetchAssetMetadata = async (
       assetId,
     };
 
-    // Solana
-    if (chainId === MultichainNetwork.Solana && assetId) {
+    // non-EVM
+    if (isNonEvmChainId(chainId) && assetId) {
       const { assetReference } = parseCaipAssetType(assetId);
       return {
         ...commonFields,

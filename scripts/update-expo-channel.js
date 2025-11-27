@@ -461,8 +461,8 @@ function main() {
   console.log(`Environment: ${environment}`);
 
   // Skip configuration for production environment
-  if (environment === 'production' || environment === 'dev') {
-    console.log('ℹ️  Production environment detected - skipping Expo Updates configuration');
+  if (environment === 'production' || environment === 'dev' || environment === 'e2e') {
+    console.log('ℹ️  Production/dev/e2e environment detected - skipping Expo Updates configuration');
     console.log('✓ No configuration changes made');
     return;
   }
