@@ -26,6 +26,9 @@ const createStyles = (params: { theme: Theme }) => {
       marginHorizontal: NETWORK_LIST_MARGIN_HORIZONTAL,
       flex: NETWORK_LIST_FLEX,
     },
+    centeredNetworkCell: {
+      alignItems: 'center',
+    },
   });
 };
 
