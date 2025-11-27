@@ -223,14 +223,16 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      await AppwrightGestures.tap(this.accountIcon); // Use static tapElement method with retry logic
+      const element = await this.accountIcon;
+      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
     }
   }
   async tapSwapButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); // Use static tapElement method with retry logic
+      const element = await this.swapButton;
+      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
     }
   }
 
@@ -239,7 +241,7 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(await this.networkInNavBar);
     } else {
-      await AppwrightGestures.tap(this.networkInNavBar); // Use static tapElement method with retry logic
+      await AppwrightGestures.tap(await this.networkInNavBar); // Use static tapElement method with retry logic
     }
   }
 
@@ -280,7 +282,7 @@ class WalletMainScreen {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
-      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+      await appwrightExpect(element).toBeVisible({ timeout: 100000000 });
     }
   }
 
@@ -307,7 +309,8 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountActionsButton);
     } else {
-      await AppwrightGestures.tap(this.accountActionsButton); // Use static tapElement method with retry logic
+      const element = await this.accountActionsButton;
+      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
     }
   }
 

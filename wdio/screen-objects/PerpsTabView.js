@@ -25,11 +25,13 @@ class PerpsTabView {
   }
 
   async tapPerpsTab() {
-    await AppwrightGestures.tap(this.perpsTabButton); // Use static tap method with retry logic
+    const element = await this.perpsTabButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   async tapAddFunds() {
-    await AppwrightGestures.tap(this.addFundsButton); // Use static tap method with retry logic
+    const element = await this.addFundsButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   async tapOnboardingButton() {

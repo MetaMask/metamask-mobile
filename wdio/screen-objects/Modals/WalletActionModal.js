@@ -65,7 +65,8 @@ class WalletActionModal {
     } else {
       //const perpsTab = await AppwrightSelectors.getElementByCatchAll(this._device, 'Perps');
       //await AppwrightGestures.tap(perpsTab);
-      await AppwrightGestures.tap(this.sendButton); // Use static tapElement method with retry logic
+      const element = await this.sendButton;
+      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
     }
   }
 
@@ -77,7 +78,8 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      await AppwrightGestures.tap(this.swapButton); // Use static tapElement method with retry logic
+      const element = await this.swapButton;
+      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
     }
   }
 
@@ -85,7 +87,8 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.bridgeButton);
     } else {
-      await AppwrightGestures.tap(this.bridgeButton); // Use static tapElement method with retry logic
+      const element = await this.bridgeButton;
+      await AppwrightGestures.tap(element); // Use static tapElement method with retry logic
     }
   }
 

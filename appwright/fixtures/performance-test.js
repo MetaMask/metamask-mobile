@@ -27,24 +27,25 @@ export const test = base.extend({
       const allGlobalTimers = Timers.getAllTimers();
 
       // Check for timers that exist globally but weren't added to the tracker
-      for (const globalTimer of allGlobalTimers) {
+      for (const timer of allGlobalTimers) {
         const existsInTracker = performanceTracker.timers.some(
-          (t) => t.id === globalTimer.id,
+          (t) => t.id === timer.id,
         );
 
         if (!existsInTracker) {
-          console.log(`🔄 Recovering orphaned timer: "${globalTimer.id}"`);
+          console.log(`🔄 Recovering orphaned timer: "${timer.id}"`);
 
           try {
-            const recoveredTimer = new TimerHelper(globalTimer.id);
-
-            if (globalTimer.start !== null && globalTimer.duration === null) {
-              recoveredTimer.stop();
+            // Stop the timer if it's still running
+            if (timer.isRunning()) {
+              timer.stopTimer();
             }
 
-            performanceTracker.addTimer(recoveredTimer);
+            performanceTracker.addTimer(timer);
           } catch (error) {
-            console.log(`⚠️ Failed to recover timer ${globalTimer.id}`);
+            console.log(
+              `⚠️ Failed to recover timer ${timer.id}: ${error.message}`,
+            );
           }
         }
       }
@@ -55,14 +56,11 @@ export const test = base.extend({
     // Stop any running timers in the tracker
     for (const timer of performanceTracker.timers) {
       try {
-        const isRunning = timer.isRunning ? timer.isRunning() : false;
-        const isCompleted = timer.isCompleted ? timer.isCompleted() : false;
-
-        if (isRunning && !isCompleted) {
-          timer.stop();
+        if (timer.isRunning && timer.isRunning() && !timer.isCompleted()) {
+          timer.stopTimer();
         }
       } catch (error) {
-        console.log(`⚠️ Error checking timer ${timer.id}`);
+        console.log(`⚠️ Error checking timer ${timer.id}: ${error.message}`);
       }
     }
 

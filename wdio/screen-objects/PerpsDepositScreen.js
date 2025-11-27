@@ -46,15 +46,18 @@ class PerpsDepositScreen {
   }
 
   async tapPayWith() {
-    await AppwrightGestures.tap(this.payWithButton); // Use static tap method with retry logic
+    const element = await this.payWithButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   async tapContinue() {
-    await AppwrightGestures.tap(this.continueButton); // Use static tap method with retry logic
+    const element = await this.continueButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 
   async tapCancel() {
-    await AppwrightGestures.tap(this.cancelButton); // Use static tap method with retry logic
+    const element = await this.cancelButton;
+    await AppwrightGestures.tap(element); // Use static tap method with retry logic
   }
 }
 
