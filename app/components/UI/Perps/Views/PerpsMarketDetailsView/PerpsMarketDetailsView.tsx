@@ -507,7 +507,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           [PerpsEventProperties.ERROR_MESSAGE]:
             'Cross margin position detected',
           [PerpsEventProperties.SCREEN_NAME]:
-            PerpsEventValues.SCREEN_NAME.PERPS_ACTIVITY_HISTORY,
+            PerpsEventValues.SCREEN_NAME.PERPS_MARKET_DETAILS,
           [PerpsEventProperties.SCREEN_TYPE]:
             PerpsEventValues.SCREEN_TYPE.ASSET_DETAILS,
         });

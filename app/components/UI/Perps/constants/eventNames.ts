@@ -268,6 +268,8 @@ export const PerpsEventValues = {
     CONNECTION_ERROR: 'connection_error',
     PERPS_HERO_CARD: 'perps_hero_card',
     PERPS_ACTIVITY_HISTORY: 'perps_activity_history',
+    PERPS_MARKET_DETAILS: 'perps_market_details',
+    PERPS_ORDER: 'perps_order',
   },
   ACTION: {
     CONNECTION_RETRY: 'connection_retry',
@@ -310,6 +312,7 @@ export const PerpsEventValues = {
     PERPS_TAB: 'perps_tab',
     TRADE_MENU_ACTION: 'trade_menu_action',
     WALLET_HOME: 'wallet_home',
+    MARKET_LIST: 'market_list',
     SCREEN: 'screen',
     TOOLTIP: 'tooltip',
   },

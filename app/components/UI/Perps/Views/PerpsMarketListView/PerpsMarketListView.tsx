@@ -225,7 +225,7 @@ const PerpsMarketListView = ({
             [PerpsEventProperties.BUTTON_CLICKED]:
               PerpsEventValues.BUTTON_CLICKED.CRYPTO,
             [PerpsEventProperties.BUTTON_LOCATION]:
-              PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+              PerpsEventValues.BUTTON_LOCATION.MARKET_LIST,
           });
         } else if (tab.filter === 'stocks_and_commodities') {
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -234,7 +234,7 @@ const PerpsMarketListView = ({
             [PerpsEventProperties.BUTTON_CLICKED]:
               PerpsEventValues.BUTTON_CLICKED.STOCKS,
             [PerpsEventProperties.BUTTON_LOCATION]:
-              PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+              PerpsEventValues.BUTTON_LOCATION.MARKET_LIST,
           });
         }
         setMarketTypeFilter(tab.filter);
