@@ -389,7 +389,7 @@ describe('usePredictDepositToasts', () => {
       // Act
       const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
         .calls[0][0];
-      const onPressLink = toastCall.linkButtonOptions?.onPress;
+      const onPressLink = toastCall.closeButtonOptions?.onPress;
 
       act(() => {
         onPressLink?.();
@@ -417,7 +417,7 @@ describe('usePredictDepositToasts', () => {
       // Act
       const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
         .calls[0][0];
-      const onPressLink = toastCall.linkButtonOptions?.onPress;
+      const onPressLink = toastCall.closeButtonOptions?.onPress;
 
       act(() => {
         onPressLink?.();
@@ -448,7 +448,7 @@ describe('usePredictDepositToasts', () => {
       // Act
       const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
         .calls[0][0];
-      const onPressLink = toastCall.linkButtonOptions?.onPress;
+      const onPressLink = toastCall.closeButtonOptions?.onPress;
 
       act(() => {
         onPressLink?.();
@@ -482,7 +482,7 @@ describe('usePredictDepositToasts', () => {
       // Act
       const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
         .calls[0][0];
-      const onPressLink = toastCall.linkButtonOptions?.onPress;
+      const onPressLink = toastCall.closeButtonOptions?.onPress;
 
       act(() => {
         onPressLink?.();
