@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictFeeSummary from './PredictFeeSummary';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('../../utils/format', () => ({
   formatPrice: jest.fn((value, options) =>
@@ -9,26 +8,6 @@ jest.mock('../../utils/format', () => ({
       ? `$${value.toFixed(options?.maximumDecimals ?? 2)}`
       : '$0.00',
   ),
-}));
-
-// Mock i18n strings
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const mockStrings: Record<string, string> = {
-      'predict.fee_summary.fees': 'Fees',
-      'predict.fee_summary.total': 'Total',
-      'predict.fee_summary.estimated_points': 'Est. points',
-      'predict.fee_summary.points_tooltip': 'Points',
-      'predict.fee_summary.points_tooltip_content_1':
-        'Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or predict.',
-      'predict.fee_summary.points_tooltip_content_2':
-        'Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.',
-      'predict.fee_summary.points_error': "We can't load points right now",
-      'predict.fee_summary.points_error_content':
-        "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
-    };
-    return mockStrings[key] || key;
-  }),
 }));
 
 // Mock ButtonIcon
@@ -73,16 +52,14 @@ jest.mock(
       field,
       value,
     }: {
-      field: { label: { text: string }; tooltip?: unknown };
-      value: { label: React.ReactNode; tooltip?: unknown };
+      field: { label: { text: string } };
+      value: { label: React.ReactNode };
     }) =>
       React.createElement(
         View,
         { testID: 'key-value-row' },
         React.createElement(RNText, null, field.label.text),
         value.label,
-        value.tooltip &&
-          React.createElement(View, { testID: 'value-tooltip' }, 'Tooltip'),
       );
   },
 );
@@ -93,10 +70,10 @@ jest.mock('../../../Rewards/components/RewardPointsAnimation', () => {
   const { Text: RNText } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ value, state }: { value: number; state: string }) =>
+    default: ({ value }: { value: number }) =>
       React.createElement(
         RNText,
-        { testID: 'rewards-animation', 'data-state': state },
+        { testID: 'rewards-animation' },
         `${value} points`,
       ),
     RewardAnimationState: {
@@ -106,24 +83,6 @@ jest.mock('../../../Rewards/components/RewardPointsAnimation', () => {
     },
   };
 });
-
-// Mock AddRewardsAccount
-jest.mock(
-  '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount',
-  () => {
-    const React = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () =>
-        React.createElement(
-          View,
-          { testID: 'add-rewards-account' },
-          'Add Rewards Account',
-        ),
-    };
-  },
-);
 
 describe('PredictFeeSummary', () => {
   const defaultProps = {
@@ -214,10 +173,10 @@ describe('PredictFeeSummary', () => {
   });
 
   describe('Rewards Row', () => {
-    it('does not display rewards row when shouldShowRewardsRow is false', () => {
+    it('does not display rewards row when shouldShowRewards is false', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewardsRow: false,
+        shouldShowRewards: false,
         estimatedPoints: 100,
       };
 
@@ -227,14 +186,12 @@ describe('PredictFeeSummary', () => {
 
       expect(queryByText('Est. points')).toBeNull();
       expect(queryByTestId('rewards-animation')).toBeNull();
-      expect(queryByTestId('add-rewards-account')).toBeNull();
     });
 
-    it('displays rewards row when shouldShowRewardsRow is true', () => {
+    it('displays rewards row when shouldShowRewards is true', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
+        shouldShowRewards: true,
         estimatedPoints: 50,
       };
 
@@ -246,11 +203,10 @@ describe('PredictFeeSummary', () => {
       expect(getByTestId('rewards-animation')).toBeOnTheScreen();
     });
 
-    it('displays correct estimated points value when account is opted in', () => {
+    it('displays correct estimated points value', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
+        shouldShowRewards: true,
         estimatedPoints: 123,
       };
 
@@ -259,198 +215,11 @@ describe('PredictFeeSummary', () => {
       expect(getByText('123 points')).toBeOnTheScreen();
     });
 
-    it('displays zero points when estimatedPoints is 0 and account is opted in', () => {
+    it('displays zero points when estimatedPoints is 0', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
+        shouldShowRewards: true,
         estimatedPoints: 0,
-      };
-
-      const { getByText } = render(<PredictFeeSummary {...props} />);
-
-      expect(getByText('0 points')).toBeOnTheScreen();
-    });
-
-    it('displays AddRewardsAccount when rewardsAccountScope is provided and accountOptedIn is false', () => {
-      const mockRewardsAccountScope = {
-        id: 'account-1',
-        address: '0x1234567890123456789012345678901234567890',
-        name: 'Test Account',
-        type: 'eip155:eoa',
-        scopes: [],
-        metadata: {},
-      };
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: false,
-        rewardsAccountScope:
-          mockRewardsAccountScope as unknown as InternalAccount,
-        estimatedPoints: 100,
-      };
-
-      const { getByTestId, queryByTestId } = render(
-        <PredictFeeSummary {...props} />,
-      );
-
-      expect(getByTestId('add-rewards-account')).toBeOnTheScreen();
-      expect(queryByTestId('rewards-animation')).toBeNull();
-    });
-
-    it('displays AddRewardsAccount when rewardsAccountScope is provided and accountOptedIn is null', () => {
-      const mockRewardsAccountScope = {
-        id: 'account-1',
-        address: '0x1234567890123456789012345678901234567890',
-        name: 'Test Account',
-        type: 'eip155:eoa',
-        scopes: [],
-        metadata: {},
-      };
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: null,
-        rewardsAccountScope:
-          mockRewardsAccountScope as unknown as InternalAccount,
-        estimatedPoints: 100,
-      };
-
-      const { getByTestId, queryByTestId } = render(
-        <PredictFeeSummary {...props} />,
-      );
-
-      expect(getByTestId('add-rewards-account')).toBeOnTheScreen();
-      expect(queryByTestId('rewards-animation')).toBeNull();
-    });
-
-    it('does not display rewards row when both accountOptedIn and rewardsAccountScope are null/false', () => {
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: false,
-        rewardsAccountScope: null,
-        estimatedPoints: 100,
-      };
-
-      const { queryByText, queryByTestId } = render(
-        <PredictFeeSummary {...props} />,
-      );
-
-      expect(queryByText('Est. points')).toBeNull();
-      expect(queryByTestId('rewards-animation')).toBeNull();
-      expect(queryByTestId('add-rewards-account')).toBeNull();
-    });
-
-    it('displays RewardsAnimations when accountOptedIn is true even if rewardsAccountScope is provided', () => {
-      const mockRewardsAccountScope = {
-        id: 'account-1',
-        address: '0x1234567890123456789012345678901234567890',
-        name: 'Test Account',
-        type: 'eip155:eoa',
-        scopes: [],
-        metadata: {},
-      };
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
-        rewardsAccountScope:
-          mockRewardsAccountScope as unknown as InternalAccount,
-        estimatedPoints: 50,
-      };
-
-      const { getByTestId, queryByTestId } = render(
-        <PredictFeeSummary {...props} />,
-      );
-
-      expect(getByTestId('rewards-animation')).toBeOnTheScreen();
-      expect(queryByTestId('add-rewards-account')).toBeNull();
-    });
-
-    it('displays loading state when isLoadingRewards is true', () => {
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
-        estimatedPoints: 50,
-        isLoadingRewards: true,
-      };
-
-      const { getByTestId } = render(<PredictFeeSummary {...props} />);
-
-      const animation = getByTestId('rewards-animation');
-      expect(animation).toBeOnTheScreen();
-      expect(animation.props['data-state']).toBe('Loading');
-    });
-
-    it('displays error state when hasRewardsError is true', () => {
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
-        estimatedPoints: 50,
-        hasRewardsError: true,
-      };
-
-      const { getByTestId } = render(<PredictFeeSummary {...props} />);
-
-      const animation = getByTestId('rewards-animation');
-      expect(animation).toBeOnTheScreen();
-      expect(animation.props['data-state']).toBe('ErrorState');
-    });
-
-    it('displays idle state when not loading and no error', () => {
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
-        estimatedPoints: 50,
-        isLoadingRewards: false,
-        hasRewardsError: false,
-      };
-
-      const { getByTestId } = render(<PredictFeeSummary {...props} />);
-
-      const animation = getByTestId('rewards-animation');
-      expect(animation).toBeOnTheScreen();
-      expect(animation.props['data-state']).toBe('Idle');
-    });
-
-    it('displays error tooltip when hasRewardsError is true', () => {
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
-        estimatedPoints: 50,
-        hasRewardsError: true,
-      };
-
-      const { getByTestId } = render(<PredictFeeSummary {...props} />);
-
-      expect(getByTestId('value-tooltip')).toBeOnTheScreen();
-    });
-
-    it('does not display error tooltip when hasRewardsError is false', () => {
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
-        estimatedPoints: 50,
-        hasRewardsError: false,
-      };
-
-      const { queryByTestId } = render(<PredictFeeSummary {...props} />);
-
-      expect(queryByTestId('value-tooltip')).toBeNull();
-    });
-
-    it('handles null estimatedPoints when account is opted in', () => {
-      const props = {
-        ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
-        estimatedPoints: null,
       };
 
       const { getByText } = render(<PredictFeeSummary {...props} />);
@@ -463,8 +232,7 @@ describe('PredictFeeSummary', () => {
     it('renders rewards row after Total row', () => {
       const props = {
         ...defaultProps,
-        shouldShowRewardsRow: true,
-        accountOptedIn: true,
+        shouldShowRewards: true,
         estimatedPoints: 50,
       };
 

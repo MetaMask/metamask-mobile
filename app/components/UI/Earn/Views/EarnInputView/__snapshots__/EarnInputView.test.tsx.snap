@@ -567,8 +567,10 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc8",
                                     "borderRadius": 8,
+                                    "borderWidth": 1,
                                     "justifyContent": "center",
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,
@@ -2164,8 +2166,10 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#b7bbc8",
                                     "borderRadius": 8,
+                                    "borderWidth": 1,
                                     "justifyContent": "center",
                                     "paddingHorizontal": 16,
                                     "paddingVertical": 8,

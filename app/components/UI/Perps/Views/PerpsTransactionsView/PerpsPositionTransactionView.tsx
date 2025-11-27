@@ -30,8 +30,10 @@ import {
   PerpsTransaction,
 } from '../../types/transactionHistory';
 import {
-  formatPositiveFiat,
+  formatFee,
+  formatPerpsFiat,
   formatTransactionDate,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
 
@@ -89,7 +91,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     },
     transaction.fill?.amount && {
       label: strings('perps.transactions.position.size'),
-      value: `${formatPositiveFiat(
+      value: `${formatPerpsFiat(
         Math.abs(
           BigNumber(transaction.fill?.size || '0')
             .times(transaction.fill?.entryPrice || '0')
@@ -103,7 +105,9 @@ const PerpsPositionTransactionView: React.FC = () => {
           transaction.fill?.action === 'Closed'
             ? strings('perps.transactions.position.close_price')
             : strings('perps.transactions.position.entry_price'),
-        value: formatPositiveFiat(transaction.fill.entryPrice),
+        value: formatPerpsFiat(transaction.fill.entryPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        }),
       },
   ].filter(Boolean);
 
@@ -112,7 +116,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     transaction.fill?.fee !== undefined &&
       transaction.fill?.fee !== null && {
         label: strings('perps.transactions.position.fees'),
-        value: formatPositiveFiat(transaction.fill.fee),
+        value: formatFee(transaction.fill.fee),
         textColor: TextColor.Default,
       },
   ].filter(Boolean);

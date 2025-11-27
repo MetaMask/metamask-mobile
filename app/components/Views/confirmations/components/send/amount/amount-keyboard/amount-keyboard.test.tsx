@@ -16,8 +16,6 @@ import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount'
 import { useSendContext } from '../../../../context/send-context';
 import { useRouteParams } from '../../../../hooks/send/useRouteParams';
 import { useSendType } from '../../../../hooks/send/useSendType';
-import { useParams } from '../../../../../../../util/navigation/navUtils';
-import { useSendActions } from '../../../../hooks/send/useSendActions';
 // eslint-disable-next-line import/no-namespace
 import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
 import { getBackgroundColor } from './amount-keyboard.styles';
@@ -55,14 +53,6 @@ jest.mock('../../../../hooks/send/useSendType', () => ({
   useSendType: jest.fn(),
 }));
 
-jest.mock('../../../../../../../util/navigation/navUtils', () => ({
-  useParams: jest.fn(),
-}));
-
-jest.mock('../../../../hooks/send/useSendActions', () => ({
-  useSendActions: jest.fn(),
-}));
-
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -97,9 +87,6 @@ const mockUsePercentageAmount = usePercentageAmount as jest.MockedFunction<
   typeof usePercentageAmount
 >;
 
-const mockUseParams = jest.mocked(useParams);
-const mockUseSendActions = jest.mocked(useSendActions);
-
 const renderComponent = (
   mockState?: ProviderValues['state'],
   amount = '100',
@@ -126,10 +113,7 @@ const renderComponent = (
 
 describe('Amount', () => {
   const mockUseSendType = jest.mocked(useSendType);
-  const mockHandleSubmitPress = jest.fn();
-
   beforeEach(() => {
-    jest.clearAllMocks();
     mockUseSendType.mockReturnValue({
       isNonEvmSendType: false,
     } as unknown as ReturnType<typeof useSendType>);
@@ -137,10 +121,6 @@ describe('Amount', () => {
       getPercentageAmount: () => 10,
       isMaxAmountSupported: true,
     } as unknown as ReturnType<typeof usePercentageAmount>);
-    mockUseParams.mockReturnValue({});
-    mockUseSendActions.mockReturnValue({
-      handleSubmitPress: mockHandleSubmitPress,
-    } as unknown as ReturnType<typeof useSendActions>);
   });
 
   it('renders correctly', () => {
@@ -193,33 +173,6 @@ describe('Amount', () => {
     const { getByText } = renderComponent();
     fireEvent.press(getByText('Continue'));
     expect(mockValidateNonEvmAmountAsync).toHaveBeenCalled();
-  });
-
-  it('calls updateTo and handleSubmitPress when predefinedRecipient is provided', () => {
-    const mockUpdateTo = jest.fn();
-    const predefinedRecipientAddress =
-      '0x1234567890123456789012345678901234567890';
-
-    mockUseParams.mockReturnValue({
-      predefinedRecipient: {
-        address: predefinedRecipientAddress,
-        chainType: 'evm',
-      },
-    });
-    mockUseSendContext.mockReturnValue({
-      asset: MOCK_EVM_ASSET,
-      updateAsset: jest.fn(),
-      updateTo: mockUpdateTo,
-    } as unknown as ReturnType<typeof useSendContext>);
-
-    const { getByText } = renderComponent();
-    fireEvent.press(getByText('Continue'));
-
-    expect(mockUpdateTo).toHaveBeenCalledWith(predefinedRecipientAddress);
-    expect(mockHandleSubmitPress).toHaveBeenCalledWith(
-      predefinedRecipientAddress,
-    );
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
 

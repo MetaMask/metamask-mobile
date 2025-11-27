@@ -21,18 +21,14 @@ import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
 import { formatPrice } from '../../utils/format';
-import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
   providerFee: number;
   metamaskFee: number;
   total: number;
-  shouldShowRewardsRow?: boolean;
-  accountOptedIn?: boolean | null;
-  rewardsAccountScope?: InternalAccount | null;
-  estimatedPoints?: number | null;
+  shouldShowRewards?: boolean;
+  estimatedPoints?: number;
   isLoadingRewards?: boolean;
   hasRewardsError?: boolean;
   onFeesInfoPress?: () => void;
@@ -43,9 +39,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   metamaskFee,
   providerFee,
   total,
-  shouldShowRewardsRow = false,
-  accountOptedIn = null,
-  rewardsAccountScope = null,
+  shouldShowRewards = false,
   estimatedPoints = 0,
   isLoadingRewards = false,
   hasRewardsError = false,
@@ -93,7 +87,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       </Box>
 
       {/* Estimated Points Row */}
-      {shouldShowRewardsRow && (accountOptedIn || rewardsAccountScope) && (
+      {shouldShowRewards && (
         <KeyValueRow
           field={{
             label: {
@@ -118,22 +112,16 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 justifyContent={BoxJustifyContent.Center}
                 gap={1}
               >
-                {accountOptedIn ? (
-                  <RewardsAnimations
-                    value={estimatedPoints ?? 0}
-                    state={
-                      isLoadingRewards
-                        ? RewardAnimationState.Loading
-                        : hasRewardsError
-                          ? RewardAnimationState.ErrorState
-                          : RewardAnimationState.Idle
-                    }
-                  />
-                ) : rewardsAccountScope ? (
-                  <AddRewardsAccount account={rewardsAccountScope} />
-                ) : (
-                  <></>
-                )}
+                <RewardsAnimations
+                  value={estimatedPoints}
+                  state={
+                    isLoadingRewards
+                      ? RewardAnimationState.Loading
+                      : hasRewardsError
+                        ? RewardAnimationState.ErrorState
+                        : RewardAnimationState.Idle
+                  }
+                />
               </Box>
             ),
             ...(hasRewardsError && {

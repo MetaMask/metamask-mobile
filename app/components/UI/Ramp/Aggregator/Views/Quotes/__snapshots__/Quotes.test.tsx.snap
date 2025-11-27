@@ -1365,7 +1365,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -3698,7 +3697,6 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     [
                                       {
                                         "padding": 15,
-                                        "paddingHorizontal": 16,
                                       },
                                       undefined,
                                       {
@@ -3787,7 +3785,6 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                         [
                                           {
                                             "padding": 15,
-                                            "paddingHorizontal": 16,
                                           },
                                           undefined,
                                           {
@@ -5588,7 +5585,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {

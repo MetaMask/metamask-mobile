@@ -10,7 +10,6 @@ interface PerpsMarketHeaderStyles {
   assetRow: ViewStyle;
   secondRow: ViewStyle;
   assetName: TextStyle;
-  fullscreenButton: ViewStyle;
   moreButton: ViewStyle;
 }
 
@@ -58,10 +57,6 @@ export const styleSheet = ({
     },
     assetName: {
       fontWeight: '600',
-    },
-    fullscreenButton: {
-      padding: 4,
-      marginRight: 4,
     },
     moreButton: {
       padding: 4,

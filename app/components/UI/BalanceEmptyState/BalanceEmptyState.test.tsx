@@ -4,53 +4,30 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import BalanceEmptyState from './BalanceEmptyState';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
-import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
-import { useMetrics } from '../../hooks/useMetrics';
 
-// Mock useRampNavigation hook
-const mockGoToBuy = jest.fn();
-jest.mock('../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
+// Mock navigation (component requires it)
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
 }));
 
-const mockButtonClickData: RampsButtonClickData = {
-  ramp_routing: undefined,
-  is_authenticated: false,
-  preferred_provider: undefined,
-  order_count: 0,
-};
-
-jest.mock('../Ramp/hooks/useRampsButtonClickData', () => ({
-  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
+// Mock buy navigation details
+const mockBuyNavigationDetails = ['RampBuy', { screen: 'GetStarted' }];
+jest.mock('../Ramp/Aggregator/routes/utils', () => ({
+  createBuyNavigationDetails: jest.fn(() => mockBuyNavigationDetails),
 }));
 
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn();
-const mockEventBuilder = {
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({ event: 'built' }),
-};
-
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    BUY_BUTTON_CLICKED: 'buy_button_clicked',
-    RAMPS_BUTTON_CLICKED: 'ramps_button_clicked',
-  },
-}));
-
-jest.mock('../../../util/networks', () => ({
-  getDecimalChainId: jest.fn(() => 1),
-}));
+// Get the mock function to verify calls
+const { createBuyNavigationDetails } = jest.requireMock(
+  '../Ramp/Aggregator/routes/utils',
+);
 
 describe('BalanceEmptyState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
-    (useMetrics as jest.Mock).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    });
   });
 
   const renderComponent = (props: Partial<BalanceEmptyStateProps> = {}) =>
@@ -83,30 +60,15 @@ describe('BalanceEmptyState', () => {
 
     expect(actionButton).toBeDefined();
 
+    // Press the button
     fireEvent.press(actionButton);
 
-    expect(mockGoToBuy).toHaveBeenCalled();
-  });
+    // Verify that buy navigation details are created
+    expect(createBuyNavigationDetails).toHaveBeenCalled();
 
-  it('tracks RAMPS_BUTTON_CLICKED event when action button is pressed', () => {
-    const { getByTestId } = renderComponent();
-    const actionButton = getByTestId('balance-empty-state-action-button');
-
-    fireEvent.press(actionButton);
-
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith('ramps_button_clicked');
-    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
-      expect.objectContaining({
-        text: 'Add funds',
-        location: 'BalanceEmptyState',
-        chain_id_destination: 1,
-        ramp_type: 'BUY',
-        ramp_routing: undefined,
-        is_authenticated: false,
-        preferred_provider: undefined,
-        order_count: 0,
-      }),
-    );
-    expect(mockTrackEvent).toHaveBeenCalled();
+    // Verify that navigation was triggered with buy flow parameters
+    expect(mockNavigate).toHaveBeenCalledWith('RampBuy', {
+      screen: 'GetStarted',
+    });
   });
 });

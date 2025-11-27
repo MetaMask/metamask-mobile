@@ -32,7 +32,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import {
+  RampMode,
+  useRampNavigation,
+} from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { getNativeTokenAddress } from '../../../utils/asset';
 import { toCaipAssetType } from '@metamask/utils';
@@ -54,10 +58,11 @@ export interface CustomAmountInfoProps {
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
+  hasMax?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  ({ children, currency, disablePay }) => {
+  ({ children, currency, disablePay, hasMax }) => {
     useClearConfirmationOnBackSwipe();
     useAutomaticTransactionPayToken({ disable: disablePay });
     useTransactionPayMetrics();
@@ -131,6 +136,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
+              hasMax={hasMax}
             />
           )}
           {!hasTokens && <BuySection />}
@@ -179,11 +185,17 @@ function BuySection() {
     asset?.assetId ?? '0x0',
   );
 
-  const { goToBuy } = useRampNavigation();
+  const { goToRamps } = useRampNavigation();
 
   const handleBuyPress = useCallback(() => {
-    goToBuy({ assetId });
-  }, [assetId, goToBuy]);
+    goToRamps({
+      mode: RampMode.AGGREGATOR,
+      params: {
+        rampType: RampType.BUY,
+        intent: { assetId },
+      },
+    });
+  }, [assetId, goToRamps]);
 
   let message: string | undefined;
 
@@ -265,10 +277,6 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirmation_button');
   }
 
   return strings('confirm.deposit_edit_amount_done');

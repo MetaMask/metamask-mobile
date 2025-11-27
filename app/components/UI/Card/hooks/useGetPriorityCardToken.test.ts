@@ -38,7 +38,7 @@ jest.mock('../../../../core/redux/slices/card', () => ({
 
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 
 const mockSelectAllTokenBalances =
@@ -112,7 +112,7 @@ describe('useGetPriorityCardToken', () => {
     getPriorityToken: mockGetPriorityToken,
     getSupportedTokensAllowances: mockFetchAllowances,
     getSupportedTokensByChainId: jest.fn(() => mockSupportedTokens),
-    lineaChainId: CHAIN_IDS.LINEA_MAINNET,
+    lineaChainId: LINEA_CHAIN_ID,
     supportedTokens: mockSupportedTokens,
   };
 
@@ -418,12 +418,12 @@ describe('useGetPriorityCardToken', () => {
       address: '0xCachedToken',
       symbol: 'CACHED',
       name: 'Cached Token',
-      caipChainId: `eip155:${CHAIN_IDS.LINEA_MAINNET}`,
+      caipChainId: `eip155:${LINEA_CHAIN_ID}`,
       allowance: '1000000000000',
       decimals: 18,
       allowanceState: AllowanceState.Enabled,
       isStaked: false,
-      chainId: CHAIN_IDS.LINEA_MAINNET,
+      chainId: LINEA_CHAIN_ID,
     } as CardTokenAllowance;
 
     mockPriorityToken = cachedToken;
@@ -1124,8 +1124,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1228,8 +1227,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1268,8 +1266,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1308,8 +1305,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '5000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1348,8 +1344,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '0',
         allowanceState: AllowanceState.NotEnabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1387,8 +1382,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '5000',
         allowanceState: AllowanceState.Limited,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1426,8 +1420,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '5000',
         allowanceState: AllowanceState.Limited,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
         availableBalance: '5000',
       };
 
@@ -1487,7 +1480,7 @@ describe('useGetPriorityCardToken', () => {
         decimals: 18,
         allowanceState: AllowanceState.Enabled,
         isStaked: false,
-        chainId: CHAIN_IDS.LINEA_MAINNET,
+        chainId: LINEA_CHAIN_ID,
       };
 
       // Test the cache validation logic directly with a fixed "now" reference
@@ -1536,8 +1529,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1571,8 +1563,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1677,8 +1668,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const secondWalletDetail: CardTokenAllowance = {
@@ -1689,8 +1679,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '500000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet456',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1724,8 +1713,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1774,8 +1762,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1815,8 +1802,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1845,8 +1831,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1873,8 +1858,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '2000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet456',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const updatedWalletDetailsData = {
@@ -1928,8 +1912,7 @@ describe('useGetPriorityCardToken', () => {
         allowance: '1000000000000',
         allowanceState: AllowanceState.Enabled,
         walletAddress: '0xWallet123',
-        caipChainId:
-          `eip155:${CHAIN_IDS.LINEA_MAINNET}` as `${string}:${string}`,
+        caipChainId: `eip155:${LINEA_CHAIN_ID}` as `${string}:${string}`,
       };
 
       const externalWalletDetailsData = {
@@ -1955,7 +1938,7 @@ describe('useGetPriorityCardToken', () => {
     // Pre-create static objects to avoid recreating them in each test
     const STATIC_TOKEN_BALANCES = {
       [mockAddress.toLowerCase()]: {
-        [CHAIN_IDS.LINEA_MAINNET]: {
+        [LINEA_CHAIN_ID]: {
           '0xToken1': '1000000000000000000',
         },
       },
@@ -1966,9 +1949,9 @@ describe('useGetPriorityCardToken', () => {
       symbol: 'TKN1',
       name: 'Token 1',
       decimals: 18,
-      chainId: CHAIN_IDS.LINEA_MAINNET,
+      chainId: LINEA_CHAIN_ID,
       caipChainId:
-        `eip155:${parseInt(CHAIN_IDS.LINEA_MAINNET, 16)}` as `${string}:${string}`,
+        `eip155:${parseInt(LINEA_CHAIN_ID, 16)}` as `${string}:${string}`,
       allowanceState: AllowanceState.Enabled,
       isStaked: false,
     };
@@ -2022,7 +2005,7 @@ describe('useGetPriorityCardToken', () => {
       mockTokensController = {
         state: {
           allTokens: {
-            [CHAIN_IDS.LINEA_MAINNET]: {
+            [LINEA_CHAIN_ID]: {
               [mockAddress.toLowerCase()]: STATIC_EMPTY_TOKEN_LIST,
             },
           },
@@ -2154,7 +2137,7 @@ describe('useGetPriorityCardToken', () => {
       mockEngine.context.TokensController = {
         state: {
           allTokens: {
-            // CHAIN_IDS.LINEA_MAINNET is '0xe708' in hex format
+            // LINEA_CHAIN_ID is '0xe708' in hex format
             '0xe708': {
               [mockAddress.toLowerCase()]: STATIC_EXISTING_TOKEN_LIST,
             },

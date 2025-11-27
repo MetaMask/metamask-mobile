@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Device from '../../../../../../util/device';
 import BaseTitle from '../../../../../Base/Title';
-import ShapesBackgroundAnimation from '../ShapesBackgroundAnimation';
+import ShapesBackgroundAnimation from '../../../../Swaps/components/LoadingAnimation/ShapesBackgroundAnimation';
 import { useTheme } from '../../../../../../util/theme';
 import { Colors } from '../../../../../../util/theme/models';
 import foxImage from 'images/branding/fox.png';

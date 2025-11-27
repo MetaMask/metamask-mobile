@@ -9,6 +9,7 @@ import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { endTrace } from '../../../../../../util/trace';
 import Logger from '../../../../../../util/Logger';
+import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import {
   MOCK_REGIONS,
   MOCK_US_REGION,
@@ -392,14 +393,27 @@ describe('BasicInfo Component', () => {
     });
 
     it('displays logout button when error has errorCode 2020', async () => {
-      // Mock Transak API error structure: { error: { errorCode: 2020, message: "..." } }
-      const error2020 = Object.assign(new Error('API Error'), {
-        error: {
-          errorCode: 2020,
-          message:
-            'This phone number is already registered. It has been used by an account created with k****@pedalsup.com. Login with this email to continue.',
+      // Mock Transak API error structure: { response: { data: { error: { errorCode: 2020, message: "..." } } } }
+      const errorMessage =
+        'This phone number is already registered. It has been used by an account created with k****@pedalsup.com. Login with this email to continue.';
+      const error2020 = new AxiosError(
+        errorMessage,
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          data: {
+            error: {
+              errorCode: 2020,
+              message: errorMessage,
+            },
+          },
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
         },
-      });
+      );
       mockPostKycForm.mockRejectedValueOnce(error2020);
 
       render(BasicInfo);
@@ -435,13 +449,26 @@ describe('BasicInfo Component', () => {
 
     it('displays formatted error message for errorCode 2020', async () => {
       // Mock Transak API error structure with email in message
-      const error2020 = Object.assign(new Error('API Error'), {
-        error: {
-          errorCode: 2020,
-          message:
-            'This phone number is already registered. It has been used by an account created with k****@pedalsup.com. Login with this email to continue.',
+      const errorMessage =
+        'This phone number is already registered. It has been used by an account created with k****@pedalsup.com. Login with this email to continue.';
+      const error2020 = new AxiosError(
+        errorMessage,
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          data: {
+            error: {
+              errorCode: 2020,
+              message: errorMessage,
+            },
+          },
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
         },
-      });
+      );
       mockPostKycForm.mockRejectedValueOnce(error2020);
 
       render(BasicInfo);
@@ -505,13 +532,26 @@ describe('BasicInfo Component', () => {
     });
 
     it('calls logoutFromProvider and navigates to EnterEmail on logout click', async () => {
-      const error2020 = Object.assign(new Error('API Error'), {
-        error: {
-          errorCode: 2020,
-          message:
-            'This phone number is already registered. It has been used by an account created with test@gmail.com. Login with this email to continue.',
+      const errorMessage =
+        'This phone number is already registered. It has been used by an account created with test@gmail.com. Login with this email to continue.';
+      const error2020 = new AxiosError(
+        errorMessage,
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          data: {
+            error: {
+              errorCode: 2020,
+              message: errorMessage,
+            },
+          },
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
         },
-      });
+      );
       mockPostKycForm.mockRejectedValueOnce(error2020);
 
       render(BasicInfo);
@@ -553,13 +593,26 @@ describe('BasicInfo Component', () => {
       const logoutError = new Error('Logout failed');
       mockLogoutFromProvider.mockRejectedValueOnce(logoutError);
 
-      const error2020 = Object.assign(new Error('API Error'), {
-        error: {
-          errorCode: 2020,
-          message:
-            'This phone number is already registered. It has been used by an account created with d***@example.com. Login with this email to continue.',
+      const errorMessage =
+        'This phone number is already registered. It has been used by an account created with d***@example.com. Login with this email to continue.';
+      const error2020 = new AxiosError(
+        errorMessage,
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          data: {
+            error: {
+              errorCode: 2020,
+              message: errorMessage,
+            },
+          },
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+          config: {} as InternalAxiosRequestConfig,
         },
-      });
+      );
       mockPostKycForm.mockRejectedValueOnce(error2020);
 
       render(BasicInfo);

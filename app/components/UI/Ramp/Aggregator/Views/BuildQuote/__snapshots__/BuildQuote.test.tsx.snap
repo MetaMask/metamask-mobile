@@ -179,11 +179,11 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -231,7 +231,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -447,7 +447,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={15}
+              handlerTag={14}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -594,7 +594,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                 [
                                   {
                                     "padding": 15,
-                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -1773,7 +1772,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -2788,7 +2786,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -3041,11 +3038,11 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -3093,7 +3090,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3309,7 +3306,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={21}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3728,7 +3725,104 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
@@ -3756,7 +3850,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     }
                   }
                 >
-                  Sell
+                  Amount to sell
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3972,7 +4066,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={22}
+              handlerTag={21}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4464,11 +4558,11 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -4516,7 +4610,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4732,7 +4826,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={23}
+              handlerTag={22}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5224,11 +5318,11 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -5276,7 +5370,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -5492,7 +5586,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={20}
+              handlerTag={19}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5639,7 +5733,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                 [
                                   {
                                     "padding": 15,
-                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -6522,7 +6615,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -7537,7 +7629,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -7790,11 +7881,11 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -7842,7 +7933,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -8058,7 +8149,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={32}
+              handlerTag={31}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8550,11 +8641,11 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -8602,7 +8693,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -8818,7 +8909,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={31}
+              handlerTag={30}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8965,7 +9056,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 [
                                   {
                                     "padding": 15,
-                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -9757,7 +9847,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -10772,7 +10861,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -11025,11 +11113,11 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -11077,7 +11165,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -11293,7 +11381,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={28}
+              handlerTag={27}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -11785,11 +11873,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -11837,7 +11925,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -12053,7 +12141,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={27}
+              handlerTag={26}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -12200,7 +12288,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 [
                                   {
                                     "padding": 15,
-                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -13336,7 +13423,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -14351,7 +14437,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -14604,11 +14689,11 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -14656,7 +14741,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -14872,7 +14957,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -15019,7 +15104,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                 [
                                   {
                                     "padding": 15,
-                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -16077,7 +16161,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -17092,7 +17175,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -17345,11 +17427,11 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -17397,7 +17479,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -17613,7 +17695,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={17}
+              handlerTag={16}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -18105,11 +18187,11 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -18157,7 +18239,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -18373,7 +18455,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={16}
+              handlerTag={15}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -18520,7 +18602,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                 [
                                   {
                                     "padding": 15,
-                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -19276,7 +19357,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -20291,7 +20371,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -20544,11 +20623,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -20596,7 +20675,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -20959,7 +21038,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 [
                                   {
                                     "padding": 15,
-                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -22138,7 +22216,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -23153,7 +23230,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -23333,7 +23409,104 @@ exports[`BuildQuote View renders correctly 2`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
@@ -23361,7 +23534,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                     }
                   }
                 >
-                  Sell
+                  Amount to sell
                 </Text>
               </TouchableOpacity>
             </View>
@@ -23724,7 +23897,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 [
                                   {
                                     "padding": 15,
-                                    "paddingHorizontal": 16,
                                   },
                                   undefined,
                                   undefined,
@@ -24819,7 +24991,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -25898,7 +26069,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                               [
                                 {
                                   "padding": 15,
-                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -26151,11 +26321,11 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                       },
                     ]
                   }
-                  testID="deposit-configuration-menu-button"
+                  testID="button-icon"
                 >
                   <SvgMock
                     fill="currentColor"
-                    name="Setting"
+                    name="ArrowLeft"
                     style={
                       [
                         {
@@ -26203,7 +26373,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                     }
                   }
                 >
-                  Buy
+                  Amount to buy
                 </Text>
               </TouchableOpacity>
             </View>
@@ -26838,7 +27008,104 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
@@ -26866,7 +27133,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                     }
                   }
                 >
-                  Sell
+                  Amount to sell
                 </Text>
               </TouchableOpacity>
             </View>
