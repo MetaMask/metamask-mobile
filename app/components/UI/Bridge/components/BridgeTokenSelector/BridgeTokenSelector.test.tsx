@@ -9,16 +9,15 @@ import {
 } from '../../testUtils/fixtures';
 
 const mockSetOptions = jest.fn();
-const mockDispatch = jest.fn();
+const mockNavigate = jest.fn();
 let mockRouteParams: { type: 'source' | 'dest' } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
     setOptions: mockSetOptions,
-    dispatch: mockDispatch,
   }),
   useRoute: () => ({ params: mockRouteParams }),
 }));
@@ -133,6 +132,10 @@ jest.mock('@metamask/bridge-controller', () => ({
   },
 }));
 
+jest.mock('../../../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const { createElement } = jest.requireActual('react');
   const { TouchableOpacity, View } = jest.requireActual('react-native');
@@ -164,6 +167,7 @@ jest.mock('../../../../../util/networks', () => ({
 }));
 
 jest.mock('./NetworkPills', () => ({
+  getNetworkName: jest.fn(() => 'Ethereum'),
   NetworkPills: ({
     onChainSelect,
   }: {
@@ -451,10 +455,10 @@ describe('BridgeTokenSelector', () => {
       await act(async () => {
         fireEvent.press(getByTestId('button-icon-info'));
       });
-      expect(mockDispatch).toHaveBeenCalledWith(
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RootModalFlow',
         expect.objectContaining({
-          type: 'NAVIGATE',
-          payload: expect.objectContaining({ name: 'Asset' }),
+          screen: 'TokenInsights',
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
