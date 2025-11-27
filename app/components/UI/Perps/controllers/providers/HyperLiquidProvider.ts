@@ -125,6 +125,10 @@ import type {
   UserHistoryItem,
 } from '../types';
 import { PERPS_ERROR_CODES } from '../PerpsController';
+import type {
+  ExtendedAssetMeta,
+  ExtendedPerpDex,
+} from '../../types/perps-types';
 
 // Helper method parameter interfaces (module-level for class-dependent methods only)
 interface GetAssetInfoParams {
@@ -223,6 +227,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Cache for raw meta responses (shared across methods to avoid redundant API calls)
   // Filtering is applied on-demand (cheap array operations) - no need for separate processed cache
   private cachedMetaByDex = new Map<string, MetaResponse>();
+
+  // Cache for perpDexs data (deployerFeeScale for dynamic fee calculation)
+  // TTL-based cache - fee scales rarely change
+  private perpDexsCache: {
+    data: ExtendedPerpDex[] | null;
+    timestamp: number;
+  } = { data: null, timestamp: 0 };
 
   // Session cache for referral state (cleared on disconnect/reconnect)
   // Key: `network:userAddress`, Value: true if referral is set
@@ -642,6 +653,116 @@ export class HyperLiquidProvider implements IPerpsProvider {
     });
 
     return meta;
+  }
+
+  /**
+   * Fetch perpDexs data with TTL-based caching
+   * Returns deployerFeeScale info needed for dynamic fee calculation
+   * @returns Array of ExtendedPerpDex objects (null entries represent main DEX)
+   */
+  private async getCachedPerpDexs(): Promise<ExtendedPerpDex[]> {
+    const now = Date.now();
+
+    // Return cached data if still valid
+    if (
+      this.perpDexsCache.data &&
+      now - this.perpDexsCache.timestamp <
+        HIP3_FEE_CONFIG.PERP_DEXS_CACHE_TTL_MS
+    ) {
+      DevLogger.log('[getCachedPerpDexs] Using cached perpDexs data', {
+        age: `${Math.round((now - this.perpDexsCache.timestamp) / 1000)}s`,
+        count: this.perpDexsCache.data.length,
+      });
+      return this.perpDexsCache.data;
+    }
+
+    // Fetch fresh data from API
+    // Note: SDK types are incomplete, but API returns deployerFeeScale
+    this.ensureClientsInitialized();
+    const infoClient = this.clientService.getInfoClient();
+    const perpDexs =
+      (await infoClient.perpDexs()) as unknown as ExtendedPerpDex[];
+
+    // Cache the result
+    this.perpDexsCache = { data: perpDexs, timestamp: now };
+
+    DevLogger.log('[getCachedPerpDexs] Fetched and cached perpDexs data', {
+      count: perpDexs.length,
+      dexes: perpDexs
+        .filter((d) => d !== null)
+        .map((d) => ({
+          name: d.name,
+          deployerFeeScale: d.deployerFeeScale,
+        })),
+    });
+
+    return perpDexs;
+  }
+
+  /**
+   * Calculate HIP-3 fee multiplier using HyperLiquid's official formula
+   * Fetches deployerFeeScale from perpDexs API and growthMode from meta API
+   *
+   * Formula from HyperLiquid docs:
+   * - scaleIfHip3 = deployerFeeScale < 1 ? deployerFeeScale + 1 : deployerFeeScale * 2
+   * - growthModeScale = growthMode ? 0.1 : 1
+   * - finalMultiplier = scaleIfHip3 * growthModeScale
+   *
+   * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees#fee-formula-for-developers
+   */
+  private async calculateHip3FeeMultiplier(params: {
+    dexName: string;
+    assetSymbol: string;
+  }): Promise<number> {
+    const { dexName, assetSymbol } = params;
+
+    try {
+      // Get deployerFeeScale from perpDexs
+      const perpDexs = await this.getCachedPerpDexs();
+      const dexInfo = perpDexs.find((d) => d?.name === dexName);
+      const parsedScale = parseFloat(dexInfo?.deployerFeeScale ?? '');
+      const deployerFeeScale = Number.isNaN(parsedScale)
+        ? HIP3_FEE_CONFIG.DEFAULT_DEPLOYER_FEE_SCALE
+        : parsedScale;
+
+      // Get growthMode from meta for this specific asset
+      const meta = await this.getCachedMeta({ dexName });
+      const fullAssetName = `${dexName}:${assetSymbol}`;
+      const assetMeta = meta.universe.find(
+        (u) => (u as ExtendedAssetMeta).name === fullAssetName,
+      ) as ExtendedAssetMeta | undefined;
+      const isGrowthMode = assetMeta?.growthMode === 'enabled';
+
+      // Apply official formula
+      const scaleIfHip3 =
+        deployerFeeScale < 1 ? deployerFeeScale + 1 : deployerFeeScale * 2;
+      const growthModeScale = isGrowthMode
+        ? HIP3_FEE_CONFIG.GROWTH_MODE_SCALE
+        : 1;
+
+      const finalMultiplier = scaleIfHip3 * growthModeScale;
+
+      DevLogger.log('HIP-3 Dynamic Fee Calculation', {
+        dexName,
+        assetSymbol,
+        fullAssetName,
+        deployerFeeScale,
+        isGrowthMode,
+        scaleIfHip3,
+        growthModeScale,
+        finalMultiplier,
+      });
+
+      return finalMultiplier;
+    } catch (error) {
+      DevLogger.log('HIP-3 Fee Calculation Failed, using fallback', {
+        dexName,
+        assetSymbol,
+        error: ensureError(error).message,
+      });
+      // Safe fallback: standard HIP-3 2x multiplier (no Growth Mode discount)
+      return HIP3_FEE_CONFIG.DEFAULT_DEPLOYER_FEE_SCALE * 2;
+    }
   }
 
   /**
@@ -5071,21 +5192,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
     let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
-    // HIP-3 assets have 2× base fees (per fees.md line 9)
-    // Parse coin to detect HIP-3 DEX (e.g., "xyz:TSLA" → dex="xyz")
-    const { dex } = parseAssetName(coin);
+    // Parse coin to detect HIP-3 DEX (e.g., "xyz:TSLA" → dex="xyz", symbol="TSLA")
+    const { dex, symbol } = parseAssetName(coin);
     const isHip3Asset = dex !== null;
 
-    if (isHip3Asset) {
+    // Calculate HIP-3 fee multiplier dynamically (handles Growth Mode)
+    let hip3Multiplier = 1;
+    if (isHip3Asset && dex && symbol) {
+      hip3Multiplier = await this.calculateHip3FeeMultiplier({
+        dexName: dex,
+        assetSymbol: symbol,
+      });
       const originalRate = feeRate;
-      feeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+      feeRate *= hip3Multiplier;
 
-      DevLogger.log('HIP-3 Fee Multiplier Applied', {
+      DevLogger.log('HIP-3 Dynamic Fee Multiplier Applied', {
         coin,
         dex,
+        symbol,
         originalBaseRate: originalRate,
         hip3BaseRate: feeRate,
-        multiplier: HIP3_FEE_CONFIG.FEE_MULTIPLIER,
+        hip3Multiplier,
       });
     }
 
@@ -5095,6 +5222,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       amount,
       coin,
       isHip3Asset,
+      hip3Multiplier,
       baseFeeRate: feeRate,
       baseTakerRate: FEE_RATES.taker,
       baseMakerRate: FEE_RATES.maker,
@@ -5119,9 +5247,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
               ? cached.perpsTakerRate
               : cached.perpsMakerRate;
 
-          // Apply HIP-3 multiplier to user-specific rates
-          if (isHip3Asset) {
-            userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+          // Apply HIP-3 dynamic multiplier to user-specific rates (includes Growth Mode)
+          if (isHip3Asset && hip3Multiplier > 0) {
+            userFeeRate *= hip3Multiplier;
           }
 
           feeRate = userFeeRate;
@@ -5134,6 +5262,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             spotMakerRate: cached.spotMakerRate,
             selectedRate: feeRate,
             isHip3Asset,
+            hip3Multiplier,
             cacheExpiry: new Date(cached.timestamp + cached.ttl).toISOString(),
             cacheAge: `${Math.round((Date.now() - cached.timestamp) / 1000)}s`,
           });
@@ -5245,9 +5374,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
             ? rates.perpsTakerRate
             : rates.perpsMakerRate;
 
-        // Apply HIP-3 multiplier to API-fetched rates
-        if (isHip3Asset) {
-          userFeeRate *= HIP3_FEE_CONFIG.FEE_MULTIPLIER;
+        // Apply HIP-3 dynamic multiplier to API-fetched rates (includes Growth Mode)
+        if (isHip3Asset && hip3Multiplier > 0) {
+          userFeeRate *= hip3Multiplier;
         }
 
         feeRate = userFeeRate;
@@ -5257,6 +5386,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           selectedRatePercentage: `${(feeRate * 100).toFixed(4)}%`,
           discountApplied: perpsTakerRate < FEE_RATES.taker,
           isHip3Asset,
+          hip3Multiplier,
           cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
         });
       }
@@ -5389,6 +5519,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.referralCheckCache.clear();
       this.builderFeeCheckCache.clear();
       this.cachedMetaByDex.clear();
+      this.perpDexsCache = { data: null, timestamp: 0 };
 
       // Clear pending promise trackers to prevent memory leaks and ensure clean state
       this.ensureReadyPromise = null;
