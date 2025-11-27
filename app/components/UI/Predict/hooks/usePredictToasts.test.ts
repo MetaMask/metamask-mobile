@@ -277,7 +277,7 @@ describe('usePredictToasts', () => {
       // Assert
       await waitFor(() => {
         const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
-        const linkButtonOnPress = toastCall.linkButtonOptions?.onPress;
+        const linkButtonOnPress = toastCall.closeButtonOptions?.onPress;
         expect(linkButtonOnPress).toBeDefined();
 
         // Call the link button onPress
@@ -313,7 +313,7 @@ describe('usePredictToasts', () => {
       await waitFor(() => {
         expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
           expect.objectContaining({
-            linkButtonOptions: expect.objectContaining({
+            closeButtonOptions: expect.objectContaining({
               label: expect.any(String),
               onPress: expect.any(Function),
             }),
