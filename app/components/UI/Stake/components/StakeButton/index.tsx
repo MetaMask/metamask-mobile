@@ -44,8 +44,8 @@ import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagCon
 ///: END:ONLY_INCLUDE_IF
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { MUSD_CONVERSION_DEFAULT_CHAIN_ID } from '../../../Earn/constants/musd';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -223,7 +223,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       }
 
       const config = {
-        outputChainId: CHAIN_IDS.MAINNET,
+        outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),

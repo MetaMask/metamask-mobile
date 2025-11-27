@@ -119,6 +119,7 @@ export const useMusdConversion = () => {
           );
         }
 
+        // TODO: Centralize navigation to mUSD conversion education screen.
         /**
          * Navigate to the confirmation screen immediately for better UX,
          * since there can be a delay between the user's button press and
