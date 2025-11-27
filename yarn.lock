@@ -9812,7 +9812,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@msgpack/msgpack@npm:^3.1.2":
+"@msgpack/msgpack@npm:3.1.2":
   version: 3.1.2
   resolution: "@msgpack/msgpack@npm:3.1.2"
   checksum: 10/e04ff37d7c89ffdd6b4fbcd1770af60b16c98afdf1c3c16190170dfe34764048eb45e3654016ac62cc616c7e4b09e611f8863317ca5f18b3a72974fb131e562e
@@ -9875,19 +9875,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nktkas/hyperliquid@npm:^0.25.9":
-  version: 0.25.9
-  resolution: "@nktkas/hyperliquid@npm:0.25.9"
+"@nktkas/hyperliquid@npm:^0.27.0":
+  version: 0.27.0
+  resolution: "@nktkas/hyperliquid@npm:0.27.0"
   dependencies:
     "@henrygd/semaphore": "npm:0.1.0"
-    "@msgpack/msgpack": "npm:^3.1.2"
+    "@msgpack/msgpack": "npm:3.1.2"
+    "@nktkas/rews": "npm:^1.2.0"
     "@noble/hashes": "npm:^2.0.1"
     "@noble/secp256k1": "npm:^3.0.0"
-    typescript-event-target: "npm:1.1.1"
     valibot: "npm:1.1.0"
   bin:
-    hyperliquid: esm/bin/cli.js
-  checksum: 10/b62cf956449342d0ef777d62a7ca03515ad7cbc7b54bb6907bd5f426ec3b54d82320e4d5fd80a489a98dea817fae34ec885fc9a9a598625425c45d103ae1974f
+    hyperliquid: dist/bin/cli.js
+  checksum: 10/83bf97ad2016bd90d4cd747a11ea07c9a03e239dddf3e542a3e72da29f3e1d8c2451ce42359840965fa5e7b36c0b5951c4e64331145c8b834f3ae260a76c2f27
+  languageName: node
+  linkType: hard
+
+"@nktkas/rews@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@nktkas/rews@npm:1.2.0"
+  checksum: 10/0e542a56b5a19b3f78a35fac3608f08ecdb6a7c23e487ddbb3c3dc9c5ef72cc58c1d862ddf04f46d391857e998487badf592e7b20a9a93bf981ae4190b148de9
   languageName: node
   linkType: hard
 
@@ -35767,7 +35774,7 @@ __metadata:
     "@metamask/tron-wallet-snap": "npm:^1.13.0"
     "@metamask/utils": "npm:^11.8.1"
     "@ngraveio/bc-ur": "npm:^1.1.6"
-    "@nktkas/hyperliquid": "npm:^0.25.9"
+    "@nktkas/hyperliquid": "npm:^0.27.0"
     "@noble/curves": "npm:1.9.6"
     "@notifee/react-native": "npm:^9.0.0"
     "@octokit/rest": "npm:^21.0.0"
@@ -45652,13 +45659,6 @@ __metadata:
   dependencies:
     typescript-logic: "npm:^0.0.0"
   checksum: 10/d6c43213e7689f8519438b6deceb9877cdc83b4f64677bbc07e6d88d8b63bee713035731678facfd3f81b019b93131a876a230194b4f8d31737bfc5af71594d2
-  languageName: node
-  linkType: hard
-
-"typescript-event-target@npm:1.1.1":
-  version: 1.1.1
-  resolution: "typescript-event-target@npm:1.1.1"
-  checksum: 10/199c5f761cfedab59ac6a1198c597ffd03723002b0171f03fc060b4b9312cab40ac6eea117786ecd2c6d3d6a25bb7a007695ad4398de9dccfe60b7da782b893f
   languageName: node
   linkType: hard
 
