@@ -172,7 +172,7 @@ const CustomNetworks = {
       rpcUrl: 'https://timothy.megaeth.com/rpc',
       nickname: 'Mega Testnet',
       ticker: 'MegaETH',
-      BlockExplorerUrl: 'https://explorer.megaeth.com/',
+      BlockExplorerUrl: 'https://megaexplorer.xyz/',
     },
   },
   MonadTestnet: {
