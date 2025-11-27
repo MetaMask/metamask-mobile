@@ -22,7 +22,6 @@ export const useTrendingSearch = (
     useSearchRequest({
       query: searchQuery || '',
       limit: 20,
-      chainIds: [],
     });
 
   const {
