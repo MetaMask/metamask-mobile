@@ -44,7 +44,6 @@ interface SectionConfig {
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
-  keyExtractor: (item: unknown) => string;
   Section: React.ComponentType<{ refreshTrigger?: number }>;
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
@@ -81,7 +80,6 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <TrendingTokenRowItem token={item as TrendingAsset} />
     ),
     Skeleton: () => <TrendingTokensSkeleton />,
-    keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
     Section: ({ refreshTrigger }) => (
       <SectionCard sectionId="tokens" refreshTrigger={refreshTrigger} />
     ),
@@ -118,7 +116,6 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       />
     ),
     Skeleton: () => <PerpsMarketRowSkeleton />,
-    keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
     Section: ({ refreshTrigger }) => (
       <PerpsConnectionProvider>
         <PerpsStreamProvider>
@@ -155,7 +152,6 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       </Box>
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
-    keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
     Section: ({ refreshTrigger }) => (
       <SectionCarrousel
         sectionId="predictions"
@@ -183,7 +179,6 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),
     Skeleton: () => <SiteSkeleton />,
-    keyExtractor: (item) => `site-${(item as SiteData).id}`,
     Section: ({ refreshTrigger }) => (
       <SectionCard sectionId="sites" refreshTrigger={refreshTrigger} />
     ),

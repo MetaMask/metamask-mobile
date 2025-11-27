@@ -58,7 +58,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
         <FlashList
           data={data.slice(0, 3)}
           renderItem={renderFlatItem}
-          keyExtractor={(item) => section.keyExtractor(item)}
+          keyExtractor={(_, index) => `${section.id}-${index}`}
           keyboardShouldPersistTaps="handled"
           testID="perps-tokens-list"
         />
