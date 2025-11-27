@@ -48,7 +48,7 @@ fi
 
 # Wait for the workflow to complete
 echo "Waiting for $METAMASK_WORKFLOW to complete..."
-TIMEOUT=1800  # 30 minutes
+TIMEOUT=2400  # 40 minutes
 ELAPSED=0
 
 while [ $ELAPSED -lt $TIMEOUT ]; do
