@@ -16,7 +16,7 @@ jobs:
       security-events: write
     with:
       repo: ${{ github.repository }}
-      scanner-ref: main
+      scanner-ref: v2
       # Ignoring java-kotlin and swift until we can get builds working
       languages-config: |
         [
