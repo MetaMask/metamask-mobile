@@ -961,8 +961,6 @@ const Wallet = ({
       linkButtonOptions: {
         label: strings(`privacy_policy.gather_basic_usage_learn_more`),
         onPress: () => {
-          storePna25Acknowledged();
-          currentToast?.closeToast();
           Linking.openURL(HOWTO_MANAGE_METAMETRICS);
         },
       },
