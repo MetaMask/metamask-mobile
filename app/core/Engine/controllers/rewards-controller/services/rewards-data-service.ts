@@ -972,6 +972,11 @@ export class RewardsDataService {
       data.endDate = new Date(data.endDate);
     }
 
+    // Ensure activityTypes is always an array per SeasonMetadataDto
+    if (!Array.isArray(data.activityTypes)) {
+      data.activityTypes = [];
+    }
+
     return data as SeasonMetadataDto;
   }
 }

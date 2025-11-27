@@ -57,7 +57,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
 
   const uri =
     resolvedIpfsUrl ||
-    (source.uri === undefined || source.uri?.startsWith('ipfs')
+    (!source || source.uri === undefined || source.uri?.startsWith('ipfs')
       ? ''
       : source.uri);
 
@@ -71,7 +71,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   useEffect(() => {
     async function resolveIpfsUrl() {
       try {
-        if (!source.uri) {
+        if (!source?.uri) {
           setResolvedIpfsUrl(false);
           return;
         }
@@ -88,7 +88,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
       }
     }
     resolveIpfsUrl();
-  }, [source.uri, ipfsGateway]);
+  }, [source?.uri, ipfsGateway]);
 
   const calculateImageDimensions = useCallback(
     (imageWidth: number, imageHeight: number) => {

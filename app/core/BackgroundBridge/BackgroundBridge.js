@@ -91,6 +91,7 @@ import PPOMUtil from '../../lib/ppom/ppom-util';
 import { isRelaySupported } from '../../util/transactions/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { AccountTreeController } from '@metamask/account-tree-controller';
+import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -633,6 +634,13 @@ export class BackgroundBridge extends EventEmitter {
 
     // Origin throttling middleware for spam filtering
     engine.push(createOriginThrottlingMiddleware(this.navigation));
+
+    engine.push(
+      createTrustSignalsMiddleware({
+        phishingController: Engine.context.PhishingController,
+        networkController: Engine.context.NetworkController,
+      }),
+    );
 
     // user-facing RPC methods
     engine.push(
