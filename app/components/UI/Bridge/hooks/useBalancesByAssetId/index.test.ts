@@ -15,6 +15,7 @@ jest.mock('@metamask/bridge-controller', () => ({
   formatAddressToAssetId: jest.fn(
     (address: string, chainId: string) => `${chainId}/erc20:${address}`,
   ),
+  isNonEvmChainId: jest.fn((chainId: string) => !chainId.startsWith('0x')),
 }));
 
 const mockUseTokensWithBalance = useTokensWithBalance as jest.Mock;
