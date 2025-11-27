@@ -6,7 +6,6 @@ import { strings } from '../../../../../locales/i18n';
 import TrendingTokenRowItem from '../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import PerpsMarketRowItem from '../../../UI/Perps/components/PerpsMarketRowItem';
-import PerpsMarketRowSkeleton from '../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketRowSkeleton';
 import type { PerpsMarketData } from '../../../UI/Perps/controllers/types';
 import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
@@ -115,7 +114,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         showBadge={false}
       />
     ),
-    Skeleton: () => <PerpsMarketRowSkeleton />,
+    // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
+    Skeleton: () => <TrendingTokensSkeleton />,
     Section: ({ refreshTrigger }) => (
       <PerpsConnectionProvider>
         <PerpsStreamProvider>
