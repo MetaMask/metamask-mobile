@@ -168,11 +168,11 @@ const CustomNetworks = {
   MegaTestnet: {
     providerConfig: {
       type: 'rpc',
-      chainId: '0x18c6',
-      rpcUrl: 'https://carrot.megaeth.com/rpc',
+      chainId: '0x18c7',
+      rpcUrl: 'https://timothy.megaeth.com/rpc',
       nickname: 'Mega Testnet',
       ticker: 'MegaETH',
-      BlockExplorerUrl: 'https://megaexplorer.xyz/',
+      BlockExplorerUrl: 'https://explorer.megaeth.com/',
     },
   },
   MonadTestnet: {

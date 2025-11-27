@@ -54,7 +54,7 @@ export const NETWORKS_CHAIN_ID = {
   SCROLL: toHex('534352'),
   BERACHAIN: toHex('80094'),
   METACHAIN_ONE: toHex('112358'),
-  MEGAETH_TESTNET: toHex('6342'),
+  MEGAETH_TESTNET: toHex('6343'),
   MEGAETH_MAINNET: toHex('4326'),
   SEI: toHex('1329'),
   MONAD: toHex('143'),

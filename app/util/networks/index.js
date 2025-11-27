@@ -140,8 +140,8 @@ export const NetworkList = {
   [MEGAETH_TESTNET]: {
     name: 'Mega Testnet',
     shortName: 'Mega Testnet',
-    networkId: 6342,
-    chainId: toHex('6342'),
+    networkId: 6343,
+    chainId: toHex('6343'),
     ticker: 'MegaETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex

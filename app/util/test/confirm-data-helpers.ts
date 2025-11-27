@@ -1216,9 +1216,9 @@ export const MOCK_NETWORK_CONTROLLER_STATE = {
         },
       ],
     },
-    '0x18c6': {
+    '0x18c7': {
       blockExplorerUrls: ['https://megaexplorer.xyz'],
-      chainId: '0x18c6',
+      chainId: '0x18c7',
       defaultRpcEndpointIndex: 0,
       defaultBlockExplorerUrlIndex: 0,
       name: 'Mega Testnet',
@@ -1228,7 +1228,7 @@ export const MOCK_NETWORK_CONTROLLER_STATE = {
           failoverUrls: [],
           networkClientId: 'megaeth-testnet',
           type: 'custom',
-          url: 'https://carrot.megaeth.com/rpc',
+          url: 'https://timothy.megaeth.com/rpc',
         },
       ],
     },
