@@ -480,3 +480,27 @@ export const PERPS_SUPPORT_ARTICLES_URLS = {
   ADL_URL:
     'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
 } as const;
+
+/**
+ * Stop loss prompt banner configuration
+ * Controls when and how the stop loss prompt banner is displayed
+ * Based on TAT-1693 specifications
+ */
+export const STOP_LOSS_PROMPT_CONFIG = {
+  // Distance to liquidation threshold (percentage)
+  // Shows "Add margin" banner when position is within this % of liquidation
+  LIQUIDATION_DISTANCE_THRESHOLD: 3,
+
+  // ROE (Return on Equity) threshold (percentage)
+  // Shows "Set stop loss" banner when ROE drops below this value
+  ROE_THRESHOLD: -20,
+
+  // Debounce duration for ROE threshold (milliseconds)
+  // User must have ROE below threshold for this duration before showing banner
+  // Prevents banner from appearing during temporary price fluctuations
+  ROE_DEBOUNCE_MS: 60_000, // 60 seconds
+
+  // Suggested stop loss ROE percentage
+  // When suggesting a stop loss, calculate price at this ROE from entry
+  SUGGESTED_STOP_LOSS_ROE: -50,
+} as const;

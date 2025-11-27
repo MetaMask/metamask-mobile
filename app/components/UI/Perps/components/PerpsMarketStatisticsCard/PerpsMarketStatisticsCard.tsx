@@ -14,7 +14,10 @@ import KeyValueRow from '../../../../../component-library/components-temp/KeyVal
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
-import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderBookViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
@@ -30,6 +33,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   onTooltipPress,
   nextFundingTime,
   fundingIntervalHours,
+  onOrderBookPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -118,6 +122,26 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 
       {/* Stats rows with card background */}
       <View style={styles.statsRowsContainer}>
+        {/* Order Book - Clickable row */}
+        {onOrderBookPress && (
+          <TouchableOpacity
+            style={[styles.orderBookRow, styles.statsRowFirst]}
+            onPress={onOrderBookPress}
+            testID={PerpsOrderBookViewSelectorsIDs.CONTAINER}
+          >
+            <View style={styles.orderBookRowContent}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('perps.market.order_book')}
+              </Text>
+            </View>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          </TouchableOpacity>
+        )}
+
         {/* 24h volume */}
         <KeyValueRow
           field={{
@@ -134,7 +158,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               color: TextColor.Default,
             },
           }}
-          style={[styles.statsRow, styles.statsRowFirst]}
+          style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
         />
 
         {/* Open interest with tooltip */}
