@@ -2,13 +2,14 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import RewardItem from './RewardItem';
-import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import {
   SeasonRewardDto,
   SeasonRewardType,
   RewardClaimStatus,
   RewardDto,
-} from '../../../../../../core/Engine/controllers/rewards-controller/types';
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { selectRewardsActiveAccountAddress } from '../../../../../selectors/rewards';
+import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -26,11 +27,9 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock selectors
-jest.mock('../../../../../../selectors/rewards', () => ({
+jest.mock('../../../../../selectors/rewards', () => ({
   selectRewardsActiveAccountAddress: jest.fn(),
 }));
-
-import { selectRewardsActiveAccountAddress } from '../../../../../../selectors/rewards';
 
 const mockSelectRewardsActiveAccountAddress =
   selectRewardsActiveAccountAddress as jest.MockedFunction<
@@ -38,12 +37,12 @@ const mockSelectRewardsActiveAccountAddress =
   >;
 
 // Mock i18n
-jest.mock('../../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
 // Mock format utils
-jest.mock('../../../utils/formatUtils', () => ({
+jest.mock('../../utils/formatUtils', () => ({
   formatNumber: jest.fn((value: number) => value.toString()),
   getIconName: jest.fn(() => 'Star'),
 }));
@@ -140,5 +139,47 @@ describe('RewardItem', () => {
       />,
     );
     expect(getByText(mockSeasonReward.shortUnlockedDescription)).toBeDefined();
+  });
+
+  it('displays end of season name when isEndOfSeasonReward is true and endOfSeasonName exists', () => {
+    const seasonRewardWithEndOfSeason: SeasonRewardDto = {
+      ...mockSeasonReward,
+      endOfSeasonName: 'End of Season Reward Name',
+    };
+
+    const { getByText } = render(
+      <RewardItem
+        seasonReward={seasonRewardWithEndOfSeason}
+        isLocked
+        isEndOfSeasonReward
+      />,
+    );
+
+    expect(getByText('End of Season Reward Name')).toBeDefined();
+  });
+
+  it('displays regular name when isEndOfSeasonReward is false', () => {
+    const { getByText } = render(
+      <RewardItem seasonReward={mockSeasonReward} isLocked />,
+    );
+
+    expect(getByText(mockSeasonReward.name)).toBeDefined();
+  });
+
+  it('displays end of season short description when isEndOfSeasonReward is true and endOfSeasonShortDescription exists', () => {
+    const seasonRewardWithEndOfSeason: SeasonRewardDto = {
+      ...mockSeasonReward,
+      endOfSeasonShortDescription: 'End of season description',
+    };
+
+    const { getByText } = render(
+      <RewardItem
+        seasonReward={seasonRewardWithEndOfSeason}
+        isLocked
+        isEndOfSeasonReward
+      />,
+    );
+
+    expect(getByText('End of season description')).toBeDefined();
   });
 });

@@ -67,6 +67,10 @@
       "title": "Deposit in progress",
       "message": "Wait for the last deposit to finish before making another."
     },
+    "signed_or_submitted_pay_token": {
+      "title": "Pending transaction",
+      "message": "You have a pending transaction on this network. Wait for it to complete or select a token on another network."
+    },
     "pending_transaction": {
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
@@ -3876,7 +3880,7 @@
     "show_test_networks": "Show test networks",
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask.",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on MetaMask.",
     "edit_networks_title": "Edit networks",
     "no_network_fee": "No network fee"
   },
@@ -5841,7 +5845,7 @@
     },
     "estimated_gas_fee": {
       "title": "Estimated gas fee",
-      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. Metamask does not profit from gas fees.",
+      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. MetaMask does not profit from gas fees.",
       "gas_fluctuation": "Gas fees are estimated and will fluctuate based on network traffic and transaction complexity.",
       "gas_learn_more": "Learn more about gas fees"
     },
@@ -6855,6 +6859,15 @@
       "points_boost": "Boost",
       "points_total": "Total",
       "description": "Description"
+    },
+    "previous_season_summary": {
+      "title": "{{seasonName}} Results",
+      "update_metamask_version": "Update MetaMask to {{version}} to claim your rewards",
+      "update_metamask": "Update MetaMask to claim your rewards",
+      "point_earned": "point earned",
+      "points_earned": "points earned",
+      "no_end_of_season_rewards": "You didn't earn rewards this season, but there's always next time.",
+      "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
     "onboarding": {
       "not_supported_region_title": "Region not supported",
