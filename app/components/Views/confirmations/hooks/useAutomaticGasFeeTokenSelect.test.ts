@@ -158,10 +158,7 @@ describe('useAutomaticGasFeeTokenSelect', () => {
   });
 
   it('does not select first gas fee token if sufficient balance', () => {
-    // useHasInsufficientBalanceMock.mockReturnValue({ hasInsufficientBalance: false });
-
     runHook();
-
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
   });
 

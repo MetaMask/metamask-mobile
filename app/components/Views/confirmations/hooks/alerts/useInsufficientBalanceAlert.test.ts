@@ -10,7 +10,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
-// import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useConfirmActions } from '../useConfirmActions';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { noop } from 'lodash';
