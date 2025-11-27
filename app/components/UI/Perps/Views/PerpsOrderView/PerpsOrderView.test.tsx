@@ -353,6 +353,8 @@ jest.mock('../../../../../core/Engine', () => ({
         unrealizedPnl: '0',
       }),
       placeOrder: jest.fn().mockResolvedValue({ success: true }),
+      savePendingTradeConfiguration: jest.fn(),
+      clearPendingTradeConfiguration: jest.fn(),
     },
   },
 }));
