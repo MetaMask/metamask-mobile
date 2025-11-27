@@ -316,8 +316,8 @@ const PredictSellPreview = () => {
           )}
           {previewError && (
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Error}
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
               style={tw.style('text-center')}
             >
               {previewError}
