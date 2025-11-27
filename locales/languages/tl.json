@@ -2598,8 +2598,6 @@
     "show_fiat_on_testnets_modal_button": "Magpatuloy",
     "show_hex_data": "Ipakita ang Hex na Data",
     "show_hex_data_desc": "Piliin ito para ipakita ang field ng hex na data sa screen ng pagpapadala.",
-    "show_custom_nonce": "I-customize ang nonce ng transaksyon",
-    "custom_nonce_desc": "I-on ito para baguhin ang nonce (numero ng transaksyon) sa mga screen ng kumpirmasyon. Isa itong advanced na feature, gamitin nang may pag-iingat.",
     "accounts_identicon_title": "Icon ng account",
     "accounts_identicon_desc": "Pumili mula sa tatlong iba’t ibang estilo ng kakaibang mga icon na makakatulong para madaling makilala ang mga account sa isang tingin.",
     "jazzicons": "Mga Jazzicon",
