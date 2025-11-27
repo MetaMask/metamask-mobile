@@ -127,6 +127,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: () => ({
     preview: mockPreview,
     isCalculating: mockIsCalculating,
+    isLoading: mockPreview === null && !mockPreviewError && mockIsCalculating,
     error: mockPreviewError,
   }),
 }));

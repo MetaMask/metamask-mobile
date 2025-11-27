@@ -57,7 +57,7 @@ describe('usePredictOrderPreview', () => {
 
       expect(result.current.preview).toBeNull();
       expect(result.current.isCalculating).toBe(false);
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isLoading).toBe(true);
       expect(result.current.error).toBeNull();
     });
 
@@ -215,7 +215,7 @@ describe('usePredictOrderPreview', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('returns false when not calculating', () => {
+    it('returns true when preview is null and no error', () => {
       const { result } = renderHook(() =>
         usePredictOrderPreview(defaultParams),
       );
@@ -223,10 +223,10 @@ describe('usePredictOrderPreview', () => {
       expect(result.current.preview).toBeNull();
       expect(result.current.error).toBeNull();
       expect(result.current.isCalculating).toBe(false);
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isLoading).toBe(true);
     });
 
-    it('returns false when size is invalid', () => {
+    it('returns true when size is invalid', () => {
       const params = { ...defaultParams, size: 0 };
       const { result } = renderHook(() => usePredictOrderPreview(params));
 
@@ -236,7 +236,7 @@ describe('usePredictOrderPreview', () => {
 
       expect(result.current.preview).toBeNull();
       expect(result.current.isCalculating).toBe(false);
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isLoading).toBe(true);
     });
   });
 

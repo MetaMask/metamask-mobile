@@ -97,7 +97,11 @@ const PredictSellPreview = () => {
     error: placeOrderError,
   } = usePredictPlaceOrder();
 
-  const { preview, error: previewError } = usePredictOrderPreview({
+  const {
+    preview,
+    error: previewError,
+    isLoading: isPreviewLoading,
+  } = usePredictOrderPreview({
     providerId: position.providerId,
     marketId: position.marketId,
     outcomeId: position.outcomeId,
@@ -141,17 +145,8 @@ const PredictSellPreview = () => {
     }
   }, [dispatch, result]);
 
-  // Show skeleton when preview is loading (null and no error)
-  const isPreviewLoading = preview === null && !previewError;
-
-  // Check if we have valid preview data to use
-  const hasValidPreview =
-    preview !== null &&
-    !previewError &&
-    preview?.minAmountReceived !== undefined;
-
   // Use preview data if available, fallback to position data on error or when preview is unavailable
-  const currentValue = hasValidPreview
+  const currentValue = preview
     ? preview.minAmountReceived
     : position.currentValue;
   const currentPrice = preview?.sharePrice ?? 0;

@@ -25,10 +25,7 @@ export function usePredictOrderPreview(
 
   const { previewOrder } = usePredictTrading();
 
-  const isLoading = useMemo(
-    () => preview === null && !error && isCalculating,
-    [preview, error, isCalculating],
-  );
+  const isLoading = useMemo(() => preview === null && !error, [preview, error]);
 
   // Destructure params for stable dependencies
   const {
