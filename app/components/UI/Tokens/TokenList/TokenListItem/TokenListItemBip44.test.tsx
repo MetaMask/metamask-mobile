@@ -51,6 +51,14 @@ jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   }),
 }));
 
+jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
+  useMusdConversionTokens: jest.fn(() => ({
+    isConversionToken: jest.fn().mockReturnValue(false),
+    tokenFilter: jest.fn(),
+    tokens: [],
+  })),
+}));
+
 jest.mock('../../../../../selectors/earnController/earn', () => ({
   earnSelectors: {
     selectPrimaryEarnExperienceTypeForAsset: jest.fn(() => 'pooled-staking'),
