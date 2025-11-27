@@ -19,14 +19,11 @@ export function deepMerge<T extends PlainObject, U extends PlainObject>(
   const output: PlainObject = { ...target };
   Object.keys(source).forEach((key) => {
     const sourceValue = (source as PlainObject)[key];
-    const targetValue = (output as PlainObject)[key];
+    const targetValue = output[key];
     if (isPlainObject(sourceValue) && isPlainObject(targetValue)) {
-      (output as PlainObject)[key] = deepMerge(
-        targetValue as PlainObject,
-        sourceValue as PlainObject,
-      );
+      output[key] = deepMerge(targetValue, sourceValue);
     } else {
-      (output as PlainObject)[key] = sourceValue;
+      output[key] = sourceValue;
     }
   });
   return output as T & U;
