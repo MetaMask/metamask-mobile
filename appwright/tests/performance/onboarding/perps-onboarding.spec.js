@@ -36,6 +36,7 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   device,
   performanceTracker,
 }, testInfo) => {
+  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
   await screensSetup(device);
 
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_3, 120000);

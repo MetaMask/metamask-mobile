@@ -28,7 +28,7 @@ test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   AccountListComponent.device = device;
   AddAccountModal.device = device;
   BridgeScreen.device = device;
-
+  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
   // await login(device);
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
 

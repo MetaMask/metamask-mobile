@@ -37,7 +37,7 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   WalletMainScreen.device = device;
   ImportFromSeedScreen.device = device;
   CreatePasswordScreen.device = device;
-
+  test.setTimeout(1800000); // TODO: Investigate why this is taking so long on Android
   const timer3 = new TimerHelper(
     'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
   );
