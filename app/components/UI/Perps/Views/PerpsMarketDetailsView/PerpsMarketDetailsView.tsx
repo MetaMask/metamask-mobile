@@ -294,10 +294,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isLoading: isLoadingTradingHalted,
   } = useIsPriceDeviatedAboveThreshold(market?.symbol);
 
-  // Programmatic tab control state for data-driven navigation
-  const [programmaticActiveTab, setProgrammaticActiveTab] = useState<
-    string | null
-  >(null);
   // Handle data-driven monitoring when coming from order success
   // Clear monitoringIntent after processing to allow fresh monitoring next time
   const handleDataDetected = useCallback(() => {
@@ -921,7 +917,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       </View>
 
       {/* Fixed Actions Footer */}
-      {(hasAddFundsButton || hasLongShortButtons) && (
+      {(hasAddFundsButton || hasLongShortButtons) && !isTradingHalted && (
         <View style={styles.actionsFooter}>
           {hasAddFundsButton && (
             <View style={styles.singleActionContainer}>
@@ -940,7 +936,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
 
           {/* Show Modify/Close buttons when position exists */}
-          {hasLongShortButtons && existingPosition && !isTradingHalted && (
+          {hasLongShortButtons && existingPosition && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
                 <Button
