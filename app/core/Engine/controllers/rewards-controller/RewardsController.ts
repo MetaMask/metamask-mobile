@@ -70,7 +70,7 @@ const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Season metadata cache threshold
-const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
@@ -1640,14 +1640,7 @@ export class RewardsController extends BaseController<
 
     try {
       const seasonDto = await this.getSeasonMetadata('current');
-      if (!seasonDto) {
-        return false;
-      }
-
-      const now = Date.now();
-      const isActive = now >= seasonDto.startDate && now <= seasonDto.endDate;
-
-      return isActive;
+      return !!seasonDto;
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to check active season:',
@@ -1677,15 +1670,6 @@ export class RewardsController extends BaseController<
       readCache: (key) => {
         const cached = this.state.seasons[key] || undefined;
         if (!cached) return;
-        const now = Date.now();
-        if (
-          type === 'current' &&
-          this.state.seasons.current?.endDate &&
-          this.state.seasons.current.endDate < now
-        ) {
-          return undefined;
-        }
-
         return { payload: cached, lastFetched: cached.lastFetched };
       },
       fetchFresh: async () => {
@@ -1699,29 +1683,12 @@ export class RewardsController extends BaseController<
           'RewardsDataService:getDiscoverSeasons',
         )) as DiscoverSeasonsDto;
 
-        const now = Date.now();
-        const freshCurrentSeasonIsExpired =
-          discoverSeasons.current?.endDate &&
-          discoverSeasons.current.endDate.getTime() < now;
-
         let seasonInfo = null;
 
         if (type === 'previous') {
-          if (freshCurrentSeasonIsExpired && discoverSeasons.current) {
-            seasonInfo = discoverSeasons.current;
-          } else {
-            seasonInfo = discoverSeasons.previous;
-          }
+          seasonInfo = discoverSeasons.previous;
         } else if (type === 'current') {
-          if (!freshCurrentSeasonIsExpired) {
-            seasonInfo = discoverSeasons.current;
-          } else if (
-            freshCurrentSeasonIsExpired &&
-            discoverSeasons.next &&
-            discoverSeasons.next.startDate.getTime() >= now
-          ) {
-            seasonInfo = discoverSeasons.next;
-          }
+          seasonInfo = discoverSeasons.current;
         }
 
         // If found with valid start date, fetch metadata and populate cache
