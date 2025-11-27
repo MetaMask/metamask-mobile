@@ -8,6 +8,14 @@
 name: Create RC builds
 
 on:
+  push:
+    branches:
+      - "rc-builds-gh-workflow"
+  pull_request:
+    branches:
+      - "release/**"
+    paths:
+      - ".github/workflows/rc-builds.yml"
   workflow_dispatch:
     inputs:
       semver:
