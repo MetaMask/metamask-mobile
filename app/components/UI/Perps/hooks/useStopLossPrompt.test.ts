@@ -42,7 +42,7 @@ describe('useStopLossPrompt', () => {
   });
 
   describe('basic functionality', () => {
-    it('should not show banner when disabled', () => {
+    it('does not show banner when disabled', () => {
       const position = createMockPosition();
 
       const { result } = renderHook(() =>
@@ -57,7 +57,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.variant).toBeNull();
     });
 
-    it('should not show banner when no position', () => {
+    it('does not show banner when no position', () => {
       const { result } = renderHook(() =>
         useStopLossPrompt({
           position: null,
@@ -69,7 +69,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.variant).toBeNull();
     });
 
-    it('should not show banner for cross margin positions', () => {
+    it('does not show banner for cross margin positions', () => {
       const position = createMockPosition({
         leverage: { type: 'cross', value: 10 },
       });
@@ -85,7 +85,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.variant).toBeNull();
     });
 
-    it('should not show banner when position has stop loss', () => {
+    it('does not show banner when position has stop loss', () => {
       const position = createMockPosition({
         stopLossPrice: '47000',
       });
@@ -103,7 +103,7 @@ describe('useStopLossPrompt', () => {
   });
 
   describe('add_margin variant', () => {
-    it('should show add_margin variant when within liquidation threshold', () => {
+    it('shows add_margin variant when within liquidation threshold', () => {
       // Position with liquidation at 45000, current price 45500 (1.1% away)
       const position = createMockPosition({
         liquidationPrice: '45000',
@@ -124,7 +124,7 @@ describe('useStopLossPrompt', () => {
       );
     });
 
-    it('should calculate liquidation distance correctly', () => {
+    it('calculates liquidation distance correctly', () => {
       const position = createMockPosition({
         liquidationPrice: '45000',
       });
@@ -142,7 +142,7 @@ describe('useStopLossPrompt', () => {
   });
 
   describe('stop_loss variant', () => {
-    it('should show stop_loss variant after ROE debounce period', () => {
+    it('shows stop_loss variant after ROE debounce period', () => {
       const position = createMockPosition({
         returnOnEquity: '-0.25', // -25% ROE
         liquidationPrice: '40000', // Far from liquidation
@@ -167,7 +167,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.variant).toBe('stop_loss');
     });
 
-    it('should not show stop_loss variant if ROE recovers before debounce', () => {
+    it('does not show stop_loss variant if ROE recovers before debounce', () => {
       const position = createMockPosition({
         returnOnEquity: '-0.25', // -25% ROE
         liquidationPrice: '40000',
@@ -205,7 +205,7 @@ describe('useStopLossPrompt', () => {
   });
 
   describe('suggested stop loss calculations', () => {
-    it('should calculate suggested stop loss price for long position', () => {
+    it('calculates suggested stop loss price for long position', () => {
       const position = createMockPosition({
         entryPrice: '50000',
         size: '1', // Long position
@@ -225,7 +225,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.suggestedStopLossPrice).toBe('47500');
     });
 
-    it('should calculate suggested stop loss price for short position', () => {
+    it('calculates suggested stop loss price for short position', () => {
       const position = createMockPosition({
         entryPrice: '50000',
         size: '-1', // Short position
@@ -245,7 +245,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.suggestedStopLossPrice).toBe('52500');
     });
 
-    it('should return target ROE as suggested stop loss percent', () => {
+    it('returns target ROE as suggested stop loss percent', () => {
       const position = createMockPosition({
         entryPrice: '50000',
         size: '1',
@@ -265,7 +265,7 @@ describe('useStopLossPrompt', () => {
       );
     });
 
-    it('should return null for suggested price when no position', () => {
+    it('returns null for suggested price when no position', () => {
       const { result } = renderHook(() =>
         useStopLossPrompt({
           position: null,
@@ -279,7 +279,7 @@ describe('useStopLossPrompt', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle zero current price', () => {
+    it('handles zero current price', () => {
       const position = createMockPosition();
 
       const { result } = renderHook(() =>
@@ -292,7 +292,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.liquidationDistance).toBeNull();
     });
 
-    it('should handle invalid liquidation price', () => {
+    it('handles invalid liquidation price', () => {
       const position = createMockPosition({
         liquidationPrice: 'invalid',
       });
@@ -307,7 +307,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.liquidationDistance).toBeNull();
     });
 
-    it('should handle missing entry price', () => {
+    it('handles missing entry price', () => {
       const position = createMockPosition({
         entryPrice: undefined as unknown as string,
       });
@@ -322,7 +322,7 @@ describe('useStopLossPrompt', () => {
       expect(result.current.suggestedStopLossPrice).toBeNull();
     });
 
-    it('should prioritize add_margin over stop_loss when both conditions met', () => {
+    it('prioritizes add_margin over stop_loss when both conditions met', () => {
       const position = createMockPosition({
         returnOnEquity: '-0.30', // Below ROE threshold
         liquidationPrice: '49000', // Very close to liquidation

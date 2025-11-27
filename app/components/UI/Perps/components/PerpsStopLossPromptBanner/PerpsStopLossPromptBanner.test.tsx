@@ -14,7 +14,7 @@ const initialState = {
 
 describe('PerpsStopLossPromptBanner', () => {
   describe('add_margin variant', () => {
-    it('should render add_margin variant correctly', () => {
+    it('renders add_margin variant correctly', () => {
       const { getByTestId, getByText } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="add_margin"
@@ -34,7 +34,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(getByText(/3%/)).toBeTruthy();
     });
 
-    it('should call onAddMargin when button pressed', () => {
+    it('calls onAddMargin when button pressed', () => {
       const onAddMargin = jest.fn();
       const { getByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
@@ -51,7 +51,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(onAddMargin).toHaveBeenCalledTimes(1);
     });
 
-    it('should show loading state on add_margin button', () => {
+    it('shows loading state on add_margin button', () => {
       const { getByTestId, queryByText } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="add_margin"
@@ -70,7 +70,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(queryByText('Add margin')).toBeFalsy();
     });
 
-    it('should have isDisabled prop when loading', () => {
+    it('has isDisabled prop when loading', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="add_margin"
@@ -90,7 +90,7 @@ describe('PerpsStopLossPromptBanner', () => {
   });
 
   describe('stop_loss variant', () => {
-    it('should render stop_loss variant correctly', () => {
+    it('renders stop_loss variant correctly', () => {
       const { getByTestId, getByText } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
@@ -110,7 +110,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(getByText(/-50%/)).toBeTruthy();
     });
 
-    it('should call onSetStopLoss when toggle switched on', () => {
+    it('calls onSetStopLoss when toggle switched on', () => {
       const onSetStopLoss = jest.fn();
       const { UNSAFE_getByType } = renderWithProvider(
         <PerpsStopLossPromptBanner
@@ -128,7 +128,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(onSetStopLoss).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call onSetStopLoss when toggle switched off', () => {
+    it('does not call onSetStopLoss when toggle switched off', () => {
       const onSetStopLoss = jest.fn();
       const { UNSAFE_getByType } = renderWithProvider(
         <PerpsStopLossPromptBanner
@@ -146,7 +146,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(onSetStopLoss).not.toHaveBeenCalled();
     });
 
-    it('should show loading indicator instead of toggle when loading', () => {
+    it('shows loading indicator instead of toggle when loading', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
@@ -163,7 +163,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(queryByTestId(PerpsStopLossPromptSelectorsIDs.TOGGLE)).toBeFalsy();
     });
 
-    it('should not trigger action when loading', () => {
+    it('does not trigger action when loading', () => {
       const onSetStopLoss = jest.fn();
       const { getByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
@@ -181,7 +181,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(getByTestId(PerpsStopLossPromptSelectorsIDs.LOADING)).toBeTruthy();
     });
 
-    it('should format price correctly', () => {
+    it('formats price correctly', () => {
       const { getByText } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
@@ -198,7 +198,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(getByText(/-17%/)).toBeTruthy();
     });
 
-    it('should handle positive percent with plus sign', () => {
+    it('handles positive percent with plus sign', () => {
       const { getByText } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
@@ -215,7 +215,7 @@ describe('PerpsStopLossPromptBanner', () => {
   });
 
   describe('fade-out animation', () => {
-    it('should call onFadeOutComplete after success animation', async () => {
+    it('calls onFadeOutComplete after success animation', async () => {
       jest.useFakeTimers();
       const onFadeOutComplete = jest.fn();
 
@@ -241,7 +241,7 @@ describe('PerpsStopLossPromptBanner', () => {
       jest.useRealTimers();
     });
 
-    it('should not call onFadeOutComplete when not successful', async () => {
+    it('does not call onFadeOutComplete when not successful', async () => {
       jest.useFakeTimers();
       const onFadeOutComplete = jest.fn();
 
@@ -268,7 +268,7 @@ describe('PerpsStopLossPromptBanner', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle missing suggestedStopLossPrice', () => {
+    it('handles missing suggestedStopLossPrice', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
@@ -283,7 +283,7 @@ describe('PerpsStopLossPromptBanner', () => {
       ).toBeTruthy();
     });
 
-    it('should handle missing onSetStopLoss callback', () => {
+    it('handles missing onSetStopLoss callback', () => {
       const { UNSAFE_getByType } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
@@ -299,7 +299,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(() => fireEvent(toggle, 'onValueChange', true)).not.toThrow();
     });
 
-    it('should handle missing onAddMargin callback', () => {
+    it('handles missing onAddMargin callback', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="add_margin"
@@ -314,7 +314,7 @@ describe('PerpsStopLossPromptBanner', () => {
       ).toBeTruthy();
     });
 
-    it('should use custom testID when provided', () => {
+    it('uses custom testID when provided', () => {
       const customTestId = 'custom-banner-test-id';
       const { getByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
