@@ -1175,17 +1175,17 @@ describe('RewardsDashboard', () => {
   describe('modal triggering for current account', () => {
     it('should show not opted in modal when account group has opted out accounts and modal has not been shown', async () => {
       // Arrange - Mock account group with opted out accounts
-      // Use past date so showPreviousSeasonSummary is true (season has ended)
-      // Note: The modal effect only runs when showPreviousSeasonSummary is true
-      const pastDateObj = new Date(pastDate);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
+      // Use future date so showPreviousSeasonSummary is false (season is active)
+      // Note: The modal effect only runs when showPreviousSeasonSummary is false
+      const futureDateObj = new Date(futureDate);
+      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -1235,16 +1235,16 @@ describe('RewardsDashboard', () => {
     });
 
     it('should show not supported modal when account group is not fully supported and modal has not been shown', async () => {
-      // Arrange - Use past date so showPreviousSeasonSummary is true
-      const pastDateObj = new Date(pastDate);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
+      // Arrange - Use future date so showPreviousSeasonSummary is false (season is active)
+      const futureDateObj = new Date(futureDate);
+      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -1377,16 +1377,16 @@ describe('RewardsDashboard', () => {
 
     it('should show unlinked accounts modal when there are unlinked accounts and user has subscription', async () => {
       // Arrange - Mock account group as fully opted in and has unlinked accounts
-      // Use past date so showPreviousSeasonSummary is true
-      const pastDateObj = new Date(pastDate);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
+      // Use future date so showPreviousSeasonSummary is false (season is active)
+      const futureDateObj = new Date(futureDate);
+      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -1511,11 +1511,11 @@ describe('RewardsDashboard', () => {
   describe('modal prioritization', () => {
     it('should show unlinked accounts modal when current account banner dismissed and account group is fully opted in', async () => {
       // Arrange - Mock account group as fully opted in and banner dismissed
-      // Use past date so showPreviousSeasonSummary is true
+      // Use future date so showPreviousSeasonSummary is false (season is active)
       mockSelectHideCurrentAccountNotOptedInBannerArray.mockReturnValue([
         { accountGroupId: 'keyring:wallet1/1' as const, hide: true },
       ]);
-      mockSelectSeasonEndDate.mockReturnValue(new Date(pastDate));
+      mockSelectSeasonEndDate.mockReturnValue(new Date(futureDate));
 
       const mockWalletWithOptedOutAccounts = [
         {
@@ -1563,14 +1563,14 @@ describe('RewardsDashboard', () => {
         currentAccountGroupPartiallySupported: true,
       });
 
-      const pastDateObj = new Date(pastDate);
+      const futureDateObj = new Date(futureDate);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -1591,16 +1591,16 @@ describe('RewardsDashboard', () => {
     });
 
     it('should prioritize not supported modal over other modals', async () => {
-      // Arrange - Use past date so showPreviousSeasonSummary is true
-      const pastDateObj = new Date(pastDate);
-      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
+      // Arrange - Use future date so showPreviousSeasonSummary is false (season is active)
+      const futureDateObj = new Date(futureDate);
+      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectSeasonEndDate) return futureDateObj;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -1743,15 +1743,15 @@ describe('RewardsDashboard', () => {
 
     it('should show not supported modal when account group contains unsupported accounts', async () => {
       // Arrange - Mock account group with unsupported accounts
-      // Use past date so showPreviousSeasonSummary is true
-      mockSelectSeasonEndDate.mockReturnValue(new Date(pastDate));
+      // Use future date so showPreviousSeasonSummary is false (season is active)
+      mockSelectSeasonEndDate.mockReturnValue(new Date(futureDate));
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return new Date(pastDate);
+        if (selector === selectSeasonEndDate) return new Date(futureDate);
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -1964,6 +1964,128 @@ describe('RewardsDashboard', () => {
       render(<RewardsDashboard />);
 
       // Assert - Should return early, no modals should be shown
+      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
+      expect(mockShowNotSupportedModal).not.toHaveBeenCalled();
+      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
+    });
+
+    it('should return early and not show modals when showPreviousSeasonSummary is true', () => {
+      // Arrange - Set past date so showPreviousSeasonSummary is true (season has ended)
+      const pastDateObj = new Date(pastDate);
+      mockSelectSeasonId.mockReturnValue(currentSeasonId);
+      mockSelectSeasonEndDate.mockReturnValue(pastDateObj);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return currentSeasonId;
+        if (selector === selectSeasonEndDate) return pastDateObj;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        return undefined;
+      });
+
+      // Setup conditions that would normally trigger modals
+      const mockAccountGroupWithOptedOut = {
+        id: 'keyring:wallet1/1' as const,
+        name: 'Account Group 1',
+        optedInAccounts: [],
+        optedOutAccounts: [
+          {
+            id: 'account-1',
+            address: '0x123',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {
+              name: 'Account 1',
+              importTime: Date.now(),
+              keyring: { type: 'HD Key Tree' },
+            },
+            scopes: ['eip155:1'] as `${string}:${string}`[],
+            methods: ['eth_sendTransaction'],
+            hasOptedIn: false,
+          },
+        ],
+        unsupportedAccounts: [],
+      };
+
+      mockUseRewardOptinSummary.mockReturnValue({
+        ...defaultHookValues.useRewardOptinSummary,
+        bySelectedAccountGroup: mockAccountGroupWithOptedOut,
+        currentAccountGroupPartiallySupported: true,
+        currentAccountGroupOptedInStatus: 'notOptedIn',
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert - Should return early when showPreviousSeasonSummary is true, no modals should be shown
+      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
+      expect(mockShowNotSupportedModal).not.toHaveBeenCalled();
+      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
+    });
+
+    it('should return early and not show modals when showPreviousSeasonSummary is null', () => {
+      // Arrange - Set seasonId and seasonEndDate to null so showPreviousSeasonSummary is null
+      // This tests the case where the useFocusEffect hasn't evaluated yet
+      mockSelectSeasonId.mockReturnValue(null);
+      mockSelectSeasonEndDate.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return null;
+        if (selector === selectSeasonEndDate) return null;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        return undefined;
+      });
+
+      // Setup conditions that would normally trigger modals
+      const mockAccountGroupWithOptedOut = {
+        id: 'keyring:wallet1/1' as const,
+        name: 'Account Group 1',
+        optedInAccounts: [],
+        optedOutAccounts: [
+          {
+            id: 'account-1',
+            address: '0x123',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {
+              name: 'Account 1',
+              importTime: Date.now(),
+              keyring: { type: 'HD Key Tree' },
+            },
+            scopes: ['eip155:1'] as `${string}:${string}`[],
+            methods: ['eth_sendTransaction'],
+            hasOptedIn: false,
+          },
+        ],
+        unsupportedAccounts: [],
+      };
+
+      mockUseRewardOptinSummary.mockReturnValue({
+        ...defaultHookValues.useRewardOptinSummary,
+        bySelectedAccountGroup: mockAccountGroupWithOptedOut,
+        currentAccountGroupPartiallySupported: true,
+        currentAccountGroupOptedInStatus: 'notOptedIn',
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert - Should return early when showPreviousSeasonSummary is null, no modals should be shown
       expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
       expect(mockShowNotSupportedModal).not.toHaveBeenCalled();
       expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();

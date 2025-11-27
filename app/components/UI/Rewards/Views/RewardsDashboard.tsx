@@ -214,9 +214,10 @@ const RewardsDashboard: React.FC = () => {
       if (
         !seasonId ||
         showPreviousSeasonSummary === null ||
-        !showPreviousSeasonSummary
+        showPreviousSeasonSummary
       )
         return;
+
       if (
         (totalOptedInAccountsSelectedGroup === 0 ||
           currentAccountGroupPartiallySupported === false) &&
