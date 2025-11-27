@@ -16,6 +16,7 @@ const styleSheet = (params: { theme: Theme }) => {
     addMarginRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       gap: 12,
     },
     addMarginTextContainer: {
