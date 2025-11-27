@@ -144,8 +144,8 @@ export function usePerpsOrderForm(
     defaultLeverage,
   ]);
 
-  // Priority for order type: navigation param > pending config > default (market)
-  const defaultOrderType = initialType || pendingConfig?.orderType || 'market';
+  // Priority for order type: pending config > navigation param > default (market)
+  const defaultOrderType = pendingConfig?.orderType || initialType || 'market';
 
   // Calculate initial balance percentage
   const initialMarginRequired =
