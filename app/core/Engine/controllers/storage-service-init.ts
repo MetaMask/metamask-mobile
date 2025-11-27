@@ -52,7 +52,7 @@ const mobileStorageAdapter: StorageAdapter = {
       Logger.error(error as Error, {
         message: `StorageService: Failed to get item: ${namespace}:${key}`,
       });
-      return null;
+      throw error;
     }
   },
 
@@ -131,7 +131,7 @@ const mobileStorageAdapter: StorageAdapter = {
       Logger.error(error as Error, {
         message: `StorageService: Failed to get keys for ${namespace}`,
       });
-      return [];
+      throw error;
     }
   },
 

@@ -123,13 +123,14 @@ describe('mobileStorageAdapter', () => {
       expect(result).toBeNull();
     });
 
-    it('returns null and logs error when JSON parsing fails', async () => {
+    it('logs error and throws when JSON parsing fails', async () => {
       mockFilesystemStorage.getItem.mockResolvedValue('invalid json');
 
       const adapter = getStorageAdapter();
-      const result = await adapter.getItem('TestController', 'badKey');
 
-      expect(result).toBeNull();
+      await expect(
+        adapter.getItem('TestController', 'badKey'),
+      ).rejects.toThrow();
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
@@ -138,15 +139,16 @@ describe('mobileStorageAdapter', () => {
       );
     });
 
-    it('returns null and logs error when FilesystemStorage throws', async () => {
+    it('logs error and throws when FilesystemStorage throws', async () => {
       mockFilesystemStorage.getItem.mockRejectedValue(
         new Error('Storage error'),
       );
 
       const adapter = getStorageAdapter();
-      const result = await adapter.getItem('TestController', 'errorKey');
 
-      expect(result).toBeNull();
+      await expect(
+        adapter.getItem('TestController', 'errorKey'),
+      ).rejects.toThrow('Storage error');
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
@@ -274,15 +276,16 @@ describe('mobileStorageAdapter', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('returns empty array and logs error when FilesystemStorage fails', async () => {
+    it('logs error and throws when FilesystemStorage fails', async () => {
       mockFilesystemStorage.getAllKeys.mockRejectedValue(
         new Error('Keys error'),
       );
 
       const adapter = getStorageAdapter();
-      const result = await adapter.getAllKeys('TestController');
 
-      expect(result).toStrictEqual([]);
+      await expect(adapter.getAllKeys('TestController')).rejects.toThrow(
+        'Keys error',
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
