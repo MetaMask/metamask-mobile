@@ -720,10 +720,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Get deployerFeeScale from perpDexs
       const perpDexs = await this.getCachedPerpDexs();
       const dexInfo = perpDexs.find((d) => d?.name === dexName);
-      const deployerFeeScale = parseFloat(
-        dexInfo?.deployerFeeScale ??
-          String(HIP3_FEE_CONFIG.DEFAULT_DEPLOYER_FEE_SCALE),
-      );
+      const parsedScale = parseFloat(dexInfo?.deployerFeeScale ?? '');
+      const deployerFeeScale = Number.isNaN(parsedScale)
+        ? HIP3_FEE_CONFIG.DEFAULT_DEPLOYER_FEE_SCALE
+        : parsedScale;
 
       // Get growthMode from meta for this specific asset
       const meta = await this.getCachedMeta({ dexName });
