@@ -61,7 +61,7 @@ const ProtectWalletMandatoryModal = () => {
           'ManualBackupStep2',
           'ManualBackupStep3',
           'Webview',
-          Routes.LOCK_SCREEN,
+          Routes.ONBOARDING.LOGIN,
         ].includes(route)
       ) {
         setShowProtectWalletModal(false);

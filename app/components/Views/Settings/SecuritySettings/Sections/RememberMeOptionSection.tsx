@@ -9,9 +9,10 @@ import { createTurnOffRememberMeModalNavDetails } from '../../../..//UI/TurnOffR
 import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
+import Logger from '../../../../../util/Logger';
 
 const RememberMeOptionSection = () => {
-  const { navigate } = useNavigation();
+  const navigation = useNavigation();
   const allowLoginWithRememberMe = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,9 +23,9 @@ const RememberMeOptionSection = () => {
   useEffect(() => {
     const checkIfAlreadyUsingRememberMe = async () => {
       const authType = await Authentication.getType();
-      setIsUsingRememberMe(
-        authType.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME,
-      );
+      const isRememberMeAuth =
+        authType.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME;
+      setIsUsingRememberMe(isRememberMeAuth);
     };
     checkIfAlreadyUsingRememberMe();
   }, []);
@@ -32,19 +33,109 @@ const RememberMeOptionSection = () => {
   const dispatch = useDispatch();
 
   const toggleRememberMe = useCallback(
-    (value: boolean) => {
+    async (value: boolean) => {
       dispatch(setAllowLoginWithRememberMe(value));
+
+      if (value) {
+        // When enabling Remember Me, re-store password with REMEMBER_ME type
+        // This removes biometric/passcode protection for convenience
+        try {
+          let credentials;
+          try {
+            credentials = await Authentication.getPassword();
+          } catch (error) {
+            Logger.log('RememberMe: getPassword() failed, will prompt user');
+          }
+
+          // If we successfully got the password, store it with REMEMBER_ME type
+          if (
+            credentials &&
+            typeof credentials === 'object' &&
+            credentials.password &&
+            credentials.password !== ''
+          ) {
+            Logger.log(
+              'RememberMe: Password retrieved, storing with REMEMBER_ME type...',
+            );
+            await Authentication.storePassword(
+              credentials.password,
+              AUTHENTICATION_TYPE.REMEMBER_ME,
+            );
+
+            // Verify it was stored correctly
+            const authType = await Authentication.getType();
+            Logger.log(
+              `RememberMe: Password stored - new auth type = ${authType.currentAuthType}`,
+            );
+
+            if (authType.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
+              Logger.log('RememberMe: ✅ Successfully enabled Remember Me');
+            } else {
+              Logger.error(
+                new Error(
+                  `Auth type mismatch: expected REMEMBER_ME, got ${authType.currentAuthType}`,
+                ),
+                'RememberMe: Auth type mismatch after storing',
+              );
+            }
+          } else {
+            // This follows the same pattern as biometric/passcode toggle in SecuritySettings
+            Logger.log(
+              'RememberMe: Could not retrieve password, navigating to EnterPasswordSimple',
+            );
+
+            navigation.navigate('EnterPasswordSimple', {
+              onPasswordSet: async (password: string) => {
+                try {
+                  Logger.log(
+                    'RememberMe: User re-entered password, storing with REMEMBER_ME type',
+                  );
+                  await Authentication.storePassword(
+                    password,
+                    AUTHENTICATION_TYPE.REMEMBER_ME,
+                  );
+
+                  const authType = await Authentication.getType();
+                  if (
+                    authType.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME
+                  ) {
+                    Logger.log(
+                      'RememberMe: ✅ Successfully enabled Remember Me after password re-entry',
+                    );
+                  } else {
+                    dispatch(setAllowLoginWithRememberMe(false));
+                  }
+                } catch (storeError) {
+                  dispatch(setAllowLoginWithRememberMe(false));
+                }
+              },
+            });
+          }
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'RememberMe: Failed to enable Remember Me',
+          );
+          dispatch(setAllowLoginWithRememberMe(false));
+        }
+      } else {
+        Logger.log('RememberMe: Disabled - Redux state updated to false');
+      }
     },
-    [dispatch],
+    [dispatch, navigation],
   );
 
   const onValueChanged = useCallback(
     (enabled: boolean) => {
-      isUsingRememberMe
-        ? navigate(...createTurnOffRememberMeModalNavDetails())
-        : toggleRememberMe(enabled);
+      if (isUsingRememberMe) {
+        navigation.navigate(...createTurnOffRememberMeModalNavDetails());
+      } else {
+        toggleRememberMe(enabled).catch((err) => {
+          Logger.log(err as Error, 'RememberMe: Failed to toggle');
+        });
+      }
     },
-    [isUsingRememberMe, navigate, toggleRememberMe],
+    [isUsingRememberMe, navigation, toggleRememberMe],
   );
 
   return (

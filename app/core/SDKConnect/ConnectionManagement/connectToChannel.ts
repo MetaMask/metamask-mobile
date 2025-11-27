@@ -149,11 +149,10 @@ async function connectToChannel({
       try {
         // We cannot request permissions if the user is on the login screen or the account connect screen otherwise it will kill other permissions requests.
         const skipRoutes = [
-          Routes.LOCK_SCREEN,
-          Routes.ONBOARDING.LOGIN,
-          Routes.SHEET.ACCOUNT_CONNECT,
+          Routes.ONBOARDING.LOGIN, // User is authenticating
+          Routes.SHEET.ACCOUNT_CONNECT, // User is approving connection
         ];
-        // Wait for login screen to be closed
+        // Wait for authentication/connection screens to be closed
         await waitForCondition({
           fn: () => {
             const currentRouteName =

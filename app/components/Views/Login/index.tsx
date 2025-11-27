@@ -38,13 +38,13 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
-  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
+import { isUserCancellation } from '../../../core/Authentication/biometricErrorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
@@ -95,10 +95,10 @@ import {
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../hooks/useMetrics';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
+import { RootState } from '../../../reducers';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -117,8 +117,6 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const { isEnabled: isMetricsEnabled } = useMetrics();
-
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
@@ -142,8 +140,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const setAllowLoginWithRememberMe = (enabled: boolean) =>
-    setAllowLoginWithRememberMeUtil(enabled);
+
+  const setAllowLoginWithRememberMe = useCallback(
+    (enabled: boolean) => setAllowLoginWithRememberMeUtil(enabled),
+    [],
+  );
+
+  const allowLoginWithRememberMeFromRedux = useSelector(
+    (state: RootState) => state.security.allowLoginWithRememberMe,
+  );
+
   // coming from vault recovery flow flag
   const isComingFromVaultRecovery = route?.params?.isVaultRecovery ?? false;
 
@@ -151,22 +157,25 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     selectIsSeedlessPasswordOutdated,
   );
 
-  const track = (
-    event: IMetaMetricsEvent,
-    properties: Record<string, string | boolean | number>,
-  ) => {
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-      saveOnboardingEvent,
-    );
-  };
+  const track = useCallback(
+    (
+      event: IMetaMetricsEvent,
+      properties: Record<string, string | boolean | number>,
+    ) => {
+      trackOnboarding(
+        MetricsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
+          .build(),
+        saveOnboardingEvent,
+      );
+    },
+    [saveOnboardingEvent],
+  );
 
-  const handleBackPress = () => {
+  const handleBackPress = useCallback(() => {
     Authentication.lockApp();
     return false;
-  };
+  }, []);
 
   const updateBiometryChoice = useCallback(
     async (newBiometryChoice: boolean) => {
@@ -198,42 +207,64 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       clearTimeout(timeoutId);
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleBackPress, track, navigation]);
+
+  const getUserAuthPreferences = useCallback(async () => {
+    const authData = await Authentication.getType();
+
+    //Setup UI to handle Biometric
+    const previouslyDisabled = await StorageWrapper.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled =
+      await StorageWrapper.getItem(PASSCODE_DISABLED);
+
+    // This ensures that if user enabled Remember Me toggle, we use it even if
+    // the auth type hasn't been updated to REMEMBER_ME yet
+    if (allowLoginWithRememberMeFromRedux) {
+      Logger.log(
+        'Login: ✅ Remember Me enabled in Redux - setting Remember Me UI state',
+      );
+      setRememberMe(true);
+      setAllowLoginWithRememberMe(true);
+      // Don't show biometric button when Remember Me is enabled
+      setHasBiometricCredentials(false);
+    } else if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+      Logger.log('Login: Detected PASSCODE auth type');
+      setBiometryType(passcodeType(authData.currentAuthType));
+      setHasBiometricCredentials(!route?.params?.locked);
+      setBiometryChoice(
+        !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+      );
+    } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
+      Logger.log('Login: ✅ Detected REMEMBER_ME auth type - setting UI');
+      setHasBiometricCredentials(false);
+      setRememberMe(true);
+      setAllowLoginWithRememberMe(true);
+      Logger.log(
+        'Login: REMEMBER_ME state set - hasBiometricCredentials: false, rememberMe: true',
+      );
+    } else if (authData.availableBiometryType) {
+      Logger.log('Login: Detected biometry available:', authData);
+      setBiometryType(authData.availableBiometryType);
+      setHasBiometricCredentials(
+        authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+      setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
+    }
+
+    Logger.log(
+      `Login: Auth preferences loaded - authType: ${authData.currentAuthType}, locked: ${route?.params?.locked}`,
+    );
+  }, [
+    route?.params?.locked,
+    setAllowLoginWithRememberMe,
+    allowLoginWithRememberMeFromRedux,
+  ]);
 
   useEffect(() => {
-    const getUserAuthPreferences = async () => {
-      const authData = await Authentication.getType();
-
-      //Setup UI to handle Biometric
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const passcodePreviouslyDisabled =
-        await StorageWrapper.getItem(PASSCODE_DISABLED);
-
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
-        setBiometryType(passcodeType(authData.currentAuthType));
-        setHasBiometricCredentials(!route?.params?.locked);
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
-      } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
-        setHasBiometricCredentials(false);
-        setRememberMe(true);
-        setAllowLoginWithRememberMe(true);
-      } else if (authData.availableBiometryType) {
-        Logger.log('authData', authData);
-        setBiometryType(authData.availableBiometryType);
-        setHasBiometricCredentials(
-          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
-        );
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-      }
-    };
-
     getUserAuthPreferences();
-  }, [route?.params?.locked]);
+  }, [getUserAuthPreferences]);
 
   const handleVaultCorruption = useCallback(async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
@@ -293,34 +324,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setError(strings('login.invalid_password'));
     }
   }, [password, biometryChoice, rememberMe, navigation]);
-
-  const navigateToHome = useCallback(async () => {
-    navigation.replace(Routes.ONBOARDING.HOME_NAV);
-  }, [navigation]);
-
-  const checkMetricsUISeen = useCallback(async (): Promise<void> => {
-    const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-      OPTIN_META_METRICS_UI_SEEN,
-    );
-
-    if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
-      navigation.reset({
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-              },
-            },
-          },
-        ],
-      });
-    } else {
-      navigateToHome();
-    }
-  }, [navigation, navigateToHome, isMetricsEnabled]);
 
   const handlePasswordError = useCallback((loginErrorMessage: string) => {
     setLoading(false);
@@ -411,7 +414,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         dispatch(setExistingUser(true));
       }
 
-      await checkMetricsUISeen();
+      // Navigation is now handled by manageAuthenticationLifecycleSaga after logIn() action
+      // No need to call checkMetricsUISeen() or navigateToHome() here
 
       setLoading(false);
       setError(null);
@@ -424,7 +428,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     rememberMe,
     loading,
     handleLoginError,
-    checkMetricsUISeen,
     dispatch,
     isComingFromVaultRecovery,
   ]);
@@ -449,15 +452,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
 
-      await checkMetricsUISeen();
-
       setLoading(false);
     } catch (tryBiometricError) {
       setHasBiometricCredentials(true);
       setLoading(false);
-      Logger.log(tryBiometricError);
+
+      // Use utility to detect user cancellation
+      if (isUserCancellation(tryBiometricError)) {
+        Logger.log(
+          'Login: Biometric cancelled by user - disabling biometry choice for this session',
+        );
+      } else {
+        Logger.error(
+          tryBiometricError as Error,
+          'Login: Biometric authentication failed',
+        );
+      }
     }
-  }, [checkMetricsUISeen]);
+  }, []);
 
   const handleTryBiometric = async () => {
     fieldRef.current?.blur();
