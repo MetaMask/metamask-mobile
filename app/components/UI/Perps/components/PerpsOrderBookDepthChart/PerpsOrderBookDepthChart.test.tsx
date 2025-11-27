@@ -142,6 +142,7 @@ describe('PerpsOrderBookDepthChart', () => {
     spreadPercentage: '0.2',
     midPrice: '50050',
     lastUpdated: Date.now(),
+    maxTotal: '5.5',
   };
 
   beforeEach(() => {
@@ -383,6 +384,7 @@ describe('PerpsOrderBookDepthChart', () => {
         spreadPercentage: '16.67',
         midPrice: '0.000055',
         lastUpdated: Date.now(),
+        maxTotal: '3000',
       };
 
       const { getByTestId } = render(
@@ -432,6 +434,7 @@ describe('PerpsOrderBookDepthChart', () => {
         spreadPercentage: '0.2',
         midPrice: '1000000',
         lastUpdated: Date.now(),
+        maxTotal: '1.5',
       };
 
       const { getByTestId } = render(
@@ -467,6 +470,7 @@ describe('PerpsOrderBookDepthChart', () => {
         spreadPercentage: '0.2',
         midPrice: '50050',
         lastUpdated: Date.now(),
+        maxTotal: '0',
       };
 
       const { getByTestId } = render(
@@ -502,6 +506,7 @@ describe('PerpsOrderBookDepthChart', () => {
         spreadPercentage: '0.2',
         midPrice: '50050',
         lastUpdated: Date.now(),
+        maxTotal: '2.0',
       };
 
       const { getByTestId } = render(
@@ -549,6 +554,7 @@ describe('PerpsOrderBookDepthChart', () => {
         spreadPercentage: '0',
         midPrice: '50050',
         lastUpdated: Date.now(),
+        maxTotal: '1.0',
       };
 
       const { getByTestId } = render(

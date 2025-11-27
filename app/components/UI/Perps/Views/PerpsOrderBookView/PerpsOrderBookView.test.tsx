@@ -103,7 +103,10 @@ const mockOrderBook: OrderBookData = {
   maxTotal: '1.5',
 };
 
-const mockUsePerpsLiveOrderBook = jest.fn(() => ({
+const mockUsePerpsLiveOrderBook = jest.fn<
+  { orderBook: OrderBookData | null; isLoading: boolean; error: Error | null },
+  [unknown]
+>(() => ({
   orderBook: mockOrderBook,
   isLoading: false,
   error: null,

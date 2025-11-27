@@ -53,6 +53,7 @@ describe('usePerpsLiveOrderBook', () => {
     spreadPercentage: '0.2',
     midPrice: '50050',
     lastUpdated: Date.now(),
+    maxTotal: '3.5',
   };
 
   const mockSubscribeToOrderBook = Engine.context.PerpsController
@@ -682,8 +683,8 @@ describe('usePerpsLiveOrderBook', () => {
 
       const firstReturn = result.current;
 
-      // Rerender without changing state
-      rerender();
+      // Rerender without changing state - pass undefined to simulate no-change rerender
+      rerender(undefined);
 
       // Should be same object reference
       expect(result.current).toBe(firstReturn);
@@ -792,6 +793,7 @@ describe('usePerpsLiveOrderBook', () => {
         spreadPercentage: '0',
         midPrice: '0',
         lastUpdated: Date.now(),
+        maxTotal: '0',
       };
 
       act(() => {
