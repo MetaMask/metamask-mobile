@@ -991,7 +991,7 @@
       "near_liquidation_subtitle": "Add margin to derisk your position",
       "add_margin_button": "Add",
       "protect_losses_title": "Protect against further losses",
-      "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}}%)",
+      "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
       "set_button": "Set"
     },
     "deposit": {
