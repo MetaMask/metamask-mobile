@@ -2,7 +2,6 @@ import { RootState } from '../../reducers';
 import { selectIsPna25FlagEnabled } from '../featureFlagController/legalNotices';
 import { MetaMetrics } from '../../core/Analytics';
 import { newPrivacyPolicyDate } from '../../reducers/legalNotices';
-import { selectSeedlessOnboardingUserId } from '../seedlessOnboardingController';
 import { selectCompletedOnboarding } from '../onboarding';
 
 const currentDate = new Date(Date.now());
@@ -42,7 +41,6 @@ export const selectIsPna25Acknowledged = (state: RootState): boolean =>
 /**
  * Determines if the PNA25 toast should be shown based on:
  * - User has completed onboarding (completedOnboarding === true)
- * - User is not a social login user
  * - LaunchDarkly feature flag (extension-ux-pna25) is enabled (boolean)
  * - User is an existing user (pna25Acknowledged !== true)
  * - User has opted into metrics (participateInMetaMetrics === true)
@@ -55,15 +53,9 @@ export const selectIsPna25Acknowledged = (state: RootState): boolean =>
 export const selectShouldShowPna25Toast = (state: RootState): boolean => {
   const completedOnboarding = selectCompletedOnboarding(state);
   const isPna25Acknowledged = selectIsPna25Acknowledged(state);
-  const socialLoginUserId = selectSeedlessOnboardingUserId(state);
   const isPna25Enabled = selectIsPna25FlagEnabled(state);
 
-  if (
-    !completedOnboarding ||
-    socialLoginUserId ||
-    !isPna25Enabled ||
-    isPna25Acknowledged
-  ) {
+  if (!completedOnboarding || !isPna25Enabled || isPna25Acknowledged) {
     return false;
   }
 

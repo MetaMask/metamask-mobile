@@ -97,7 +97,6 @@ describe('legalNotices selectors', () => {
     const createMockState = (overrides: {
       completedOnboarding?: boolean;
       isPna25Acknowledged?: boolean;
-      socialLoginUserId?: string | null;
     }): RootState =>
       ({
         onboarding: {
@@ -107,13 +106,6 @@ describe('legalNotices selectors', () => {
           isPna25Acknowledged: overrides.isPna25Acknowledged ?? false,
           newPrivacyPolicyToastClickedOrClosed: false,
           newPrivacyPolicyToastShownDate: null,
-        },
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              userId: overrides.socialLoginUserId ?? null,
-            },
-          },
         },
       }) as RootState;
 
@@ -125,15 +117,6 @@ describe('legalNotices selectors', () => {
 
     it('returns false when onboarding is not completed', () => {
       const state = createMockState({ completedOnboarding: false });
-      mockSelectIsPna25FlagEnabled.mockReturnValue(true);
-
-      const result = selectShouldShowPna25Toast(state);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when user is a social login user', () => {
-      const state = createMockState({ socialLoginUserId: 'social-user-123' });
       mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
       const result = selectShouldShowPna25Toast(state);
