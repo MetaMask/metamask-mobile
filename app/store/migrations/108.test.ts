@@ -110,7 +110,7 @@ describe(`migration #${migrationVersion}`, () => {
   ];
 
   it.each(invalidStates)(
-    'should capture exception if $scenario',
+    'captures exception when $scenario',
     ({ errorMessage, state }) => {
       const orgState = cloneDeep(state);
       mockedEnsureValidState.mockReturnValue(true);
