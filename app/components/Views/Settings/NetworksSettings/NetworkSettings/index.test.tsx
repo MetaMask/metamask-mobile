@@ -23,7 +23,6 @@ import { mockNetworkState } from '../../../../../util/test/network';
 import * as jsonRequest from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 const { PreferencesController } = Engine.context;
 
@@ -68,12 +67,9 @@ jest.mock('../../../../../components/hooks/useMetrics', () => ({
 // Mock the feature flag
 jest.mock('../../../../../util/networks', () => {
   const mockGetAllNetworks = jest.fn(() => ['mainnet', 'sepolia']);
-  const mockIsRemoveGlobalNetworkSelectorEnabled = jest.fn();
 
   return {
     ...jest.requireActual('../../../../../util/networks'),
-    isRemoveGlobalNetworkSelectorEnabled:
-      mockIsRemoveGlobalNetworkSelectorEnabled,
     getAllNetworks: mockGetAllNetworks,
     mainnet: {
       name: 'Ethereum Main Network',
@@ -2133,33 +2129,23 @@ describe('NetworkSettings', () => {
     });
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
-    const mockIsRemoveGlobalNetworkSelectorEnabled =
-      isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
-        typeof isRemoveGlobalNetworkSelectorEnabled
-      >;
-
-    beforeEach(() => {
-      // After feature flag removal, always returns true
-      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
-    });
-
-    it('should call NetworkEnablementController.enableNetwork when adding a network', async () => {
+  describe('Network Manager Integration', () => {
+    it('calls NetworkEnablementController.enableNetwork when adding a network', async () => {
       const { NetworkEnablementController } = Engine.context;
       const enableNetworkSpy = jest.spyOn(
         NetworkEnablementController,
         'enableNetwork',
       );
 
-      // Mock validateChainIdOnSubmit to return true so it doesn't return early
-      jest
-        .spyOn(wrapper.instance(), 'validateChainIdOnSubmit')
-        .mockResolvedValue(true);
+      const instance = wrapper.instance();
 
-      // Mock handleNetworkUpdate to prevent actual network addition
+      jest.spyOn(instance, 'disabledByChainId').mockReturnValue(false);
+      jest.spyOn(instance, 'disabledBySymbol').mockReturnValue(false);
       jest
-        .spyOn(wrapper.instance(), 'handleNetworkUpdate')
-        .mockResolvedValue({});
+        .spyOn(instance, 'checkIfNetworkNotExistsByChainId')
+        .mockResolvedValue([]);
+      jest.spyOn(instance, 'validateChainIdOnSubmit').mockResolvedValue(true);
+      jest.spyOn(instance, 'handleNetworkUpdate').mockResolvedValue({});
 
       wrapper.setState({
         rpcUrl: 'http://localhost:8545',
@@ -2173,57 +2159,19 @@ describe('NetworkSettings', () => {
         blockExplorerUrls: [],
       });
 
-      await wrapper.instance().addRpcUrl();
-
-      // Verify that the feature flag is enabled
-      expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
+      await instance.addRpcUrl();
 
       // Verify that enableNetwork was called with the correct chainId
       expect(enableNetworkSpy).toHaveBeenCalledWith('0x1');
     });
 
     it('should have proper Engine controller setup', () => {
-      // Verify that the feature flag is enabled
-      expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-
       // Verify that the necessary controllers are available
       expect(
         Engine.context.NetworkEnablementController.enableNetwork,
       ).toBeDefined();
       expect(Engine.context.NetworkController.addNetwork).toBeDefined();
       expect(Engine.context.NetworkController.updateNetwork).toBeDefined();
-    });
-
-    it('should not call NetworkEnablementController.enableNetwork when feature flag is disabled (legacy test)', async () => {
-      // Temporarily mock the feature flag as disabled for this legacy test
-      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-
-      const { NetworkEnablementController } = Engine.context;
-      const setEnabledNetworkSpy = jest.spyOn(
-        NetworkEnablementController,
-        'enableNetwork',
-      );
-
-      wrapper.setState({
-        rpcUrl: 'http://localhost:8545',
-        chainId: '0x1',
-        ticker: 'ETH',
-        nickname: 'Localhost',
-        enableAction: true,
-        addMode: true,
-        editable: false,
-      });
-
-      await wrapper.instance().addRpcUrl();
-
-      // Verify that the feature flag is disabled
-      expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-
-      // Verify that setEnabledNetwork was not called
-      expect(setEnabledNetworkSpy).not.toHaveBeenCalled();
-
-      // Reset for other tests
-      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
     });
   });
 });
