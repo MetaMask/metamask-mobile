@@ -5655,7 +5655,10 @@
         "heading": "Earn rewards with mUSD",
         "description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn points every time you convert.",
         "continue_button": "Continue"
-      }
+      },
+      "earn_points_daily": "Earn points daily",
+      "buy_musd": "Buy mUSD",
+      "get_musd": "Get mUSD"
     }
   },
   "stake": {
