@@ -11,6 +11,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails.ts';
+import WalletDetails from '../../pages/MultichainAccounts/WalletDetails';
 
 const PASSWORD = '123123123';
 
@@ -63,6 +64,22 @@ export const goToAccountActions = async (accountIndex: number) => {
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(accountIndex);
   await AccountDetails.tapExportSrpButton();
+};
+
+/**
+ * Navigate to wallet details and tap SRP button (state 2 flow)
+ * @param accountIndex - The index of the account in the account list
+ */
+export const goToWalletDetailsAndTapSRP = async (accountIndex: number) => {
+  await WalletView.tapIdenticon();
+  await Assertions.expectElementToBeVisible(
+    AccountListBottomSheet.accountList,
+    {
+      description: 'Account list should be visible',
+    },
+  );
+  await AccountListBottomSheet.tapAccountEllipsisButtonV2(accountIndex);
+  await WalletDetails.tapSRP();
 };
 
 export const startExportForKeyring = async (keyringId: string) => {
