@@ -447,7 +447,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={28}
+              handlerTag={29}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -558,6 +558,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -1813,6 +1814,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -2321,7 +2323,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={30}
+              handlerTag={31}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2432,6 +2434,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -3687,6 +3690,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -4195,7 +4199,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={32}
+              handlerTag={33}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4306,6 +4310,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -5561,6 +5566,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -6180,6 +6186,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -7374,6 +7381,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -7993,6 +8001,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -9187,6 +9196,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -9805,6 +9815,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -10999,6 +11010,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -11618,6 +11630,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -12905,6 +12918,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -13524,6 +13538,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -14673,6 +14688,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -15292,6 +15308,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -16486,6 +16503,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -17105,6 +17123,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -18299,6 +18318,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -18918,6 +18938,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -20112,6 +20133,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -20731,6 +20753,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -21925,6 +21948,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -22544,6 +22568,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -23831,6 +23856,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -24450,6 +24476,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -25642,6 +25669,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -26261,6 +26289,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -27546,6 +27575,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -28165,6 +28195,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -29452,6 +29483,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,
@@ -30071,6 +30103,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 {
@@ -31265,6 +31298,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               [
                                 {
                                   "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
                                 undefined,
                                 undefined,

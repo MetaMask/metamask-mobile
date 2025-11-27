@@ -115,7 +115,7 @@ export const handleCustomRpcCalls = async ({
       DevLogger.log(
         `[handleCustomRpcCalls] targetToken=${targetToken} amount=${targetAmount}`,
       );
-      navigation?.navigate(Routes.SWAPS);
+      navigation?.navigate(Routes.BRIDGE.ROOT);
     } else {
       navigation?.navigate(...createBuyNavigationDetails());
     }

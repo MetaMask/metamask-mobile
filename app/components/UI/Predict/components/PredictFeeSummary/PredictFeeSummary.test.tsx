@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictFeeSummary from './PredictFeeSummary';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('../../utils/format', () => ({
   formatPrice: jest.fn((value, options) =>
@@ -271,11 +272,21 @@ describe('PredictFeeSummary', () => {
       expect(getByText('0 points')).toBeOnTheScreen();
     });
 
-    it('displays AddRewardsAccount when accountOptedIn is false', () => {
+    it('displays AddRewardsAccount when rewardsAccountScope is provided and accountOptedIn is false', () => {
+      const mockRewardsAccountScope = {
+        id: 'account-1',
+        address: '0x1234567890123456789012345678901234567890',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        scopes: [],
+        metadata: {},
+      };
       const props = {
         ...defaultProps,
         shouldShowRewardsRow: true,
         accountOptedIn: false,
+        rewardsAccountScope:
+          mockRewardsAccountScope as unknown as InternalAccount,
         estimatedPoints: 100,
       };
 
@@ -287,11 +298,21 @@ describe('PredictFeeSummary', () => {
       expect(queryByTestId('rewards-animation')).toBeNull();
     });
 
-    it('displays AddRewardsAccount when accountOptedIn is null', () => {
+    it('displays AddRewardsAccount when rewardsAccountScope is provided and accountOptedIn is null', () => {
+      const mockRewardsAccountScope = {
+        id: 'account-1',
+        address: '0x1234567890123456789012345678901234567890',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        scopes: [],
+        metadata: {},
+      };
       const props = {
         ...defaultProps,
         shouldShowRewardsRow: true,
         accountOptedIn: null,
+        rewardsAccountScope:
+          mockRewardsAccountScope as unknown as InternalAccount,
         estimatedPoints: 100,
       };
 
@@ -301,6 +322,50 @@ describe('PredictFeeSummary', () => {
 
       expect(getByTestId('add-rewards-account')).toBeOnTheScreen();
       expect(queryByTestId('rewards-animation')).toBeNull();
+    });
+
+    it('does not display rewards row when both accountOptedIn and rewardsAccountScope are null/false', () => {
+      const props = {
+        ...defaultProps,
+        shouldShowRewardsRow: true,
+        accountOptedIn: false,
+        rewardsAccountScope: null,
+        estimatedPoints: 100,
+      };
+
+      const { queryByText, queryByTestId } = render(
+        <PredictFeeSummary {...props} />,
+      );
+
+      expect(queryByText('Est. points')).toBeNull();
+      expect(queryByTestId('rewards-animation')).toBeNull();
+      expect(queryByTestId('add-rewards-account')).toBeNull();
+    });
+
+    it('displays RewardsAnimations when accountOptedIn is true even if rewardsAccountScope is provided', () => {
+      const mockRewardsAccountScope = {
+        id: 'account-1',
+        address: '0x1234567890123456789012345678901234567890',
+        name: 'Test Account',
+        type: 'eip155:eoa',
+        scopes: [],
+        metadata: {},
+      };
+      const props = {
+        ...defaultProps,
+        shouldShowRewardsRow: true,
+        accountOptedIn: true,
+        rewardsAccountScope:
+          mockRewardsAccountScope as unknown as InternalAccount,
+        estimatedPoints: 50,
+      };
+
+      const { getByTestId, queryByTestId } = render(
+        <PredictFeeSummary {...props} />,
+      );
+
+      expect(getByTestId('rewards-animation')).toBeOnTheScreen();
+      expect(queryByTestId('add-rewards-account')).toBeNull();
     });
 
     it('displays loading state when isLoadingRewards is true', () => {

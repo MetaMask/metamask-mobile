@@ -283,6 +283,7 @@ const createTestSeasonStatus = (
     startDate: new Date(Date.now() - 86400000), // 1 day ago
     endDate: new Date(Date.now() + 86400000), // 1 day from now
     tiers: createTestTiers(),
+    activityTypes: [],
   };
 
   return {
@@ -311,6 +312,7 @@ const createTestSeasonStatusState = (
     startDate: Date.now() - 86400000,
     endDate: Date.now() + 86400000,
     tiers: [],
+    activityTypes: [],
   },
   balance: {
     total: 100,
@@ -792,7 +794,35 @@ describe('RewardsController', () => {
         bonusBips: 200,
       };
 
-      mockMessenger.call.mockResolvedValue(mockResponse);
+      const now = Date.now();
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000), // 1 day ago
+        endDate: new Date(now + 86400000), // 1 day from now
+        tiers: createTestTiers(),
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
 
       const result = await controller.estimatePoints(mockRequest);
 
@@ -810,7 +840,38 @@ describe('RewardsController', () => {
         activityContext: {},
       };
 
-      mockMessenger.call.mockRejectedValue(new Error('API error'));
+      const now = Date.now();
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000), // 1 day ago
+        endDate: new Date(now + 86400000), // 1 day from now
+        tiers: createTestTiers(),
+      };
+
+      mockMessenger.call.mockImplementation(
+        // @ts-expect-error TODO: Resolve type mismatch
+        (method: string, ..._: unknown[]) => {
+          if (method === 'RewardsDataService:getDiscoverSeasons') {
+            return Promise.resolve({
+              current: {
+                id: mockSeasonId,
+                startDate: new Date(now - 86400000),
+                endDate: new Date(now + 86400000),
+              },
+              next: null,
+            });
+          }
+          if (method === 'RewardsDataService:getSeasonMetadata') {
+            return Promise.resolve(mockSeasonMetadata);
+          }
+          if (method === 'RewardsDataService:estimatePoints') {
+            return Promise.reject(new Error('API error'));
+          }
+          return Promise.resolve(null);
+        },
+      );
 
       await expect(controller.estimatePoints(mockRequest)).rejects.toThrow(
         'API error',
@@ -838,7 +899,35 @@ describe('RewardsController', () => {
       };
       const mockResponse = { pointsEstimate: 200, bonusBips: 100 };
 
-      mockMessenger.call.mockResolvedValue(mockResponse);
+      const now = Date.now();
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000), // 1 day ago
+        endDate: new Date(now + 86400000), // 1 day from now
+        tiers: createTestTiers(),
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
 
       const result = await controller.estimatePoints(mockRequest);
 
@@ -847,6 +936,285 @@ describe('RewardsController', () => {
         mockRequest,
       );
       expect(result).toEqual(mockResponse);
+    });
+
+    it('should return default response when there is no active season', async () => {
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      // Mock getSeasonMetadata to return null (no active season)
+      // This simulates getSeasonMetadata('current') returning null
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: null,
+            next: null,
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await controller.estimatePoints(mockRequest);
+
+      expect(result).toEqual({ pointsEstimate: 0, bonusBips: 0 });
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:estimatePoints',
+        expect.anything(),
+      );
+    });
+
+    it('should proceed with API call when rewards are enabled and there is an active season', async () => {
+      const mockRequest = {
+        activityType: 'SWAP' as const,
+        account: CAIP_ACCOUNT_1,
+        activityContext: {},
+      };
+
+      const mockResponse = {
+        pointsEstimate: 100,
+        bonusBips: 200,
+      };
+
+      const now = Date.now();
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000), // 1 day ago
+        endDate: new Date(now + 86400000), // 1 day from now
+        tiers: createTestTiers(),
+      };
+
+      // Mock getSeasonMetadata to return valid season metadata
+      // This simulates getSeasonMetadata('current') returning a valid season
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        if (method === 'RewardsDataService:estimatePoints') {
+          return Promise.resolve(mockResponse);
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await controller.estimatePoints(mockRequest);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:estimatePoints',
+        mockRequest,
+      );
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('hasActiveSeason', () => {
+    it('should return false when rewards feature is disabled', async () => {
+      const isDisabled = () => true;
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled,
+      });
+
+      const result = await disabledController.hasActiveSeason();
+
+      expect(result).toBe(false);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('should return false when getSeasonMetadata returns null', async () => {
+      // Mock getSeasonMetadata to return null by having getDiscoverSeasons return null for current
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: null,
+            next: null,
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await controller.hasActiveSeason();
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false when current date is before season startDate', async () => {
+      const now = Date.now();
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now + 86400000), // 1 day from now (future)
+        endDate: new Date(now + 172800000), // 2 days from now
+        tiers: createTestTiers(),
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now + 86400000),
+              endDate: new Date(now + 172800000),
+            },
+            next: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await controller.hasActiveSeason();
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false when current date is after season endDate', async () => {
+      const now = Date.now();
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 172800000), // 2 days ago
+        endDate: new Date(now - 86400000), // 1 day ago (past)
+        tiers: createTestTiers(),
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 172800000),
+              endDate: new Date(now - 86400000),
+            },
+            next: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await controller.hasActiveSeason();
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true when current date is between season startDate and endDate', async () => {
+      const now = Date.now();
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000), // 1 day ago
+        endDate: new Date(now + 86400000), // 1 day from now
+        tiers: createTestTiers(),
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await controller.hasActiveSeason();
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true when current date equals season startDate', async () => {
+      const now = Date.now();
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now), // exactly now
+        endDate: new Date(now + 86400000), // 1 day from now
+        tiers: createTestTiers(),
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now),
+              endDate: new Date(now + 86400000),
+            },
+            next: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await controller.hasActiveSeason();
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true when current date equals season endDate', async () => {
+      const now = Date.now();
+      const mockSeasonId = 'season123';
+      const mockSeasonMetadata = {
+        id: mockSeasonId,
+        name: 'Test Season',
+        startDate: new Date(now - 86400000), // 1 day ago
+        endDate: new Date(now), // exactly now
+        tiers: createTestTiers(),
+      };
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getDiscoverSeasons') {
+          return Promise.resolve({
+            current: {
+              id: mockSeasonId,
+              startDate: new Date(now - 86400000),
+              endDate: new Date(now),
+            },
+            next: null,
+          });
+        }
+        if (method === 'RewardsDataService:getSeasonMetadata') {
+          return Promise.resolve(mockSeasonMetadata);
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await controller.hasActiveSeason();
+
+      expect(result).toBe(true);
     });
   });
 
@@ -2735,6 +3103,7 @@ describe('RewardsController', () => {
         startDate: Date.now() - 86400000, // 1 day ago
         endDate: Date.now() + 86400000, // 1 day from now
         tiers: createTestTiers(),
+        activityTypes: [],
       };
 
       const mockSeasonStatus: SeasonStatusState = {
@@ -2854,6 +3223,7 @@ describe('RewardsController', () => {
         startDate: new Date('2024-01-01T00:00:00Z'),
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
+        activityTypes: [],
       };
       const mockApiResponse = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -2878,6 +3248,7 @@ describe('RewardsController', () => {
               startDate: new Date('2024-01-01T00:00:00Z').getTime(),
               endDate: new Date('2024-12-31T23:59:59Z').getTime(),
               tiers: createTestTiers(),
+              activityTypes: [],
               lastFetched: Date.now() - 7200000, // 2 hours ago (stale)
             },
           },
@@ -2927,6 +3298,7 @@ describe('RewardsController', () => {
         startDate: new Date('2024-01-01T00:00:00Z'),
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
+        activityTypes: [],
       };
       const mockApiResponse = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -2953,6 +3325,7 @@ describe('RewardsController', () => {
               startDate: new Date('2024-01-01T00:00:00Z').getTime(),
               endDate: new Date('2024-12-31T23:59:59Z').getTime(),
               tiers: createTestTiers(),
+              activityTypes: [],
               lastFetched: Date.now(),
             },
           },
@@ -3044,6 +3417,7 @@ describe('RewardsController', () => {
               startDate: new Date('2024-01-01T00:00:00Z').getTime(),
               endDate: new Date('2024-12-31T23:59:59Z').getTime(),
               tiers: createTestTiers(),
+              activityTypes: [],
               lastFetched: Date.now(),
             },
           },
@@ -3095,6 +3469,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -3141,6 +3516,7 @@ describe('RewardsController', () => {
         startDate: new Date('2024-01-01T00:00:00Z'),
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
+        activityTypes: [],
       };
       const mockSeasonStatus = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -3185,6 +3561,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -3305,6 +3682,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -3397,6 +3775,7 @@ describe('RewardsController', () => {
         startDate: new Date('2024-01-01T00:00:00Z'),
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
+        activityTypes: [],
       };
       const mockSeasonStatus = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -3450,6 +3829,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -3544,6 +3924,7 @@ describe('RewardsController', () => {
         startDate: new Date('2024-01-01T00:00:00Z'),
         endDate: new Date('2024-12-31T23:59:59Z'),
         tiers: createTestTiers(),
+        activityTypes: [],
       };
       const mockSeasonStatus = createTestSeasonStatus({
         season: mockSeasonMetadata,
@@ -3605,6 +3986,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -3725,6 +4107,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -3821,6 +4204,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -3906,6 +4290,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -3982,6 +4367,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -4054,6 +4440,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -4112,6 +4499,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -4169,6 +4557,7 @@ describe('RewardsController', () => {
             startDate: new Date('2024-01-01T00:00:00Z').getTime(),
             endDate: new Date('2024-12-31T23:59:59Z').getTime(),
             tiers: createTestTiers(),
+            activityTypes: [],
             lastFetched: Date.now(),
           },
         };
@@ -4224,6 +4613,7 @@ describe('RewardsController', () => {
         startDate: Date.now() - 86400000,
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
+        activityTypes: [],
         lastFetched: recentTime,
       };
 
@@ -4259,6 +4649,7 @@ describe('RewardsController', () => {
         startDate: Date.now() + 86400000,
         endDate: Date.now() + 172800000,
         tiers: createTestTiers(),
+        activityTypes: [],
         lastFetched: recentTime,
       };
 
@@ -4294,6 +4685,7 @@ describe('RewardsController', () => {
         startDate: Date.now() - 86400000,
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
+        activityTypes: [],
         lastFetched: staleTime,
       };
 
@@ -6404,6 +6796,7 @@ describe('RewardsController', () => {
         startDate: 1609459200000, // 2021-01-01
         endDate: 1640995200000, // 2022-01-01
         tiers,
+        activityTypes: [],
       };
 
       const seasonState: SeasonStateDto = {
@@ -6441,6 +6834,7 @@ describe('RewardsController', () => {
         startDate: startTimestamp,
         endDate: endTimestamp,
         tiers: createTestTiers(),
+        activityTypes: [],
       };
 
       const seasonState: SeasonStateDto = {
@@ -6470,6 +6864,7 @@ describe('RewardsController', () => {
         startDate: Date.now() - 86400000,
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
+        activityTypes: [],
       };
 
       const updatedAtDate = new Date('2025-10-20T10:30:00.000Z');
@@ -6523,6 +6918,7 @@ describe('RewardsController', () => {
         startDate: Date.now(),
         endDate: Date.now() + 1000000,
         tiers: customTiers,
+        activityTypes: [],
       };
 
       const seasonState: SeasonStateDto = {
@@ -6554,6 +6950,7 @@ describe('RewardsController', () => {
         startDate: Date.now(),
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
+        activityTypes: [],
       };
 
       const seasonState: SeasonStateDto = {
@@ -6581,6 +6978,7 @@ describe('RewardsController', () => {
         startDate: Date.now(),
         endDate: Date.now() + 86400000,
         tiers: createTestTiers(),
+        activityTypes: [],
       };
 
       const largeBalance = 999999999;
@@ -6685,6 +7083,203 @@ describe('RewardsController', () => {
         'RewardsController: Failed to convert address to CAIP-10 format:',
         expect.anything(),
       );
+    });
+  });
+
+  describe('setActiveAccountFromCandidate', () => {
+    const mockInternalAccount: InternalAccount = {
+      id: 'test-account-id',
+      address: '0x1234567890123456789012345678901234567890',
+      scopes: ['eip155:1'],
+      type: 'eip155:eoa',
+      options: {},
+      methods: [],
+      metadata: {
+        name: 'Test Account',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    };
+
+    const mockAccountState: RewardsAccountState = {
+      account: CAIP_ACCOUNT_1,
+      hasOptedIn: true,
+      subscriptionId: 'sub-123',
+      perpsFeeDiscount: 500,
+      lastPerpsDiscountRateFetched: Date.now(),
+    };
+
+    it('returns early when candidate is null', () => {
+      // Arrange
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      // Act
+      controller.setActiveAccountFromCandidate(null);
+
+      // Assert
+      expect(controller.state.activeAccount).toBeNull();
+    });
+
+    it('returns early when convertInternalAccountToCaipAccountId returns null', () => {
+      // Arrange
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(null);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      expect(controller.state.activeAccount).toBeNull();
+      expect(
+        controller.convertInternalAccountToCaipAccountId,
+      ).toHaveBeenCalledWith(mockInternalAccount);
+    });
+
+    it('returns early when account state is not found', () => {
+      // Arrange
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+        accounts: {},
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(CAIP_ACCOUNT_1);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      expect(controller.state.activeAccount).toBeNull();
+    });
+
+    it('sets activeAccount when candidate is valid and account state exists', () => {
+      // Arrange
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+        accounts: {
+          [CAIP_ACCOUNT_1]: mockAccountState,
+        },
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(CAIP_ACCOUNT_1);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      expect(controller.state.activeAccount).toEqual(mockAccountState);
+      expect(
+        controller.convertInternalAccountToCaipAccountId,
+      ).toHaveBeenCalledWith(mockInternalAccount);
+    });
+
+    it('updates activeAccount when it already exists', () => {
+      // Arrange
+      const existingActiveAccount: RewardsAccountState = {
+        account: CAIP_ACCOUNT_2,
+        hasOptedIn: false,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: existingActiveAccount,
+        accounts: {
+          [CAIP_ACCOUNT_1]: mockAccountState,
+        },
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(CAIP_ACCOUNT_1);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      expect(controller.state.activeAccount).toEqual(mockAccountState);
+      expect(controller.state.activeAccount).not.toEqual(existingActiveAccount);
+    });
+
+    it('handles account state lookup with different CAIP format variations', () => {
+      // Arrange
+      const caipAccountLowercase =
+        'eip155:0:0x1234567890123456789012345678901234567890' as CaipAccountId;
+      const accountStateWithLowercase: RewardsAccountState = {
+        account: caipAccountLowercase,
+        hasOptedIn: true,
+        subscriptionId: 'sub-456',
+        perpsFeeDiscount: 300,
+        lastPerpsDiscountRateFetched: Date.now(),
+      };
+
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        activeAccount: null,
+        accounts: {
+          [caipAccountLowercase]: accountStateWithLowercase,
+        },
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+        isDisabled: () => false,
+      });
+
+      // Mock to return a CAIP account that should match via #getAccountState logic
+      const caipAccountWithChainId =
+        'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId;
+      jest
+        .spyOn(controller, 'convertInternalAccountToCaipAccountId')
+        .mockReturnValue(caipAccountWithChainId);
+
+      // Act
+      controller.setActiveAccountFromCandidate(mockInternalAccount);
+
+      // Assert
+      // The #getAccountState method should find the account state even with different CAIP format
+      expect(controller.state.activeAccount).toEqual(accountStateWithLowercase);
     });
   });
 
@@ -6999,6 +7594,7 @@ describe('RewardsController', () => {
               startDate: Date.now(),
               endDate: Date.now() + 1000,
               tiers: [],
+              activityTypes: [],
             },
           },
           subscriptionReferralDetails: {
@@ -7017,6 +7613,7 @@ describe('RewardsController', () => {
                 startDate: Date.now(),
                 endDate: Date.now(),
                 tiers: [],
+                activityTypes: [],
               },
               balance: { total: 100 },
               tier: {
@@ -10264,6 +10861,7 @@ describe('RewardsController', () => {
               startDate: Date.now(),
               endDate: Date.now() + 86400000,
               tiers: [],
+              activityTypes: [],
             },
             balance: { total: 1000 },
             tier: {
@@ -10417,6 +11015,7 @@ describe('RewardsController', () => {
               startDate: Date.now(),
               endDate: Date.now() + 86400000,
               tiers: [],
+              activityTypes: [],
             },
             balance: { total: 1000 },
             tier: {
@@ -10527,6 +11126,7 @@ describe('RewardsController', () => {
               startDate: Date.now(),
               endDate: Date.now() + 86400000,
               tiers: [],
+              activityTypes: [],
             },
             balance: { total: 500 },
             tier: {
@@ -10550,6 +11150,7 @@ describe('RewardsController', () => {
               startDate: Date.now(),
               endDate: Date.now() + 86400000,
               tiers: [],
+              activityTypes: [],
             },
             balance: { total: 1000 },
             tier: {
@@ -10573,6 +11174,7 @@ describe('RewardsController', () => {
               startDate: Date.now(),
               endDate: Date.now() + 86400000,
               tiers: [],
+              activityTypes: [],
             },
             balance: { total: 1500 },
             tier: {
@@ -10596,6 +11198,7 @@ describe('RewardsController', () => {
               startDate: Date.now(),
               endDate: Date.now() + 86400000,
               tiers: [],
+              activityTypes: [],
             },
             balance: { total: 2000 },
             tier: {
@@ -12656,6 +13259,7 @@ describe('RewardsController', () => {
               startDate: Date.now(),
               endDate: Date.now() + 86400000,
               tiers: [],
+              activityTypes: [],
             },
             balance: { total: 1000 },
             tier: {
@@ -12858,6 +13462,7 @@ describe('RewardsController', () => {
               startDate: Date.now(),
               endDate: Date.now() + 86400000,
               tiers: [],
+              activityTypes: [],
             },
             balance: { total: 500 },
             tier: {
