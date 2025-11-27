@@ -107,6 +107,12 @@ jest.mock('../../../../../../core/Engine', () => {
         ...mockAccountsControllerState,
         state: mockAccountsControllerState,
       },
+      TransactionController: {
+        getNonceLock: jest.fn().mockResolvedValue({
+          nextNonce: 1,
+          releaseLock: jest.fn(),
+        }),
+      },
     },
   };
 });
