@@ -21,11 +21,6 @@ interface ApiSitesResponse {
   dapps: ApiDappResponse[];
 }
 
-interface UseSitesDataParams {
-  limit?: number;
-  searchQuery?: string;
-}
-
 interface UseSitesDataResult {
   sites: SiteData[];
   isLoading: boolean;
@@ -52,10 +47,10 @@ const extractDisplayUrl = (url: string): string => {
  * @param params - Parameters for the API request
  * @returns Sites data, loading state, and error
  */
-export const useSitesData = ({
+export const useSitesData = (
+  searchQuery?: string,
   limit = 100,
-  searchQuery,
-}: UseSitesDataParams): UseSitesDataResult => {
+): UseSitesDataResult => {
   const [allSites, setAllSites] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);

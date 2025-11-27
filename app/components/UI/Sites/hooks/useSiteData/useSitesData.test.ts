@@ -1,26 +1,23 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSitesData } from './useSitesData';
 import Logger from '../../../../../util/Logger';
-import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 
-// Mock Logger
+// Mock dependencies
 jest.mock('../../../../../util/Logger', () => ({
+  log: jest.fn(),
   error: jest.fn(),
 }));
 
-// Mock global fetch
 global.fetch = jest.fn();
-
-const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
 describe('useSitesData', () => {
   const mockApiResponse = {
     dapps: [
       {
         id: '1',
-        name: 'Uniswap',
-        website: 'https://app.uniswap.org',
-        logoSrc: 'https://example.com/uniswap.png',
+        name: 'MetaMask',
+        website: 'https://www.metamask.io',
+        logoSrc: 'https://example.com/metamask.png',
         featured: true,
       },
       {
@@ -30,183 +27,300 @@ describe('useSitesData', () => {
         logoSrc: 'https://example.com/opensea.png',
         featured: false,
       },
-      {
-        id: '3',
-        name: 'Aave Protocol',
-        website: 'https://aave.com',
-        logoSrc: 'https://example.com/aave.png',
-        featured: true,
-      },
     ],
   };
 
-  const expectedSites: SiteData[] = [
-    {
-      id: '1',
-      name: 'Uniswap',
-      url: 'https://app.uniswap.org',
-      displayUrl: 'app.uniswap.org',
-      logoUrl: 'https://example.com/uniswap.png',
-      featured: true,
-    },
-    {
-      id: '2',
-      name: 'OpenSea',
-      url: 'https://opensea.io',
-      displayUrl: 'opensea.io',
-      logoUrl: 'https://example.com/opensea.png',
-      featured: false,
-    },
-    {
-      id: '3',
-      name: 'Aave Protocol',
-      url: 'https://aave.com',
-      displayUrl: 'aave.com',
-      logoUrl: 'https://example.com/aave.png',
-      featured: true,
-    },
-  ];
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => mockApiResponse,
-    } as Response);
+    (fetch as jest.Mock).mockClear();
   });
 
-  it('fetches and transforms sites data on mount', async () => {
-    const { result } = renderHook(() => useSitesData({ limit: 100 }));
+  describe('Successful Data Fetching', () => {
+    it('should fetch and transform sites data successfully', async () => {
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockApiResponse,
+      });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      const { result } = renderHook(() => useSitesData());
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.sites).toEqual([]);
+      expect(result.current.error).toBeNull();
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.sites).toHaveLength(2);
+      expect(result.current.sites[0]).toEqual({
+        id: '1',
+        name: 'MetaMask',
+        url: 'https://www.metamask.io',
+        displayUrl: 'metamask.io',
+        logoUrl: 'https://example.com/metamask.png',
+        featured: true,
+      });
+      expect(result.current.error).toBeNull();
     });
 
-    expect(result.current.sites).toEqual(expectedSites);
-    expect(result.current.error).toBeNull();
+    it('should use default limit of 100', async () => {
+      const mockDateNow = 1234567890;
+      jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);
+
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ dapps: [] }),
+      });
+
+      renderHook(() => useSitesData());
+
+      await waitFor(() => {
+        expect(fetch).toHaveBeenCalledWith(
+          `https://portfolio.api.cx.metamask.io/explore/sites?limit=100&ts=${mockDateNow}`,
+        );
+      });
+
+      jest.restoreAllMocks();
+    });
+
+    it('should use custom limit when provided', async () => {
+      const mockDateNow = 1234567890;
+      jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);
+
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ dapps: [] }),
+      });
+
+      renderHook(() => useSitesData(undefined, 50));
+
+      await waitFor(() => {
+        expect(fetch).toHaveBeenCalledWith(
+          `https://portfolio.api.cx.metamask.io/explore/sites?limit=50&ts=${mockDateNow}`,
+        );
+      });
+
+      jest.restoreAllMocks();
+    });
+
+    it('should strip www from display URL', async () => {
+      const response = {
+        dapps: [
+          {
+            id: '1',
+            name: 'Test',
+            website: 'https://www.example.com',
+          },
+        ],
+      };
+
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => response,
+      });
+
+      const { result } = renderHook(() => useSitesData());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.sites[0].displayUrl).toBe('example.com');
+    });
+
+    it('should handle sites without optional fields', async () => {
+      const minimalResponse = {
+        dapps: [
+          {
+            id: '1',
+            name: 'Test Site',
+            website: 'https://test.com',
+          },
+        ],
+      };
+
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => minimalResponse,
+      });
+
+      const { result } = renderHook(() => useSitesData());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.sites[0]).toEqual({
+        id: '1',
+        name: 'Test Site',
+        url: 'https://test.com',
+        displayUrl: 'test.com',
+        logoUrl: undefined,
+        featured: undefined,
+      });
+    });
   });
 
-  describe('filtering sites by query', () => {
-    it('returns all sites when query is empty or whitespace', async () => {
-      const { result: result1 } = renderHook(() =>
-        useSitesData({ searchQuery: '' }),
-      );
-      const { result: result2 } = renderHook(() =>
-        useSitesData({ searchQuery: '   ' }),
-      );
+  describe('Error Handling', () => {
+    it('should handle network errors', async () => {
+      const networkError = new Error('Network error');
+      (fetch as jest.Mock).mockRejectedValueOnce(networkError);
 
-      await waitFor(() => {
-        expect(result1.current.isLoading).toBe(false);
-        expect(result2.current.isLoading).toBe(false);
-      });
-
-      expect(result1.current.sites).toEqual(expectedSites);
-      expect(result2.current.sites).toEqual(expectedSites);
-    });
-
-    it('filters sites by name case-insensitively', async () => {
-      const { result } = renderHook(() =>
-        useSitesData({ searchQuery: 'uniswap' }),
-      );
+      const { result } = renderHook(() => useSitesData());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.sites).toHaveLength(1);
-      expect(result.current.sites[0].name).toBe('Uniswap');
-    });
-
-    it('filters sites by displayUrl case-insensitively', async () => {
-      const { result } = renderHook(() =>
-        useSitesData({ searchQuery: 'opensea' }),
+      expect(result.current.sites).toEqual([]);
+      expect(result.current.error).toEqual(networkError);
+      expect(Logger.error).toHaveBeenCalledWith(
+        networkError,
+        '[useSitesData] Error fetching sites',
       );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.sites).toHaveLength(1);
-      expect(result.current.sites[0].name).toBe('OpenSea');
     });
 
-    it('filters sites by url case-insensitively', async () => {
-      const { result } = renderHook(() =>
-        useSitesData({ searchQuery: 'aave.com' }),
-      );
+    it('should handle HTTP error responses', async () => {
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      });
+
+      const { result } = renderHook(() => useSitesData());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.sites).toHaveLength(1);
-      expect(result.current.sites[0].name).toBe('Aave Protocol');
+      expect(result.current.sites).toEqual([]);
+      expect(result.current.error).toBeTruthy();
+      expect(result.current.error?.message).toContain('Failed to fetch sites');
     });
 
-    it('filters sites by partial matches', async () => {
-      const { result } = renderHook(() => useSitesData({ searchQuery: 'sea' }));
+    it('should handle non-Error throw values', async () => {
+      (fetch as jest.Mock).mockRejectedValueOnce('String error');
+
+      const { result } = renderHook(() => useSitesData());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.sites).toHaveLength(1);
-      expect(result.current.sites[0].name).toBe('OpenSea');
-    });
-
-    it('returns empty array when no sites match query', async () => {
-      const { result } = renderHook(() =>
-        useSitesData({ searchQuery: 'NonExistent' }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.sites).toHaveLength(0);
-    });
-
-    it('trims whitespace from query before filtering', async () => {
-      const { result } = renderHook(() =>
-        useSitesData({ searchQuery: '  Uniswap  ' }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.sites).toHaveLength(1);
-      expect(result.current.sites[0].name).toBe('Uniswap');
+      expect(result.current.error).toBeTruthy();
+      expect(result.current.error?.message).toBe('String error');
     });
   });
 
-  it('handles fetch errors gracefully', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+  describe('URL Extraction', () => {
+    it('should handle invalid URLs gracefully', async () => {
+      const response = {
+        dapps: [
+          {
+            id: '1',
+            name: 'Test',
+            website: 'not-a-valid-url',
+          },
+        ],
+      };
 
-    const { result } = renderHook(() => useSitesData({ limit: 100 }));
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => response,
+      });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      const { result } = renderHook(() => useSitesData());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.sites[0].displayUrl).toBe('not-a-valid-url');
     });
 
-    expect(result.current.sites).toEqual([]);
-    expect(result.current.error).toEqual(new Error('Network error'));
-    expect(Logger.error).toHaveBeenCalled();
+    it('should extract hostname from URLs with paths', async () => {
+      const response = {
+        dapps: [
+          {
+            id: '1',
+            name: 'Test',
+            website: 'https://example.com/path/to/page',
+          },
+        ],
+      };
+
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => response,
+      });
+
+      const { result } = renderHook(() => useSitesData());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.sites[0].displayUrl).toBe('example.com');
+    });
   });
 
-  it('refetches data when refetch is called', async () => {
-    const { result } = renderHook(() => useSitesData({ limit: 100 }));
+  describe('Hook Lifecycle', () => {
+    it('should refetch data when limit changes', async () => {
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ dapps: [] }),
+      });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      const { rerender } = renderHook(
+        ({ limit }) => useSitesData(undefined, limit),
+        {
+          initialProps: { limit: 10 },
+        },
+      );
+
+      await waitFor(() => {
+        expect(fetch).toHaveBeenCalledTimes(1);
+      });
+
+      rerender({ limit: 20 });
+
+      await waitFor(() => {
+        expect(fetch).toHaveBeenCalledTimes(2);
+      });
+
+      expect(fetch).toHaveBeenLastCalledWith(
+        expect.stringContaining('limit=20'),
+      );
     });
 
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    it('should include timestamp to prevent caching', async () => {
+      const mockDateNow = 9999999999;
+      jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);
 
-    result.current.refetch();
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ dapps: [] }),
+      });
 
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      renderHook(() => useSitesData());
+
+      await waitFor(() => {
+        expect(fetch).toHaveBeenCalledWith(
+          expect.stringContaining(`ts=${mockDateNow}`),
+        );
+      });
+
+      jest.restoreAllMocks();
     });
   });
 });

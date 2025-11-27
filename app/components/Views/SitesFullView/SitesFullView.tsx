@@ -47,7 +47,7 @@ const SitesFullView: React.FC = () => {
     sites,
     isLoading,
     refetch: refetchSites,
-  } = useSitesData({ limit: 100, searchQuery });
+  } = useSitesData(searchQuery, 100);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();

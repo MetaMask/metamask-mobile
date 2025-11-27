@@ -183,10 +183,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <SectionCard sectionId="sites" refreshTrigger={refreshTrigger} />
     ),
     useSectionData: (searchQuery) => {
-      const { sites, isLoading, refetch } = useSitesData({
-        limit: 100,
-        searchQuery,
-      });
+      const { sites, isLoading, refetch } = useSitesData(searchQuery, 100);
       return { data: sites, isLoading, refetch };
     },
   },
