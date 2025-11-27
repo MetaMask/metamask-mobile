@@ -68,17 +68,21 @@ export const PerpsChartFullscreenModalSelectorsIDs = {
 
 export const PerpsPositionCardSelectorsIDs = {
   CARD: 'PerpsPositionCard',
-  // Test mock selectors (for component testing)
-  COIN: 'position-card-coin',
-  SIZE: 'position-card-size',
-  PNL: 'position-card-pnl',
-  CLOSE_BUTTON: 'position-card-close',
-  EDIT_BUTTON: 'position-card-edit',
+  HEADER: 'position-card-header',
   SHARE_BUTTON: 'position-card-share',
-  TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON:
-    'position-card-tpsl-count-warning-tooltip-view-orders',
-  TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON:
-    'position-card-tpsl-count-warning-tooltip-got-it',
+  PNL_CARD: 'position-card-pnl',
+  PNL_VALUE: 'position-card-pnl-value',
+  RETURN_CARD: 'position-card-return',
+  RETURN_VALUE: 'position-card-return-value',
+  SIZE_CONTAINER: 'position-card-size',
+  SIZE_VALUE: 'position-card-size-value',
+  FLIP_ICON: 'position-card-flip-icon',
+  MARGIN_CONTAINER: 'position-card-margin',
+  MARGIN_VALUE: 'position-card-margin-value',
+  MARGIN_CHEVRON: 'position-card-margin-chevron',
+  AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
+  DETAILS_SECTION: 'position-card-details',
+  DIRECTION_VALUE: 'position-card-direction-value',
 };
 
 // ========================================
@@ -333,6 +337,12 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   ADD_FUNDS_BUTTON: 'perps-market-details-add-funds-button',
   LONG_BUTTON: 'perps-market-details-long-button',
   SHORT_BUTTON: 'perps-market-details-short-button',
+  CLOSE_BUTTON: 'perps-market-details-close-button',
+  MODIFY_BUTTON: 'perps-market-details-modify-button',
+  SHARE_BUTTON: 'perps-market-details-share-button',
+  ADD_TPSL_BUTTON: 'perps-market-details-add-tpsl-button',
+  MODIFY_ACTION_SHEET: 'perps-market-details-modify-action-sheet',
+  ADJUST_MARGIN_ACTION_SHEET: 'perps-market-details-adjust-margin-action-sheet',
   CANDLE_PERIOD_BOTTOM_SHEET: 'perps-market-candle-period-bottom-sheet',
   OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',

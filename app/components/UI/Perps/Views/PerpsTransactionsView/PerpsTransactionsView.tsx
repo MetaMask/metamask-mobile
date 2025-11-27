@@ -36,10 +36,9 @@ import { formatDateSection } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
+import { ButtonSize } from '@metamask/design-system-react-native';
+import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -225,14 +224,15 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       };
 
       return (
-        <Button
+        <ButtonFilter
           key={tab}
-          variant={isActive ? ButtonVariants.Primary : ButtonVariants.Secondary}
-          size={ButtonSize.Sm}
+          isActive={isActive}
+          size={ButtonSize.Md}
           onPress={handleTabPress}
           accessibilityRole="button"
-          label={strings(`perps.transactions.tabs.${i18nKey}`)}
-        />
+        >
+          {strings(`perps.transactions.tabs.${i18nKey}`)}
+        </ButtonFilter>
       );
     },
     [activeFilter],
@@ -332,14 +332,11 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>
-        {strings('perps.transactions.empty_state.no_transactions', {
+      <TabEmptyState
+        description={strings('perps.transactions.empty_state.no_transactions', {
           type: activeFilter.toLowerCase(),
         })}
-      </Text>
-      <Text style={styles.emptyText}>
-        {strings('perps.transactions.empty_state.history_will_appear')}
-      </Text>
+      ></TabEmptyState>
     </View>
   );
 

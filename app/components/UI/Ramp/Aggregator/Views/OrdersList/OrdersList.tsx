@@ -8,18 +8,8 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import OrderListItem from '../../components/OrderListItem';
-import Row from '../../components/Row';
 import createStyles from './OrdersList.styles';
-
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../../../../component-library/components/Buttons/Button/Button.types';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
 import {
   FIAT_ORDER_PROVIDERS,
@@ -29,24 +19,14 @@ import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
+import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
+import {
+  Box,
+  ButtonSize as ButtonBaseSize,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
-
-interface FilterButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
-  readonly selected?: boolean;
-}
-
-function FilterButton({ selected = false, ...props }: FilterButtonProps) {
-  return (
-    <Button
-      variant={selected ? ButtonVariants.Primary : ButtonVariants.Secondary}
-      size={ButtonSize.Sm}
-      accessibilityRole="button"
-      accessible
-      {...props}
-    />
-  );
-}
 
 function OrdersList() {
   const { colors } = useTheme();
@@ -55,6 +35,7 @@ function OrdersList() {
   const allOrders = useSelector(getOrders);
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
   const { goToDeposit } = useRampNavigation();
+  const tw = useTailwind();
   const orders = allOrders.filter((order) => {
     if (currentFilter === 'PURCHASE') {
       return (
@@ -118,47 +99,54 @@ function OrdersList() {
   return (
     <FlatList
       ListHeaderComponent={
-        <ScrollView horizontal>
-          <Row style={styles.filters}>
-            <FilterButton
-              label={strings('fiat_on_ramp_aggregator.All')}
+        <Box twClassName="px-4 py-2 bg-default">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw.style('flex-row gap-3')}
+          >
+            <ButtonFilter
               onPress={() => setCurrentFilter('ALL')}
-              selected={currentFilter === 'ALL'}
-            />
-            <FilterButton
-              label={strings('fiat_on_ramp_aggregator.Purchased')}
+              isActive={currentFilter === 'ALL'}
+              size={ButtonBaseSize.Md}
+              accessibilityLabel={strings('fiat_on_ramp_aggregator.All')}
+            >
+              {strings('fiat_on_ramp_aggregator.All')}
+            </ButtonFilter>
+            <ButtonFilter
               onPress={() => setCurrentFilter('PURCHASE')}
-              selected={currentFilter === 'PURCHASE'}
-            />
-            <FilterButton
-              label={strings('fiat_on_ramp_aggregator.Sold')}
+              isActive={currentFilter === 'PURCHASE'}
+              size={ButtonBaseSize.Md}
+              accessibilityLabel={strings('fiat_on_ramp_aggregator.Purchased')}
+            >
+              {strings('fiat_on_ramp_aggregator.Purchased')}
+            </ButtonFilter>
+            <ButtonFilter
               onPress={() => setCurrentFilter('SELL')}
-              selected={currentFilter === 'SELL'}
-            />
-          </Row>
-        </ScrollView>
+              isActive={currentFilter === 'SELL'}
+              size={ButtonBaseSize.Md}
+              accessibilityLabel={strings('fiat_on_ramp_aggregator.Sold')}
+            >
+              {strings('fiat_on_ramp_aggregator.Sold')}
+            </ButtonFilter>
+          </ScrollView>
+        </Box>
       }
       data={orders}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       ListEmptyComponent={
-        <Row>
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Muted}
-            style={styles.emptyMessage}
-          >
-            {currentFilter === 'ALL'
-              ? strings('fiat_on_ramp_aggregator.empty_orders_list')
-              : null}
-            {currentFilter === 'PURCHASE'
-              ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
-              : null}
-            {currentFilter === 'SELL'
-              ? strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
-              : null}
-          </Text>
-        </Row>
+        <Box twClassName="w-full items-center py-10">
+          <TabEmptyState
+            description={
+              currentFilter === 'ALL'
+                ? strings('fiat_on_ramp_aggregator.empty_orders_list')
+                : currentFilter === 'PURCHASE'
+                  ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
+                  : strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
+            }
+          />
+        </Box>
       }
     />
   );

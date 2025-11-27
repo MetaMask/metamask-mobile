@@ -572,7 +572,6 @@ const Wallet = ({
       }
       return false;
     }
-
     return enabledNetworks.some((network) => isTestNet(network));
   }, [enabledNetworks, isMultichainAccountsState2Enabled, allEnabledNetworks]);
 
