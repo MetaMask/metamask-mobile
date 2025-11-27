@@ -60,7 +60,7 @@ const AccountGroupBalance = () => {
         clearTimeout(timeoutRef.current);
       }
 
-      // Start new timeout for this account (5 seconds)
+      // Start new timeout for this account (3 seconds)
       timeoutRef.current = setTimeout(() => {
         setHasBalanceFetched(true);
       }, 3000);
