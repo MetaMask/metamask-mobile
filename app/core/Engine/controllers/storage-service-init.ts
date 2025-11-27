@@ -1,3 +1,6 @@
+import type { Json } from '@metamask/utils';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+
 import { ControllerInitFunction } from '../types';
 import {
   StorageService,
@@ -5,20 +8,8 @@ import {
   StorageAdapter,
   STORAGE_KEY_PREFIX,
 } from '@metamask-previews/storage-service';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
-
-/**
- * Wrapper for stored data with metadata.
- * Each adapter defines its own wrapper structure.
- */
-interface StoredDataWrapper<T = unknown> {
-  /** Timestamp when data was stored (milliseconds since epoch). */
-  timestamp: number;
-  /** The actual data being stored. */
-  data: T;
-}
 
 /**
  * Mobile-specific storage adapter using FilesystemStorage.
@@ -30,13 +21,13 @@ interface StoredDataWrapper<T = unknown> {
 const mobileStorageAdapter: StorageAdapter = {
   /**
    * Get an item from filesystem storage.
-   * Deserializes and unwraps the stored data.
+   * Deserializes JSON data from storage.
    *
    * @param namespace - The controller namespace.
    * @param key - The data key.
-   * @returns The unwrapped data, or null if not found.
+   * @returns The parsed JSON data, or null if not found.
    */
-  async getItem(namespace: string, key: string): Promise<unknown> {
+  async getItem(namespace: string, key: string): Promise<Json | null> {
     try {
       // Build full key: storageService:namespace:key
       const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
@@ -46,8 +37,7 @@ const mobileStorageAdapter: StorageAdapter = {
         return null;
       }
 
-      const wrapper: StoredDataWrapper = JSON.parse(serialized);
-      return wrapper.data;
+      return JSON.parse(serialized) as Json;
     } catch (error) {
       Logger.error(error as Error, {
         message: `StorageService: Failed to get item: ${namespace}:${key}`,
@@ -58,26 +48,20 @@ const mobileStorageAdapter: StorageAdapter = {
 
   /**
    * Set an item in filesystem storage.
-   * Wraps with metadata and serializes to string.
+   * Serializes JSON data to string.
    *
    * @param namespace - The controller namespace.
    * @param key - The data key.
-   * @param value - The value to store (will be wrapped and serialized).
+   * @param value - The JSON value to store.
    */
-  async setItem(namespace: string, key: string, value: unknown): Promise<void> {
+  async setItem(namespace: string, key: string, value: Json): Promise<void> {
     try {
       // Build full key: storageService:namespace:key
       const fullKey = `${STORAGE_KEY_PREFIX}${namespace}:${key}`;
 
-      // Wrap with metadata
-      const wrapper: StoredDataWrapper = {
-        timestamp: Date.now(),
-        data: value,
-      };
-
       await FilesystemStorage.setItem(
         fullKey,
-        JSON.stringify(wrapper),
+        JSON.stringify(value),
         Device.isIos(),
       );
     } catch (error) {

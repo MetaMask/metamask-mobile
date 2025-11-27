@@ -100,10 +100,9 @@ describe('mobileStorageAdapter', () => {
   }
 
   describe('getItem', () => {
-    it('returns unwrapped data when item exists', async () => {
+    it('returns parsed JSON data when item exists', async () => {
       const testData = { foo: 'bar' };
-      const wrapper = { timestamp: Date.now(), data: testData };
-      mockFilesystemStorage.getItem.mockResolvedValue(JSON.stringify(wrapper));
+      mockFilesystemStorage.getItem.mockResolvedValue(JSON.stringify(testData));
 
       const adapter = getStorageAdapter();
       const result = await adapter.getItem('TestController', 'testKey');
@@ -160,17 +159,16 @@ describe('mobileStorageAdapter', () => {
   });
 
   describe('setItem', () => {
-    it('stores wrapped data with timestamp', async () => {
+    it('stores JSON stringified data', async () => {
       mockFilesystemStorage.setItem.mockResolvedValue(undefined);
       mockDevice.isIos.mockReturnValue(true);
-      jest.spyOn(Date, 'now').mockReturnValue(1234567890);
 
       const adapter = getStorageAdapter();
       await adapter.setItem('TestController', 'testKey', { foo: 'bar' });
 
       expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
         `${STORAGE_KEY_PREFIX}TestController:testKey`,
-        JSON.stringify({ timestamp: 1234567890, data: { foo: 'bar' } }),
+        JSON.stringify({ foo: 'bar' }),
         true,
       );
     });
@@ -178,14 +176,13 @@ describe('mobileStorageAdapter', () => {
     it('passes false for isIos on Android devices', async () => {
       mockFilesystemStorage.setItem.mockResolvedValue(undefined);
       mockDevice.isIos.mockReturnValue(false);
-      jest.spyOn(Date, 'now').mockReturnValue(1234567890);
 
       const adapter = getStorageAdapter();
       await adapter.setItem('TestController', 'testKey', 'value');
 
       expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(String),
+        `${STORAGE_KEY_PREFIX}TestController:testKey`,
+        JSON.stringify('value'),
         false,
       );
     });
