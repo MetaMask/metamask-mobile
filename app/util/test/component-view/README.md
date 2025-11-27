@@ -106,7 +106,7 @@ Under the hood, `renderBridgeView` uses the Bridge preset:
 export const initialStateBridge = (options?: {
   deterministicFiat?: boolean;
 }) => {
-  return createStateFixture({ base: 'empty' })
+  return createStateFixture()
     .withMinimalBridgeController()
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()

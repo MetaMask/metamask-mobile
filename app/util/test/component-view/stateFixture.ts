@@ -1,6 +1,6 @@
 import type { DeepPartial } from '../renderWithProvider';
 import type { RootState } from '../../../reducers';
-import baseDeviceState from '../../../../state-logs-v7.59.0-(2968).json';
+// Removed dependency on large JSON snapshot; tests compose state via builder helpers
 
 type PlainObject = Record<string, unknown>;
 
@@ -133,10 +133,6 @@ export function buildNormalizedAccountTree(
   };
 }
 
-export function loadBaseState(): DeepPartial<RootState> {
-  return baseDeviceState as unknown as DeepPartial<RootState>;
-}
-
 export interface StateFixtureBuilder {
   withRemoteFeatureFlags(
     overrides: Record<string, unknown>,
@@ -166,17 +162,11 @@ export interface StateFixtureBuilder {
   build(): DeepPartial<RootState>;
 }
 
-export function createStateFixture(options?: {
-  base?: 'device' | 'empty';
-}): StateFixtureBuilder {
-  const baseOption = options?.base ?? 'device';
-  const baseState =
-    baseOption === 'device'
-      ? loadBaseState()
-      : ({
-          engine: { backgroundState: {} },
-          settings: {},
-        } as unknown as DeepPartial<RootState>);
+export function createStateFixture(): StateFixtureBuilder {
+  const baseState = {
+    engine: { backgroundState: {} },
+    settings: {},
+  } as unknown as DeepPartial<RootState>;
   let current: DeepPartial<RootState> = baseState;
 
   const api: StateFixtureBuilder = {
