@@ -26,7 +26,6 @@ interface PerpsMarketHeaderProps {
   onBackPress?: () => void;
   onMorePress?: () => void;
   onFavoritePress?: () => void;
-  onFullscreenPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
 }
@@ -36,7 +35,6 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   onBackPress,
   onMorePress,
   onFavoritePress,
-  onFullscreenPress,
   isFavorite = false,
   testID,
 }) => {
@@ -87,19 +85,6 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           />
         </View>
       </View>
-
-      {/* Fullscreen Button */}
-      {onFullscreenPress && (
-        <View style={styles.fullscreenButton}>
-          <ButtonIcon
-            iconName={IconName.Expand}
-            iconColor={IconColor.Default}
-            size={ButtonIconSizes.Md}
-            onPress={onFullscreenPress}
-            testID={`${testID}-fullscreen-button`}
-          />
-        </View>
-      )}
 
       {/* Right Action Button */}
       {onFavoritePress ? (

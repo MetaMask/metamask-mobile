@@ -25,11 +25,7 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { FlashListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import {
-  selectMusdConversionPaymentTokensAllowlist,
-  selectIsMusdConversionFlowEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../Earn/selectors/featureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -41,7 +37,6 @@ import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -51,7 +46,6 @@ interface TokenListItemProps {
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
-  isFullView?: boolean;
 }
 
 export const TokenListItemBip44 = React.memo(
@@ -61,7 +55,6 @@ export const TokenListItemBip44 = React.memo(
     setShowScamWarningModal,
     privacyMode,
     showPercentageChange = true,
-    isFullView = false,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
@@ -83,31 +76,6 @@ export const TokenListItemBip44 = React.memo(
     // Earn feature flags
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
-    );
-
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-    const musdConversionPaymentTokensAllowlist = useSelector(
-      selectMusdConversionPaymentTokensAllowlist,
-    );
-
-    const isConvertibleStablecoin = useMemo(
-      () =>
-        isMusdConversionFlowEnabled &&
-        asset?.chainId &&
-        asset?.address &&
-        isMusdConversionPaymentToken(
-          asset.address,
-          asset.chainId,
-          musdConversionPaymentTokensAllowlist,
-        ),
-      [
-        isMusdConversionFlowEnabled,
-        asset?.chainId,
-        asset?.address,
-        musdConversionPaymentTokensAllowlist,
-      ],
     );
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
@@ -150,7 +118,7 @@ export const TokenListItemBip44 = React.memo(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
           .addProperties({
-            source: isFullView ? 'mobile-token-list-page' : 'mobile-token-list',
+            source: 'mobile-token-list',
             chain_id: token.chainId,
             token_symbol: token.symbol,
           })
@@ -176,23 +144,11 @@ export const TokenListItemBip44 = React.memo(
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
 
-      const shouldShowMusdConvertCta = isConvertibleStablecoin;
-
-      if (
-        shouldShowStakeCta ||
-        shouldShowStablecoinLendingCta ||
-        shouldShowMusdConvertCta
-      ) {
+      if (shouldShowStakeCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [
-      asset,
-      earnToken,
-      isConvertibleStablecoin,
-      isStablecoinLendingEnabled,
-      isStakeable,
-    ]);
+    }, [asset, earnToken, isStablecoinLendingEnabled, isStakeable]);
 
     if (!asset || !chainId) {
       return null;

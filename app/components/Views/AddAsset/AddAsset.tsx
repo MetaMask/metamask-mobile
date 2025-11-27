@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ActivityIndicator, SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
@@ -10,6 +16,7 @@ import ScrollableTabView, {
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import {
+  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
@@ -49,7 +56,6 @@ import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/Im
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { useTopTokens } from '../../UI/Bridge/hooks/useTopTokens';
-import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 export enum FilterOption {
   AllNetworks,
@@ -66,25 +72,25 @@ const AddAsset = () => {
   } = useStyles(styleSheet, {});
 
   const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [openNetworkSelector, setOpenNetworkSelector] = useState(false);
-  const { enabledNetworksForAllNamespaces } = useNetworkEnablement();
-  const enabledChainId = useMemo(
-    () =>
-      Object.keys(enabledNetworksForAllNamespaces).find(
-        (chainId) => enabledNetworksForAllNamespaces[chainId as Hex] === true,
-      ) ?? '0x1', // Fallback to Ethereum Mainnet if no networks are enabled
-    [enabledNetworksForAllNamespaces],
-  );
   const [selectedNetwork, setSelectedNetwork] = useState<
     SupportedCaipChainId | Hex | null
-  >(enabledChainId as Hex);
+  >(chainId);
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const { topTokens, remainingTokens, pending } = useTopTokens({
     chainId: selectedNetwork ?? undefined,
   });
+
+  // Update selectedNetwork when chainId changes (MultichainNetworkController active network)
+  useEffect(() => {
+    if (!selectedNetwork) {
+      setSelectedNetwork(chainId);
+    }
+  }, [chainId, selectedNetwork]);
 
   const networkName = useSelector(selectEvmNetworkName);
 
@@ -215,10 +221,7 @@ const AddAsset = () => {
             </View>
           ) : (
             <View style={styles.tabContainer} testID="add-asset-tabs-container">
-              <ScrollableTabView
-                key={selectedNetwork}
-                renderTabBar={renderTabBar}
-              >
+              <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
                 {allTokens && allTokens.length > 0 && (
                   <SearchTokenAutocomplete
                     navigation={navigation}

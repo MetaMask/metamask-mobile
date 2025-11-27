@@ -26,7 +26,10 @@ import {
   AccountTrackerController,
   TokensController,
 } from '@metamask/assets-controllers';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  ETH_CHAIN_ID,
+  POLYGON_CHAIN_ID,
+} from '@metamask/swaps-controller/dist/constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { zeroAddress } from 'ethereumjs-util';
 
@@ -126,14 +129,6 @@ describe('Multichain Selectors', () => {
 
           isEvmSelected: true,
           selectedMultichainNetworkChainId: SolScope.Mainnet,
-        },
-        NetworkEnablementController: {
-          enabledNetworkMap: {
-            eip155: {
-              '0x1': true,
-              '0x89': true,
-            },
-          },
         },
         PreferencesController: {
           tokenNetworkFilter: {
@@ -559,7 +554,7 @@ describe('Multichain Selectors', () => {
       expect(result.length).toBe(0); // All tokens have zero balance, so none should be returned
     });
 
-    it('when filtering to a single network, should filter out all zero balance tokens when hideZeroBalanceTokens is true', () => {
+    it('when on current network, should filter out zero balance tokens except native and staking tokens when hideZeroBalanceTokens is true', () => {
       const testState = {
         ...mockState,
         settings: { ...mockState.settings, hideZeroBalanceTokens: true },
@@ -567,23 +562,6 @@ describe('Multichain Selectors', () => {
           ...mockState.engine,
           backgroundState: {
             ...mockState.engine.backgroundState,
-            NetworkEnablementController: {
-              enabledNetworkMap: {
-                eip155: {
-                  '0x1': true, // user is filtering to only Ethereum Mainnet
-                },
-              },
-            },
-            NetworkController: {
-              networkConfigurationsByChainId: {
-                '0x1': {
-                  chainId: '0x1',
-                  name: 'Ethereum Mainnet',
-                  nativeCurrency: 'ETH',
-                  rpcEndpoints: [{ networkClientId: '0x1' }],
-                },
-              },
-            },
             AccountTrackerController: {
               accountsByChainId: {
                 '0x1': {
@@ -603,21 +581,21 @@ describe('Multichain Selectors', () => {
                 },
               },
             },
+            PreferencesController: {
+              tokenNetworkFilter: {
+                '0x1': true, // user is on "current network" filter, since NetworkController has multiple networks, and we are only filtering to one chain here
+              },
+            },
           },
         },
       } as unknown as RootState;
 
       const result = selectEvmTokens(testState);
       expect(result).toBeDefined();
-      // After refactor: filtering by enabled networks no longer has special "current network only" mode
-      // that would keep native/staked tokens with zero balance. Now it simply filters by enabled networks.
-      // The old behavior of keeping native/staked tokens depended on selectIsTokenNetworkFilterEqualCurrentNetwork
-      // which uses the deprecated tokenNetworkFilter system.
-      expect(result.length).toBe(1); // Only staked token with non-zero balance should be returned
-      expect(result[0].isStaked).toBe(true);
+      expect(result.length).toBe(2); // All tokens have zero balance, so none should be returned, however on current network view, we still want to show native token and staked token, even if zero
     });
 
-    it('should return tokens only for enabled networks', () => {
+    it('should return tokens only for the selected network if not on all networks', () => {
       const testState = {
         ...mockState,
         settings: { ...mockState.settings, hideZeroBalanceTokens: true },
@@ -625,13 +603,6 @@ describe('Multichain Selectors', () => {
           ...mockState.engine,
           backgroundState: {
             ...mockState.engine.backgroundState,
-            NetworkEnablementController: {
-              enabledNetworkMap: {
-                eip155: {
-                  '0x89': true, // user only wants to see tokens on Polygon
-                },
-              },
-            },
             NetworkController: {
               networkConfigurationsByChainId: {
                 '0x1': {
@@ -648,6 +619,11 @@ describe('Multichain Selectors', () => {
                 },
               },
               selectedNetworkClientId: '0x89',
+            },
+            PreferencesController: {
+              tokenNetworkFilter: {
+                '0x89': true, // user only wants to see tokens on Polygon
+              },
             },
           },
         },
@@ -746,7 +722,7 @@ describe('Multichain Selectors', () => {
             },
             AccountTrackerController: {
               accountsByChainId: {
-                [CHAIN_IDS.MAINNET]: {
+                [ETH_CHAIN_ID]: {
                   '0xAddress1': {
                     balance: '0x1',
                     stakedBalance: '0x2',
@@ -764,26 +740,26 @@ describe('Multichain Selectors', () => {
 
       // Check for Staked Ethereum
       const stakedEth = result.find(
-        (token) => token.isStaked && token.chainId === CHAIN_IDS.MAINNET,
+        (token) => token.isStaked && token.chainId === ETH_CHAIN_ID,
       );
       expect(stakedEth).toBeDefined();
-      expect(stakedEth?.chainId).toBe(CHAIN_IDS.MAINNET);
+      expect(stakedEth?.chainId).toBe(ETH_CHAIN_ID);
       expect(stakedEth?.name).toBe('Staked Ethereum');
 
       // Check for Native Ethereum
       const nativeEth = result.find(
-        (token) => !token.isStaked && token.chainId === CHAIN_IDS.MAINNET,
+        (token) => !token.isStaked && token.chainId === ETH_CHAIN_ID,
       );
       expect(nativeEth).toBeDefined();
-      expect(nativeEth?.chainId).toBe(CHAIN_IDS.MAINNET);
+      expect(nativeEth?.chainId).toBe(ETH_CHAIN_ID);
       expect(nativeEth?.name).toBe('Ethereum');
 
       // Check for Native Polygon
       const nativePol = result.find(
-        (token) => !token.isStaked && token.chainId === CHAIN_IDS.POLYGON,
+        (token) => !token.isStaked && token.chainId === POLYGON_CHAIN_ID,
       );
       expect(nativePol).toBeDefined();
-      expect(nativePol?.chainId).toBe(CHAIN_IDS.POLYGON);
+      expect(nativePol?.chainId).toBe(POLYGON_CHAIN_ID);
       expect(nativePol?.name).toBe('POL');
     });
   });
@@ -971,7 +947,7 @@ describe('Multichain Selectors', () => {
   describe('makeSelectAssetByAddressAndChainId', () => {
     const mockAccountId = '0xAddress1';
     const mockAllTokens = {
-      [CHAIN_IDS.MAINNET]: {
+      [ETH_CHAIN_ID]: {
         [mockAccountId]: [
           {
             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -987,7 +963,7 @@ describe('Multichain Selectors', () => {
           },
         ],
       },
-      [CHAIN_IDS.POLYGON]: {
+      [POLYGON_CHAIN_ID]: {
         [mockAccountId]: [
           {
             address: '0x0D1E753a25eBda689453309112904807625bEFBe',
@@ -1081,14 +1057,14 @@ describe('Multichain Selectors', () => {
       const selector = makeSelectAssetByAddressAndChainId();
       const result = selector(testState, {
         address: '0x0D1E753a25eBda689453309112904807625bEFBe',
-        chainId: CHAIN_IDS.POLYGON,
+        chainId: POLYGON_CHAIN_ID,
       });
 
       expect(result).toHaveProperty(
         'address',
         '0x0D1E753a25eBda689453309112904807625bEFBe',
       );
-      expect(result).toHaveProperty('chainId', CHAIN_IDS.POLYGON);
+      expect(result).toHaveProperty('chainId', POLYGON_CHAIN_ID);
       expect(result).toHaveProperty('symbol', 'CAKE');
       expect(result).toHaveProperty('aggregators', [
         'CoinGecko',
@@ -1101,14 +1077,14 @@ describe('Multichain Selectors', () => {
       const selector = makeSelectAssetByAddressAndChainId();
       const result = selector(testState, {
         address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-        chainId: CHAIN_IDS.MAINNET,
+        chainId: ETH_CHAIN_ID,
       });
 
       expect(result).toHaveProperty(
         'address',
         '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       );
-      expect(result).toHaveProperty('chainId', CHAIN_IDS.MAINNET);
+      expect(result).toHaveProperty('chainId', ETH_CHAIN_ID);
       expect(result).toHaveProperty('symbol', 'DAI');
       expect(result).toHaveProperty('name', 'Dai Stablecoin');
     });
@@ -1117,14 +1093,14 @@ describe('Multichain Selectors', () => {
       const selector = makeSelectAssetByAddressAndChainId();
       const result = selector(testState, {
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // Different case
-        chainId: CHAIN_IDS.MAINNET,
+        chainId: ETH_CHAIN_ID,
       });
 
       expect(result).toHaveProperty(
         'address',
         '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       );
-      expect(result).toHaveProperty('chainId', CHAIN_IDS.MAINNET);
+      expect(result).toHaveProperty('chainId', ETH_CHAIN_ID);
       expect(result).toHaveProperty('symbol', 'USDC');
       expect(result).toHaveProperty('name', 'USDC');
     });
@@ -1134,7 +1110,7 @@ describe('Multichain Selectors', () => {
 const mockAccountId = '0xAddress1';
 
 const mockAllTokens = {
-  [CHAIN_IDS.MAINNET]: {
+  [ETH_CHAIN_ID]: {
     [mockAccountId]: [
       {
         address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -1150,7 +1126,7 @@ const mockAllTokens = {
       },
     ],
   },
-  [CHAIN_IDS.POLYGON]: {
+  [POLYGON_CHAIN_ID]: {
     [mockAccountId]: [
       {
         address: '0x0D1E753a25eBda689453309112904807625bEFBe',
@@ -1165,26 +1141,26 @@ const mockAllTokens = {
 };
 
 const mockNetworkConfigurationsByChainId = {
-  [CHAIN_IDS.MAINNET]: {
-    chainId: CHAIN_IDS.MAINNET,
+  [ETH_CHAIN_ID]: {
+    chainId: ETH_CHAIN_ID,
     name: 'Ethereum Mainnet',
     nativeCurrency: 'ETH',
   },
-  [CHAIN_IDS.POLYGON]: {
-    chainId: CHAIN_IDS.POLYGON,
+  [POLYGON_CHAIN_ID]: {
+    chainId: POLYGON_CHAIN_ID,
     name: 'Polygon',
     nativeCurrency: 'POL',
   },
 };
 
 const mockAccountsByChainId = {
-  [CHAIN_IDS.MAINNET]: {
+  [ETH_CHAIN_ID]: {
     [mockAccountId]: {
       balance: '0x1',
       stakedBalance: '0x2',
     },
   },
-  [CHAIN_IDS.POLYGON]: {
+  [POLYGON_CHAIN_ID]: {
     [mockAccountId]: {
       balance: '0x3',
     },
@@ -1216,7 +1192,7 @@ jest.mock('../../core/Engine', () => ({
     AccountsController: {
       internalAccounts: mockInternalAccounts,
     } as unknown as Partial<AccountsControllerState>,
-  } as unknown as EngineState,
+  } as EngineState,
 }));
 
 describe('re-renders', () => {
@@ -1253,7 +1229,7 @@ describe('re-renders', () => {
       mockRenderCall();
       return (
         <>
-          {selectedAccountTokensChains[CHAIN_IDS.MAINNET]?.map((token) => (
+          {selectedAccountTokensChains[ETH_CHAIN_ID]?.map((token) => (
             <Text key={token.address}>{token.name}</Text>
           ))}
         </>
@@ -1282,10 +1258,10 @@ describe('re-renders', () => {
 
     Engine.state.TokensController.allTokens = {
       ...mockAllTokens,
-      [CHAIN_IDS.MAINNET]: {
-        ...mockAllTokens[CHAIN_IDS.MAINNET],
+      [ETH_CHAIN_ID]: {
+        ...mockAllTokens[ETH_CHAIN_ID],
         [mockAccountId]: [
-          ...mockAllTokens[CHAIN_IDS.MAINNET][mockAccountId],
+          ...mockAllTokens[ETH_CHAIN_ID][mockAccountId],
           newToken,
         ],
       },

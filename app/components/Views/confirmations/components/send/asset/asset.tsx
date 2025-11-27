@@ -21,7 +21,7 @@ import { NftList } from '../../nft-list';
 import { AssetType } from '../../../types/token';
 import { NetworkFilter } from '../../network-filter';
 import { useEVMNfts } from '../../../hooks/send/useNfts';
-import { useSendTokens } from '../../../hooks/send/useSendTokens';
+import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -40,7 +40,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     tokenFilter,
   } = props;
 
-  const originalTokens = useSendTokens({ includeNoBalance });
+  const originalTokens = useAccountTokens({ includeNoBalance });
 
   const tokens = useMemo(
     () => (tokenFilter ? tokenFilter(originalTokens) : originalTokens),

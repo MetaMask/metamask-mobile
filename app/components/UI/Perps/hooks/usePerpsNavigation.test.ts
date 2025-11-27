@@ -1,10 +1,15 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 describe('usePerpsNavigation', () => {
@@ -13,6 +18,9 @@ describe('usePerpsNavigation', () => {
   const mockGoBack = jest.fn();
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
+  >;
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
   >;
 
   beforeEach(() => {
@@ -25,6 +33,7 @@ describe('usePerpsNavigation', () => {
     } as Partial<ReturnType<typeof useNavigation>> as ReturnType<
       typeof useNavigation
     >);
+    mockUseSelector.mockReturnValue(false); // isRewardsEnabled = false
   });
 
   describe('Main App Navigation', () => {
@@ -72,10 +81,22 @@ describe('usePerpsNavigation', () => {
       });
     });
 
-    it('navigates to rewards', () => {
+    it('navigates to settings when rewards disabled', () => {
+      mockUseSelector.mockReturnValue(false);
       const { result } = renderHook(() => usePerpsNavigation());
 
-      result.current.navigateToRewards();
+      result.current.navigateToRewardsOrSettings();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+        screen: 'Settings',
+      });
+    });
+
+    it('navigates to rewards when rewards enabled', () => {
+      mockUseSelector.mockReturnValue(true);
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToRewardsOrSettings();
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });

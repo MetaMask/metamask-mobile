@@ -15,7 +15,6 @@ import { useConfirmActions } from '../useConfirmActions';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { noop } from 'lodash';
 import { useConfirmationContext } from '../../context/confirmation-context';
-import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useTransactionPayRequiredTokens } from '../pay/useTransactionPayData';
 import {
@@ -25,7 +24,6 @@ import {
 import { Hex } from '@metamask/utils';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn().mockReturnValue({
     params: {
       maxValueMode: false,
@@ -58,9 +56,6 @@ jest.mock('../../../../../reducers/transaction', () => ({
   selectTransactionState: jest.fn(),
 }));
 jest.mock('../../context/confirmation-context');
-jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(),
-}));
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../pay/useTransactionPayData');
@@ -76,8 +71,6 @@ describe('useInsufficientBalanceAlert', () => {
   );
   const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
-  const mockUseRampNavigation = jest.mocked(useRampNavigation);
-  const mockGoToBuy = jest.fn();
   const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -137,12 +130,6 @@ describe('useInsufficientBalanceAlert', () => {
     mockUseConfirmationContext.mockReturnValue({
       isTransactionValueUpdating: false,
     } as unknown as ReturnType<typeof useConfirmationContext>);
-    mockUseRampNavigation.mockReturnValue({
-      goToBuy: mockGoToBuy,
-      goToAggregator: jest.fn(),
-      goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
-    });
 
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
 

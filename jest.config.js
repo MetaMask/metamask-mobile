@@ -70,8 +70,6 @@ const config = {
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
     '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
-    '^expo-screen-orientation(/.*)?$':
-      '<rootDir>/app/__mocks__/expo-screen-orientation.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
     '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':

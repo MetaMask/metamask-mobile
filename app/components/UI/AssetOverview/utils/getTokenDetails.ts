@@ -36,12 +36,13 @@ export const getTokenDetails = (
       tokenList: '',
     };
   }
+
   return {
     contractAddress: tokenContractAddress ?? null,
     tokenDecimal:
       typeof tokenMetadata?.decimals === 'number'
         ? tokenMetadata.decimals
-        : (asset.decimals ?? null),
+        : null,
     tokenList: Array.isArray(tokenMetadata?.aggregators)
       ? tokenMetadata.aggregators.join(', ')
       : null,

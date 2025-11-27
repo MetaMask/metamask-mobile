@@ -35,10 +35,9 @@ describe('useSendNavigation', () => {
       const { result } = renderHookWithProvider(() => useSendNavigation(), {
         state: mockState,
       });
-      result.current.navigateToSendPage({
-        location: InitSendLocation.AssetOverview,
-        asset: { name: 'ETHEREUM' } as AssetType,
-      });
+      result.current.navigateToSendPage(InitSendLocation.AssetOverview, {
+        name: 'ETHEREUM',
+      } as AssetType);
       expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
     });
 
@@ -46,10 +45,9 @@ describe('useSendNavigation', () => {
       const { result } = renderHookWithProvider(() => useSendNavigation(), {
         state: rffSendRedesignEnabledMock,
       });
-      result.current.navigateToSendPage({
-        location: InitSendLocation.AssetOverview,
-        asset: { name: 'ETHEREUM' } as AssetType,
-      });
+      result.current.navigateToSendPage(InitSendLocation.AssetOverview, {
+        name: 'ETHEREUM',
+      } as AssetType);
       expect(mockNavigate.mock.calls[0][0]).toEqual('Send');
     });
   });

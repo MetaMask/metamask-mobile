@@ -343,7 +343,6 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                             [
                               {
                                 "padding": 15,
-                                "paddingHorizontal": 16,
                               },
                               undefined,
                               {
@@ -805,7 +804,6 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                             [
                               {
                                 "padding": 15,
-                                "paddingHorizontal": 16,
                               },
                               undefined,
                               {

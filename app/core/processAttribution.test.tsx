@@ -1,5 +1,5 @@
 import { store } from '../store';
-import extractURLParams from './DeeplinkManager/utils/extractURLParams';
+import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
 import { processAttribution } from './processAttribution';
 
 jest.mock('../store', () => ({
@@ -8,7 +8,7 @@ jest.mock('../store', () => ({
   },
 }));
 
-jest.mock('./DeeplinkManager/utils/extractURLParams', () => ({
+jest.mock('./DeeplinkManager/ParseManager/extractURLParams', () => ({
   __esModule: true,
   default: jest.fn(),
 }));

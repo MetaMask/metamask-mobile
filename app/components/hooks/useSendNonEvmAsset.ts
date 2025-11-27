@@ -40,11 +40,12 @@ export function useSendNonEvmAsset({
   const sendNonEvmAsset = useCallback(
     async (location: string): Promise<boolean> => {
       if (isSendRedesignEnabled) {
-        handleSendPageNavigation(navigation.navigate, {
+        handleSendPageNavigation(
+          navigation.navigate,
           location,
-          isSendRedesignEnabled: true,
-          asset: asset.address ? (asset as TokenI) : undefined,
-        });
+          true,
+          asset.address ? (asset as TokenI) : undefined,
+        );
         return true;
       }
 

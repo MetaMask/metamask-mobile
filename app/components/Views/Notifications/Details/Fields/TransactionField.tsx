@@ -22,7 +22,6 @@ import useStyles from '../useStyles';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { INotification } from '../../../../../util/notifications/types';
-import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
 
 type TransactionFieldProps = ModalFieldTransaction & {
   notification: INotification;
@@ -56,12 +55,24 @@ function TransactionField(props: TransactionFieldProps) {
       <View style={styles.rightSection}>
         <Pressable
           onPress={() => {
+            const otherNotificationProperties = () => {
+              if (
+                'notification_type' in notification &&
+                notification.notification_type === 'on-chain' &&
+                notification.payload?.chain_id
+              ) {
+                return { chain_id: notification.payload.chain_id };
+              }
+
+              return undefined;
+            };
+
             trackEvent(
               createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
                 .addProperties({
                   notification_id: notification.id,
                   notification_type: notification.type,
-                  ...onChainAnalyticProperties(notification),
+                  ...otherNotificationProperties(),
                   clicked_item: 'tx_id',
                 })
                 .build(),

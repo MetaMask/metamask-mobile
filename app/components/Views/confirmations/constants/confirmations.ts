@@ -15,8 +15,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.deployContract,
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
-  TransactionType.musdConversion,
-  TransactionType.perpsDeposit,
+  'perpsDeposit',
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,
   TransactionType.stakingClaim,
@@ -47,12 +46,10 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
   TransactionType.contractInteraction,
   TransactionType.lendingDeposit,
   TransactionType.lendingWithdraw,
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,

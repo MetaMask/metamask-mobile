@@ -1,12 +1,11 @@
 import { useMemo } from 'react';
-
+import { isSwapsNativeAsset } from '.';
 import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   safeNumberToBN,
 } from '../../../../util/number';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { isSwapsNativeAsset } from '../../../../util/bridge';
 
 function useBalance(
   accounts,

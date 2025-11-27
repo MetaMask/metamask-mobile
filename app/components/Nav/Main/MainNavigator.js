@@ -28,7 +28,6 @@ import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
-import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -52,7 +51,6 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import TrendingView from '../../Views/TrendingView/TrendingView';
-import SitesListView from '../../Views/TrendingView/SitesListView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -62,7 +60,7 @@ import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
-import TokenListRoutes from '../../UI/Ramp/routes';
+import RampTokenSelection from '../../UI/Ramp/components/TokenSelection';
 
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -102,9 +100,14 @@ import {
   PerpsScreenStack,
   PerpsModalStack,
   PerpsTutorialCarousel,
+  selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import { PredictScreenStack, PredictModalStack } from '../../UI/Predict';
-import { useFeatureFlag, FeatureFlagNames } from '../../hooks/useFeatureFlag';
+import {
+  PredictScreenStack,
+  PredictModalStack,
+  selectPredictEnabledFlag,
+} from '../../UI/Predict';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -291,26 +294,6 @@ const TrendingHome = () => (
       name={Routes.TRENDING_VIEW}
       component={TrendingView}
       options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SITES_LIST_VIEW}
-      component={SitesListView}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
     />
   </Stack.Navigator>
 );
@@ -543,6 +526,7 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
   const isAssetsTrendingTokensEnabled = useSelector(
     selectAssetsTrendingTokensEnabled,
@@ -665,7 +649,11 @@ const HomeTabs = () => {
     const currentRoute = state.routes[state.index];
 
     // Hide tab bar for rewards onboarding splash screen
-    if (currentRoute.name?.startsWith('Rewards') && !rewardsSubscription) {
+    if (
+      currentRoute.name?.startsWith('Rewards') &&
+      isRewardsEnabled &&
+      !rewardsSubscription
+    ) {
       return null;
     }
 
@@ -727,12 +715,21 @@ const HomeTabs = () => {
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-      <Tab.Screen
-        name={Routes.REWARDS_VIEW}
-        options={options.rewards}
-        component={RewardsHome}
-        layout={({ children }) => UnmountOnBlurComponent(children)}
-      />
+      {isRewardsEnabled ? (
+        <Tab.Screen
+          name={Routes.REWARDS_VIEW}
+          options={options.rewards}
+          component={RewardsHome}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
+        />
+      ) : (
+        <Tab.Screen
+          name={Routes.SETTINGS_VIEW}
+          options={options.settings}
+          component={SettingsFlow}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
+        />
+      )}
     </Tab.Navigator>
   );
 };
@@ -939,14 +936,11 @@ const SampleFeatureFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
-  const perpsEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.perpsPerpTradingEnabled,
-  );
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
   // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useFeatureFlag(
-    FeatureFlagNames.predictTradingEnabled,
-  );
+  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
     () => predictEnabledFlag,
     [predictEnabledFlag],
@@ -954,9 +948,7 @@ const MainNavigator = () => {
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
   );
-  const isAssetsTrendingTokensEnabled = useSelector(
-    selectAssetsTrendingTokensEnabled,
-  );
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   return (
     <Stack.Navigator
@@ -1016,46 +1008,29 @@ const MainNavigator = () => {
         component={ConfirmAddAsset}
         options={{ headerShown: true }}
       />
-      <Stack.Screen
-        name={Routes.SETTINGS_VIEW}
-        component={SettingsFlow}
-        options={{
-          headerShown: false,
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
-      />
+      {isRewardsEnabled && (
+        <Stack.Screen
+          name={Routes.SETTINGS_VIEW}
+          component={SettingsFlow}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+      )}
       <Stack.Screen name="Asset" component={AssetModalFlow} />
-      <Stack.Screen
-        name="TrendingTokensFullView"
-        component={TrendingTokensFullView}
-        options={{
-          animationEnabled: true,
-          cardStyleInterpolator: ({ current, layouts }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
-      />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
@@ -1090,7 +1065,7 @@ const MainNavigator = () => {
       <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
-        component={TokenListRoutes}
+        component={RampTokenSelection}
       />
       <Stack.Screen name={Routes.RAMP.BUY}>
         {() => <RampRoutes rampType={RampType.BUY} />}
@@ -1124,19 +1099,7 @@ const MainNavigator = () => {
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
             options={{
-              animationEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => ({
-                cardStyle: {
-                  transform: [
-                    {
-                      translateX: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [layouts.screen.width, 0],
-                      }),
-                    },
-                  ],
-                },
-              }),
+              animationEnabled: false,
             }}
           />
           <Stack.Screen

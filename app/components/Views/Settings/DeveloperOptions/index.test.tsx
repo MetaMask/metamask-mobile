@@ -1,24 +1,15 @@
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import DeveloperOptions from './';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
-import {
-  useFeatureFlag,
-  FeatureFlagNames,
-} from '../../../hooks/useFeatureFlag';
 
-const mockUseFeatureFlag = useFeatureFlag as jest.MockedFunction<
-  typeof useFeatureFlag
->;
+const mockSelectPerpsEnabledFlag = jest.fn();
 
-jest.mock('../../../hooks/useFeatureFlag', () => {
-  const actual = jest.requireActual('../../../hooks/useFeatureFlag');
-  return {
-    ...actual,
-    useFeatureFlag: jest.fn(),
-  };
-});
+jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
+}));
 
 const initialState = {
+  DeveloperOptions: {},
   engine: {
     backgroundState,
   },
@@ -27,12 +18,7 @@ const initialState = {
 describe('DeveloperOptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.perpsPerpTradingEnabled) {
-        return true;
-      }
-      return false;
-    });
+    mockSelectPerpsEnabledFlag.mockReturnValue(true);
   });
 
   it('renders correctly', () => {
@@ -45,12 +31,7 @@ describe('DeveloperOptions', () => {
   });
 
   it('does not render PerpsDeveloperOptionsSection when Perps is not enabled', () => {
-    mockUseFeatureFlag.mockImplementation((flagName) => {
-      if (flagName === FeatureFlagNames.perpsPerpTradingEnabled) {
-        return false;
-      }
-      return false;
-    });
+    mockSelectPerpsEnabledFlag.mockReturnValue(false);
 
     const { queryByText } = renderScreen(
       DeveloperOptions,

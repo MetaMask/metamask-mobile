@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import ExploreSearchResults from './ExploreSearchResults';
 import { useExploreSearch } from './config/useExploreSearch';
 
@@ -19,7 +19,7 @@ const mockUseExploreSearch = useExploreSearch as jest.MockedFunction<
 
 // Mock child components that render individual items
 jest.mock(
-  '../../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
+  '../../../TrendingTokensSection/TrendingTokensList/TrendingTokenRowItem/TrendingTokenRowItem',
   () => () => null,
 );
 
@@ -38,6 +38,25 @@ describe('ExploreSearchResults', () => {
     jest.clearAllMocks();
   });
 
+  it('displays no results message when no data is available', () => {
+    mockUseExploreSearch.mockReturnValue({
+      data: {
+        tokens: [],
+        perps: [],
+        predictions: [],
+      },
+      isLoading: {
+        tokens: false,
+        perps: false,
+        predictions: false,
+      },
+    });
+
+    const { getByTestId } = render(<ExploreSearchResults searchQuery="" />);
+
+    expect(getByTestId('trending-search-no-results')).toBeDefined();
+  });
+
   it('renders list when data is available', () => {
     mockUseExploreSearch.mockReturnValue({
       data: {
@@ -47,19 +66,20 @@ describe('ExploreSearchResults', () => {
         ],
         perps: [],
         predictions: [],
-        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
-        sites: false,
       },
     });
 
-    const { getByTestId } = render(<ExploreSearchResults searchQuery="btc" />);
+    const { getByTestId, queryByTestId } = render(
+      <ExploreSearchResults searchQuery="btc" />,
+    );
 
     expect(getByTestId('trending-search-results-list')).toBeDefined();
+    expect(queryByTestId('trending-search-no-results')).toBeNull();
   });
 
   it('renders section headers when sections have data', () => {
@@ -68,13 +88,11 @@ describe('ExploreSearchResults', () => {
         tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
         perps: [{ symbol: 'ETH-USD', name: 'Ethereum' }],
         predictions: [],
-        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
-        sites: false,
       },
     });
 
@@ -90,13 +108,11 @@ describe('ExploreSearchResults', () => {
         tokens: [],
         perps: [],
         predictions: [],
-        sites: [],
       },
       isLoading: {
         tokens: true,
         perps: false,
         predictions: false,
-        sites: false,
       },
     });
 
@@ -117,13 +133,11 @@ describe('ExploreSearchResults', () => {
         ],
         perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
         predictions: [{ id: '1', title: 'Will Bitcoin reach 100k?' }],
-        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
-        sites: false,
       },
     });
 
@@ -140,13 +154,11 @@ describe('ExploreSearchResults', () => {
         tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
         perps: [],
         predictions: [],
-        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
-        sites: false,
       },
     });
 
@@ -165,13 +177,11 @@ describe('ExploreSearchResults', () => {
         tokens: [],
         perps: [],
         predictions: [],
-        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
-        sites: false,
       },
     });
 
@@ -190,180 +200,16 @@ describe('ExploreSearchResults', () => {
         ],
         perps: [],
         predictions: [],
-        sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
-        sites: false,
       },
     });
 
     const { getByTestId } = render(<ExploreSearchResults searchQuery="" />);
 
     expect(getByTestId('trending-search-results-list')).toBeDefined();
-  });
-
-  describe('Footer', () => {
-    it('displays Google search option when search query is provided and loading is finished', () => {
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
-          perps: [],
-          predictions: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          sites: false,
-        },
-      });
-
-      const { getByTestId, getByText } = render(
-        <ExploreSearchResults searchQuery="bitcoin" />,
-      );
-
-      expect(getByTestId('trending-search-footer-google-link')).toBeDefined();
-      expect(getByText('bitcoin')).toBeDefined();
-      expect(getByText(/on Google/)).toBeDefined();
-    });
-
-    it('displays direct URL link when search query looks like a URL', () => {
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [],
-          perps: [],
-          predictions: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          sites: false,
-        },
-      });
-
-      const { getByTestId, getAllByText } = render(
-        <ExploreSearchResults searchQuery="example.com" />,
-      );
-
-      expect(getByTestId('trending-search-footer-url-link')).toBeDefined();
-      expect(getByTestId('trending-search-footer-google-link')).toBeDefined();
-      expect(getAllByText('example.com').length).toBeGreaterThan(0);
-    });
-
-    it('does not display footer when search query is empty', () => {
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
-          perps: [],
-          predictions: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          sites: false,
-        },
-      });
-
-      const { queryByText } = render(<ExploreSearchResults searchQuery="" />);
-
-      expect(queryByText('Search for')).toBeNull();
-      expect(queryByText('on Google')).toBeNull();
-    });
-
-    it('does not display footer when still loading', () => {
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [],
-          perps: [],
-          predictions: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: true,
-          perps: false,
-          predictions: false,
-          sites: false,
-        },
-      });
-
-      const { queryByText } = render(
-        <ExploreSearchResults searchQuery="bitcoin" />,
-      );
-
-      expect(queryByText('Search for')).toBeNull();
-      expect(queryByText('on Google')).toBeNull();
-    });
-
-    it('navigates to Google search when Google search option is pressed', () => {
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [],
-          perps: [],
-          predictions: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          sites: false,
-        },
-      });
-
-      const { getByTestId } = render(
-        <ExploreSearchResults searchQuery="ethereum" />,
-      );
-
-      const googleSearchButton = getByTestId(
-        'trending-search-footer-google-link',
-      );
-
-      fireEvent.press(googleSearchButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('TrendingBrowser', {
-        newTabUrl: 'https://www.google.com/search?q=ethereum',
-        timestamp: expect.any(Number),
-        fromTrending: true,
-      });
-    });
-
-    it('navigates to URL when direct URL link is pressed', () => {
-      mockUseExploreSearch.mockReturnValue({
-        data: {
-          tokens: [],
-          perps: [],
-          predictions: [],
-          sites: [],
-        },
-        isLoading: {
-          tokens: false,
-          perps: false,
-          predictions: false,
-          sites: false,
-        },
-      });
-
-      const { getByTestId } = render(
-        <ExploreSearchResults searchQuery="example.com" />,
-      );
-
-      const urlButton = getByTestId('trending-search-footer-url-link');
-
-      fireEvent.press(urlButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('TrendingBrowser', {
-        newTabUrl: 'example.com',
-        timestamp: expect.any(Number),
-        fromTrending: true,
-      });
-    });
   });
 });
