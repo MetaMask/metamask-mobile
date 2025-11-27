@@ -11,9 +11,8 @@ import { initialStateBridge } from '../../../../../util/test/component-view/pres
 import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../util/test/platform';
 import { QuoteViewSelectorIDs } from '../../../../../../e2e/selectors/swaps/QuoteView.selectors';
-import { SwapsViewSelectorsIDs } from '../../../../../../e2e/selectors/swaps/SwapsView.selectors';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
-import { BannerSelectorsIDs } from '../../../../../../e2e/selectors/Common/Banner.selectors';
+import { CommonSelectorsIDs } from '../../../../../../e2e/selectors/Common.selectors';
 
 describeForPlatforms('BridgeView', () => {
   it('renders input areas and hides confirm button without tokens or amount', () => {
@@ -39,7 +38,7 @@ describeForPlatforms('BridgeView', () => {
       getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA),
+      getByTestId(QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT),
     ).toBeOnTheScreen();
 
     // Confirm button should NOT be rendered without valid inputs and quote
@@ -66,7 +65,9 @@ describeForPlatforms('BridgeView', () => {
       });
 
     // Close possible banner to reveal keypad
-    const closeBanner = queryByTestId(BannerSelectorsIDs.CLOSE_BUTTON_ICON);
+    const closeBanner = queryByTestId(
+      CommonSelectorsIDs.BANNER_CLOSE_BUTTON_ICON,
+    );
     if (closeBanner) {
       fireEvent.press(closeBanner);
     }
@@ -78,8 +79,8 @@ describeForPlatforms('BridgeView', () => {
       ).toBeOnTheScreen();
     });
 
-    // Type 9.5 using keypad buttons
-    const scroll = getByTestId(SwapsViewSelectorsIDs.QUOTE_SUMMARY);
+    // Type 9.5 using keypad buttons inside the bridge scroll container
+    const scroll = getByTestId(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
     fireEvent.press(within(scroll).getByText('9'));
     fireEvent.press(within(scroll).getByText('.'));
     fireEvent.press(within(scroll).getByText('5'));
