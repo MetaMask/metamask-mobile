@@ -137,6 +137,8 @@ class NetworkListModal {
     const networkCell = Matchers.getElementByText(networkName);
     await Gestures.waitAndTap(networkCell, {
       elemDescription: `Network ${networkName}`,
+      checkVisibility: false,
+      checkEnabled: false,
     });
   }
 

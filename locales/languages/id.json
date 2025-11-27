@@ -2598,8 +2598,6 @@
     "show_fiat_on_testnets_modal_button": "Lanjutkan",
     "show_hex_data": "Tampilkan Data Hex",
     "show_hex_data_desc": "Pilih ini untuk menampilkan bidang data hex pada layar kirim.",
-    "show_custom_nonce": "Sesuaikan nonce transaksi",
-    "custom_nonce_desc": "Aktifkan ini untuk mengubah nonce (nomor transaksi) di layar konfirmasi. Ini merupakan fitur lanjutan, gunakan dengan hati-hati.",
     "accounts_identicon_title": "Ikon akun",
     "accounts_identicon_desc": "Pilih dari tiga gaya ikon unik berbeda yang dapat membantu Anda mengidentifikasi akun secara sekilas.",
     "jazzicons": "Jazzicons",
@@ -3730,7 +3728,7 @@
     "show_test_networks": "Tampilkan jaringan pengujian",
     "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
     "network_deprecated_title": "Jaringan ini tidak digunakan lagi",
-    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di Metamask.",
+    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di MetaMask.",
     "edit_networks_title": "Edit jaringan"
   },
   "permissions": {

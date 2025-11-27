@@ -24,6 +24,7 @@ import PerpsSelectModifyActionView from '../Views/PerpsSelectModifyActionView';
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView';
 import PerpsSelectOrderTypeView from '../Views/PerpsSelectOrderTypeView';
 import PerpsOrderDetailsView from '../Views/PerpsOrderDetailsView';
+import PerpsOrderBookView from '../Views/PerpsOrderBookView';
 import PerpsHeroCardView from '../Views/PerpsHeroCardView';
 import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
@@ -255,6 +256,16 @@ const PerpsScreenStack = () => (
           component={PerpsOrderDetailsView}
           options={{
             title: strings('perps.order_details.title'),
+            headerShown: false,
+          }}
+        />
+
+        {/* Order Book View */}
+        <Stack.Screen
+          name={Routes.PERPS.ORDER_BOOK}
+          component={PerpsOrderBookView}
+          options={{
+            title: strings('perps.order_book.title'),
             headerShown: false,
           }}
         />
