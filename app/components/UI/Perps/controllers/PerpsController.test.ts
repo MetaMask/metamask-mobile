@@ -2822,7 +2822,7 @@ describe('PerpsController', () => {
       );
 
       // Switch to testnet using update method
-      controller.update((state) => {
+      controller.testUpdate((state) => {
         state.isTestnet = true;
       });
       controller.savePendingTradeConfiguration('BTC', configTestnet);
@@ -2831,7 +2831,7 @@ describe('PerpsController', () => {
       );
 
       // Switch back to mainnet
-      controller.update((state) => {
+      controller.testUpdate((state) => {
         state.isTestnet = false;
       });
       expect(controller.getPendingTradeConfiguration('BTC')).toEqual(

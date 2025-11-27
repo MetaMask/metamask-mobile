@@ -89,6 +89,7 @@ import type {
   WithdrawResult,
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
+  OrderType,
 } from './types';
 import type {
   RemoteFeatureFlagControllerState,
