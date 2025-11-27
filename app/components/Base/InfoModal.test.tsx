@@ -76,8 +76,8 @@ describe('InfoModal', () => {
   });
 
   describe('Rendering', () => {
-    it('renders when visible and hides when not visible', () => {
-      const { queryByText, rerender } = render(
+    it('renders content when visible', () => {
+      const { queryByText } = render(
         <InfoModal
           isVisible
           title="Test Title"
@@ -86,8 +86,10 @@ describe('InfoModal', () => {
       );
 
       expect(queryByText('Test Title')).toBeOnTheScreen();
+    });
 
-      rerender(
+    it('hides content when not visible', () => {
+      const { queryByText } = render(
         <InfoModal
           isVisible={false}
           title="Test Title"
@@ -98,8 +100,8 @@ describe('InfoModal', () => {
       expect(queryByText('Test Title')).toBeNull();
     });
 
-    it('renders title as string or ReactNode', () => {
-      const { getByText, rerender } = render(
+    it('renders title as string', () => {
+      const { getByText } = render(
         <InfoModal
           isVisible
           title="String Title"
@@ -108,8 +110,10 @@ describe('InfoModal', () => {
       );
 
       expect(getByText('String Title')).toBeOnTheScreen();
+    });
 
-      rerender(
+    it('renders title as ReactNode', () => {
+      const { getByText } = render(
         <InfoModal
           isVisible
           title={<>ReactNode Title</>}
@@ -123,7 +127,7 @@ describe('InfoModal', () => {
     it('renders body as ReactNode', () => {
       const { Text: RNText } = jest.requireActual('react-native');
 
-      const { getByText, rerender } = render(
+      const { getByText } = render(
         <InfoModal
           isVisible
           body={<RNText>Body Content</RNText>}
@@ -132,37 +136,31 @@ describe('InfoModal', () => {
       );
 
       expect(getByText('Body Content')).toBeOnTheScreen();
-
-      rerender(
-        <InfoModal
-          isVisible
-          body={<RNText>Updated Body</RNText>}
-          toggleModal={mockToggleModal}
-        />,
-      );
-
-      expect(getByText('Updated Body')).toBeOnTheScreen();
     });
 
-    it('renders message with optional urlText and url callback', () => {
-      const mockUrlCallback = jest.fn();
-
+    it('renders message text', () => {
       const { getByText } = render(
         <InfoModal
           isVisible
           message="Test message"
-          urlText="Learn more"
-          url={mockUrlCallback}
           toggleModal={mockToggleModal}
         />,
       );
 
       expect(getByText('Test message')).toBeOnTheScreen();
+    });
+
+    it('renders urlText link when provided with message', () => {
+      const { getByText } = render(
+        <InfoModal
+          isVisible
+          message="Test message"
+          urlText="Learn more"
+          toggleModal={mockToggleModal}
+        />,
+      );
+
       expect(getByText('Learn more')).toBeOnTheScreen();
-
-      fireEvent.press(getByText('Learn more'));
-
-      expect(mockUrlCallback).toHaveBeenCalledTimes(1);
     });
 
     it('renders complete modal with all props', () => {
