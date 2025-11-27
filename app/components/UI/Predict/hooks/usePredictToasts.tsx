@@ -42,7 +42,7 @@ interface ToastConfig {
 
 interface PendingToastConfig extends ToastConfig {
   getAmount?: (transactionMeta: TransactionMeta) => string;
-  onPress?: () => void;
+  onPress?: (transactionMeta?: TransactionMeta) => void;
 }
 
 interface ConfirmedToastConfig extends ToastConfig {
@@ -77,7 +77,15 @@ export const usePredictToasts = ({
   const { toastRef } = useContext(ToastContext);
 
   const showPendingToast = useCallback(
-    ({ amount, config }: { amount?: string; config: PendingToastConfig }) => {
+    ({
+      amount,
+      config,
+      transactionMeta,
+    }: {
+      amount?: string;
+      config: PendingToastConfig;
+      transactionMeta?: TransactionMeta;
+    }) => {
       const title = amount
         ? config.title.replace('{amount}', amount)
         : config.title;
@@ -108,7 +116,7 @@ export const usePredictToasts = ({
           ? {
               closeButtonOptions: {
                 label: strings('predict.deposit.track'),
-                onPress: config.onPress,
+                onPress: () => config.onPress?.(transactionMeta),
                 variant: ButtonVariants.Link,
               },
             }
@@ -218,7 +226,11 @@ export const usePredictToasts = ({
         pendingToastConfig
       ) {
         const amount = pendingToastConfig.getAmount?.(transactionMeta);
-        showPendingToast({ amount, config: pendingToastConfig });
+        showPendingToast({
+          amount,
+          config: pendingToastConfig,
+          transactionMeta,
+        });
       } else if (transactionMeta.status === TransactionStatus.confirmed) {
         clearTransaction?.();
         const amount = confirmedToastConfig.getAmount(transactionMeta);
