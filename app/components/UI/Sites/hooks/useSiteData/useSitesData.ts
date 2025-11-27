@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import Logger from '../../../../../util/Logger';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 
@@ -23,6 +23,7 @@ interface ApiSitesResponse {
 
 interface UseSitesDataParams {
   limit?: number;
+  searchQuery?: string;
 }
 
 interface UseSitesDataResult {
@@ -53,8 +54,9 @@ const extractDisplayUrl = (url: string): string => {
  */
 export const useSitesData = ({
   limit = 100,
-}: UseSitesDataParams = {}): UseSitesDataResult => {
-  const [sites, setSites] = useState<SiteData[]>([]);
+  searchQuery,
+}: UseSitesDataParams): UseSitesDataResult => {
+  const [allSites, setAllSites] = useState<SiteData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -84,13 +86,13 @@ export const useSitesData = ({
         featured: dapp.featured,
       }));
 
-      setSites(transformedSites);
+      setAllSites(transformedSites);
     } catch (err) {
       const fetchError = err instanceof Error ? err : new Error(String(err));
       Logger.error(fetchError, '[useSitesData] Error fetching sites');
       setError(fetchError);
       // Don't use fallback data - return empty array to show the error
-      setSites([]);
+      setAllSites([]);
     } finally {
       setIsLoading(false);
     }
@@ -103,6 +105,21 @@ export const useSitesData = ({
   const refetch = useCallback(() => {
     fetchSites();
   }, [fetchSites]);
+
+  // Filter sites locally based on search query
+  const sites = useMemo(() => {
+    if (!searchQuery?.trim()) {
+      return allSites;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return allSites.filter(
+      (site) =>
+        site.name.toLowerCase().includes(query) ||
+        site.displayUrl.toLowerCase().includes(query) ||
+        site.url.toLowerCase().includes(query),
+    );
+  }, [allSites, searchQuery]);
 
   return { sites, isLoading, error, refetch };
 };

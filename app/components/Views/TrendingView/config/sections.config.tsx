@@ -24,6 +24,7 @@ import SiteRowItemWrapper from '../../../UI/Sites/components/SiteRowItemWrapper/
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import { useSitesData } from '../../../UI/Sites/hooks/useSiteData/useSitesData';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { filterMarketsByQuery } from '../../../UI/Perps/utils/marketUtils';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 
@@ -43,7 +44,6 @@ interface SectionConfig {
     navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
-  getSearchableText: (item: unknown) => string;
   keyExtractor: (item: unknown) => string;
   Section: React.ComponentType<{ refreshTrigger?: number }>;
   useSectionData: (searchQuery?: string) => {
@@ -81,15 +81,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <TrendingTokenRowItem token={item as TrendingAsset} />
     ),
     Skeleton: () => <TrendingTokensSkeleton />,
-    getSearchableText: (item) =>
-      `${(item as TrendingAsset).symbol} ${(item as TrendingAsset).name}`.toLowerCase(),
     keyExtractor: (item) => `token-${(item as TrendingAsset).assetId}`,
     Section: ({ refreshTrigger }) => (
       <SectionCard sectionId="tokens" refreshTrigger={refreshTrigger} />
     ),
     useSectionData: (searchQuery) => {
       const { data, isLoading, refetch } = useTrendingSearch(searchQuery);
-
       return { data, isLoading, refetch };
     },
   },
@@ -121,8 +118,6 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       />
     ),
     Skeleton: () => <PerpsMarketRowSkeleton />,
-    getSearchableText: (item) =>
-      `${(item as PerpsMarketData).symbol} ${(item as PerpsMarketData).name || ''}`.toLowerCase(),
     keyExtractor: (item) => `perp-${(item as PerpsMarketData).symbol}`,
     Section: ({ refreshTrigger }) => (
       <PerpsConnectionProvider>
@@ -131,11 +126,15 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         </PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
-    useSectionData: () => {
+    useSectionData: (searchQuery) => {
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
 
+      const filteredMarkets = searchQuery
+        ? filterMarketsByQuery(markets, searchQuery)
+        : markets;
+
       return {
-        data: markets,
+        data: filteredMarkets,
         isLoading: isLoading || isRefreshing,
         refetch: refresh,
       };
@@ -156,8 +155,6 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       </Box>
     ),
     Skeleton: () => <PredictMarketSkeleton isCarousel />,
-    getSearchableText: (item) =>
-      (item as PredictMarketType).title.toLowerCase(),
     keyExtractor: (item) => `prediction-${(item as PredictMarketType).id}`,
     Section: ({ refreshTrigger }) => (
       <SectionCarrousel
@@ -186,14 +183,15 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),
     Skeleton: () => <SiteSkeleton />,
-    getSearchableText: (item) =>
-      `${(item as SiteData).name} ${(item as SiteData).displayUrl}`.toLowerCase(),
     keyExtractor: (item) => `site-${(item as SiteData).id}`,
     Section: ({ refreshTrigger }) => (
       <SectionCard sectionId="sites" refreshTrigger={refreshTrigger} />
     ),
-    useSectionData: () => {
-      const { sites, isLoading, refetch } = useSitesData({ limit: 100 });
+    useSectionData: (searchQuery) => {
+      const { sites, isLoading, refetch } = useSitesData({
+        limit: 100,
+        searchQuery,
+      });
       return { data: sites, isLoading, refetch };
     },
   },
@@ -224,7 +222,7 @@ export const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
  * @returns Data and loading state for all sections
  */
 export const useSectionsData = (
-  searchQuery?: string,
+  searchQuery: string,
 ): Record<SectionId, SectionData> => {
   const { data: trendingTokens, isLoading: isTokensLoading } =
     SECTIONS_CONFIG.tokens.useSectionData(searchQuery);

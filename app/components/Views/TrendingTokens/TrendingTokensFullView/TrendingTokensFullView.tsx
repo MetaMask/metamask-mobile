@@ -40,7 +40,6 @@ import {
   TimeOption,
 } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../../UI/Trending/utils/sortTrendingTokens';
-import { SECTIONS_CONFIG } from '../../TrendingView/config/sections.config';
 import { useTrendingSearch } from '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 
 interface TrendingTokensNavigationParamList {
@@ -115,8 +114,6 @@ const createStyles = (theme: Theme) =>
       fontStyle: 'normal',
     },
   });
-
-const MAX_TOKENS = 100;
 
 const TrendingTokensFullView = () => {
   const navigation =
@@ -199,31 +196,10 @@ const TrendingTokensFullView = () => {
   // - When no search query: returns trending results from useTrendingRequest
   // - When search query exists: returns merged trending + search results
   const {
-    data: tokensSectionData,
+    data: searchResults,
     isLoading,
     refetch: refetchTokensSection,
   } = useTrendingSearch(searchQuery || undefined, sortBy, selectedNetwork);
-
-  const searchResults = useMemo(() => {
-    // When search is not active, use the full section data
-    if (!isSearchVisible) {
-      return tokensSectionData as TrendingAsset[];
-    }
-
-    const searchTerm = searchQuery.toLowerCase().trim();
-
-    // If search box is empty, still use full section data
-    if (!searchTerm) {
-      return tokensSectionData as TrendingAsset[];
-    }
-
-    const tokensSectionConfig = SECTIONS_CONFIG.tokens;
-
-    // Filter section data based on searchable text (symbol + name)
-    return (tokensSectionData as unknown[]).filter((item) =>
-      tokensSectionConfig.getSearchableText(item).includes(searchTerm),
-    ) as TrendingAsset[];
-  }, [isSearchVisible, searchQuery, tokensSectionData]);
 
   // Sort and display tokens based on selected option and direction
   const trendingTokens = useMemo(() => {
@@ -232,22 +208,20 @@ const TrendingTokensFullView = () => {
       return [];
     }
 
-    const filteredResults = searchResults;
-
     // If no sort option selected, return filtered results as-is (already sorted by API)
     if (!selectedPriceChangeOption) {
-      return filteredResults.slice(0, MAX_TOKENS);
+      return searchResults;
     }
 
     // Sort using the shared utility function
     const sorted = sortTrendingTokens(
-      filteredResults,
+      searchResults,
       selectedPriceChangeOption,
       priceChangeSortDirection,
       selectedTimeOption,
     );
 
-    return sorted.slice(0, MAX_TOKENS);
+    return sorted;
   }, [
     searchResults,
     selectedPriceChangeOption,

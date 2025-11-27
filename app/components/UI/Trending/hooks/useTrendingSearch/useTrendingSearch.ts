@@ -35,13 +35,21 @@ export const useTrendingSearch = (
   });
 
   const data = useMemo(() => {
-    if (!searchQuery) {
+    if (!searchQuery?.trim()) {
       return sortTrendingTokens(trendingResults, PriceChangeOption.PriceChange);
     }
 
+    const query = searchQuery.toLowerCase().trim();
+
+    const filteredTrendingResults = trendingResults.filter(
+      (item) =>
+        item.symbol?.toLowerCase().includes(query) ||
+        item.name?.toLowerCase().includes(query),
+    );
+
     // Combine trending and search results, avoiding duplicates
     const resultMap = new Map(
-      trendingResults.map((result) => [result.assetId, result]),
+      filteredTrendingResults.map((result) => [result.assetId, result]),
     );
 
     searchResults.forEach((result) => {
