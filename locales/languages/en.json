@@ -67,6 +67,10 @@
       "title": "Deposit in progress",
       "message": "Wait for the last deposit to finish before making another."
     },
+    "signed_or_submitted_pay_token": {
+      "title": "Deposit in progress",
+      "message": "Wait for the last deposit to finish before making another."
+    },
     "pending_transaction": {
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
