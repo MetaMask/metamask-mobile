@@ -15,7 +15,7 @@ git add package.json
 git add ios/MetaMask.xcodeproj/project.pbxproj
 git add android/app/build.gradle
 git commit -m "[skip ci] Bump version number to ${BUILD_NUMBER}"
-git push origin HEAD:release/$SEMVER --force-with-lease
+git push origin HEAD:$GH_REF_NAME --force-with-lease
 COMMIT_HASH=$(git rev-parse HEAD)
 
 
@@ -26,7 +26,7 @@ BUILD_RESPONSE=$(curl -s -X POST \
     "build_params": {
       "branch": "'$GH_REF_NAME'",
       "workflow_id": "'$METAMASK_WORKFLOW'",
-      "commit_message": "RC build '${SEMVER}'('${BUILD_NUMBER}')",
+      "commit_message": "RC test build '${SEMVER}'('${BUILD_NUMBER}')",
       "commit_hash": "'$COMMIT_HASH'"
     },
     "hook_info": {
