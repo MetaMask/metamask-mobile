@@ -6834,7 +6834,7 @@
     },
     "previous_season_summary": {
       "title": "{{seasonName}} Results",
-      "update_metamask_version": "Update MetaMask to {{version}} claim your rewards",
+      "update_metamask_version": "Update MetaMask to {{version}} to claim your rewards",
       "update_metamask": "Update MetaMask to claim your rewards",
       "point_earned": "point earned",
       "points_earned": "points earned",
