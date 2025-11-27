@@ -616,3 +616,41 @@ export const PerpsGeneralSelectorsIDs = {
   CONTINUE_BUTTON: 'continue-button',
   DONE_BUTTON: 'done-button',
 } as const;
+
+// ========================================
+// PERPS ORDER BOOK VIEW SELECTORS
+// ========================================
+
+export const PerpsOrderBookViewSelectorsIDs = {
+  CONTAINER: 'perps-order-book-view',
+  BACK_BUTTON: 'perps-order-book-back-button',
+  SCROLL_VIEW: 'perps-order-book-scroll-view',
+  DEPTH_CHART: 'perps-order-book-depth-chart',
+  TABLE: 'perps-order-book-table',
+  LONG_BUTTON: 'perps-order-book-long-button',
+  SHORT_BUTTON: 'perps-order-book-short-button',
+  DEPTH_BAND_BUTTON: 'perps-order-book-depth-band-button',
+  DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
+  UNIT_TOGGLE_BASE: 'perps-order-book-unit-toggle-base',
+  UNIT_TOGGLE_USD: 'perps-order-book-unit-toggle-usd',
+} as const;
+
+// ========================================
+// PERPS ORDER BOOK TABLE SELECTORS
+// ========================================
+
+export const PerpsOrderBookTableSelectorsIDs = {
+  CONTAINER: 'perps-order-book-table',
+  UNIT_TOGGLE: 'perps-order-book-unit-toggle',
+  BID_ROW: 'perps-order-book-bid-row',
+  ASK_ROW: 'perps-order-book-ask-row',
+  SPREAD: 'perps-order-book-spread',
+} as const;
+
+// ========================================
+// PERPS ORDER BOOK DEPTH CHART SELECTORS
+// ========================================
+
+export const PerpsOrderBookDepthChartSelectorsIDs = {
+  CONTAINER: 'perps-order-book-depth-chart',
+} as const;

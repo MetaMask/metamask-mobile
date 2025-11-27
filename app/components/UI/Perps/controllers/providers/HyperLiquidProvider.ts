@@ -111,6 +111,7 @@ import type {
   SubscribeAccountParams,
   SubscribeCandlesParams,
   SubscribeOICapsParams,
+  SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -5280,6 +5281,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   subscribeToOICaps(params: SubscribeOICapsParams): () => void {
     return this.subscriptionService.subscribeToOICaps(params);
+  }
+
+  /**
+   * Subscribe to full order book updates with multiple depth levels
+   * Creates a dedicated L2Book subscription for real-time order book data
+   */
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    return this.subscriptionService.subscribeToOrderBook(params);
   }
 
   /**
