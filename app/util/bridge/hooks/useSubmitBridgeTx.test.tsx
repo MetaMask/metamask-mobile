@@ -152,6 +152,7 @@ describe('useSubmitBridgeTx', () => {
 
     const txResult = await result.current.submitBridgeTx({
       quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      warnings: [],
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
@@ -161,6 +162,18 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
+      {
+        best_quote_provider: 'lifi_across',
+        can_submit: true,
+        gas_included: false,
+        gas_included_7702: false,
+        price_impact: 0,
+        provider: 'lifi_across',
+        quoted_time_minutes: 0.03333333333333333,
+        usd_quoted_gas: 0.6491483498924696,
+        usd_quoted_return: 9.707614272223898,
+        warnings: [],
+      },
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -197,6 +210,7 @@ describe('useSubmitBridgeTx', () => {
 
     const txResult = await result.current.submitBridgeTx({
       quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      warnings: [],
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
@@ -206,6 +220,18 @@ describe('useSubmitBridgeTx', () => {
         approval: mockQuoteResponse.approval ?? undefined,
       },
       true,
+      {
+        best_quote_provider: 'lifi_across',
+        can_submit: true,
+        gas_included: false,
+        gas_included_7702: false,
+        price_impact: 0,
+        provider: 'lifi_across',
+        quoted_time_minutes: 0.3,
+        usd_quoted_gas: 0.6491483498924696,
+        usd_quoted_return: 9.707614272223898,
+        warnings: [],
+      },
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -235,6 +261,7 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        warnings: [],
       }),
     ).rejects.toThrow('Approval failed');
   });
@@ -255,6 +282,7 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        warnings: [],
       }),
     ).rejects.toThrow('Bridge transaction failed');
   });
@@ -280,6 +308,7 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: invalidQuoteResponse as QuoteResponse & QuoteMetadata,
+        warnings: [],
       }),
     ).rejects.toThrow('Serialization failed');
   });
@@ -300,6 +329,7 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        warnings: [],
       }),
     ).rejects.toThrow('Wallet address is not set');
   });
