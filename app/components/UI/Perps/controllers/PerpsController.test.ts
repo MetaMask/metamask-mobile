@@ -170,6 +170,8 @@ jest.mock('./services/TradingService', () => ({
     closePosition: jest.fn(),
     closePositions: jest.fn(),
     updatePositionTPSL: jest.fn(),
+    updateMargin: jest.fn(),
+    flipPosition: jest.fn(),
   },
 }));
 
@@ -1944,6 +1946,138 @@ describe('PerpsController', () => {
           params: marginParams,
         },
       );
+    });
+
+    it('updates margin successfully', async () => {
+      const updateMarginParams = {
+        coin: 'BTC',
+        amount: '100',
+      };
+
+      const mockUpdateResult = {
+        success: true,
+      };
+
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      jest
+        .spyOn(TradingService, 'updateMargin')
+        .mockResolvedValue(mockUpdateResult);
+
+      const result = await controller.updateMargin(updateMarginParams);
+
+      expect(result).toEqual(mockUpdateResult);
+      expect(TradingService.updateMargin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: mockProvider,
+          coin: updateMarginParams.coin,
+          amount: '100',
+          context: expect.any(Object),
+        }),
+      );
+    });
+
+    it('handles updateMargin error', async () => {
+      const updateMarginParams = {
+        coin: 'BTC',
+        amount: '100',
+      };
+
+      const errorMessage = 'Insufficient balance';
+
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      jest
+        .spyOn(TradingService, 'updateMargin')
+        .mockRejectedValue(new Error(errorMessage));
+
+      await expect(controller.updateMargin(updateMarginParams)).rejects.toThrow(
+        errorMessage,
+      );
+      expect(TradingService.updateMargin).toHaveBeenCalled();
+    });
+
+    it('flips position successfully', async () => {
+      const mockPosition = {
+        coin: 'BTC',
+        size: '0.5',
+        entryPrice: '50000',
+        positionValue: '25000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '0.04',
+        leverage: { type: 'cross' as const, value: 10 },
+        liquidationPrice: '45000',
+        marginUsed: '2500',
+        maxLeverage: 100,
+        cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      };
+
+      const flipPositionParams = {
+        coin: 'BTC',
+        position: mockPosition,
+      };
+
+      const mockFlipResult = {
+        success: true,
+        orderId: 'flip-123',
+        filledSize: '1.0',
+        averagePrice: '50000',
+      };
+
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      jest
+        .spyOn(TradingService, 'flipPosition')
+        .mockResolvedValue(mockFlipResult);
+
+      const result = await controller.flipPosition(flipPositionParams);
+
+      expect(result).toEqual(mockFlipResult);
+      expect(TradingService.flipPosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: mockProvider,
+          position: mockPosition,
+          context: expect.any(Object),
+        }),
+      );
+    });
+
+    it('handles flipPosition error', async () => {
+      const mockPosition = {
+        coin: 'BTC',
+        size: '0.5',
+        entryPrice: '50000',
+        positionValue: '25000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '0.04',
+        leverage: { type: 'cross' as const, value: 10 },
+        liquidationPrice: '45000',
+        marginUsed: '2500',
+        maxLeverage: 100,
+        cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      };
+
+      const flipPositionParams = {
+        coin: 'BTC',
+        position: mockPosition,
+      };
+
+      const errorMessage = 'Insufficient balance for flip fees';
+
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      jest
+        .spyOn(TradingService, 'flipPosition')
+        .mockRejectedValue(new Error(errorMessage));
+
+      await expect(controller.flipPosition(flipPositionParams)).rejects.toThrow(
+        errorMessage,
+      );
+      expect(TradingService.flipPosition).toHaveBeenCalled();
     });
   });
 

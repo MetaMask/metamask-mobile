@@ -65,22 +65,23 @@ export type InputMethod =
   | 'max';
 
 // Unified tracking data interface for analytics events (never persisted in state)
+// Note: Numeric values are already parsed by hooks (usePerpsOrderFees, etc.) from API responses
 export interface TrackingData {
   // Common to all operations
-  totalFee: number; // Total fee for the operation
-  marketPrice: number; // Market price at operation time
-  metamaskFee?: number; // MetaMask fee amount
-  metamaskFeeRate?: number; // MetaMask fee rate
-  feeDiscountPercentage?: number; // Fee discount percentage
-  estimatedPoints?: number; // Estimated reward points
+  totalFee: number; // Total fee for the operation (parsed by hooks)
+  marketPrice: number; // Market price at operation time (parsed by hooks)
+  metamaskFee?: number; // MetaMask fee amount (parsed by hooks)
+  metamaskFeeRate?: number; // MetaMask fee rate (parsed by hooks)
+  feeDiscountPercentage?: number; // Fee discount percentage (parsed by hooks)
+  estimatedPoints?: number; // Estimated reward points (parsed by hooks)
 
   // Order-specific (used for trade operations)
-  marginUsed?: number; // Margin required for this order
+  marginUsed?: number; // Margin required for this order (calculated by hooks)
   inputMethod?: InputMethod; // How user set the amount
 
   // Close-specific (used for position close operations)
-  receivedAmount?: number; // Amount user receives after close
-  realizedPnl?: number; // Realized P&L from close
+  receivedAmount?: number; // Amount user receives after close (calculated by hooks)
+  realizedPnl?: number; // Realized P&L from close (calculated by hooks)
 }
 
 // TP/SL-specific tracking data for analytics events
@@ -213,6 +214,21 @@ export type ClosePositionsResult = {
     success: boolean;
     error?: string;
   }[];
+};
+
+export type UpdateMarginParams = {
+  coin: string; // Asset symbol (e.g., 'BTC', 'ETH')
+  amount: string; // Amount to adjust as string (positive = add, negative = remove)
+};
+
+export type MarginResult = {
+  success: boolean;
+  error?: string;
+};
+
+export type FlipPositionParams = {
+  coin: string; // Asset symbol to flip
+  position: Position; // Current position to flip
 };
 
 export interface InitializeResult {
@@ -718,6 +734,7 @@ export interface IPerpsProvider {
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
   closePositions?(params: ClosePositionsParams): Promise<ClosePositionsResult>; // Optional: batch close for protocols that support it
   updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
+  updateMargin(params: UpdateMarginParams): Promise<MarginResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]>;

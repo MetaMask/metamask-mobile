@@ -1,6 +1,6 @@
-import { DEBOUNCE_WAIT, useSearchRequest } from '.';
+import { useSearchRequest } from './useSearchRequest';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { act } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as assetsControllers from '@metamask/assets-controllers';
@@ -8,7 +8,6 @@ import * as assetsControllers from '@metamask/assets-controllers';
 describe('useSearchRequest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
   });
 
   it('returns search results when search succeeds', async () => {
@@ -31,11 +30,10 @@ describe('useSearchRequest', () => {
       }),
     );
 
-    await act(async () => {
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+    await waitFor(() => {
+      expect(spySearchTokens).toHaveBeenCalledTimes(1);
     });
 
-    expect(spySearchTokens).toHaveBeenCalledTimes(1);
     expect(result.current.results).toEqual(mockResults);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
@@ -57,32 +55,44 @@ describe('useSearchRequest', () => {
       }),
     );
 
-    await act(async () => {
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+    await waitFor(() => {
+      expect(result.current.error).toEqual(mockError);
     });
 
-    expect(result.current.error).toEqual(mockError);
     expect(result.current.results).toEqual([]);
     expect(result.current.isLoading).toBe(false);
-
-    // Ensure all operations complete before cleanup
-    await act(async () => {
-      result.current.search.cancel();
-      jest.runOnlyPendingTimers();
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      // Flush all remaining promises
-      for (let i = 0; i < 20; i++) {
-        await Promise.resolve();
-      }
-    });
 
     spySearchTokens.mockRestore();
     unmount();
   });
 
-  it('coalesces multiple rapid calls into a single search', async () => {
+  it('handles stale results when multiple requests are triggered', async () => {
     const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
-    spySearchTokens.mockResolvedValue({ data: [] } as never);
+    const mockResults1 = [
+      {
+        assetId: 'eip155:1/erc20:0x123',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+      },
+    ];
+    const mockResults2 = [
+      {
+        assetId: 'eip155:1/erc20:0x456',
+        symbol: 'DAI',
+        name: 'Dai Stablecoin',
+        decimals: 18,
+      },
+    ];
+
+    let resolveFirstRequest: ((value: unknown) => void) | undefined;
+    const firstRequestPromise = new Promise<unknown>((resolve) => {
+      resolveFirstRequest = resolve;
+    });
+
+    spySearchTokens
+      .mockReturnValueOnce(firstRequestPromise as never)
+      .mockResolvedValueOnce({ data: mockResults2 } as never);
 
     const { result, unmount } = renderHookWithProvider(() =>
       useSearchRequest({
@@ -92,31 +102,27 @@ describe('useSearchRequest', () => {
       }),
     );
 
-    await act(async () => {
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(true);
     });
 
-    spySearchTokens.mockClear();
+    await act(async () => {
+      await result.current.search();
+    });
+
+    await waitFor(() => {
+      expect(result.current.results).toEqual(mockResults2);
+    });
 
     await act(async () => {
-      result.current.search();
-      result.current.search();
-      result.current.search();
-
-      // Only test intermediate state if debounce wait is long enough
-      if (DEBOUNCE_WAIT > 100) {
-        jest.advanceTimersByTime(DEBOUNCE_WAIT - 100);
-        expect(spySearchTokens).not.toHaveBeenCalled();
-        jest.advanceTimersByTime(200);
-      } else {
-        jest.advanceTimersByTime(DEBOUNCE_WAIT + 100);
+      if (resolveFirstRequest) {
+        resolveFirstRequest({ data: mockResults1 });
       }
-      await Promise.resolve();
     });
 
-    expect(spySearchTokens).toHaveBeenCalledTimes(1);
+    expect(result.current.results).toEqual(mockResults2);
 
+    spySearchTokens.mockRestore();
     unmount();
   });
 
@@ -132,32 +138,72 @@ describe('useSearchRequest', () => {
       }),
     );
 
-    await act(async () => {
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(spySearchTokens).not.toHaveBeenCalled();
     expect(result.current.results).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
 
     await act(async () => {
       await result.current.search();
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      await Promise.resolve();
     });
 
     expect(spySearchTokens).not.toHaveBeenCalled();
 
+    spySearchTokens.mockRestore();
     unmount();
   });
 
-  it('maintains stable search function reference when chainIds array reference changes but values remain the same', async () => {
+  it('allows manual retry after error using search function', async () => {
+    const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
+    const mockError = new Error('Failed to search tokens');
+    const mockResults = [
+      {
+        assetId: 'eip155:1/erc20:0x123',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+      },
+    ];
+
+    spySearchTokens.mockRejectedValueOnce(mockError);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.error).toEqual(mockError);
+    });
+
+    spySearchTokens.mockResolvedValue({ data: mockResults } as never);
+
+    await act(async () => {
+      await result.current.search();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe(null);
+    });
+
+    expect(result.current.results).toEqual(mockResults);
+    expect(result.current.isLoading).toBe(false);
+
+    spySearchTokens.mockRestore();
+    unmount();
+  });
+
+  it('triggers new search when chainIds values change', async () => {
     const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
     spySearchTokens.mockResolvedValue({ data: [] } as never);
 
     let chainIds: CaipChainId[] = ['eip155:1', 'eip155:10'];
-    const { result, rerender, unmount } = renderHookWithProvider(() =>
+    const { rerender, unmount } = renderHookWithProvider(() =>
       useSearchRequest({
         chainIds,
         query: 'ETH',
@@ -165,55 +211,18 @@ describe('useSearchRequest', () => {
       }),
     );
 
-    await act(async () => {
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(spySearchTokens).toHaveBeenCalledTimes(1);
     });
-
-    const firstSearchFunction = result.current.search;
-
-    chainIds = ['eip155:1', 'eip155:10'];
-    rerender(undefined);
-
-    await act(async () => {
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      await Promise.resolve();
-    });
-
-    expect(result.current.search).toBe(firstSearchFunction);
-
-    unmount();
-  });
-
-  it('creates new search function when chainIds values change', async () => {
-    const spySearchTokens = jest.spyOn(assetsControllers, 'searchTokens');
-    spySearchTokens.mockResolvedValue({ data: [] } as never);
-
-    let chainIds: CaipChainId[] = ['eip155:1', 'eip155:10'];
-    const { result, rerender, unmount } = renderHookWithProvider(() =>
-      useSearchRequest({
-        chainIds,
-        query: 'ETH',
-        limit: 10,
-      }),
-    );
-
-    await act(async () => {
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      await Promise.resolve();
-    });
-
-    const firstSearchFunction = result.current.search;
 
     chainIds = ['eip155:1', 'eip155:137'];
     rerender(undefined);
 
-    await act(async () => {
-      jest.advanceTimersByTime(DEBOUNCE_WAIT);
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(spySearchTokens).toHaveBeenCalledTimes(2);
     });
 
-    expect(result.current.search).not.toBe(firstSearchFunction);
+    spySearchTokens.mockRestore();
     unmount();
   });
 });

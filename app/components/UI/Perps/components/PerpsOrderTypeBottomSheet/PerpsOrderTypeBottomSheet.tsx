@@ -20,32 +20,35 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { OrderType } from '../../controllers/types';
 
 interface PerpsOrderTypeBottomSheetProps {
-  isVisible: boolean;
+  isVisible?: boolean;
   onClose: () => void;
   onSelect: (orderType: OrderType) => void;
-  currentOrderType: OrderType;
+  currentOrderType?: OrderType;
   asset?: string;
   direction?: 'long' | 'short';
+  sheetRef?: React.RefObject<BottomSheetRef>;
 }
 
 const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
-  isVisible,
+  isVisible = true,
   onClose,
   onSelect,
   currentOrderType,
   asset = 'BTC',
   direction = 'long',
+  sheetRef: externalSheetRef,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const internalSheetRef = useRef<BottomSheetRef>(null);
+  const sheetRef = externalSheetRef || internalSheetRef;
   const { track } = usePerpsEventTracking();
 
   useEffect(() => {
-    if (isVisible) {
-      bottomSheetRef.current?.onOpenBottomSheet();
+    if (isVisible && !externalSheetRef) {
+      sheetRef.current?.onOpenBottomSheet();
     }
-  }, [isVisible]);
+  }, [isVisible, externalSheetRef, sheetRef]);
 
   const orderTypes = [
     {
@@ -86,9 +89,9 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
 
   return (
     <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
+      ref={sheetRef}
+      shouldNavigateBack={!externalSheetRef}
+      onClose={externalSheetRef ? undefined : onClose}
     >
       <BottomSheetHeader onClose={onClose}>
         <Text variant={TextVariant.HeadingMD}>
