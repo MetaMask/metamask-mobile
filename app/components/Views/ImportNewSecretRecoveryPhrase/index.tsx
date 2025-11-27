@@ -6,13 +6,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import {
-  Alert,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-  Platform,
-} from 'react-native';
+import { Alert, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import StyledButton from '../../UI/StyledButton';
@@ -68,7 +62,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   const { toastRef } = useContext(ToastContext);
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
   const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
-  const currentRowRef = useRef<number>(-1);
 
   // State
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
@@ -96,22 +89,6 @@ const ImportNewSecretRecoveryPhrase = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedPhrase]);
-
-  const handleInputFocus = useCallback((index: number) => {
-    if (Platform.OS === 'android' && scrollViewRef.current) {
-      const rowIndex = Math.floor(index / 3);
-
-      if (rowIndex > 3 && rowIndex !== currentRowRef.current) {
-        currentRowRef.current = rowIndex;
-
-        const scrollY = 30 + (rowIndex - 4) * 20;
-
-        setTimeout(() => {
-          scrollViewRef.current?.scrollToPosition(0, scrollY, true);
-        }, 50);
-      }
-    }
-  }, []);
 
   const dismiss = useCallback(() => {
     navigation.goBack();
@@ -331,7 +308,6 @@ const ImportNewSecretRecoveryPhrase = () => {
               'import_new_secret_recovery_phrase.textarea_placeholder',
             )}
             uniqueId={uniqueId}
-            onInputFocus={handleInputFocus}
           />
 
           <View style={styles.buttonWrapper}>
