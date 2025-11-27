@@ -96,6 +96,7 @@ describe('useTrendingSearch', () => {
   });
 
   it('returns combined search and trending results when search query provided', async () => {
+    // Search for 'ETH' which matches one trending result
     mockUseSearchRequest.mockReturnValue({
       results: mockSearchResults,
       isLoading: false,
@@ -104,23 +105,24 @@ describe('useTrendingSearch', () => {
     });
 
     const { result } = renderHookWithProvider(() =>
-      useTrendingSearch('USDC', 'h24_trending'),
+      useTrendingSearch('ETH', 'h24_trending'),
     );
 
     await waitFor(() => {
-      expect(result.current.data).toHaveLength(3);
+      expect(result.current.data).toHaveLength(2);
     });
 
+    // Should contain ETH from trending (matches query) and USDC from search
     expect(result.current.data).toEqual(
       expect.arrayContaining([
-        ...mockTrendingResults,
+        expect.objectContaining({ symbol: 'ETH' }),
         expect.objectContaining({ symbol: 'USDC' }),
       ]),
     );
   });
 
   it('removes duplicate results when combining search and trending', async () => {
-    const duplicateResult = mockTrendingResults[0];
+    const duplicateResult = mockTrendingResults[0]; // ETH
     mockUseSearchRequest.mockReturnValue({
       results: [duplicateResult, mockSearchResults[0]],
       isLoading: false,
@@ -133,12 +135,20 @@ describe('useTrendingSearch', () => {
     );
 
     await waitFor(() => {
-      expect(result.current.data).toHaveLength(3);
+      expect(result.current.data).toHaveLength(2);
     });
 
+    // Should have ETH (deduplicated) and USDC (from search)
+    // DAI is filtered out because it doesn't match 'ETH' query
     const assetIds = result.current.data.map((item) => item.assetId);
     const uniqueAssetIds = new Set(assetIds);
     expect(assetIds.length).toBe(uniqueAssetIds.size);
+    expect(result.current.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ symbol: 'ETH' }),
+        expect.objectContaining({ symbol: 'USDC' }),
+      ]),
+    );
   });
 
   it('returns trending loading state when no search query', () => {
