@@ -7,6 +7,7 @@ import {
 import { usePredictDepositToasts } from './usePredictDepositToasts';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Mock @react-navigation/native
 jest.mock('@react-navigation/native', () => ({
@@ -144,6 +145,7 @@ describe('usePredictDepositToasts', () => {
   let mockSubscribeCallback:
     | ((payload: {
         transactionMeta: {
+          id?: string;
           status: string;
           nestedTransactions?: { type: string }[];
           metamaskPay?: { totalFiat?: string };
@@ -350,6 +352,159 @@ describe('usePredictDepositToasts', () => {
 
       // Verify that deposit would be called (it will call navigateToConfirmation)
       expect(onPressRetry).toBeInstanceOf(Function);
+    });
+  });
+
+  describe('pending toast navigation', () => {
+    let mockNavigate: jest.Mock;
+
+    beforeEach(() => {
+      // Get the mock navigate function from the useNavigation mock
+      const { useNavigation } = jest.requireMock('@react-navigation/native');
+      mockNavigate = jest.fn();
+      useNavigation.mockReturnValue({
+        navigate: mockNavigate,
+      });
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    });
+
+    it('navigates to transactions view when pending toast link is pressed', async () => {
+      // Arrange
+      renderHook(() => usePredictDepositToasts(), { wrapper });
+
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.approved,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          },
+        });
+      });
+
+      // Act
+      const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
+        .calls[0][0];
+      const onPressLink = toastCall.closeButtonOptions?.onPress;
+
+      act(() => {
+        onPressLink?.();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('navigates to transaction details when pending toast link is pressed with transaction id', async () => {
+      // Arrange
+      renderHook(() => usePredictDepositToasts(), { wrapper });
+      const transactionId = 'test-transaction-id-456';
+
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            id: transactionId,
+            status: TransactionStatus.approved,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          },
+        });
+      });
+
+      // Act
+      const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
+        .calls[0][0];
+      const onPressLink = toastCall.closeButtonOptions?.onPress;
+
+      act(() => {
+        onPressLink?.();
+        jest.advanceTimersByTime(100);
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
+        transactionId,
+      });
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not navigate to transaction details when transaction id is missing', async () => {
+      // Arrange
+      renderHook(() => usePredictDepositToasts(), { wrapper });
+
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.approved,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          },
+        });
+      });
+
+      // Act
+      const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
+        .calls[0][0];
+      const onPressLink = toastCall.closeButtonOptions?.onPress;
+
+      act(() => {
+        onPressLink?.();
+        jest.advanceTimersByTime(100);
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.TRANSACTION_DETAILS,
+        expect.anything(),
+      );
+    });
+
+    it('uses 100ms timeout before navigating to transaction details', async () => {
+      // Arrange
+      renderHook(() => usePredictDepositToasts(), { wrapper });
+      const transactionId = 'test-transaction-id-789';
+
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            id: transactionId,
+            status: TransactionStatus.approved,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          },
+        });
+      });
+
+      // Act
+      const toastCall = (mockToastRef.current.showToast as jest.Mock).mock
+        .calls[0][0];
+      const onPressLink = toastCall.closeButtonOptions?.onPress;
+
+      act(() => {
+        onPressLink?.();
+      });
+
+      // Assert - before timeout
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+
+      // Act - advance timer
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Assert - after timeout
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenLastCalledWith(
+        Routes.TRANSACTION_DETAILS,
+        {
+          transactionId,
+        },
+      );
     });
   });
 });
