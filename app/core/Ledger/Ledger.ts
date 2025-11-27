@@ -19,6 +19,31 @@ import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
 import { removeAccountsFromPermissions } from '../Permissions';
 
+export const getLedgerKeyringIdByDeviceId = async (
+  deviceId: string,
+): Promise<string | undefined> => {
+  const { KeyringController } = Engine.context;
+  const ledgerKeyrings = KeyringController.state.keyrings.filter(
+    (keyring) => keyring.type === ExtendedKeyringTypes.ledger,
+  );
+
+  let ledgerKeyringId: string | undefined;
+  for (let i = 0; i < ledgerKeyrings.length; i++) {
+    const { matchingDeviceId } = await KeyringController.withKeyring(
+      { type: ExtendedKeyringTypes.ledger, index: i },
+      async ({ keyring }: { keyring: LedgerKeyring }) => ({
+        matchingDeviceId: keyring.getDeviceId() === deviceId,
+      }),
+    );
+
+    if (matchingDeviceId) {
+      ledgerKeyringId = ledgerKeyrings[i].metadata.id;
+      break;
+    }
+  }
+  return ledgerKeyringId;
+};
+
 /**
  * Perform an operation with the Ledger keyring.
  *
@@ -35,16 +60,34 @@ export const withLedgerKeyring = async <CallbackResult = void>(
     keyring: LedgerKeyring;
     metadata: KeyringMetadata;
   }) => Promise<CallbackResult>,
+  keyringId: string,
 ): Promise<CallbackResult> => {
   const keyringController = Engine.context.KeyringController;
+
   return await keyringController.withKeyring(
-    { type: ExtendedKeyringTypes.ledger },
+    { id: keyringId },
     operation,
     // TODO: Refactor this to stop creating the keyring on-demand
     // Instead create it only in response to an explicit user action, and do
     // not allow Ledger interactions until after that has been done.
     { createIfMissing: true },
   );
+};
+
+export const createNewLedgerKeyring = async (
+  deviceId: string,
+): Promise<string> => {
+  const keyringController = Engine.context.KeyringController;
+  const newLedgerKeyring = await keyringController.addNewKeyring(
+    ExtendedKeyringTypes.ledger,
+  );
+
+  await withLedgerKeyring(async ({ keyring }) => {
+    keyring.setHdPath(LEDGER_LIVE_PATH);
+    keyring.setDeviceId(deviceId);
+  }, newLedgerKeyring.id);
+
+  return newLedgerKeyring.id;
 };
 
 /**
@@ -58,6 +101,12 @@ export const connectLedgerHardware = async (
   transport: BleTransport,
   deviceId: string,
 ): Promise<string> => {
+  const ledgerKeyringId = await getLedgerKeyringIdByDeviceId(deviceId);
+
+  if (!ledgerKeyringId) {
+    throw new Error('Ledger keyring not found');
+  }
+
   const appAndVersion = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setHdPath(LEDGER_LIVE_PATH);
     keyring.setDeviceId(deviceId);
@@ -65,7 +114,7 @@ export const connectLedgerHardware = async (
     const bridge = keyring.bridge as LedgerMobileBridge;
     await bridge.updateTransportMethod(transport);
     return await bridge.getAppNameAndVersion();
-  });
+  }, ledgerKeyringId);
 
   return appAndVersion.appName;
 };
@@ -73,27 +122,31 @@ export const connectLedgerHardware = async (
 /**
  * Automatically opens the Ethereum app on the Ledger device.
  */
-export const openEthereumAppOnLedger = async (): Promise<void> => {
+export const openEthereumAppOnLedger = async (
+  keyringId: string,
+): Promise<void> => {
   await withLedgerKeyring(async ({ keyring }) => {
     const bridge = keyring.bridge as LedgerMobileBridge;
     await bridge.openEthApp();
-  });
+  }, keyringId);
 };
 
 /**
  * Automatically closes the current app on the Ledger device.
  */
-export const closeRunningAppOnLedger = async (): Promise<void> => {
+export const closeRunningAppOnLedger = async (
+  keyringId: string,
+): Promise<void> => {
   await withLedgerKeyring(async ({ keyring }) => {
     const bridge = keyring.bridge as LedgerMobileBridge;
     await bridge.closeApps();
-  });
+  }, keyringId);
 };
 
 /**
  * Forgets the ledger device.
  */
-export const forgetLedger = async (): Promise<void> => {
+export const forgetLedger = async (keyringId: string): Promise<void> => {
   await withLedgerKeyring(async ({ keyring }) => {
     // Permissions need to be updated before the hardware wallet is forgotten.
     // This is because `removeAccountsFromPermissions` relies on the account
@@ -104,7 +157,7 @@ export const forgetLedger = async (): Promise<void> => {
     const accounts = await keyring.getAccounts();
     removeAccountsFromPermissions(accounts);
     keyring.forgetDevice();
-  });
+  }, keyringId);
 };
 
 /**
@@ -112,8 +165,11 @@ export const forgetLedger = async (): Promise<void> => {
  *
  * @returns The DeviceId
  */
-export const getDeviceId = async (): Promise<string> =>
-  await withLedgerKeyring(async ({ keyring }) => keyring.getDeviceId());
+export const getDeviceId = async (keyringId: string): Promise<string> =>
+  await withLedgerKeyring(
+    async ({ keyring }) => keyring.getDeviceId(),
+    keyringId,
+  );
 
 /**
  * Check if the path is valid
@@ -137,14 +193,14 @@ export const isValidPath = (path: string): boolean => {
  * Set HD Path for Ledger Keyring
  * @param path - The HD Path to set
  */
-export const setHDPath = async (path: string) => {
+export const setHDPath = async (path: string, keyringId: string) => {
   await withLedgerKeyring(async ({ keyring }) => {
     if (isValidPath(path)) {
       keyring.setHdPath(path);
     } else {
       throw new Error(strings('ledger.hd_path_error', { path }));
     }
-  });
+  }, keyringId);
 };
 
 /**
@@ -152,15 +208,18 @@ export const setHDPath = async (path: string) => {
  *
  * @returns The HD Path
  */
-export const getHDPath = async (): Promise<string> =>
-  await withLedgerKeyring(async ({ keyring }) => keyring.hdPath);
+export const getHDPath = async (keyringId: string): Promise<string> =>
+  await withLedgerKeyring(async ({ keyring }) => keyring.hdPath, keyringId);
 
 /**
  * Get Ledger Accounts
  * @returns The Ledger Accounts
  */
-export const getLedgerAccounts = async (): Promise<string[]> =>
-  await withLedgerKeyring(async ({ keyring }) => keyring.getAccounts());
+export const getLedgerAccounts = async (keyringId: string): Promise<string[]> =>
+  await withLedgerKeyring(
+    async ({ keyring }) => keyring.getAccounts(),
+    keyringId,
+  );
 
 /**
  * Unlock Ledger Accounts by page
@@ -169,6 +228,7 @@ export const getLedgerAccounts = async (): Promise<string[]> =>
  */
 export const getLedgerAccountsByOperation = async (
   operation: number,
+  keyringId: string,
 ): Promise<{ balance: string; address: string; index: number }[]> => {
   try {
     const accounts = await withLedgerKeyring(async ({ keyring }) => {
@@ -180,7 +240,7 @@ export const getLedgerAccountsByOperation = async (
         default:
           return await keyring.getFirstPage();
       }
-    });
+    }, keyringId);
 
     return accounts.map((account) => ({
       ...account,
@@ -203,10 +263,11 @@ export const ledgerSignTypedMessage = async (
     data: string | Record<string, unknown> | Record<string, unknown>[];
   },
   version: SignTypedDataVersion,
+  keyringId: string,
 ): Promise<string> => {
-  await withLedgerKeyring(async () => {
+  await withLedgerKeyring(async ({ keyring }) => {
     // This is just to trigger the keyring to get created if it doesn't exist already
-  });
+  }, keyringId);
   const keyringController = Engine.context.KeyringController;
   return await keyringController.signTypedMessage(
     {
@@ -239,13 +300,16 @@ export const checkAccountNameExists = async (accountName: string) => {
  *
  * @param index - The index of the account to unlock
  */
-export const unlockLedgerWalletAccount = async (index: number) => {
+export const unlockLedgerWalletAccount = async (
+  index: number,
+  keyringId: string,
+) => {
   const accountsController = Engine.context.AccountsController;
   const { unlockAccount, name } = await withLedgerKeyring(
     async ({ keyring }) => {
       const existingAccounts = await keyring.getAccounts();
       const keyringName = keyringTypeToName(ExtendedKeyringTypes.ledger);
-      const accountName = `${keyringName} ${existingAccounts.length + 1}`;
+      const accountName = `${keyringName} ${keyringId} ${existingAccounts.length + 1}`;
 
       if (await checkAccountNameExists(accountName)) {
         throw new Error(
@@ -260,6 +324,7 @@ export const unlockLedgerWalletAccount = async (index: number) => {
         name: accountName,
       };
     },
+    keyringId,
   );
 
   const account = accountsController.getAccountByAddress(unlockAccount);
