@@ -98,6 +98,7 @@ import type {
   LiquidationPriceParams,
   LiveDataConfig,
   MaintenanceMarginParams,
+  MarginResult,
   MarketInfo,
   Order,
   OrderFill,
@@ -3101,6 +3102,94 @@ export class HyperLiquidProvider implements IPerpsProvider {
         }),
       );
       return createErrorResult(error, { success: false });
+    }
+  }
+
+  /**
+   * Update margin for an existing position (add or remove)
+   *
+   * @param params - Margin adjustment parameters
+   * @param params.coin - Asset symbol (e.g., 'BTC', 'ETH')
+   * @param params.amount - Amount to adjust as string (positive = add, negative = remove)
+   * @returns Promise resolving to margin adjustment result
+   *
+   * Note: HyperLiquid uses micro-units (multiply by 1e6) for the ntli parameter.
+   * The SDK's updateIsolatedMargin requires:
+   * - asset: Asset ID (number)
+   * - isBuy: Position direction (true for long, false for short)
+   * - ntli: Amount in micro-units (amount * 1e6)
+   */
+  async updateMargin(params: {
+    coin: string;
+    amount: string;
+  }): Promise<MarginResult> {
+    try {
+      DevLogger.log('Updating position margin:', params);
+
+      const { coin, amount } = params;
+
+      // Ensure provider is ready
+      await this.ensureReady();
+
+      // Get current position to determine direction
+      // Force fresh API data since we're about to mutate the position
+      const positions = await this.getPositions({ skipCache: true });
+      const position = positions.find((p) => p.coin === coin);
+
+      if (!position) {
+        throw new Error(`No position found for ${coin}`);
+      }
+
+      // Determine position direction
+      const isBuy = parseFloat(position.size) > 0; // true for long, false for short
+
+      // Get asset ID for the coin
+      const assetId = this.coinToAssetId.get(coin);
+      if (assetId === undefined) {
+        throw new Error(`Asset ID not found for ${coin}`);
+      }
+
+      // Convert amount to micro-units (HyperLiquid SDK requirement)
+      const amountFloat = parseFloat(amount);
+      const ntli = Math.floor(amountFloat * 1e6);
+
+      DevLogger.log('Margin adjustment details', {
+        coin,
+        assetId,
+        isBuy,
+        amount: amountFloat,
+        ntli,
+      });
+
+      // Call SDK to update isolated margin
+      const exchangeClient = this.clientService.getExchangeClient();
+      const result = await exchangeClient.updateIsolatedMargin({
+        asset: assetId,
+        isBuy,
+        ntli,
+      });
+
+      DevLogger.log('Margin update result:', result);
+
+      if (result.status !== 'ok') {
+        throw new Error(`Margin adjustment failed: ${JSON.stringify(result)}`);
+      }
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('updateMargin', {
+          coin: params.coin,
+          amount: params.amount,
+        }),
+      );
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 

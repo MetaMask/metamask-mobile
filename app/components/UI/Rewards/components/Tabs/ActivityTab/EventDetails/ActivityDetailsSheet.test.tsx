@@ -10,7 +10,10 @@ import { ButtonVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { ModalType } from '../../../RewardsBottomSheetModal';
 import TEST_ADDRESS from '../../../../../../../constants/address';
-import { PointsEventDto } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  PointsEventDto,
+  SeasonActivityTypeDto,
+} from '../../../../../../../core/Engine/controllers/rewards-controller/types';
 import { AvatarAccountType } from '../../../../../../../component-library/components/Avatars/Avatar';
 
 // Mock navigation
@@ -37,6 +40,7 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'rewards.events.points_base': 'Base',
       'rewards.events.points_boost': 'Boost',
       'rewards.events.points_total': 'Total',
+      'rewards.events.description': 'Description',
       'rewards.events.for_deposit_period': 'For deposit period',
     };
     return t[key] || key;
@@ -66,6 +70,12 @@ jest.mock('../../../../utils/formatUtils', () => ({
       }).format(date);
     },
   ),
+  resolveTemplate: jest.fn((template: string, values: Record<string, string>) =>
+    template.replace(/\$\{(\w+)\}/g, (match, placeholder) => {
+      const value = values[placeholder as keyof typeof values];
+      return value !== undefined ? String(value) : match;
+    }),
+  ),
 }));
 
 // Mock eventDetailsUtils
@@ -93,6 +103,27 @@ describe('ActivityDetailsSheet', () => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(AvatarAccountType.JazzIcon);
   });
+
+  const mockActivityTypes: SeasonActivityTypeDto[] = [
+    {
+      type: 'SWAP',
+      title: 'Swap',
+      description: 'Swap desc',
+      icon: 'SwapVertical',
+    },
+    {
+      type: 'CARD',
+      title: 'Card spend',
+      description: 'Spend',
+      icon: 'Card',
+    },
+    {
+      type: 'BRIDGE',
+      title: 'Bridge',
+      description: 'Bridge details',
+      icon: 'ArrowRight',
+    },
+  ];
 
   const baseEvent: PointsEventDto = {
     id: 'test-id',
@@ -126,7 +157,13 @@ describe('ActivityDetailsSheet', () => {
         },
       };
 
-      render(<ActivityDetailsSheet event={swapEvent} accountName="Primary" />);
+      render(
+        <ActivityDetailsSheet
+          event={swapEvent}
+          accountName="Primary"
+          activityTypes={mockActivityTypes}
+        />,
+      );
 
       // Verify GenericEventDetails content is rendered (base component)
       expect(screen.getByText('Details')).toBeTruthy();
@@ -151,7 +188,13 @@ describe('ActivityDetailsSheet', () => {
         },
       };
 
-      render(<ActivityDetailsSheet event={cardEvent} accountName="Primary" />);
+      render(
+        <ActivityDetailsSheet
+          event={cardEvent}
+          accountName="Primary"
+          activityTypes={mockActivityTypes}
+        />,
+      );
 
       // Verify GenericEventDetails content is rendered (base component)
       expect(screen.getByText('Details')).toBeTruthy();
@@ -173,7 +216,11 @@ describe('ActivityDetailsSheet', () => {
       };
 
       render(
-        <ActivityDetailsSheet event={musdDepositEvent} accountName="Primary" />,
+        <ActivityDetailsSheet
+          event={musdDepositEvent}
+          accountName="Primary"
+          activityTypes={mockActivityTypes}
+        />,
       );
 
       // Verify GenericEventDetails content is rendered (base component)
@@ -183,21 +230,70 @@ describe('ActivityDetailsSheet', () => {
       expect(screen.getByText('Nov 11, 2025')).toBeTruthy();
     });
 
-    it('renders GenericEventDetails for other event types', () => {
+    it('renders GenericEventDetails with extra description for unspecified type when payload exists', () => {
       const genericEvent: PointsEventDto = {
         ...baseEvent,
         type: 'BRIDGE' as never,
-        payload: null,
+        payload: { txHash: '0xabc123' } as unknown as PointsEventDto['payload'],
       };
 
+      const activityTypesWithTemplate: SeasonActivityTypeDto[] = [
+        {
+          type: 'BRIDGE',
+          title: 'Bridge',
+          description: 'Tx: ${txHash}',
+          icon: 'ArrowRight',
+        },
+      ];
+
       render(
-        <ActivityDetailsSheet event={genericEvent} accountName="Primary" />,
+        <ActivityDetailsSheet
+          event={genericEvent}
+          accountName="Primary"
+          activityTypes={activityTypesWithTemplate}
+        />,
       );
 
       // Verify GenericEventDetails content is rendered
       expect(screen.getByText('Details')).toBeTruthy();
       expect(screen.getByText('Points')).toBeTruthy();
       expect(screen.getByText('Date')).toBeTruthy();
+      // Description row label and resolved template
+      expect(screen.getByText('Description')).toBeTruthy();
+      expect(screen.getByText('Tx: 0xabc123')).toBeTruthy();
+    });
+
+    it('renders GenericEventDetails without extra description when payload is null', () => {
+      const genericEventNoPayload: PointsEventDto = {
+        ...baseEvent,
+        type: 'BRIDGE' as never,
+        payload: null,
+      };
+
+      const activityTypesTemplate: SeasonActivityTypeDto[] = [
+        {
+          type: 'BRIDGE',
+          title: 'Bridge',
+          description: 'Tx: ${txHash}',
+          icon: 'ArrowRight',
+        },
+      ];
+
+      render(
+        <ActivityDetailsSheet
+          event={genericEventNoPayload}
+          accountName="Primary"
+          activityTypes={activityTypesTemplate}
+        />,
+      );
+
+      // Verify GenericEventDetails content is rendered
+      expect(screen.getByText('Details')).toBeTruthy();
+      expect(screen.getByText('Points')).toBeTruthy();
+      expect(screen.getByText('Date')).toBeTruthy();
+      // No Description row since payload is null
+      expect(screen.queryByText('Description')).toBeNull();
+      expect(screen.queryByText('Tx: 0xabc123')).toBeNull();
     });
   });
 
@@ -225,6 +321,7 @@ describe('ActivityDetailsSheet', () => {
 
       openActivityDetailsSheet(mockNavigation, {
         event: testEvent,
+        activityTypes: mockActivityTypes,
         accountName: 'Test Account',
       });
 
@@ -270,6 +367,7 @@ describe('ActivityDetailsSheet', () => {
         event: testEvent,
         accountName: 'Test Account',
         confirmAction: customAction,
+        activityTypes: mockActivityTypes,
       });
 
       // Verify custom action is used
@@ -305,6 +403,7 @@ describe('ActivityDetailsSheet', () => {
       openActivityDetailsSheet(mockNavigation, {
         event: testEvent,
         accountName: 'My Custom Account',
+        activityTypes: mockActivityTypes,
       });
 
       // Get the description prop which is the ActivityDetailsSheet component
@@ -342,6 +441,7 @@ describe('ActivityDetailsSheet', () => {
       expect(() => {
         openActivityDetailsSheet(mockNavigation, {
           event: testEvent,
+          activityTypes: mockActivityTypes,
         });
       }).not.toThrow();
 
