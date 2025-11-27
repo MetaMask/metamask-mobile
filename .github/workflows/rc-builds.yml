@@ -44,4 +44,4 @@ jobs:
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
           BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
-        run: ./rc-builds.sh
+        run: ./scripts/rc-builds.sh
