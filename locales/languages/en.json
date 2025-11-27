@@ -3216,7 +3216,7 @@
     "swap": "Swap",
     "bridge": "Bridge",
     "earn": "Earn",
-    "convert": "Convert",
+    "convert_to_musd": "Convert to mUSD",
     "tron": {
       "daily_resource": "Daily resources",
       "bandwidth": "Bandwidth",

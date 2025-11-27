@@ -300,7 +300,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
         {(() => {
           if (isConvertibleStablecoin) {
-            return strings('asset_overview.convert');
+            return strings('asset_overview.convert_to_musd');
           }
 
           const aprNumber = Number(earnToken?.experience?.apr);
