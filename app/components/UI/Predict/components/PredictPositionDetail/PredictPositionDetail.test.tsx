@@ -166,27 +166,29 @@ const renderComponent = (
       usePredictOrderPreview as jest.MockedFunction<
         typeof usePredictOrderPreview
       >;
+    const hasPreview =
+      !previewOverrides.error && previewOverrides.minAmountReceived !== null;
     mockUsePredictOrderPreviewFn.mockReturnValue({
-      preview:
-        previewOverrides.error || previewOverrides.minAmountReceived === null
-          ? null
-          : {
-              marketId: position.marketId,
-              outcomeId: position.outcomeId,
-              outcomeTokenId: position.outcomeTokenId,
-              timestamp: Date.now(),
-              side: Side.SELL,
-              sharePrice: 0,
-              maxAmountSpent: 0,
-              minAmountReceived:
-                previewOverrides.minAmountReceived ?? position.currentValue,
-              slippage: 0,
-              tickSize: 0,
-              minOrderSize: 0,
-              negRisk: false,
-            },
+      preview: hasPreview
+        ? {
+            marketId: position.marketId,
+            outcomeId: position.outcomeId,
+            outcomeTokenId: position.outcomeTokenId,
+            timestamp: Date.now(),
+            side: Side.SELL,
+            sharePrice: 0,
+            maxAmountSpent: 0,
+            minAmountReceived:
+              previewOverrides.minAmountReceived ?? position.currentValue,
+            slippage: 0,
+            tickSize: 0,
+            minOrderSize: 0,
+            negRisk: false,
+          }
+        : null,
       error: previewOverrides.error ?? null,
       isCalculating: false,
+      isLoading: false,
     });
   }
 
@@ -242,6 +244,7 @@ describe('PredictPositionDetail', () => {
       },
       error: null,
       isCalculating: false,
+      isLoading: false,
     });
   });
 
@@ -332,6 +335,7 @@ describe('PredictPositionDetail', () => {
         preview: null,
         error: null,
         isCalculating: true,
+        isLoading: true,
       });
 
       renderComponent();
@@ -346,6 +350,7 @@ describe('PredictPositionDetail', () => {
         preview: null,
         error: null,
         isCalculating: true,
+        isLoading: true,
       });
 
       renderComponent();
@@ -359,6 +364,7 @@ describe('PredictPositionDetail', () => {
         preview: null,
         error: 'Failed to fetch preview',
         isCalculating: false,
+        isLoading: false,
       });
 
       renderComponent({ currentValue: 150, initialValue: 100 });
@@ -374,6 +380,7 @@ describe('PredictPositionDetail', () => {
         preview: null,
         error: 'Network error',
         isCalculating: false,
+        isLoading: false,
       });
 
       renderComponent({
@@ -502,6 +509,7 @@ describe('PredictPositionDetail', () => {
         },
         error: null,
         isCalculating: false,
+        isLoading: false,
       });
 
       rerender(
@@ -595,6 +603,7 @@ describe('PredictPositionDetail', () => {
         },
         error: null,
         isCalculating: false,
+        isLoading: false,
       });
 
       rerender(

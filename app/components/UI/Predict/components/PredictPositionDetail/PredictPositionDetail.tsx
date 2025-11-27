@@ -39,6 +39,8 @@ interface PredictPositionProps {
   marketStatus: PredictMarketStatus;
 }
 
+const AUTO_REFRESH_TIMEOUT = 5000;
+
 const PredictPosition: React.FC<PredictPositionProps> = ({
   position,
   market,
@@ -63,27 +65,23 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   // Only auto-refresh when the screen is focused to avoid duplicate fetches
   const isFocused = useIsFocused();
 
-  const { preview, error: previewError } = usePredictOrderPreview({
+  const autoRefreshTimeout =
+    isFocused && marketStatus === PredictMarketStatus.OPEN
+      ? AUTO_REFRESH_TIMEOUT
+      : undefined;
+
+  const { preview, isLoading: isPreviewLoading } = usePredictOrderPreview({
     providerId: currentPosition.providerId,
     marketId: currentPosition.marketId,
     outcomeId: currentPosition.outcomeId,
     outcomeTokenId: currentPosition.outcomeTokenId,
     side: Side.SELL,
     size: currentPosition.size,
-    autoRefreshTimeout: isFocused ? 1000 : undefined,
+    autoRefreshTimeout,
   });
 
-  // Show skeleton when preview is loading (null and no error)
-  const isPreviewLoading = preview === null && !previewError;
-
-  // Check if we have valid preview data to use
-  const hasValidPreview =
-    preview !== null &&
-    !previewError &&
-    preview?.minAmountReceived !== undefined;
-
   // Use preview data if available, fallback to position data on error or when preview is unavailable
-  const currentValue = hasValidPreview
+  const currentValue = preview
     ? preview.minAmountReceived
     : currentPosition.currentValue;
 
@@ -120,12 +118,11 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   };
 
   const renderValueText = () => {
-    // Show skeleton for optimistic positions or while preview is loading
-    if (optimistic || isPreviewLoading) {
-      return <Skeleton width={70} height={20} />;
-    }
-
     if (marketStatus === PredictMarketStatus.OPEN) {
+      // Show skeleton for optimistic positions or while preview is loading
+      if (optimistic || isPreviewLoading) {
+        return <Skeleton width={70} height={20} />;
+      }
       return (
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {formatPrice(currentValue, { maximumDecimals: 2 })}
