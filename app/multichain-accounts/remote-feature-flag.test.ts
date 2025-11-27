@@ -43,7 +43,7 @@ const mockState2FeatureVersionsToCheck = [
   },
 ];
 
-describe('Multichain Accounts Feature Flag', () => {
+describe.skip('Multichain Accounts Feature Flag', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

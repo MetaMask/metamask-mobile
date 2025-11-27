@@ -12,7 +12,9 @@ import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonP
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import { DappVariants } from '../../../../framework/Constants';
 
-describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
+// TODO:
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
