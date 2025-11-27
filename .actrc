@@ -1,0 +1,2 @@
+--container-architecture=linux/arm64
+--action-offline-mode
