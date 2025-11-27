@@ -955,6 +955,14 @@ const Wallet = ({
         variant: ButtonVariants.Primary,
         onPress: () => {
           storePna25Acknowledged();
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.TOAST_DISPLAYED)
+              .addProperties({
+                toast_name: 'pna25',
+                closed: true,
+              })
+              .build(),
+          );
           currentToast?.closeToast();
         },
       },
@@ -968,7 +976,22 @@ const Wallet = ({
     });
 
     pna25ToastShownRef.current = true;
-  }, [shouldShowPna25Toast, storePna25Acknowledged, currentToast]);
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOAST_DISPLAYED)
+        .addProperties({
+          toast_name: 'pna25',
+          closed: false,
+        })
+        .build(),
+    );
+  }, [
+    shouldShowPna25Toast,
+    storePna25Acknowledged,
+    currentToast,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   /**
    * Network onboarding state
