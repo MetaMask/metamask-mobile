@@ -74,7 +74,7 @@ describe('handlePredictUrl', () => {
       });
     });
 
-    it('handles multiple URL parameters', async () => {
+    it('handles multiple URL parameters with utm_source in entryPoint', async () => {
       await handlePredictUrl({
         predictPath: '?market=xyz123&utm_source=campaign&debug=true',
       });
@@ -83,7 +83,7 @@ describe('handlePredictUrl', () => {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
           marketId: 'xyz123',
-          entryPoint: 'deeplink',
+          entryPoint: 'deeplink_campaign',
         },
       });
     });
@@ -158,13 +158,13 @@ describe('handlePredictUrl', () => {
       });
     });
 
-    it('navigates to market list when only other parameters provided', async () => {
+    it('navigates to market list with utm_source in entryPoint when only utm_source provided', async () => {
       await handlePredictUrl({ predictPath: '?utm_source=campaign' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
         params: {
-          entryPoint: 'deeplink',
+          entryPoint: 'deeplink_campaign',
         },
       });
     });
@@ -247,7 +247,7 @@ describe('handlePredictUrl', () => {
 
       expect(DevLogger.log).toHaveBeenCalledWith(
         '[handlePredictUrl] Parsed navigation parameters:',
-        { market: '23246' },
+        { market: '23246', utmSource: undefined },
       );
     });
 
@@ -346,7 +346,7 @@ describe('handlePredictUrl', () => {
       });
     });
 
-    it('sets entryPoint to deeplink when origin is undefined', async () => {
+    it('sets entryPoint to deeplink when origin is undefined and no utm_source', async () => {
       await handlePredictUrl({
         predictPath: '?market=23246',
         origin: undefined,
@@ -361,7 +361,7 @@ describe('handlePredictUrl', () => {
       });
     });
 
-    it('sets entryPoint to deeplink when origin is deeplink', async () => {
+    it('sets entryPoint to deeplink when origin is deeplink and no utm_source', async () => {
       await handlePredictUrl({
         predictPath: '?market=23246',
         origin: 'deeplink',
@@ -406,6 +406,145 @@ describe('handlePredictUrl', () => {
       expect(DevLogger.log).toHaveBeenCalledWith(
         '[handlePredictUrl] Entry point:',
         'carousel',
+      );
+    });
+  });
+
+  describe('utm_source parameter handling', () => {
+    it('sets entryPoint to deeplink_test when utm_source is test', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246&utm_source=test',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'deeplink_test',
+        },
+      });
+    });
+
+    it('sets entryPoint to deeplink_twitter when utm_source is twitter', async () => {
+      await handlePredictUrl({
+        predictPath: '?marketId=12345&utm_source=twitter',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '12345',
+          entryPoint: 'deeplink_twitter',
+        },
+      });
+    });
+
+    it('appends utm_source to carousel origin', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246&utm_source=test',
+        origin: 'carousel',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'carousel_test',
+        },
+      });
+    });
+
+    it('appends utm_source to deeplink origin', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246&utm_source=test',
+        origin: 'deeplink',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'deeplink_test',
+        },
+      });
+    });
+
+    it('appends utm_source to notification origin', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246&utm_source=campaign',
+        origin: 'notification',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'notification_campaign',
+        },
+      });
+    });
+
+    it('does not append utm_source when it equals origin', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246&utm_source=carousel',
+        origin: 'carousel',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'carousel',
+        },
+      });
+    });
+
+    it('does not append utm_source when it equals default deeplink', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246&utm_source=deeplink',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '23246',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('navigates to market list with deeplink_test entryPoint when no market but utm_source present', async () => {
+      await handlePredictUrl({
+        predictPath: '?utm_source=test',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink_test',
+        },
+      });
+    });
+
+    it('logs parsed utm_source in navigation parameters', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246&utm_source=test',
+      });
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[handlePredictUrl] Parsed navigation parameters:',
+        { market: '23246', utmSource: 'test' },
+      );
+    });
+
+    it('logs entry point with utm_source suffix', async () => {
+      await handlePredictUrl({
+        predictPath: '?market=23246&utm_source=test',
+      });
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[handlePredictUrl] Entry point:',
+        'deeplink_test',
       );
     });
   });
