@@ -35,7 +35,6 @@ export enum AuthenticationMethod {
   BIOMETRIC = 'BIOMETRIC',
   DEVICE_PASSCODE = 'DEVICE_PASSCODE',
   REMEMBER_ME = 'REMEMBER_ME',
-  APP_TRIGGERED = 'APP_TRIGGERED',
 }
 
 /**

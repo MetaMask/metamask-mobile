@@ -104,6 +104,10 @@ jest.mock('../../../Authentication/biometricErrorUtils', () => ({
   isUserCancellation: jest.fn(),
 }));
 
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'mock-uuid-v4'),
+}));
+
 const mockRunAfterInteractions = jest.fn((callback) => {
   if (callback) callback();
   return Promise.resolve();

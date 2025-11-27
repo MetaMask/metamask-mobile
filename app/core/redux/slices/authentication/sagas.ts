@@ -22,6 +22,7 @@ import {
 import { eventChannel, EventChannel } from 'redux-saga';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { InteractionManager } from 'react-native';
+import { v4 as uuidv4 } from 'uuid';
 import { Authentication } from '../../../';
 import { AppStateService } from '../../../AppStateService/AppStateService';
 import NavigationService from '../../../NavigationService';
@@ -183,7 +184,7 @@ export function* initializeAuthenticationSaga() {
     // By checking getType() first, we can skip getPassword() for biometric auth
     const authData: Awaited<ReturnType<typeof Authentication.getType>> =
       yield call([Authentication, 'getType']);
-    const isBiometricAuth = authData.currentAuthType === 'biometrics';
+    const isBiometricAuth = authData.currentAuthType === 'biometrics'; // change it to a const
     const isRememberMeAuth = authData.currentAuthType === 'remember_me';
 
     // Check Remember Me status
@@ -222,11 +223,6 @@ export function* initializeAuthenticationSaga() {
       return;
     }
 
-    // For non-biometric auth (password), navigate to Login screen
-    // We don't need to call getPassword() here because:
-    // 1. We already know the auth type from getType()
-    // 2. Calling getPassword() could trigger Face ID unnecessarily if password was stored with biometric protection
-    // 3. We're going to show the login screen anyway - the Login component will handle credential checks
     Logger.log(
       `AuthSaga: Non-biometric auth type (${authData.currentAuthType}) - navigating to Login`,
     );
@@ -283,7 +279,7 @@ export function* requestAuthenticationSaga(
     Logger.log(`AuthSaga: Authentication requested with method: ${method}`);
 
     // Generate bioStateMachineId for this authentication session
-    const bioStateMachineId = Date.now().toString();
+    const bioStateMachineId = uuidv4();
 
     let authSuccess: boolean | 'cancelled' = false;
 
@@ -320,10 +316,6 @@ export function* requestAuthenticationSaga(
         authSuccess = yield call(authenticateWithRememberMe, bioStateMachineId);
         break;
 
-      case AuthenticationMethod.APP_TRIGGERED:
-        authSuccess = yield call(authenticateAppTriggered, bioStateMachineId);
-        break;
-
       default:
         Logger.error(
           new Error(`Unknown auth method: ${method}`),
@@ -350,7 +342,6 @@ export function* requestAuthenticationSaga(
     } else if (authSuccess === 'cancelled') {
       // User cancelled biometric
       Logger.log('AuthSaga: Biometric cancelled, navigating to login screen');
-      // Don't dispatch authenticationFailed, don't increment failed attempts
 
       // Navigate to Login so user can enter password
       const currentRoute =
@@ -529,26 +520,6 @@ function* authenticateWithRememberMe(bioStateMachineId: string) {
     return true;
   } catch (error) {
     Logger.error(error as Error, 'AuthSaga: Remember Me login failed');
-    return false;
-  }
-}
-
-/**
- * App-triggered authentication (automatic)
- * Uses Authentication.appTriggeredAuth()
- */
-function* authenticateAppTriggered(bioStateMachineId: string) {
-  try {
-    yield call([Authentication, 'appTriggeredAuth'], {
-      bioStateMachineId,
-      disableAutoLogout: false,
-    });
-    return true;
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'AuthSaga: App-triggered authentication failed',
-    );
     return false;
   }
 }
