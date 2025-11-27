@@ -10,6 +10,7 @@ import {
   formatUrl,
   formatUTCDate,
   formatRewardsMusdDepositPayloadDate,
+  resolveTemplate,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -1126,6 +1127,57 @@ describe('formatUtils', () => {
       expect(enResult).toMatch(/11/);
       expect(deResult).toMatch(/11/);
       expect(jaResult).toMatch(/11/);
+    });
+  });
+
+  describe('resolveTemplate', () => {
+    it('replaces single placeholder with provided value', () => {
+      const template = 'Hello, ${name}!';
+      const values = { name: 'Alice' };
+      expect(resolveTemplate(template, values)).toBe('Hello, Alice!');
+    });
+
+    it('replaces multiple placeholders with provided values', () => {
+      const template = 'User: ${name}, Tier: ${tier}';
+      const values = { name: 'Bob', tier: 'Gold' };
+      expect(resolveTemplate(template, values)).toBe('User: Bob, Tier: Gold');
+    });
+
+    it('leaves placeholders intact when value is missing', () => {
+      const template = 'Hello, ${name}! Tier: ${tier}';
+      const values = { name: 'Charlie' };
+      expect(resolveTemplate(template, values)).toBe(
+        'Hello, Charlie! Tier: ${tier}',
+      );
+    });
+
+    it('replaces repeated occurrences of the same placeholder', () => {
+      const template = '${name} is ${name}';
+      const values = { name: 'Dana' };
+      expect(resolveTemplate(template, values)).toBe('Dana is Dana');
+    });
+
+    it('does not replace when value is an empty string (fallback to original token)', () => {
+      const template = 'Optional: ${field}';
+      const values = { field: '' };
+      expect(resolveTemplate(template, values)).toBe('Optional: ${field}');
+    });
+
+    it('does not match non-word placeholders (e.g., dot paths)', () => {
+      const template = 'Tx: ${payload.txHash}';
+      const values = { 'payload.txHash': '0xabc' } as unknown as Record<
+        string,
+        string
+      >;
+      expect(resolveTemplate(template, values)).toBe('Tx: ${payload.txHash}');
+    });
+
+    it('returns the original string when no placeholders exist', () => {
+      const template = 'Static string with no tokens';
+      const values = { anything: 'value' };
+      expect(resolveTemplate(template, values)).toBe(
+        'Static string with no tokens',
+      );
     });
   });
 });

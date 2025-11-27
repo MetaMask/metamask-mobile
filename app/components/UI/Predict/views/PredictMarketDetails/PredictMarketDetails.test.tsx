@@ -9,6 +9,8 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import PredictMarketDetails from './PredictMarketDetails';
+import { PredictPriceHistoryInterval } from '../../types';
+import type { UsePredictPriceHistoryOptions } from '../../hooks/usePredictPriceHistory';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -254,6 +256,18 @@ jest.mock('../../components/PredictMarketOutcome', () => {
       <View testID="predict-market-outcome">
         <Text>{outcome?.title || 'Outcome'}</Text>
       </View>
+    );
+  };
+});
+
+jest.mock('../../components/PredictShareButton/PredictShareButton', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPredictShareButton({ marketId }: { marketId?: string }) {
+    return (
+      <View
+        testID="predict-share-button"
+        accessibilityHint={`marketId:${marketId ?? 'undefined'}`}
+      />
     );
   };
 });
@@ -661,6 +675,33 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByTestId('icon-ArrowLeft')).toBeOnTheScreen();
     });
+
+    it('renders share button in header when market data is loaded', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(screen.getByTestId('predict-share-button')).toBeOnTheScreen();
+    });
+
+    it('passes market.id to share button', () => {
+      setupPredictMarketDetailsTest({ id: 'test-market-id' });
+
+      const shareButton = screen.getByTestId('predict-share-button');
+
+      expect(shareButton.props.accessibilityHint).toBe(
+        'marketId:test-market-id',
+      );
+    });
+
+    it('hides share button when market is not loaded (shows skeleton)', () => {
+      setupPredictMarketDetailsTest({}, {}, { market: { market: null } });
+
+      expect(
+        screen.queryByTestId('predict-share-button'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-details-header-skeleton-back-button'),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Market Information Display', () => {
@@ -965,7 +1006,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
     });
 
-    it('does not render chart when market has no open outcomes', () => {
+    it('removes chart when closed market lacks open outcomes', () => {
       const emptyOutcomesMarket = createMockMarket({
         status: 'closed',
         outcomes: [
@@ -1220,7 +1261,7 @@ describe('PredictMarketDetails', () => {
     it('uses correct string keys for back button', () => {
       setupPredictMarketDetailsTest();
 
-      expect(strings).toHaveBeenCalledWith('back');
+      expect(strings).toHaveBeenCalledWith('predict.buttons.back');
     });
   });
 
@@ -2134,6 +2175,76 @@ describe('PredictMarketDetails', () => {
       );
 
       expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+
+    describe('Price history fidelity adjustments', () => {
+      const BASE_TIMESTAMP = 1_700_000_000_000;
+      const SHORT_RANGE_FIDELITY = 240;
+      const MAX_DEFAULT_FIDELITY = 1440;
+
+      const buildPriceHistory = (deltaMs: number) => [
+        [
+          { timestamp: BASE_TIMESTAMP, price: 0.5 },
+          { timestamp: BASE_TIMESTAMP + deltaMs, price: 0.6 },
+        ],
+        [],
+      ];
+
+      it('requests higher fidelity when MAX history span is shorter than a month', async () => {
+        const shortRangeHistory = buildPriceHistory(12 * 60 * 60 * 1000); // 12 hours
+
+        setupPredictMarketDetailsTest(
+          { status: 'closed' },
+          {},
+          { priceHistory: { priceHistories: shortRangeHistory } },
+        );
+
+        const { usePredictPriceHistory } = jest.requireMock(
+          '../../hooks/usePredictPriceHistory',
+        );
+
+        await waitFor(() => {
+          const maxCalls = usePredictPriceHistory.mock.calls.filter(
+            (call: [UsePredictPriceHistoryOptions]) =>
+              call[0]?.interval === PredictPriceHistoryInterval.MAX,
+          );
+          expect(maxCalls.length).toBeGreaterThan(0);
+          expect(
+            maxCalls.some(
+              (call: [UsePredictPriceHistoryOptions]) =>
+                call[0]?.fidelity === SHORT_RANGE_FIDELITY,
+            ),
+          ).toBe(true);
+        });
+      });
+
+      it('keeps default MAX fidelity when history span exceeds the threshold', async () => {
+        const longRangeHistory = buildPriceHistory(45 * 24 * 60 * 60 * 1000); // 45 days
+
+        setupPredictMarketDetailsTest(
+          { status: 'closed' },
+          {},
+          { priceHistory: { priceHistories: longRangeHistory } },
+        );
+
+        const { usePredictPriceHistory } = jest.requireMock(
+          '../../hooks/usePredictPriceHistory',
+        );
+
+        await waitFor(() => {
+          const maxCalls = usePredictPriceHistory.mock.calls.filter(
+            (call: [UsePredictPriceHistoryOptions]) =>
+              call[0]?.interval === PredictPriceHistoryInterval.MAX,
+          );
+          expect(maxCalls.length).toBeGreaterThan(0);
+          expect(
+            maxCalls.every(
+              (call: [UsePredictPriceHistoryOptions]) =>
+                call[0]?.fidelity === MAX_DEFAULT_FIDELITY,
+            ),
+          ).toBe(true);
+        });
+      });
     });
 
     it('handles no balance scenario for Yes button', () => {
