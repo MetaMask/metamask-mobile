@@ -67,6 +67,10 @@
       "title": "Deposit in progress",
       "message": "Wait for the last deposit to finish before making another."
     },
+    "signed_or_submitted_pay_token": {
+      "title": "Pending transaction",
+      "message": "You have a pending transaction on this network. Wait for it to complete or select a token on another network."
+    },
     "pending_transaction": {
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
