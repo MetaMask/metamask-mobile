@@ -9,6 +9,37 @@ const __dirname = path.dirname(__filename);
 const ARTIFACTS_COMMENT_MARKER = '<!-- metamask-bot-build-announce -->';
 
 /**
+ * Minimizes (hides) a comment using GitHub GraphQL API
+ * @param {Octokit} octokit - Octokit instance
+ * @param {string} nodeId - The GraphQL node ID of the comment
+ * @returns {Promise<boolean>} Whether the operation was successful
+ */
+async function minimizeComment(octokit, nodeId) {
+  try {
+    await octokit.graphql(
+      `
+      mutation MinimizeComment($id: ID!, $classifier: ReportedContentClassifiers!) {
+        minimizeComment(input: { subjectId: $id, classifier: $classifier }) {
+          minimizedComment {
+            isMinimized
+            minimizedReason
+          }
+        }
+      }
+      `,
+      {
+        id: nodeId,
+        classifier: 'OUTDATED',
+      },
+    );
+    return true;
+  } catch (error) {
+    console.error(`Failed to minimize comment ${nodeId}:`, error.message);
+    return false;
+  }
+}
+
+/**
  * Fetches job IDs from GitHub Actions API for a given workflow run
  * Uses pagination to ensure all jobs are retrieved, even if there are more than 30 jobs
  * @param {Octokit} octokit - Octokit instance
@@ -184,7 +215,10 @@ async function fetchArtifactUrls(octokit, owner, repo, runId) {
 }
 
 /**
- * Posts or updates a PR comment with build artifacts links.
+ * Posts a new PR comment with build artifacts links and minimizes older build comments.
+ * Each build creates a new comment at the bottom of the PR, while older build comments
+ * are automatically minimized (hidden) to keep the PR timeline clean.
+ *
  * Requires environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, GITHUB_RUN_ID,
  * ANDROID_BUILD_SUCCESS, IOS_BUILD_SUCCESS, ANDROID_FLASK_BUILD_SUCCESS
  *
@@ -388,10 +422,11 @@ ${rows.join('\n')}
 </details>
 `;
 
-  // 5. Post or Update Comment
-  // Idempotent: updates existing bot comment if found, otherwise creates a new one.
+  // 5. Post New Comment and Minimize Old Ones
+  // Strategy: Always create a new comment with latest artifacts, then minimize any older bot comments
+  // This keeps a history of all builds while highlighting the most recent one
   try {
-    console.log(`\n=== Searching for existing comment on PR #${prNumber} ===`);
+    console.log(`\n=== Searching for existing bot comments on PR #${prNumber} ===`);
     const comments = await octokit.paginate(octokit.rest.issues.listComments, {
       owner,
       repo,
@@ -400,31 +435,42 @@ ${rows.join('\n')}
 
     console.log(`Found ${comments.length} total comments on PR #${prNumber}`);
 
-    const existingComment = comments.find(
+    // Find all existing bot comments with the build marker
+    const existingBotComments = comments.filter(
       (comment) => comment.body && comment.body.includes(ARTIFACTS_COMMENT_MARKER),
     );
 
-    if (existingComment) {
-      console.log(`✓ Found existing bot comment (ID: ${existingComment.id}). Updating with latest artifacts...`);
-      await octokit.rest.issues.updateComment({
-        owner,
-        repo,
-        comment_id: existingComment.id,
-        body: commentBody,
-      });
-      console.log(`✓ Successfully updated comment with latest artifact URLs`);
-    } else {
-      console.log('No existing bot comment found. Creating new comment...');
-      await octokit.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: prNumber,
-        body: commentBody,
-      });
-      console.log(`✓ Successfully created new comment with artifact URLs`);
+    console.log(`Found ${existingBotComments.length} existing bot comment(s) with build artifacts`);
+
+    // Create new comment first (so it appears at the bottom)
+    console.log('Creating new comment with latest artifact URLs...');
+    await octokit.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: prNumber,
+      body: commentBody,
+    });
+    console.log(`✓ Successfully created new comment with artifact URLs`);
+
+    // Minimize all previous bot comments to keep the PR timeline clean
+    // while preserving the history of all builds
+    if (existingBotComments.length > 0) {
+      console.log(`\n=== Minimizing ${existingBotComments.length} older bot comment(s) ===`);
+      for (const comment of existingBotComments) {
+        if (comment.node_id) {
+          console.log(`Minimizing comment ID: ${comment.id} (node_id: ${comment.node_id})`);
+          const success = await minimizeComment(octokit, comment.node_id);
+          if (success) {
+            console.log(`✓ Minimized comment ${comment.id}`);
+          }
+        } else {
+          console.warn(`Comment ${comment.id} does not have a node_id, skipping minimization`);
+        }
+      }
+      console.log(`✓ Finished processing older bot comments`);
     }
   } catch (error) {
-    console.error('Error posting/updating comment:', error);
+    console.error('Error posting/minimizing comments:', error);
     if (error.status === 403) {
       console.error('Permission denied. Ensure the GITHUB_TOKEN has "pull-requests: write" permission.');
     }
