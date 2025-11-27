@@ -168,4 +168,73 @@ describe('useTrendingSearch', () => {
 
     expect(result.current.isLoading).toBe(true);
   });
+
+  describe('filtering trending results by query', () => {
+    it('returns all trending results when query is empty or whitespace', async () => {
+      const sortedResults = mockTrendingResults;
+      mockSortTrendingTokens.mockReturnValue(sortedResults);
+
+      const { result: result1 } = renderHookWithProvider(() =>
+        useTrendingSearch(''),
+      );
+      const { result: result2 } = renderHookWithProvider(() =>
+        useTrendingSearch('   '),
+      );
+
+      await waitFor(() => {
+        expect(result1.current.data).toEqual(sortedResults);
+        expect(result2.current.data).toEqual(sortedResults);
+      });
+    });
+
+    it('filters trending results by symbol case-insensitively', async () => {
+      const { result } = renderHookWithProvider(() => useTrendingSearch('eth'));
+
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(1);
+        expect(result.current.data[0].symbol).toBe('ETH');
+      });
+    });
+
+    it('filters trending results by name case-insensitively', async () => {
+      const { result } = renderHookWithProvider(() =>
+        useTrendingSearch('ethereum'),
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(1);
+        expect(result.current.data[0].name).toBe('Ethereum');
+      });
+    });
+
+    it('filters trending results by partial matches', async () => {
+      const { result } = renderHookWithProvider(() => useTrendingSearch('dai'));
+
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(1);
+        expect(result.current.data[0].symbol).toBe('DAI');
+      });
+    });
+
+    it('returns empty array when no trending results match query', async () => {
+      const { result } = renderHookWithProvider(() =>
+        useTrendingSearch('NonExistent'),
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(0);
+      });
+    });
+
+    it('trims whitespace from query before filtering', async () => {
+      const { result } = renderHookWithProvider(() =>
+        useTrendingSearch('  ETH  '),
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(1);
+        expect(result.current.data[0].symbol).toBe('ETH');
+      });
+    });
+  });
 });
