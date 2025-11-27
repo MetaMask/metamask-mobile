@@ -68,8 +68,8 @@ async function fetchJobIds(octokit, owner, repo, runId) {
     const androidJob =
       // Prioritize actual build job from reusable workflow (has build logs)
       allJobs.find((job) => job.name === 'Build Android E2E APKs') ||
-      // Check for composite name (caller / reusable)
-      allJobs.find((job) => job.name.includes('Build Android APKs') && job.name.includes('Build Android E2E APKs') && !job.name.includes('Flask')) ||
+      // Check for composite name (caller / reusable) e.g. "Build Android APKs / Build Android E2E APKs"
+      allJobs.find((job) => job.name.includes('Build Android APKs / Build Android E2E APKs') && !job.name.includes('Flask')) ||
       // Fallback to caller job (no build logs, but better than nothing)
       allJobs.find((job) => job.name === 'Build Android APKs') ||
       // Generic fallback
@@ -81,8 +81,8 @@ async function fetchJobIds(octokit, owner, repo, runId) {
     const iosJob =
       // Prioritize actual build job from reusable workflow (has build logs)
       allJobs.find((job) => job.name === 'Build iOS E2E Apps') ||
-      // Check for composite name (caller / reusable)
-      allJobs.find((job) => job.name.includes('Build iOS Apps') && job.name.includes('Build iOS E2E Apps')) ||
+      // Check for composite name (caller / reusable) e.g. "Build iOS Apps / Build iOS E2E Apps"
+      allJobs.find((job) => job.name.includes('Build iOS Apps / Build iOS E2E Apps')) ||
       // Fallback to caller job (no build logs, but better than nothing)
       allJobs.find((job) => job.name === 'Build iOS Apps') ||
       // Generic fallback
