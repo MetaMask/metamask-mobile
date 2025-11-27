@@ -88,11 +88,16 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const renderItem = useCallback(
     (props: { item: PerpsTransaction; index: number }) => {
       const { item, index } = props;
+      const isFirstItem = index === 0;
       const isLastItem = index === trades.length - 1;
 
       return (
         <TouchableOpacity
-          style={[styles.tradeItem, isLastItem && styles.lastTradeItem]}
+          style={[
+            styles.tradeItem,
+            isFirstItem && styles.tradeItemFirst,
+            isLastItem && styles.tradeItemLast,
+          ]}
           onPress={() => handleTradePress(item)}
           activeOpacity={0.7}
         >
@@ -132,7 +137,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   // Render header section
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {strings('perps.market.recent_trades')}
       </Text>
       {!isLoading && trades.length > 0 && (
@@ -164,12 +169,14 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     }
 
     return (
-      <FlatList
-        data={trades}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.id || index}`}
-        scrollEnabled={false}
-      />
+      <View style={styles.listContainer}>
+        <FlatList
+          data={trades}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.id || index}`}
+          scrollEnabled={false}
+        />
+      </View>
     );
   };
 
