@@ -8,7 +8,6 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
         "flexDirection": "row",
         "gap": 16,
         "justifyContent": "space-between",
-        "paddingHorizontal": 16,
         "paddingTop": 14,
       }
     }
@@ -477,7 +476,6 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         "flexDirection": "row",
         "gap": 16,
         "justifyContent": "space-between",
-        "paddingHorizontal": 16,
         "paddingTop": 14,
       }
     }
