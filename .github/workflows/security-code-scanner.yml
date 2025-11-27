@@ -9,7 +9,7 @@ on:
 
 jobs:
   run-security-scan:
-    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@main
+    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2
     permissions:
       actions: read
       contents: read
