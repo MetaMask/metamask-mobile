@@ -15,8 +15,13 @@ jest.mock('../RemoteImage', () => ({
 jest.mock('../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
     colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000' },
+      background: {
+        default: '#FFFFFF',
+        alternative: '#F2F4F6',
+      },
+      text: {
+        default: '#24292E',
+      },
     },
   })),
 }));
@@ -27,7 +32,7 @@ jest.mock('../../../images/image-icons', () => ({
   MATIC: { uri: 'matic.png' },
 }));
 
-jest.mock('../../../../images/eth-logo-new.png', () => ({
+jest.mock('../../../images/eth-logo-new.png', () => ({
   uri: 'eth-logo.png',
 }));
 
