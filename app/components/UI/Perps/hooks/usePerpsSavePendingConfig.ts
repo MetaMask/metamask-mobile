@@ -12,9 +12,9 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
 
   // Save config when component loses focus (user navigates away)
   useFocusEffect(
-    useCallback(() =>
+    useCallback(() => {
       // On focus (component mounted or focused) - no action needed
-       () => {
+      return () => {
         // On blur (component unmounted or lost focus)
         // Save the current form state as pending config
         if (orderForm.asset) {
@@ -27,12 +27,13 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
             orderType: orderForm.type,
           });
         }
-      }
-    , [orderForm, PerpsController]),
+      };
+    }, [orderForm, PerpsController]),
   );
 
   // Also save on unmount as a fallback
-  useEffect(() => () => {
+  useEffect(() => {
+    return () => {
       if (orderForm.asset) {
         PerpsController.savePendingTradeConfiguration(orderForm.asset, {
           amount: orderForm.amount,
@@ -43,5 +44,6 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
           orderType: orderForm.type,
         });
       }
-    }, [orderForm, PerpsController]);
+    };
+  }, [orderForm, PerpsController]);
 }
