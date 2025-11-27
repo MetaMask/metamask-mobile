@@ -512,8 +512,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAvoidingView
           style={styles.mainWrapper}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          enabled={Platform.OS === 'android'}
+          behavior="padding"
+          enabled={Platform.OS === 'ios'}
         >
           <KeyboardAwareScrollView
             keyboardShouldPersistTaps="handled"
