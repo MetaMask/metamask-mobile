@@ -133,30 +133,27 @@ const AccountGroupBalance = () => {
 
   return (
     <View style={styles.accountGroupBalance}>
-      <View>
-        {isLoading ? (
-          <View style={styles.skeletonContainer}>
-            <Skeleton width={100} height={40} />
-            <Skeleton width={100} height={20} />
-          </View>
-        ) : shouldShowEmptyState ? (
-          <BalanceEmptyState testID="account-group-balance-empty-state" />
-        ) : (
-          <TouchableOpacity
-            onPress={() => togglePrivacy(!privacyMode)}
-            testID="balance-container"
-          >
-            <View style={styles.balanceContainer}>
-              <SensitiveText
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Long}
-                testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-                variant={TextVariant.DisplayLG}
-              >
-                {displayBalance}
-              </SensitiveText>
-            </View>
-            {balanceChange1d && (
+      {!isLoading && shouldShowEmptyState ? (
+        <BalanceEmptyState testID="account-group-balance-empty-state" />
+      ) : (
+        <TouchableOpacity
+          onPress={() => togglePrivacy(!privacyMode)}
+          testID="balance-container"
+          style={styles.balanceContainer}
+        >
+          <Skeleton hideChildren={isLoading}>
+            <SensitiveText
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Long}
+              testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+              variant={TextVariant.DisplayLG}
+            >
+              {displayBalance}
+            </SensitiveText>
+          </Skeleton>
+
+          {balanceChange1d && (
+            <Skeleton hideChildren={isLoading}>
               <AccountGroupBalanceChange
                 amountChangeInUserCurrency={
                   balanceChange1d.amountChangeInUserCurrency
@@ -164,10 +161,10 @@ const AccountGroupBalance = () => {
                 percentChange={balanceChange1d.percentChange}
                 userCurrency={balanceChange1d.userCurrency}
               />
-            )}
-          </TouchableOpacity>
-        )}
-      </View>
+            </Skeleton>
+          )}
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
