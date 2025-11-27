@@ -11,7 +11,10 @@ import {
   selectRewardsCardSpendFeatureFlags,
   selectRewardsMusdDepositEnabledFlag,
 } from '../../../../../../../selectors/featureFlagController/rewards';
-import { useFeatureFlag } from '../../../../../../../components/hooks/useFeatureFlag';
+import {
+  useFeatureFlag,
+  FeatureFlagNames,
+} from '../../../../../../../components/hooks/useFeatureFlag';
 import { MetaMetricsEvents } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
 
@@ -19,26 +22,32 @@ import { RewardsMetricsButtons } from '../../../../utils';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockGoToSwaps = jest.fn();
+const mockGoToSwapsForHoldMusd = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 let mockIsFirstTimePerpsUser = false;
 let mockIsCardSpendEnabled = false;
 let mockIsPredictEnabled = false;
 let mockIsMusdDepositEnabled = false;
+let mockIsMusdHoldingEnabled = false;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
 // Mock useSwapBridgeNavigation hook
-jest.mock('../../../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
-  SwapBridgeNavigationLocation: {
-    Rewards: 'rewards',
-  },
-  useSwapBridgeNavigation: jest.fn(() => ({
-    goToSwaps: mockGoToSwaps,
-  })),
-}));
+// Note: jest.mock is hoisted, but the factory function runs at module load time
+// when the variables below are already defined, so they should be accessible
+jest.mock('../../../../../Bridge/hooks/useSwapBridgeNavigation', () =>
+  // We need to reference the mocks, but they're defined below
+  // So we'll create the factory function that will access them at runtime
+  ({
+    SwapBridgeNavigationLocation: {
+      Rewards: 'rewards',
+    },
+    useSwapBridgeNavigation: jest.fn(),
+  }),
+);
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -142,6 +151,15 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'rewards.ways_to_earn.deposit_musd.sheet.description':
         'Earn points on every $100 mUSD you deposit.',
       'rewards.ways_to_earn.deposit_musd.sheet.cta_label': 'Deposit mUSD',
+      // Hold MUSD strings
+      'rewards.ways_to_earn.hold_musd.title': 'Hold mUSD',
+      'rewards.ways_to_earn.hold_musd.description':
+        '10 points per $100 deposited',
+      'rewards.ways_to_earn.hold_musd.sheet.title': 'Hold mUSD',
+      'rewards.ways_to_earn.hold_musd.sheet.points': '10 points per $100',
+      'rewards.ways_to_earn.hold_musd.sheet.description':
+        'Earn points on every $100 mUSD you hold.',
+      'rewards.ways_to_earn.hold_musd.sheet.cta_label': 'Hold mUSD',
     };
     return mockStrings[key] || key;
   }),
@@ -199,6 +217,7 @@ describe('WaysToEarn', () => {
     mockIsCardSpendEnabled = false;
     mockIsPredictEnabled = false;
     mockIsMusdDepositEnabled = false;
+    mockIsMusdHoldingEnabled = false;
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -227,8 +246,32 @@ describe('WaysToEarn', () => {
       }
       return undefined;
     });
-    // Mock useFeatureFlag for predict flag
-    mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
+    // Mock useFeatureFlag to return different values based on flag name
+    mockUseFeatureFlag.mockImplementation((flagName) => {
+      if (flagName === FeatureFlagNames.predictTradingEnabled) {
+        return mockIsPredictEnabled;
+      }
+      if (flagName === FeatureFlagNames.rewardsEnableMusdHolding) {
+        return mockIsMusdHoldingEnabled;
+      }
+      return false;
+    });
+
+    // Configure useSwapBridgeNavigation mock implementation
+    const { useSwapBridgeNavigation } = jest.requireMock(
+      '../../../../../Bridge/hooks/useSwapBridgeNavigation',
+    );
+    (useSwapBridgeNavigation as jest.Mock).mockImplementation((params) => {
+      // Return different goToSwaps function based on whether sourceToken is provided
+      if (params?.sourceToken) {
+        return {
+          goToSwaps: mockGoToSwapsForHoldMusd,
+        };
+      }
+      return {
+        goToSwaps: mockGoToSwaps,
+      };
+    });
   });
 
   it('renders the component title', () => {
@@ -254,6 +297,8 @@ describe('WaysToEarn', () => {
     expect(queryByText('MetaMask Card')).not.toBeOnTheScreen();
     // Deposit mUSD hidden when flag disabled
     expect(queryByText('Deposit mUSD')).not.toBeOnTheScreen();
+    // Hold mUSD hidden when flag disabled
+    expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
   });
 
   it('displays correct descriptions for each earning way', () => {
@@ -267,7 +312,8 @@ describe('WaysToEarn', () => {
     expect(getByText('Earn points from past trades')).toBeOnTheScreen();
     expect(queryByText('20 points per $10 prediction')).not.toBeOnTheScreen();
     expect(queryByText('1 point per $1 spent')).not.toBeOnTheScreen();
-    expect(queryByText('Earn points on deposits')).not.toBeOnTheScreen();
+    expect(queryByText('2 points per $100 deposited')).not.toBeOnTheScreen();
+    expect(queryByText('10 points per $100 deposited')).not.toBeOnTheScreen();
   });
 
   it('opens referral bottom sheet modal when referral item is pressed', () => {
@@ -504,6 +550,7 @@ describe('WaysToEarn', () => {
       expect(WayToEarnType.PREDICT).toBe('predict');
       expect(WayToEarnType.CARD).toBe('card');
       expect(WayToEarnType.DEPOSIT_MUSD).toBe('deposit_musd');
+      expect(WayToEarnType.HOLD_MUSD).toBe('hold_musd');
     });
   });
 
@@ -517,7 +564,6 @@ describe('WaysToEarn', () => {
 
       // Enable flag
       mockIsPredictEnabled = true;
-      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       rerender(<WaysToEarn />);
 
       // Assert visible now
@@ -528,7 +574,6 @@ describe('WaysToEarn', () => {
     it('opens modal for predict earning way when pressed', () => {
       // Arrange
       mockIsPredictEnabled = true;
-      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       const { getByText } = render(<WaysToEarn />);
       const predictButton = getByText('Prediction markets');
 
@@ -557,7 +602,6 @@ describe('WaysToEarn', () => {
     it('navigates to predict market list when predict CTA is pressed', () => {
       // Arrange
       mockIsPredictEnabled = true;
-      mockUseFeatureFlag.mockReturnValue(mockIsPredictEnabled);
       const { getByText } = render(<WaysToEarn />);
       const predictButton = getByText('Prediction markets');
 
@@ -703,9 +747,82 @@ describe('WaysToEarn', () => {
     });
   });
 
+  describe('Hold mUSD', () => {
+    it('shows Hold mUSD earning way only when feature flag is enabled', () => {
+      // Arrange
+      const { queryByText, rerender } = render(<WaysToEarn />);
+
+      // Assert hidden by default
+      expect(queryByText('Hold mUSD')).not.toBeOnTheScreen();
+
+      // Enable flag
+      mockIsMusdHoldingEnabled = true;
+      rerender(<WaysToEarn />);
+
+      // Assert visible now
+      expect(queryByText('Hold mUSD')).toBeOnTheScreen();
+      expect(queryByText('10 points per $100 deposited')).toBeOnTheScreen();
+    });
+
+    it('opens modal for hold mUSD earning way when pressed', () => {
+      // Arrange
+      mockIsMusdHoldingEnabled = true;
+      const { getByText } = render(<WaysToEarn />);
+      const holdMusdButton = getByText('Hold mUSD');
+
+      // Act
+      fireEvent.press(holdMusdButton);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          type: ModalType.Confirmation,
+          showIcon: false,
+          showCancelButton: false,
+          confirmAction: expect.objectContaining({
+            label: 'Hold mUSD',
+            variant: 'Primary',
+          }),
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
+      );
+    });
+
+    it('navigates to swaps with sourceToken when hold mUSD CTA is pressed', () => {
+      // Arrange
+      mockIsMusdHoldingEnabled = true;
+      const { getByText } = render(<WaysToEarn />);
+      const holdMusdButton = getByText('Hold mUSD');
+
+      // Act
+      fireEvent.press(holdMusdButton);
+
+      // Get the onPress handler from the modal navigation call
+      const modalCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const confirmAction = modalCall?.[1]?.confirmAction;
+
+      // Execute the CTA action
+      confirmAction?.onPress();
+
+      // Assert
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockGoToSwapsForHoldMusd).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_WAYS_TO_EARN_CTA_CLICKED,
+      );
+    });
+  });
+
   describe('useSwapBridgeNavigation integration', () => {
-    it('configures the hook with correct parameters', () => {
-      // Import the actual hook module to verify mock calls
+    it('configures the hook with correct parameters for regular swaps', () => {
+      // Get the mock from jest.requireMock
       const { useSwapBridgeNavigation } = jest.requireMock(
         '../../../../../Bridge/hooks/useSwapBridgeNavigation',
       );
@@ -713,10 +830,32 @@ describe('WaysToEarn', () => {
       // Render the component to trigger the hook
       render(<WaysToEarn />);
 
-      // Assert the hook was called with correct parameters
+      // Assert the hook was called with correct parameters for regular swaps
       expect(useSwapBridgeNavigation).toHaveBeenCalledWith({
         location: SwapBridgeNavigationLocation.Rewards,
         sourcePage: 'rewards_overview',
+      });
+    });
+
+    it('configures the hook with sourceToken for hold mUSD', () => {
+      // Get the mock from jest.requireMock
+      const { useSwapBridgeNavigation } = jest.requireMock(
+        '../../../../../Bridge/hooks/useSwapBridgeNavigation',
+      );
+
+      // Render the component to trigger the hook
+      render(<WaysToEarn />);
+
+      // Assert the hook was called with sourceToken for hold mUSD
+      expect(useSwapBridgeNavigation).toHaveBeenCalledWith({
+        location: SwapBridgeNavigationLocation.Rewards,
+        sourcePage: 'rewards_overview',
+        sourceToken: expect.objectContaining({
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          symbol: 'MUSD',
+          name: 'MUSD',
+          decimals: 6,
+        }),
       });
     });
   });

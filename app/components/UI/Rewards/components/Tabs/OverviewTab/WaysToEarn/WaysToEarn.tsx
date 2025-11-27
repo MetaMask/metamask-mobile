@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { FlatList, Linking } from 'react-native';
 import {
   Box,
@@ -41,6 +41,8 @@ import {
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
 import { RewardsMetricsButtons } from '../../../../utils';
+import { NETWORKS_CHAIN_ID } from '../../../../../../../constants/network';
+import { getDecimalChainId } from '../../../../../../../util/networks';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
@@ -50,6 +52,7 @@ export enum WayToEarnType {
   PREDICT = 'predict',
   CARD = 'card',
   DEPOSIT_MUSD = 'deposit_musd',
+  HOLD_MUSD = 'hold_musd',
 }
 
 interface WayToEarn {
@@ -100,6 +103,12 @@ const waysToEarn: WayToEarn[] = [
     type: WayToEarnType.DEPOSIT_MUSD,
     title: strings('rewards.ways_to_earn.deposit_musd.title'),
     description: strings('rewards.ways_to_earn.deposit_musd.description'),
+    icon: IconName.Coin,
+  },
+  {
+    type: WayToEarnType.HOLD_MUSD,
+    title: strings('rewards.ways_to_earn.hold_musd.title'),
+    description: strings('rewards.ways_to_earn.hold_musd.description'),
     icon: IconName.Coin,
   },
 ];
@@ -225,6 +234,21 @@ const getBottomSheetData = (type: WayToEarnType) => {
         ),
         ctaLabel: strings('rewards.ways_to_earn.deposit_musd.sheet.cta_label'),
       };
+    case WayToEarnType.HOLD_MUSD:
+      return {
+        title: (
+          <WaysToEarnSheetTitle
+            title={strings('rewards.ways_to_earn.hold_musd.sheet.title')}
+            points={strings('rewards.ways_to_earn.hold_musd.sheet.points')}
+          />
+        ),
+        description: (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.ways_to_earn.hold_musd.sheet.description')}
+          </Text>
+        ),
+        ctaLabel: strings('rewards.ways_to_earn.hold_musd.sheet.cta_label'),
+      };
     default:
       throw new Error(`Unknown earning way type: ${type}`);
   }
@@ -238,12 +262,35 @@ export const WaysToEarn = () => {
     FeatureFlagNames.predictTradingEnabled,
   );
   const isMusdDepositEnabled = useSelector(selectRewardsMusdDepositEnabledFlag);
+  const isMusdHoldingEnabled = useFeatureFlag(
+    FeatureFlagNames.rewardsEnableMusdHolding,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.Rewards,
     sourcePage: 'rewards_overview',
+  });
+  const musdSourceToken = useMemo(() => {
+    const chainId = NETWORKS_CHAIN_ID.LINEA_MAINNET;
+    const address = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    const decimalChainId = getDecimalChainId(chainId);
+    const image = `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/${decimalChainId}/erc20/${address}.png`;
+
+    return {
+      address,
+      chainId,
+      symbol: 'MUSD',
+      name: 'MUSD',
+      decimals: 6,
+      image,
+    };
+  }, []);
+  const { goToSwaps: goToSwapsForHoldMusd } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.Rewards,
+    sourcePage: 'rewards_overview',
+    sourceToken: musdSourceToken,
   });
 
   const goToPerps = useCallback(() => {
@@ -289,6 +336,9 @@ export const WaysToEarn = () => {
       case WayToEarnType.DEPOSIT_MUSD:
         Linking.openURL('https://go.metamask.io/turtle-musd');
         break;
+      case WayToEarnType.HOLD_MUSD:
+        goToSwapsForHoldMusd();
+        break;
     }
   };
 
@@ -307,7 +357,8 @@ export const WaysToEarn = () => {
       case WayToEarnType.PERPS:
       case WayToEarnType.PREDICT:
       case WayToEarnType.CARD:
-      case WayToEarnType.DEPOSIT_MUSD: {
+      case WayToEarnType.DEPOSIT_MUSD:
+      case WayToEarnType.HOLD_MUSD: {
         const { title, description, ctaLabel } = getBottomSheetData(
           wayToEarn.type,
         );
@@ -354,6 +405,9 @@ export const WaysToEarn = () => {
               wte.type === WayToEarnType.DEPOSIT_MUSD &&
               !isMusdDepositEnabled
             ) {
+              return false;
+            }
+            if (wte.type === WayToEarnType.HOLD_MUSD && !isMusdHoldingEnabled) {
               return false;
             }
             return true;
