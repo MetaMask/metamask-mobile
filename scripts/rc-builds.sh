@@ -25,7 +25,7 @@ BUILD_RESPONSE=$(curl -s -X POST \
   -d '{
     "build_params": {
       "branch": "'$GH_REF_NAME'",
-      "workflow_id": "'$METAMASK_WORKFLOW'",
+      "pipeline_id": "'$METAMASK_WORKFLOW'",
       "commit_message": "RC test build '${SEMVER}'('${BUILD_NUMBER}')",
       "commit_hash": "'$COMMIT_HASH'"
     },
