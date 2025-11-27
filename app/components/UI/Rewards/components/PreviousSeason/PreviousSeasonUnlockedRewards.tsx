@@ -152,6 +152,7 @@ const PreviousSeasonUnlockedRewards = () => {
                       canPressToNavigateToInfo={false}
                       isLocked
                       isLast={unlockedReward === endOfSeasonRewards.at(-1)}
+                      isEndOfSeasonReward
                     />
                   ))}
                 </Box>
@@ -193,9 +194,13 @@ const PreviousSeasonUnlockedRewards = () => {
                   variant={TextVariant.BodyMd}
                   twClassName="text-alternative max-w-sm text-center"
                 >
-                  {strings(
-                    'rewards.previous_season_summary.no_end_of_season_rewards',
-                  )}
+                  {currentTier?.pointsNeeded
+                    ? strings(
+                        'rewards.previous_season_summary.verifying_rewards',
+                      )
+                    : strings(
+                        'rewards.previous_season_summary.no_end_of_season_rewards',
+                      )}
                 </Text>
               </>
             )}

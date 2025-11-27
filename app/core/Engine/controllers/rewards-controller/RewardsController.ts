@@ -1640,7 +1640,13 @@ export class RewardsController extends BaseController<
 
     try {
       const seasonDto = await this.getSeasonMetadata('current');
-      return !!seasonDto;
+      if (!seasonDto) {
+        return false;
+      }
+      return (
+        new Date(seasonDto.endDate) >= new Date() &&
+        new Date(seasonDto.startDate) <= new Date()
+      );
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to check active season:',
@@ -1724,6 +1730,10 @@ export class RewardsController extends BaseController<
 
           return seasonStateWithTimestamp;
         }
+
+        this.update((state: RewardsControllerState) => {
+          delete state.seasons[type];
+        });
 
         throw new Error(
           `No valid season metadata could be found for type: ${type}`,

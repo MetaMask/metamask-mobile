@@ -33,6 +33,7 @@ interface RewardItemProps {
   isLast?: boolean;
   isLocked?: boolean;
   canPressToNavigateToInfo?: boolean;
+  isEndOfSeasonReward?: boolean;
 }
 
 const RewardItem: React.FC<RewardItemProps> = ({
@@ -41,6 +42,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
   isLast = false,
   canPressToNavigateToInfo = true,
   isLocked = true,
+  isEndOfSeasonReward = false,
 }) => {
   const hasClaimed = reward?.claimStatus === RewardClaimStatus.CLAIMED;
   const timeRemaining = (reward?.claim?.data as PointsBoostRewardData)
@@ -61,6 +63,18 @@ const RewardItem: React.FC<RewardItemProps> = ({
   }, [reward?.claim?.data]);
 
   const shortDescription = useMemo(() => {
+    if (isEndOfSeasonReward && seasonReward.endOfSeasonShortDescription) {
+      return (
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-text-alternative"
+        >
+          {seasonReward.endOfSeasonShortDescription}
+        </Text>
+      );
+    }
+
     if (isLocked) {
       return (
         <Text
@@ -156,11 +170,13 @@ const RewardItem: React.FC<RewardItemProps> = ({
       </Text>
     );
   }, [
-    isLocked,
-    hasClaimed,
+    isEndOfSeasonReward,
+    seasonReward.endOfSeasonShortDescription,
+    seasonReward.shortUnlockedDescription,
     seasonReward.shortDescription,
     seasonReward.rewardType,
-    seasonReward.shortUnlockedDescription,
+    isLocked,
+    hasClaimed,
     hasExpired,
     timeRemaining,
   ]);
@@ -265,7 +281,9 @@ const RewardItem: React.FC<RewardItemProps> = ({
             twClassName="text-text-default mb-1"
             testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
           >
-            {seasonReward.name}
+            {isEndOfSeasonReward && seasonReward.endOfSeasonName
+              ? seasonReward.endOfSeasonName
+              : seasonReward.name}
           </Text>
           <Box testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}>
             {shortDescription}

@@ -74,7 +74,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Update MetaMask to version {version}',
       'rewards.previous_season_summary.update_metamask': 'Update MetaMask',
       'rewards.previous_season_summary.no_end_of_season_rewards':
-        'No end of season rewards available',
+        "You didn't earn rewards this season, but there's always next time.",
+      'rewards.previous_season_summary.verifying_rewards':
+        "We're making sure everything's correct before you claim your rewards.",
     };
     let result = translations[key] || key;
     if (params) {
@@ -664,10 +666,42 @@ describe('PreviousSeasonUnlockedRewards', () => {
       return undefined;
     });
 
-    const { getByTestId } = render(<PreviousSeasonUnlockedRewards />);
+    const { getByTestId, getByText } = render(
+      <PreviousSeasonUnlockedRewards />,
+    );
 
     expect(
       getByTestId('rewards-season-ended-no-unlocked-rewards-image'),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        "You didn't earn rewards this season, but there's always next time.",
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows verifying rewards message when currentTier has pointsNeeded and no end of season rewards', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectUnlockedRewards) return [];
+      if (selector === selectUnlockedRewardLoading) return false;
+      if (selector === selectUnlockedRewardError) return false;
+      if (selector === selectSeasonTiers) return mockSeasonTiers;
+      if (selector === selectCurrentTier) return { pointsNeeded: 100 };
+      if (selector === selectSeasonShouldInstallNewVersion) return undefined;
+      return undefined;
+    });
+
+    const { getByTestId, getByText } = render(
+      <PreviousSeasonUnlockedRewards />,
+    );
+
+    expect(
+      getByTestId('rewards-season-ended-no-unlocked-rewards-image'),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        "We're making sure everything's correct before you claim your rewards.",
+      ),
     ).toBeOnTheScreen();
   });
 

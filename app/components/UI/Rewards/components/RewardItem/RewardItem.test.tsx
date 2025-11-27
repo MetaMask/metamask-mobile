@@ -140,4 +140,46 @@ describe('RewardItem', () => {
     );
     expect(getByText(mockSeasonReward.shortUnlockedDescription)).toBeDefined();
   });
+
+  it('displays end of season name when isEndOfSeasonReward is true and endOfSeasonName exists', () => {
+    const seasonRewardWithEndOfSeason: SeasonRewardDto = {
+      ...mockSeasonReward,
+      endOfSeasonName: 'End of Season Reward Name',
+    };
+
+    const { getByText } = render(
+      <RewardItem
+        seasonReward={seasonRewardWithEndOfSeason}
+        isLocked
+        isEndOfSeasonReward
+      />,
+    );
+
+    expect(getByText('End of Season Reward Name')).toBeDefined();
+  });
+
+  it('displays regular name when isEndOfSeasonReward is false', () => {
+    const { getByText } = render(
+      <RewardItem seasonReward={mockSeasonReward} isLocked />,
+    );
+
+    expect(getByText(mockSeasonReward.name)).toBeDefined();
+  });
+
+  it('displays end of season short description when isEndOfSeasonReward is true and endOfSeasonShortDescription exists', () => {
+    const seasonRewardWithEndOfSeason: SeasonRewardDto = {
+      ...mockSeasonReward,
+      endOfSeasonShortDescription: 'End of season description',
+    };
+
+    const { getByText } = render(
+      <RewardItem
+        seasonReward={seasonRewardWithEndOfSeason}
+        isLocked
+        isEndOfSeasonReward
+      />,
+    );
+
+    expect(getByText('End of season description')).toBeDefined();
+  });
 });

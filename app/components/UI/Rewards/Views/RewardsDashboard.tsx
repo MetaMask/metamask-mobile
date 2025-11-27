@@ -1,4 +1,10 @@
-import React, { useEffect, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -184,12 +190,20 @@ const RewardsDashboard: React.FC = () => {
     [getActiveIndex, handleTabChange],
   );
 
-  const showPreviousSeasonSummary = useMemo(
-    () =>
-      Boolean(seasonId) &&
-      seasonEndDate &&
-      new Date(seasonEndDate).getTime() < Date.now(),
-    [seasonId, seasonEndDate],
+  const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
+    boolean | null
+  >(null);
+
+  // Evaluate showPreviousSeasonSummary when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const shouldShow = Boolean(
+        seasonId &&
+          seasonEndDate &&
+          new Date(seasonEndDate).getTime() < Date.now(),
+      );
+      setShowPreviousSeasonSummary(shouldShow);
+    }, [seasonId, seasonEndDate]),
   );
 
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
@@ -197,7 +211,12 @@ const RewardsDashboard: React.FC = () => {
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
   useFocusEffect(
     useCallback(() => {
-      if (!seasonId || showPreviousSeasonSummary) return;
+      if (
+        !seasonId ||
+        showPreviousSeasonSummary === null ||
+        !showPreviousSeasonSummary
+      )
+        return;
       if (
         (totalOptedInAccountsSelectedGroup === 0 ||
           currentAccountGroupPartiallySupported === false) &&
@@ -280,7 +299,7 @@ const RewardsDashboard: React.FC = () => {
           </Text>
 
           <Box flexDirection={BoxFlexDirection.Row}>
-            {!showPreviousSeasonSummary && (
+            {showPreviousSeasonSummary === false && (
               <ButtonIcon
                 iconName={IconNameDS.UserCircleAdd}
                 size={ButtonIconSize.Lg}
