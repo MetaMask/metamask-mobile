@@ -45,8 +45,17 @@ export const usePredictDepositToasts = ({
       description: strings('predict.deposit.available_in_minutes', {
         minutes: 1,
       }),
-      onPress: () => {
+      onPress: (transactionMeta) => {
         navigation.navigate(Routes.TRANSACTIONS_VIEW);
+
+        // Then use a timeout to navigate to the specific transaction details
+        if (transactionMeta?.id) {
+          setTimeout(() => {
+            navigation.navigate(Routes.TRANSACTION_DETAILS, {
+              transactionId: transactionMeta.id,
+            });
+          }, 100);
+        }
       },
     },
     confirmedToastConfig: {
