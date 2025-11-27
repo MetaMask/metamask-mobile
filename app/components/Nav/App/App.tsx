@@ -24,10 +24,8 @@ import SimpleWebview from '../../Views/SimpleWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import {
-  AGREED,
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
-  METRICS_OPT_IN_SOCIAL_LOGIN,
   OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
@@ -112,7 +110,6 @@ import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
 import {
   endTrace,
-  hasMetricsConsent,
   trace,
   TraceName,
   TraceOperation,
@@ -1234,21 +1231,6 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const initMetrics = async () => {
       await MetaMetrics.getInstance().configure();
-
-      // migrate Social Login user metric to metrics enable system
-      if (!MetaMetrics.getInstance().isEnabled()) {
-        const socialLoginOptIn = await StorageWrapper.getItem(
-          METRICS_OPT_IN_SOCIAL_LOGIN,
-        );
-        if (socialLoginOptIn === AGREED) {
-          await MetaMetrics.getInstance().enable();
-          await hasMetricsConsent();
-        }
-        // remove item if it exists
-        if (socialLoginOptIn) {
-          await StorageWrapper.removeItem(METRICS_OPT_IN_SOCIAL_LOGIN);
-        }
-      }
     };
 
     initMetrics().catch((err) => {
