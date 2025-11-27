@@ -1,8 +1,28 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ExploreSearchBar from './ExploreSearchBar';
+import { useSelector } from 'react-redux';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('ExploreSearchBar', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Mock selectBasicFunctionalityEnabled to return true by default
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectBasicFunctionalityEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+  });
   describe('Button Mode', () => {
     it('renders button with placeholder text', () => {
       const mockOnPress = jest.fn();
@@ -201,6 +221,25 @@ describe('ExploreSearchBar', () => {
       const input = getByTestId('explore-view-search-input');
 
       expect(input.props.autoFocus).toBe(true);
+    });
+  });
+
+  describe('basic functionality toggle', () => {
+    it('displays sites-only placeholder when basic functionality is disabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectBasicFunctionalityEnabled) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const mockOnPress = jest.fn();
+
+      const { getByText } = render(
+        <ExploreSearchBar type="button" onPress={mockOnPress} />,
+      );
+
+      expect(getByText('Search sites')).toBeDefined();
     });
   });
 });

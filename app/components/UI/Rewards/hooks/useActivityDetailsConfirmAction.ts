@@ -2,7 +2,10 @@ import { useMemo } from 'react';
 import { Linking } from 'react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { CaipAssetType } from '@metamask/utils';
-import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  PointsEventDto,
+  SwapEventPayload,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useTransactionExplorer } from './useTransactionExplorer';
 import { strings } from '../../../../../locales/i18n';
 import { ModalAction } from '../components/RewardsBottomSheetModal';
@@ -19,9 +22,11 @@ export const useActivityDetailsConfirmAction = (
 
   const explorerInfo = useTransactionExplorer(
     isSwap
-      ? (event.payload?.srcAsset?.type as CaipAssetType | undefined)
+      ? ((event.payload as SwapEventPayload)?.srcAsset?.type as
+          | CaipAssetType
+          | undefined)
       : undefined,
-    isSwap ? event.payload?.txHash : undefined,
+    isSwap ? (event.payload as SwapEventPayload)?.txHash : undefined,
   );
 
   return useMemo(() => {
