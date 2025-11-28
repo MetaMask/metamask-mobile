@@ -34,6 +34,8 @@ module.exports = {
         'react/no-unused-prop-types': 'off',
         'react/prop-types': 'off',
         'react/self-closing-comp': 'off',
+        // Disable deprecated rule that no longer exists in @typescript-eslint/eslint-plugin
+        '@typescript-eslint/no-parameter-properties': 'off',
         // This change is included in `@metamask/eslint-config-typescript@10.0.0
         '@typescript-eslint/no-unused-vars': [
           'error',
