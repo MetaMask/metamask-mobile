@@ -1,10 +1,8 @@
 import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData, Position, Order } from '../controllers/types';
 
 /**
  * Navigation handler result interface
@@ -15,7 +13,7 @@ export interface PerpsNavigationHandlers {
   navigateToBrowser: () => void;
   navigateToActions: () => void;
   navigateToActivity: () => void;
-  navigateToRewardsOrSettings: () => void;
+  navigateToRewards: () => void;
 
   // Perps-specific navigation
   navigateToMarketDetails: (market: PerpsMarketData, source?: string) => void;
@@ -27,6 +25,9 @@ export interface PerpsNavigationHandlers {
   navigateToTutorial: (
     params?: PerpsNavigationParamList['PerpsTutorial'],
   ) => void;
+  navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
+  navigateToClosePosition: (position: Position) => void;
+  navigateToOrderDetails: (order: Order) => void;
 
   // Utility navigation
   navigateBack: () => void;
@@ -62,7 +63,6 @@ export interface PerpsNavigationHandlers {
  */
 export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   // Main app navigation handlers
   const navigateToWallet = useCallback(() => {
@@ -93,15 +93,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     });
   }, [navigation]);
 
-  const navigateToRewardsOrSettings = useCallback(() => {
-    if (isRewardsEnabled) {
-      navigation.navigate(Routes.REWARDS_VIEW);
-    } else {
-      navigation.navigate(Routes.SETTINGS_VIEW, {
-        screen: 'Settings',
-      });
-    }
-  }, [navigation, isRewardsEnabled]);
+  const navigateToRewards = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_VIEW);
+  }, [navigation]);
 
   // Perps-specific navigation handlers
   const navigateToMarketDetails = useCallback(
@@ -144,6 +138,27 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const navigateToAdjustMargin = useCallback(
+    (position: Position, mode: 'add' | 'remove') => {
+      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, { position, mode });
+    },
+    [navigation],
+  );
+
+  const navigateToClosePosition = useCallback(
+    (position: Position) => {
+      navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
+    },
+    [navigation],
+  );
+
+  const navigateToOrderDetails = useCallback(
+    (order: Order) => {
+      navigation.navigate(Routes.PERPS.ORDER_DETAILS, { order });
+    },
+    [navigation],
+  );
+
   // Utility navigation handlers
   const navigateBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -159,7 +174,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToBrowser,
     navigateToActions,
     navigateToActivity,
-    navigateToRewardsOrSettings,
+    navigateToRewards,
 
     // Perps-specific navigation
     navigateToMarketDetails,
@@ -167,6 +182,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToMarketList,
     navigateToOrder,
     navigateToTutorial,
+    navigateToAdjustMargin,
+    navigateToClosePosition,
+    navigateToOrderDetails,
 
     // Utility navigation
     navigateBack,

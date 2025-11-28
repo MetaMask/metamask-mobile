@@ -306,21 +306,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
               },
             ],
           },
-          "0x531": {
-            "blockExplorerUrls": [],
-            "chainId": "0x531",
-            "defaultRpcEndpointIndex": 0,
-            "name": "Sei",
-            "nativeCurrency": "SEI",
-            "rpcEndpoints": [
-              {
-                "failoverUrls": [],
-                "networkClientId": "sei-mainnet",
-                "type": "infura",
-                "url": "https://sei-mainnet.infura.io/v3/{infuraProjectId}",
-              },
-            ],
-          },
           "0x89": {
             "blockExplorerUrls": [],
             "chainId": "0x89",
@@ -472,10 +457,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "isPushEnabled": true,
         "isUpdatingFCMToken": false,
       },
-      "PPOMController": {
-        "storageMetadata": [],
-        "versionInfo": [],
-      },
       "PermissionController": {
         "subjects": {},
       },
@@ -484,10 +465,15 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
         "depositInProgress": false,
+        "depositRequests": {},
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
         },
+        "hip3ConfigVersion": 0,
+        "initializationAttempts": 0,
+        "initializationError": null,
+        "initializationState": "uninitialized",
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,
@@ -499,10 +485,14 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "pendingOrders": [],
+        "marketFilterPreferences": {},
         "perpsBalances": {},
         "positions": [],
+        "tradeConfigurations": {},
+        "watchlistMarkets": [],
         "withdrawInProgress": false,
+        "withdrawalProgress": {},
+        "withdrawalRequests": {},
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -736,6 +726,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "submitHistory": [],
         "transactionBatches": [],
         "transactions": [],
+      },
+      "TransactionPayController": {
+        "transactionData": {},
       },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,
@@ -1056,21 +1049,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
               },
             ],
           },
-          "0x531": {
-            "blockExplorerUrls": [],
-            "chainId": "0x531",
-            "defaultRpcEndpointIndex": 0,
-            "name": "Sei",
-            "nativeCurrency": "SEI",
-            "rpcEndpoints": [
-              {
-                "failoverUrls": [],
-                "networkClientId": "sei-mainnet",
-                "type": "infura",
-                "url": "https://sei-mainnet.infura.io/v3/{infuraProjectId}",
-              },
-            ],
-          },
           "0x89": {
             "blockExplorerUrls": [],
             "chainId": "0x89",
@@ -1222,10 +1200,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isPushEnabled": true,
         "isUpdatingFCMToken": false,
       },
-      "PPOMController": {
-        "storageMetadata": [],
-        "versionInfo": [],
-      },
       "PermissionController": {
         "subjects": {},
       },
@@ -1234,10 +1208,15 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
         "depositInProgress": false,
+        "depositRequests": {},
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
         },
+        "hip3ConfigVersion": 0,
+        "initializationAttempts": 0,
+        "initializationError": null,
+        "initializationState": "uninitialized",
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,
@@ -1249,10 +1228,14 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
-        "pendingOrders": [],
+        "marketFilterPreferences": {},
         "perpsBalances": {},
         "positions": [],
+        "tradeConfigurations": {},
+        "watchlistMarkets": [],
         "withdrawInProgress": false,
+        "withdrawalProgress": {},
+        "withdrawalRequests": {},
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -1468,6 +1451,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "submitHistory": [],
         "transactionBatches": [],
         "transactions": [],
+      },
+      "TransactionPayController": {
+        "transactionData": {},
       },
       "UserStorageController": {
         "isAccountSyncingEnabled": true,

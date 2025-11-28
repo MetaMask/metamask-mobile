@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   usePerpsLivePositions,
@@ -9,9 +9,12 @@ import { usePerpsMarkets } from './usePerpsMarkets';
 import type {
   Position,
   Order,
-  OrderFill,
   PerpsMarketData,
+  OrderFill,
 } from '../controllers/types';
+import type { PerpsTransaction } from '../types/transactionHistory';
+import { transformFillsToTransactions } from '../utils/transactionTransforms';
+import Engine from '../../../../core/Engine';
 import {
   HOME_SCREEN_CONFIG,
   MARKET_SORTING_CONFIG,
@@ -39,7 +42,7 @@ interface UsePerpsHomeDataReturn {
   commoditiesMarkets: PerpsMarketData[]; // Commodity markets
   stocksAndCommoditiesMarkets: PerpsMarketData[]; // Combined stocks & commodities markets
   forexMarkets: PerpsMarketData[]; // Forex markets
-  recentActivity: OrderFill[];
+  recentActivity: PerpsTransaction[];
   sortBy: SortField;
   isLoading: {
     positions: boolean;
@@ -75,11 +78,70 @@ export const usePerpsHomeData = ({
       hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
     });
 
-  // Fetch recent activity (order fills) via WebSocket
-  const { fills: allFills, isInitialLoading: isActivityLoading } =
+  // Fetch fills via WebSocket for recent activity (instant updates, already cached)
+  const { fills: liveFills, isInitialLoading: isFillsLoading } =
     usePerpsLiveFills({
-      throttleMs: 1000,
+      throttleMs: 0, // No throttle for instant activity updates
     });
+
+  // REST API fills state - WebSocket snapshot only contains recent fills,
+  // so we need to fetch complete history via REST API
+  const [restFills, setRestFills] = useState<OrderFill[]>([]);
+  const [isRestFillsLoading, setIsRestFillsLoading] = useState(true);
+
+  // Fetch historical fills via REST API on mount
+  // This ensures we have complete fill history, not just WebSocket snapshot
+  useEffect(() => {
+    const fetchFills = async () => {
+      try {
+        const controller = Engine.context.PerpsController;
+        const provider = controller?.getActiveProvider();
+        if (!provider) {
+          setIsRestFillsLoading(false);
+          return;
+        }
+
+        const fills = await provider.getOrderFills({ aggregateByTime: false });
+        setRestFills(fills);
+      } catch (error) {
+        // Log error but don't fail - WebSocket fills still work
+        console.error('[usePerpsHomeData] Failed to fetch REST fills:', error);
+      } finally {
+        setIsRestFillsLoading(false);
+      }
+    };
+    fetchFills();
+  }, []);
+
+  // Merge REST + WebSocket fills with deduplication
+  // Live fills take precedence over REST fills (more up-to-date)
+  const mergedFills = useMemo(() => {
+    // Use Map for efficient deduplication
+    const fillsMap = new Map<string, OrderFill>();
+
+    // Add REST fills first
+    for (const fill of restFills) {
+      const key = `${fill.orderId}-${fill.timestamp}`;
+      fillsMap.set(key, fill);
+    }
+
+    // Add live fills (overwrites duplicates from REST - live data is fresher)
+    for (const fill of liveFills) {
+      const key = `${fill.orderId}-${fill.timestamp}`;
+      fillsMap.set(key, fill);
+    }
+
+    // Convert back to array and sort by timestamp descending (newest first)
+    return Array.from(fillsMap.values()).sort(
+      (a, b) => b.timestamp - a.timestamp,
+    );
+  }, [restFills, liveFills]);
+
+  // Transform merged fills to PerpsTransaction format for activity display
+  const tradesOnly = useMemo(
+    () => transformFillsToTransactions(mergedFills),
+    [mergedFills],
+  );
 
   // Fetch markets data for trending section (markets don't need real-time updates)
   // Volume filtering is handled at the data layer in usePerpsMarkets
@@ -190,7 +252,7 @@ export const usePerpsHomeData = ({
           orders: allOrders,
           watchlistMarkets, // Show all watchlisted markets
           markets: perpsMarkets, // Show top 5 perps (crypto) when no search
-          fills: allFills,
+          transactions: tradesOnly, // Only trades, same as Trades tab
         };
       }
 
@@ -218,9 +280,9 @@ export const usePerpsHomeData = ({
             market.symbol?.toLowerCase().includes(lowerQuery) ||
             market.name?.toLowerCase().includes(lowerQuery),
         ),
-        // OrderFill only has 'symbol' field (no 'coin' or 'asset')
-        fills: allFills.filter((fill: OrderFill) =>
-          fill.symbol?.toLowerCase().includes(lowerQuery),
+        // Filter trades only (same as Trades tab)
+        transactions: tradesOnly.filter((transaction: PerpsTransaction) =>
+          transaction.asset?.toLowerCase().includes(lowerQuery),
         ),
       };
     },
@@ -230,7 +292,7 @@ export const usePerpsHomeData = ({
       watchlistMarkets,
       perpsMarkets,
       allMarkets,
-      allFills,
+      tradesOnly,
     ],
   );
 
@@ -253,8 +315,8 @@ export const usePerpsHomeData = ({
     [filteredData.watchlistMarkets],
   );
   const limitedActivity = useMemo(
-    () => filteredData.fills.slice(0, activityLimit),
-    [filteredData.fills, activityLimit],
+    () => filteredData.transactions.slice(0, activityLimit),
+    [filteredData.transactions, activityLimit],
   );
 
   // When searching, split filtered markets by type
@@ -310,7 +372,7 @@ export const usePerpsHomeData = ({
       positions: isPositionsLoading,
       orders: isOrdersLoading,
       markets: isMarketsLoading,
-      activity: isActivityLoading,
+      activity: isFillsLoading || isRestFillsLoading,
     },
     refresh,
   };

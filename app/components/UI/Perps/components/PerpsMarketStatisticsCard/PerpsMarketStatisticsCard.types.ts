@@ -16,4 +16,12 @@ export interface PerpsMarketStatisticsCardProps {
    * Funding interval in hours (optional, market-specific)
    */
   fundingIntervalHours?: number;
+  /**
+   * DEX name for HIP-3 markets (e.g., "XYZ", "Hyperliquid")
+   */
+  dexName?: string;
+  /**
+   * Callback when order book row is pressed
+   */
+  onOrderBookPress?: () => void;
 }

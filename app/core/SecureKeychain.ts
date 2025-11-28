@@ -252,6 +252,7 @@ const SecureKeychain = {
 
             return;
           }
+          throw error;
         }
       }
     } else if (type === this.TYPES.PASSCODE) {

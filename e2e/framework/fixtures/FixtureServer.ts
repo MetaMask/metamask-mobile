@@ -1,9 +1,10 @@
-import { getFixturesServerPort, getLocalHost } from './FixtureUtils';
+import { getLocalHost } from './FixtureUtils';
 import Koa, { Context } from 'koa';
 import { isObject, mapValues } from 'lodash';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { Resource, ServerStatus } from '../types';
+import PortManager, { ResourceType } from '../PortManager';
 
 const logger = createLogger({
   name: 'FixtureServer',
@@ -93,7 +94,7 @@ class FixtureServer implements Resource {
   constructor() {
     this._app = new Koa();
     this._stateMap = new Map([[DEFAULT_STATE_KEY, Object.create(null)]]);
-    this._serverPort = getFixturesServerPort();
+    this._serverPort = 0; // will be set with setServerPort()
     this._server = null;
     this._serverStatus = ServerStatus.STOPPED;
     this._app.use(async (ctx: Context) => {
@@ -144,6 +145,14 @@ class FixtureServer implements Resource {
   }
 
   /**
+   * Set the server port (called by PortManager before start)
+   * @param port - The port number to use
+   */
+  setServerPort(port: number): void {
+    this._serverPort = port;
+  }
+
+  /**
    * Get the URL of the fixture server
    * @returns
    */
@@ -164,7 +173,7 @@ class FixtureServer implements Resource {
       exclusive: true,
     };
 
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       logger.debug(`Starting fixture server on port ${this._serverPort}`);
       this._server = this._app.listen(options);
       if (!this._server) {
@@ -218,6 +227,8 @@ class FixtureServer implements Resource {
         }
         this._server = null;
         this._serverStatus = ServerStatus.STOPPED;
+        // Release the port after server is stopped
+        PortManager.getInstance().releasePort(ResourceType.FIXTURE_SERVER);
         resolve(undefined);
       };
       serverRef.once('error', onError);

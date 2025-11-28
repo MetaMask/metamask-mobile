@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
@@ -14,7 +14,6 @@ import KYCFailed from '../components/Onboarding/KYCFailed';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import MailingAddress from '../components/Onboarding/MailingAddress';
-import Complete from '../components/Onboarding/Complete';
 import { cardAuthenticationNavigationOptions, headerStyle } from '.';
 import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
@@ -29,36 +28,59 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
+import { useParams } from '../../../../util/navigation/navUtils';
+import { CardUserPhase } from '../types';
 
 const Stack = createStackNavigator();
 
-const KYCModalavigationOptions = ({
+export const KYCModalNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
-}): StackNavigationOptions => ({
-  headerLeft: () => <View />,
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
-  headerRight: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Lg}
-      iconName={IconName.Close}
-      testID="close-button"
-      onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC)}
-    />
-  ),
-});
+}): StackNavigationOptions => {
+  const handleClosePress = () => {
+    Alert.alert(
+      strings('card.card_onboarding.kyc_webview.close_confirmation_title'),
+      strings('card.card_onboarding.kyc_webview.close_confirmation_message'),
+      [
+        {
+          text: strings('card.card_onboarding.kyc_webview.cancel_button'),
+          style: 'cancel',
+        },
+        {
+          text: strings('card.card_onboarding.kyc_webview.close_button'),
+          onPress: () =>
+            navigation.navigate(Routes.CARD.ONBOARDING.VALIDATING_KYC),
+          style: 'destructive',
+        },
+      ],
+    );
+  };
+
+  return {
+    headerLeft: () => <View />,
+    headerTitle: () => (
+      <Text
+        variant={TextVariant.HeadingSM}
+        style={headerStyle.title}
+        testID={'card-view-title'}
+      >
+        {strings('card.card')}
+      </Text>
+    ),
+    headerRight: () => (
+      <ButtonIcon
+        style={headerStyle.icon}
+        size={ButtonIconSizes.Lg}
+        iconName={IconName.Close}
+        testID="close-button"
+        onPress={handleClosePress}
+      />
+    ),
+  };
+};
 
 const ValidatingKYCNavigationOptions = ({
   navigation,
@@ -89,41 +111,95 @@ const ValidatingKYCNavigationOptions = ({
 });
 
 const OnboardingNavigator: React.FC = () => {
+  const { cardUserPhase } = useParams<{
+    cardUserPhase?: CardUserPhase;
+  }>();
   const onboardingId = useSelector(selectOnboardingId);
-  const { user, isLoading } = useCardSDK();
+  const { user, isLoading, fetchUserData } = useCardSDK();
+  const [isMounted, setIsMounted] = useState(false);
 
-  const getInitialRouteName = useCallback(() => {
-    if (!onboardingId || !user?.id) {
-      return Routes.CARD.ONBOARDING.SIGN_UP;
+  // Fetch fresh user data on mount if user data is missing
+  // This ensures we always have the most up-to-date onboarding information
+  // when the navigator is accessed
+  useEffect(() => {
+    if (!isMounted && onboardingId && !user) {
+      fetchUserData();
     }
-    if (user?.verificationState === 'PENDING') {
-      return Routes.CARD.ONBOARDING.VALIDATING_KYC;
-    }
-    if (user?.verificationState === 'VERIFIED') {
-      if (!user?.firstName) {
+    setIsMounted(true);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
+
+  const getInitialRouteName = useMemo(() => {
+    // Priority 1: Use cardUserPhase if provided (from login response)
+    if (cardUserPhase) {
+      if (cardUserPhase === 'ACCOUNT' || !user?.contactVerificationId) {
+        return Routes.CARD.ONBOARDING.SIGN_UP;
+      }
+      if (cardUserPhase === 'PHONE_NUMBER') {
+        return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
+      }
+      if (cardUserPhase === 'PERSONAL_INFORMATION') {
         return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
-      } else if (!user?.addressLine1) {
+      }
+      if (cardUserPhase === 'PHYSICAL_ADDRESS') {
         return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
       }
-      return Routes.CARD.ONBOARDING.COMPLETE;
+      if (cardUserPhase === 'MAILING_ADDRESS') {
+        return Routes.CARD.ONBOARDING.MAILING_ADDRESS;
+      }
     }
-    if (onboardingId) {
-      return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
-    }
-    return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
-  }, [onboardingId, user]);
 
-  // Show loading indicator while SDK is initializing or user data is being fetched
-  if (isLoading) {
+    // Priority 2: Use cached user data if available
+    if (user?.verificationState && onboardingId) {
+      if (user.verificationState === 'UNVERIFIED') {
+        if (!user?.email) {
+          return Routes.CARD.ONBOARDING.SIGN_UP;
+        }
+
+        if (!user?.phoneNumber) {
+          return Routes.CARD.ONBOARDING.SET_PHONE_NUMBER;
+        }
+
+        return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+      }
+
+      if (user.verificationState === 'PENDING') {
+        if (!user.firstName || !user.countryOfNationality) {
+          return Routes.CARD.ONBOARDING.VERIFY_IDENTITY;
+        }
+
+        return Routes.CARD.ONBOARDING.VALIDATING_KYC;
+      }
+
+      if (user.verificationState === 'VERIFIED') {
+        if (!user?.firstName || !user?.countryOfNationality) {
+          return Routes.CARD.ONBOARDING.PERSONAL_DETAILS;
+        } else if (!user?.addressLine1) {
+          return Routes.CARD.ONBOARDING.PHYSICAL_ADDRESS;
+        } else if (
+          user?.countryOfResidence?.toLowerCase() === 'us' &&
+          !user?.mailingAddressLine1
+        ) {
+          return Routes.CARD.ONBOARDING.MAILING_ADDRESS;
+        }
+      }
+    }
+
+    // Default to SIGN_UP route if no user data is available
+    return Routes.CARD.ONBOARDING.SIGN_UP;
+  }, [user, cardUserPhase, onboardingId]);
+
+  if (isLoading && !user) {
     return (
       <Box twClassName="flex-1 items-center justify-center">
-        <ActivityIndicator testID="activity-indicator" />
+        <ActivityIndicator testID="activity-indicator" size="large" />
       </Box>
     );
   }
 
   return (
-    <Stack.Navigator initialRouteName={getInitialRouteName()}>
+    <Stack.Navigator initialRouteName={getInitialRouteName}>
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.SIGN_UP}
         component={SignUp}
@@ -175,14 +251,9 @@ const OnboardingNavigator: React.FC = () => {
         options={cardAuthenticationNavigationOptions}
       />
       <Stack.Screen
-        name={Routes.CARD.ONBOARDING.COMPLETE}
-        component={Complete}
-        options={cardAuthenticationNavigationOptions}
-      />
-      <Stack.Screen
         name={Routes.CARD.ONBOARDING.WEBVIEW}
         component={KYCWebview}
-        options={KYCModalavigationOptions}
+        options={KYCModalNavigationOptions}
       />
     </Stack.Navigator>
   );

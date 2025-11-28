@@ -16,6 +16,8 @@ import {
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { useSendContext } from '../../../context/send-context';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { InitSendLocation } from '../../../constants/send';
 import { Amount } from './amount';
 import { getFontSizeForInputLength } from './amount.styles';
 
@@ -26,6 +28,14 @@ jest.mock('../../../context/send-context', () => ({
 jest.mock('../../../hooks/send/useCurrencyConversions');
 
 jest.mock('../../../hooks/send/useRouteParams');
+
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({}),
+  createNavigationDetails: jest.fn(
+    (name: string, screen?: string) => (params?: unknown) =>
+      [name, screen ? { screen, params } : params] as const,
+  ),
+}));
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -70,13 +80,17 @@ jest.mock('../../../hooks/send/metrics/useAmountSelectionMetrics', () => ({
   useAmountSelectionMetrics: jest.fn(),
 }));
 
+const mockSetOptions = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
+    setOptions: mockSetOptions,
   }),
-  useRoute: jest.fn(),
+  useRoute: () => ({
+    params: {},
+  }),
 }));
 
 const mockedUseAmountSelectionMetrics = jest.mocked(useAmountSelectionMetrics);
@@ -84,6 +98,7 @@ const mockUseCurrencyConversion = jest.mocked(useCurrencyConversions);
 const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
+const mockUseParams = jest.mocked(useParams);
 const mockAmountSelectionMetrics = {
   captureAmountSelected: jest.fn(),
   setAmountInputMethodManual: jest.fn(),
@@ -103,6 +118,8 @@ const renderComponent = (mockState?: ProviderValues['state']) => {
 describe('Amount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSetOptions.mockClear();
+    mockUseParams.mockReturnValue({});
     mockedUseAmountSelectionMetrics.mockReturnValue(mockAmountSelectionMetrics);
     mockUseSendContext.mockReturnValue({
       asset: {
@@ -219,6 +236,7 @@ describe('Amount', () => {
     fireEvent.press(getByTestId('fiat_toggle'));
     fireEvent.press(getByRole('button', { name: '5' }));
     expect(getByText('1 ETH')).toBeTruthy();
+    expect(getByText('$ 250.00 available')).toBeTruthy();
   });
 
   it('calls metrics methods on changing fiat mode', () => {
@@ -363,195 +381,13 @@ describe('Amount', () => {
     expect(queryByText('Max')).toBeNull();
   });
 
-  it('show error in case of insufficient balance for ERC1155 token', () => {
-    mockUseSendContext.mockReturnValue({
-      asset: MOCK_NFT1155,
-      updateValue: jest.fn(),
-      value: '10',
-    } as unknown as ReturnType<typeof useSendContext>);
-
-    const { getByText } = renderComponent();
-    expect(getByText('Insufficient funds')).toBeTruthy();
+  it('hides back button when navigating from AssetOverview', () => {
+    mockUseParams.mockReturnValue({ location: InitSendLocation.AssetOverview });
+    renderComponent();
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      headerRight: expect.any(Function),
+    });
   });
-
-  // it('pressing percentage buttons uses correct value of ERC20 token', () => {
-  //   (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-  //     params: {
-  //       asset: {
-  //         address: TOKEN_ADDRESS_MOCK_1,
-  //         decimals: 2,
-  //       },
-  //     },
-  //   } as RouteProp<ParamListBase, string>);
-
-  //   const { getByText, getByTestId } = renderComponent();
-  //   expect(getByTestId('send_amount').props.value).toBe('');
-  //   fireEvent.press(getByText('Max'));
-  //   expect(getByTestId('send_amount').props.value).toBe('0.05');
-  //   fireEvent.changeText(getByTestId('send_amount'), '');
-  //   fireEvent.press(getByText('75%'));
-  //   expect(getByTestId('send_amount').props.value).toBe('0.03');
-  //   fireEvent.changeText(getByTestId('send_amount'), '');
-  //   fireEvent.press(getByText('50%'));
-  //   expect(getByTestId('send_amount').props.value).toBe('0.02');
-  //   fireEvent.changeText(getByTestId('send_amount'), '');
-  //   fireEvent.press(getByText('25%'));
-  //   expect(getByTestId('send_amount').props.value).toBe('0.01');
-  // });
-
-  // it('pressing percentage buttons uses correct value for native token', () => {
-  //   (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-  //     params: {
-  //       asset: {
-  //         isNative: true,
-  //         chainId: '0x1',
-  //         address: ETHEREUM_ADDRESS,
-  //         ticker: 'ETH',
-  //       },
-  //     },
-  //   } as RouteProp<ParamListBase, string>);
-
-  //   const { getByText, getByTestId } = renderComponent();
-  //   expect(getByTestId('send_amount').props.value).toBe('');
-  //   fireEvent.press(getByText('Max'));
-  //   expect(getByTestId('send_amount').props.value).toBe('0.9999685');
-  //   expect(getByText('$ 3889.87')).toBeTruthy();
-  //   fireEvent.press(getByText('1 ETH available'));
-  // });
-
-  // it('pressing Max in fiat mode should work as expected', () => {
-  //   (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-  //     params: {
-  //       asset: {
-  //         name: 'Ethereum',
-  //         address: ETHEREUM_ADDRESS,
-  //         isNative: true,
-  //         chainId: '0x1',
-  //         symbol: 'ETH',
-  //       },
-  //     },
-  //   } as RouteProp<ParamListBase, string>);
-
-  //   const { getByText, getByTestId } = renderComponent();
-  //   expect(getByTestId('send_amount').props.value).toBe('');
-  //   fireEvent.press(getByTestId('fiat_toggle'));
-  //   fireEvent.press(getByText('Max'));
-  //   expect(getByTestId('send_amount').props.value).toBe('3889.87746');
-  //   expect(getByText('ETH 0.99997')).toBeTruthy();
-  // });
-
-  // it('pressing Max calls metrics function setAmountInputMethodPressedMax', () => {
-  //   (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-  //     params: {
-  //       asset: {
-  //         name: 'Ethereum',
-  //         address: TOKEN_ADDRESS_MOCK_1,
-  //         isNative: true,
-  //         chainId: '0x1',
-  //         symbol: 'ETH',
-  //       },
-  //     },
-  //   } as RouteProp<ParamListBase, string>);
-  //   const mockSetAmountInputMethodPressedMax = jest.fn();
-  //   const mockSetAmountInputTypeToken = jest.fn();
-  //   jest
-  //     .spyOn(AmountSelectionMetrics, 'useAmountSelectionMetrics')
-  //     .mockReturnValue({
-  //       setAmountInputMethodPressedMax: mockSetAmountInputMethodPressedMax,
-  //       setAmountInputTypeToken: mockSetAmountInputTypeToken,
-  //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //     } as any);
-
-  //   const { getByText, getByTestId } = renderComponent();
-  //   expect(getByTestId('send_amount').props.value).toBe('');
-  //   fireEvent.press(getByTestId('fiat_toggle'));
-  //   fireEvent.press(getByText('Max'));
-  //   expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
-  //   expect(mockSetAmountInputMethodPressedMax).toHaveBeenCalled();
-  // });
-
-  // // todo: update this test case once we have way to get asset balance for ERC1155 tokens
-  // it('does not show error in case of insufficient balance for ERC1155 token', async () => {
-  //   (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-  //     params: {
-  //       asset: MOCK_NFT1155,
-  //     },
-  //   } as RouteProp<ParamListBase, string>);
-
-  //   const { queryByText, getByTestId } = renderComponent();
-  //   fireEvent.changeText(getByTestId('send_amount'), '100');
-  //   expect(queryByText('Insufficient funds')).toBeNull();
-
-  // });
-
-  // it('continue button show error text in case of insufficient balance for erc20 token', async () => {
-  //   (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-  //     params: {
-  //       asset: {
-  //         address: TOKEN_ADDRESS_MOCK_1,
-  //         decimals: 2,
-  //       },
-  //     },
-  //   } as RouteProp<ParamListBase, string>);
-
-  //   const { getByText, getByTestId } = renderComponent();
-  //   fireEvent.changeText(getByTestId('send_amount'), '100');
-  //   expect(getByText('Insufficient funds')).toBeTruthy();
-  // });
-
-  // it('continue button show error text in case of insufficient balance for solana token', async () => {
-  //   (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-  //     params: {
-  //       asset: SOLANA_ASSET,
-  //     },
-  //   } as RouteProp<ParamListBase, string>);
-
-  //   const { getByText, getByTestId } = renderComponent();
-  //   fireEvent.changeText(getByTestId('send_amount'), '1000');
-  //   expect(getByText('Insufficient funds')).toBeTruthy();
-  // });
-
-  // it('continue button show error text in case of insufficient balance for native token', async () => {
-  //   (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-  //     params: {
-  //       asset: {
-  //         address: TOKEN_ADDRESS_MOCK_1,
-  //         isNative: true,
-  //         chainId: '0x1',
-  //         ticker: 'ETH',
-  //         decimals: 2,
-  //       },
-  //     },
-  //   } as RouteProp<ParamListBase, string>);
-
-  //   const { getByText, getByTestId } = renderComponent();
-  //   fireEvent.changeText(getByTestId('send_amount'), '100');
-  //   expect(getByText('Insufficient funds')).toBeTruthy();
-  // });
-
-  // it('navigate to next page when continue button is clicked', () => {
-  //   const { getByText, getByTestId, queryByText } = renderComponent();
-  //   expect(queryByText('Continue')).toBeNull();
-  //   fireEvent.changeText(getByTestId('send_amount'), '.01');
-  //   fireEvent.press(getByText('Continue'));
-  //   expect(mockNavigate).toHaveBeenCalled();
-  // });
-
-  // it('call metrics function captureAmountSelected when continue is pressed', () => {
-  //   const mockCaptureAmountSelected = jest.fn();
-  //   jest
-  //     .spyOn(AmountSelectionMetrics, 'useAmountSelectionMetrics')
-  //     .mockReturnValue({
-  //       captureAmountSelected: mockCaptureAmountSelected,
-  //       setAmountInputMethodManual: jest.fn(),
-  //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //     } as any);
-
-  //   const { getByText, getByTestId } = renderComponent();
-  //   fireEvent.changeText(getByTestId('send_amount'), '.01');
-  //   fireEvent.press(getByText('Continue'));
-  //   expect(mockCaptureAmountSelected).toHaveBeenCalled();
-  // });
 });
 
 describe('getFontSizeForInputLength', () => {

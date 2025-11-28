@@ -811,8 +811,8 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '350.0',
         marginUsed: '150.0',
         unrealizedPnl: '100',
-        returnOnEquity: '0.0', // No positions with returnOnEquity, so 0
-        totalBalance: '1000.5', // Spot (200.0 + 300.5 = 500.5) + Perps (500.0) = 1000.5
+        returnOnEquity: '0.0',
+        totalBalance: '1000.5',
       });
     });
 
@@ -850,7 +850,7 @@ describe('hyperLiquidAdapter', () => {
         marginUsed: '200.0',
         unrealizedPnl: '0',
         returnOnEquity: '0.0',
-        totalBalance: '1000', // Perps only (spot balances array is empty)
+        totalBalance: '1000',
       });
     });
 
@@ -1032,6 +1032,19 @@ describe('hyperLiquidAdapter', () => {
       expect(formatHyperLiquidSize({ size: 1.123456, szDecimals: 6 })).toBe(
         '1.123456',
       );
+    });
+
+    it('should NOT strip trailing zeros from integers (regression test)', () => {
+      // Critical: With szDecimals=0, integers ending in 0 should stay intact
+      // e.g., 10 tokens should format as "10", not "1"
+      expect(formatHyperLiquidSize({ size: 10, szDecimals: 0 })).toBe('10');
+      expect(formatHyperLiquidSize({ size: 100, szDecimals: 0 })).toBe('100');
+      expect(formatHyperLiquidSize({ size: 20, szDecimals: 0 })).toBe('20');
+      expect(formatHyperLiquidSize({ size: 1000, szDecimals: 0 })).toBe('1000');
+
+      // But should still strip zeros after decimal points
+      expect(formatHyperLiquidSize({ size: 10.0, szDecimals: 2 })).toBe('10');
+      expect(formatHyperLiquidSize({ size: 10.5, szDecimals: 4 })).toBe('10.5');
     });
   });
 

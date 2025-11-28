@@ -26,12 +26,18 @@ jest.mock('../../../../../util/theme', () => ({
   },
 }));
 
+const mockUseParams = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: () => mockUseParams(),
 }));
 
 const mockDispatch = jest.fn();
@@ -42,7 +48,15 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockSdk = {
-  getSupportedTokensByChainId: jest.fn(() => []),
+  getSupportedTokensByChainId: jest.fn<
+    {
+      address: string;
+      symbol: string;
+      name: string;
+      decimals: number;
+    }[],
+    [string?]
+  >(() => []),
   updateWalletPriority: jest.fn(),
   lineaChainId: 'eip155:59144',
 };
@@ -89,6 +103,11 @@ jest.mock('../../hooks/useAssetBalances', () => ({
   useAssetBalances: jest.fn(),
 }));
 
+const mockUpdateTokenPriority = jest.fn();
+jest.mock('../../hooks/useUpdateTokenPriority', () => ({
+  useUpdateTokenPriority: jest.fn(),
+}));
+
 jest.mock('../../../../../util/Logger');
 
 // Create a mock tailwind function that can be called and has a style method
@@ -116,7 +135,7 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
-import React, { createRef } from 'react';
+import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
@@ -130,16 +149,11 @@ import {
   CardExternalWalletDetail,
 } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import {
-  setAuthenticatedPriorityToken,
-  setAuthenticatedPriorityTokenLastFetched,
-  clearCacheData,
-} from '../../../../../core/redux/slices/card';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
+import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -203,12 +217,26 @@ const createMockDelegationSettings = (): DelegationSettingsResponse => ({
   },
 });
 
-describe('AssetSelectionBottomSheet', () => {
-  let sheetRef: React.RefObject<BottomSheetRef>;
+// Helper function to setup component with useParams
+const setupComponent = (paramsOverrides = {}) => {
+  mockUseParams.mockReturnValue({
+    tokensWithAllowances: [],
+    delegationSettings: null,
+    cardExternalWalletDetails: null,
+    navigateToCardHomeOnPriorityToken: false,
+    selectionOnly: false,
+    onTokenSelect: undefined,
+    hideSolanaAssets: false,
+    callerRoute: undefined,
+    callerParams: undefined,
+    ...paramsOverrides,
+  });
+  return renderWithToastContext(<AssetSelectionBottomSheet />);
+};
 
+describe('AssetSelectionBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    sheetRef = createRef<BottomSheetRef>();
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector.toString().includes('selectUserCardLocation')) {
@@ -233,6 +261,33 @@ describe('AssetSelectionBottomSheet', () => {
     (useNavigateToCardPage as jest.Mock).mockReturnValue({
       navigateToCardPage: mockNavigateToCardPage,
     });
+
+    // Mock useUpdateTokenPriority to call onSuccess by default
+    mockUpdateTokenPriority.mockImplementation(async () => true);
+    (useUpdateTokenPriority as jest.Mock).mockImplementation((params) => ({
+      updateTokenPriority: async (token: unknown, walletDetails: unknown) => {
+        const result = await mockUpdateTokenPriority(token, walletDetails);
+        if (result && params?.onSuccess) {
+          params.onSuccess();
+        } else if (!result && params?.onError) {
+          params.onError(new Error('Update failed'));
+        }
+        return result;
+      },
+    }));
+
+    // Default useParams mock
+    mockUseParams.mockReturnValue({
+      tokensWithAllowances: [],
+      delegationSettings: null,
+      cardExternalWalletDetails: null,
+      navigateToCardHomeOnPriorityToken: false,
+      selectionOnly: false,
+      onTokenSelect: undefined,
+      hideSolanaAssets: false,
+      callerRoute: undefined,
+      callerParams: undefined,
+    });
   });
 
   afterEach(() => {
@@ -241,42 +296,25 @@ describe('AssetSelectionBottomSheet', () => {
 
   describe('rendering', () => {
     it('renders bottom sheet with title', () => {
-      const mockSetOpen = jest.fn();
-      const tokens: CardTokenAllowance[] = [];
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={tokens}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getByText } = setupComponent({
+        delegationSettings,
+      });
 
       expect(getByText('Select token and network')).toBeOnTheScreen();
     });
 
     it('displays loading indicator when delegation settings is null', () => {
-      const mockSetOpen = jest.fn();
-      const tokens: CardTokenAllowance[] = [];
-
-      const { UNSAFE_getByType, queryByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={tokens}
-          delegationSettings={null}
-        />,
-      );
+      const { UNSAFE_getByType, queryByText } = setupComponent({
+        delegationSettings: null,
+      });
 
       expect(UNSAFE_getByType('ActivityIndicator' as never)).toBeTruthy();
       expect(queryByText('No tokens available')).toBeNull();
     });
 
     it('displays no tokens message when no tokens available', () => {
-      const mockSetOpen = jest.fn();
-      const tokens: CardTokenAllowance[] = [];
       // Create delegation settings with no tokens
       const delegationSettings: DelegationSettingsResponse = {
         networks: [
@@ -294,75 +332,55 @@ describe('AssetSelectionBottomSheet', () => {
         },
       };
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={tokens}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getByText } = setupComponent({
+        delegationSettings,
+      });
 
       expect(getByText('No tokens available')).toBeOnTheScreen();
     });
 
     it('renders token list when tokens are available', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken({
         symbol: 'USDC',
         allowanceState: AllowanceState.Enabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
 
       expect(getByText(/USDC on/)).toBeOnTheScreen();
       expect(getByText('Enabled')).toBeOnTheScreen();
     });
 
     it('displays limited state for tokens with limited allowance', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken({
         symbol: 'USDT',
         allowanceState: AllowanceState.Limited,
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
 
       expect(getByText('Limited')).toBeOnTheScreen();
     });
 
     it('displays not enabled state for tokens without allowance', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken({
         symbol: 'DAI',
         allowanceState: AllowanceState.NotEnabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getAllByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getAllByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
 
       const notEnabledElements = getAllByText('Not enabled');
       expect(notEnabledElements.length).toBeGreaterThan(0);
@@ -372,7 +390,6 @@ describe('AssetSelectionBottomSheet', () => {
 
   describe('token filtering', () => {
     it('filters out Solana tokens when hideSolanaAssets is true', () => {
-      const mockSetOpen = jest.fn();
       const solanaToken = createMockToken({
         symbol: 'SOL',
         caipChainId: SolScope.Mainnet,
@@ -383,37 +400,28 @@ describe('AssetSelectionBottomSheet', () => {
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText, queryByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[solanaToken, lineaToken]}
-          delegationSettings={delegationSettings}
-          hideSolanaAssets
-        />,
-      );
+      const { getByText, queryByText } = setupComponent({
+        tokensWithAllowances: [solanaToken, lineaToken],
+        delegationSettings,
+        hideSolanaAssets: true,
+      });
 
       expect(getByText(/USDC on/)).toBeOnTheScreen();
       expect(queryByText(/SOL on/)).toBeNull();
     });
 
     it('shows Solana tokens when hideSolanaAssets is false', () => {
-      const mockSetOpen = jest.fn();
       const solanaToken = createMockToken({
         symbol: 'SOL',
         caipChainId: SolScope.Mainnet,
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[solanaToken]}
-          delegationSettings={delegationSettings}
-          hideSolanaAssets={false}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [solanaToken],
+        delegationSettings,
+        hideSolanaAssets: false,
+      });
 
       expect(getByText(/SOL on/)).toBeOnTheScreen();
     });
@@ -425,8 +433,6 @@ describe('AssetSelectionBottomSheet', () => {
         }
         return false;
       });
-
-      const mockSetOpen = jest.fn();
       const token = createMockToken();
       const delegationSettings: DelegationSettingsResponse = {
         networks: [
@@ -448,14 +454,10 @@ describe('AssetSelectionBottomSheet', () => {
         _links: { self: '/api' },
       };
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
 
       expect(getByText(/USDC on/)).toBeOnTheScreen();
     });
@@ -467,19 +469,13 @@ describe('AssetSelectionBottomSheet', () => {
         }
         return false;
       });
-
-      const mockSetOpen = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
 
       expect(getByText(/USDC on/)).toBeOnTheScreen();
     });
@@ -493,8 +489,6 @@ describe('AssetSelectionBottomSheet', () => {
         }
         return undefined;
       });
-
-      const mockSetOpen = jest.fn();
       const token1 = createMockToken({
         symbol: 'USDC',
         priority: 2,
@@ -508,14 +502,10 @@ describe('AssetSelectionBottomSheet', () => {
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getAllByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token1, token2]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getAllByText } = setupComponent({
+        tokensWithAllowances: [token1, token2],
+        delegationSettings,
+      });
 
       // Check that tokens are sorted by priority (USDT has priority 1, USDC has priority 2)
       const usdtToken = getAllByText(/USDT on Linea/)[0];
@@ -525,7 +515,6 @@ describe('AssetSelectionBottomSheet', () => {
     });
 
     it('sorts enabled tokens before not enabled tokens', () => {
-      const mockSetOpen = jest.fn();
       const notEnabledToken = createMockToken({
         symbol: 'DAI',
         allowanceState: AllowanceState.NotEnabled,
@@ -537,14 +526,10 @@ describe('AssetSelectionBottomSheet', () => {
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getAllByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[notEnabledToken, enabledToken]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getAllByText } = setupComponent({
+        tokensWithAllowances: [notEnabledToken, enabledToken],
+        delegationSettings,
+      });
 
       // Check that enabled tokens come before not enabled tokens
       const usdcToken = getAllByText(/USDC on Linea/)[0];
@@ -556,7 +541,6 @@ describe('AssetSelectionBottomSheet', () => {
 
   describe('balance display', () => {
     it('displays token balance from useAssetBalances hook', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 
@@ -573,34 +557,25 @@ describe('AssetSelectionBottomSheet', () => {
         ]),
       );
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
 
       expect(getByText('$123.45')).toBeOnTheScreen();
       expect(getByText('123.456789 USDC')).toBeOnTheScreen();
     });
 
     it('displays zero balance when balance data is not available', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 
       (useAssetBalances as jest.Mock).mockReturnValue(new Map());
 
-      const { getAllByText, getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getAllByText, getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
 
       const zeroBalanceElements = getAllByText('$0.00');
       expect(zeroBalanceElements.length).toBeGreaterThan(0);
@@ -611,21 +586,16 @@ describe('AssetSelectionBottomSheet', () => {
 
   describe('token selection', () => {
     it('calls onTokenSelect and closes bottom sheet in selection only mode', () => {
-      const mockSetOpen = jest.fn();
       const mockOnTokenSelect = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-          selectionOnly
-          onTokenSelect={mockOnTokenSelect}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        selectionOnly: true,
+        onTokenSelect: mockOnTokenSelect,
+      });
 
       fireEvent.press(getByText(/USDC on/));
 
@@ -641,24 +611,18 @@ describe('AssetSelectionBottomSheet', () => {
           allowance: token.allowance,
         }),
       );
-      expect(mockSetOpen).toHaveBeenCalledWith(false);
     });
 
     it('navigates to spending limit for not enabled token', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken({
         allowanceState: AllowanceState.NotEnabled,
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
 
       fireEvent.press(getByText(/USDC on/));
 
@@ -683,7 +647,6 @@ describe('AssetSelectionBottomSheet', () => {
     });
 
     it('updates priority for enabled token', async () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken({
         allowanceState: AllowanceState.Enabled,
         priority: 2,
@@ -716,59 +679,44 @@ describe('AssetSelectionBottomSheet', () => {
         priorityWalletDetail: undefined,
       };
 
-      mockSdk.updateWalletPriority.mockResolvedValue(undefined);
+      mockUpdateTokenPriority.mockImplementation(async () => true);
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-          cardExternalWalletDetails={cardExternalWalletDetails}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        cardExternalWalletDetails,
+      });
 
-      // Use getByText since FlatList items render synchronously in tests
       const tokenElement = getByText('USDC on Linea');
 
-      // Fire press event and wait for async operations
       await act(async () => {
         fireEvent.press(tokenElement);
-        // Allow time for async handlers to complete
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
       await waitFor(
         () => {
-          expect(mockSdk.updateWalletPriority).toHaveBeenCalled();
+          expect(mockUpdateTokenPriority).toHaveBeenCalledWith(
+            expect.objectContaining({
+              address: token.address,
+              symbol: token.symbol,
+              caipChainId: token.caipChainId,
+              walletAddress: token.walletAddress,
+            }),
+            cardExternalWalletDetails.walletDetails,
+          );
         },
         { timeout: 3000 },
       );
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        clearCacheData('card-external-wallet-details'),
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setAuthenticatedPriorityToken(
-          expect.objectContaining({
-            symbol: 'USDC',
-            priority: 1,
-          }),
-        ),
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setAuthenticatedPriorityTokenLastFetched(expect.any(Date)),
-      );
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
           labelOptions: [{ label: 'Spend priority updated successfully' }],
         }),
       );
-      expect(mockSetOpen).toHaveBeenCalledWith(false);
     });
 
     it('closes bottom sheet when already priority token is selected and navigateToCardHomeOnPriorityToken is false', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
       const cardExternalWalletDetails = {
@@ -777,27 +725,20 @@ describe('AssetSelectionBottomSheet', () => {
         priorityWalletDetail: token,
       };
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-          cardExternalWalletDetails={cardExternalWalletDetails}
-          navigateToCardHomeOnPriorityToken={false}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        cardExternalWalletDetails,
+        navigateToCardHomeOnPriorityToken: false,
+      });
 
       fireEvent.press(getByText(/USDC on/));
-
-      expect(mockSetOpen).toHaveBeenCalledWith(false);
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
   describe('error handling', () => {
-    it('displays error toast when updateWalletPriority fails', async () => {
-      const mockSetOpen = jest.fn();
+    it('displays error toast when updateTokenPriority fails', async () => {
       const token = createMockToken({
         allowanceState: AllowanceState.Enabled,
       });
@@ -829,21 +770,16 @@ describe('AssetSelectionBottomSheet', () => {
         priorityWalletDetail: undefined,
       };
 
-      mockSdk.updateWalletPriority.mockRejectedValue(new Error('API Error'));
+      mockUpdateTokenPriority.mockImplementation(async () => false);
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-          cardExternalWalletDetails={cardExternalWalletDetails}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        cardExternalWalletDetails,
+      });
 
       const tokenElement = getByText('USDC on Linea');
 
-      // Fire press event and wait for async operations
       await act(async () => {
         fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -859,57 +795,22 @@ describe('AssetSelectionBottomSheet', () => {
         },
         { timeout: 3000 },
       );
-
-      expect(mockSetOpen).toHaveBeenCalledWith(false);
     });
 
-    it('displays error toast when selected wallet is not found', async () => {
-      const mockSetOpen = jest.fn();
+    it('displays error toast when wallet details are not available', async () => {
       const token = createMockToken({
         allowanceState: AllowanceState.Enabled,
-        address: '0xdifferent',
       });
       const delegationSettings = createMockDelegationSettings();
-      const cardExternalWalletDetails: {
-        walletDetails: CardExternalWalletDetail[];
-        mappedWalletDetails: CardTokenAllowance[];
-        priorityWalletDetail: CardTokenAllowance | undefined;
-      } = {
-        walletDetails: [
-          {
-            id: 1,
-            walletAddress: '0xwallet',
-            currency: 'USDC',
-            balance: '1000',
-            allowance: '500',
-            priority: 1,
-            tokenDetails: {
-              address: '0x123',
-              symbol: 'USDC',
-              name: 'USD Coin',
-              decimals: 6,
-            },
-            caipChainId: 'eip155:59144' as CaipChainId,
-            network: 'linea' as const,
-          },
-        ],
-        mappedWalletDetails: [token],
-        priorityWalletDetail: undefined,
-      };
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-          cardExternalWalletDetails={cardExternalWalletDetails}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        cardExternalWalletDetails: null,
+      });
 
       const tokenElement = getByText('USDC on Linea');
 
-      // Fire press event and wait for async operations
       await act(async () => {
         fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -925,14 +826,12 @@ describe('AssetSelectionBottomSheet', () => {
         },
         { timeout: 3000 },
       );
-
-      expect(mockSetOpen).toHaveBeenCalledWith(false);
+      expect(mockUpdateTokenPriority).not.toHaveBeenCalled();
     });
   });
 
   describe('metrics tracking', () => {
     it('tracks token selection event', async () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken({
         allowanceState: AllowanceState.Enabled,
         allowance: '1000',
@@ -965,21 +864,16 @@ describe('AssetSelectionBottomSheet', () => {
         priorityWalletDetail: undefined,
       };
 
-      mockSdk.updateWalletPriority.mockResolvedValue(undefined);
+      mockUpdateTokenPriority.mockImplementation(async () => true);
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-          cardExternalWalletDetails={cardExternalWalletDetails}
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        cardExternalWalletDetails,
+      });
 
       const tokenElement = getByText('USDC on Linea');
 
-      // Fire press event and wait for async operations
       await act(async () => {
         fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -996,40 +890,102 @@ describe('AssetSelectionBottomSheet', () => {
     });
   });
 
+  describe('navigation-based selection', () => {
+    it('navigates back to caller route with selected token', () => {
+      const token = createMockToken({
+        symbol: 'EURe',
+        address: '0xeure',
+      });
+      const delegationSettings = createMockDelegationSettings();
+      const callerParams = { someParam: 'value' };
+
+      // Mock SDK to return EURe with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xeure',
+          symbol: 'EURe',
+          name: 'Euro Coin',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        selectionOnly: true,
+        callerRoute: Routes.CARD.SPENDING_LIMIT,
+        callerParams,
+      });
+
+      fireEvent.press(getByText(/EURe on/));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.SPENDING_LIMIT,
+        expect.objectContaining({
+          ...callerParams,
+          returnedSelectedToken: expect.objectContaining({
+            address: token.address,
+            symbol: 'EURe',
+          }),
+        }),
+      );
+    });
+
+    it('goes back when no caller route is provided in navigation mode', () => {
+      const token = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      // Mock SDK to return mUSD with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xmusd',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        selectionOnly: true,
+        callerRoute: undefined,
+        callerParams: undefined,
+      });
+
+      fireEvent.press(getByText(/mUSD on/));
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
   describe('Solana not supported footer', () => {
     it('displays Solana not supported button when hideSolanaAssets is true', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-          hideSolanaAssets
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        hideSolanaAssets: true,
+      });
 
       expect(getByText('Others tokens on Solana')).toBeOnTheScreen();
       expect(getByText('Enable on card.metamask.io')).toBeOnTheScreen();
     });
 
     it('calls navigateToCardPage when Solana not supported button is pressed', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-          hideSolanaAssets
-        />,
-      );
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        hideSolanaAssets: true,
+      });
 
       fireEvent.press(getByText('Others tokens on Solana'));
 
@@ -1037,23 +993,209 @@ describe('AssetSelectionBottomSheet', () => {
     });
 
     it('does not display Solana not supported button when hideSolanaAssets is false', () => {
-      const mockSetOpen = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 
-      const { queryByText } = renderWithToastContext(
-        <AssetSelectionBottomSheet
-          setOpenAssetSelectionBottomSheet={mockSetOpen}
-          sheetRef={sheetRef}
-          tokensWithAllowances={[token]}
-          delegationSettings={delegationSettings}
-          hideSolanaAssets={false}
-        />,
-      );
+      const { queryByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        hideSolanaAssets: false,
+      });
 
       expect(
         queryByText('card.asset_selection.solana_not_supported_button_title'),
       ).toBeNull();
+    });
+  });
+
+  describe('wallet address display', () => {
+    it('displays truncated wallet address when available', () => {
+      const token = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      // Mock SDK to return mUSD with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xmusd',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
+
+      expect(getByText(/0x1234.../)).toBeOnTheScreen();
+    });
+
+    it('does not display wallet address when not available', () => {
+      const token = createMockToken({
+        symbol: 'EURe',
+        address: '0xeure',
+        walletAddress: undefined,
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      // Mock SDK to return EURe with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xeure',
+          symbol: 'EURe',
+          name: 'Euro Coin',
+          decimals: 6,
+        },
+      ]);
+
+      const { queryByText } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
+
+      expect(queryByText(/0x/)).toBeNull();
+    });
+  });
+
+  describe('token merging from delegation settings', () => {
+    it('adds supported tokens from delegation settings not in user wallet', () => {
+      const userToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0x123',
+      });
+      const delegationSettings: DelegationSettingsResponse = {
+        networks: [
+          {
+            network: 'linea',
+            environment: 'production',
+            chainId: '59144',
+            delegationContract: '0xdelegation',
+            tokens: {
+              mUSD: {
+                symbol: 'mUSD',
+                decimals: 6,
+                address: '0x123',
+              },
+              EURe: {
+                symbol: 'EURe',
+                decimals: 6,
+                address: '0x456',
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '/api' },
+      };
+
+      // Mock SDK to return both tokens with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0x123',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+        {
+          address: '0x456',
+          symbol: 'EURe',
+          name: 'Euro Coin',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [userToken],
+        delegationSettings,
+      });
+
+      expect(getByText(/mUSD on/)).toBeOnTheScreen();
+      expect(getByText(/EURe on/)).toBeOnTheScreen();
+    });
+
+    it('does not duplicate tokens already in user wallet', () => {
+      const userToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0x123',
+      });
+      const delegationSettings: DelegationSettingsResponse = {
+        networks: [
+          {
+            network: 'linea',
+            environment: 'production',
+            chainId: '59144',
+            delegationContract: '0xdelegation',
+            tokens: {
+              mUSD: {
+                symbol: 'mUSD',
+                decimals: 6,
+                address: '0x123',
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '/api' },
+      };
+
+      // Mock SDK to return mUSD with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0x123',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+      ]);
+
+      const { getAllByText } = setupComponent({
+        tokensWithAllowances: [userToken],
+        delegationSettings,
+      });
+
+      const musdElements = getAllByText(/mUSD on/);
+      expect(musdElements.length).toBe(1);
+    });
+  });
+
+  describe('priority token highlighting', () => {
+    it('highlights priority token with border', () => {
+      const token = createMockToken({
+        symbol: 'EURe',
+        address: '0xeure',
+      });
+      const delegationSettings = createMockDelegationSettings();
+      const cardExternalWalletDetails = {
+        walletDetails: [],
+        mappedWalletDetails: [],
+        priorityWalletDetail: token,
+      };
+
+      // Mock SDK to return EURe with proper casing
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xeure',
+          symbol: 'EURe',
+          name: 'Euro Coin',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByTestId } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+        cardExternalWalletDetails,
+      });
+
+      const tokenItem = getByTestId(
+        `asset-select-item-EURe-${token.caipChainId}`,
+      );
+      expect(tokenItem).toBeTruthy();
     });
   });
 });

@@ -53,10 +53,6 @@ jest.mock('../../hooks/usePerpsOrderFees', () => ({
   formatFeeRate: jest.fn((rate) => `${((rate || 0) * 100).toFixed(3)}%`),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsEnabledFlag: jest.fn(() => true),
-}));
-
 // Mock PerpsMarketBalanceActions dependencies
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
@@ -122,7 +118,7 @@ jest.mock('../../hooks', () => ({
     navigateToBrowser: jest.fn(),
     navigateToActions: jest.fn(),
     navigateToActivity: jest.fn(),
-    navigateToRewardsOrSettings: jest.fn(),
+    navigateToRewards: jest.fn(),
     navigateToMarketDetails: jest.fn(),
     navigateToHome: jest.fn(),
     navigateToMarketList: jest.fn(),
@@ -218,12 +214,18 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     selectedOptionId,
     onSortPress,
     onWatchlistToggle,
+    showStocksCommoditiesDropdown,
+    stocksCommoditiesFilter,
+    onStocksCommoditiesPress,
     testID,
   }: {
     selectedOptionId: string;
     onSortPress: () => void;
     showWatchlistOnly: boolean;
     onWatchlistToggle: () => void;
+    showStocksCommoditiesDropdown?: boolean;
+    stocksCommoditiesFilter?: 'all' | 'equity' | 'commodity';
+    onStocksCommoditiesPress?: () => void;
     testID?: string;
   }) {
     // Map sort option IDs to display labels
@@ -251,14 +253,31 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
           displayText,
         ),
       ),
-      MockReact.createElement(
-        RNTouchableOpacity,
-        {
-          testID: testID ? `${testID}-watchlist-toggle` : undefined,
-          onPress: onWatchlistToggle,
-        },
-        MockReact.createElement(Text, null, 'Watchlist'),
-      ),
+      onWatchlistToggle &&
+        MockReact.createElement(
+          RNTouchableOpacity,
+          {
+            testID: testID ? `${testID}-watchlist-toggle` : undefined,
+            onPress: onWatchlistToggle,
+          },
+          MockReact.createElement(Text, null, 'Watchlist'),
+        ),
+      showStocksCommoditiesDropdown &&
+        onStocksCommoditiesPress &&
+        MockReact.createElement(
+          RNTouchableOpacity,
+          {
+            testID: testID
+              ? `${testID}-stocks-commodities-dropdown`
+              : undefined,
+            onPress: onStocksCommoditiesPress,
+          },
+          MockReact.createElement(
+            Text,
+            null,
+            `Stocks/Commodities: ${stocksCommoditiesFilter || 'all'}`,
+          ),
+        ),
     );
   };
 });
@@ -1196,41 +1215,127 @@ describe('PerpsMarketListView', () => {
   // Note: TabBar Navigation tests removed - PerpsMarketListView does not render a bottom tab bar
   // The component only renders market type tabs (All, Crypto, Stocks) for filtering markets
 
-  describe('Edge Cases', () => {
-    it('handles search with whitespace', async () => {
-      const { rerender } = renderWithProvider(<PerpsMarketListView />, {
-        state: mockState,
+  describe('Stocks/Commodities Dropdown', () => {
+    it('does not show stocks/commodities dropdown when showStocksCommoditiesDropdown is false', async () => {
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Wait for filter bar to render
+      await waitFor(() => {
+        expect(screen.getByText('Volume')).toBeOnTheScreen();
       });
 
-      const searchButton = screen.getByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-      );
+      // Verify stocks/commodities dropdown is not present
+      expect(
+        screen.queryByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-stocks-commodities-dropdown`,
+        ),
+      ).not.toBeOnTheScreen();
+    });
 
-      // Press search button - this updates mockSearchVisible
-      await act(async () => {
-        fireEvent.press(searchButton);
-        // Force re-render to pick up updated mockSearchVisible
-        rerender(<PerpsMarketListView />);
-      });
+    it('does not show stocks/commodities dropdown regardless of market type filter', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
 
-      // Wait for search input to appear (mock should now return isSearchVisible: true)
-      await waitFor(
-        () => {
-          const searchInput = screen.getByPlaceholderText(
-            'Search by token symbol',
-          );
-          expect(searchInput).toBeOnTheScreen();
+      // Mock the hook to return stocks_and_commodities as the active filter
+      usePerpsMarketListView.mockReturnValue({
+        markets: mockMarketData,
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: jest.fn(),
+          isSearchVisible: false,
+          setIsSearchVisible: jest.fn(),
+          toggleSearchVisibility: jest.fn(),
+          clearSearch: jest.fn(),
         },
-        { timeout: 3000 },
-      );
-
-      const searchInput = screen.getByPlaceholderText('Search by token symbol');
-      await act(async () => {
-        fireEvent.changeText(searchInput, '   ');
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'stocks_and_commodities',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          equity: 2,
+          commodity: 1,
+          forex: 0,
+        },
+        isLoading: false,
+        error: null,
       });
 
-      // Wait for markets to appear (whitespace should be trimmed, so all markets show)
-      // Note: Multiple tabs may render, so we check that at least one instance exists
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Wait for filter bar to render
+      await waitFor(() => {
+        expect(screen.getByText('Volume')).toBeOnTheScreen();
+      });
+
+      // Verify stocks/commodities dropdown is still not present even with stocks_and_commodities filter
+      expect(
+        screen.queryByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-stocks-commodities-dropdown`,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('filters markets with whitespace-only query', async () => {
+      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+
+      // Start with search visible
+      mockSearchVisible = true;
+      mockSearchQuery = '   ';
+
+      // Mock to return empty results when search query is whitespace
+      usePerpsMarketListView.mockReturnValue({
+        markets: mockMarketData, // Whitespace is trimmed, so all markets show
+        searchState: {
+          searchQuery: '   ',
+          setSearchQuery: mockSetSearchQuery,
+          isSearchVisible: true,
+          setIsSearchVisible: mockSetIsSearchVisible,
+          toggleSearchVisibility: mockToggleSearchVisibility,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          equity: 0,
+          commodity: 0,
+          forex: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Verify search input is visible
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
+      expect(searchInput).toBeOnTheScreen();
+
+      // Verify all markets are still displayed (whitespace is trimmed)
       await waitFor(() => {
         const btcRows = screen.queryAllByTestId('market-row-BTC');
         const ethRows = screen.queryAllByTestId('market-row-ETH');

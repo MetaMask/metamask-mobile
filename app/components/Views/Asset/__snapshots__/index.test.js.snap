@@ -960,6 +960,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -1947,28 +1948,42 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -1991,7 +2006,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -2733,6 +2748,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -3720,28 +3736,42 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -3764,7 +3794,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -4506,6 +4536,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -5534,28 +5565,42 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -5578,7 +5623,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -6320,6 +6365,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -7307,28 +7353,42 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -7351,7 +7411,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -8093,6 +8153,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -9080,28 +9141,42 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -9124,7 +9199,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -9866,6 +9941,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -10894,28 +10970,42 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -10938,7 +11028,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -12210,6 +12300,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -13197,28 +13288,42 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -13241,7 +13346,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>
@@ -13983,6 +14088,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           "display": "flex",
                                           "flexDirection": "row",
                                           "justifyContent": "space-around",
+                                          "marginBottom": 16,
                                           "paddingHorizontal": 10,
                                           "paddingTop": 20,
                                         }
@@ -14970,28 +15076,42 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "0": {
-                                        "color": "#b7bbc8",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 20,
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "gap": 12,
+                                        "justifyContent": "center",
+                                        "maxWidth": 256,
                                       },
-                                      "1": {
-                                        "color": "#121314",
-                                      },
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  You have no transactions!
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    You have no transactions!
+                                  </Text>
+                                </View>
                               </View>
                               <View>
                                 <View>
@@ -15014,7 +15134,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         }
                                       }
                                     >
-                                      Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy.
+                                      Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy.
                                     </Text>
                                   </View>
                                 </View>

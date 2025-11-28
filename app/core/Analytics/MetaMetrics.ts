@@ -33,7 +33,7 @@ import {
   ISegmentClient,
   ITrackingEvent,
 } from './MetaMetrics.types';
-import { v4 as uuidv4, validate } from 'uuid';
+import { v4 as uuidv4, validate, version } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
@@ -310,7 +310,11 @@ class MetaMetrics implements IMetaMetrics {
       await StorageWrapper.getItem(METAMETRICS_ID);
 
     // This catches '""', 'null', 'undefined', and other corruptions
-    if (!metametricsId || !validate(metametricsId)) {
+    if (
+      !metametricsId ||
+      !validate(metametricsId) ||
+      version(metametricsId) !== 4
+    ) {
       if (metametricsId) {
         // Log corruption for monitoring
         Logger.log(
@@ -691,7 +695,7 @@ class MetaMetrics implements IMetaMetrics {
    * and user traits are updated with the latest ones
    */
   addTraitsToUser = (userTraits: UserTraits): Promise<void> => {
-    if (this.enabled) {
+    if (this.isEnabled()) {
       return this.#identify(userTraits);
     }
     return Promise.resolve();
@@ -704,7 +708,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param groupTraits - group relevant traits or properties (optional)
    */
   group = (groupId: string, groupTraits?: GroupTraits): Promise<void> => {
-    if (this.enabled) {
+    if (this.isEnabled()) {
       this.#group(groupId, groupTraits);
     }
     return Promise.resolve();
@@ -755,7 +759,7 @@ class MetaMetrics implements IMetaMetrics {
     event: ITrackingEvent,
     saveDataRecording: boolean = true,
   ): void => {
-    if (!this.enabled) {
+    if (!this.isEnabled()) {
       return;
     }
 
@@ -883,7 +887,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns the current MetaMetrics ID
    */
-  getMetaMetricsId = async (): Promise<string | undefined> =>
+  getMetaMetricsId = async (): Promise<string> =>
     this.metametricsId ?? (await this.#getMetaMetricsId());
 }
 

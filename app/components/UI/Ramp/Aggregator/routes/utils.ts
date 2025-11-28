@@ -1,7 +1,10 @@
 import { RampIntent, RampType } from '../types';
 import Routes from '../../../../../constants/navigation/Routes';
 
-function createRampNavigationDetails(rampType: RampType, intent?: RampIntent) {
+export function createRampNavigationDetails(
+  rampType: RampType,
+  intent?: RampIntent,
+) {
   const route = rampType === RampType.BUY ? Routes.RAMP.BUY : Routes.RAMP.SELL;
   if (!intent) {
     return [route] as const;
@@ -9,9 +12,9 @@ function createRampNavigationDetails(rampType: RampType, intent?: RampIntent) {
   return [
     route,
     {
-      screen: Routes.RAMP.GET_STARTED,
+      screen: Routes.RAMP.ID,
       params: {
-        screen: Routes.RAMP.GET_STARTED,
+        screen: Routes.RAMP.BUILD_QUOTE,
         params: intent,
       },
     },

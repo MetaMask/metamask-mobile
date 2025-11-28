@@ -10,6 +10,7 @@ import { getNotificationServicesControllerMessenger } from '../../messengers/not
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/notification-services-controller/notification-services');
+jest.mock('react-native-device-info', () => ({ getVersion: () => '1.2.3' }));
 
 describe('Notification Services Controller', () => {
   beforeEach(() => jest.resetAllMocks());
@@ -44,6 +45,26 @@ describe('Notification Services Controller', () => {
     const { messenger } = arrange();
     const controller = createNotificationServicesController({ messenger });
     expect(controller).toBeInstanceOf(NotificationServicesController);
+  });
+
+  it('initialises with correct messenger and state', () => {
+    const { messenger, assertGetConstructorCall } = arrange();
+    const state = { ...defaultState, isFeatureAnnouncementsEnabled: true };
+    createNotificationServicesController({ messenger, initialState: state });
+    const constructorParams = assertGetConstructorCall();
+    expect(constructorParams).toStrictEqual({
+      messenger,
+      state,
+      env: {
+        featureAnnouncements: {
+          platform: 'mobile',
+          spaceId: expect.any(String),
+          accessToken: expect.any(String),
+          platformVersion: expect.any(String),
+        },
+        locale: expect.any(Function),
+      },
+    });
   });
 
   it('can pass undefined as initial state', () => {

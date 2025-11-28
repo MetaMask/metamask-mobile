@@ -30,7 +30,7 @@ export const PredictMarketListSelectorsIDs = {
   SPORTS_TAB: 'predict-market-list-sports-tab',
   CRYPTO_TAB: 'predict-market-list-crypto-tab',
   POLITICS_TAB: 'predict-market-list-politics-tab',
-
+  BACK_BUTTON: 'back-button',
   // Empty state
   EMPTY_STATE: 'predict-market-list-empty-state',
 } as const;
@@ -53,12 +53,18 @@ export const PredictMarketDetailsSelectorsIDs = {
 
   // Header
   BACK_BUTTON: 'predict-market-details-back-button',
+  SHARE_BUTTON: 'predict-market-details-share-button',
 
   // Tabs
   TAB_BAR: 'predict-market-details-tab-bar',
   ABOUT_TAB: 'predict-market-details-about-tab',
   POSITIONS_TAB: 'predict-market-details-positions-tab',
   OUTCOMES_TAB: 'predict-market-details-outcomes-tab',
+
+  //Tab labels
+  POSITIONS_TAB_LABEL: 'predict-market-details-tab-bar-tab-0',
+  OUTCOMES_TAB_LABEL: 'predict-market-details-tab-bar-tab-1',
+  ABOUT_TAB_LABEL: 'predict-market-details-tab-bar-tab-2',
 
   // Tab content containers
   ABOUT_TAB_CONTENT: 'about-tab-content',
@@ -100,6 +106,15 @@ export const PredictPositionsSelectorsIDs = {
 export const PredictPositionSelectorsIDs = {
   CURRENT_POSITION_CARD: 'predict-current-position-card',
   RESOLVED_POSITION_CARD: 'predict-resolved-position-card',
+} as const;
+
+// ========================================
+// PREDICT BUY PREVIEW SELECTORS
+// ========================================
+
+export const PredictBuyPreviewSelectorsIDs = {
+  // Buy/Place bet button
+  PLACE_BET_BUTTON: 'predict-buy-preview-place-bet-button',
 } as const;
 
 // ========================================
@@ -154,4 +169,11 @@ export const PredictActivityDetailsSelectorsIDs = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+} as const;
+
+// ========================================
+// PREDICT ADD FUNDS SELECTORS
+// ========================================
+export const PredictAddFundsSelectorText = {
+  ADD_FUNDS: enContent.predict.deposit.add_funds,
 } as const;

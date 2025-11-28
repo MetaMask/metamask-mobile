@@ -56,9 +56,28 @@ const PersonalDetails = () => {
     if (userData) {
       setFirstName(userData.firstName || '');
       setLastName(userData.lastName || '');
-      setDateOfBirth(
-        userData.dateOfBirth ? formatDateOfBirth(userData.dateOfBirth) : '',
-      );
+      // userData.dateOfBirth is in ISO 8601 format, parse it to local timezone
+      if (userData.dateOfBirth && typeof userData.dateOfBirth === 'string') {
+        // Parse the date components: YYYY-MM-DD
+        const dateMatch = userData.dateOfBirth.match(
+          /^(\d{4})-(\d{2})-(\d{2})/,
+        );
+        if (dateMatch) {
+          const [, year, month, day] = dateMatch;
+          // Create date in local timezone (month is 0-indexed)
+          const date = new Date(
+            parseInt(year, 10),
+            parseInt(month, 10) - 1,
+            parseInt(day, 10),
+          );
+          const timestamp = date.getTime();
+          setDateOfBirth(timestamp.toString());
+        } else {
+          setDateOfBirth('');
+        }
+      } else {
+        setDateOfBirth('');
+      }
       setNationality(userData.countryOfResidence || '');
       setSSN(userData.ssn || '');
     }
@@ -153,9 +172,18 @@ const PersonalDetails = () => {
       !lastName ||
       !dateOfBirth ||
       !nationality ||
-      (!debouncedSSN && selectedCountry === 'US')
+      (!SSN && selectedCountry === 'US')
     ) {
       return;
+    }
+
+    // Validate SSN before submitting if it's a US user
+    if (selectedCountry === 'US') {
+      const isSSNValid = /^\d{9}$/.test(SSN);
+      if (!isSSNValid) {
+        setIsSSNError(true);
+        return;
+      }
     }
 
     try {
@@ -173,7 +201,7 @@ const PersonalDetails = () => {
         lastName,
         dateOfBirth: formatDateOfBirth(dateOfBirth),
         countryOfNationality: nationality,
-        ssn: debouncedSSN,
+        ssn: SSN,
       });
 
       if (user) {
@@ -204,32 +232,35 @@ const PersonalDetails = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const isDisabled = useMemo(
-    () =>
+  const isDisabled = useMemo(() => {
+    // Check the actual SSN value, not the debounced one
+    const isSSNValid =
+      SSN && selectedCountry === 'US' ? /^\d{9}$/.test(SSN) : true;
+
+    return (
       registerLoading ||
       registerIsError ||
       !firstName ||
       !lastName ||
       !dateOfBirth ||
       !nationality ||
-      (!debouncedSSN && selectedCountry === 'US') ||
-      isSSNError ||
+      (!SSN && selectedCountry === 'US') ||
+      !isSSNValid ||
       !!dateError ||
-      !onboardingId,
-    [
-      registerLoading,
-      registerIsError,
-      firstName,
-      lastName,
-      dateOfBirth,
-      nationality,
-      debouncedSSN,
-      selectedCountry,
-      isSSNError,
-      dateError,
-      onboardingId,
-    ],
-  );
+      !onboardingId
+    );
+  }, [
+    registerLoading,
+    registerIsError,
+    firstName,
+    lastName,
+    dateOfBirth,
+    nationality,
+    SSN,
+    selectedCountry,
+    dateError,
+    onboardingId,
+  ]);
 
   const renderFormFields = () => (
     <>

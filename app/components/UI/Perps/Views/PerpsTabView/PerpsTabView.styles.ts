@@ -7,7 +7,10 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     tradeInfoContainer: {
-      paddingBottom: 12,
+      paddingBottom: 30,
+    },
+    emptyStateContainer: {
+      paddingBottom: 30,
     },
     wrapper: {
       flex: 1,
@@ -89,17 +92,6 @@ const styleSheet = (params: { theme: Theme }) => {
     startTradeText: {
       marginLeft: 12,
       flex: 1,
-    },
-    debugButton: {
-      backgroundColor: colors.warning.default,
-      padding: 8,
-      marginHorizontal: 16,
-      marginVertical: 8,
-      borderRadius: 8,
-      alignItems: 'center',
-    },
-    debugButtonText: {
-      color: colors.text.default,
     },
   });
 };

@@ -52,6 +52,16 @@ export class AuthorizationFailedError extends Error {
 }
 
 /**
+ * Custom error for season not found
+ */
+export class SeasonNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SeasonNotFoundError';
+  }
+}
+
+/**
  * Custom error for account already registered (409 conflict)
  */
 export class AccountAlreadyRegisteredError extends Error {
@@ -645,6 +655,12 @@ export class RewardsDataService {
         );
       }
 
+      if (errorData?.message?.includes('Season not found')) {
+        throw new SeasonNotFoundError(
+          'Season not found. Please try again with a different season.',
+        );
+      }
+
       throw new Error(`Get season state failed: ${response.status}`);
     }
 
@@ -892,8 +908,8 @@ export class RewardsDataService {
   }
 
   /**
-   * Get discover seasons information (current and next season).
-   * @returns The discover seasons DTO with current and next season information.
+   * Get discover seasons information (previous, current and next season).
+   * @returns The discover seasons DTO with previous, current and next season information.
    */
   async getDiscoverSeasons(): Promise<DiscoverSeasonsDto> {
     const response = await this.makeRequest('/public/seasons/status', {
@@ -905,6 +921,16 @@ export class RewardsDataService {
     }
 
     const data = await response.json();
+
+    // Convert date strings to Date objects for previous season
+    if (data.previous) {
+      if (data.previous.startDate) {
+        data.previous.startDate = new Date(data.previous.startDate);
+      }
+      if (data.previous.endDate) {
+        data.previous.endDate = new Date(data.previous.endDate);
+      }
+    }
 
     // Convert date strings to Date objects for current season
     if (data.current) {
@@ -954,6 +980,11 @@ export class RewardsDataService {
     }
     if (data.endDate) {
       data.endDate = new Date(data.endDate);
+    }
+
+    // Ensure activityTypes is always an array per SeasonMetadataDto
+    if (!Array.isArray(data.activityTypes)) {
+      data.activityTypes = [];
     }
 
     return data as SeasonMetadataDto;

@@ -51,6 +51,14 @@ class WalletActionModal {
     }
   }
 
+  get predictButton() {
+    if (!this._device) {
+      return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON);
+    }
+  }
+
   async tapSendButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.sendButton);
@@ -84,6 +92,15 @@ class WalletActionModal {
       await Gestures.waitAndTap(this.perpsButton);
     } else {
       const element = await this.perpsButton;
+      await AppwrightGestures.tap(element);
+    }
+  }
+
+  async tapPredictButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.predictButton);
+    } else {
+      const element = await this.predictButton;
       await AppwrightGestures.tap(element);
     }
   }

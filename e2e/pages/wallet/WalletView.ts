@@ -51,6 +51,12 @@ class WalletView {
     );
   }
 
+  get hamburgerMenuButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+    );
+  }
+
   get navbarNetworkText(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
@@ -217,6 +223,12 @@ class WalletView {
   async tapBellIcon(): Promise<void> {
     await Gestures.waitAndTap(this.notificationBellIcon, {
       elemDescription: 'Notification Bell Icon',
+    });
+  }
+
+  async tapHamburgerMenu(): Promise<void> {
+    await Gestures.waitAndTap(this.hamburgerMenuButton, {
+      elemDescription: 'Hamburger Menu Button',
     });
   }
 

@@ -28,11 +28,6 @@ jest.mock('../../../../core/Engine', () => ({
   context: mockEngineContext,
 }));
 
-// Mock specific selectors directly
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectRewardsEnabledFlag: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest
     .fn()
@@ -154,6 +149,8 @@ describe('usePerpsOrderFees', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),
       validateWithdrawal: jest.fn(),
@@ -329,6 +326,33 @@ describe('usePerpsOrderFees', () => {
   });
 
   describe('Error handling', () => {
+    it('should handle undefined fee rates from provider', async () => {
+      mockCalculateFees.mockResolvedValue({
+        feeRate: 0.001,
+        feeAmount: 100,
+        metamaskFeeRate: undefined,
+        protocolFeeRate: undefined,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.metamaskFee).toBe(0);
+      expect(result.current.totalFee).toBe(0);
+      expect(result.current.metamaskFeeRate).toBeUndefined();
+      expect(result.current.protocolFeeRate).toBeUndefined();
+    });
+
     it('should fall back to default fee rate on error', async () => {
       mockCalculateFees.mockRejectedValue(new Error('Network error'));
 
@@ -397,12 +421,7 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.estimatedPoints).toBeUndefined();
     });
 
-    it('should handle rewards disabled', async () => {
-      const { selectRewardsEnabledFlag } = jest.requireMock(
-        '../../../../selectors/featureFlagController/rewards',
-      );
-      selectRewardsEnabledFlag.mockReturnValue(false);
-
+    it('should handle rewards enabled', async () => {
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
         feeAmount: 45,
@@ -764,6 +783,8 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),
       validateWithdrawal: jest.fn(),
@@ -1471,6 +1492,8 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),
       validateWithdrawal: jest.fn(),

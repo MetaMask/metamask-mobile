@@ -55,24 +55,16 @@ const PerpsOICapWarning: React.FC<PerpsOICapWarningProps> = memo(
       >
         <Icon
           name={IconName.Warning}
-          size={IconSize.Sm}
-          color={IconColor.Warning}
+          size={IconSize.Md}
+          color={IconColor.Default}
           style={styles.icon}
         />
         <View style={styles.textContainer}>
           <Text
             variant={isBanner ? TextVariant.BodyMD : TextVariant.BodySM}
-            color={TextColor.Warning}
-            style={styles.title}
+            color={TextColor.Default}
           >
             {strings('perps.order.validation.oi_cap_reached')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyXS}
-            color={TextColor.Alternative}
-            style={styles.description}
-          >
-            {strings('perps.order.validation.oi_cap_description')}
           </Text>
         </View>
       </View>

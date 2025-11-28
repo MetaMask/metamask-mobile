@@ -22,6 +22,7 @@ import useStyles from '../useStyles';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { INotification } from '../../../../../util/notifications/types';
+import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
 
 type TransactionFieldProps = ModalFieldTransaction & {
   notification: INotification;
@@ -60,9 +61,7 @@ function TransactionField(props: TransactionFieldProps) {
                 .addProperties({
                   notification_id: notification.id,
                   notification_type: notification.type,
-                  ...('chain_id' in notification && {
-                    chain_id: notification.chain_id,
-                  }),
+                  ...onChainAnalyticProperties(notification),
                   clicked_item: 'tx_id',
                 })
                 .build(),

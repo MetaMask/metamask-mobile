@@ -12,12 +12,12 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 // Mock the dependent hooks
-jest.mock('./usePerpsPositionData');
+jest.mock('./stream/usePerpsLiveCandles');
 
 import Engine from '../../../../core/Engine';
-import { usePerpsPositionData } from './usePerpsPositionData';
+import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
 
-const mockedUsePerpsPositionData = jest.mocked(usePerpsPositionData);
+const mockedUsePerpsLiveCandles = jest.mocked(usePerpsLiveCandles);
 const mockSubscribeToPrices = Engine.context.PerpsController
   .subscribeToPrices as jest.Mock;
 
@@ -75,11 +75,13 @@ describe('usePerpsMarketStats', () => {
       callback([mockPriceData.BTC]);
       return jest.fn();
     });
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: mockCandleData,
-      priceData: null,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     // Act: Render the hook with a symbol
@@ -99,11 +101,13 @@ describe('usePerpsMarketStats', () => {
   it('indicates loading state when candle data is not yet available', () => {
     // Arrange: Set up state with no candle data
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: null,
-      priceData: null,
-      isLoadingHistory: true,
-      refreshCandleData: jest.fn(),
+      isLoading: true,
+      isLoadingMore: false,
+      hasHistoricalData: false,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     // Act: Render the hook
@@ -117,11 +121,13 @@ describe('usePerpsMarketStats', () => {
   it('displays default values when no market data is available', () => {
     // Arrange: Set up empty market data state
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: null,
-      priceData: null,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: false,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     // Act: Render the hook
@@ -153,11 +159,13 @@ describe('usePerpsMarketStats', () => {
       return jest.fn();
     });
 
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: mockCandleData,
-      priceData: null,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -180,11 +188,13 @@ describe('usePerpsMarketStats', () => {
       return jest.fn();
     });
 
-    mockedUsePerpsPositionData.mockReturnValue({
+    mockedUsePerpsLiveCandles.mockReturnValue({
       candleData: mockCandleData,
-      priceData: null,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));

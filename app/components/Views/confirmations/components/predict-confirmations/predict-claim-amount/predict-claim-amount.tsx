@@ -17,11 +17,21 @@ import {
 } from '../../../../../UI/Predict/utils/format';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../../../e2e/selectors/Predict/Predict.selectors';
 import styleSheet from './predict-claim-amount.styles';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 
 export function PredictClaimAmount() {
   const { styles } = useStyles(styleSheet, {});
-  const winningsFiat = useSelector(selectPredictWinFiat);
-  const winningsPnl = useSelector(selectPredictWinPnl);
+
+  const selectedAddress =
+    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
+
+  const winningsFiat = useSelector(
+    selectPredictWinFiat({ address: selectedAddress }),
+  );
+  const winningsPnl = useSelector(
+    selectPredictWinPnl({ address: selectedAddress }),
+  );
 
   if (!(winningsFiat && winningsPnl)) {
     return null;
@@ -53,6 +63,20 @@ export function PredictClaimAmount() {
       >
         {formattedWinningsPnl}
       </Text>
+    </Box>
+  );
+}
+
+export function PredictClaimAmountSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Box style={styles.container}>
+      <Text variant={TextVariant.HeadingLG} color={TextColor.Alternative}>
+        {strings('confirm.predict_claim.summary')}
+      </Text>
+      <Skeleton width={300} height={70} />
+      <Skeleton width={200} height={30} />
     </Box>
   );
 }
