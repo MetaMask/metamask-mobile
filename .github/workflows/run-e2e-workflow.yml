@@ -124,9 +124,9 @@ jobs:
           echo "⏳ Waiting for Android emulator to fully boot..."
           adb wait-for-device
           # Wait for boot to complete (sys.boot_completed = 1)
-          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+          adb shell "while [[ -z \$(getprop sys.boot_completed) ]]; do sleep 1; done"
           # Additional check for package manager readiness
-          adb shell 'while [[ -z $(getprop init.svc.bootanim) ]]; do sleep 1; done'
+          adb shell "while [[ -z \$(getprop init.svc.bootanim) ]]; do sleep 1; done"
           echo "✅ Android emulator boot completed"
           adb devices -l
 
