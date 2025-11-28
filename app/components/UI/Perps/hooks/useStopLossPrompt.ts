@@ -117,8 +117,11 @@ export const useStopLossPrompt = ({
       ? Date.now() - positionOpenedTimestamp
       : 0;
 
+    const isBelowThreshold =
+      roePercent <= STOP_LOSS_PROMPT_CONFIG.ROE_THRESHOLD;
+
     // If position is old enough (from actual order fill data), bypass debounce
-    if (positionAge >= POSITION_AGE_THRESHOLD_MS) {
+    if (positionAge >= POSITION_AGE_THRESHOLD_MS && isBelowThreshold) {
       finishDebounce();
       return;
     }
