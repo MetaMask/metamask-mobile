@@ -121,7 +121,7 @@ jest.mock('../../../core/Engine', () => ({
       stopPollingByPollingToken: jest.fn(),
     },
     TokenRatesController: {
-      updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+      updateExchangeRates: jest.fn(() => Promise.resolve()),
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
     },

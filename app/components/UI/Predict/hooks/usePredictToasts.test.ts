@@ -250,6 +250,107 @@ describe('usePredictToasts', () => {
       });
     });
 
+    it('passes transactionMeta to onPress callback when link button is pressed', async () => {
+      // Arrange
+      const mockOnPress = jest.fn();
+      const configWithOnPress = {
+        ...defaultConfig,
+        pendingToastConfig: {
+          ...defaultConfig.pendingToastConfig,
+          onPress: mockOnPress,
+        },
+      };
+      renderHook(() => usePredictToasts(configWithOnPress), { wrapper });
+      const transactionMeta = {
+        id: 'test-transaction-id-123',
+        status: TransactionStatus.approved,
+        nestedTransactions: [{ type: TransactionType.predictDeposit }],
+      } as TransactionMeta;
+
+      // Act
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta,
+        });
+      });
+
+      // Assert
+      await waitFor(() => {
+        const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
+        const linkButtonOnPress = toastCall.closeButtonOptions?.onPress;
+        expect(linkButtonOnPress).toBeDefined();
+
+        // Call the link button onPress
+        linkButtonOnPress?.();
+
+        expect(mockOnPress).toHaveBeenCalledWith(transactionMeta);
+      });
+    });
+
+    it('includes link button options when onPress is provided in pending toast config', async () => {
+      // Arrange
+      const mockOnPress = jest.fn();
+      const configWithOnPress = {
+        ...defaultConfig,
+        pendingToastConfig: {
+          ...defaultConfig.pendingToastConfig,
+          onPress: mockOnPress,
+        },
+      };
+      renderHook(() => usePredictToasts(configWithOnPress), { wrapper });
+
+      // Act
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.approved,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          } as TransactionMeta,
+        });
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockToastRef.current.showToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            closeButtonOptions: expect.objectContaining({
+              label: expect.any(String),
+              onPress: expect.any(Function),
+            }),
+          }),
+        );
+      });
+    });
+
+    it('excludes link button options when onPress is not provided in pending toast config', async () => {
+      // Arrange
+      const configWithoutOnPress = {
+        ...defaultConfig,
+        pendingToastConfig: {
+          title: 'Processing',
+          description: 'Please wait',
+          getAmount: mockGetAmount,
+        },
+      };
+      renderHook(() => usePredictToasts(configWithoutOnPress), { wrapper });
+
+      // Act
+      await act(async () => {
+        mockSubscribeCallback?.({
+          transactionMeta: {
+            status: TransactionStatus.approved,
+            nestedTransactions: [{ type: TransactionType.predictDeposit }],
+          } as TransactionMeta,
+        });
+      });
+
+      // Assert
+      await waitFor(() => {
+        const toastCall = mockToastRef.current.showToast.mock.calls[0][0];
+        expect(toastCall.linkButtonOptions).toBeUndefined();
+      });
+    });
+
     it('calls getAmount with transaction metadata when showing pending toast', async () => {
       // Arrange
       renderHook(() => usePredictToasts(defaultConfig), { wrapper });

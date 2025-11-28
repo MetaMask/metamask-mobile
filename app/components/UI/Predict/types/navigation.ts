@@ -16,7 +16,8 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_NEW_PREDICTION
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
-  | typeof PredictEventValues.ENTRY_POINT.BACKGROUND;
+  | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
+  | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH;
 
 export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;

@@ -123,8 +123,9 @@ exports[`CustomNonceModal renders correctly 1`] = `
                 "fontFamily": "Geist Bold",
                 "fontSize": 36,
                 "marginHorizontal": 24,
+                "maxWidth": 200,
+                "minWidth": 80,
                 "textAlign": "center",
-                "width": 80,
               }
             }
             value="26"

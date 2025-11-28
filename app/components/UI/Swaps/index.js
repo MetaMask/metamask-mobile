@@ -81,10 +81,7 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import AccountSelector from '../Ramp/Aggregator/components/AccountSelector';
 import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
-import {
-  getDecimalChainId,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
@@ -723,13 +720,11 @@ function SwapsAmountView({
       contentContainerStyle={styles.screen}
       keyboardShouldPersistTaps="handled"
     >
-      {isRemoveGlobalNetworkSelectorEnabled() ? (
-        <ContextualNetworkPicker
-          networkName={networkName}
-          networkImageSource={networkImageSource}
-          onPress={onNetworkSelectorPress}
-        />
-      ) : null}
+      <ContextualNetworkPicker
+        networkName={networkName}
+        networkImageSource={networkImageSource}
+        onPress={onNetworkSelectorPress}
+      />
       <View style={styles.content}>
         <View style={styles.accountSelector}>
           <AccountSelector />

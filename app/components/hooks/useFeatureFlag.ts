@@ -6,6 +6,7 @@ export enum FeatureFlagNames {
   otaUpdatesEnabled = 'otaUpdatesEnabled',
   rewardsEnableCardSpend = 'rewardsEnableCardSpend',
   rewardsEnableMusdDeposit = 'rewardsEnableMusdDeposit',
+  rewardsEnableMusdHolding = 'rewardsEnableMusdHolding',
   cardFeature = 'cardFeature', //remote config
   sampleFeatureCounterEnabled = 'sampleFeatureCounterEnabled',
   bridgeConfigV2 = 'bridgeConfigV2', //remote config

@@ -1,0 +1,43 @@
+---
+description: Mobile component-view testing rules (project-wide). Engine-only mocks, state-driven tests, presets/renderers, deterministicFiat, AAA, execution.
+globs:
+  - "**/*.view.test.{ts,tsx,js,jsx}"
+  - "app/util/test/component-view/**"
+alwaysApply: false
+---
+
+## Component-view Testing (Project-wide)
+
+Follow these rules for all component-view tests. Nested, component-specific rules may also apply.
+
+- **Mock policy**
+  - Only mock `../../../core/Engine`, `../../../core/Engine/Engine`, and `react-native-device-info`.
+  - No mocking of hooks or selectors; drive behavior via Redux state.
+  - Enforced by runtime guard in `app/util/test/testSetup.js` and ESLint override in `.eslintrc.js`.
+
+- **Framework usage (REQUIRED)**
+  - Use presets: `initialStateBridge`, `initialStateWallet`.
+  - Use renderers: `renderBridgeView`, `renderWalletView`.
+  - Use `stateFixture.ts` helpers for overrides (e.g., quotes, feature flags).
+  - Prefer `deterministicFiat: true` for exact fiat assertions.
+
+- **Navigation tests**
+  - Use `renderScreenWithRoutes` and build `state` via the preset + minimal overrides.
+  - Assert using route names from `app/constants/navigation/Routes.ts`.
+
+- **Test structure**
+  - AAA pattern with blank lines between sections.
+  - Action-oriented names (no “should”).
+  - One behavior per test; robust assertions over brittle formatting.
+
+- **Execution**
+  - Prefer `--coverage=false` during iteration for speed.
+  - Use yarn only (no npm/npx).
+
+- **References**
+  - Component-view framework guide: `app/util/test/component-view/README.md`
+  - Detailed rules: `app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md`
+  - Cursor authoring rules: [Cursor Context Rules](https://cursor.com/docs/context/rules)
+
+@app/util/test/component-view/README.md
+@app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md

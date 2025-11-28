@@ -87,6 +87,56 @@ export const selectTradeConfiguration = createSelector(
 );
 
 /**
+ * Select pending trade configuration for a specific market on the current network
+ * Returns undefined if config doesn't exist or has expired (more than 5 minutes old)
+ * @param state - PerpsController state
+ * @param coin - Market symbol (e.g., 'BTC', 'ETH')
+ * @returns Pending trade configuration or undefined
+ */
+export const selectPendingTradeConfiguration = createSelector(
+  [
+    (state: PerpsControllerState) => state?.isTestnet,
+    (state: PerpsControllerState, _coin: string) => state?.tradeConfigurations,
+    (_state: PerpsControllerState, coin: string) => coin,
+  ],
+  (
+    isTestnet,
+    configs,
+    coin,
+  ):
+    | {
+        amount?: string;
+        leverage?: number;
+        takeProfitPrice?: string;
+        stopLossPrice?: string;
+        limitPrice?: string;
+        orderType?: 'market' | 'limit';
+      }
+    | undefined => {
+    const network = isTestnet ? 'testnet' : 'mainnet';
+    const config = configs?.[network]?.[coin]?.pendingConfig;
+
+    if (!config) {
+      return undefined;
+    }
+
+    // Check if config has expired (5 minutes = 300,000 milliseconds)
+    const FIVE_MINUTES_MS = 5 * 60 * 1000;
+    const now = Date.now();
+    const age = now - config.timestamp;
+
+    if (age > FIVE_MINUTES_MS) {
+      // Config expired, return undefined
+      return undefined;
+    }
+
+    // Return config without timestamp
+    const { timestamp, ...configWithoutTimestamp } = config;
+    return configWithoutTimestamp;
+  },
+);
+
+/**
  * Select market filter preferences (network-independent)
  * @param state - PerpsController state
  * @returns Sort/filter option ID

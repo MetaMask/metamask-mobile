@@ -131,6 +131,18 @@ jest.mock(
   },
 );
 
+// Mock token utils to stabilize native token name
+jest.mock('../../utils/tokenUtils', () => ({
+  getNativeSourceToken: jest.fn().mockImplementation((chainId: string) => ({
+    address: 'native',
+    name: 'Ethereum',
+    symbol: 'ETH',
+    decimals: 18,
+    chainId,
+    image: '',
+  })),
+}));
+
 // Mock the bridge selectors
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
@@ -360,6 +372,93 @@ describe('QuoteDetailsCard', () => {
     expect(getByText(strings('bridge.included'))).toBeDefined();
 
     // Restore original implementation
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
+  it('renders sponsored fee label when gas is sponsored', () => {
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: true,
+          gasSponsored: true,
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByText, queryByText } = renderScreen(
+      QuoteDetailsCard,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    expect(getByText(strings('bridge.network_fee'))).toBeOnTheScreen();
+    expect(getByText(strings('bridge.gas_fees_sponsored'))).toBeOnTheScreen();
+    expect(queryByText('0.01')).toBeNull();
+
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
+  it('opens sponsored fee tooltip with native token in content', () => {
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: true,
+          gasSponsored: true,
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByLabelText } = renderScreen(
+      QuoteDetailsCard,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    const tooltip = getByLabelText(
+      `${strings('bridge.network_fee_info_title')} tooltip`,
+    );
+    fireEvent.press(tooltip);
+
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      params: {
+        title: strings('bridge.network_fee_info_title'),
+        tooltip: strings('bridge.network_fee_info_content_sponsored', {
+          nativeToken: 'ETH',
+        }),
+      },
+      screen: 'tooltipModal',
+    });
+
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 

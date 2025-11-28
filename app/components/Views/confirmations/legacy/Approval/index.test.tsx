@@ -42,6 +42,9 @@ jest.mock('../../../../../core/Engine', () => ({
       getGasFeeEstimatesAndStartPolling: jest.fn().mockResolvedValue(null),
       stopPolling: jest.fn(),
     },
+    TransactionController: {
+      getNonceLock: jest.fn().mockResolvedValue({ releaseLock: jest.fn() }),
+    },
   },
   controllerMessenger: {
     tryUnsubscribe: jest.fn(),
@@ -99,9 +102,7 @@ describe('Approval', () => {
     jest.clearAllMocks();
     store = mockStore({
       ...initialRootState,
-      settings: {
-        showCustomNonce: false,
-      },
+      settings: {},
       transaction: {
         id: TRANSACTION_ID_MOCK,
         from: '0x1234',

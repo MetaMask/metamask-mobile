@@ -14,6 +14,7 @@ import {
   getWalletNavbarOptions,
   getSendFlowTitle,
   getStakingNavbar,
+  getCloseOnlyNavbar,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -1439,5 +1440,310 @@ describe('getStakingNavbar', () => {
       properties: { from: 'header' },
     });
     expect(handleIconPress).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getCloseOnlyNavbar', () => {
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
+  const mockThemeColors = {
+    background: {
+      default: '#FFFFFF',
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Basic Functionality', () => {
+    it('returns navigation options object with required properties', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      expect(options).toBeDefined();
+      expect(typeof options).toBe('object');
+      expect(options.headerShown).toBe(true);
+      expect(options.headerTitle).toBeInstanceOf(Function);
+      expect(options.headerLeft).toBeInstanceOf(Function);
+      expect(options.headerRight).toBeInstanceOf(Function);
+      expect(options.headerStyle).toBeDefined();
+    });
+
+    it('sets headerShown to true', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      expect(options.headerShown).toBe(true);
+    });
+
+    it('returns null from headerTitle function', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      const headerTitle = options.headerTitle();
+
+      expect(headerTitle).toBeNull();
+    });
+
+    it('returns null from headerLeft function', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      const headerLeft = options.headerLeft();
+
+      expect(headerLeft).toBeNull();
+    });
+  });
+
+  describe('Header Style', () => {
+    it('applies correct background color from theme', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      expect(options.headerStyle.backgroundColor).toBe('#FFFFFF');
+    });
+
+    it('sets transparent shadow color', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      expect(options.headerStyle.shadowColor).toBe('transparent');
+    });
+
+    it('sets elevation to 0', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      expect(options.headerStyle.elevation).toBe(0);
+    });
+
+    it('handles different theme colors', () => {
+      const darkThemeColors = {
+        background: {
+          default: '#000000',
+        },
+      };
+
+      const options = getCloseOnlyNavbar(mockNavigation, darkThemeColors);
+
+      expect(options.headerStyle.backgroundColor).toBe('#000000');
+    });
+  });
+
+  describe('Close Button Functionality', () => {
+    it('renders close button in headerRight', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      const HeaderRight = options.headerRight;
+      const { getByTestId } = renderWithProvider(<HeaderRight />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(getByTestId('button-icon')).toBeOnTheScreen();
+    });
+
+    it('calls navigation.goBack when close button pressed without onClose callback', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      const HeaderRight = options.headerRight;
+      const headerRightComponent = HeaderRight();
+
+      headerRightComponent.props.onPress();
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls custom onClose callback when provided', () => {
+      const mockOnClose = jest.fn();
+
+      const options = getCloseOnlyNavbar(
+        mockNavigation,
+        mockThemeColors,
+        mockOnClose,
+      );
+
+      const HeaderRight = options.headerRight;
+      const headerRightComponent = HeaderRight();
+
+      headerRightComponent.props.onPress();
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('does not call navigation.goBack when custom onClose is provided', () => {
+      const mockOnClose = jest.fn();
+
+      const options = getCloseOnlyNavbar(
+        mockNavigation,
+        mockThemeColors,
+        mockOnClose,
+      );
+
+      const HeaderRight = options.headerRight;
+      const headerRightComponent = HeaderRight();
+
+      headerRightComponent.props.onPress();
+
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Parameter Handling', () => {
+    it('handles missing onClose parameter by using default', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      expect(options).toBeDefined();
+      expect(options.headerRight).toBeInstanceOf(Function);
+    });
+
+    it('handles undefined onClose parameter', () => {
+      const options = getCloseOnlyNavbar(
+        mockNavigation,
+        mockThemeColors,
+        undefined,
+      );
+
+      const HeaderRight = options.headerRight;
+      const headerRightComponent = HeaderRight();
+
+      headerRightComponent.props.onPress();
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles null onClose parameter', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors, null);
+
+      const HeaderRight = options.headerRight;
+      const headerRightComponent = HeaderRight();
+
+      headerRightComponent.props.onPress();
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Return Value Structure', () => {
+    it('returns object with expected structure', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      expect(options).toMatchObject({
+        headerShown: true,
+        headerTitle: expect.any(Function),
+        headerLeft: expect.any(Function),
+        headerRight: expect.any(Function),
+        headerStyle: expect.objectContaining({
+          backgroundColor: expect.any(String),
+          shadowColor: 'transparent',
+          elevation: 0,
+        }),
+      });
+    });
+
+    it('maintains consistent structure across different inputs', () => {
+      const options1 = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+      const options2 = getCloseOnlyNavbar(mockNavigation, {
+        background: { default: '#000000' },
+      });
+
+      expect(Object.keys(options1)).toEqual(Object.keys(options2));
+      expect(typeof options1.headerTitle).toBe(typeof options2.headerTitle);
+      expect(typeof options1.headerLeft).toBe(typeof options2.headerLeft);
+      expect(typeof options1.headerRight).toBe(typeof options2.headerRight);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('handles multiple close button presses', () => {
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      const HeaderRight = options.headerRight;
+      const headerRightComponent = HeaderRight();
+
+      headerRightComponent.props.onPress();
+      headerRightComponent.props.onPress();
+      headerRightComponent.props.onPress();
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(3);
+    });
+
+    it('handles onClose that throws error', () => {
+      const mockOnCloseWithError = jest.fn(() => {
+        throw new Error('Test error');
+      });
+
+      const options = getCloseOnlyNavbar(
+        mockNavigation,
+        mockThemeColors,
+        mockOnCloseWithError,
+      );
+
+      const HeaderRight = options.headerRight;
+      const headerRightComponent = HeaderRight();
+
+      expect(() => {
+        headerRightComponent.props.onPress();
+      }).toThrow('Test error');
+
+      expect(mockOnCloseWithError).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls only onClose when both onClose and navigation.goBack available', () => {
+      const mockOnClose = jest.fn();
+
+      const options = getCloseOnlyNavbar(
+        mockNavigation,
+        mockThemeColors,
+        mockOnClose,
+      );
+
+      const HeaderRight = options.headerRight;
+      const headerRightComponent = HeaderRight();
+
+      headerRightComponent.props.onPress();
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Integration', () => {
+    it('works with React Navigation stack', () => {
+      const Stack = createStackNavigator();
+      const options = getCloseOnlyNavbar(mockNavigation, mockThemeColors);
+
+      expect(() => {
+        renderWithProvider(
+          <Stack.Navigator>
+            <Stack.Screen
+              name="TestScreen"
+              component={View}
+              options={options}
+            />
+          </Stack.Navigator>,
+          { state: { engine: { backgroundState } } },
+        );
+      }).not.toThrow();
+    });
+
+    it('integrates with custom onClose and navigation', () => {
+      const mockOnClose = jest.fn();
+      const customNavigation = {
+        ...mockNavigation,
+        goBack: jest.fn(),
+        navigate: jest.fn(),
+      };
+
+      const options = getCloseOnlyNavbar(
+        customNavigation,
+        mockThemeColors,
+        mockOnClose,
+      );
+
+      const HeaderRight = options.headerRight;
+      const headerRightComponent = HeaderRight();
+
+      headerRightComponent.props.onPress();
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(customNavigation.goBack).not.toHaveBeenCalled();
+      expect(customNavigation.navigate).not.toHaveBeenCalled();
+    });
   });
 });

@@ -294,6 +294,8 @@ const PerpsHomeView = () => {
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
           isLoading={isLoading.markets}
+          positions={positions}
+          orders={orders}
         />
 
         {/* Crypto Markets List */}

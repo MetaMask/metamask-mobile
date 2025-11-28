@@ -811,8 +811,8 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '350.0',
         marginUsed: '150.0',
         unrealizedPnl: '100',
-        returnOnEquity: '0.0', // No positions with returnOnEquity, so 0
-        totalBalance: '1000.5', // Spot (200.0 + 300.5 = 500.5) + Perps (500.0) = 1000.5
+        returnOnEquity: '0.0',
+        totalBalance: '1000.5',
       });
     });
 
@@ -850,7 +850,7 @@ describe('hyperLiquidAdapter', () => {
         marginUsed: '200.0',
         unrealizedPnl: '0',
         returnOnEquity: '0.0',
-        totalBalance: '1000', // Perps only (spot balances array is empty)
+        totalBalance: '1000',
       });
     });
 

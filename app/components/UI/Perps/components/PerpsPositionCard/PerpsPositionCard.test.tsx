@@ -1,14 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
+import { render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
   useFocusEffect: jest.fn(),
 }));
 
@@ -32,10 +29,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'perps.position.card.tpsl_count_single' && params?.count) {
       return `${params.count} order`;
     }
-    if (key === 'perps.market.long_lowercase') {
+    if (key === 'perps.market.long_lowercase' || key === 'perps.market.long') {
       return 'long';
     }
-    if (key === 'perps.market.short_lowercase') {
+    if (
+      key === 'perps.market.short_lowercase' ||
+      key === 'perps.market.short'
+    ) {
       return 'short';
     }
     return key;
@@ -172,10 +172,6 @@ jest.mock('../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip', () => ({
 }));
 
 describe('PerpsPositionCard', () => {
-  const mockNavigation = {
-    navigate: jest.fn(),
-  };
-
   const mockPosition: Position = {
     coin: 'ETH',
     size: '2.5',
@@ -211,7 +207,6 @@ describe('PerpsPositionCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     mockUseTheme.mockReturnValue(mockTheme);
     // Reset the PnL calculation mock to default value
     const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
@@ -264,44 +259,62 @@ describe('PerpsPositionCard', () => {
 
   describe('Component Rendering', () => {
     it('renders position card with all sections', () => {
-      // Act - Render expanded to show all sections
-      render(<PerpsPositionCard position={mockPosition} expanded />);
+      // Arrange
+      const currentPrice = 2000;
+
+      // Act
+      render(
+        <PerpsPositionCard
+          position={mockPosition}
+          currentPrice={currentPrice}
+        />,
+      );
 
       // Assert - Header section
-      expect(screen.getByText(/10x\s+long/)).toBeOnTheScreen();
-      expect(screen.getByText('2.5 ETH')).toBeOnTheScreen(); // Trailing zero removed
-      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
-      expect(screen.getByText('$5,000')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.HEADER),
+      ).toBeOnTheScreen();
 
-      // Assert - Body section - using string keys since strings() mock returns keys
+      // Assert - P&L section
       expect(
-        screen.getByText('perps.position.card.entry_price'),
-      ).toBeOnTheScreen();
-      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
-      expect(screen.getByText('$2,000')).toBeOnTheScreen();
-      expect(
-        screen.getByText('perps.position.card.funding_cost'),
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.PNL_CARD),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('perps.position.card.liquidation_price'),
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.PNL_VALUE),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('perps.position.card.take_profit'),
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.RETURN_CARD),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('perps.position.card.stop_loss'),
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.RETURN_VALUE),
       ).toBeOnTheScreen();
-      expect(screen.getByText('perps.position.card.margin')).toBeOnTheScreen();
-      // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 2 decimals for $100-$1k, trailing zeros removed
-      expect(screen.getByText('$500')).toBeOnTheScreen();
 
-      // Assert - Footer section
+      // Assert - Size/Margin row
       expect(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SIZE_CONTAINER),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SIZE_VALUE),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_VALUE),
+      ).toBeOnTheScreen();
+
+      // Assert - Auto-close section
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE),
+      ).toBeOnTheScreen();
+
+      // Assert - Details section
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.DETAILS_SECTION),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.DIRECTION_VALUE),
+      ).toHaveTextContent(/long\s+10x/);
     });
 
     it('renders SHORT position correctly', () => {
@@ -315,16 +328,29 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={shortPosition} />);
 
       // Assert
-      expect(screen.getByText('short')).toBeOnTheScreen();
-      expect(screen.getByText(/2\.5.*ETH/)).toBeOnTheScreen(); // Should show absolute value (trailing zero removed)
+      const directionValue = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.DIRECTION_VALUE,
+      );
+      expect(directionValue).toHaveTextContent(/short\s+10x/);
+      const sizeValue = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.SIZE_VALUE,
+      );
+      expect(sizeValue).toHaveTextContent(/2\.5.*ETH/); // Should show absolute value
     });
 
     it('renders with PnL data', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Assert - ROE is 12.5 * 100 = 1250%
-      expect(screen.getByText(/\+\$250\.00.*\+1250\.0%/)).toBeOnTheScreen();
+      // Assert
+      const pnlValue = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.PNL_VALUE,
+      );
+      expect(pnlValue).toHaveTextContent(/\+\$250\.00/);
+      const returnValue = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.RETURN_VALUE,
+      );
+      expect(returnValue).toHaveTextContent(/\+1250\.00%/); // ROE is 12.5 * 100 = 1250%
     });
 
     it('handles missing PnL percentage data', () => {
@@ -338,7 +364,10 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={positionWithoutROE} />);
 
       // Assert - Should show 0% when ROE is missing
-      expect(screen.getByText(/\+\$250\.00.*\+0\.0%/)).toBeOnTheScreen();
+      const returnValue = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.RETURN_VALUE,
+      );
+      expect(returnValue).toHaveTextContent(/\+0\.00%/);
     });
 
     it('handles missing liquidation price', () => {
@@ -356,134 +385,9 @@ describe('PerpsPositionCard', () => {
         screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
       ).toBeOnTheScreen();
     });
-
-    it('renders with icon when showIcon is true and not expanded', () => {
-      // Act - Render collapsed with showIcon
-      render(
-        <PerpsPositionCard position={mockPosition} expanded={false} showIcon />,
-      );
-
-      // Assert - PerpsTokenLogo should be rendered
-      expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
-    });
-
-    it('does not render icon when showIcon is false', () => {
-      // Act - Render collapsed without showIcon
-      render(
-        <PerpsPositionCard
-          position={mockPosition}
-          expanded={false}
-          showIcon={false}
-        />,
-      );
-
-      // Assert - PerpsTokenLogo should not be rendered
-      expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
-    });
-
-    it('does not render icon when expanded even if showIcon is true', () => {
-      // Act - Render expanded with showIcon (should not show icon)
-      render(<PerpsPositionCard position={mockPosition} expanded showIcon />);
-
-      // Assert - PerpsTokenLogo should not be rendered in expanded mode
-      expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('User Interactions', () => {
-    it('navigates to market details when card is pressed', () => {
-      // Act - render with expanded=false to make card clickable
-      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
-      fireEvent.press(screen.getByTestId('PerpsPositionCard'));
-
-      // Assert
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market: expect.any(Object),
-          initialTab: 'position',
-        },
-      });
-    });
-
-    it('opens close position bottom sheet when close button is pressed and user is eligible', () => {
-      // Arrange
-      const { useSelector } = jest.requireMock('react-redux');
-      const mockSelectPerpsEligibility = jest.requireMock(
-        '../../selectors/perpsController',
-      ).selectPerpsEligibility;
-      useSelector.mockImplementation((selector: unknown) => {
-        if (selector === mockSelectPerpsEligibility) {
-          return true;
-        }
-        return undefined;
-      });
-
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Verify bottom sheet is not visible initially
-      expect(screen.queryByText('perps.close_position.title')).toBeNull();
-
-      // Press close button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
-      );
-
-      // Assert - The bottom sheet should be rendered
-      // Note: The actual bottom sheet content might be mocked, so we check for its presence
-      expect(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
-      ).toBeDefined();
-    });
-
-    it('opens TP/SL bottom sheet when edit button is pressed and user is eligible', () => {
-      // Arrange
-      const { useSelector } = jest.requireMock('react-redux');
-      const mockSelectPerpsEligibility = jest.requireMock(
-        '../../selectors/perpsController',
-      ).selectPerpsEligibility;
-      useSelector.mockImplementation((selector: unknown) => {
-        if (selector === mockSelectPerpsEligibility) {
-          return true;
-        }
-        return undefined;
-      });
-
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Verify bottom sheet is not visible initially
-      expect(screen.queryByText('perps.tpsl.title')).toBeNull();
-
-      // Press edit button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Assert - The TP/SL bottom sheet should be opened
-      // Note: The actual bottom sheet content might be mocked, so we check for its presence
-      expect(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      ).toBeDefined();
-    });
   });
 
   describe('Data Formatting', () => {
-    it('formats leverage correctly', () => {
-      // Arrange
-      const highLeveragePosition = {
-        ...mockPosition,
-        leverage: { type: 'cross' as const, value: 100 },
-      };
-
-      // Act
-      render(<PerpsPositionCard position={highLeveragePosition} />);
-
-      // Assert
-      expect(screen.getByText(/100x\s+long/)).toBeOnTheScreen();
-    });
-
     it('formats position size correctly for different coin', () => {
       // Arrange
       const btcPosition = {
@@ -514,70 +418,7 @@ describe('PerpsPositionCard', () => {
     });
   });
 
-  describe('Position Direction Logic', () => {
-    it('correctly identifies LONG position', () => {
-      // Arrange
-      const longPosition = {
-        ...mockPosition,
-        size: '1.5',
-      };
-
-      // Act
-      render(<PerpsPositionCard position={longPosition} />);
-
-      // Assert
-      expect(screen.getByText('long')).toBeOnTheScreen();
-    });
-
-    it('correctly identifies SHORT position', () => {
-      // Arrange
-      const shortPosition = {
-        ...mockPosition,
-        size: '-1.5',
-      };
-
-      // Act
-      render(<PerpsPositionCard position={shortPosition} />);
-
-      // Assert
-      expect(screen.getByText('short')).toBeOnTheScreen();
-    });
-
-    it('handles zero position size as LONG', () => {
-      // Arrange
-      const zeroPosition = {
-        ...mockPosition,
-        size: '0',
-      };
-
-      // Act
-      render(<PerpsPositionCard position={zeroPosition} />);
-
-      // Assert
-      expect(screen.getByText('long')).toBeOnTheScreen(); // Zero is >= 0, so it's long
-    });
-  });
-
   describe('Edge Cases', () => {
-    it('handles missing price change data gracefully', () => {
-      // Arrange
-      const positionWithZeroPnl = {
-        ...mockPosition,
-        unrealizedPnl: '0.00',
-        returnOnEquity: '0',
-      };
-      const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
-        '../../utils/pnlCalculations',
-      );
-      calculatePnLPercentageFromUnrealized.mockReturnValueOnce(0);
-
-      // Act
-      render(<PerpsPositionCard position={positionWithZeroPnl} />);
-
-      // Assert - ROE is shown as 0.0% (not 0.00%)
-      expect(screen.getByText(/\$0\.00.*\+0\.0%/)).toBeOnTheScreen();
-    });
-
     it('handles position with empty liquidation price', () => {
       // Arrange
       const positionWithEmptyLiquidation = {
@@ -592,221 +433,6 @@ describe('PerpsPositionCard', () => {
       expect(
         screen.getByText(PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY),
       ).toBeOnTheScreen();
-    });
-
-    it('renders all body items in correct order', () => {
-      // Act - Render with expanded=true to show body items
-      render(<PerpsPositionCard position={mockPosition} expanded />);
-
-      // Assert - Check that all 6 body items are present
-      const bodyLabels = [
-        'perps.position.card.entry_price',
-        'perps.position.card.funding_cost',
-        'perps.position.card.liquidation_price',
-        'perps.position.card.take_profit',
-        'perps.position.card.stop_loss',
-        'perps.position.card.margin',
-      ];
-
-      bodyLabels.forEach((label) => {
-        expect(screen.getByText(label)).toBeOnTheScreen();
-      });
-    });
-  });
-
-  describe('Hook Integration', () => {
-    // Tests removed - loadPositions no longer exists with WebSocket streaming
-    // Positions update automatically via WebSocket subscriptions
-
-    it('returns early from handleCardPress when isLoading is true', () => {
-      // Arrange
-      const { usePerpsMarkets } = jest.requireMock('../../hooks');
-      usePerpsMarkets.mockReturnValue({
-        markets: [
-          {
-            name: 'ETH',
-            symbol: 'ETH',
-            priceDecimals: 2,
-            sizeDecimals: 4,
-            maxLeverage: 50,
-            minSize: 0.01,
-            sizeIncrement: 0.01,
-          },
-        ],
-        error: null,
-        isLoading: true, // Set loading to true
-      });
-
-      // Act
-      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
-      fireEvent.press(screen.getByTestId('PerpsPositionCard'));
-
-      // Assert - navigation should not be called
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
-    });
-
-    it('returns early from handleCardPress when error exists', () => {
-      // Arrange
-      const { usePerpsMarkets } = jest.requireMock('../../hooks');
-      usePerpsMarkets.mockReturnValue({
-        markets: [
-          {
-            name: 'ETH',
-            symbol: 'ETH',
-            priceDecimals: 2,
-            sizeDecimals: 4,
-            maxLeverage: 50,
-            minSize: 0.01,
-            sizeIncrement: 0.01,
-          },
-        ],
-        error: 'Failed to fetch markets',
-        isLoading: false,
-      });
-
-      // Act
-      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
-      fireEvent.press(screen.getByTestId('PerpsPositionCard'));
-
-      // Assert - navigation should not be called
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Bottom Sheet Interactions', () => {
-    it('navigates to TP/SL screen when edit button is pressed', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Open the TP/SL screen via navigation
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Assert - Should navigate to TP/SL screen
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        expect.stringContaining('TPSL'),
-        expect.objectContaining({
-          position: mockPosition,
-        }),
-      );
-    });
-
-    it('navigates to close position screen when close button is pressed', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Press the close button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
-      );
-
-      // Assert - should navigate to close position screen
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.CLOSE_POSITION,
-        { position: mockPosition },
-      );
-    });
-
-    it('does not show close button when card is collapsed', () => {
-      // Act
-      render(
-        <PerpsPositionCard position={mockPosition} expanded={false} showIcon />,
-      );
-
-      // Assert - close button should not be visible in collapsed view
-      expect(
-        screen.queryByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
-      ).toBeNull();
-    });
-
-    it('shows geo block modal when edit TP/SL button is pressed and user is not eligible', () => {
-      // Arrange
-      const { useSelector } = jest.requireMock('react-redux');
-      const mockSelectPerpsEligibility = jest.requireMock(
-        '../../selectors/perpsController',
-      ).selectPerpsEligibility;
-      useSelector.mockImplementation((selector: unknown) => {
-        if (selector === mockSelectPerpsEligibility) {
-          return false;
-        }
-        return undefined;
-      });
-
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Press edit button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Assert - Geo block tooltip should be shown
-      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
-      // Assert - Navigation should not be called
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
-    });
-
-    it('shows geo block modal when close position button is pressed and user is not eligible', () => {
-      // Arrange
-      const { useSelector } = jest.requireMock('react-redux');
-      const mockSelectPerpsEligibility = jest.requireMock(
-        '../../selectors/perpsController',
-      ).selectPerpsEligibility;
-      useSelector.mockImplementation((selector: unknown) => {
-        if (selector === mockSelectPerpsEligibility) {
-          return false;
-        }
-        return undefined;
-      });
-
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Press close button
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
-      );
-
-      // Assert - Geo block tooltip should be shown
-      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
-      // Assert - Close position bottom sheet should not be shown
-      expect(
-        screen.queryByTestId('perps-close-position-bottomsheet'),
-      ).toBeNull();
-    });
-
-    it('closes geo block modal when onClose is called', () => {
-      // Arrange
-      const { useSelector } = jest.requireMock('react-redux');
-      const mockSelectPerpsEligibility = jest.requireMock(
-        '../../selectors/perpsController',
-      ).selectPerpsEligibility;
-      useSelector.mockImplementation((selector: unknown) => {
-        if (selector === mockSelectPerpsEligibility) {
-          return false;
-        }
-        return undefined;
-      });
-
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Press edit button to show geo block modal
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Verify modal is shown
-      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
-
-      // Press the geo block tooltip to close it
-      fireEvent.press(
-        screen.getByTestId('perps-position-card-geo-block-tooltip'),
-      );
-
-      // Assert - Geo block tooltip should be closed
-      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
     });
   });
 
@@ -942,256 +568,16 @@ describe('PerpsPositionCard', () => {
     });
   });
 
-  describe('TP/SL Count Functionality', () => {
-    it('displays take profit count when multiple TP orders exist', () => {
-      const positionWithMultipleTP = {
-        ...mockPosition,
-        takeProfitCount: 3,
-        takeProfitPrice: undefined, // No single price when multiple orders
-        stopLossCount: 0,
-      };
+  describe('Share Button Functionality', () => {
+    it('does not render share button when onSharePress not provided', () => {
+      // Arrange & Act
+      render(<PerpsPositionCard position={mockPosition} />);
 
-      render(<PerpsPositionCard position={positionWithMultipleTP} />);
-
-      expect(screen.getByText('3 orders')).toBeOnTheScreen();
-    });
-
-    it('displays stop loss count when multiple SL orders exist', () => {
-      const positionWithMultipleSL = {
-        ...mockPosition,
-        takeProfitCount: 0,
-        stopLossCount: 2,
-        stopLossPrice: undefined, // No single price when multiple orders
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleSL} />);
-
-      expect(screen.getByText('2 orders')).toBeOnTheScreen();
-    });
-
-    it('displays single TP price when only one TP order exists with price', () => {
-      const positionWithSingleTP = {
-        ...mockPosition,
-        takeProfitCount: 1,
-        takeProfitPrice: '2500.00',
-        stopLossCount: 0,
-      };
-
-      render(<PerpsPositionCard position={positionWithSingleTP} />);
-
-      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
-      expect(screen.getByText('$2,500')).toBeOnTheScreen();
-      expect(screen.queryByText(/1.*orders/)).not.toBeOnTheScreen();
-    });
-
-    it('displays single SL price when only one SL order exists with price', () => {
-      const positionWithSingleSL = {
-        ...mockPosition,
-        takeProfitCount: 0,
-        stopLossCount: 1,
-        stopLossPrice: '1500.00',
-      };
-
-      render(<PerpsPositionCard position={positionWithSingleSL} />);
-
-      // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $1k-$10k, trailing zeros removed
-      expect(screen.getByText('$1,500')).toBeOnTheScreen();
-      expect(screen.queryByText(/1.*orders/)).not.toBeOnTheScreen();
-    });
-
-    it('displays single TP count when only one TP order exists without price', () => {
-      const positionWithSingleTPNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 1,
-        takeProfitPrice: undefined, // No price available
-        stopLossCount: 0,
-        stopLossPrice: undefined,
-      };
-
-      render(
-        <PerpsPositionCard position={positionWithSingleTPNoPrice} expanded />,
-      );
-
-      expect(screen.getByText('1 order')).toBeOnTheScreen();
-      // Should still show "Not Set" for stop loss since stopLossCount is 0
-      const notSetTexts = screen.getAllByText('perps.position.card.not_set');
-      expect(notSetTexts).toHaveLength(1); // Only for SL
-    });
-
-    it('displays single SL count when only one SL order exists without price', () => {
-      const positionWithSingleSLNoPrice = {
-        ...mockPosition,
-        takeProfitCount: 0,
-        takeProfitPrice: undefined,
-        stopLossCount: 1,
-        stopLossPrice: undefined, // No price available
-      };
-
-      render(
-        <PerpsPositionCard position={positionWithSingleSLNoPrice} expanded />,
-      );
-
-      expect(screen.getByText('1 order')).toBeOnTheScreen();
-      // Note: There should still be one "Not Set" for the TP field
-      const notSetTexts = screen.getAllByText('perps.position.card.not_set');
-      expect(notSetTexts).toHaveLength(1); // Only for TP
-    });
-
-    it('displays "Not Set" when no TP/SL orders exist', () => {
-      const positionWithoutTPSL = {
-        ...mockPosition,
-        takeProfitCount: 0,
-        stopLossCount: 0,
-        takeProfitPrice: undefined,
-        stopLossPrice: undefined,
-      };
-
-      render(<PerpsPositionCard position={positionWithoutTPSL} expanded />);
-
-      // Should show "Not Set" for both TP and SL
-      const notSetTexts = screen.getAllByText('perps.position.card.not_set');
-      expect(notSetTexts).toHaveLength(2); // One for TP, one for SL
-    });
-  });
-
-  describe('TP/SL Configuration Behavior', () => {
-    it('renders count as clickable when position bound TP/SL is enabled and count > 1', () => {
-      // Position bound TP/SL is always enabled in production (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL = true)
-
-      const positionWithMultipleTP = {
-        ...mockPosition,
-        takeProfitCount: 3,
-        takeProfitPrice: undefined,
-        stopLossCount: 0,
-      };
-
-      render(<PerpsPositionCard position={positionWithMultipleTP} />);
-
-      const tpCountText = screen.getByText('3 orders');
-      // TouchableOpacity should be pressable
-      expect(tpCountText).toBeTruthy();
-    });
-
-    it('handles navigation error gracefully when pressing TP/SL count', () => {
-      const { usePerpsMarkets } = jest.requireMock('../../hooks');
-      usePerpsMarkets.mockReturnValue({
-        markets: [],
-        error: 'Network error',
-        isLoading: false,
-      });
-
-      const mockOnTpslCountPress = jest.fn();
-      const positionWithMultipleTP = {
-        ...mockPosition,
-        takeProfitCount: 3,
-        takeProfitPrice: undefined,
-        stopLossCount: 0,
-      };
-
-      render(
-        <PerpsPositionCard
-          position={positionWithMultipleTP}
-          onTpslCountPress={mockOnTpslCountPress}
-        />,
-      );
-
-      const tpCountText = screen.getByText('3 orders');
-      fireEvent.press(tpCountText);
-
-      // Should not call onTpslCountPress due to error
-      expect(mockOnTpslCountPress).not.toHaveBeenCalled();
-    });
-
-    it('handles missing market data gracefully when pressing TP/SL count', () => {
-      const { usePerpsMarkets } = jest.requireMock('../../hooks');
-      usePerpsMarkets.mockReturnValue({
-        markets: [], // Empty markets array
-        error: null,
-        isLoading: false,
-      });
-
-      const mockOnTpslCountPress = jest.fn();
-      const positionWithMultipleSL = {
-        ...mockPosition,
-        takeProfitCount: 0,
-        stopLossCount: 2,
-        stopLossPrice: undefined,
-      };
-
-      render(
-        <PerpsPositionCard
-          position={positionWithMultipleSL}
-          onTpslCountPress={mockOnTpslCountPress}
-        />,
-      );
-
-      const slCountText = screen.getByText('2 orders');
-      fireEvent.press(slCountText);
-
-      // Should not call onTpslCountPress due to missing market data
-      expect(mockOnTpslCountPress).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('share button functionality', () => {
-    it('renders share button when expanded is true', () => {
-      render(<PerpsPositionCard position={mockPosition} expanded />);
-
-      const shareButton = screen.getByTestId(
-        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
-      );
-
-      expect(shareButton).toBeOnTheScreen();
-    });
-
-    it('does not render share button when expanded is false', () => {
-      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
-
+      // Assert
       const shareButton = screen.queryByTestId(
         PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
       );
-
       expect(shareButton).toBeNull();
-    });
-
-    it('navigates to PNL_HERO_CARD route when share button pressed', () => {
-      const mockNavigate = jest.fn();
-      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
-
-      render(<PerpsPositionCard position={mockPosition} expanded />);
-
-      const shareButton = screen.getByTestId(
-        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
-      );
-      fireEvent.press(shareButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.PNL_HERO_CARD,
-        expect.objectContaining({
-          position: mockPosition,
-          marketPrice: '2100.50',
-        }),
-      );
-    });
-
-    it('passes position and marketPrice to route params', () => {
-      const mockNavigate = jest.fn();
-      (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
-
-      render(<PerpsPositionCard position={mockPosition} expanded />);
-
-      const shareButton = screen.getByTestId(
-        PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
-      );
-      fireEvent.press(shareButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          position: mockPosition,
-          marketPrice: '2100.50', // Live price from usePerpsLivePrices, not market data
-        }),
-      );
     });
   });
 });

@@ -20,4 +20,5 @@ export interface UserState {
   existingUser: boolean;
   isConnectionRemoved: boolean;
   multichainAccountsIntroModalSeen: boolean;
+  musdConversionEducationSeen: boolean;
 }

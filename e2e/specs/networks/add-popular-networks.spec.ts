@@ -38,6 +38,7 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
             NetworkListModal.popularNetworksContainer,
           );
 
+          await NetworkListModal.scrollToBottomOfNetworkMultiSelector();
           await NetworkListModal.tapNetworkMenuButton('Arbitrum');
           await NetworkApprovalBottomSheet.tapApproveButton();
           await NetworkListModal.tapOnCustomTab();

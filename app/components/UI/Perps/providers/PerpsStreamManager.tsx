@@ -689,10 +689,20 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
     if (this.wsSubscription) return;
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrderFills({
-      callback: (fills: OrderFill[]) => {
-        // Append to existing fills (it's a time series)
-        const existing = this.cache.get('fills') || [];
-        const updated = [...existing, ...fills].slice(-100); // Keep last 100
+      callback: (fills: OrderFill[], isSnapshot?: boolean) => {
+        let updated: OrderFill[];
+        if (isSnapshot) {
+          // Snapshot: replace cache with initial historical data
+          // Sort by timestamp descending (newest first)
+          updated = [...fills]
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 100);
+        } else {
+          // Streaming: prepend new fills to existing (newest first)
+          const existing = this.cache.get('fills') || [];
+          // New fills go at the beginning since they're most recent
+          updated = [...fills, ...existing].slice(0, 100);
+        }
         this.cache.set('fills', updated);
         this.notifySubscribers(updated);
       },

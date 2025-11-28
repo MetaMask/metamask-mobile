@@ -20,12 +20,7 @@ import {
 } from '../../../util/activity';
 import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import {
-  selectChainId,
-  selectIsPopularNetwork,
-  selectProviderType,
-  selectSelectedNetworkClientId,
-} from '../../../selectors/networkController';
+import { selectProviderType } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -42,10 +37,6 @@ import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenRatesPolling from '../../hooks/AssetPolling/useTokenRatesPolling';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
@@ -63,7 +54,6 @@ const TransactionsView = ({
   networkType,
   currentCurrency,
   transactions,
-  chainId,
   tokens,
   tokenNetworkFilter,
 }) => {
@@ -71,7 +61,6 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
   const enabledNetworksByNamespace = useSelector(
@@ -85,162 +74,127 @@ const TransactionsView = ({
     selectedInternalAccount?.address,
   );
 
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const filterTransactions = useCallback(() => {
+    let accountAddedTimeInsertPointFound = false;
+    const addedAccountTime = selectedInternalAccount?.metadata.importTime;
 
-  const filterTransactions = useCallback(
-    (networkId) => {
-      let accountAddedTimeInsertPointFound = false;
-      const addedAccountTime = selectedInternalAccount?.metadata.importTime;
+    const submittedTxs = [];
+    const confirmedTxs = [];
+    const submittedNonces = [];
 
-      const submittedTxs = [];
-      const confirmedTxs = [];
-      const submittedNonces = [];
+    const allTransactionsSorted = sortTransactions(transactions).filter(
+      (tx, index, self) => self.findIndex((_tx) => _tx.id === tx.id) === index,
+    );
 
-      const allTransactionsSorted = sortTransactions(transactions).filter(
-        (tx, index, self) =>
-          self.findIndex((_tx) => _tx.id === tx.id) === index,
+    const allTransactions = allTransactionsSorted.filter((tx) => {
+      const filter = filterByAddressAndNetwork(
+        tx,
+        tokens,
+        selectedAddress,
+        tokenNetworkFilter,
+        allTransactionsSorted,
+        bridgeHistory,
       );
 
-      const allTransactions = allTransactionsSorted.filter((tx) => {
-        const filter = filterByAddressAndNetwork(
-          tx,
-          tokens,
-          selectedAddress,
-          tokenNetworkFilter,
-          allTransactionsSorted,
-          bridgeHistory,
-        );
+      if (!filter) return false;
 
-        if (!filter) return false;
+      const insertImportTime = addAccountTimeFlagFilter(
+        tx,
+        addedAccountTime,
+        accountAddedTimeInsertPointFound,
+      );
 
-        const insertImportTime = addAccountTimeFlagFilter(
-          tx,
-          addedAccountTime,
-          accountAddedTimeInsertPointFound,
-        );
+      // Create a new transaction object with the insertImportTime property
+      const updatedTx = {
+        ...tx,
+        insertImportTime,
+      };
 
-        // Create a new transaction object with the insertImportTime property
-        const updatedTx = {
-          ...tx,
-          insertImportTime,
-        };
+      if (updatedTx.insertImportTime) accountAddedTimeInsertPointFound = true;
 
-        if (updatedTx.insertImportTime) accountAddedTimeInsertPointFound = true;
+      switch (tx.status) {
+        case TX_SUBMITTED:
+        case TX_SIGNED:
+        case TX_UNAPPROVED:
+        case TX_PENDING:
+          submittedTxs.push(updatedTx);
+          return false;
+        case TX_CONFIRMED:
+          confirmedTxs.push(updatedTx);
+          break;
+      }
 
-        switch (tx.status) {
-          case TX_SUBMITTED:
-          case TX_SIGNED:
-          case TX_UNAPPROVED:
-          case TX_PENDING:
-            submittedTxs.push(updatedTx);
-            return false;
-          case TX_CONFIRMED:
-            confirmedTxs.push(updatedTx);
-            break;
+      return filter;
+    });
+
+    // TODO: Make sure to come back and check on how Solana transactions are handled
+    const allTransactionsFiltered = allTransactions.filter((tx) => {
+      const enabledChainIds = Object.entries(
+        enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155] ?? {},
+      )
+        .filter(([, enabled]) => enabled)
+        .map(([chainId]) => chainId);
+
+      return isTransactionOnChains(tx, enabledChainIds, allTransactionsSorted);
+    });
+
+    const submittedTxsFiltered = submittedTxs.filter(
+      ({ chainId, txParams }) => {
+        const { from, nonce } = txParams;
+
+        if (!areAddressesEqual(from, selectedAddress)) {
+          return false;
         }
 
-        return filter;
-      });
+        const nonceKey = `${chainId}-${nonce}`;
+        const alreadySubmitted = submittedNonces.includes(nonceKey);
+        const alreadyConfirmed = confirmedTxs.find(
+          (tx) =>
+            areAddressesEqual(tx.txParams.from, selectedAddress) &&
+            tx.chainId === chainId &&
+            tx.txParams.nonce === nonce,
+        );
 
-      let allTransactionsFiltered;
-      if (isRemoveGlobalNetworkSelectorEnabled()) {
-        // TODO: Make sure to come back and check on how Solana transactions are handled
-        allTransactionsFiltered = allTransactions.filter((tx) => {
-          const enabledChainIds = Object.entries(
-            enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155] ?? {},
-          )
-            .filter(([, enabled]) => enabled)
-            .map(([chainId]) => chainId);
+        if (alreadyConfirmed) {
+          return false;
+        }
 
-          return isTransactionOnChains(
-            tx,
-            enabledChainIds,
-            allTransactionsSorted,
-          );
-        });
-      } else {
-        allTransactionsFiltered = isPopularNetwork
-          ? allTransactions.filter((tx) => {
-              const popularChainIds = [
-                CHAIN_IDS.MAINNET,
-                CHAIN_IDS.LINEA_MAINNET,
-                ...PopularList.map((n) => n.chainId),
-              ];
-              return isTransactionOnChains(
-                tx,
-                popularChainIds,
-                allTransactions,
-              );
-            })
-          : allTransactions.filter((tx) =>
-              isTransactionOnChains(tx, [chainId], allTransactionsSorted),
-            );
-      }
+        submittedNonces.push(nonceKey);
+        return !alreadySubmitted;
+      },
+    );
 
-      const submittedTxsFiltered = submittedTxs.filter(
-        ({ chainId, txParams }) => {
-          const { from, nonce } = txParams;
+    // If the account added insert point is not found, add it to the last transaction
+    if (
+      !accountAddedTimeInsertPointFound &&
+      allTransactionsFiltered &&
+      allTransactionsFiltered.length
+    ) {
+      const lastIndex = allTransactionsFiltered.length - 1;
+      allTransactionsFiltered[lastIndex] = {
+        ...allTransactionsFiltered[lastIndex],
+        insertImportTime: true,
+      };
+    }
 
-          if (!areAddressesEqual(from, selectedAddress)) {
-            return false;
-          }
-
-          const nonceKey = `${chainId}-${nonce}`;
-          const alreadySubmitted = submittedNonces.includes(nonceKey);
-          const alreadyConfirmed = confirmedTxs.find(
-            (tx) =>
-              areAddressesEqual(tx.txParams.from, selectedAddress) &&
-              tx.chainId === chainId &&
-              tx.txParams.nonce === nonce,
-          );
-
-          if (alreadyConfirmed) {
-            return false;
-          }
-
-          submittedNonces.push(nonceKey);
-          return !alreadySubmitted;
-        },
-      );
-
-      // If the account added insert point is not found, add it to the last transaction
-      if (
-        !accountAddedTimeInsertPointFound &&
-        allTransactionsFiltered &&
-        allTransactionsFiltered.length
-      ) {
-        const lastIndex = allTransactionsFiltered.length - 1;
-        allTransactionsFiltered[lastIndex] = {
-          ...allTransactionsFiltered[lastIndex],
-          insertImportTime: true,
-        };
-      }
-
-      setAllTransactions(allTransactionsFiltered);
-      setSubmittedTxs(submittedTxsFiltered);
-      setConfirmedTxs(confirmedTxs);
-      setLoading(false);
-    },
-    [
-      transactions,
-      selectedInternalAccount,
-      selectedAddress,
-      tokens,
-      chainId,
-      tokenNetworkFilter,
-      isPopularNetwork,
-      enabledNetworksByNamespace,
-      bridgeHistory,
-    ],
-  );
+    setAllTransactions(allTransactionsFiltered);
+    setSubmittedTxs(submittedTxsFiltered);
+    setConfirmedTxs(confirmedTxs);
+    setLoading(false);
+  }, [
+    transactions,
+    selectedInternalAccount,
+    selectedAddress,
+    tokens,
+    tokenNetworkFilter,
+    enabledNetworksByNamespace,
+    bridgeHistory,
+  ]);
 
   useEffect(() => {
     setLoading(true);
-
-    if (selectedNetworkClientId) {
-      filterTransactions(selectedNetworkClientId);
-    }
-  }, [filterTransactions, selectedNetworkClientId]);
+    filterTransactions();
+  }, [filterTransactions]);
 
   return (
     <View style={styles.wrapper}>
@@ -289,17 +243,12 @@ TransactionsView.propTypes = {
    */
   tokens: PropTypes.array,
   /**
-   * Current chainId
-   */
-  chainId: PropTypes.string,
-  /**
    * Array of network tokens filter
    */
   tokenNetworkFilter: PropTypes.object,
 };
 
 const mapStateToProps = (state) => {
-  const chainId = selectChainId(state);
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectSortedTransactions(state);
 
@@ -325,13 +274,10 @@ const mapStateToProps = (state) => {
     selectedInternalAccount,
     transactions: allTransactions,
     networkType: selectProviderType(state),
-    chainId,
-    tokenNetworkFilter: isRemoveGlobalNetworkSelectorEnabled()
-      ? selectEVMEnabledNetworks(state).reduce(
-          (acc, network) => ({ ...acc, [network]: true }),
-          {},
-        )
-      : selectTokenNetworkFilter(state),
+    tokenNetworkFilter: selectEVMEnabledNetworks(state).reduce(
+      (acc, network) => ({ ...acc, [network]: true }),
+      {},
+    ),
   };
 };
 

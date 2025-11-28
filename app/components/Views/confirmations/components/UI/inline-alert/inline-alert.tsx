@@ -24,6 +24,8 @@ export interface InlineAlertProps {
   alertObj: Alert;
   /** Additional styles to apply to the inline alert */
   style?: ViewStyle;
+  /** Disable click interaction */
+  disabled?: boolean;
 }
 
 const getBackgroundColor = (severity: Severity, colors: ThemeColors) => {
@@ -48,16 +50,26 @@ const getTextColor = (severity: Severity) => {
   }
 };
 
-export default function InlineAlert({ alertObj, style }: InlineAlertProps) {
+export default function InlineAlert({
+  alertObj,
+  style,
+  disabled = false,
+}: InlineAlertProps) {
   const { showAlertModal, setAlertKey } = useAlerts();
   const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
 
   const handleInlineAlertClick = useCallback(() => {
-    if (!alertObj) return;
+    if (!alertObj || disabled) return;
     setAlertKey(alertObj.key);
     showAlertModal();
     trackInlineAlertClicked(alertObj.field);
-  }, [alertObj, setAlertKey, showAlertModal, trackInlineAlertClicked]);
+  }, [
+    alertObj,
+    disabled,
+    setAlertKey,
+    showAlertModal,
+    trackInlineAlertClicked,
+  ]);
 
   const severity = alertObj.severity ?? Severity.Info;
   const { colors } = useTheme();
@@ -75,6 +87,7 @@ export default function InlineAlert({ alertObj, style }: InlineAlertProps) {
         testID={AlertTypeIDs.INLINE_ALERT}
         onPress={handleInlineAlertClick}
         style={styles.inlineContainer}
+        disabled={disabled}
       >
         <Icon
           name={severity === Severity.Info ? IconName.Info : IconName.Danger}

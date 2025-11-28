@@ -439,8 +439,6 @@
     "privacy_mode_desc": "Situs web harus meminta akses untuk melihat informasi akun Anda.",
     "show_hex_data": "Tampilkan Data Hex",
     "show_hex_data_desc": "Pilih ini untuk menampilkan bidang data hex di layar kirim.",
-    "show_custom_nonce": "Sesuaikan nonce transaksi",
-    "custom_nonce_desc": "Aktifkan ini untuk mengubah nonce (nomor transaksi) di layar konfirmasi. Ini adalah fitur lanjutan, gunakan dengan hati-hati.",
     "accounts_identicon_title": "Identicon Akun",
     "accounts_identicon_desc": "Jazzicon dan Blocky adalah dua gaya berbeda ikon unik yang membantu Anda mengidentifikasi akun secara sekilas.",
     "jazzicons": "Jazzicon",
