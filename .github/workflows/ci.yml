@@ -225,7 +225,7 @@ jobs:
             echo "No changes detected"
           fi
   needs_e2e_build:
-    uses: ./.github/workflows/needs-e2e-build.yml          
+    uses: ./.github/workflows/needs-e2e-build.yml
   component-view-test:
     runs-on: ubuntu-latest
     steps:
@@ -277,7 +277,7 @@ jobs:
           post-comment: 'true'
 
   # Main E2E tests
-  
+
   build-android-apks:
     name: 'Build Android APKs'
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
@@ -383,8 +383,6 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
-        env:
-          NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
