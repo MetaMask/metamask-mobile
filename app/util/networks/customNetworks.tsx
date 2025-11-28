@@ -175,6 +175,19 @@ export const PopularList = [
       imageSource: require('../../images/monad-mainnet-logo.png'),
     },
   },
+  {
+    chainId: toHex('4326'),
+    nickname: 'MegaEth',
+    rpcUrl: `https://mainnet.megaeth.com/rpc`,
+    failoverRpcUrls: [],
+    ticker: 'ETH',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.megaeth.com',
+      imageUrl: 'MEGAETH',
+      imageSource: require('../../images/megaeth-mainnet-logo.png'),
+    },
+  },
 ];
 
 /**
