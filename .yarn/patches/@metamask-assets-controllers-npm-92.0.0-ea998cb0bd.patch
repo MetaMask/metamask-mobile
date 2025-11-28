@@ -1,3 +1,5 @@
+diff --git a/dist/token-prices-service/codefi-v2.cjs b/dist/token-prices-service/codefi-v2.cjs
+index ba0f0c1bcbf0f231549b1ca9d3be2d1137a0d732..fd4851471fa0c2f07efbb527a3eea55cbfbc4743 100644
 --- a/dist/token-prices-service/codefi-v2.cjs
 +++ b/dist/token-prices-service/codefi-v2.cjs
 @@ -220,43 +222,43 @@ exports.getNativeTokenAddress = getNativeTokenAddress;
