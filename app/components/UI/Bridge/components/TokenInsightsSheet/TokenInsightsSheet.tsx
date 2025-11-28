@@ -28,7 +28,7 @@ import {
   AlignItems as BoxAlignItems,
   FlexDirection as BoxFlexDirection,
 } from '../../../Box/box.types';
-import TokenIcon from '../../../Swaps/components/TokenIcon';
+import TokenIcon from '../../../../Base/TokenIcon';
 import { BridgeToken } from '../../types';
 import i18n, { strings } from '../../../../../../locales/i18n';
 import ClipboardManager from '../../../../../core/ClipboardManager';
