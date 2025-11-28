@@ -12,8 +12,8 @@ const styleSheet = (_params: { theme: Theme }) =>
       paddingBottom: 8,
     },
     iconContainer: {
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
     },
     leftContainer: {
       paddingLeft: 16,

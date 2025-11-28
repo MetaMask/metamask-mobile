@@ -74,7 +74,7 @@ const PredictMarketRowItem = ({
       testID={testID || `predict-market-row-item-${market.id}`}
     >
       <View style={styles.iconContainer}>
-        <Box twClassName="w-10 h-10 rounded-full bg-muted overflow-hidden items-center justify-center">
+        <Box twClassName="rounded-full bg-muted overflow-hidden items-center justify-center">
           {market.image ? (
             <Image
               source={{ uri: market.image }}
