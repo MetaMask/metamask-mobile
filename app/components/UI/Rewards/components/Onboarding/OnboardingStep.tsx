@@ -28,6 +28,7 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 interface OnboardingStepProps {
   // Progress indicator props
   currentStep: number;
+  showProgressIndicator?: boolean;
 
   // Navigation handlers
   onNext: () => void;
@@ -52,6 +53,7 @@ interface OnboardingStepProps {
 
 const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   currentStep,
+  showProgressIndicator = true,
   onNext,
   onPrevious,
   onSkip,
@@ -118,11 +120,13 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
           />
         </Box>
 
-        <ProgressIndicator
-          totalSteps={4}
-          currentStep={currentStep}
-          variant="bars"
-        />
+        {showProgressIndicator && (
+          <ProgressIndicator
+            totalSteps={4}
+            currentStep={currentStep}
+            variant="bars"
+          />
+        )}
       </Box>
       <Box twClassName="flex-col flex-1 justify-between items-center">
         {/* Only render image container if renderStepImage is provided */}
