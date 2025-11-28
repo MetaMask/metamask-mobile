@@ -2,13 +2,13 @@
 
 # MetaMask Mobile
 
-[![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml)
+[![CI](https://github.com/MetaMask/MetaMask-mobile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MetaMask/MetaMask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/MetaMask-mobile/actions/workflows/cla.yml/badge.svg?branch=main)](https://github.com/MetaMask/MetaMask-mobile/actions/workflows/cla.yml)
 
 MetaMask is a mobile wallet that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
-For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or [Medium](https://medium.com/metamask) pages.
+For up to the minute news, follow our [Twitter](https://twitter.com/MetaMask) or [Medium](https://medium.com/MetaMask) pages.
 
-To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
+To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.MetaMask.io).
 
 To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs](https://github.com/MetaMask/contributor-docs).
 
@@ -39,7 +39,7 @@ MetaMask Mobile requires an Infura project ID to connect to blockchain networks.
 
 #### External Contributors
 
-1. Go to [https://developer.metamask.io](https://developer.metamask.io) and create an account
+1. Go to [https://developer.MetaMask.io](https://developer.MetaMask.io) and create an account
 2. Generate an API key
 3. Add API key to `MM_INFURA_PROJECT_ID` in `.js.env.example`
 4. Rename `.js.env.example` to `.js.env`
@@ -60,8 +60,8 @@ Expo is the fastest way to start developing. With the Expo framework, developers
 #### Clone the project
 
 ```bash
-git clone git@github.com:MetaMask/metamask-mobile.git && \
-cd metamask-mobile
+git clone git@github.com:MetaMask/MetaMask-mobile.git && \
+cd MetaMask-mobile
 ```
 
 #### Install dependencies
@@ -118,8 +118,8 @@ Before running the app for native development, make sure your development enviro
 **Clone the project**
 
 ```bash
-git clone git@github.com:MetaMask/metamask-mobile.git && \
-cd metamask-mobile
+git clone git@github.com:MetaMask/MetaMask-mobile.git && \
+cd MetaMask-mobile
 ```
 
 ##### Firebase Messaging Setup
@@ -140,7 +140,7 @@ As an external contributor, you need to provide your own Firebase project config
 
 1. Create a Free Firebase Project
    - Set up a Firebase project in the Firebase Console.
-   - Configure the project with a client package name matching `io.metamask` (IMPORTANT).
+   - Configure the project with a client package name matching `io.MetaMask` (IMPORTANT).
 2. Add Configuration Files
    - Create/Update the `google-services.json` and `GoogleService-Info.plist` files in:
    - `android/app/google-services.json` (for Android)
@@ -157,7 +157,7 @@ export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleServi
 
 [!CAUTION]
 
-> In case you don't provide your own Firebase project config file or run the steps above, you will face the error `No matching client found for package name 'io.metamask'`.
+> In case you don't provide your own Firebase project config file or run the steps above, you will face the error `No matching client found for package name 'io.MetaMask'`.
 
 In case of any doubt, please follow the instructions in the link below to get your Firebase project config file.
 [Firebase Project Quickstart](https://firebaseopensource.com/projects/firebase/quickstart-js/messaging/readme/#getting_started)
