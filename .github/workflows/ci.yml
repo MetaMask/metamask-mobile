@@ -162,8 +162,6 @@ jobs:
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
-        env:
-          NODE_OPTIONS: --max_old_space_size=20480
       - name: Rename coverage report to include shard number
         shell: bash
         run: |
@@ -244,8 +242,6 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - run: yarn test:view --coverage=false --forceExit --silent
-        env:
-          NODE_OPTIONS: --max_old_space_size=20480
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
@@ -369,8 +365,6 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
-        env:
-          NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
@@ -557,13 +551,13 @@ jobs:
               echo "Android E2E tests failed (result: $ANDROID_RESULT)"
               exit 1
             fi
-            
+
             IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
             if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
               echo "iOS E2E tests failed (result: $IOS_RESULT)"
               exit 1
             fi
-            
+
             FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
             if [[ "$FLASK_RESULT" == "failure" ]] || [[ "$FLASK_RESULT" == "cancelled" ]]; then
               echo "Android Flask E2E tests failed (result: $FLASK_RESULT)"

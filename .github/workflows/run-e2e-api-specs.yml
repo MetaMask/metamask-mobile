@@ -50,8 +50,6 @@ jobs:
 
       - name: Install JavaScript dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -93,7 +91,7 @@ jobs:
         run: |
           echo "🚀 Setting up pre-built QA app for API specs..."
 
-          # Base URL for artifacts  
+          # Base URL for artifacts
           base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test5"
 
           # Create required directory
