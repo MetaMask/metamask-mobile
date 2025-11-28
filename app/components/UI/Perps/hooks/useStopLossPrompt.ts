@@ -132,6 +132,7 @@ export const useStopLossPrompt = ({
     if (!enabled || roePercent === null) {
       roeBelowThresholdSinceRef.current = null;
       setRoeDebounceComplete(false);
+      hasBeenShownRef.current = false; // Reset when position is closed
       return;
     }
 
