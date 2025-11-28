@@ -542,7 +542,7 @@
     "transactionData": {}
   },
   "ProfileMetricsController": {
-    "firstSyncCompleted": false,
+    "initialEnqueueCompleted": false,
     "syncQueue": {}
   },
   "UserStorageController": {
