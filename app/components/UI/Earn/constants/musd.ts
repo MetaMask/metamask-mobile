@@ -12,7 +12,6 @@ export const MUSD_TOKEN = {
   name: 'MUSD',
   decimals: 6,
   imageSource: MusdIcon,
-  assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
 } as const;
 
 export const MUSD_CONVERSION_DEFAULT_CHAIN_ID = CHAIN_IDS.MAINNET;
