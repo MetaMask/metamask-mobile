@@ -88,21 +88,20 @@ const OnboardingIntroStep: React.FC<{
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
-  useEffect(() => {
-    const fetchHasActiveSeason = async () => {
-      try {
-        const result = await Engine.controllerMessenger.call(
-          'RewardsController:hasActiveSeason',
-        );
-        setHasActiveSeason(result);
-      } catch {
-        setHasActiveSeason(false);
-      }
-    };
-    if (!subscriptionId) {
-      fetchHasActiveSeason();
+  const fetchHasActiveSeason = useCallback(async () => {
+    try {
+      const result = await Engine.controllerMessenger.call(
+        'RewardsController:hasActiveSeason',
+      );
+      setHasActiveSeason(result);
+    } catch {
+      setHasActiveSeason(false);
     }
-  }, [subscriptionId]);
+  }, []);
+
+  useEffect(() => {
+    fetchHasActiveSeason();
+  }, [fetchHasActiveSeason]);
 
   // Computed state
   const candidateSubscriptionIdLoading =

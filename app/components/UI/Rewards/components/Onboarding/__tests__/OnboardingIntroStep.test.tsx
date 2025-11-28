@@ -1,5 +1,9 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { renderWithProviders, createMockDispatch } from '../testUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../../constants/storage';
+import Engine from '../../../../../../core/Engine';
 // Mock tailwind preset to provide ThemeProvider and Theme.Light used by ButtonHero
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const ReactActual = jest.requireActual('react');
@@ -69,9 +73,6 @@ jest.mock('../OnboardingIntroStep', () => {
     });
   return { __esModule: true, default: Wrapper };
 });
-import { renderWithProviders, createMockDispatch } from '../testUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../../constants/storage';
 // Use the mocked component with no required props to avoid TS errors
 const OnboardingIntroStep = jest.requireMock('../OnboardingIntroStep')
   .default as unknown as React.ComponentType<Record<string, never>>;
@@ -166,10 +167,12 @@ jest.mock('../../../hooks/useGeoRewardsMetadata', () => ({
 // Tailwind mock is handled in test-utils.ts
 
 // Mock Engine controllerMessenger
-const mockControllerMessengerCall = jest.fn();
-jest.mock('../../../../../../core/Engine/Engine', () => ({
-  controllerMessenger: {
-    call: mockControllerMessengerCall,
+jest.mock('../../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    controllerMessenger: {
+      call: jest.fn(),
+    },
   },
 }));
 
@@ -207,6 +210,10 @@ jest.mock('../../../../../../store/storage-wrapper', () => ({
 }));
 
 describe('OnboardingIntroStep', () => {
+  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
+    typeof Engine.controllerMessenger.call
+  >;
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -219,10 +226,14 @@ describe('OnboardingIntroStep', () => {
     ).isHardwareAccount as jest.Mock;
     mockIsHardwareAccount.mockReturnValue(false);
 
-    // Reset controller messenger mock to default (returns true for isOptInSupported)
-    mockControllerMessengerCall.mockImplementation((method) => {
+    // Reset controller messenger mock to default (returns true for isOptInSupported and hasActiveSeason)
+    mockEngineCall.mockImplementation((...args: unknown[]) => {
+      const method = args[0] as string;
       if (method === 'RewardsController:isOptInSupported') {
         return true; // Default to true for supported account types
+      }
+      if (method === 'RewardsController:hasActiveSeason') {
+        return Promise.resolve(true); // Return Promise for async call
       }
       return undefined;
     });
@@ -278,37 +289,62 @@ describe('OnboardingIntroStep', () => {
   });
 
   describe('rendering', () => {
-    it('should render without crashing', () => {
+    it('should render without crashing', async () => {
       renderWithProviders(<OnboardingIntroStep />);
-      expect(screen.getByTestId('onboarding-intro-container')).toBeDefined();
+
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-intro-container')).toBeDefined();
+      });
     });
 
-    it('should render intro title and description', () => {
+    it('should render intro title and description', async () => {
+      // Ensure the mock returns Promise for hasActiveSeason
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const method = args[0] as string;
+        if (method === 'RewardsController:isOptInSupported') {
+          return true;
+        }
+        if (method === 'RewardsController:hasActiveSeason') {
+          return Promise.resolve(true);
+        }
+        return undefined;
+      });
+
       renderWithProviders(<OnboardingIntroStep />);
 
-      expect(
-        screen.getByText('mocked_rewards.onboarding.intro_title'),
-      ).toBeDefined();
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      await waitFor(() => {
+        expect(
+          screen.getByText('mocked_rewards.onboarding.intro_title'),
+        ).toBeDefined();
+      });
+
       expect(
         screen.getByText('mocked_rewards.onboarding.intro_description'),
       ).toBeDefined();
     });
 
-    it('should render confirm and skip buttons', () => {
+    it('should render confirm and skip buttons', async () => {
       renderWithProviders(<OnboardingIntroStep />);
 
-      expect(
-        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
-      ).toBeDefined();
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      await waitFor(() => {
+        expect(
+          screen.getByText('mocked_rewards.onboarding.intro_confirm'),
+        ).toBeDefined();
+      });
+
       expect(
         screen.getByText('mocked_rewards.onboarding.intro_skip'),
       ).toBeDefined();
     });
 
-    it('should render intro image', () => {
+    it('should render intro image', async () => {
       renderWithProviders(<OnboardingIntroStep />);
 
-      const introImage = screen.getByTestId('intro-image');
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const introImage = await waitFor(() => screen.getByTestId('intro-image'));
       expect(introImage).toBeDefined();
     });
   });
@@ -333,22 +369,24 @@ describe('OnboardingIntroStep', () => {
   });
 
   describe('user interactions', () => {
-    it('should handle skip button press', () => {
+    it('should handle skip button press', async () => {
       renderWithProviders(<OnboardingIntroStep />);
 
-      const skipButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_skip',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const skipButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_skip'),
       );
       fireEvent.press(skipButton);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle next button press when geo is allowed and account is valid', () => {
+    it('should handle next button press when geo is allowed and account is valid', async () => {
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -358,7 +396,7 @@ describe('OnboardingIntroStep', () => {
   });
 
   describe('loading states', () => {
-    it('should show loading state when checking geo permissions', () => {
+    it('should show loading state when checking geo permissions', async () => {
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
       mockUseSelector.mockImplementation((selector) => {
@@ -407,15 +445,16 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm_geo_loading',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm_geo_loading'),
       );
       expect(confirmButton).toBeDefined();
     });
   });
 
   describe('account validation', () => {
-    it('should show error modal for Solana accounts', () => {
+    it('should show error modal for Solana accounts', async () => {
       // Note: Solana accounts are now filtered out before reaching OnboardingIntroStep
       // by the account group selector. This test verifies behavior if a Solana account
       // somehow exists in the group (which shouldn't happen in practice).
@@ -478,8 +517,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -487,7 +527,7 @@ describe('OnboardingIntroStep', () => {
       expect(mockNavigate).toHaveBeenCalled();
     });
 
-    it('should show error modal for geo-restricted regions', () => {
+    it('should show error modal for geo-restricted regions', async () => {
       // Ensure hardware account check returns false so geo check is reached
       const mockIsHardwareAccount = jest.requireMock(
         '../../../../../../util/address',
@@ -543,8 +583,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -564,7 +605,7 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should show error modal when account group contains hardware wallet', () => {
+    it('should show error modal when account group contains hardware wallet', async () => {
       // Create account group with hardware wallet account
       const hardwareAccountGroup = createMockAccountGroupAccounts([
         { id: 'test-hardware-account', address: '0x123', type: 'eip155:eoa' },
@@ -625,8 +666,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -647,7 +689,7 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should proceed to onboarding when account group has no hardware wallet', () => {
+    it('should proceed to onboarding when account group has no hardware wallet', async () => {
       // Reset all mocks
       jest.clearAllMocks();
 
@@ -662,10 +704,14 @@ describe('OnboardingIntroStep', () => {
       ).isHardwareAccount as jest.Mock;
       mockIsHardwareAccount.mockReturnValue(false);
 
-      // Mock controller messenger to return true for isOptInSupported
-      mockControllerMessengerCall.mockImplementation((method) => {
+      // Mock controller messenger to return true for isOptInSupported and hasActiveSeason
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const method = args[0] as string;
         if (method === 'RewardsController:isOptInSupported') {
           return true;
+        }
+        if (method === 'RewardsController:hasActiveSeason') {
+          return Promise.resolve(true);
         }
         return undefined;
       });
@@ -719,8 +765,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -728,7 +775,7 @@ describe('OnboardingIntroStep', () => {
       expect(mockNavigate).toHaveBeenCalled();
     });
 
-    it('should show error modal when no account in group is supported for opt-in', () => {
+    it('should show error modal when no account in group is supported for opt-in', async () => {
       // Create account group with unsupported account type
       const unsupportedAccountGroup = createMockAccountGroupAccounts([
         {
@@ -739,12 +786,17 @@ describe('OnboardingIntroStep', () => {
       ]);
 
       // Mock isOptInSupported to return false for all accounts in this group
-      mockControllerMessengerCall.mockImplementation((method, account) => {
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const method = args[0] as string;
+        const account = args[1] as { type?: string } | undefined;
         if (
           method === 'RewardsController:isOptInSupported' &&
           account?.type === 'unsupported:type'
         ) {
           return false;
+        }
+        if (method === 'RewardsController:hasActiveSeason') {
+          return Promise.resolve(true);
         }
         return true;
       });
@@ -804,8 +856,9 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
       fireEvent.press(confirmButton);
 
@@ -825,7 +878,7 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should proceed to onboarding when account group has at least one supported account', () => {
+    it('should proceed to onboarding when account group has at least one supported account', async () => {
       // Reset all mocks
       jest.clearAllMocks();
 
@@ -840,10 +893,14 @@ describe('OnboardingIntroStep', () => {
       ).isHardwareAccount as jest.Mock;
       mockIsHardwareAccount.mockReturnValue(false);
 
-      // Mock isOptInSupported to return true
-      mockControllerMessengerCall.mockImplementation((method) => {
+      // Mock isOptInSupported and hasActiveSeason to return true
+      mockEngineCall.mockImplementation((...args: unknown[]) => {
+        const method = args[0] as string;
         if (method === 'RewardsController:isOptInSupported') {
           return true;
+        }
+        if (method === 'RewardsController:hasActiveSeason') {
+          return Promise.resolve(true);
         }
         return undefined;
       });
@@ -900,9 +957,10 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
+      // Wait for the async state update from fetchHasActiveSeason to complete
       // Verify the button is rendered
-      const confirmButton = screen.getByText(
-        'mocked_rewards.onboarding.intro_confirm',
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
       );
 
       // Press the button
