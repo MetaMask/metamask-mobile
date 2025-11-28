@@ -14,14 +14,26 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 16,
+      paddingHorizontal: 16,
+    },
+    listContainer: {
+      gap: 1,
       paddingHorizontal: 16,
     },
     activityItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
+      padding: 12,
+      backgroundColor: colors.background.section,
+    },
+    activityItemFirst: {
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+    },
+    activityItemLast: {
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
     leftSection: {
       flexDirection: 'row',
