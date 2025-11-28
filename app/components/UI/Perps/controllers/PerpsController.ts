@@ -1519,19 +1519,37 @@ export class PerpsController extends BaseController<
             ? PerpsEventValues.DIRECTION.LONG
             : PerpsEventValues.DIRECTION.SHORT,
           [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-          [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-          [PerpsEventProperties.ORDER_SIZE]: result.filledSize || params.size,
-          [PerpsEventProperties.ASSET_PRICE]:
-            result.averagePrice || params.trackingData?.marketPrice,
-          [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
-          [PerpsEventProperties.METAMASK_FEE]: params.trackingData?.metamaskFee,
-          [PerpsEventProperties.METAMASK_FEE_RATE]:
-            params.trackingData?.metamaskFeeRate,
-          [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-            params.trackingData?.feeDiscountPercentage,
-          [PerpsEventProperties.ESTIMATED_REWARDS]:
-            params.trackingData?.estimatedPoints,
+          [PerpsEventProperties.LEVERAGE]: parseFloat(
+            String(params.leverage || 1),
+          ),
+          [PerpsEventProperties.ORDER_SIZE]: parseFloat(
+            result.filledSize || params.size,
+          ),
           [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
+          ...(params.trackingData?.marginUsed != null && {
+            [PerpsEventProperties.MARGIN_USED]: params.trackingData.marginUsed,
+          }),
+          ...(params.trackingData?.metamaskFee != null && {
+            [PerpsEventProperties.METAMASK_FEE]:
+              params.trackingData.metamaskFee,
+          }),
+          ...(params.trackingData?.metamaskFeeRate != null && {
+            [PerpsEventProperties.METAMASK_FEE_RATE]:
+              params.trackingData.metamaskFeeRate,
+          }),
+          ...(params.trackingData?.feeDiscountPercentage != null && {
+            [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+              params.trackingData.feeDiscountPercentage,
+          }),
+          ...(params.trackingData?.estimatedPoints != null && {
+            [PerpsEventProperties.ESTIMATED_REWARDS]:
+              params.trackingData.estimatedPoints,
+          }),
+          ...((result.averagePrice || params.trackingData?.marketPrice) && {
+            [PerpsEventProperties.ASSET_PRICE]: result.averagePrice
+              ? parseFloat(result.averagePrice)
+              : params.trackingData?.marketPrice,
+          }),
           // Add TP/SL if set (for new orders)
           ...(params.takeProfitPrice && {
             [PerpsEventProperties.TAKE_PROFIT_PRICE]: parseFloat(
@@ -1582,18 +1600,28 @@ export class PerpsController extends BaseController<
                 ? PerpsEventValues.DIRECTION.LONG
                 : PerpsEventValues.DIRECTION.SHORT,
               [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-              [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-              [PerpsEventProperties.ORDER_SIZE]: params.size,
-              [PerpsEventProperties.MARGIN_USED]:
-                params.trackingData?.marginUsed,
-              [PerpsEventProperties.LIMIT_PRICE]:
-                params.orderType === 'limit' ? params.price : null,
-              [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
-              [PerpsEventProperties.ASSET_PRICE]:
-                params.trackingData?.marketPrice,
+              [PerpsEventProperties.LEVERAGE]: parseFloat(
+                String(params.leverage || 1),
+              ),
+              [PerpsEventProperties.ORDER_SIZE]: parseFloat(params.size),
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               [PerpsEventProperties.ERROR_MESSAGE]:
                 result.error || 'Unknown error',
+              ...(params.trackingData?.marginUsed != null && {
+                [PerpsEventProperties.MARGIN_USED]:
+                  params.trackingData.marginUsed,
+              }),
+              ...(params.trackingData?.totalFee != null && {
+                [PerpsEventProperties.FEES]: params.trackingData.totalFee,
+              }),
+              ...(params.trackingData?.marketPrice != null && {
+                [PerpsEventProperties.ASSET_PRICE]:
+                  params.trackingData.marketPrice,
+              }),
+              ...(params.orderType === 'limit' &&
+                params.price && {
+                  [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
+                }),
             })
             .build(),
         );
@@ -1623,17 +1651,28 @@ export class PerpsController extends BaseController<
               ? PerpsEventValues.DIRECTION.LONG
               : PerpsEventValues.DIRECTION.SHORT,
             [PerpsEventProperties.ORDER_TYPE]: params.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.size,
-            [PerpsEventProperties.MARGIN_USED]: params.trackingData?.marginUsed,
-            [PerpsEventProperties.LIMIT_PRICE]:
-              params.orderType === 'limit' ? params.price : null,
-            [PerpsEventProperties.FEES]: params.trackingData?.totalFee,
-            [PerpsEventProperties.ASSET_PRICE]:
-              params.trackingData?.marketPrice,
+            [PerpsEventProperties.LEVERAGE]: parseFloat(
+              String(params.leverage || 1),
+            ),
+            [PerpsEventProperties.ORDER_SIZE]: parseFloat(params.size),
             [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
             [PerpsEventProperties.ERROR_MESSAGE]:
               error instanceof Error ? error.message : 'Unknown error',
+            ...(params.trackingData?.marginUsed != null && {
+              [PerpsEventProperties.MARGIN_USED]:
+                params.trackingData.marginUsed,
+            }),
+            ...(params.trackingData?.totalFee != null && {
+              [PerpsEventProperties.FEES]: params.trackingData.totalFee,
+            }),
+            ...(params.trackingData?.marketPrice != null && {
+              [PerpsEventProperties.ASSET_PRICE]:
+                params.trackingData.marketPrice,
+            }),
+            ...(params.orderType === 'limit' &&
+              params.price && {
+                [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
+              }),
           })
           .build(),
       );
@@ -1717,8 +1756,12 @@ export class PerpsController extends BaseController<
                 ? PerpsEventValues.DIRECTION.LONG
                 : PerpsEventValues.DIRECTION.SHORT,
               [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
-              [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
-              [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+              [PerpsEventProperties.LEVERAGE]: parseFloat(
+                String(params.newOrder.leverage || 1),
+              ),
+              [PerpsEventProperties.ORDER_SIZE]: parseFloat(
+                params.newOrder.size,
+              ),
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               ...(params.newOrder.price && {
                 [PerpsEventProperties.LIMIT_PRICE]: parseFloat(
@@ -1743,8 +1786,12 @@ export class PerpsController extends BaseController<
                 ? PerpsEventValues.DIRECTION.LONG
                 : PerpsEventValues.DIRECTION.SHORT,
               [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
-              [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
-              [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+              [PerpsEventProperties.LEVERAGE]: parseFloat(
+                String(params.newOrder.leverage || 1),
+              ),
+              [PerpsEventProperties.ORDER_SIZE]: parseFloat(
+                params.newOrder.size,
+              ),
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               [PerpsEventProperties.ERROR_MESSAGE]:
                 result.error || 'Unknown error',
@@ -1771,8 +1818,10 @@ export class PerpsController extends BaseController<
               ? PerpsEventValues.DIRECTION.LONG
               : PerpsEventValues.DIRECTION.SHORT,
             [PerpsEventProperties.ORDER_TYPE]: params.newOrder.orderType,
-            [PerpsEventProperties.LEVERAGE]: params.newOrder.leverage || 1,
-            [PerpsEventProperties.ORDER_SIZE]: params.newOrder.size,
+            [PerpsEventProperties.LEVERAGE]: parseFloat(
+              String(params.newOrder.leverage || 1),
+            ),
+            [PerpsEventProperties.ORDER_SIZE]: parseFloat(params.newOrder.size),
             [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
             [PerpsEventProperties.ERROR_MESSAGE]:
               error instanceof Error ? error.message : 'Unknown error',
@@ -2190,34 +2239,53 @@ export class PerpsController extends BaseController<
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               [PerpsEventProperties.PERCENTAGE_CLOSED]: closePercentage,
               [PerpsEventProperties.CLOSE_TYPE]: closeType,
-              // Add missing properties per specification
               [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
                 parseFloat(position.size),
               ),
               [PerpsEventProperties.ORDER_SIZE]: params.size
                 ? parseFloat(params.size)
                 : Math.abs(parseFloat(position.size)),
-              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
-                ? parseFloat(position.unrealizedPnl)
-                : null,
-              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
-                ? parseFloat(position.returnOnEquity) * 100
-                : null,
-              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
-              [PerpsEventProperties.METAMASK_FEE]:
-                params.trackingData?.metamaskFee || null,
-              [PerpsEventProperties.METAMASK_FEE_RATE]:
-                params.trackingData?.metamaskFeeRate || null,
-              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-                params.trackingData?.feeDiscountPercentage || null,
-              [PerpsEventProperties.ESTIMATED_REWARDS]:
-                params.trackingData?.estimatedPoints || null,
-              [PerpsEventProperties.ASSET_PRICE]:
-                params.trackingData?.marketPrice || result.averagePrice || null,
-              [PerpsEventProperties.LIMIT_PRICE]:
-                params.orderType === 'limit' ? params.price : null,
-              [PerpsEventProperties.RECEIVED_AMOUNT]:
-                params.trackingData?.receivedAmount || null,
+              ...(position.unrealizedPnl && {
+                [PerpsEventProperties.PNL_DOLLAR]: parseFloat(
+                  position.unrealizedPnl,
+                ),
+              }),
+              ...(position.returnOnEquity && {
+                [PerpsEventProperties.PNL_PERCENT]:
+                  parseFloat(position.returnOnEquity) * 100,
+              }),
+              ...(params.trackingData?.totalFee != null && {
+                [PerpsEventProperties.FEE]: params.trackingData.totalFee,
+              }),
+              ...(params.trackingData?.metamaskFee != null && {
+                [PerpsEventProperties.METAMASK_FEE]:
+                  params.trackingData.metamaskFee,
+              }),
+              ...(params.trackingData?.metamaskFeeRate != null && {
+                [PerpsEventProperties.METAMASK_FEE_RATE]:
+                  params.trackingData.metamaskFeeRate,
+              }),
+              ...(params.trackingData?.feeDiscountPercentage != null && {
+                [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+                  params.trackingData.feeDiscountPercentage,
+              }),
+              ...(params.trackingData?.estimatedPoints != null && {
+                [PerpsEventProperties.ESTIMATED_REWARDS]:
+                  params.trackingData.estimatedPoints,
+              }),
+              ...((params.trackingData?.marketPrice || result.averagePrice) && {
+                [PerpsEventProperties.ASSET_PRICE]: result.averagePrice
+                  ? parseFloat(result.averagePrice)
+                  : params.trackingData?.marketPrice,
+              }),
+              ...(params.orderType === 'limit' &&
+                params.price && {
+                  [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
+                }),
+              ...(params.trackingData?.receivedAmount != null && {
+                [PerpsEventProperties.RECEIVED_AMOUNT]:
+                  params.trackingData.receivedAmount,
+              }),
             })
             .build(),
         );
@@ -2240,12 +2308,12 @@ export class PerpsController extends BaseController<
               [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
-              [PerpsEventProperties.ORDER_SIZE]:
-                params.size || Math.abs(parseFloat(position.size)),
+              [PerpsEventProperties.ORDER_SIZE]: params.size
+                ? parseFloat(params.size)
+                : Math.abs(parseFloat(position.size)),
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               [PerpsEventProperties.ERROR_MESSAGE]:
                 result.error || 'Unknown error',
-              // Add missing properties per specification
               [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
                 parseFloat(position.size),
               ),
@@ -2256,27 +2324,47 @@ export class PerpsController extends BaseController<
                     Math.abs(parseFloat(position.size))) *
                   100
                 : 100,
-              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
-                ? parseFloat(position.unrealizedPnl)
-                : null,
-              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
-                ? parseFloat(position.returnOnEquity) * 100
-                : null,
-              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
-              [PerpsEventProperties.METAMASK_FEE]:
-                params.trackingData?.metamaskFee || null,
-              [PerpsEventProperties.METAMASK_FEE_RATE]:
-                params.trackingData?.metamaskFeeRate || null,
-              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-                params.trackingData?.feeDiscountPercentage || null,
-              [PerpsEventProperties.ESTIMATED_REWARDS]:
-                params.trackingData?.estimatedPoints || null,
-              [PerpsEventProperties.ASSET_PRICE]:
-                params.trackingData?.marketPrice || result.averagePrice || null,
-              [PerpsEventProperties.LIMIT_PRICE]:
-                params.orderType === 'limit' ? params.price : null,
-              [PerpsEventProperties.RECEIVED_AMOUNT]:
-                params.trackingData?.receivedAmount || null,
+              ...(position.unrealizedPnl && {
+                [PerpsEventProperties.PNL_DOLLAR]: parseFloat(
+                  position.unrealizedPnl,
+                ),
+              }),
+              ...(position.returnOnEquity && {
+                [PerpsEventProperties.PNL_PERCENT]:
+                  parseFloat(position.returnOnEquity) * 100,
+              }),
+              ...(params.trackingData?.totalFee != null && {
+                [PerpsEventProperties.FEE]: params.trackingData.totalFee,
+              }),
+              ...(params.trackingData?.metamaskFee != null && {
+                [PerpsEventProperties.METAMASK_FEE]:
+                  params.trackingData.metamaskFee,
+              }),
+              ...(params.trackingData?.metamaskFeeRate != null && {
+                [PerpsEventProperties.METAMASK_FEE_RATE]:
+                  params.trackingData.metamaskFeeRate,
+              }),
+              ...(params.trackingData?.feeDiscountPercentage != null && {
+                [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+                  params.trackingData.feeDiscountPercentage,
+              }),
+              ...(params.trackingData?.estimatedPoints != null && {
+                [PerpsEventProperties.ESTIMATED_REWARDS]:
+                  params.trackingData.estimatedPoints,
+              }),
+              ...((params.trackingData?.marketPrice || result.averagePrice) && {
+                [PerpsEventProperties.ASSET_PRICE]: result.averagePrice
+                  ? parseFloat(result.averagePrice)
+                  : params.trackingData?.marketPrice,
+              }),
+              ...(params.orderType === 'limit' &&
+                params.price && {
+                  [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
+                }),
+              ...(params.trackingData?.receivedAmount != null && {
+                [PerpsEventProperties.RECEIVED_AMOUNT]:
+                  params.trackingData.receivedAmount,
+              }),
             })
             .build(),
         );
@@ -2306,12 +2394,12 @@ export class PerpsController extends BaseController<
               [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
-              [PerpsEventProperties.ORDER_SIZE]:
-                params.size || Math.abs(parseFloat(position.size)),
+              [PerpsEventProperties.ORDER_SIZE]: params.size
+                ? parseFloat(params.size)
+                : Math.abs(parseFloat(position.size)),
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               [PerpsEventProperties.ERROR_MESSAGE]:
                 error instanceof Error ? error.message : 'Unknown error',
-              // Add missing properties per specification
               [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
                 parseFloat(position.size),
               ),
@@ -2322,19 +2410,30 @@ export class PerpsController extends BaseController<
                     Math.abs(parseFloat(position.size))) *
                   100
                 : 100,
-              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
-                ? parseFloat(position.unrealizedPnl)
-                : null,
-              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
-                ? parseFloat(position.returnOnEquity) * 100
-                : null,
-              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
-              [PerpsEventProperties.ASSET_PRICE]:
-                params.trackingData?.marketPrice || null,
-              [PerpsEventProperties.LIMIT_PRICE]:
-                params.orderType === 'limit' ? params.price : null,
-              [PerpsEventProperties.RECEIVED_AMOUNT]:
-                params.trackingData?.receivedAmount || null,
+              ...(position.unrealizedPnl && {
+                [PerpsEventProperties.PNL_DOLLAR]: parseFloat(
+                  position.unrealizedPnl,
+                ),
+              }),
+              ...(position.returnOnEquity && {
+                [PerpsEventProperties.PNL_PERCENT]:
+                  parseFloat(position.returnOnEquity) * 100,
+              }),
+              ...(params.trackingData?.totalFee != null && {
+                [PerpsEventProperties.FEE]: params.trackingData.totalFee,
+              }),
+              ...(params.trackingData?.marketPrice != null && {
+                [PerpsEventProperties.ASSET_PRICE]:
+                  params.trackingData.marketPrice,
+              }),
+              ...(params.orderType === 'limit' &&
+                params.price && {
+                  [PerpsEventProperties.LIMIT_PRICE]: parseFloat(params.price),
+                }),
+              ...(params.trackingData?.receivedAmount != null && {
+                [PerpsEventProperties.RECEIVED_AMOUNT]:
+                  params.trackingData.receivedAmount,
+              }),
             })
             .build(),
         );
@@ -2675,6 +2774,7 @@ export class PerpsController extends BaseController<
           networkClientId,
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
+          skipInitialGasEstimate: true,
         });
 
       // Store the transaction ID and try to get amount from transaction
@@ -3028,7 +3128,9 @@ export class PerpsController extends BaseController<
           )
             .addProperties({
               [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
-              [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+              [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(
+                params.amount,
+              ),
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
             })
             .build(),
@@ -3094,7 +3196,7 @@ export class PerpsController extends BaseController<
         )
           .addProperties({
             [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: params.amount,
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(params.amount),
             [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
             [PerpsEventProperties.ERROR_MESSAGE]:
               result.error || 'Unknown error',

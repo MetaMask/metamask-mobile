@@ -79,7 +79,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       const parsed = outcomePrices;
       if (Array.isArray(parsed) && parsed.length > 0) {
         const firstValue = parsed[0];
-        return formatPercentage(firstValue * 100);
+        return formatPercentage(firstValue * 100, { truncate: true });
       }
     } catch (error) {
       DevLogger.log('PredictMarketMultiple: Failed to parse outcomePrices', {

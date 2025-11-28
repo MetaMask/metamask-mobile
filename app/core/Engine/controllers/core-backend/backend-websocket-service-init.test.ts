@@ -43,10 +43,6 @@ describe('backendWebSocketServiceInit', () => {
     expect(BackendWebSocketService).toHaveBeenCalledWith(
       expect.objectContaining({
         url: 'wss://gateway.api.cx.metamask.io/v1',
-        timeout: 15000,
-        reconnectDelay: 1000,
-        maxReconnectDelay: 30000,
-        requestTimeout: 20000,
       }),
     );
     expect(result.controller).toBeDefined();
