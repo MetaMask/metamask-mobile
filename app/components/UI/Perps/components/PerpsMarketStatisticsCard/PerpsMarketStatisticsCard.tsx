@@ -26,6 +26,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
+import Tag from '../../../../../component-library/components/Tags/Tag';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -33,6 +34,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   onTooltipPress,
   nextFundingTime,
   fundingIntervalHours,
+  dexName,
   onOrderBookPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -113,11 +115,12 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Header with title */}
+      {/* Header with title with DEX badge */}
       <View style={styles.header}>
         <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
           {strings('perps.market.stats')}
         </Text>
+        {dexName && <Tag label={dexName.toUpperCase()} style={styles.dexTag} />}
       </View>
 
       {/* Stats rows with card background */}
