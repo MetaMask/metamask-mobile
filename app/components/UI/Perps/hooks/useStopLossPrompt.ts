@@ -44,7 +44,7 @@ export interface UseStopLossPromptResult {
  *
  * Implements the logic from TASK_AUTOSET.md:
  * - Shows "add_margin" variant when within 3% of liquidation
- * - Shows "stop_loss" variant when ROE <= -20% for 60s (debounced)
+ * - Shows "stop_loss" variant when ROE <= -10% for 60s (debounced)
  * - Suppresses when position has cross margin or existing stop loss
  *
  * @example
