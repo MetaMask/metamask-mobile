@@ -9,18 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.59.1]
 
-### Uncategorized
-
-- update changelog for 7.59.1 (hotfix - no test plan)
-- updated changelog
-- update changelog for 7.59.1 (hotfix - no test plan)
-- update changelog for 7.59.1 (hotfix - no test plan)
-- bump semvar version to 7.59.1 && build version to 3146
-- updated changelog
-- update changelog for 7.59.1 (hotfix - no test plan)
-- update changelog for 7.59.1 (hotfix - no test plan)
-- bump semvar version to 7.59.1 && build version to 3146
-
 ### Fixed
 
 - fix: cp-7.59.1 cp-7.60.0 add mon to the currency list ([#23269](https://github.com/MetaMask/metamask-mobile/pull/23269)
