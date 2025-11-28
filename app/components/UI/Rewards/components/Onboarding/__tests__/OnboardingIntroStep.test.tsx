@@ -252,6 +252,7 @@ describe('OnboardingIntroStep', () => {
         rewards: {
           optinAllowedForGeo: true,
           optinAllowedForGeoLoading: false,
+          optinAllowedForGeoError: false,
           onboardingActiveStep: 'intro',
           candidateSubscriptionId: null,
           rewardsControllerState: {
@@ -542,6 +543,7 @@ describe('OnboardingIntroStep', () => {
           rewards: {
             optinAllowedForGeo: false,
             optinAllowedForGeoLoading: false,
+            optinAllowedForGeoError: false,
             onboardingActiveStep: 'intro',
             candidateSubscriptionId: null,
             rewardsControllerState: {
@@ -603,6 +605,106 @@ describe('OnboardingIntroStep', () => {
           },
         },
       );
+    });
+
+    it('should show retry error modal when geo check fails with error', async () => {
+      // Mock fetchGeoRewardsMetadata function
+      const mockFetchGeoRewardsMetadata = jest.fn();
+      const mockUseGeoRewardsMetadata = jest.requireMock(
+        '../../../hooks/useGeoRewardsMetadata',
+      ).useGeoRewardsMetadata as jest.Mock;
+      mockUseGeoRewardsMetadata.mockReturnValue({
+        fetchGeoRewardsMetadata: mockFetchGeoRewardsMetadata,
+      });
+
+      // Ensure hardware account check returns false so geo check is reached
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(false);
+
+      const mockSelectorWithGeoError = jest.fn((selector) => {
+        if (selector === selectSelectedAccountGroupInternalAccounts) {
+          return defaultAccountGroupAccounts;
+        }
+        const state = {
+          rewards: {
+            optinAllowedForGeo: false, // Geo not allowed
+            optinAllowedForGeoLoading: false, // Not loading
+            optinAllowedForGeoError: true, // Error occurred
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null, // No subscription
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorGeoError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorGeoError.mockImplementation(mockSelectorWithGeoError);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm'),
+      );
+      fireEvent.press(confirmButton);
+
+      // Should show retry error modal for geo check failure
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        {
+          title: 'mocked_rewards.onboarding.geo_check_fail_title',
+          description: 'mocked_rewards.onboarding.geo_check_fail_description',
+          confirmAction: {
+            label: 'mocked_rewards.onboarding.not_supported_confirm_retry',
+            onPress: expect.any(Function),
+            variant: 'Primary',
+          },
+          onCancel: expect.any(Function),
+          cancelLabel:
+            'mocked_rewards.onboarding.not_supported_confirm_go_back',
+        },
+      );
+
+      // Verify that the retry function calls fetchGeoRewardsMetadata
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const retryFunction = navCall[1].confirmAction.onPress;
+      retryFunction();
+
+      // Should call fetchGeoRewardsMetadata when retry is pressed
+      expect(mockFetchGeoRewardsMetadata).toHaveBeenCalledTimes(1);
     });
 
     it('should show error modal when account group contains hardware wallet', async () => {

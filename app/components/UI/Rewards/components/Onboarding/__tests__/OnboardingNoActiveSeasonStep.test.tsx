@@ -342,6 +342,50 @@ describe('OnboardingNoActiveSeasonStep', () => {
         ),
       ).toBeNull();
     });
+
+    it('displays geo loading text when geoLoading is true and optin is not loading', () => {
+      mockUseOptin.optinLoading = false;
+
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep
+          canContinue={mockCanContinue}
+          geoLoading
+        />,
+      );
+
+      const loadingElement = screen.getByTestId('loading-text');
+      expect(loadingElement).toBeDefined();
+      expect(loadingElement.props.children).toBe(
+        'mocked_rewards.onboarding.intro_confirm_geo_loading',
+      );
+    });
+
+    it('prioritizes optin loading text when both optinLoading and geoLoading are true', () => {
+      mockUseOptin.optinLoading = true;
+
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep
+          canContinue={mockCanContinue}
+          geoLoading
+        />,
+      );
+
+      const loadingElement = screen.getByTestId('loading-text');
+      expect(loadingElement).toBeDefined();
+      expect(loadingElement.props.children).toBe(
+        'mocked_rewards.onboarding.no_active_season.sign_up_loading',
+      );
+    });
+
+    it('hides loading text when neither optinLoading nor geoLoading are true', () => {
+      mockUseOptin.optinLoading = false;
+
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      expect(screen.queryByTestId('loading-text')).toBeNull();
+    });
   });
 
   describe('button states', () => {
@@ -386,6 +430,34 @@ describe('OnboardingNoActiveSeasonStep', () => {
 
       renderWithProviders(
         <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      const nextButton = screen.getByTestId('next-button');
+      expect(nextButton.props.disabled).toBe(true);
+    });
+
+    it('disables next button when geoLoading is true', () => {
+      mockUseOptin.optinLoading = false;
+
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep
+          canContinue={mockCanContinue}
+          geoLoading
+        />,
+      );
+
+      const nextButton = screen.getByTestId('next-button');
+      expect(nextButton.props.disabled).toBe(true);
+    });
+
+    it('disables next button when both optinLoading and geoLoading are true', () => {
+      mockUseOptin.optinLoading = true;
+
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep
+          canContinue={mockCanContinue}
+          geoLoading
+        />,
       );
 
       const nextButton = screen.getByTestId('next-button');

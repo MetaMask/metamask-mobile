@@ -171,6 +171,7 @@ const OnboardingIntroStep: React.FC<{
     // Show geo error modal if geo check failed
     if (
       optinAllowedForGeoError &&
+      optinAllowedForGeo !== null &&
       !optinAllowedForGeo &&
       !optinAllowedForGeoLoading &&
       !subscriptionId
@@ -183,8 +184,8 @@ const OnboardingIntroStep: React.FC<{
       return false;
     }
 
-    // Check for geo restrictions
-    if (!optinAllowedForGeo) {
+    // Check for geo restrictions - only if geo metadata has been fetched
+    if (optinAllowedForGeo !== null && !optinAllowedForGeo) {
       showErrorModal(
         'rewards.onboarding.not_supported_region_title',
         'rewards.onboarding.not_supported_region_description',
@@ -414,7 +415,10 @@ const OnboardingIntroStep: React.FC<{
           {renderActions()}
         </ImageBackground>
       ) : (
-        <OnboardingNoActiveSeasonStep canContinue={canContinue} />
+        <OnboardingNoActiveSeasonStep
+          canContinue={canContinue}
+          geoLoading={optinAllowedForGeoLoading}
+        />
       )}
     </Box>
   );

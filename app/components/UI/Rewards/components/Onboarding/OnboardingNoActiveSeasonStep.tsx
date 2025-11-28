@@ -26,6 +26,7 @@ import { useTheme } from '../../../../../util/theme';
 
 export interface OnboardingNoActiveSeasonStepProps {
   canContinue: () => boolean;
+  geoLoading?: boolean;
 }
 
 /**
@@ -36,7 +37,7 @@ export interface OnboardingNoActiveSeasonStepProps {
  */
 const OnboardingNoActiveSeasonStep: React.FC<
   OnboardingNoActiveSeasonStepProps
-> = ({ canContinue }) => {
+> = ({ canContinue, geoLoading = false }) => {
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const { colors } = useTheme();
@@ -144,9 +145,19 @@ const OnboardingNoActiveSeasonStep: React.FC<
     </>
   );
 
-  const onNextLoadingText = optinLoading
-    ? strings('rewards.onboarding.no_active_season.sign_up_loading')
-    : '';
+  const isLoading = optinLoading || geoLoading;
+  let onNextLoadingText = '';
+  if (isLoading) {
+    if (optinLoading) {
+      onNextLoadingText = strings(
+        'rewards.onboarding.no_active_season.sign_up_loading',
+      );
+    } else {
+      onNextLoadingText = strings(
+        'rewards.onboarding.intro_confirm_geo_loading',
+      );
+    }
+  }
 
   const onNextDisabled = !!subscriptionId;
 
@@ -165,7 +176,7 @@ const OnboardingNoActiveSeasonStep: React.FC<
     <OnboardingStepComponent
       currentStep={4}
       onNext={handleNext}
-      onNextLoading={optinLoading}
+      onNextLoading={isLoading}
       onNextLoadingText={onNextLoadingText}
       onNextDisabled={onNextDisabled}
       nextButtonText={strings('rewards.onboarding.no_active_season.sign_up')}
