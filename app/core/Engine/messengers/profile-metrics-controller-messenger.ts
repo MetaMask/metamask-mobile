@@ -31,7 +31,7 @@ export function getProfileMetricsControllerMessenger(messenger: RootMessenger) {
     messenger: profileMetricsControllerMessenger,
     actions: [
       'AccountsController:listAccounts',
-      'ProfileMetricsService:updateProfile',
+      'ProfileMetricsService:submitMetrics',
     ],
     events: [
       'AccountsController:accountAdded',
