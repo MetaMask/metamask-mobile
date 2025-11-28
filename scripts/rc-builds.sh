@@ -53,9 +53,9 @@ ELAPSED=0
 
 while [ $ELAPSED -lt $TIMEOUT ]; do
   BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-    "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
+    "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/pipelines/$BUILD_SLUG")
 
-  BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
+  BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.status')
   echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
 
   # Check for successful completion (status 1 or success/succeeded)
@@ -82,20 +82,20 @@ if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
   exit 1
 fi
 
-# Get the build ID from the completed build
-BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
+# Android workflow slug
+ANDROID_WORKFLOW_ID=$(echo $RES | jq -r '.workflows | .[] | select(.name=="build_android_rc_and_upload_sourcemaps") | .external_id')
 
-if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
-  echo "Error: Failed to get build ID"
-  exit 1
-fi
+ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+  "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts")
+
+ANDROID_ARTIFACT_ID=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data | .[] | select(.artifact_type=="android-apk") | .slug')
+
+ANDROID_APK=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+  "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts/$ANDROID_ARTIFACT_ID")
+
+ANDROID_PUBLIC_URL=$(echo $ANDROID_APK | jq -r '.data.public_install_page_url')
 
 echo "Build ID: $BUILD_ID"
 echo "Build Slug: $BUILD_SLUG"
-
-# Set outputs
-{
-  echo "build-id=$BUILD_ID"
-  echo "build-slug=$BUILD_SLUG"
-} >> "$GITHUB_OUTPUT"
+echo "Android public link: $ANDROID_PUBLIC_URL"
 
