@@ -1,8 +1,8 @@
 import {
-  Env,
   ProfileMetricsService,
   ProfileMetricsServiceMessenger,
 } from '@metamask/profile-metrics-controller';
+import { SDK } from '@metamask/profile-sync-controller';
 import { ControllerInitRequest } from '../types';
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { profileMetricsServiceInit } from './profile-metrics-service-init';
@@ -41,7 +41,7 @@ describe('profileMetricsServiceInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       fetch: expect.any(Function),
-      env: Env.PRD,
+      env: SDK.Env.PRD,
     });
   });
 });
