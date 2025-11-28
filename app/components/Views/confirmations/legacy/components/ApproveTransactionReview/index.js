@@ -91,7 +91,7 @@ import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails
 import ShowBlockExplorer from './ShowBlockExplorer';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
+import InfoModal from '../../../../../Base/InfoModal';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../../../../util/regex';
