@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useRef, useMemo } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useRef,
+  useMemo,
+  useEffect,
+} from 'react';
 import { View, ScrollView, Pressable, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -29,6 +35,7 @@ import { usePerpsLiveOrderBook } from '../../hooks/stream/usePerpsLiveOrderBook'
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsNavigation } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
@@ -66,10 +73,25 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Unit display state (base currency or USD)
   const [unitDisplay, setUnitDisplay] = useState<UnitDisplay>('usd');
 
+  // Persisted order book grouping per asset
+  const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(
+    symbol || '',
+  );
+
   // Price grouping state (actual price value, e.g., 10 for $10 grouping)
-  const [selectedGrouping, setSelectedGrouping] = useState<number | null>(null);
+  // Initialize from saved grouping if available
+  const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
+    savedGrouping ?? null,
+  );
   const [isDepthBandSheetVisible, setIsDepthBandSheetVisible] = useState(false);
   const depthBandSheetRef = useRef<BottomSheetRef>(null);
+
+  // Sync selectedGrouping when savedGrouping loads (on mount)
+  useEffect(() => {
+    if (savedGrouping !== undefined && selectedGrouping === null) {
+      setSelectedGrouping(savedGrouping);
+    }
+  }, [savedGrouping, selectedGrouping]);
 
   // Subscribe to live order book data with finest granularity (nSigFigs: 5)
   // We'll aggregate client-side based on selected grouping
@@ -191,6 +213,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const handleGroupingSelect = useCallback(
     (value: number) => {
       setSelectedGrouping(value);
+      saveGrouping(value); // Persist to controller
       setIsDepthBandSheetVisible(false);
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -199,7 +222,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         [PerpsEventProperties.ASSET]: symbol || '',
       });
     },
-    [symbol, track],
+    [symbol, track, saveGrouping],
   );
 
   // Handle grouping sheet close

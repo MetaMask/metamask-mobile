@@ -146,3 +146,21 @@ export const selectMarketFilterPreferences = (
 ): SortOptionId =>
   state?.marketFilterPreferences ??
   MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID;
+
+/**
+ * Select order book grouping for a specific market on the current network
+ * @param state - PerpsController state
+ * @param coin - Market symbol (e.g., 'BTC', 'ETH')
+ * @returns Order book grouping value or undefined
+ */
+export const selectOrderBookGrouping = createSelector(
+  [
+    (state: PerpsControllerState) => state?.isTestnet,
+    (state: PerpsControllerState, _coin: string) => state?.tradeConfigurations,
+    (_state: PerpsControllerState, coin: string) => coin,
+  ],
+  (isTestnet, configs, coin): number | undefined => {
+    const network = isTestnet ? 'testnet' : 'mainnet';
+    return configs?.[network]?.[coin]?.orderBookGrouping;
+  },
+);
