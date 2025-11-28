@@ -117,6 +117,36 @@ jobs:
           android-avd-name: emulator
           configure-keystores: false
 
+      - name: Wait for Device Boot (Android)
+        if: ${{ inputs.platform == 'android' }}
+        timeout-minutes: 3
+        run: |
+          echo "⏳ Waiting for Android emulator to fully boot..."
+          adb wait-for-device
+          # Wait for boot to complete (sys.boot_completed = 1)
+          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+          # Additional check for package manager readiness
+          adb shell 'while [[ -z $(getprop init.svc.bootanim) ]]; do sleep 1; done'
+          echo "✅ Android emulator boot completed"
+          adb devices -l
+
+      - name: Wait for Device Boot (iOS)
+        if: ${{ inputs.platform == 'ios' }}
+        timeout-minutes: 3
+        run: |
+          echo "⏳ Waiting for iOS simulator to fully boot..."
+          # Get the UDID of the booted simulator
+          BOOTED_UDID=$(xcrun simctl list devices booted -j | python3 -c "import sys,json; devices=[d for r in json.load(sys.stdin)['devices'].values() for d in r if d['state']=='Booted']; print(devices[0]['udid'] if devices else '')")
+          if [ -n "$BOOTED_UDID" ]; then
+            echo "Found booted simulator: $BOOTED_UDID"
+            xcrun simctl bootstatus "$BOOTED_UDID"
+          else
+            echo "No booted simulator found, waiting for any simulator..."
+            xcrun simctl bootstatus booted
+          fi
+          echo "✅ iOS simulator boot completed"
+          xcrun simctl list devices booted
+
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
         run: |
