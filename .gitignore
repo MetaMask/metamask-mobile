@@ -172,3 +172,4 @@ temp/
 .reassure/
 
 tests/coverage-systems/
+.env
