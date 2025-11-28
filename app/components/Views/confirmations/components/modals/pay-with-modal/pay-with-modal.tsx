@@ -10,11 +10,17 @@ import BottomSheetHeader from '../../../../../../component-library/components/Bo
 import { AssetType } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../../utils/transaction';
+import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 
 export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { tokenFilter: musdTokenFilter } = useMusdConversionTokens();
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -33,13 +39,22 @@ export function PayWithModal() {
   );
 
   const tokenFilter = useCallback(
-    (tokens: AssetType[]) =>
-      getAvailableTokens({
+    (tokens: AssetType[]) => {
+      const availableTokens = getAvailableTokens({
         payToken,
         requiredTokens,
         tokens,
-      }),
-    [payToken, requiredTokens],
+      });
+
+      if (
+        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
+      ) {
+        return musdTokenFilter(availableTokens);
+      }
+
+      return availableTokens;
+    },
+    [musdTokenFilter, payToken, requiredTokens, transactionMeta],
   );
 
   return (

@@ -5,11 +5,7 @@ const styleSheet = () =>
     emptyState: {
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: 24,
-      paddingVertical: 24,
-    },
-    emptyStateIcon: {
-      marginBottom: 16,
+      paddingVertical: 16,
     },
     emptyStateTitle: {
       marginBottom: 8,

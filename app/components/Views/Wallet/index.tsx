@@ -572,7 +572,6 @@ const Wallet = ({
       }
       return false;
     }
-
     return enabledNetworks.some((network) => isTestNet(network));
   }, [enabledNetworks, isMultichainAccountsState2Enabled, allEnabledNetworks]);
 
@@ -695,14 +694,14 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigateToSendPage(InitSendLocation.HomePage);
+      navigateToSendPage({ location: InitSendLocation.HomePage });
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigateToSendPage(InitSendLocation.HomePage);
+      navigateToSendPage({ location: InitSendLocation.HomePage });
     }
   }, [
     trackEvent,
