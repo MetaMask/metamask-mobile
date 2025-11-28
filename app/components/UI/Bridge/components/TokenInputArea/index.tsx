@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -193,6 +193,7 @@ interface TokenInputAreaProps {
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
+  isQuoteSponsored?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -218,6 +219,7 @@ export const TokenInputArea = forwardRef<
       latestAtomicBalance,
       isSourceToken,
       style,
+      isQuoteSponsored = false,
     },
     ref,
   ) => {
@@ -304,6 +306,12 @@ export const TokenInputArea = forwardRef<
     const tokenAddress = useTokenAddress(token);
 
     const isNativeAsset = isNativeAddress(tokenAddress);
+
+    // Show max button for native tokens if gasless swap is enabled OR quote is sponsored
+    const shouldShowMaxButton = useMemo(() => {
+      if (!isNativeAsset) return true; // Always show for non-native tokens
+      return isGaslessSwapEnabled || isQuoteSponsored;
+    }, [isNativeAsset, isGaslessSwapEnabled, isQuoteSponsored]);
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
@@ -393,7 +401,7 @@ export const TokenInputArea = forwardRef<
                     tokenType === TokenInputAreaType.Source &&
                     tokenBalance &&
                     onMaxPress &&
-                    (!isNativeAsset || (isNativeAsset && isGaslessSwapEnabled))
+                    shouldShowMaxButton
                       ? FlexDirection.Row
                       : FlexDirection.Column
                   }
@@ -412,8 +420,7 @@ export const TokenInputArea = forwardRef<
                   {tokenType === TokenInputAreaType.Source &&
                     tokenBalance &&
                     onMaxPress &&
-                    (!isNativeAsset ||
-                      (isNativeAsset && isGaslessSwapEnabled)) && (
+                    shouldShowMaxButton && (
                       <Button
                         variant={ButtonVariants.Link}
                         label={strings('bridge.max')}

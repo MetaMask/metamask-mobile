@@ -71,6 +71,9 @@ export const VALIDATION_THRESHOLDS = {
 
   // Limit price difference threshold (as decimal, 0.1 = 10%)
   LIMIT_PRICE_DIFFERENCE_WARNING: 0.1, // Warn if limit price differs by >10% from current price
+
+  // Price deviation threshold (as decimal, 0.1 = 10%)
+  PRICE_DEVIATION: 0.1, // Warn if perps price deviates by >10% from spot price
 } as const;
 
 /**
@@ -269,6 +272,36 @@ export const CLOSE_POSITION_CONFIG = {
 } as const;
 
 /**
+ * Margin adjustment configuration
+ * Controls behavior for adding/removing margin from positions
+ */
+export const MARGIN_ADJUSTMENT_CONFIG = {
+  // Risk thresholds for margin removal warnings
+  // Threshold values represent ratio of (price distance to liquidation) / (liquidation price)
+  // Values < 1.0 mean price is dangerously close to liquidation
+  LIQUIDATION_RISK_THRESHOLD: 1.2, // 20% buffer before liquidation - triggers danger state
+  LIQUIDATION_WARNING_THRESHOLD: 1.5, // 50% buffer before liquidation - triggers warning state
+
+  // Minimum margin adjustment amount (USD)
+  // Prevents dust adjustments and ensures meaningful position changes
+  MIN_ADJUSTMENT_AMOUNT: 1,
+
+  // Precision for margin calculations
+  // Ensures accurate decimal handling in margin/leverage calculations
+  CALCULATION_PRECISION: 6,
+
+  // Safety buffer for margin removal to account for HyperLiquid's transfer margin requirement
+  // HyperLiquid enforces: transfer_margin_required = max(initial_margin_required, 0.1 * total_position_value)
+  // See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
+  MARGIN_REMOVAL_SAFETY_BUFFER: 0.1,
+
+  // Fallback max leverage when market data is unavailable
+  // Conservative value to prevent over-removal of margin
+  // Most HyperLiquid assets support at least 50x leverage
+  FALLBACK_MAX_LEVERAGE: 50,
+} as const;
+
+/**
  * Data Lake API configuration
  * Endpoints for reporting perps trading activity for notifications
  */
@@ -449,4 +482,28 @@ export const SUPPORT_CONFIG = {
 export const PERPS_SUPPORT_ARTICLES_URLS = {
   ADL_URL:
     'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
+} as const;
+
+/**
+ * Stop loss prompt banner configuration
+ * Controls when and how the stop loss prompt banner is displayed
+ * Based on TAT-1693 specifications
+ */
+export const STOP_LOSS_PROMPT_CONFIG = {
+  // Distance to liquidation threshold (percentage)
+  // Shows "Add margin" banner when position is within this % of liquidation
+  LIQUIDATION_DISTANCE_THRESHOLD: 3,
+
+  // ROE (Return on Equity) threshold (percentage)
+  // Shows "Set stop loss" banner when ROE drops below this value
+  ROE_THRESHOLD: -20,
+
+  // Debounce duration for ROE threshold (milliseconds)
+  // User must have ROE below threshold for this duration before showing banner
+  // Prevents banner from appearing during temporary price fluctuations
+  ROE_DEBOUNCE_MS: 60_000, // 60 seconds
+
+  // Suggested stop loss ROE percentage
+  // When suggesting a stop loss, calculate price at this ROE from entry
+  SUGGESTED_STOP_LOSS_ROE: -50,
 } as const;

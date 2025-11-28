@@ -48,11 +48,26 @@ export const useSeasonStatus = ({
     dispatch(setSeasonStatusLoading(true));
 
     try {
-      // First fetch the current season metadata to get the season ID
-      const seasonMetadata = (await Engine.controllerMessenger.call(
-        'RewardsController:getSeasonMetadata',
-        'current',
-      )) as SeasonDtoState | null;
+      // Check if there is an active season
+      const hasActiveSeason = await Engine.controllerMessenger.call(
+        'RewardsController:hasActiveSeason',
+      );
+
+      let seasonMetadata: SeasonDtoState | null = null;
+
+      if (hasActiveSeason) {
+        // Fetch the current season metadata to get the season ID
+        seasonMetadata = await Engine.controllerMessenger.call(
+          'RewardsController:getSeasonMetadata',
+          'current',
+        );
+      } else {
+        // If no active season, try to get previous season metadata
+        seasonMetadata = await Engine.controllerMessenger.call(
+          'RewardsController:getSeasonMetadata',
+          'previous',
+        );
+      }
 
       if (!seasonMetadata) {
         throw new Error('No season metadata found');

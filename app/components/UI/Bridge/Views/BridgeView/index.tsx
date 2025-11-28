@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import {
@@ -76,10 +76,11 @@ import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalTooltip from '../../components/ApprovalText';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
-import { isNullOrUndefined } from '@metamask/utils';
+import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
 import { useGasIncluded } from '../../hooks/useGasIncluded';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 
 export interface BridgeRouteParams {
@@ -199,6 +200,23 @@ const BridgeView = () => {
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
+
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
+
+  // Check if quote is sponsored: both tokens must be on the same chain and that chain must be sponsored
+  const isQuoteSponsored = useMemo(() => {
+    if (!sourceToken?.chainId || !destToken?.chainId) return false;
+    // Both tokens must be on the same chain
+    if (sourceToken.chainId !== destToken.chainId) return false;
+    // Check if the chain is sponsored
+    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId as Hex);
+  }, [
+    sourceToken?.chainId,
+    destToken?.chainId,
+    isGasFeesSponsoredNetworkEnabled,
+  ]);
 
   const isSubmitDisabled =
     isLoading ||
@@ -495,6 +513,7 @@ const BridgeView = () => {
             onMaxPress={handleSourceMaxPress}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
+            isQuoteSponsored={isQuoteSponsored}
           />
           <FLipQuoteButton
             onPress={handleSwitchTokens(destTokenAmount)}
@@ -513,6 +532,7 @@ const BridgeView = () => {
             onTokenPress={handleDestTokenPress}
             isLoading={!destTokenAmount && isLoading}
             style={styles.destTokenArea}
+            isQuoteSponsored={isQuoteSponsored}
           />
         </Box>
 

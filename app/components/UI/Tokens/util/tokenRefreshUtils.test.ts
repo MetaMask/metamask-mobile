@@ -18,7 +18,7 @@ jest.mock('../../../../core/Engine', () => ({
       updateExchangeRate: jest.fn(() => Promise.resolve()),
     },
     TokenRatesController: {
-      updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+      updateExchangeRates: jest.fn(() => Promise.resolve()),
     },
     NetworkController: {
       state: {
@@ -93,7 +93,7 @@ describe('performEvmRefresh', () => {
     ).toHaveBeenCalledWith(fakeNativeCurrencies);
 
     expect(
-      Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+      Engine.context.TokenRatesController.updateExchangeRates,
     ).toHaveBeenCalledWith([
       { chainId: '0x1', nativeCurrency: 'ETH' },
       { chainId: '0x2', nativeCurrency: 'BNB' },
@@ -111,7 +111,7 @@ describe('performEvmRefresh', () => {
 
     await performEvmRefresh(invalidNetworkConfiguration, currencies);
     expect(
-      Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+      Engine.context.TokenRatesController.updateExchangeRates,
     ).toHaveBeenCalledWith([]); // This controller handles when there is no chains to update
   });
 
