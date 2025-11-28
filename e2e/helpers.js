@@ -390,11 +390,65 @@ export default class TestHelpers {
   static async launchApp(launchOptions) {
     const config = await resolveConfig();
     const platform = device.getPlatform();
+
+    // Ensure device is booted before launching app
+    await this.ensureDeviceBooted(platform);
+
     if (config.configurationName.endsWith('debug')) {
       return this.launchAppForDebugBuild(platform, launchOptions);
     }
 
     return device.launchApp(launchOptions);
+  }
+
+  static async ensureDeviceBooted(platform) {
+    // eslint-disable-next-line import/no-nodejs-modules
+    const { execSync } = require('child_process');
+
+    if (platform === 'ios') {
+      // Check if any simulator is booted
+      const result = execSync('xcrun simctl list devices booted -j', { encoding: 'utf8' });
+      const data = JSON.parse(result);
+      const bootedDevices = Object.values(data.devices).flat().filter(d => d.state === 'Booted');
+
+      if (bootedDevices.length === 0) {
+        logger.info('No iOS simulator booted, booting one...');
+        // Find iPhone 15 Pro or any available iPhone
+        const allDevices = execSync('xcrun simctl list devices available -j', { encoding: 'utf8' });
+        const allData = JSON.parse(allDevices);
+        let udid = null;
+        for (const [runtime, devices] of Object.entries(allData.devices)) {
+          if (runtime.includes('iOS')) {
+            const device = devices.find(d => d.isAvailable && d.name.includes('iPhone 15 Pro'))
+              || devices.find(d => d.isAvailable && d.name.includes('iPhone'));
+            if (device) {
+              udid = device.udid;
+              break;
+            }
+          }
+        }
+        if (!udid) throw new Error('No available iOS simulator found');
+
+        execSync(`xcrun simctl boot ${udid}`, { stdio: 'inherit' });
+        execSync(`xcrun simctl bootstatus ${udid}`, { stdio: 'inherit' });
+        logger.info('iOS simulator booted successfully');
+      }
+    } else if (platform === 'android') {
+      // Check if any device is connected
+      const result = execSync('adb devices', { encoding: 'utf8' });
+      const hasDevice = result.split('\n').some(line => line.includes('\tdevice'));
+
+      if (!hasDevice) {
+        logger.info('No Android device found, starting emulator...');
+        const emulatorPath = `${process.env.ANDROID_HOME}/emulator/emulator`;
+        execSync(`${emulatorPath} -avd emulator -no-window -no-audio -no-snapshot -gpu swiftshader_indirect &`, { shell: true });
+
+        // Wait for device
+        execSync('adb wait-for-device', { stdio: 'inherit' });
+        execSync('adb shell "while [[ $(getprop sys.boot_completed) != 1 ]]; do sleep 1; done"', { stdio: 'inherit' });
+        logger.info('Android emulator booted successfully');
+      }
+    }
   }
 
   static async launchAppForDebugBuild(platform, launchOptions) {

@@ -117,33 +117,6 @@ jobs:
           android-avd-name: emulator
           configure-keystores: false
 
-      - name: Boot Android Emulator
-        if: ${{ inputs.platform == 'android' }}
-        timeout-minutes: 5
-        run: |
-          echo "🚀 Starting Android emulator..."
-          $ANDROID_HOME/emulator/emulator -avd emulator -no-window -no-audio -no-snapshot -gpu swiftshader_indirect &
-
-          echo "⏳ Waiting for boot..."
-          adb wait-for-device
-          adb shell "while [[ \$(getprop sys.boot_completed) != '1' ]]; do sleep 1; done"
-          adb shell "while [[ \$(getprop init.svc.bootanim) != 'stopped' ]]; do sleep 1; done"
-
-          echo "✅ Android emulator ready"
-          adb devices -l
-
-      - name: Boot iOS Simulator
-        if: ${{ inputs.platform == 'ios' }}
-        timeout-minutes: 5
-        run: |
-          echo "🚀 Booting iOS simulator..."
-          UDID=$(xcrun simctl list devices available -j | python3 -c "import sys,json; print(next((d['udid'] for r,devs in json.load(sys.stdin)['devices'].items() if 'iOS' in r for d in devs if d['isAvailable'] and 'iPhone 15 Pro' in d['name']), ''))")
-          [ -z "$UDID" ] && { echo "❌ No iPhone 15 Pro found"; xcrun simctl list devices available; exit 1; }
-
-          xcrun simctl boot "$UDID" 2>/dev/null || true
-          xcrun simctl bootstatus "$UDID"
-          echo "✅ iOS simulator ready"
-
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
         run: |
