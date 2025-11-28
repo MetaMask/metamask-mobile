@@ -83,6 +83,77 @@ jest.mock('../../RewardsErrorBanner', () => {
   };
 });
 
+// Mock RewardsLegalDisclaimer
+const mockRewardsLegalDisclaimer = jest.fn();
+jest.mock('../RewardsLegalDisclaimer', () => {
+  const ReactActual = jest.requireActual('react');
+  const RN = jest.requireActual('react-native');
+  const { View, Text: RNText, Pressable } = RN;
+  // Import the mocked react-native to use mocked Linking
+  const MockedRN = jest.requireMock('react-native');
+  const {
+    REWARDS_ONBOARD_TERMS_URL,
+    REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
+  } = jest.requireActual('../constants');
+  return {
+    __esModule: true,
+    default: ({
+      disclaimerPart1,
+      disclaimerPart2,
+      disclaimerPart3,
+      disclaimerPart4,
+    }: {
+      disclaimerPart1: string;
+      disclaimerPart2: string;
+      disclaimerPart3: string;
+      disclaimerPart4: string;
+    }) => {
+      mockRewardsLegalDisclaimer({
+        disclaimerPart1,
+        disclaimerPart2,
+        disclaimerPart3,
+        disclaimerPart4,
+      });
+      return ReactActual.createElement(
+        View,
+        { testID: 'rewards-legal-disclaimer' },
+        ReactActual.createElement(
+          RNText,
+          { testID: 'disclaimer-part-1' },
+          disclaimerPart1,
+        ),
+        ReactActual.createElement(
+          Pressable,
+          {
+            testID: 'terms-link',
+            onPress: () => {
+              MockedRN.Linking.openURL(REWARDS_ONBOARD_TERMS_URL);
+            },
+          },
+          ReactActual.createElement(RNText, {}, disclaimerPart2),
+        ),
+        ReactActual.createElement(
+          RNText,
+          { testID: 'disclaimer-part-3' },
+          disclaimerPart3,
+        ),
+        ReactActual.createElement(
+          Pressable,
+          {
+            testID: 'learn-more-link',
+            onPress: () => {
+              MockedRN.Linking.openURL(
+                REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
+              );
+            },
+          },
+          ReactActual.createElement(RNText, {}, disclaimerPart4),
+        ),
+      );
+    },
+  };
+});
+
 // Mock all image and SVG imports
 jest.mock(
   '../../../../../images/rewards/rewards-onboarding-step1.png',
@@ -247,6 +318,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
     mockUseOptin.optinError = null;
     mockUseOptin.optinLoading = false;
     mockCanContinue.mockReturnValue(true);
+    mockRewardsLegalDisclaimer.mockClear();
 
     // Set up default useSelector mock
     const mockUseSelector = jest.requireMock('react-redux')
@@ -466,16 +538,32 @@ describe('OnboardingNoActiveSeasonStep', () => {
   });
 
   describe('legal disclaimer', () => {
+    it('renders RewardsLegalDisclaimer with correct props', () => {
+      renderWithProviders(
+        <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
+      );
+
+      expect(mockRewardsLegalDisclaimer).toHaveBeenCalledWith({
+        disclaimerPart1:
+          'mocked_rewards.onboarding.no_active_season.legal_disclaimer_1',
+        disclaimerPart2:
+          'mocked_rewards.onboarding.no_active_season.legal_disclaimer_2',
+        disclaimerPart3:
+          'mocked_rewards.onboarding.no_active_season.legal_disclaimer_3',
+        disclaimerPart4:
+          'mocked_rewards.onboarding.no_active_season.legal_disclaimer_4',
+      });
+    });
+
     it('renders legal disclaimer text', () => {
       renderWithProviders(
         <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
       );
 
-      // Legal disclaimer text is split across nested Text components
-      // Use regex to match text that may be part of a larger string
+      expect(screen.getByTestId('rewards-legal-disclaimer')).toBeDefined();
       expect(
         screen.getByText(
-          /mocked_rewards\.onboarding\.no_active_season\.legal_disclaimer_1/,
+          'mocked_rewards.onboarding.no_active_season.legal_disclaimer_1',
         ),
       ).toBeDefined();
       expect(
@@ -485,7 +573,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
       ).toBeDefined();
       expect(
         screen.getByText(
-          /mocked_rewards\.onboarding\.no_active_season\.legal_disclaimer_3/,
+          'mocked_rewards.onboarding.no_active_season.legal_disclaimer_3',
         ),
       ).toBeDefined();
       expect(
@@ -502,9 +590,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
         <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
       );
 
-      const termsLink = screen.getByText(
-        'mocked_rewards.onboarding.no_active_season.legal_disclaimer_2',
-      );
+      const termsLink = screen.getByTestId('terms-link');
       fireEvent.press(termsLink);
 
       expect(mockOpenURL).toHaveBeenCalledWith(REWARDS_ONBOARD_TERMS_URL);
@@ -517,9 +603,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
         <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
       );
 
-      const learnMoreLink = screen.getByText(
-        'mocked_rewards.onboarding.no_active_season.legal_disclaimer_4',
-      );
+      const learnMoreLink = screen.getByTestId('learn-more-link');
       fireEvent.press(learnMoreLink);
 
       expect(mockOpenURL).toHaveBeenCalledWith(
@@ -619,13 +703,8 @@ describe('OnboardingNoActiveSeasonStep', () => {
         <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
       );
 
-      // Legal disclaimer text is split across nested Text components
-      // Use regex to match text that may be part of a larger string
-      expect(
-        screen.getByText(
-          /mocked_rewards\.onboarding\.no_active_season\.legal_disclaimer_1/,
-        ),
-      ).toBeDefined();
+      expect(screen.getByTestId('rewards-legal-disclaimer')).toBeDefined();
+      expect(mockRewardsLegalDisclaimer).toHaveBeenCalled();
     });
   });
 

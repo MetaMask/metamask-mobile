@@ -171,7 +171,6 @@ const OnboardingIntroStep: React.FC<{
     // Show geo error modal if geo check failed
     if (
       optinAllowedForGeoError &&
-      optinAllowedForGeo !== null &&
       !optinAllowedForGeo &&
       !optinAllowedForGeoLoading &&
       !subscriptionId

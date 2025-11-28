@@ -1,28 +1,19 @@
 import React, { useCallback } from 'react';
-import { Image, Linking, useWindowDimensions } from 'react-native';
+import { Image, useWindowDimensions } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useOptin } from '../../hooks/useOptIn';
-import {
-  Box,
-  Text,
-  TextVariant,
-  BoxAlignItems,
-  BoxFlexDirection,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import step1Img from '../../../../../images/rewards/rewards-onboarding-step1.png';
 import Step1BgImg from '../../../../../images/rewards/rewards-onboarding-step1-bg.svg';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import {
-  REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
-  REWARDS_ONBOARD_TERMS_URL,
-} from './constants';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
+import RewardsLegalDisclaimer from './RewardsLegalDisclaimer';
 
 export interface OnboardingNoActiveSeasonStepProps {
   canContinue: () => boolean;
@@ -79,52 +70,22 @@ const OnboardingNoActiveSeasonStep: React.FC<
     </Box>
   );
 
-  const renderLegalDisclaimer = () => {
-    const openTermsOfUse = () => {
-      Linking.openURL(REWARDS_ONBOARD_TERMS_URL);
-    };
-
-    const openLearnMore = () => {
-      Linking.openURL(REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL);
-    };
-
-    return (
-      <Box twClassName="w-full flex-row mt-4">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="justify-center flex-wrap gap-2"
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-alternative text-center"
-          >
-            {strings('rewards.onboarding.no_active_season.legal_disclaimer_1')}{' '}
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-primary-default"
-              onPress={openTermsOfUse}
-            >
-              {strings(
-                'rewards.onboarding.no_active_season.legal_disclaimer_2',
-              )}
-            </Text>
-            {strings('rewards.onboarding.no_active_season.legal_disclaimer_3')}{' '}
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-primary-default"
-              onPress={openLearnMore}
-            >
-              {strings(
-                'rewards.onboarding.no_active_season.legal_disclaimer_4',
-              )}
-            </Text>
-            .{' '}
-          </Text>
-        </Box>
-      </Box>
-    );
-  };
+  const renderLegalDisclaimer = () => (
+    <RewardsLegalDisclaimer
+      disclaimerPart1={strings(
+        'rewards.onboarding.no_active_season.legal_disclaimer_1',
+      )}
+      disclaimerPart2={strings(
+        'rewards.onboarding.no_active_season.legal_disclaimer_2',
+      )}
+      disclaimerPart3={strings(
+        'rewards.onboarding.no_active_season.legal_disclaimer_3',
+      )}
+      disclaimerPart4={strings(
+        'rewards.onboarding.no_active_season.legal_disclaimer_4',
+      )}
+    />
+  );
 
   const renderStepImage = () => (
     <>

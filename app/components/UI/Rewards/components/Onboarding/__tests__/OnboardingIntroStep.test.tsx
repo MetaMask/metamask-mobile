@@ -707,6 +707,91 @@ describe('OnboardingIntroStep', () => {
       expect(mockFetchGeoRewardsMetadata).toHaveBeenCalledTimes(1);
     });
 
+    it('should not show geo error modal when geo is loading even if error occurred', async () => {
+      // Mock fetchGeoRewardsMetadata function
+      const mockFetchGeoRewardsMetadata = jest.fn();
+      const mockUseGeoRewardsMetadata = jest.requireMock(
+        '../../../hooks/useGeoRewardsMetadata',
+      ).useGeoRewardsMetadata as jest.Mock;
+      mockUseGeoRewardsMetadata.mockReturnValue({
+        fetchGeoRewardsMetadata: mockFetchGeoRewardsMetadata,
+      });
+
+      // Ensure hardware account check returns false so geo check is reached
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(false);
+
+      const mockSelectorWithGeoErrorAndLoading = jest.fn((selector) => {
+        if (selector === selectSelectedAccountGroupInternalAccounts) {
+          return defaultAccountGroupAccounts;
+        }
+        const state = {
+          rewards: {
+            optinAllowedForGeo: false, // Geo not allowed
+            optinAllowedForGeoLoading: true, // Still loading
+            optinAllowedForGeoError: true, // Error occurred
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null, // No subscription
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorGeoErrorAndLoading = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorGeoErrorAndLoading.mockImplementation(
+        mockSelectorWithGeoErrorAndLoading,
+      );
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Wait for the async state update from fetchHasActiveSeason to complete
+      // When optinAllowedForGeoLoading is true, the button shows loading text
+      const confirmButton = await waitFor(() =>
+        screen.getByText('mocked_rewards.onboarding.intro_confirm_geo_loading'),
+      );
+      fireEvent.press(confirmButton);
+
+      // Should NOT show geo error modal when still loading
+      // The button should be disabled or show loading state instead
+      const geoErrorModalCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL &&
+          call[1]?.title === 'mocked_rewards.onboarding.geo_check_fail_title',
+      );
+      expect(geoErrorModalCall).toBeUndefined();
+    });
+
     it('should show error modal when account group contains hardware wallet', async () => {
       // Create account group with hardware wallet account
       const hardwareAccountGroup = createMockAccountGroupAccounts([
