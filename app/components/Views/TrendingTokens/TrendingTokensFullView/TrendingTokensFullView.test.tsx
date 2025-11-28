@@ -22,19 +22,30 @@ const mockUseTrendingRequest = jest.fn().mockReturnValue({
   error: null,
   fetch: mockFetchTrendingTokens,
 });
-jest.mock('../../../UI/Trending/hooks/useTrendingRequest', () => ({
-  useTrendingRequest: (options: unknown) => mockUseTrendingRequest(options),
-}));
+jest.mock(
+  '../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest',
+  () => ({
+    useTrendingRequest: (options: unknown) => mockUseTrendingRequest(options),
+  }),
+);
 
-const mockUseSectionData = jest.fn();
+const mockUseTrendingSearch = jest.fn();
+
+jest.mock(
+  '../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch',
+  () => ({
+    useTrendingSearch: (
+      searchQuery?: string,
+      sortBy?: unknown,
+      chainIds?: unknown,
+    ) => mockUseTrendingSearch({ searchQuery, sortBy, chainIds }),
+  }),
+);
 
 // Mock sections.config to avoid complex Perps dependencies
-// Make useSectionData return the same data as useTrendingRequest
 jest.mock('../../TrendingView/config/sections.config', () => ({
   SECTIONS_CONFIG: {
     tokens: {
-      useSectionData: (params?: { searchQuery?: string }) =>
-        mockUseSectionData(params),
       getSearchableText: (item: { name?: string; symbol?: string }) =>
         `${item.name || ''} ${item.symbol || ''}`.toLowerCase(),
     },
@@ -216,7 +227,7 @@ describe('TrendingTokensFullView', () => {
       error: null,
       fetch: jest.fn(),
     });
-    mockUseSectionData.mockReturnValue({
+    mockUseTrendingSearch.mockReturnValue({
       data: [],
       isLoading: false,
       refetch: jest.fn(),
@@ -313,13 +324,15 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
-    const { getByTestId } = renderWithProvider(
+    const { queryAllByTestId } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
       false,
     );
 
-    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
+    const skeletons = queryAllByTestId('trending-tokens-skeleton');
+    expect(skeletons.length).toBeGreaterThan(0);
+    expect(skeletons[0]).toBeOnTheScreen();
   });
 
   it('displays skeleton loader when results are empty', () => {
@@ -330,13 +343,15 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
-    const { getByTestId } = renderWithProvider(
+    const { queryAllByTestId } = renderWithProvider(
       <TrendingTokensFullView />,
       { state: mockState },
       false,
     );
 
-    expect(getByTestId('trending-tokens-skeleton')).toBeOnTheScreen();
+    const skeletons = queryAllByTestId('trending-tokens-skeleton');
+    expect(skeletons.length).toBeGreaterThan(0);
+    expect(skeletons[0]).toBeOnTheScreen();
   });
 
   it('displays trending tokens list when data is loaded', () => {
@@ -352,7 +367,7 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
-    mockUseSectionData.mockReturnValue({
+    mockUseTrendingSearch.mockReturnValue({
       data: mockTokens,
       isLoading: false,
       refetch: jest.fn(),
@@ -369,10 +384,10 @@ describe('TrendingTokensFullView', () => {
     expect(getByText('Token 2')).toBeOnTheScreen();
   });
 
-  it('calls useSectionData with correct initial parameters', () => {
+  it('calls useTrendingSearch with correct initial parameters', () => {
     renderWithProvider(<TrendingTokensFullView />, { state: mockState }, false);
 
-    expect(mockUseSectionData).toHaveBeenCalledWith({
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       sortBy: undefined,
       chainIds: null,
       searchQuery: undefined,
@@ -395,7 +410,7 @@ describe('TrendingTokensFullView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUseSectionData).toHaveBeenLastCalledWith({
+      expect(mockUseTrendingSearch).toHaveBeenLastCalledWith({
         sortBy: 'h6_trending',
         chainIds: null,
         searchQuery: undefined,
@@ -419,7 +434,7 @@ describe('TrendingTokensFullView', () => {
     });
 
     await waitFor(() => {
-      expect(mockUseSectionData).toHaveBeenLastCalledWith({
+      expect(mockUseTrendingSearch).toHaveBeenLastCalledWith({
         sortBy: undefined,
         chainIds: ['eip155:1'],
         searchQuery: undefined,
@@ -440,7 +455,7 @@ describe('TrendingTokensFullView', () => {
       fetch: jest.fn(),
     });
 
-    mockUseSectionData.mockReturnValue({
+    mockUseTrendingSearch.mockReturnValue({
       data: mockTokens,
       isLoading: false,
       refetch: jest.fn(),
@@ -475,14 +490,14 @@ describe('TrendingTokensFullView', () => {
       }),
     ];
 
-    mockUseTrendingRequest.mockReturnValueOnce({
+    mockUseTrendingRequest.mockReturnValue({
       results: mockTokens,
       isLoading: false,
       error: null,
       fetch: mockFetchTrendingTokens,
     });
 
-    mockUseSectionData.mockReturnValue({
+    mockUseTrendingSearch.mockReturnValue({
       data: mockTokens,
       isLoading: false,
       refetch: mockFetchTrendingTokens,

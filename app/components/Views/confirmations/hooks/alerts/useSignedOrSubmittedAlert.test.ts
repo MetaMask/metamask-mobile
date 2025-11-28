@@ -13,9 +13,12 @@ import { Hex } from '@metamask/utils';
 import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { Severity } from '../../types/alerts';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 
 const FROM_MOCK = '0x123';
 const CHAIN_ID_MOCK = '0x456' as Hex;
+const CHAIN_ID_2_MOCK = '0x789' as Hex;
 
 const TRANSACTION_META_MOCK = {
   id: '1',
@@ -27,17 +30,25 @@ const TRANSACTION_META_MOCK = {
   },
 };
 
+jest.mock('../pay/useTransactionPayToken');
+
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
 }));
 
 describe('useSignedOrSubmittedAlert', () => {
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+      setPayToken: jest.fn(),
+    });
 
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...TRANSACTION_META_MOCK,
@@ -245,6 +256,55 @@ describe('useSignedOrSubmittedAlert', () => {
           key: AlertKeys.SignedOrSubmitted,
           message: strings('alert_system.signed_or_submitted.message'),
           title: strings('alert_system.signed_or_submitted.title'),
+          severity: Severity.Danger,
+        },
+      ]);
+    },
+  );
+
+  it.each([
+    TransactionStatus.signed,
+    TransactionStatus.approved,
+    TransactionStatus.submitted,
+  ])(
+    'returns alert if %s transaction on pay token chain from same account',
+    (status) => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          chainId: CHAIN_ID_2_MOCK,
+        } as TransactionPaymentToken,
+        setPayToken: jest.fn(),
+      });
+
+      const { result } = renderHookWithProvider(
+        () => useSignedOrSubmittedAlert(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                TransactionController: {
+                  transactions: [
+                    {
+                      ...TRANSACTION_META_MOCK,
+                      chainId: CHAIN_ID_2_MOCK,
+                      status,
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      );
+
+      expect(result.current).toStrictEqual([
+        {
+          isBlocking: true,
+          key: AlertKeys.SignedOrSubmitted,
+          message: strings(
+            'alert_system.signed_or_submitted_pay_token.message',
+          ),
+          title: strings('alert_system.signed_or_submitted_pay_token.title'),
           severity: Severity.Danger,
         },
       ]);

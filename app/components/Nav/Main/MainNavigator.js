@@ -52,7 +52,6 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import TrendingView from '../../Views/TrendingView/TrendingView';
-import SitesListView from '../../Views/TrendingView/SitesListView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -133,6 +132,9 @@ import {
   TOKEN,
 } from '../../Views/AddAsset/AddAsset.constants';
 import { strings } from '../../../../locales/i18n';
+import SitesFullView from '../../Views/SitesFullView/SitesFullView';
+import BrowserWrapper from '../../Views/TrendingView/components/BrowserWrapper/BrowserWrapper';
+import BridgeView from '../../UI/Bridge/Views/BridgeView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -292,26 +294,6 @@ const TrendingHome = () => (
       component={TrendingView}
       options={{ headerShown: false }}
     />
-    <Stack.Screen
-      name={Routes.SITES_LIST_VIEW}
-      component={SitesListView}
-      options={{
-        headerShown: false,
-        animationEnabled: true,
-        cardStyleInterpolator: ({ current, layouts }) => ({
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0],
-                }),
-              },
-            ],
-          },
-        }),
-      }}
-    />
   </Stack.Navigator>
 );
 
@@ -338,16 +320,6 @@ const BrowserFlow = (props) => (
       name={Routes.BROWSER.ASSET_VIEW}
       component={Asset}
       initialParams={props.route.params}
-    />
-    <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
-    />
-    <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -874,21 +846,6 @@ const NotificationsModeView = (props) => (
   </Stack.Navigator>
 );
 
-const Swaps = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="SwapsAmountView"
-      component={SwapsAmountView}
-      options={SwapsAmountView.navigationOptions}
-    />
-    <Stack.Screen
-      name="SwapsQuotesView"
-      component={SwapsQuotesView}
-      options={SwapsQuotesView.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -994,6 +951,26 @@ const MainNavigator = () => {
       />
       <Stack.Screen name="Home" component={HomeTabs} />
       <Stack.Screen
+        name="TrendingBrowser"
+        component={BrowserWrapper}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
+      <Stack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
         options={{ headerShown: false }}
@@ -1056,6 +1033,25 @@ const MainNavigator = () => {
           }),
         }}
       />
+      <Stack.Screen
+        name={Routes.SITES_FULL_VIEW}
+        component={SitesFullView}
+        options={{
+          animationEnabled: true,
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
+      />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
@@ -1099,7 +1095,6 @@ const MainNavigator = () => {
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen name="Swaps" component={Swaps} />
       <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}

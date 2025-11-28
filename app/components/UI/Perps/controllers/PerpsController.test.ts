@@ -170,6 +170,8 @@ jest.mock('./services/TradingService', () => ({
     closePosition: jest.fn(),
     closePositions: jest.fn(),
     updatePositionTPSL: jest.fn(),
+    updateMargin: jest.fn(),
+    flipPosition: jest.fn(),
   },
 }));
 
@@ -1945,6 +1947,138 @@ describe('PerpsController', () => {
         },
       );
     });
+
+    it('updates margin successfully', async () => {
+      const updateMarginParams = {
+        coin: 'BTC',
+        amount: '100',
+      };
+
+      const mockUpdateResult = {
+        success: true,
+      };
+
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      jest
+        .spyOn(TradingService, 'updateMargin')
+        .mockResolvedValue(mockUpdateResult);
+
+      const result = await controller.updateMargin(updateMarginParams);
+
+      expect(result).toEqual(mockUpdateResult);
+      expect(TradingService.updateMargin).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: mockProvider,
+          coin: updateMarginParams.coin,
+          amount: '100',
+          context: expect.any(Object),
+        }),
+      );
+    });
+
+    it('handles updateMargin error', async () => {
+      const updateMarginParams = {
+        coin: 'BTC',
+        amount: '100',
+      };
+
+      const errorMessage = 'Insufficient balance';
+
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      jest
+        .spyOn(TradingService, 'updateMargin')
+        .mockRejectedValue(new Error(errorMessage));
+
+      await expect(controller.updateMargin(updateMarginParams)).rejects.toThrow(
+        errorMessage,
+      );
+      expect(TradingService.updateMargin).toHaveBeenCalled();
+    });
+
+    it('flips position successfully', async () => {
+      const mockPosition = {
+        coin: 'BTC',
+        size: '0.5',
+        entryPrice: '50000',
+        positionValue: '25000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '0.04',
+        leverage: { type: 'cross' as const, value: 10 },
+        liquidationPrice: '45000',
+        marginUsed: '2500',
+        maxLeverage: 100,
+        cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      };
+
+      const flipPositionParams = {
+        coin: 'BTC',
+        position: mockPosition,
+      };
+
+      const mockFlipResult = {
+        success: true,
+        orderId: 'flip-123',
+        filledSize: '1.0',
+        averagePrice: '50000',
+      };
+
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      jest
+        .spyOn(TradingService, 'flipPosition')
+        .mockResolvedValue(mockFlipResult);
+
+      const result = await controller.flipPosition(flipPositionParams);
+
+      expect(result).toEqual(mockFlipResult);
+      expect(TradingService.flipPosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: mockProvider,
+          position: mockPosition,
+          context: expect.any(Object),
+        }),
+      );
+    });
+
+    it('handles flipPosition error', async () => {
+      const mockPosition = {
+        coin: 'BTC',
+        size: '0.5',
+        entryPrice: '50000',
+        positionValue: '25000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '0.04',
+        leverage: { type: 'cross' as const, value: 10 },
+        liquidationPrice: '45000',
+        marginUsed: '2500',
+        maxLeverage: 100,
+        cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      };
+
+      const flipPositionParams = {
+        coin: 'BTC',
+        position: mockPosition,
+      };
+
+      const errorMessage = 'Insufficient balance for flip fees';
+
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      jest
+        .spyOn(TradingService, 'flipPosition')
+        .mockRejectedValue(new Error(errorMessage));
+
+      await expect(controller.flipPosition(flipPositionParams)).rejects.toThrow(
+        errorMessage,
+      );
+      expect(TradingService.flipPosition).toHaveBeenCalled();
+    });
   });
 
   describe('fee calculations', () => {
@@ -2697,6 +2831,166 @@ describe('PerpsController', () => {
       const result = controller.getTradeConfiguration('BTC');
 
       expect(result?.leverage).toBe(10);
+    });
+  });
+
+  describe('pending trade configuration', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('saves pending trade configuration', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+        takeProfitPrice: '50000',
+        stopLossPrice: '40000',
+        limitPrice: '45000',
+        orderType: 'limit' as const,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+      expect(result).toEqual(config);
+    });
+
+    it('returns undefined for non-existent pending configuration', () => {
+      const result = controller.getPendingTradeConfiguration('ETH');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for expired pending configuration (more than 5 minutes)', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      // Fast-forward 6 minutes (more than 5 minutes)
+      jest.advanceTimersByTime(6 * 60 * 1000);
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns configuration for valid pending configuration (less than 5 minutes)', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+        takeProfitPrice: '50000',
+        orderType: 'market' as const,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      // Fast-forward 4 minutes (less than 5 minutes)
+      jest.advanceTimersByTime(4 * 60 * 1000);
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+
+      expect(result).toEqual(config);
+    });
+
+    it('clears expired pending configuration automatically', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+
+      // Fast-forward 6 minutes
+      jest.advanceTimersByTime(6 * 60 * 1000);
+
+      // First call should clear expired config
+      controller.getPendingTradeConfiguration('BTC');
+
+      // Second call should return undefined
+      const result = controller.getPendingTradeConfiguration('BTC');
+      expect(result).toBeUndefined();
+
+      // Verify state was cleaned up
+      const network = controller.state.isTestnet ? 'testnet' : 'mainnet';
+      expect(
+        controller.state.tradeConfigurations[network]?.BTC?.pendingConfig,
+      ).toBeUndefined();
+    });
+
+    it('clears pending trade configuration explicitly', () => {
+      const config = {
+        amount: '100',
+        leverage: 5,
+      };
+
+      controller.savePendingTradeConfiguration('BTC', config);
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(config);
+
+      controller.clearPendingTradeConfiguration('BTC');
+
+      const result = controller.getPendingTradeConfiguration('BTC');
+      expect(result).toBeUndefined();
+    });
+
+    it('saves pending config per network (testnet vs mainnet)', () => {
+      const configMainnet = {
+        amount: '100',
+        leverage: 5,
+      };
+      const configTestnet = {
+        amount: '200',
+        leverage: 10,
+      };
+
+      // Save on mainnet (default is mainnet)
+      controller.savePendingTradeConfiguration('BTC', configMainnet);
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(
+        configMainnet,
+      );
+
+      // Switch to testnet using update method
+      controller.testUpdate((state) => {
+        state.isTestnet = true;
+      });
+      controller.savePendingTradeConfiguration('BTC', configTestnet);
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(
+        configTestnet,
+      );
+
+      // Switch back to mainnet
+      controller.testUpdate((state) => {
+        state.isTestnet = false;
+      });
+      expect(controller.getPendingTradeConfiguration('BTC')).toEqual(
+        configMainnet,
+      );
+    });
+
+    it('preserves existing leverage when saving pending config', () => {
+      // First save leverage
+      controller.saveTradeConfiguration('BTC', 10);
+
+      // Then save pending config
+      const pendingConfig = {
+        amount: '100',
+        leverage: 5,
+      };
+      controller.savePendingTradeConfiguration('BTC', pendingConfig);
+
+      // Leverage should still be saved
+      const savedConfig = controller.getTradeConfiguration('BTC');
+      expect(savedConfig?.leverage).toBe(10);
+
+      // Pending config should also be available
+      const pending = controller.getPendingTradeConfiguration('BTC');
+      expect(pending).toEqual(pendingConfig);
     });
   });
 });

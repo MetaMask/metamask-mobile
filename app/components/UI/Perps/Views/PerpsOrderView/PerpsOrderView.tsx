@@ -27,6 +27,7 @@ import ButtonSemantic, {
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
@@ -79,6 +80,7 @@ import type {
   OrderParams,
   OrderType,
   PerpsNavigationParamList,
+  Position,
 } from '../../controllers/types';
 import {
   useHasExistingPosition,
@@ -100,7 +102,11 @@ import {
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -124,6 +130,8 @@ interface OrderRouteParams {
   asset?: string;
   amount?: string;
   leverage?: number;
+  // Existing position param
+  existingPosition?: Position;
   // Modal return values
   leverageUpdate?: number;
   orderTypeUpdate?: OrderType;
@@ -132,6 +140,12 @@ interface OrderRouteParams {
     stopLossPrice?: string;
   };
   limitPriceUpdate?: string;
+  // Hide TP/SL when modifying existing position
+  hideTPSL?: boolean;
+}
+
+interface PerpsOrderViewContentProps {
+  hideTPSL?: boolean;
 }
 
 /**
@@ -145,7 +159,9 @@ interface OrderRouteParams {
  * - Auto-opening limit price modal when switching order types
  * - Comprehensive order validation
  */
-const PerpsOrderViewContentBase: React.FC = () => {
+const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
+  hideTPSL = false,
+}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -203,7 +219,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
     handlePercentageAmount,
     handleMaxAmount,
     maxPossibleAmount,
+    // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
+
+  // Save pending trade config when user navigates away
+  usePerpsSavePendingConfig(orderForm);
 
   /**
    * PROTOCOL CONSTRAINT: Existing position leverage
@@ -233,13 +253,19 @@ const PerpsOrderViewContentBase: React.FC = () => {
   });
 
   // Check if user has an existing position for this market
-  const { existingPosition } = useHasExistingPosition({
+  const { existingPosition: currentMarketPosition } = useHasExistingPosition({
     asset: orderForm.asset || '',
     loadOnMount: true,
   });
 
   // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
   const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
+
+  // A/B Testing: Button color test (TAT-1937)
+  const { variantName: buttonColorVariant } = usePerpsABTest({
+    test: BUTTON_COLOR_TEST,
+    featureFlagSelector: selectPerpsButtonColorTestVariant,
+  });
 
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
@@ -359,7 +385,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
       [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
-      [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
+      [PerpsEventProperties.LEVERAGE_USED]: parseFloat(
+        String(orderForm.leverage),
+      ),
       [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
     },
   });
@@ -552,7 +580,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Get existing position leverage for validation (protocol constraint)
   // Note: This is the same value used for initial form state, but needed here for validation
   const existingPositionLeverageForValidation =
-    existingPosition?.leverage?.value;
+    currentMarketPosition?.leverage?.value;
 
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
@@ -704,7 +732,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
       }
 
       // Check for cross-margin position (MetaMask only supports isolated margin)
-      if (existingPosition?.leverage?.type === 'cross') {
+      if (currentMarketPosition?.leverage?.type === 'cross') {
         navigation.navigate(Routes.PERPS.MODALS.ROOT, {
           screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
         });
@@ -780,20 +808,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
         // Add tracking data for MetaMetrics events
         trackingData: {
           marginUsed: Number(marginRequired),
-          totalFee: Number(feeResults.totalFee),
-          marketPrice: Number(currentPrice?.price || assetData.price),
-          metamaskFee: feeResults.metamaskFee
-            ? Number(feeResults.metamaskFee)
-            : undefined,
-          metamaskFeeRate: feeResults.metamaskFeeRate
-            ? Number(feeResults.metamaskFeeRate)
-            : undefined,
-          feeDiscountPercentage: feeResults.feeDiscountPercentage
-            ? Number(feeResults.feeDiscountPercentage)
-            : undefined,
-          estimatedPoints: feeResults.estimatedPoints
-            ? Number(feeResults.estimatedPoints)
-            : undefined,
+          totalFee: feeResults.totalFee,
+          marketPrice: assetData.price,
+          metamaskFee: feeResults.metamaskFee,
+          metamaskFeeRate: feeResults.metamaskFeeRate,
+          feeDiscountPercentage: feeResults.feeDiscountPercentage,
+          estimatedPoints: feeResults.estimatedPoints,
           inputMethod: inputMethodRef.current,
         },
       };
@@ -801,9 +821,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
       // Check if TP/SL should be handled separately (for new positions or position flips)
       const shouldHandleTPSLSeparately =
         (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
-        ((!existingPosition && orderForm.type === 'market') ||
-          (existingPosition &&
-            willFlipPosition(existingPosition, orderParams)));
+        ((!currentMarketPosition && orderForm.type === 'market') ||
+          (currentMarketPosition &&
+            willFlipPosition(currentMarketPosition, orderParams)));
 
       if (shouldHandleTPSLSeparately) {
         // Execute order without TP/SL first, then update position TP/SL
@@ -840,7 +860,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     assetData.price,
     navigation,
     navigationMarketData,
-    existingPosition,
+    currentMarketPosition,
     executeOrder,
     showToast,
     PerpsToastOptions.formValidation.orderForm,
@@ -851,7 +871,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.estimatedPoints,
-    currentPrice?.price,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -1018,46 +1037,48 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </View>
             )}
 
-            {/* Combined TP/SL row */}
-            <View style={[styles.detailItem, styles.detailItemLast]}>
-              <TouchableOpacity
-                onPress={handleTPSLPress}
-                testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
-              >
-                <ListItem style={styles.detailItemWrapper}>
-                  <ListItemColumn widthType={WidthType.Fill}>
-                    <View style={styles.detailLeft}>
+            {/* Combined TP/SL row - Hidden when modifying existing position */}
+            {!hideTPSL && (
+              <View style={[styles.detailItem, styles.detailItemLast]}>
+                <TouchableOpacity
+                  onPress={handleTPSLPress}
+                  testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
+                >
+                  <ListItem style={styles.detailItemWrapper}>
+                    <ListItemColumn widthType={WidthType.Fill}>
+                      <View style={styles.detailLeft}>
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Alternative}
+                        >
+                          {strings('perps.order.tp_sl')}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => handleTooltipPress('tp_sl')}
+                          style={styles.infoIcon}
+                        >
+                          <Icon
+                            name={IconName.Info}
+                            size={IconSize.Sm}
+                            color={IconColor.Alternative}
+                            testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </ListItemColumn>
+                    <ListItemColumn widthType={WidthType.Auto}>
                       <Text
                         variant={TextVariant.BodyMD}
-                        color={TextColor.Alternative}
+                        color={TextColor.Default}
                       >
-                        {strings('perps.order.tp_sl')}
+                        {tpSlDisplayText}
                       </Text>
-                      <TouchableOpacity
-                        onPress={() => handleTooltipPress('tp_sl')}
-                        style={styles.infoIcon}
-                      >
-                        <Icon
-                          name={IconName.Info}
-                          size={IconSize.Sm}
-                          color={IconColor.Alternative}
-                          testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  </ListItemColumn>
-                  <ListItemColumn widthType={WidthType.Auto}>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
-                    >
-                      {tpSlDisplayText}
-                    </Text>
-                  </ListItemColumn>
-                </ListItem>
-              </TouchableOpacity>
-            </View>
-            {doesStopLossRiskLiquidation && (
+                    </ListItemColumn>
+                  </ListItem>
+                </TouchableOpacity>
+              </View>
+            )}
+            {!hideTPSL && doesStopLossRiskLiquidation && (
               <View style={styles.stopLossLiquidationWarning}>
                 <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {strings('perps.tpsl.stop_loss_order_view_warning', {
@@ -1284,26 +1305,44 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </View>
             )}
 
-          <ButtonSemantic
-            severity={
-              orderForm.direction === 'long'
-                ? ButtonSemanticSeverity.Success
-                : ButtonSemanticSeverity.Danger
-            }
-            onPress={handlePlaceOrder}
-            isFullWidth
-            size={ButtonSizeRNDesignSystem.Lg}
-            isDisabled={
-              !orderValidation.isValid ||
-              isPlacingOrder ||
-              doesStopLossRiskLiquidation ||
-              isAtOICap
-            }
-            isLoading={isPlacingOrder}
-            testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-          >
-            {placeOrderLabel}
-          </ButtonSemantic>
+          {buttonColorVariant === 'monochrome' ? (
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={placeOrderLabel}
+              onPress={handlePlaceOrder}
+              isDisabled={
+                !orderValidation.isValid ||
+                isPlacingOrder ||
+                doesStopLossRiskLiquidation ||
+                isAtOICap
+              }
+              loading={isPlacingOrder}
+              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+            />
+          ) : (
+            <ButtonSemantic
+              severity={
+                orderForm.direction === 'long'
+                  ? ButtonSemanticSeverity.Success
+                  : ButtonSemanticSeverity.Danger
+              }
+              onPress={handlePlaceOrder}
+              isFullWidth
+              size={ButtonSizeRNDesignSystem.Lg}
+              isDisabled={
+                !orderValidation.isValid ||
+                isPlacingOrder ||
+                doesStopLossRiskLiquidation ||
+                isAtOICap
+              }
+              isLoading={isPlacingOrder}
+              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+            >
+              {placeOrderLabel}
+            </ButtonSemantic>
+          )}
         </View>
       )}
       {/* Leverage Selector */}
@@ -1451,6 +1490,8 @@ const PerpsOrderView: React.FC = () => {
     asset = 'BTC',
     amount: paramAmount,
     leverage: paramLeverage,
+    existingPosition,
+    hideTPSL = false,
   } = route.params || {};
 
   return (
@@ -1459,8 +1500,9 @@ const PerpsOrderView: React.FC = () => {
       initialDirection={direction}
       initialAmount={paramAmount}
       initialLeverage={paramLeverage}
+      existingPosition={existingPosition}
     >
-      <PerpsOrderViewContent />
+      <PerpsOrderViewContent hideTPSL={hideTPSL} />
     </PerpsOrderProvider>
   );
 };
