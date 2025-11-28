@@ -26,6 +26,7 @@ export const userInitialState: UserState = {
   existingUser: false,
   isConnectionRemoved: false,
   multichainAccountsIntroModalSeen: false,
+  musdConversionEducationSeen: false,
 };
 
 /**
@@ -132,6 +133,11 @@ const userReducer = (
       return {
         ...state,
         multichainAccountsIntroModalSeen: action.payload.seen,
+      };
+    case UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN:
+      return {
+        ...state,
+        musdConversionEducationSeen: true,
       };
     default:
       return state;
