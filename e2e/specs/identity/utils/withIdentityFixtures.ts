@@ -53,7 +53,6 @@ export async function withIdentityFixtures(
 
   let userStorageController: UserStorageMockttpController;
 
-  
   const testSpecificMock = async (mockServer: Mockttp) => {
     if (mockBalancesAccounts.length > 0) {
       await setupAccountMockedBalances(mockServer, mockBalancesAccounts);
