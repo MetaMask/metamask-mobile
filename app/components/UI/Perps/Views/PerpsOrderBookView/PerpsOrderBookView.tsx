@@ -59,6 +59,42 @@ import {
   aggregateOrderBookLevels,
 } from '../../utils/orderBookGrouping';
 
+/**
+ * Calculate the number of API levels needed to display adequate depth
+ * based on the current price and selected grouping.
+ *
+ * Goal: Request enough levels so that after aggregation, we have
+ * at least targetRows rows to show.
+ *
+ * With nSigFigs: 5, the price increment between levels is approximately:
+ * - For BTC at $97,000: ~$1 per level (97001, 97002, etc.)
+ * - For ETH at $3,500: ~$0.035 per level
+ * - For SOL at $150: ~$0.0015 per level
+ *
+ * So to get 15 rows with $1000 grouping on BTC, we need 15 * 1000 = 15,000 levels!
+ * This is too many - instead we should request fewer levels and accept fewer rows
+ * for very large groupings.
+ */
+const calculateRequiredLevels = (
+  price: number,
+  grouping: number,
+  targetRows: number = 15,
+): number => {
+  // Calculate price increment for nSigFigs: 5
+  // nSigFigs: 5 means 5 significant figures, so increment ≈ price * 10^(floor(log10(price)) - 4)
+  const magnitude = Math.floor(Math.log10(price));
+  const priceIncrement = Math.pow(10, magnitude - 4);
+
+  // Required price range for target rows
+  const requiredPriceRange = targetRows * grouping;
+
+  // Levels needed = price range / increment
+  const levelsNeeded = Math.ceil(requiredPriceRange / priceIncrement);
+
+  // Clamp between 100 (minimum for decent depth) and 2000 (API limit)
+  return Math.max(100, Math.min(2000, levelsNeeded));
+};
+
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
 }) => {
@@ -93,6 +129,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     }
   }, [savedGrouping, selectedGrouping]);
 
+  // Dynamic levels state - starts with high default to ensure good initial depth
+  const [dynamicLevels, setDynamicLevels] = useState(500);
+
   // Subscribe to live order book data with finest granularity (nSigFigs: 5)
   // We'll aggregate client-side based on selected grouping
   const {
@@ -101,7 +140,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     error,
   } = usePerpsLiveOrderBook({
     symbol: symbol || '',
-    levels: 50, // Request more levels for aggregation
+    levels: dynamicLevels,
     nSigFigs: 5, // Always use finest granularity
     throttleMs: 100,
   });
@@ -135,6 +174,19 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     }
     return null;
   }, [selectedGrouping, groupingOptions]);
+
+  // Update dynamic levels when price and grouping are available
+  useEffect(() => {
+    if (midPrice && currentGrouping) {
+      const requiredLevels = calculateRequiredLevels(midPrice, currentGrouping);
+      // Only update if significantly different (>10% change) to avoid unnecessary re-subscriptions
+      const percentChange =
+        Math.abs(requiredLevels - dynamicLevels) / dynamicLevels;
+      if (percentChange > 0.1) {
+        setDynamicLevels(requiredLevels);
+      }
+    }
+  }, [midPrice, currentGrouping, dynamicLevels]);
 
   // Maximum levels to display per side
   const MAX_DISPLAY_LEVELS = 15;

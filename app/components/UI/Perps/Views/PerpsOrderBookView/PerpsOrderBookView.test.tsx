@@ -628,14 +628,22 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
-    it('subscribes to live order book with 50 levels for client-side aggregation', () => {
+    it('subscribes to live order book with dynamic levels for client-side aggregation', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
+      // Initially starts with 500 levels, then adjusts dynamically based on price/grouping
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          levels: 50,
+          levels: expect.any(Number),
         }),
       );
+      // Verify levels are within expected range (100-2000)
+      const calls = mockUsePerpsLiveOrderBook.mock.calls as [
+        { levels: number },
+      ][];
+      const lastCall = calls[calls.length - 1];
+      expect(lastCall[0].levels).toBeGreaterThanOrEqual(100);
+      expect(lastCall[0].levels).toBeLessThanOrEqual(2000);
     });
 
     it('subscribes to live order book with correct throttleMs', () => {
