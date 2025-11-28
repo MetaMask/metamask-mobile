@@ -44,6 +44,7 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionCta from '../Earn/components/Musd/MusdConversionCta';
+import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -87,6 +88,10 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
 
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
+  );
+
+  const isMusdConversionFlowEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
   );
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
@@ -220,7 +225,7 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
         </Box>
       ) : sortedTokenKeys.length > 0 ? (
         <>
-          <MusdConversionCta />
+          {isMusdConversionFlowEnabled && <MusdConversionCta />}
           <TokenList
             tokenKeys={sortedTokenKeys}
             refreshing={refreshing}
