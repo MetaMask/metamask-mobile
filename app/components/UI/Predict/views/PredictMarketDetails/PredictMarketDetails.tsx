@@ -74,6 +74,7 @@ import PredictDetailsHeaderSkeleton from '../../components/PredictDetailsHeaderS
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictDetailsButtonsSkeleton from '../../components/PredictDetailsButtonsSkeleton';
 import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
+import { sortMarketOutcomesByVolume } from '../../utils/market';
 
 const PRICE_HISTORY_TIMEFRAMES: PredictPriceHistoryInterval[] = [
   PredictPriceHistoryInterval.ONE_HOUR,
@@ -484,7 +485,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       return openOutcomesBase;
     }
 
-    return openOutcomesBase.map((outcome) => ({
+    const outcomes = openOutcomesBase.map((outcome) => ({
       ...outcome,
       tokens: outcome.tokens.map((token) => {
         const priceResult = prices.results.find(
@@ -498,6 +499,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         };
       }),
     }));
+
+    return sortMarketOutcomesByVolume(outcomes);
   }, [openOutcomesBase, prices]);
 
   const getYesPercentage = (): number => {
