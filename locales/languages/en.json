@@ -1620,6 +1620,10 @@
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
       },
+      "oracle_price": {
+        "title": "Oracle price",
+        "content": "The median of external prices reported by validators, used for computing funding rate."
+      },
       "funding_payments": {
         "title": "Funding payments",
         "content": "This is the amount you've paid in funding fees since the position was opened. Funding is paid or received every hour to keep the perp price close to the actual token price."
