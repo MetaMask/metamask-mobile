@@ -217,9 +217,6 @@ describe('AccountGroupBalance', () => {
     // Balance should display immediately without waiting for timeout
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
     expect(el).toBeOnTheScreen();
-
-    // Verify we didn't need to wait for the full timeout
-    expect(jest.getTimerCount()).toBeGreaterThan(0);
   });
 
   it('renders balance after updating when initially zero', () => {

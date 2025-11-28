@@ -25,7 +25,7 @@ import BalanceEmptyState from '../../../BalanceEmptyState';
 /**
  * Timeout for account group balance fetch
  * This is to prevent a flash of empty state when the balance is not yet fetched
- * !TODO: This is a temporary fix for an artificial loading state should be refactored after Account API v4 integration
+ * !TODO: This is a temporary fix for an artificial loading state and should be refactored after Account API v4 integration
  */
 const ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT = 3000;
 
