@@ -149,7 +149,7 @@ export const usePerpsHomeActions = (
       [PerpsEventProperties.BUTTON_CLICKED]:
         PerpsEventValues.BUTTON_CLICKED.WITHDRAW,
       [PerpsEventProperties.BUTTON_LOCATION]:
-        PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
+        buttonLocation || PerpsEventValues.BUTTON_LOCATION.PERPS_HOME,
     });
 
     if (!isEligible) {
@@ -197,6 +197,7 @@ export const usePerpsHomeActions = (
     onWithdrawSuccess,
     onError,
     track,
+    buttonLocation,
   ]);
 
   const closeEligibilityModal = useCallback(() => {
