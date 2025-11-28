@@ -23,11 +23,9 @@ export default async function migrate(state: unknown) {
       METRICS_OPT_IN_SOCIAL_LOGIN,
     );
 
-    if (metricsOptIn !== AGREED) {
-      // migrate Social Login user metric to metrics enable system
-      if (socialLoginOptIn === AGREED) {
-        await StorageWrapper.setItem(METRICS_OPT_IN, AGREED);
-      }
+    // migrate Social Login user metric to metrics enable system
+    if (metricsOptIn !== AGREED && socialLoginOptIn === AGREED) {
+      await StorageWrapper.setItem(METRICS_OPT_IN, AGREED);
     }
 
     if (socialLoginOptIn) {
