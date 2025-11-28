@@ -80,6 +80,7 @@ import type {
   SubscribeAccountParams,
   SubscribeCandlesParams,
   SubscribeOICapsParams,
+  SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -1957,6 +1958,29 @@ export class PerpsController extends BaseController<
         ensureError(error),
         this.getErrorContext('subscribeToAccount', {
           accountId: params.accountId,
+        }),
+      );
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
+   * Subscribe to full order book updates with multiple depth levels
+   * Creates a dedicated L2Book subscription for real-time order book data
+   */
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOrderBook(params);
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('subscribeToOrderBook', {
+          symbol: params.symbol,
+          levels: params.levels,
         }),
       );
       // Return a no-op unsubscribe function

@@ -2,27 +2,13 @@
 
 exports[`StakingCta render matches snapshot 1`] = `
 <View>
-  <Text
-    accessibilityRole="text"
-    style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist Bold",
-        "fontSize": 18,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "paddingBottom": 16,
-        "paddingTop": 14,
-      }
-    }
-  >
-    Stake ETH and earn
-  </Text>
   <View
     style={
       {
+        "borderRadius": 12,
         "flexDirection": "row",
         "flexWrap": "wrap",
+        "marginBottom": 8,
       }
     }
   >
@@ -35,65 +21,59 @@ exports[`StakingCta render matches snapshot 1`] = `
           "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
-          "paddingRight": 3,
         }
       }
-    >
-      Stake your ETH with MetaMask Pool and earn
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#457a39",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-          "paddingRight": 3,
-        }
-      }
-    >
-      2.6%
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#121314",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      annually. 
-    </Text>
-    <Text
-      accessibilityRole="link"
-      accessible={true}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
-        {
-          "backgroundColor": "transparent",
-          "color": "#121314",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-      suppressHighlighting={true}
     >
       <Text
         accessibilityRole="text"
         style={
           {
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Stake your ETH with MetaMask Pool and earn
+         
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#457a39",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        2.6%
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+         annually. 
+      </Text>
+      <Text
+        accessibilityRole="text"
+        onPress={[Function]}
+        style={
+          {
             "color": "#4459ff",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

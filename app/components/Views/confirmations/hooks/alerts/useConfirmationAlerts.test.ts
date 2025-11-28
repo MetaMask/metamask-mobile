@@ -18,6 +18,8 @@ import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
+import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
+import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useDomainMismatchAlerts');
@@ -31,6 +33,8 @@ jest.mock('./useNoPayTokenQuotesAlert');
 jest.mock('./useInsufficientPredictBalanceAlert');
 jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
+jest.mock('./useAddressTrustSignalAlerts');
+jest.mock('./useOriginTrustSignalAlerts');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -144,6 +148,22 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
+  const mockOriginTrustSignalAlerts: Alert[] = [
+    {
+      key: 'OriginTrustSignalAlert',
+      title: 'Test Origin Trust Signal Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+  const mockAddressTrustSignalAlerts: Alert[] = [
+    {
+      key: 'AddressTrustSignalAlert',
+      title: 'Test Address Trust Signal Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
   beforeEach(() => {
     jest.clearAllMocks();
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
@@ -158,6 +178,8 @@ describe('useConfirmationAlerts', () => {
     (useInsufficientPredictBalanceAlert as jest.Mock).mockReturnValue([]);
     (useBurnAddressAlert as jest.Mock).mockReturnValue([]);
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
+    (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
+    (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -226,6 +248,12 @@ describe('useConfirmationAlerts', () => {
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue(
       mockTokenTrustSignalAlerts,
     );
+    (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue(
+      mockAddressTrustSignalAlerts,
+    );
+    (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue(
+      mockOriginTrustSignalAlerts,
+    );
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -242,6 +270,8 @@ describe('useConfirmationAlerts', () => {
       ...mockBurnAddressAlert,
       ...mockTokenTrustSignalAlerts,
       ...mockUpgradeAccountAlert,
+      ...mockOriginTrustSignalAlerts,
+      ...mockAddressTrustSignalAlerts,
     ]);
   });
 });
