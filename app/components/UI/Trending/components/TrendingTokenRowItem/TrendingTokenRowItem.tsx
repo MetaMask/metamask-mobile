@@ -169,7 +169,6 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
 
 const TrendingTokenRowItem = ({
   token,
-  iconSize = 44,
   selectedTimeOption = TimeOption.TwentyFourHours,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -284,7 +283,7 @@ const TrendingTokenRowItem = ({
             <TrendingTokenLogo
               assetId={token.assetId}
               symbol={token.symbol}
-              size={iconSize}
+              size={40}
               recyclingKey={token.assetId}
             />
           </BadgeWrapper>
