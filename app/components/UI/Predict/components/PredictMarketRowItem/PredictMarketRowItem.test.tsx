@@ -106,7 +106,7 @@ describe('PredictMarketRowItem', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: 'test-market-1',
-        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        entryPoint: PredictEventValues.ENTRY_POINT.TRENDING_SEARCH,
         title: 'Monad FDV one day after launch?',
         image: 'https://example.com/monad.jpg',
       },

@@ -27,7 +27,7 @@ interface PredictMarketRowItemProps {
 const PredictMarketRowItem = ({
   market,
   testID,
-  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  entryPoint = PredictEventValues.ENTRY_POINT.TRENDING_SEARCH,
 }: PredictMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation =
