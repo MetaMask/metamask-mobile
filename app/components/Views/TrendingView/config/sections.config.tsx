@@ -30,7 +30,7 @@ export type SectionId = 'predictions' | 'tokens' | 'perps' | 'sites';
 interface SectionData {
   data: unknown[];
   isLoading: boolean;
-  refetch?: () => void | Promise<void>;
+  refetch?: () => Promise<void>;
 }
 
 interface SectionConfig {
@@ -133,9 +133,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       return {
         data: filteredMarkets,
         isLoading: isLoading || isRefreshing,
-        refetch: () => {
-          void refresh();
-        },
+        refetch: refresh,
       };
     },
   },
@@ -167,13 +165,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         q: searchQuery || undefined,
       });
 
-      return {
-        data: marketData,
-        isLoading: isFetching,
-        refetch: () => {
-          void refetch();
-        },
-      };
+      return { data: marketData, isLoading: isFetching, refetch };
     },
   },
   sites: {
