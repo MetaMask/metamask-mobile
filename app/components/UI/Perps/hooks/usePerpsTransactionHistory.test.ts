@@ -3,6 +3,7 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 import { useUserHistory } from './useUserHistory';
+import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {
   transformFillsToTransactions,
   transformOrdersToTransactions,
@@ -17,11 +18,15 @@ jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./useUserHistory');
 jest.mock('../utils/transactionTransforms');
+jest.mock('./stream/usePerpsLiveFills');
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 const mockUseUserHistory = useUserHistory as jest.MockedFunction<
   typeof useUserHistory
+>;
+const mockUsePerpsLiveFills = usePerpsLiveFills as jest.MockedFunction<
+  typeof usePerpsLiveFills
 >;
 const mockTransformFillsToTransactions =
   transformFillsToTransactions as jest.MockedFunction<
@@ -172,6 +177,12 @@ describe('usePerpsTransactionHistory', () => {
       refetch: jest.fn().mockResolvedValue(mockUserHistory),
     });
 
+    // Mock live fills hook (returns empty by default, tests can override)
+    mockUsePerpsLiveFills.mockReturnValue({
+      fills: [],
+      isInitialLoading: false,
+    });
+
     // Mock transform functions
     mockTransformFillsToTransactions.mockReturnValue(
       mockTransformedTransactions,
@@ -183,8 +194,12 @@ describe('usePerpsTransactionHistory', () => {
 
   describe('initial state', () => {
     it('returns initial state correctly', async () => {
+      // Override transform mock to return empty for initial state test
+      mockTransformFillsToTransactions.mockReturnValue([]);
+
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
+      // Initial state: no WebSocket fills, no REST data yet
       expect(result.current.transactions).toEqual([]);
       // Initial loading state is false, becomes true when fetch starts
       expect(result.current.isLoading).toBe(false);
@@ -198,6 +213,9 @@ describe('usePerpsTransactionHistory', () => {
     });
 
     it('skips initial fetch when skipInitialFetch is true', () => {
+      // Override transform mock to return empty for initial state test
+      mockTransformFillsToTransactions.mockReturnValue([]);
+
       const { result } = renderHook(() =>
         usePerpsTransactionHistory({ skipInitialFetch: true }),
       );
@@ -352,7 +370,11 @@ describe('usePerpsTransactionHistory', () => {
         },
       ];
 
-      mockTransformFillsToTransactions.mockReturnValue(mockTransactions);
+      // Use mockImplementation to return transactions only for non-empty fills
+      // Empty fills (from WebSocket) should return empty array
+      mockTransformFillsToTransactions.mockImplementation((fills) =>
+        fills.length > 0 ? mockTransactions : [],
+      );
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
@@ -456,6 +478,13 @@ describe('usePerpsTransactionHistory', () => {
       (
         mockEngine as unknown as { context: { PerpsController: unknown } }
       ).context.PerpsController = undefined;
+      // WebSocket fills are empty for this test
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+      // No live fills means transform returns empty
+      mockTransformFillsToTransactions.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
@@ -469,6 +498,13 @@ describe('usePerpsTransactionHistory', () => {
 
     it('handles no active provider', async () => {
       mockController.getActiveProvider.mockReturnValue(undefined);
+      // WebSocket fills are empty for this test
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+      // No live fills means transform returns empty
+      mockTransformFillsToTransactions.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
@@ -477,11 +513,19 @@ describe('usePerpsTransactionHistory', () => {
       });
 
       expect(result.current.error).toBe('No active provider available');
+      // With no REST data and no WebSocket data, transactions should be empty
       expect(result.current.transactions).toEqual([]);
     });
 
     it('handles provider fetch errors', async () => {
       mockProvider.getOrderFills.mockRejectedValue(new Error('Fetch error'));
+      // WebSocket fills are empty for this test
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+      // No live fills means transform returns empty
+      mockTransformFillsToTransactions.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
@@ -490,6 +534,7 @@ describe('usePerpsTransactionHistory', () => {
       });
 
       expect(result.current.error).toBe('Fetch error');
+      // With no WebSocket data, transactions should be empty
       expect(result.current.transactions).toEqual([]);
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         'Error fetching transaction history:',
@@ -499,6 +544,13 @@ describe('usePerpsTransactionHistory', () => {
 
     it('handles non-Error exceptions', async () => {
       mockProvider.getOrderFills.mockRejectedValue('String error');
+      // WebSocket fills are empty for this test
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [],
+        isInitialLoading: false,
+      });
+      // No live fills means transform returns empty
+      mockTransformFillsToTransactions.mockReturnValue([]);
 
       const { result } = renderHook(() => usePerpsTransactionHistory());
 
