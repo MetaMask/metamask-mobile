@@ -589,7 +589,7 @@ describe('Tokens', () => {
     const { queryByTestId } = renderComponent(initialState);
 
     await waitFor(() => {
-      expect(queryByTestId('musd-conversion-cta')).toBeDefined();
+      expect(queryByTestId('musd-conversion-cta')).toBeOnTheScreen();
     });
   });
 

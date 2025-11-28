@@ -5,6 +5,16 @@ jest.mock('../../hooks/useMusdConversionTokens');
 jest.mock('../../hooks/useMusdConversion');
 jest.mock('../../../Ramp/hooks/useRampNavigation');
 
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
@@ -62,6 +72,7 @@ describe('MusdConversionCta', () => {
     ).mockReturnValue({
       initiateConversion: mockInitiateConversion,
       error: null,
+      hasSeenConversionEducationScreen: true,
     });
   });
 

@@ -408,7 +408,7 @@ describe('StakeButton', () => {
       useMusdConversionMock.mockReturnValue({
         initiateConversion: mockInitiateConversion,
         error: null,
-        hasSeenMusdEducationScreen: true,
+        hasSeenConversionEducationScreen: true,
       });
       mockUseMusdConversionTokens.mockReturnValue({
         isConversionToken: jest.fn().mockReturnValue(false),
