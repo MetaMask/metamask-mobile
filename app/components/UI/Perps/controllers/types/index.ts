@@ -637,6 +637,55 @@ export interface SubscribeCandlesParams {
   onError?: (error: Error) => void;
 }
 
+/**
+ * Single price level in the order book
+ */
+export interface OrderBookLevel {
+  /** Price at this level */
+  price: string;
+  /** Size at this level (in base asset) */
+  size: string;
+  /** Cumulative size up to and including this level */
+  total: string;
+  /** Notional value in USD */
+  notional: string;
+  /** Cumulative notional up to and including this level */
+  totalNotional: string;
+}
+
+/**
+ * Full order book data with multiple price levels
+ */
+export interface OrderBookData {
+  /** Bid levels (buy orders) - highest price first */
+  bids: OrderBookLevel[];
+  /** Ask levels (sell orders) - lowest price first */
+  asks: OrderBookLevel[];
+  /** Spread between best bid and best ask */
+  spread: string;
+  /** Spread as a percentage of mid price */
+  spreadPercentage: string;
+  /** Mid price (average of best bid and best ask) */
+  midPrice: string;
+  /** Timestamp of last update */
+  lastUpdated: number;
+  /** Maximum total size across all levels (for scaling depth bars) */
+  maxTotal: string;
+}
+
+export interface SubscribeOrderBookParams {
+  /** Symbol to subscribe to (e.g., 'BTC', 'ETH') */
+  symbol: string;
+  /** Number of levels to return per side (default: 10) */
+  levels?: number;
+  /** Price aggregation significant figures (default: 5). Higher = finer granularity */
+  nSigFigs?: number;
+  /** Callback function receiving order book updates */
+  callback: (orderBook: OrderBookData) => void;
+  /** Callback for errors */
+  onError?: (error: Error) => void;
+}
+
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -826,6 +875,7 @@ export interface IPerpsProvider {
   subscribeToAccount(params: SubscribeAccountParams): () => void;
   subscribeToOICaps(params: SubscribeOICapsParams): () => void;
   subscribeToCandles(params: SubscribeCandlesParams): () => void;
+  subscribeToOrderBook(params: SubscribeOrderBookParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

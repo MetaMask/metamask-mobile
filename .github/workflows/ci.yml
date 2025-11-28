@@ -337,27 +337,13 @@ jobs:
 
   # Flask E2E tests
 
-  build-android-flask-apks:
-    name: 'Build Android Flask APKs'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build]
-    uses: ./.github/workflows/build-android-e2e.yml
-    with:
-      build_type: 'flask'
-      metamask_environment: 'e2e'
-      keystore_target: 'flask'
-    secrets: inherit
-
   e2e-smoke-tests-android-flask:
     name: 'Android Flask E2E Smoke Tests'
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-android-flask-apks]
+    needs: [needs_e2e_build, build-android-apks]
     uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
     with:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
