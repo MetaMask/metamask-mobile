@@ -560,16 +560,24 @@ jobs:
           fi
           # Check E2E jobs only if they should have run
           if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
-            if [[ "${{ needs.e2e-smoke-tests-android.result }}" != "success" ]]; then
-              echo "Android E2E tests did not succeed (result: ${{ needs.e2e-smoke-tests-android.result }})"
+            # Accept both 'success' and 'skipped' as valid results
+            # 'skipped' occurs during merge_group events or when jobs are intentionally skipped
+            # Only fail on 'failure' or 'cancelled'
+            ANDROID_RESULT="${{ needs.e2e-smoke-tests-android.result }}"
+            if [[ "$ANDROID_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
+              echo "Android E2E tests failed (result: $ANDROID_RESULT)"
               exit 1
             fi
-            if [[ "${{ needs.e2e-smoke-tests-ios.result }}" != "success" ]]; then
-              echo "iOS E2E tests did not succeed (result: ${{ needs.e2e-smoke-tests-ios.result }})"
+            
+            IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
+            if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
+              echo "iOS E2E tests failed (result: $IOS_RESULT)"
               exit 1
             fi
-            if [[ "${{ needs.e2e-smoke-tests-android-flask.result }}" != "success" ]]; then
-              echo "Android Flask E2E tests did not succeed (result: ${{ needs.e2e-smoke-tests-android-flask.result }})"
+            
+            FLASK_RESULT="${{ needs.e2e-smoke-tests-android-flask.result }}"
+            if [[ "$FLASK_RESULT" == "failure" ]] || [[ "$FLASK_RESULT" == "cancelled" ]]; then
+              echo "Android Flask E2E tests failed (result: $FLASK_RESULT)"
               exit 1
             fi
           fi
