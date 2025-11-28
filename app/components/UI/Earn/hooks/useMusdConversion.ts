@@ -105,6 +105,13 @@ export const useMusdConversion = () => {
           );
         }
 
+        // TEMP: Until we enforce same-chain conversions.
+        if (outputChainId !== preferredPaymentToken.chainId) {
+          console.warn(
+            '[mUSD Conversion] Output chain ID and preferred payment token chain ID do not match',
+          );
+        }
+
         if (!selectedAddress) {
           throw new Error('No account selected');
         }

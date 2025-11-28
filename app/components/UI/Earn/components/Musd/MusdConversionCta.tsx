@@ -78,8 +78,10 @@ const MusdConversionCta = () => {
       return;
     }
 
+    // TODO: Reminder to circle back to this when enforcing same-chain conversions.
+    // If token[0].chainId isn't guaranteed to match MUSD_CONVERSION_DEFAULT_CHAIN_ID,
     initiateConversion({
-      outputChainId: toHex(chainId as string),
+      outputChainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
       preferredPaymentToken: {
         address: toHex(address),
         chainId: toHex(chainId as string),
