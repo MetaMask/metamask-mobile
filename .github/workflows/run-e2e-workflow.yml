@@ -117,77 +117,32 @@ jobs:
           android-avd-name: emulator
           configure-keystores: false
 
-      - name: Wait for Device Boot (Android)
+      - name: Boot Android Emulator
         if: ${{ inputs.platform == 'android' }}
-        timeout-minutes: 3
+        timeout-minutes: 5
         run: |
-          echo "⏳ Waiting for Android emulator to fully boot..."
+          echo "🚀 Starting Android emulator..."
+          $ANDROID_HOME/emulator/emulator -avd emulator -no-window -no-audio -no-snapshot -gpu swiftshader_indirect &
 
-          # Wait for any device to appear
-          MAX_WAIT=60
-          WAITED=0
-          while [ $WAITED -lt $MAX_WAIT ]; do
-            DEVICE_COUNT=$(adb devices | grep -c "device$" || echo "0")
-            if [ "$DEVICE_COUNT" -gt 0 ]; then
-              echo "Found $DEVICE_COUNT device(s)"
-              break
-            fi
-            echo "No devices found yet, waiting... ($WAITED/$MAX_WAIT seconds)"
-            sleep 2
-            WAITED=$((WAITED + 2))
-          done
-
-          if [ "$DEVICE_COUNT" -eq 0 ]; then
-            echo "❌ No Android device found after ${MAX_WAIT}s"
-            adb devices -l
-            exit 1
-          fi
-
-          # Wait for device to be fully online
+          echo "⏳ Waiting for boot..."
           adb wait-for-device
-
-          # Wait for boot to complete (sys.boot_completed = 1)
-          echo "Waiting for sys.boot_completed..."
           adb shell "while [[ \$(getprop sys.boot_completed) != '1' ]]; do sleep 1; done"
-
-          # Wait for boot animation to stop (indicates UI is ready)
-          echo "Waiting for boot animation to finish..."
           adb shell "while [[ \$(getprop init.svc.bootanim) != 'stopped' ]]; do sleep 1; done"
 
-          echo "✅ Android emulator boot completed"
+          echo "✅ Android emulator ready"
           adb devices -l
 
-      - name: Wait for Device Boot (iOS)
+      - name: Boot iOS Simulator
         if: ${{ inputs.platform == 'ios' }}
-        timeout-minutes: 3
+        timeout-minutes: 5
         run: |
-          echo "⏳ Waiting for iOS simulator to fully boot..."
+          echo "🚀 Booting iOS simulator..."
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import sys,json; print(next((d['udid'] for r,devs in json.load(sys.stdin)['devices'].items() if 'iOS' in r for d in devs if d['isAvailable'] and 'iPhone 15 Pro' in d['name']), ''))")
+          [ -z "$UDID" ] && { echo "❌ No iPhone 15 Pro found"; xcrun simctl list devices available; exit 1; }
 
-          # Wait for a simulator to start booting (may take a moment after setup-e2e-env)
-          MAX_WAIT=60
-          WAITED=0
-          while [ $WAITED -lt $MAX_WAIT ]; do
-            BOOTED_UDID=$(xcrun simctl list devices -j | python3 -c "import sys,json; devices=[d for r in json.load(sys.stdin)['devices'].values() for d in r if d['state'] in ('Booted', 'Booting')]; print(devices[0]['udid'] if devices else '')" 2>/dev/null || echo "")
-            if [ -n "$BOOTED_UDID" ]; then
-              echo "Found simulator (state: Booted/Booting): $BOOTED_UDID"
-              break
-            fi
-            echo "No simulator booting yet, waiting... ($WAITED/$MAX_WAIT seconds)"
-            sleep 2
-            WAITED=$((WAITED + 2))
-          done
-
-          if [ -z "$BOOTED_UDID" ]; then
-            echo "❌ No simulator found after ${MAX_WAIT}s. Listing all devices:"
-            xcrun simctl list devices
-            exit 1
-          fi
-
-          # Wait for full boot completion
-          echo "Waiting for simulator $BOOTED_UDID to fully boot..."
-          xcrun simctl bootstatus "$BOOTED_UDID"
-          echo "✅ iOS simulator boot completed"
-          xcrun simctl list devices booted
+          xcrun simctl boot "$UDID" 2>/dev/null || true
+          xcrun simctl bootstatus "$UDID"
+          echo "✅ iOS simulator ready"
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
