@@ -52,6 +52,8 @@ export const usePerpsTransactionHistory = ({
   // This prevents the callback from being recreated on every userHistory update,
   // which was causing race conditions and alternating data on refresh (TAT-2057)
   const userHistoryRef = useRef(userHistory);
+  // Track if initial fetch has been done to prevent duplicate fetches
+  const initialFetchDone = useRef(false);
   useEffect(() => {
     userHistoryRef.current = userHistory;
   }, [userHistory]);
@@ -82,7 +84,7 @@ export const usePerpsTransactionHistory = ({
         provider.getOrders({ accountId }),
         provider.getFunding({
           accountId,
-          startTime: startTime || 0,
+          startTime,
           endTime,
         }),
       ]);
@@ -141,14 +143,23 @@ export const usePerpsTransactionHistory = ({
   }, [startTime, endTime, accountId]);
 
   const refetch = useCallback(async () => {
-    await Promise.all([fetchAllTransactions(), refetchUserHistory()]);
+    // Fetch user history first and update ref directly with the returned data
+    // This ensures userHistoryRef has fresh data before fetchAllTransactions reads it
+    const freshUserHistory = await refetchUserHistory();
+    userHistoryRef.current = freshUserHistory;
+    // Now fetch all transactions (will use updated userHistoryRef.current)
+    await fetchAllTransactions();
   }, [fetchAllTransactions, refetchUserHistory]);
 
+  // Initial fetch: use refetch() to ensure sequential data flow (TAT-2057)
+  // refetch() fetches user history first, updates the ref, then fetches all transactions.
+  // This prevents the race condition where fetchAllTransactions reads empty userHistoryRef.
   useEffect(() => {
-    if (!skipInitialFetch) {
-      fetchAllTransactions();
+    if (!skipInitialFetch && !initialFetchDone.current) {
+      initialFetchDone.current = true;
+      refetch();
     }
-  }, [fetchAllTransactions, skipInitialFetch]);
+  }, [skipInitialFetch, refetch]);
 
   // Combine loading states
   const combinedIsLoading = useMemo(
