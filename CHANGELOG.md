@@ -9,6 +9,296 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.60.0]
 
+### Uncategorized
+
+- release: release/7.60.0-Changelog ([#22827](https://github.com/MetaMask/metamask-mobile/pull/22827))
+- [skip ci] Bump version number to 3189
+- chore(runway): cherry-pick fix(perps): segment violations and event simplification ([#23417](https://github.com/MetaMask/metamask-mobile/pull/23417))
+- [skip ci] Bump version number to 3188
+- [skip ci] Bump version number to 3187
+- [skip ci] Bump version number to 3184
+- chore(runway): cherry-pick fix: alert in metamask pay if pending transaction on source chain ([#23385](https://github.com/MetaMask/metamask-mobile/pull/23385))
+- [skip ci] Bump version number to 3179
+- [skip ci] Bump version number to 3169
+- chore(runway): cherry-pick fix: fix recipient account icons cp-7.60.0 ([#23375](https://github.com/MetaMask/metamask-mobile/pull/23375))
+- remove metro config log
+- chore: increase maxWorkers limit for Metro Bundler ([#23341](https://github.com/MetaMask/metamask-mobile/pull/23341))
+- [skip ci] Bump version number to 3162
+- chore(runway): cherry-pick fix: cp-7.60.0 non-evm accounts not found ([#23331](https://github.com/MetaMask/metamask-mobile/pull/23331))
+- chore(runway): cherry-pick fix(ramp): cp-7.60.0 fix phone already registered error detection in BasicInfo form ([#23333](https://github.com/MetaMask/metamask-mobile/pull/23333))
+- chore(runway): cherry-pick fix: update logic to support all non-evm chains cp-7.60.0 ([#23334](https://github.com/MetaMask/metamask-mobile/pull/23334))
+- chore(runway): cherry-pick chore: bump `eth-snap-keyring` (to enable `:accountCreated` idempotency) cp-7.60.0 ([#23326](https://github.com/MetaMask/metamask-mobile/pull/23326))
+- [skip ci] Bump version number to 3159
+- chore(runway): cherry-pick fix: predict withdraw using gas station ([#23286](https://github.com/MetaMask/metamask-mobile/pull/23286))
+- [skip ci] Bump version number to 3157
+- chore(runway): cherry-pick fix: cp-7.60.0 Generate correct blockchain explorer urls on bridge txs ([#23311](https://github.com/MetaMask/metamask-mobile/pull/23311))
+- chore(runway): cherry-pick chore: fix signature verification sorting issue ([#23307](https://github.com/MetaMask/metamask-mobile/pull/23307))
+- [skip ci] Bump version number to 3156
+- chore(runway): cherry-pick fix: cp-7.60.0 remove max button from metamask pay deposits ([#23309](https://github.com/MetaMask/metamask-mobile/pull/23309))
+- [skip ci] Bump version number to 3150
+- chore(runway): cherry-pick fix: cp-7.60.0 staked eth balances show first account staked balance across accounts ([#23277](https://github.com/MetaMask/metamask-mobile/pull/23277))
+- chore(runway): cherry-pick chore: bump tron snap and keyring-api package ([#23276](https://github.com/MetaMask/metamask-mobile/pull/23276))
+- chore(runway): cherry-pick fix: cp-7.60.0 set default balances polling ([#23274](https://github.com/MetaMask/metamask-mobile/pull/23274))
+- [skip ci] Bump version number to 3144
+- chore(runway): cherry-pick chore: New Crowdin translations by Github Action ([#23245](https://github.com/MetaMask/metamask-mobile/pull/23245))
+- chore(runway): cherry-pick fix: cp-7.60.0 alerts persisting in metamask pay ([#23248](https://github.com/MetaMask/metamask-mobile/pull/23248))
+- [skip ci] Bump version number to 3143
+- chore(runway): cherry-pick fix: cp-7.60.0 gas station with metamask pay if send bundle supported ([#23239](https://github.com/MetaMask/metamask-mobile/pull/23239))
+- chore(runway): cherry-pick feat(Predict): cp-7.60.0 add side-specific errors for unfilled orders ([#23214](https://github.com/MetaMask/metamask-mobile/pull/23214))
+- chore(runway): cherry-pick fix(predict): cp-7.60.0 improve spacing and styling in Predict components ([#23210](https://github.com/MetaMask/metamask-mobile/pull/23210))
+- [skip ci] Bump version number to 3133
+- chore(runway): cherry-pick fix: cp-7.60.0 predict withdraw value in activity ([#23193](https://github.com/MetaMask/metamask-mobile/pull/23193))
+- chore(runway): cherry-pick fix: cp-7.60.0 Fix address validation for Tron ([#23185](https://github.com/MetaMask/metamask-mobile/pull/23185))
+- chore(runway): cherry-pick fix: cp-7.60.0 perps deposit activity filtering ([#23194](https://github.com/MetaMask/metamask-mobile/pull/23194))
+- chore(runway): cherry-pick feat: Bump deflation numbers to latest migration cp-7.60.0 ([#23200](https://github.com/MetaMask/metamask-mobile/pull/23200))
+- [skip ci] Bump version number to 3132
+- chore(runway): cherry-pick fix: cp-7.60.0 predict claim button style ([#23181](https://github.com/MetaMask/metamask-mobile/pull/23181))
+- chore(runway): cherry-pick fix: add badge to bridge activity list entries ([#23147](https://github.com/MetaMask/metamask-mobile/pull/23147))
+- chore(runway): cherry-pick fix: cp-7.60.0 automatic highest balance token in metamask pay ([#23177](https://github.com/MetaMask/metamask-mobile/pull/23177))
+- [skip ci] Bump version number to 3131
+- chore(runway): cherry-pick fix: cp-7.60.0 keyboard in metamask pay asset picker ([#23174](https://github.com/MetaMask/metamask-mobile/pull/23174))
+- chore(runway): cherry-pick fix: cp-7.60.0 no quotes alert message ([#23173](https://github.com/MetaMask/metamask-mobile/pull/23173))
+- chore(runway): cherry-pick fix: cp-7.60.0 infinite loader in metamask pay ([#23176](https://github.com/MetaMask/metamask-mobile/pull/23176))
+- chore(runway): cherry-pick fix: patch TokenBalancesController to resolve missing aggregated balance ([#23164](https://github.com/MetaMask/metamask-mobile/pull/23164))
+- chore(runway): cherry-pick fix(card): cp-7.60.0 Card Onboarding flow refactor ([#23149](https://github.com/MetaMask/metamask-mobile/pull/23149))
+- chore(runway): cherry-pick fix: add staked energy and staked bandwidth to nontradabletokens list cp-7.60.0 ([#23143](https://github.com/MetaMask/metamask-mobile/pull/23143))
+- [skip ci] Bump version number to 3122
+- chore(runway): cherry-pick fix(perps): use static filter tab values to match FilterTab type cp-7.60.0 ([#23124](https://github.com/MetaMask/metamask-mobile/pull/23124))
+- [skip ci] Bump version number to 3121
+- chore(runway): cherry-pick fix: cp-7.60.0 bump tron 1.10 ([#23117](https://github.com/MetaMask/metamask-mobile/pull/23117))
+- chore(runway): cherry-pick perf: reduce loading time of metamask pay confirmations ([#23121](https://github.com/MetaMask/metamask-mobile/pull/23121))
+- chore(runway): cherry-pick fix(perps): calculate weighted ROE percentage for aggregated account states cp-7.60.0 ([#23097](https://github.com/MetaMask/metamask-mobile/pull/23097))
+- chore(runway): cherry-pick fix(predict): cp-7.60.0 fade in gtm modal after image loads ([#23083](https://github.com/MetaMask/metamask-mobile/pull/23083))
+- [skip ci] Bump version number to 3120
+- chore(runway): cherry-pick feat: gas station support for metamask pay deposits ([#23078](https://github.com/MetaMask/metamask-mobile/pull/23078))
+- chore(runway): cherry-pick fix: cp-7.60.0 use correct chainId collectibles for nft send flow ([#23071](https://github.com/MetaMask/metamask-mobile/pull/23071))
+- chore(runway): cherry-pick chore(predict): cp-7.60.0 bump sell slippage to 3% ([#23082](https://github.com/MetaMask/metamask-mobile/pull/23082))
+- chore(runway): cherry-pick fix(perps): add missing returnOnEquity calculation in HyperLiquidSubscriptionService cp-7.60.0 ([#23027](https://github.com/MetaMask/metamask-mobile/pull/23027))
+- chore(runway): cherry-pick fix: start animate when rive onPlay ( ready ) cp-7.60.0 ([#23084](https://github.com/MetaMask/metamask-mobile/pull/23084))
+- [skip ci] Bump version number to 3119
+- chore(runway): cherry-pick chore: tron snap update ([#23085](https://github.com/MetaMask/metamask-mobile/pull/23085))
+- chore(runway): cherry-pick fix: cp-7.60.0 filter out tron staked tokens from send flow ([#23028](https://github.com/MetaMask/metamask-mobile/pull/23028))
+- chore(runway): cherry-pick fix(card): cp-7.60.0 debounced inputs on onboarding flow ([#23066](https://github.com/MetaMask/metamask-mobile/pull/23066))
+- chore(runway): cherry-pick fix: cp-7.60.0 bump transaction controller and transaction pay controller versions ([#23041](https://github.com/MetaMask/metamask-mobile/pull/23041))
+- [skip ci] Bump version number to 3111
+- chore(runway): cherry-pick chore: timeout build android apk for e2e 40 minutes ([#23067](https://github.com/MetaMask/metamask-mobile/pull/23067))
+- chore: stable sync 7.60.0 ([#23046](https://github.com/MetaMask/metamask-mobile/pull/23046))
+- Merge branch 'release/7.60.0' into stable-sync-7.60.0
+- chore(runway): cherry-pick fix: cp-7.60.0 predict withdraw with missing token ([#22986](https://github.com/MetaMask/metamask-mobile/pull/22986))
+- Merge branch 'stable' into stable-sync-7.60.0
+- update changelog
+- chore(runway): cherry-pick chore: Update Spanish strings for Card onboarding flow cp-7.58.3 ([#22740](https://github.com/MetaMask/metamask-mobile/pull/22740))
+- release: release/7.59.0-Changelog ([#22494](https://github.com/MetaMask/metamask-mobile/pull/22494))
+- chore(runway): cherry-pick fix(perps): use centralized ROE calculation in live positions cp-7.59.0 ([#22807](https://github.com/MetaMask/metamask-mobile/pull/22807))
+- chore(runway): cherry-pick fix: Fix layout of small devices in asset amount ([#22793](https://github.com/MetaMask/metamask-mobile/pull/22793))
+- chore(runway): cherry-pick fix: transition to BIP-44 selectors for rewards row cp-7.59.0 ([#22746](https://github.com/MetaMask/metamask-mobile/pull/22746))
+- chore(runway): cherry-pick fix(card): cp-7.58.3 physical address consent issue + undefined balances ([#22738](https://github.com/MetaMask/metamask-mobile/pull/22738))
+- chore(runway): cherry-pick fix: prevent concurrency for `createAccount` for Snap account providers ([#22729](https://github.com/MetaMask/metamask-mobile/pull/22729))
+- chore(runway): cherry-pick fix: cp-7.59.0 Fix submit loading for nonEVM send transactions ([#22704](https://github.com/MetaMask/metamask-mobile/pull/22704))
+- [skip ci] Bump version number to 3108
+- chore(runway): cherry-pick feat: cp-7.60.0 reject duplicate metamask pay transactions ([#22987](https://github.com/MetaMask/metamask-mobile/pull/22987))
+- chore(runway): cherry-pick fix: cp-7.60.0 predict deposit layout ([#22985](https://github.com/MetaMask/metamask-mobile/pull/22985))
+- chore(runway): cherry-pick SL-295: fix: getGenericPassword errors - ([#22981](https://github.com/MetaMask/metamask-mobile/pull/22981))
+- chore(runway): cherry-pick chore(predict): cp-7.60.0 updates predict low liquidity error message(s) ([#22980](https://github.com/MetaMask/metamask-mobile/pull/22980))
+- chore(runway): cherry-pick fix(predict): cp-7.60.0 improve price formatting and position display ([#22977](https://github.com/MetaMask/metamask-mobile/pull/22977))
+- chore(runway): cherry-pick fix(predict): cp-7.60.0 claimable positions logic ([#22975](https://github.com/MetaMask/metamask-mobile/pull/22975))
+- chore(runway): cherry-pick fix: target network fee alert in metamask pay ([#22988](https://github.com/MetaMask/metamask-mobile/pull/22988))
+- chore(runway): cherry-pick fix: cp-7.60.0 show all blocking alerts if keyboard not visible ([#22991](https://github.com/MetaMask/metamask-mobile/pull/22991))
+- release: 7.59.0 ([#22226](https://github.com/MetaMask/metamask-mobile/pull/22226))
+- [skip ci] Bump version number to 3104
+- chore(runway): cherry-pick fix(predict): cp-7.60.0 refresh balance after claim ([#22960](https://github.com/MetaMask/metamask-mobile/pull/22960))
+- chore(runway): cherry-pick fix(predict): order calculations ([#22959](https://github.com/MetaMask/metamask-mobile/pull/22959))
+- chore(runway): cherry-pick fix(predict): Improving copy on positions that have resolved early ([#22955](https://github.com/MetaMask/metamask-mobile/pull/22955))
+- chore(runway): cherry-pick chore(predict): update confirmation toast icon ([#22958](https://github.com/MetaMask/metamask-mobile/pull/22958))
+- chore(runway): cherry-pick refactor(predict): move lost redeems filtering from client to API ([#22956](https://github.com/MetaMask/metamask-mobile/pull/22956))
+- chore(runway): cherry-pick chore: fix tron image in tokens list cp-7.60.0 ([#22952](https://github.com/MetaMask/metamask-mobile/pull/22952))
+- [skip ci] Bump version number to 3103
+- chore(runway): cherry-pick fix: SL-296: handle on biometric cancel - cp-7.60.0 ([#22944](https://github.com/MetaMask/metamask-mobile/pull/22944))
+- chore(runway): cherry-pick fix(predict): Ensures buy preview button always has the same value as header ([#22947](https://github.com/MetaMask/metamask-mobile/pull/22947))
+- chore(runway): cherry-pick fix(card): cp-7.60.0 card assets UI issues ([#22945](https://github.com/MetaMask/metamask-mobile/pull/22945))
+- Merge branch 'stable' into release/7.59.0
+- Release 7.58.3 ([#22811](https://github.com/MetaMask/metamask-mobile/pull/22811))
+- chore(runway): cherry-pick feat: cp-7.60.0 add new networks logo ([#22942](https://github.com/MetaMask/metamask-mobile/pull/22942))
+- chore(runway): cherry-pick SL-309: fix: add delay before revoke tokens cp-7.60.0 ([#22932](https://github.com/MetaMask/metamask-mobile/pull/22932))
+- [skip ci] Bump version number to 3101
+- chore(runway): cherry-pick fix: cp-7.60.0 block metamask pay if submitted transaction ([#22923](https://github.com/MetaMask/metamask-mobile/pull/22923))
+- chore(runway): cherry-pick fix: cp-7.60.0 fix metamask pay totals ([#22920](https://github.com/MetaMask/metamask-mobile/pull/22920))
+- chore(runway): cherry-pick fix: validate selected internal account address format in Asset component cp-7.60.0 ([#22921](https://github.com/MetaMask/metamask-mobile/pull/22921))
+- chore(runway): cherry-pick fix(card): cp-7.60.0 fix OTP inputs frozen screens ([#22902](https://github.com/MetaMask/metamask-mobile/pull/22902))
+- chore(runway): cherry-pick fix: cp-7.60.0 login screen design fixes ([#22907](https://github.com/MetaMask/metamask-mobile/pull/22907))
+- [skip ci] Bump version number to 3094
+- chore(runway): cherry-pick feat: Implement New migration failure detection cp-7.60.0 ([#22897](https://github.com/MetaMask/metamask-mobile/pull/22897))
+- chore(runway): cherry-pick fix: only mainnet eth should be stakable cp-7.60.0 ([#22893](https://github.com/MetaMask/metamask-mobile/pull/22893))
+- chore(runway): cherry-pick fix(card): cp-7.60.0 fix false positives on card delegation failed metrics ([#22896](https://github.com/MetaMask/metamask-mobile/pull/22896))
+- [skip ci] Bump version number to 3093
+- chore(runway): cherry-pick fix: cp-7.60.0 hide metamask pay transaction notifications ([#22890](https://github.com/MetaMask/metamask-mobile/pull/22890))
+- chore(runway): cherry-pick feat: cp-7.60.0 validate source amount in metamask pay ([#22867](https://github.com/MetaMask/metamask-mobile/pull/22867))
+- [skip ci] Bump version number to 3090
+- chore(runway): cherry-pick chore: cp-7.60.0 bump core-backend to 4.1.0 ([#22861](https://github.com/MetaMask/metamask-mobile/pull/22861))
+- chore: fix unit test from main
+- release: release/7.59.0-Changelog ([#22494](https://github.com/MetaMask/metamask-mobile/pull/22494))
+- [skip ci] Bump version number to 3089
+- chore(runway): cherry-pick fix: add resync mechanism to sync Snap accounts states with client accounts cp-7.60.0 ([#22884](https://github.com/MetaMask/metamask-mobile/pull/22884))
+- chore(runway): cherry-pick fix: cp-7.60.0 bump bitcoin ([#22815](https://github.com/MetaMask/metamask-mobile/pull/22815))
+- [skip ci] Bump version number to 3088
+- chore(runway): cherry-pick fix: cp-7.60.0 hide monad from supported networks in boost cards ([#22850](https://github.com/MetaMask/metamask-mobile/pull/22850))
+- [skip ci] Bump version number to 3073
+- chore(runway): cherry-pick chore: cp-7.60.0 bump tron to 1.8.0 ([#22814](https://github.com/MetaMask/metamask-mobile/pull/22814))
+- chore(runway): cherry-pick fix: Fix Predict Navigation to Cash Out and Single Market ([#22817](https://github.com/MetaMask/metamask-mobile/pull/22817))
+- chore(runway): cherry-pick fix: cp-7.60.0 predict confirmation design ([#22809](https://github.com/MetaMask/metamask-mobile/pull/22809))
+- chore: update release pr approval trigger
+- chore: fix changelog format
+- update changelog
+- [skip ci] Bump version number to 3055
+- chore(runway): cherry-pick fix(card): cp-7.58.3 physical address consent issue + undefined balances ([#22737](https://github.com/MetaMask/metamask-mobile/pull/22737))
+- chore(runway): cherry-pick chore: Update Spanish strings for Card onboarding flow cp-7.58.3 ([#22740](https://github.com/MetaMask/metamask-mobile/pull/22740))
+- [skip ci] Bump version number to 3048
+- [skip ci] Bump version number to 3047
+- [skip ci] Bump version number to 3046
+- fix(predict): chart only display active ([#22677](https://github.com/MetaMask/metamask-mobile/pull/22677))
+- feat(predict): Adds fee exemption message ([#22680](https://github.com/MetaMask/metamask-mobile/pull/22680))
+- fix(predict): navigation stack issues ([#22667](https://github.com/MetaMask/metamask-mobile/pull/22667))
+- fix(predict): Reverts PR that caused chart to hide when selecting certain timeframes ([#22674](https://github.com/MetaMask/metamask-mobile/pull/22674))
+- chore: update ways to earn supported networks ([#22662](https://github.com/MetaMask/metamask-mobile/pull/22662))
+- fix(predict): hide unrealized pnl if the user has 0 positions ([#22678](https://github.com/MetaMask/metamask-mobile/pull/22678))
+- feat(perps): update error screens for improved messaging ([#22617](https://github.com/MetaMask/metamask-mobile/pull/22617))
+- fix(predict): only show rewards if enabled for account ([#22672](https://github.com/MetaMask/metamask-mobile/pull/22672))
+- feat(perps): single line hip3 hours warning ([#22513](https://github.com/MetaMask/metamask-mobile/pull/22513))
+- chore: sync stable to main for version 7.60.0 ([#22671](https://github.com/MetaMask/metamask-mobile/pull/22671))
+- feat(perps): remove current pill on chart ([#22599](https://github.com/MetaMask/metamask-mobile/pull/22599))
+- release v7.58.3
+- fix(card): cp-7.59.0 wrong zero balances on SelectAsset BottomSheet ([#22658](https://github.com/MetaMask/metamask-mobile/pull/22658))
+- fix(card): cp-7.59.0 accept other chars on zip code input ([#22635](https://github.com/MetaMask/metamask-mobile/pull/22635))
+- fix(bridge): cp-7.59.0 prevent crash when fetching icons for unsupported chains ([#22631](https://github.com/MetaMask/metamask-mobile/pull/22631))
+- fix(card): cp-7.59.0 delegation refresh issue ([#22549](https://github.com/MetaMask/metamask-mobile/pull/22549))
+- Merge origin/main into stable-sync
+- chore(predict): change spacing in about tab ([#22656](https://github.com/MetaMask/metamask-mobile/pull/22656))
+- chore: enable predict for non-evm networks ([#22657](https://github.com/MetaMask/metamask-mobile/pull/22657))
+- fix(perps): race condition sometime preventing loading hip-3 positions cp-7.59.0 ([#22646](https://github.com/MetaMask/metamask-mobile/pull/22646))
+- fix(card): cp-7.59.0 wrong zero balances on SelectAsset BottomSheet ([#22658](https://github.com/MetaMask/metamask-mobile/pull/22658))
+- chore(predict): Adds correct no search results found empty state ([#22654](https://github.com/MetaMask/metamask-mobile/pull/22654))
+- chore: update sei fallback rpc and default visibility ([#22450](https://github.com/MetaMask/metamask-mobile/pull/22450))
+- test: AI analysis refactor ([#21811](https://github.com/MetaMask/metamask-mobile/pull/21811))
+- feat(predict): Implement Sentry performance tracing ([#22639](https://github.com/MetaMask/metamask-mobile/pull/22639))
+- chore: remove state 1 wallet details ([#22524](https://github.com/MetaMask/metamask-mobile/pull/22524))
+- fix(card): cp-7.59.0 accept other chars on zip code input ([#22635](https://github.com/MetaMask/metamask-mobile/pull/22635))
+- fix(perps): prevent unwanted tab navigation in market details and ensure tab content is shown cp-7.59.0 ([#22632](https://github.com/MetaMask/metamask-mobile/pull/22632))
+- chore: use coin icon for ways to earn deposit musd ([#22641](https://github.com/MetaMask/metamask-mobile/pull/22641))
+- fix(e2e): replace KDF delays with explicit wallet visibility checks ([#22627](https://github.com/MetaMask/metamask-mobile/pull/22627))
+- fix(bridge): cp-7.59.0 prevent crash when fetching icons for unsupported chains ([#22631](https://github.com/MetaMask/metamask-mobile/pull/22631))
+- chore: Consolidate Predict trade events into single event ([#22622](https://github.com/MetaMask/metamask-mobile/pull/22622))
+- chore(predict): standardize decimal formatting for percentages and price ([#22573](https://github.com/MetaMask/metamask-mobile/pull/22573))
+- chore: remove rewards predict feature flag ([#22613](https://github.com/MetaMask/metamask-mobile/pull/22613))
+- chore: Add TRX as stakable token ([#22003](https://github.com/MetaMask/metamask-mobile/pull/22003))
+- chore: use dedicated ff for predict rewards estimation ([#22603](https://github.com/MetaMask/metamask-mobile/pull/22603))
+- fix(e2e): add Android delay handling for confirm button tap ([#22601](https://github.com/MetaMask/metamask-mobile/pull/22601))
+- test: fix snap test by using assigned port ([#22551](https://github.com/MetaMask/metamask-mobile/pull/22551))
+- chore: prefer side effect acc group for opt in & link active acc group ([#22550](https://github.com/MetaMask/metamask-mobile/pull/22550))
+- fix(predict): sell order error messages ([#22596](https://github.com/MetaMask/metamask-mobile/pull/22596))
+- fix(predict): Resolves issue with details chart incorrectly hiding ([#22594](https://github.com/MetaMask/metamask-mobile/pull/22594))
+- fix(predict): Guard against NaN in predict market single card ([#22592](https://github.com/MetaMask/metamask-mobile/pull/22592))
+- fix(predict): Use the outcome title on a single market cards ([#22581](https://github.com/MetaMask/metamask-mobile/pull/22581))
+- feat(ramps): adds ramps eligibility failed modal ([#22343](https://github.com/MetaMask/metamask-mobile/pull/22343))
+- fix(predict): optimistic updates showing in other markets ([#22584](https://github.com/MetaMask/metamask-mobile/pull/22584))
+- feat(predict): calculate net deposit amount after deducting fees ([#22587](https://github.com/MetaMask/metamask-mobile/pull/22587))
+- chore: enable EAS updates on preview channel ([#21838](https://github.com/MetaMask/metamask-mobile/pull/21838))
+- feat(predict): geoblock DE and RO ([#22576](https://github.com/MetaMask/metamask-mobile/pull/22576))
+- chore: run release-pr-approval upon review submission cp-7.59.0 ([#22570](https://github.com/MetaMask/metamask-mobile/pull/22570))
+- fix(predict): Various predict visual tweaks ([#22572](https://github.com/MetaMask/metamask-mobile/pull/22572))
+- chore: bump multichain accounts deps (and other related peers) cp-7.59.0 ([#22521](https://github.com/MetaMask/metamask-mobile/pull/22521))
+- fix(card): cp-7.59.0 delegation refresh issue ([#22549](https://github.com/MetaMask/metamask-mobile/pull/22549))
+- fix(predict): update pending deposits to store batch IDs instead ([#22554](https://github.com/MetaMask/metamask-mobile/pull/22554))
+- chore: update BottomSheetHeader close and back buttons to size LG ([#22170](https://github.com/MetaMask/metamask-mobile/pull/22170))
+- fix(Predict): improve button layout and error messages ([#22560](https://github.com/MetaMask/metamask-mobile/pull/22560))
+- refactor(predict): extract account tree logic into accounts utility ([#22503](https://github.com/MetaMask/metamask-mobile/pull/22503))
+- fix(predict): Resolves scrolling issue on tabs (outcomes, etc) on market details due to loading skeletons ([#22505](https://github.com/MetaMask/metamask-mobile/pull/22505))
+- fix(perps): optimize read operations and prevent builder fee blocking cp-7.59.0 ([#22552](https://github.com/MetaMask/metamask-mobile/pull/22552))
+- chore: cp-7.59.0 input fixes ([#22508](https://github.com/MetaMask/metamask-mobile/pull/22508))
+- test: Check geo restriction for add funds ([#22490](https://github.com/MetaMask/metamask-mobile/pull/22490))
+- fix(predict): optimistic updates when querying claimable positions ([#22542](https://github.com/MetaMask/metamask-mobile/pull/22542))
+- chore: remove Text component wrappers from BottomSheetHeader children ([#22173](https://github.com/MetaMask/metamask-mobile/pull/22173))
+- chore(ci): update BUGBOT rules and file location ([#22360](https://github.com/MetaMask/metamask-mobile/pull/22360))
+- chore: App State Service ([#21310](https://github.com/MetaMask/metamask-mobile/pull/21310))
+- fix(perps): enable live PnL in perps position card cp-7.59.0 ([#22487](https://github.com/MetaMask/metamask-mobile/pull/22487))
+- chore: segment events for QR scanner ([#22287](https://github.com/MetaMask/metamask-mobile/pull/22287))
+- test: allocate resource ports dynamically ([#22158](https://github.com/MetaMask/metamask-mobile/pull/22158))
+- fix(perps): rerender tabs when the amount of tabs changes cp-7.59.0 ([#22517](https://github.com/MetaMask/metamask-mobile/pull/22517))
+- fix(perps): use USD as source of truth for order precision and validation cp-7.59.0 ([#22252](https://github.com/MetaMask/metamask-mobile/pull/22252))
+- test: Revert disabled send tests ([#22374](https://github.com/MetaMask/metamask-mobile/pull/22374))
+- feat(perps): handle funding payments tooltip ([#22512](https://github.com/MetaMask/metamask-mobile/pull/22512))
+- chore: trending tokens section ([#22400](https://github.com/MetaMask/metamask-mobile/pull/22400))
+- chore: bump network-enablement-controller cp-7.59.0 ([#22492](https://github.com/MetaMask/metamask-mobile/pull/22492))
+- chore(predict): implement sequential refresh pattern for order preview ([#22499](https://github.com/MetaMask/metamask-mobile/pull/22499))
+- feat(predict): new feature flag with minimumVersion ([#22504](https://github.com/MetaMask/metamask-mobile/pull/22504))
+- feat(predict): refresh eligibility on app focus ([#22500](https://github.com/MetaMask/metamask-mobile/pull/22500))
+- chore: revert font preloader changes from #21199 cp-7.59.0 ([#22342](https://github.com/MetaMask/metamask-mobile/pull/22342))
+- feat(predict): optimistic position updates for buy/sell/claim ([#22493](https://github.com/MetaMask/metamask-mobile/pull/22493))
+- chore: remove global network selector feature flag from selectors and polling ([#22463](https://github.com/MetaMask/metamask-mobile/pull/22463))
+- fix(predict): Ensures both active and claimable positions are visible on market details ([#22495](https://github.com/MetaMask/metamask-mobile/pull/22495))
+- test: allows building locally without CI settings ([#22421](https://github.com/MetaMask/metamask-mobile/pull/22421))
+- chore: stake/supply title and UI update ([#21771](https://github.com/MetaMask/metamask-mobile/pull/21771))
+- chore(predict): show polymarket offline screen for feed errors ([#22491](https://github.com/MetaMask/metamask-mobile/pull/22491))
+- feat(predict): add skeleton loaders for improved loading UX ([#22486](https://github.com/MetaMask/metamask-mobile/pull/22486))
+- feat(ramp): add buy/deposit settings modal event ([#22489](https://github.com/MetaMask/metamask-mobile/pull/22489))
+- chore(predict): text fixes ([#22431](https://github.com/MetaMask/metamask-mobile/pull/22431))
+- fix(card): cp-7.58.2 delegation issues ([#22435](https://github.com/MetaMask/metamask-mobile/pull/22435))
+- chore: Bump Snaps packages ([#22317](https://github.com/MetaMask/metamask-mobile/pull/22317))
+- chore(predict): Removes mandatory terms of services modal ([#22454](https://github.com/MetaMask/metamask-mobile/pull/22454))
+- chore(predict): add transfer after claim ([#22455](https://github.com/MetaMask/metamask-mobile/pull/22455))
+- feat(STX-250): Gasless Xswaps with eth_sendBundle ([#22223](https://github.com/MetaMask/metamask-mobile/pull/22223))
+- feat(perps): add cross margin warning modal and validation handling ([#22293](https://github.com/MetaMask/metamask-mobile/pull/22293))
+- feat(ramps): uses api endpoint to determine ramp eligibility ([#22279](https://github.com/MetaMask/metamask-mobile/pull/22279))
+- fix(perps): change fee rounding for small fees ([#22264](https://github.com/MetaMask/metamask-mobile/pull/22264))
+- feat(ramps): adds a token selection ui for unified buy ([#22184](https://github.com/MetaMask/metamask-mobile/pull/22184))
+- test: enable predictions e2e ([#22415](https://github.com/MetaMask/metamask-mobile/pull/22415))
+- fix(predict): improve placeOrder error handling ([#22434](https://github.com/MetaMask/metamask-mobile/pull/22434))
+- fix(perps): exclude P&L from total margin calculation in close all positions ([#22391](https://github.com/MetaMask/metamask-mobile/pull/22391))
+- test: Skip cash out predict test ([#22424](https://github.com/MetaMask/metamask-mobile/pull/22424))
+- feat(ramp): agg / deposit switcher ([#22283](https://github.com/MetaMask/metamask-mobile/pull/22283))
+- test: enable Predict Market Details load time performance test ([#22427](https://github.com/MetaMask/metamask-mobile/pull/22427))
+- fix(predict): round fee decimals to avoid underflow errors ([#22361](https://github.com/MetaMask/metamask-mobile/pull/22361))
+- fix(ramps): cp-7.59.0 buildquote screen flickering ([#22326](https://github.com/MetaMask/metamask-mobile/pull/22326))
+- chore: cp-7.59.0 bump bitcoin 1.4.5 ([#22397](https://github.com/MetaMask/metamask-mobile/pull/22397))
+- chore: update assets-controllers@^87.1.1 ([#22396](https://github.com/MetaMask/metamask-mobile/pull/22396))
+- test: Increase mock server log level ([#22404](https://github.com/MetaMask/metamask-mobile/pull/22404))
+- fix(perps): Resolve 429 errors and improve session performance cp-7.59.0 ([#22242](https://github.com/MetaMask/metamask-mobile/pull/22242))
+- chore: semver bump to 7.60.0 ([#22395](https://github.com/MetaMask/metamask-mobile/pull/22395))
+- test: runs detox in detached mode in CI only ([#22270](https://github.com/MetaMask/metamask-mobile/pull/22270))
+- chore: add search tokens hook ([#22237](https://github.com/MetaMask/metamask-mobile/pull/22237))
+- test: disables android perps tests, fixes Card unit test ([#22406](https://github.com/MetaMask/metamask-mobile/pull/22406))
+- chore: Remove MM_PER_DAPP_SELECTED_NETWORK feature flag ([#21963](https://github.com/MetaMask/metamask-mobile/pull/21963))
+- fix(card): cp-7.58.2 CardHome and SpendingLimit UI issues ([#22387](https://github.com/MetaMask/metamask-mobile/pull/22387))
+- refactor: transaction pay controller ([#21086](https://github.com/MetaMask/metamask-mobile/pull/21086))
+- test: Mmqa fix perf flakiness ([#22192](https://github.com/MetaMask/metamask-mobile/pull/22192))
+- fix(predict): Market details outcomes tab now displays correctly when market is resolved ([#22358](https://github.com/MetaMask/metamask-mobile/pull/22358))
+- fix(card): UI issues on Authentication/Delegation ([#22352](https://github.com/MetaMask/metamask-mobile/pull/22352))
+- fix(predict): cap slippage to avoid sharePrice > 1 ([#22354](https://github.com/MetaMask/metamask-mobile/pull/22354))
+- feat(predict): Adds CLOB pricing refresh to details view ([#22261](https://github.com/MetaMask/metamask-mobile/pull/22261))
+- fix(predict): improve error handling when placing orders ([#22253](https://github.com/MetaMask/metamask-mobile/pull/22253))
+- chore(INFRA-3041): Stable Sync workflow update github-tools ([#22197](https://github.com/MetaMask/metamask-mobile/pull/22197))
+- chore: update tutorial to redirect to the home markets list on last page ([#22131](https://github.com/MetaMask/metamask-mobile/pull/22131))
+- chore: rewards bip 44 tracked indicators ([#22298](https://github.com/MetaMask/metamask-mobile/pull/22298))
+- feat(ds): accept listItemProps in ListItemSelect ([#22277](https://github.com/MetaMask/metamask-mobile/pull/22277))
+- fix(perps): prevent infinite loop in usePerpsPositionData cp-7.59.0 ([#22257](https://github.com/MetaMask/metamask-mobile/pull/22257))
+- fix(predict): Resolves search issue (removes spurious querystring param) ([#22271](https://github.com/MetaMask/metamask-mobile/pull/22271))
+- chore(predict): cash out screen changes ([#22272](https://github.com/MetaMask/metamask-mobile/pull/22272))
+- feat(predict): relay sell orders ([#22290](https://github.com/MetaMask/metamask-mobile/pull/22290))
+- fix(predict): Various chart UX fixes / improvements ([#22220](https://github.com/MetaMask/metamask-mobile/pull/22220))
+- chore(predict): change polymarket links to use webview ([#22255](https://github.com/MetaMask/metamask-mobile/pull/22255))
+- chore: Suppress CI error ([#22280](https://github.com/MetaMask/metamask-mobile/pull/22280))
+- chore: sync stable to main for version 7.59.0 ([#22266](https://github.com/MetaMask/metamask-mobile/pull/22266))
+- feat(ramp): update agg navbar to use deposits ([#22211](https://github.com/MetaMask/metamask-mobile/pull/22211))
+- Merge branch 'main' into stable-main-7.59.0
+- feat(perps): add skeleton loading states and fix rewards points display ([#22248](https://github.com/MetaMask/metamask-mobile/pull/22248))
+- chore(predict): fix eslint warnings ([#22228](https://github.com/MetaMask/metamask-mobile/pull/22228))
+- refactor(card): sonarcloud maintainability issues ([#22221](https://github.com/MetaMask/metamask-mobile/pull/22221))
+- chore: tron feature flag control ([#21910](https://github.com/MetaMask/metamask-mobile/pull/21910))
+- fix(perps): display live funding rate data in the asset list ([#22243](https://github.com/MetaMask/metamask-mobile/pull/22243))
+- chore: rewards optimize usage of get opt in status ([#22247](https://github.com/MetaMask/metamask-mobile/pull/22247))
+- feat(ramps): implement useRampNavigation hook ([#22091](https://github.com/MetaMask/metamask-mobile/pull/22091))
+- chore: remove BIP-44 flag from intro modal ([#22227](https://github.com/MetaMask/metamask-mobile/pull/22227))
+- refactor(perps): optimize selectors and improve utility functions ([#22246](https://github.com/MetaMask/metamask-mobile/pull/22246))
+
 ### Added
 
 - feat: Add all entry points for Predict feed ([#22659](https://github.com/MetaMask/metamask-mobile/pull/22659))
@@ -161,6 +451,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: cp-7.59.1 cp-7.60.0 add mon to the currency list (#23269) ([#23269](https://github.com/MetaMask/metamask-mobile/pull/23269))
 - fix: trim whitespace from amount input in PaymentRequest component ([#22608](https://github.com/MetaMask/metamask-mobile/pull/22608))
 - fix: code cleanup ([#22648](https://github.com/MetaMask/metamask-mobile/pull/22648))
 - fix: asset value metric in metamask pay ([#22645](https://github.com/MetaMask/metamask-mobile/pull/22645))
@@ -509,6 +800,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.58.3]
 
+### Changed
+
+- chore: Update Spanish strings for Card onboarding flow cp-7.58.3 (#22740)
+
 ### Fixed
 
 - fix(card): cp-7.58.3 physical address consent issue + undefined balances (#22737)
@@ -516,10 +811,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(card): cp-7.59.0 accept other chars on zip code input (#22635)
 - fix(bridge): cp-7.59.0 prevent crash when fetching icons for unsupported chains (#22631)
 - fix(card): cp-7.59.0 delegation refresh issue (#22549)
-
-### Changed
-
-- chore: Update Spanish strings for Card onboarding flow cp-7.58.3 (#22740)
 
 ## [7.58.2]
 
@@ -9328,7 +9619,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.60.0...HEAD
-[7.60.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.3...v7.60.0
+[7.60.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.59.0...v7.60.0
+[7.59.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.3...v7.59.0
 [7.58.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.2...v7.58.3
 [7.58.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.1...v7.58.2
 [7.58.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.58.0...v7.58.1
