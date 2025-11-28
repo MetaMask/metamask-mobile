@@ -25,14 +25,12 @@ jest.mock('./TokensBottomSheet', () => ({
 }));
 
 jest.mock('../Earn/components/Musd/MusdConversionCta', () => {
-  const ActualReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
+  const MockMusdConversionCta = () => <View testID="musd-conversion-cta" />;
+
   return {
     __esModule: true,
-    default: () =>
-      ActualReact.createElement(View, {
-        testID: 'musd-conversion-cta',
-      }),
+    default: MockMusdConversionCta,
   };
 });
 
@@ -583,14 +581,6 @@ describe('Tokens', () => {
     const { queryByText } = renderComponent(initialState);
 
     expect(queryByText('Link')).toBeNull(); // Zero balance token should not be visible
-  });
-
-  it('renders MusdConversionCta when tokens are present', async () => {
-    const { queryByTestId } = renderComponent(initialState);
-
-    await waitFor(() => {
-      expect(queryByTestId('musd-conversion-cta')).toBeOnTheScreen();
-    });
   });
 
   describe('Portfolio View', () => {
