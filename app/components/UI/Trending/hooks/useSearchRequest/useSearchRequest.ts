@@ -19,11 +19,11 @@ interface SearchResult {
  * @returns {Object} An object containing the search results, loading state, and a function to trigger search
  */
 export const useSearchRequest = (options: {
-  chainIds: CaipChainId[];
+  chainIds?: CaipChainId[];
   query: string;
   limit: number;
 }) => {
-  const { chainIds, query, limit } = options;
+  const { chainIds = [], query, limit } = options;
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
