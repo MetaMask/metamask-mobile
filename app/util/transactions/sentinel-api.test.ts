@@ -5,6 +5,7 @@ import {
   SentinelNetwork,
   getSendBundleSupportedChains,
   isSendBundleSupported,
+  clearSentinelNetworkCache,
 } from './sentinel-api';
 
 const fetchMock = jest.fn();
@@ -61,7 +62,8 @@ const MOCK_NETWORKS: Record<string, SentinelNetwork> = {
 
 describe('sentinel-api', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    clearSentinelNetworkCache();
   });
 
   describe('buildUrl', () => {
@@ -145,12 +147,42 @@ describe('sentinel-api', () => {
     });
   });
 
+  describe('caching behavior', () => {
+    it('caches network data and reuses it for subsequent calls', async () => {
+      fetchMock.mockResolvedValue({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      await getSentinelNetworkFlags('0x1' as Hex);
+      await getSentinelNetworkFlags('0x89' as Hex);
+      await isSendBundleSupported('0x1' as Hex);
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches fresh data after cache is cleared', async () => {
+      fetchMock.mockResolvedValue({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      clearSentinelNetworkCache();
+
+      await getSentinelNetworkFlags('0x1' as Hex);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('isSendBundleSupported', () => {
     const mainnetHex: Hex = '0x1';
     const polygonHex: Hex = '0x89';
 
     beforeEach(() => {
-      jest.resetAllMocks();
+      jest.clearAllMocks();
     });
 
     it('returns true if network supports sendBundle', async () => {
