@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
@@ -48,6 +48,14 @@ export const usePerpsTransactionHistory = ({
     refetch: refetchUserHistory,
   } = useUserHistory({ startTime, endTime, accountId });
 
+  // Use ref to avoid userHistory in fetchAllTransactions dependency array
+  // This prevents the callback from being recreated on every userHistory update,
+  // which was causing race conditions and alternating data on refresh (TAT-2057)
+  const userHistoryRef = useRef(userHistory);
+  useEffect(() => {
+    userHistoryRef.current = userHistory;
+  }, [userHistory]);
+
   const fetchAllTransactions = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -93,8 +101,9 @@ export const usePerpsTransactionHistory = ({
       const fillTransactions = transformFillsToTransactions(enrichedFills);
       const orderTransactions = transformOrdersToTransactions(orders);
       const fundingTransactions = transformFundingToTransactions(funding);
-      const userHistoryTransactions =
-        transformUserHistoryToTransactions(userHistory);
+      const userHistoryTransactions = transformUserHistoryToTransactions(
+        userHistoryRef.current,
+      );
 
       // Combine all transactions (no Arbitrum withdrawals - using user history as single source of truth)
       const allTransactions = [
@@ -129,7 +138,7 @@ export const usePerpsTransactionHistory = ({
     } finally {
       setIsLoading(false);
     }
-  }, [startTime, endTime, accountId, userHistory]);
+  }, [startTime, endTime, accountId]);
 
   const refetch = useCallback(async () => {
     await Promise.all([fetchAllTransactions(), refetchUserHistory()]);
