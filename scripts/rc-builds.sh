@@ -83,7 +83,7 @@ if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
 fi
 
 # Android workflow slug
-ANDROID_WORKFLOW_ID=$(echo $RES | jq -r '.workflows | .[] | select(.name=="build_android_rc_and_upload_sourcemaps") | .external_id')
+ANDROID_WORKFLOW_ID=$(echo $BUILD_RESPONSE | jq -r '.workflows | .[] | select(.name=="build_android_rc_and_upload_sourcemaps") | .external_id')
 
 ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
   "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_WORKFLOW_ID/artifacts")
