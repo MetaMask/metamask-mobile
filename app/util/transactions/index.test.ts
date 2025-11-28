@@ -1,9 +1,9 @@
-import { swapsUtils } from '@metamask/swaps-controller';
+/* eslint-disable import/no-namespace */
 import BN from 'bnjs4';
 
-/* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
 import { ERC721, ERC1155, ORIGIN_METAMASK } from '@metamask/controller-utils';
+import * as bridgeControllerModule from '@metamask/bridge-controller';
 
 import { handleMethodData } from '../../util/transaction-controller';
 
@@ -608,7 +608,7 @@ describe('Transactions utils :: isTransactionIncomplete', () => {
 describe('Transactions utils :: getActionKey', () => {
   beforeEach(() => {
     jest
-      .spyOn(swapsUtils, 'getSwapsContractAddress')
+      .spyOn(bridgeControllerModule, 'getSwapsContractAddress')
       .mockImplementation(() => 'SWAPS_CONTRACT_ADDRESS');
   });
 
