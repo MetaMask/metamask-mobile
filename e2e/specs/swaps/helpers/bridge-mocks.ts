@@ -1,6 +1,7 @@
 import { Mockttp } from 'mockttp';
 import { TestSpecificMock } from '../../../framework';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   GET_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_SOLANA_RESPONSE,
@@ -13,6 +14,21 @@ import {
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
+  // Set up feature flags with chainRanking for network pills
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    bridgeConfigV2: {
+      chainRanking: [
+        { chainId: 'eip155:1' },
+        { chainId: 'eip155:10' },
+        { chainId: 'eip155:137' },
+        { chainId: 'eip155:8453' },
+        { chainId: 'eip155:42161' },
+        { chainId: 'eip155:43114' },
+        { chainId: 'eip155:59144' },
+        { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' },
+      ],
+    },
+  });
   // Mock Ethereum token list
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
