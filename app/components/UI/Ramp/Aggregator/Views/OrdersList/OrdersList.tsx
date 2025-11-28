@@ -8,13 +8,8 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import OrderListItem from '../../components/OrderListItem';
-import Row from '../../components/Row';
 import createStyles from './OrdersList.styles';
-
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
 import {
   FIAT_ORDER_PROVIDERS,
@@ -141,23 +136,17 @@ function OrdersList() {
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       ListEmptyComponent={
-        <Row>
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Muted}
-            style={styles.emptyMessage}
-          >
-            {currentFilter === 'ALL'
-              ? strings('fiat_on_ramp_aggregator.empty_orders_list')
-              : null}
-            {currentFilter === 'PURCHASE'
-              ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
-              : null}
-            {currentFilter === 'SELL'
-              ? strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
-              : null}
-          </Text>
-        </Row>
+        <Box twClassName="w-full items-center py-10">
+          <TabEmptyState
+            description={
+              currentFilter === 'ALL'
+                ? strings('fiat_on_ramp_aggregator.empty_orders_list')
+                : currentFilter === 'PURCHASE'
+                  ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
+                  : strings('fiat_on_ramp_aggregator.empty_sell_orders_list')
+            }
+          />
+        </Box>
       }
     />
   );

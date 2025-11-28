@@ -1645,4 +1645,365 @@ describe('TradingService', () => {
       );
     });
   });
+
+  describe('updateMargin', () => {
+    it('updates margin successfully when adding margin', async () => {
+      const mockResult = { success: true };
+      mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
+
+      const result = await TradingService.updateMargin({
+        provider: mockProvider,
+        coin: 'BTC',
+        amount: '100',
+        context: mockContext,
+      });
+
+      expect(result).toEqual(mockResult);
+      expect(mockProvider.updateMargin).toHaveBeenCalledWith({
+        coin: 'BTC',
+        amount: '100',
+      });
+    });
+
+    it('updates margin successfully when removing margin', async () => {
+      const mockResult = { success: true };
+      mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
+
+      const result = await TradingService.updateMargin({
+        provider: mockProvider,
+        coin: 'BTC',
+        amount: '-50',
+        context: mockContext,
+      });
+
+      expect(result).toEqual(mockResult);
+      expect(mockProvider.updateMargin).toHaveBeenCalledWith({
+        coin: 'BTC',
+        amount: '-50',
+      });
+    });
+
+    it('throws error when provider does not support margin adjustment', async () => {
+      mockProvider.updateMargin = undefined as never;
+
+      await expect(
+        TradingService.updateMargin({
+          provider: mockProvider,
+          coin: 'BTC',
+          amount: '100',
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Provider does not support margin adjustment');
+    });
+
+    it('returns error when margin update fails', async () => {
+      const mockResult = { success: false, error: 'Insufficient balance' };
+      mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
+
+      const result = await TradingService.updateMargin({
+        provider: mockProvider,
+        coin: 'BTC',
+        amount: '100',
+        context: mockContext,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Insufficient balance');
+    });
+
+    it('tracks analytics on success', async () => {
+      const mockResult = { success: true };
+      mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
+
+      await TradingService.updateMargin({
+        provider: mockProvider,
+        coin: 'BTC',
+        amount: '100',
+        context: mockContext,
+      });
+
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.any(String),
+        }),
+      );
+    });
+
+    it('tracks analytics on failure with error message', async () => {
+      mockProvider.updateMargin = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        TradingService.updateMargin({
+          provider: mockProvider,
+          coin: 'BTC',
+          amount: '100',
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Network error');
+
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.any(String),
+        }),
+      );
+    });
+
+    it('updates state on success', async () => {
+      const mockResult = { success: true };
+      mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
+
+      await TradingService.updateMargin({
+        provider: mockProvider,
+        coin: 'BTC',
+        amount: '100',
+        context: mockContext,
+      });
+
+      expect(mockContext.stateManager?.update).toHaveBeenCalled();
+    });
+
+    it('creates trace for margin update', async () => {
+      const mockResult = { success: true };
+      mockProvider.updateMargin = jest.fn().mockResolvedValue(mockResult);
+
+      await TradingService.updateMargin({
+        provider: mockProvider,
+        coin: 'BTC',
+        amount: '100',
+        context: mockContext,
+      });
+
+      expect(trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'PerpsUpdateMargin',
+          id: 'mock-trace-id',
+        }),
+      );
+      expect(endTrace).toHaveBeenCalled();
+    });
+  });
+
+  describe('flipPosition', () => {
+    const mockPosition: Position = {
+      coin: 'BTC',
+      size: '0.5',
+      entryPrice: '50000',
+      liquidationPrice: '45000',
+      leverage: { type: 'cross', value: 10 },
+      marginUsed: '2500',
+      maxLeverage: 20,
+      positionValue: '25000',
+      returnOnEquity: '0.2',
+      unrealizedPnl: '5000',
+      cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+    };
+
+    const mockAccountState = {
+      availableBalance: '10000',
+      equity: '15000',
+      marginUsed: '5000',
+    };
+
+    beforeEach(() => {
+      mockProvider.getAccountState = jest
+        .fn()
+        .mockResolvedValue(mockAccountState);
+    });
+
+    it('places order with 2x position size to flip position', async () => {
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'flip-123',
+        filledSize: '1.0',
+        averagePrice: '50000',
+      };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await TradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      // Verify order placed with 2x position size (0.5 * 2 = 1.0)
+      expect(mockProvider.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          coin: 'BTC',
+          size: '1',
+        }),
+      );
+    });
+
+    it('flips long position to short (isBuy=false)', async () => {
+      const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      // Long position (positive size)
+      await TradingService.flipPosition({
+        provider: mockProvider,
+        position: { ...mockPosition, size: '0.5' },
+        context: mockContext,
+      });
+
+      expect(mockProvider.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isBuy: false,
+        }),
+      );
+    });
+
+    it('flips short position to long (isBuy=true)', async () => {
+      const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      // Short position (negative size)
+      await TradingService.flipPosition({
+        provider: mockProvider,
+        position: { ...mockPosition, size: '-0.5' },
+        context: mockContext,
+      });
+
+      expect(mockProvider.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isBuy: true,
+        }),
+      );
+    });
+
+    it('returns error when insufficient balance for fees', async () => {
+      // Set very low available balance
+      mockProvider.getAccountState = jest.fn().mockResolvedValue({
+        ...mockAccountState,
+        availableBalance: '1', // $1 balance, insufficient for fees
+      });
+
+      await expect(
+        TradingService.flipPosition({
+          provider: mockProvider,
+          position: mockPosition,
+          context: mockContext,
+        }),
+      ).rejects.toThrow(/Insufficient balance for flip fees/);
+    });
+
+    it('throws error when account state cannot be retrieved', async () => {
+      mockProvider.getAccountState = jest.fn().mockResolvedValue(null);
+
+      await expect(
+        TradingService.flipPosition({
+          provider: mockProvider,
+          position: mockPosition,
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Failed to get account state');
+    });
+
+    it('returns error when order placement fails', async () => {
+      const mockResult: OrderResult = {
+        success: false,
+        error: 'Order rejected',
+      };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      const result = await TradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Order rejected');
+    });
+
+    it('tracks analytics on success', async () => {
+      const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await TradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.any(String),
+        }),
+      );
+    });
+
+    it('tracks analytics on failure', async () => {
+      mockProvider.placeOrder.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        TradingService.flipPosition({
+          provider: mockProvider,
+          position: mockPosition,
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Network error');
+
+      expect(mockContext.analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.any(String),
+        }),
+      );
+    });
+
+    it('updates state on success', async () => {
+      const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await TradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      expect(mockContext.stateManager?.update).toHaveBeenCalled();
+    });
+
+    it('creates trace for flip position', async () => {
+      const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await TradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      expect(trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'PerpsFlipPosition',
+          id: 'mock-trace-id',
+        }),
+      );
+      expect(endTrace).toHaveBeenCalled();
+    });
+
+    it('uses correct order params including leverage', async () => {
+      const mockResult: OrderResult = { success: true, orderId: 'flip-123' };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await TradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      expect(mockProvider.placeOrder).toHaveBeenCalledWith({
+        coin: 'BTC',
+        isBuy: false,
+        size: '1',
+        orderType: 'market',
+        leverage: 10,
+        currentPrice: 50000,
+      });
+    });
+  });
 });

@@ -11,7 +11,7 @@ import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
-
+import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
   tabLabel?: string;
@@ -254,13 +254,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
           <ActivityIndicator size="small" testID="activity-indicator" />
         </Box>
       ) : sections.length === 0 ? (
-        <Box twClassName="px-4">
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-alternative py-2"
-          >
-            {strings('predict.transactions.no_transactions')}
-          </Text>
+        <Box twClassName="items-center justify-center py-10">
+          <TabEmptyState
+            description={strings('predict.transactions.no_transactions')}
+          />
         </Box>
       ) : (
         // TODO: Improve loading state, pagination, consider FlashList for better performance, pull down to refresh, etc.

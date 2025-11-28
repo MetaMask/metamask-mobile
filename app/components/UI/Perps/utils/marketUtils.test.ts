@@ -8,8 +8,10 @@ import {
   shouldIncludeMarket,
   validateMarketPattern,
   getPerpsDisplaySymbol,
+  filterMarketsByQuery,
 } from './marketUtils';
 import type { CandleData } from '../types/perps-types';
+import type { PerpsMarketData } from '../controllers/types';
 import { CandlePeriod } from '../constants/chartConfig';
 
 jest.mock('../constants/hyperLiquidConfig', () => ({
@@ -914,6 +916,73 @@ describe('marketUtils', () => {
 
         expect(result).toBe('TsLa');
       });
+    });
+  });
+
+  describe('filterMarketsByQuery', () => {
+    const mockMarkets: Partial<PerpsMarketData>[] = [
+      { symbol: 'BTC', name: 'Bitcoin' },
+      { symbol: 'ETH', name: 'Ethereum' },
+      { symbol: 'xyz:TSLA', name: 'Tesla Stock' },
+    ];
+
+    it('returns all markets when query is empty or whitespace', () => {
+      const result1 = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        '',
+      );
+      const result2 = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        '   ',
+      );
+
+      expect(result1).toEqual(mockMarkets);
+      expect(result2).toEqual(mockMarkets);
+    });
+
+    it('filters markets by symbol case-insensitively', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        'btc',
+      );
+
+      expect(result).toEqual([mockMarkets[0]]);
+    });
+
+    it('filters markets by name case-insensitively', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        'ethereum',
+      );
+
+      expect(result).toEqual([mockMarkets[1]]);
+    });
+
+    it('filters markets by partial matches in symbol or name', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        'Stock',
+      );
+
+      expect(result).toEqual([mockMarkets[2]]);
+    });
+
+    it('returns empty array when no markets match query', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        'NonExistent',
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('trims whitespace from query before matching', () => {
+      const result = filterMarketsByQuery(
+        mockMarkets as PerpsMarketData[],
+        '  BTC  ',
+      );
+
+      expect(result).toEqual([mockMarkets[0]]);
     });
   });
 });

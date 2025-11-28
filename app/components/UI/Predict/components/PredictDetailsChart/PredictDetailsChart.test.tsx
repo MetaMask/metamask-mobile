@@ -692,5 +692,47 @@ describe('PredictDetailsChart', () => {
         expect(timeLabels.length).toBeGreaterThan(0);
       });
     });
+
+    describe('Axis Label Deduplication', () => {
+      it('removes consecutive duplicate axis labels', () => {
+        const axisData = [
+          { timestamp: 1740000000000, value: 0.2 },
+          { timestamp: 1740003600000, value: 0.3 },
+          { timestamp: 1740007200000, value: 0.4 },
+          { timestamp: 1740010800000, value: 0.5 },
+        ];
+
+        const labelByTimestamp = new Map<number, string>([
+          [axisData[0].timestamp, 'AXIS_LABEL_ONE'],
+          [axisData[1].timestamp, 'AXIS_LABEL_ONE'],
+          [axisData[2].timestamp, 'AXIS_LABEL_TWO'],
+          [axisData[3].timestamp, 'AXIS_LABEL_TWO'],
+        ]);
+
+        const chartUtils =
+          jest.requireActual<typeof import('./utils')>('./utils');
+        const formatSpy = jest
+          .spyOn(chartUtils, 'formatPriceHistoryLabel')
+          .mockImplementation(
+            (timestamp: number) =>
+              labelByTimestamp.get(Number(timestamp)) ?? 'AXIS_FALLBACK',
+          );
+
+        const { getAllByText } = setupTest({
+          data: [
+            {
+              label: 'Dedup Series',
+              color: '#123456',
+              data: axisData,
+            },
+          ],
+        });
+
+        expect(getAllByText('AXIS_LABEL_ONE')).toHaveLength(1);
+        expect(getAllByText('AXIS_LABEL_TWO')).toHaveLength(1);
+
+        formatSpy.mockRestore();
+      });
+    });
   });
 });

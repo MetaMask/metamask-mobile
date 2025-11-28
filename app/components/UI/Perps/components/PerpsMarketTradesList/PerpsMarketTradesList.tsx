@@ -14,7 +14,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsMarketTradesList.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { usePerpsOrderFills } from '../../hooks/usePerpsOrderFills';
+import { usePerpsLiveFills } from '../../hooks/stream';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
@@ -30,12 +30,9 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
-  // Memoize params to prevent infinite refetch loop
-  const orderFillsParams = useMemo(() => ({ aggregateByTime: false }), []);
-
-  // Fetch all order fills using existing hook
-  const { orderFills, isLoading } = usePerpsOrderFills({
-    params: orderFillsParams,
+  // Fetch all order fills via WebSocket for live updates
+  const { fills: orderFills, isInitialLoading: isLoading } = usePerpsLiveFills({
+    throttleMs: 0, // Instant updates for real-time activity
   });
 
   // Filter by symbol, transform, and limit to 3
@@ -88,11 +85,16 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const renderItem = useCallback(
     (props: { item: PerpsTransaction; index: number }) => {
       const { item, index } = props;
+      const isFirstItem = index === 0;
       const isLastItem = index === trades.length - 1;
 
       return (
         <TouchableOpacity
-          style={[styles.tradeItem, isLastItem && styles.lastTradeItem]}
+          style={[
+            styles.tradeItem,
+            isFirstItem && styles.tradeItemFirst,
+            isLastItem && styles.tradeItemLast,
+          ]}
           onPress={() => handleTradePress(item)}
           activeOpacity={0.7}
         >
@@ -132,7 +134,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   // Render header section
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {strings('perps.market.recent_trades')}
       </Text>
       {!isLoading && trades.length > 0 && (
@@ -164,12 +166,14 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     }
 
     return (
-      <FlatList
-        data={trades}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.id || index}`}
-        scrollEnabled={false}
-      />
+      <View style={styles.listContainer}>
+        <FlatList
+          data={trades}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.id || index}`}
+          scrollEnabled={false}
+        />
+      </View>
     );
   };
 

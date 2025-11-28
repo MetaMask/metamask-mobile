@@ -25,6 +25,8 @@ import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonce
 import { use7702TransactionType } from '../../../../hooks/7702/use7702TransactionType';
 import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';
+import AlertRow from '../../../UI/info-row/alert-row';
+import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import NestedTransactionData from '../../../nested-transaction-data/nested-transaction-data';
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
@@ -50,6 +52,8 @@ const AdvancedDetailsRow = () => {
   const isSTXOptIn = useSelector((state: RootState) =>
     selectSmartTransactionsOptInStatus(state),
   );
+
+  // Nonce is always editable unless smart transactions are enabled
   const isNonceChangeDisabled = isSTXEnabledForChain && isSTXOptIn;
 
   const { styles } = useStyles(styleSheet, {
@@ -75,7 +79,8 @@ const AdvancedDetailsRow = () => {
         testID={ConfirmationRowComponentIDs.ADVANCED_DETAILS}
         collapsedContent={
           <InfoSection>
-            <InfoRow
+            <AlertRow
+              alertField={RowAlertKey.InteractingWith}
               label={strings('stake.advanced_details')}
               style={styles.infoRowOverride}
               withIcon={{
@@ -90,7 +95,11 @@ const AdvancedDetailsRow = () => {
           <>
             {!isDowngrade && to && (
               <InfoSection>
-                <InfoRow label={strings('stake.interacting_with')}>
+                <AlertRow
+                  alertField={RowAlertKey.InteractingWith}
+                  label={strings('stake.interacting_with')}
+                  disableAlertInteraction
+                >
                   {isBatched || isUpgrade ? (
                     <SmartContractWithLogo />
                   ) : (
@@ -100,7 +109,7 @@ const AdvancedDetailsRow = () => {
                       variation={transactionMetadata?.chainId as Hex}
                     />
                   )}
-                </InfoRow>
+                </AlertRow>
               </InfoSection>
             )}
             <InfoSection>

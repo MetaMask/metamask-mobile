@@ -15,6 +15,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 
 interface ExploreSearchBarButtonProps {
   type: 'button';
@@ -38,10 +40,15 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
   const tw = useTailwind();
   const { colors } = useTheme();
 
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const isInteractiveMode = props.type === 'interactive';
   const isButtonMode = props.type === 'button';
   const placeholder =
-    props.placeholder || strings('trending.search_placeholder');
+    props.placeholder || isBasicFunctionalityEnabled
+      ? strings('trending.search_placeholder')
+      : strings('trending.search_sites');
 
   const handleCancel = () => {
     if (isInteractiveMode) {

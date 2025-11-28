@@ -100,6 +100,8 @@ describe('usePerpsPositions', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      updateMargin: jest.fn(),
+      flipPosition: jest.fn(),
       calculateFees: jest.fn(),
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),

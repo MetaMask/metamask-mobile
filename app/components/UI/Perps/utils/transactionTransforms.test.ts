@@ -323,7 +323,8 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([noOrderIdFill]);
 
-      expect(result[0].id).toBe(`fill-${mockFill.timestamp}`);
+      // ID format: fill-{timestamp}-{index}
+      expect(result[0].id).toBe(`fill-${mockFill.timestamp}-0`);
     });
 
     it('strips hip3 prefix from symbol in subtitle', () => {
@@ -357,6 +358,90 @@ describe('transactionTransforms', () => {
       const result = transformFillsToTransactions([regularFill]);
 
       expect(result[0].subtitle).toBe('1 SOL');
+    });
+
+    // Tests for spot-perps and prelaunch markets that use "Buy"/"Sell" directions
+    it('transforms Buy direction fill correctly', () => {
+      const buyFill: OrderFill = {
+        orderId: 'order-buy-1',
+        symbol: '@215',
+        side: 'buy',
+        size: '5191.5',
+        price: '0.005581',
+        fee: '3.488686',
+        feeToken: 'SLAY',
+        timestamp: 1763979989653,
+        pnl: '0.0',
+        direction: 'Buy',
+      };
+
+      const result = transformFillsToTransactions([buyFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        type: 'trade',
+        category: 'position_open',
+        title: 'Bought',
+        asset: '@215',
+        fill: {
+          shortTitle: 'Bought',
+          action: 'Bought',
+          isPositive: false, // Fee is always a cost
+          fillType: FillType.Standard,
+        },
+      });
+    });
+
+    it('transforms Sell direction fill correctly', () => {
+      const sellFill: OrderFill = {
+        orderId: 'order-sell-1',
+        symbol: '@230',
+        side: 'sell',
+        size: '20.0',
+        price: '0.99998',
+        fee: '0.00268799',
+        feeToken: 'USDH',
+        timestamp: 1763984501474,
+        pnl: '50.0',
+        direction: 'Sell',
+      };
+
+      const result = transformFillsToTransactions([sellFill]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        type: 'trade',
+        category: 'position_close',
+        title: 'Sold',
+        asset: '@230',
+        fill: {
+          shortTitle: 'Sold',
+          action: 'Sold',
+          isPositive: true, // PnL - fee is positive
+          fillType: FillType.Standard,
+        },
+      });
+    });
+
+    it('handles Sell direction with negative PnL correctly', () => {
+      const sellFillNegative: OrderFill = {
+        orderId: 'order-sell-2',
+        symbol: '@215',
+        side: 'sell',
+        size: '100',
+        price: '0.005',
+        fee: '0.5',
+        feeToken: 'SLAY',
+        timestamp: Date.now(),
+        pnl: '-10.0',
+        direction: 'Sell',
+      };
+
+      const result = transformFillsToTransactions([sellFillNegative]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].fill?.isPositive).toBe(false);
+      expect(result[0].fill?.amount).toBe('-$10.50'); // PnL (-10) minus fee (0.5) = -10.5
     });
   });
 

@@ -1,6 +1,6 @@
 import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Alert, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -25,7 +25,6 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectStablecoinLendingEnabledFlag,
   selectIsMusdConversionFlowEnabledFlag,
-  selectMusdConversionPaymentTokensAllowlist,
 } from '../../../Earn/selectors/featureFlags';
 import {
   useFeatureFlag,
@@ -43,13 +42,10 @@ import { earnSelectors } from '../../../../../selectors/earnController/earn';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 ///: END:ONLY_INCLUDE_IF
-import {
-  ETHEREUM_MAINNET_CHAIN_ID,
-  MUSD_TOKEN_MAINNET,
-} from '../../../Earn/constants/musd';
-import { isMusdConversionPaymentToken } from '../../../Earn/utils/musd';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import Logger from '../../../../../util/Logger';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -76,9 +72,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
-  const musdConversionPaymentTokensAllowlist = useSelector(
-    selectMusdConversionPaymentTokensAllowlist,
-  );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
@@ -96,28 +89,15 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, asset),
   );
 
-  const { initiateConversion } = useMusdConversion();
+  const { initiateConversion, hasSeenMusdEducationScreen } =
+    useMusdConversion();
+  const { isConversionToken } = useMusdConversionTokens();
+
+  const isConvertibleStablecoin =
+    isMusdConversionFlowEnabled && isConversionToken(asset);
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
-
-  const isConvertibleStablecoin = useMemo(
-    () =>
-      isMusdConversionFlowEnabled &&
-      asset?.chainId &&
-      asset?.address &&
-      isMusdConversionPaymentToken(
-        asset.address,
-        asset.chainId,
-        musdConversionPaymentTokensAllowlist,
-      ),
-    [
-      isMusdConversionFlowEnabled,
-      asset?.chainId,
-      asset?.address,
-      musdConversionPaymentTokensAllowlist,
-    ],
-  );
 
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -242,22 +222,27 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         throw new Error('Asset address or chain ID is not set');
       }
 
-      await initiateConversion({
-        outputToken: {
-          address: MUSD_TOKEN_MAINNET.address,
-          // We want to convert to mUSD on Ethereum Mainnet only for now.
-          chainId: ETHEREUM_MAINNET_CHAIN_ID,
-          symbol: MUSD_TOKEN_MAINNET.symbol,
-          name: MUSD_TOKEN_MAINNET.name,
-          decimals: MUSD_TOKEN_MAINNET.decimals,
-        },
+      const config = {
+        outputChainId: CHAIN_IDS.MAINNET,
         preferredPaymentToken: {
           address: toHex(asset.address),
           chainId: toHex(asset.chainId),
         },
-        allowedPaymentTokens: musdConversionPaymentTokensAllowlist,
         navigationStack: Routes.EARN.ROOT,
-      });
+      };
+
+      if (!hasSeenMusdEducationScreen) {
+        navigation.navigate(config.navigationStack, {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken: config.preferredPaymentToken,
+            outputChainId: config.outputChainId,
+          },
+        });
+        return;
+      }
+
+      await initiateConversion(config);
     } catch (error) {
       Logger.error(
         error as Error,
@@ -273,10 +258,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       );
     }
   }, [
-    asset?.address,
-    asset?.chainId,
+    asset.address,
+    asset.chainId,
+    hasSeenMusdEducationScreen,
     initiateConversion,
-    musdConversionPaymentTokensAllowlist,
+    navigation,
   ]);
 
   const onEarnButtonPress = async () => {

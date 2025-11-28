@@ -1,6 +1,6 @@
 # Perps Screens & Views Documentation
 
-Complete architectural reference for all 16 Perps screens in MetaMask Mobile.
+Complete architectural reference for all 17 Perps screens in MetaMask Mobile.
 
 ## Table of Contents
 
@@ -11,15 +11,16 @@ Complete architectural reference for all 16 Perps screens in MetaMask Mobile.
 5. [PerpsOrderView](#perpsorderview) - Order entry
 6. [PerpsPositionsView](#perpspositionsview) - Positions list
 7. [PerpsClosePositionView](#perpsclosepositio nview) - Close position
-8. [PerpsCloseAllPositionsView](#perpsclosealpositionsview) - Close all
-9. [PerpsCancelAllOrdersView](#perpcancelallordersview) - Cancel all
-10. [PerpsTPSLView](#perpstpslview) - TP/SL management
-11. [PerpsTransactionsView](#perpstransactionsview) - Transaction history
-12. [PerpsWithdrawView](#perpswithdrawview) - Withdrawal
-13. [PerpsHeroCardView](#perpsherocardview) - Hero cards
-14. [PerpsEmptyState](#perpsemptystate) - Empty states
-15. [PerpsRedirect](#perpsredirect) - Routing logic
-16. [HIP3DebugView](#hip3debugview) - Debug tools
+8. [PerpsAdjustMarginView](#perpsadjustmarginview) - Adjust margin
+9. [PerpsCloseAllPositionsView](#perpsclosealpositionsview) - Close all
+10. [PerpsCancelAllOrdersView](#perpcancelallordersview) - Cancel all
+11. [PerpsTPSLView](#perpstpslview) - TP/SL management
+12. [PerpsTransactionsView](#perpstransactionsview) - Transaction history
+13. [PerpsWithdrawView](#perpswithdrawview) - Withdrawal
+14. [PerpsHeroCardView](#perpsherocardview) - Hero cards
+15. [PerpsEmptyState](#perpsemptystate) - Empty states
+16. [PerpsRedirect](#perpsredirect) - Routing logic
+17. [HIP3DebugView](#hip3debugview) - Debug tools
 
 ---
 
@@ -171,16 +172,17 @@ Detailed market view with TradingView chart, market stats, and trading interface
 
 ### Key Components Used
 
-| Component                   | Purpose                            |
-| --------------------------- | ---------------------------------- |
-| `PerpsMarketHeader`         | Title, price, 24h change           |
-| `TradingViewChart`          | Chart with multiple timeframes     |
-| `PerpsCandlePeriodSelector` | Candle period (1m, 5m, 1h, 4h, 1d) |
-| `PerpsMarketTabs`           | Info/Orders/Positions tabs         |
-| `PerpsNavigationCard`       | Quick action buttons               |
-| `PerpsOICapWarning`         | OI capacity warning                |
-| `PerpsMarketHoursBanner`    | Trading hours status               |
-| `PerpsMarketBalanceActions` | Balance info                       |
+| Component                       | Purpose                            |
+| ------------------------------- | ---------------------------------- |
+| `PerpsMarketHeader`             | Title, price, 24h change           |
+| `TradingViewChart`              | Chart with multiple timeframes     |
+| `PerpsCandlePeriodSelector`     | Candle period (1m, 5m, 1h, 4h, 1d) |
+| `PerpsMarketTabs`               | Info/Orders/Positions tabs         |
+| `PerpsNavigationCard`           | Quick action buttons               |
+| `PerpsOICapWarning`             | OI capacity warning                |
+| `PerpsMarketHoursBanner`        | Trading hours status               |
+| `PerpsMarketBalanceActions`     | Balance info                       |
+| `PerpsFlipPositionConfirmSheet` | Flip position confirmation modal   |
 
 ### Hooks Consumed
 
@@ -544,6 +546,50 @@ User action: Confirm → onConfirm(tpPrice, slPrice, trackingData)
 - **From:** PerpsOrderView or PerpsMarketDetailsView
 - **To:** Previous screen (back navigation)
 - **Full screen:** SafeAreaView-based navigation
+
+---
+
+## PerpsAdjustMarginView
+
+**Location:** `app/components/UI/Perps/Views/PerpsAdjustMarginView/PerpsAdjustMarginView.tsx`
+
+### Purpose & User Journey
+
+Unified view for adjusting position margin (add or remove). Mode parameter determines behavior: add mode increases margin to reduce leverage; remove mode decreases margin to free collateral. Slider-based selection with live impact preview and risk warnings for remove mode.
+
+### Key Components Used
+
+| Component          | Purpose            |
+| ------------------ | ------------------ |
+| `Slider`           | Amount selector    |
+| `PerpsOrderHeader` | Asset info & price |
+
+### Hooks Consumed
+
+| Hook                       | Purpose                               |
+| -------------------------- | ------------------------------------- |
+| `usePerpsMarginAdjustment` | Unified margin adjustment with toasts |
+| `usePerpsLiveAccount`      | Available balance (add mode)          |
+| `usePerpsMarkets`          | Max leverage (remove mode)            |
+| `usePerpsLivePrices`       | Current market price                  |
+| `usePerpsMeasurement`      | Performance tracking with mode tag    |
+
+### Data Flow
+
+```
+Route params: { position, mode: 'add' | 'remove' }
+Add mode: availableBalance → maxAmount
+Remove mode: calculateMaxRemovableMargin() → maxAmount
+User slides → Preview new margin/leverage/liq price
+Remove mode: assessMarginRemovalRisk() → risk level (safe/warning/danger)
+Confirm → handleAddMargin() or handleRemoveMargin()
+```
+
+### Navigation
+
+- **From:** PerpsMarketDetailsView (position card → Adjust Margin action sheet → mode selection)
+- **To:** Navigates back on success
+- **Full screen:** SafeAreaView-based
 
 ---
 

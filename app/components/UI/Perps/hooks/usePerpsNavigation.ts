@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import type { PerpsMarketData } from '../controllers/types';
+import type { PerpsMarketData, Position, Order } from '../controllers/types';
 
 /**
  * Navigation handler result interface
@@ -25,6 +25,9 @@ export interface PerpsNavigationHandlers {
   navigateToTutorial: (
     params?: PerpsNavigationParamList['PerpsTutorial'],
   ) => void;
+  navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
+  navigateToClosePosition: (position: Position) => void;
+  navigateToOrderDetails: (order: Order) => void;
 
   // Utility navigation
   navigateBack: () => void;
@@ -135,6 +138,27 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const navigateToAdjustMargin = useCallback(
+    (position: Position, mode: 'add' | 'remove') => {
+      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, { position, mode });
+    },
+    [navigation],
+  );
+
+  const navigateToClosePosition = useCallback(
+    (position: Position) => {
+      navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
+    },
+    [navigation],
+  );
+
+  const navigateToOrderDetails = useCallback(
+    (order: Order) => {
+      navigation.navigate(Routes.PERPS.ORDER_DETAILS, { order });
+    },
+    [navigation],
+  );
+
   // Utility navigation handlers
   const navigateBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -158,6 +182,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToMarketList,
     navigateToOrder,
     navigateToTutorial,
+    navigateToAdjustMargin,
+    navigateToClosePosition,
+    navigateToOrderDetails,
 
     // Utility navigation
     navigateBack,

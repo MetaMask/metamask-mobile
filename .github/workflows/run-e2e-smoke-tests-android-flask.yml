@@ -14,7 +14,123 @@ permissions:
   id-token: write
 
 jobs:
+  repack-android-flask-apps:
+    name: 'Repack Android Flask Apps'
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Setup project
+        run: yarn setup:github-ci --no-build-ios
+
+      - name: Configure Keystore
+        uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
+        with:
+          aws-role-to-assume: ${{ secrets.METAMASK_MOBILE_BUILDER_SIGNER_QA }}
+          aws-region: us-east-2
+          platform: android
+          target: qa
+        env:
+          ANDROID_KEYSTORE_PATH: android/keystores/internalRelease.keystore
+
+      - name: Download Main APK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          pattern: main-e2e-release*.apk
+
+      - name: Setup Main APK artifacts
+        run: |
+          mkdir -p android/app/build/outputs/apk/prod/release/
+          mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
+          cp artifacts/main-e2e-release.apk/app-prod-release.apk android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          cp artifacts/main-e2e-release-androidTest.apk/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+
+      - name: Repack Main APK
+        run: node scripts/repack.js
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: e2e
+          METAMASK_BUILD_TYPE: flask
+          IS_TEST: 'true'
+          E2E: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          ANDROID_KEYSTORE_PATH: android/keystores/internalRelease.keystore
+
+      - name: Prepare artifacts for upload
+        run: |
+          # Copy APKs to workspace root with correct names (no path structure)
+          cp android/app/build/outputs/apk/prod/release/app-prod-release.apk app-flask-release.apk
+          cp android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk app-flask-release-androidTest.apk
+
+      - name: Upload Repacked APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flask-e2e-release.apk
+          path: app-flask-release.apk
+          retention-days: 1
+
+      - name: Upload Test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flask-e2e-release-androidTest.apk
+          path: app-flask-release-androidTest.apk
+          retention-days: 1
+
   flask-android-smoke:
+    needs: [repack-android-flask-apps]
     strategy:
       matrix:
         split: [1, 2, 3]

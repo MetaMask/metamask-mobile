@@ -82,7 +82,6 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapDoneButton();
 
         await PredictDetailsPage.tapOpenPosition();
-        await device.enableSynchronization();
 
         await Assertions.expectElementToBeVisible(
           PredictDetailsPage.positionsTab,
@@ -101,6 +100,7 @@ describe(SmokePredictions('Predictions'), () => {
           description: `USDC balance should display ${positionDetails.newBalance} after opening position`,
         });
         await PredictMarketList.tapBackButton();
+        await device.enableSynchronization();
 
         // Verify position appears in current positions list on homepage
 

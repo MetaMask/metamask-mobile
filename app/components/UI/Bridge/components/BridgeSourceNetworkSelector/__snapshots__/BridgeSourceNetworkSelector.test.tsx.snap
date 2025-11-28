@@ -726,20 +726,29 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   testID="network-avatar-image"
                                                 />
                                               </View>
-                                              <Text
-                                                accessibilityRole="text"
+                                              <View
                                                 style={
-                                                  {
-                                                    "color": "#121314",
-                                                    "fontFamily": "Geist Medium",
-                                                    "fontSize": 18,
-                                                    "letterSpacing": 0,
-                                                    "lineHeight": 24,
-                                                  }
+                                                  [
+                                                    {},
+                                                    undefined,
+                                                  ]
                                                 }
                                               >
-                                                Ethereum Mainnet
-                                              </Text>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Ethereum Mainnet
+                                                </Text>
+                                              </View>
                                             </View>
                                             <View
                                               alignItems="flex-end"
@@ -910,20 +919,29 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   testID="network-avatar-image"
                                                 />
                                               </View>
-                                              <Text
-                                                accessibilityRole="text"
+                                              <View
                                                 style={
-                                                  {
-                                                    "color": "#121314",
-                                                    "fontFamily": "Geist Medium",
-                                                    "fontSize": 18,
-                                                    "letterSpacing": 0,
-                                                    "lineHeight": 24,
-                                                  }
+                                                  [
+                                                    {},
+                                                    undefined,
+                                                  ]
                                                 }
                                               >
-                                                Optimism
-                                              </Text>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Optimism
+                                                </Text>
+                                              </View>
                                             </View>
                                             <View
                                               alignItems="flex-end"
@@ -1094,20 +1112,29 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   testID="network-avatar-image"
                                                 />
                                               </View>
-                                              <Text
-                                                accessibilityRole="text"
+                                              <View
                                                 style={
-                                                  {
-                                                    "color": "#121314",
-                                                    "fontFamily": "Geist Medium",
-                                                    "fontSize": 18,
-                                                    "letterSpacing": 0,
-                                                    "lineHeight": 24,
-                                                  }
+                                                  [
+                                                    {},
+                                                    undefined,
+                                                  ]
                                                 }
                                               >
-                                                Solana
-                                              </Text>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Solana
+                                                </Text>
+                                              </View>
                                             </View>
                                             <View
                                               alignItems="flex-end"
@@ -1278,20 +1305,29 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                                   testID="network-avatar-image"
                                                 />
                                               </View>
-                                              <Text
-                                                accessibilityRole="text"
+                                              <View
                                                 style={
-                                                  {
-                                                    "color": "#121314",
-                                                    "fontFamily": "Geist Medium",
-                                                    "fontSize": 18,
-                                                    "letterSpacing": 0,
-                                                    "lineHeight": 24,
-                                                  }
+                                                  [
+                                                    {},
+                                                    undefined,
+                                                  ]
                                                 }
                                               >
-                                                Bitcoin
-                                              </Text>
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  style={
+                                                    {
+                                                      "color": "#121314",
+                                                      "fontFamily": "Geist Medium",
+                                                      "fontSize": 18,
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 24,
+                                                    }
+                                                  }
+                                                >
+                                                  Bitcoin
+                                                </Text>
+                                              </View>
                                             </View>
                                             <View
                                               alignItems="flex-end"

@@ -276,6 +276,7 @@
     }
   },
   "PhishingController": {
+    "addressScanCache": {},
     "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
     "whitelist": [],

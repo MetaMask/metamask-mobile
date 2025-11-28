@@ -1,0 +1,40 @@
+---
+description: Integration tests local rules for the Mobile integration framework (Bridge/Wallet). Prefer presets/renderers and minimal overrides.
+globs:
+  - "app/util/test/component-view/**"
+  - "app/components/UI/Bridge/**/BridgeView.view.test.{ts,tsx}"
+  - "app/components/Views/Wallet/Wallet.view.test.{ts,tsx}"
+alwaysApply: false
+---
+
+## component-view Tests (Local Rules)
+
+These rules apply to files under `app/util/test/component-view` and related test suites.
+
+- **Always import the global mocks**
+  - Add `import '../../util/test/component-view/mocks';` at the top of component-view tests.
+
+- **Prefer presets + renderers**
+  - Bridge: `initialStateBridge` + `renderBridgeView`
+  - Wallet: `initialStateWallet` + `renderWalletView`
+  - Use `.withOverrides({ ... })` for minimal, scenario-specific changes.
+
+- **Quotes and feature flags**
+  - For CTA enablement or fee disclaimers, provide `BridgeController.recommendedQuote` and enable flags via `RemoteFeatureFlagController`.
+  - Prefer helper `withBridgeRecommendedQuoteEvmSimple` when possible.
+
+- **Navigation**
+  - Use `renderScreenWithRoutes` only when route probing is needed; build state from the preset.
+  - Assert on route tokens from `app/constants/navigation/Routes.ts`.
+
+- **Deterministic fiat**
+  - Use `deterministicFiat: true` in renderers or presets when asserting exact fiat values.
+
+- **Lint and guard**
+  - ESLint override blocks forbidden `jest.mock(...)` in `*.view.test.*`.
+  - Runtime guard in `testSetup.js` rejects unauthorized mocks at runtime.
+
+See: `../README.md` and `../COMPONENT_VIEW_TEST_RULES.md` for full guidance.
+
+@app/util/test/component-view/README.md
+@app/util/test/component-view/COMPONENT_VIEW_TEST_RULES.md

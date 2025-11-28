@@ -42,13 +42,24 @@ export const usePredictDepositToasts = ({
       depositBatchId !== 'pending' ? depositBatchId : undefined,
     pendingToastConfig: {
       title: strings('predict.deposit.adding_funds'),
-      description: strings('predict.deposit.in_progress_description'),
-      onPress: () => {
+      description: strings('predict.deposit.available_in_minutes', {
+        minutes: 1,
+      }),
+      onPress: (transactionMeta) => {
         navigation.navigate(Routes.TRANSACTIONS_VIEW);
+
+        // Then use a timeout to navigate to the specific transaction details
+        if (transactionMeta?.id) {
+          setTimeout(() => {
+            navigation.navigate(Routes.TRANSACTION_DETAILS, {
+              transactionId: transactionMeta.id,
+            });
+          }, 100);
+        }
       },
     },
     confirmedToastConfig: {
-      title: strings('predict.deposit.account_ready'),
+      title: strings('predict.deposit.ready_to_trade'),
       description: strings('predict.deposit.account_ready_description', {
         amount: '{amount}',
       }),

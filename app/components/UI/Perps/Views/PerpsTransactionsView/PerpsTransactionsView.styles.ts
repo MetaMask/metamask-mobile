@@ -106,11 +106,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center' as const,
       paddingVertical: 48,
     },
-    emptyText: {
-      textAlign: 'center' as const,
-      marginTop: 16,
-      color: colors.text.muted,
-    },
     fillTag: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,

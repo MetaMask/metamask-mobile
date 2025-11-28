@@ -28,6 +28,8 @@ import ExploreSearchBar from './ExploreSearchBar/ExploreSearchBar';
 import QuickActions from './components/QuickActions/QuickActions';
 import SectionHeader from './components/SectionHeader/SectionHeader';
 import { HOME_SECTIONS_ARRAY } from './config/sections.config';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import BasicFunctionalityEmptyState from './components/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 
 const Stack = createStackNavigator();
 
@@ -56,6 +58,10 @@ const TrendingFeed: React.FC = () => {
 
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
+  );
+  // check if basic functionality toggle is on
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
   );
 
   const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
@@ -131,27 +137,31 @@ const TrendingFeed: React.FC = () => {
         </TouchableOpacity>
       </Box>
 
-      <ScrollView
-        style={tw.style('flex-1 px-4')}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.icon.default}
-            colors={[colors.primary.default]}
-          />
-        }
-      >
-        <QuickActions />
+      {isBasicFunctionalityEnabled ? (
+        <ScrollView
+          style={tw.style('flex-1 px-4')}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.icon.default}
+              colors={[colors.primary.default]}
+            />
+          }
+        >
+          <QuickActions />
 
-        {HOME_SECTIONS_ARRAY.map((section) => (
-          <React.Fragment key={section.id}>
-            <SectionHeader sectionId={section.id} />
-            <section.Section refreshTrigger={refreshTrigger} />
-          </React.Fragment>
-        ))}
-      </ScrollView>
+          {HOME_SECTIONS_ARRAY.map((section) => (
+            <React.Fragment key={section.id}>
+              <SectionHeader sectionId={section.id} />
+              <section.Section refreshTrigger={refreshTrigger} />
+            </React.Fragment>
+          ))}
+        </ScrollView>
+      ) : (
+        <BasicFunctionalityEmptyState />
+      )}
     </Box>
   );
 };

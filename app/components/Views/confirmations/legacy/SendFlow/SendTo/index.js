@@ -10,10 +10,7 @@ import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import {
-  getDecimalChainId,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../../util/networks';
 import { handleNetworkSwitch } from '../../../../../../util/networks/handleNetworkSwitch';
 import {
   isENS,
@@ -408,19 +405,16 @@ class SendFlow extends PureComponent {
   };
 
   getAddressNameFromBookOrInternalAccounts = (toAccount) => {
-    const { addressBook, internalAccounts, globalChainId } = this.props;
+    const { addressBook, internalAccounts } = this.props;
     if (!toAccount) return;
 
-    let filteredAddressBook = addressBook[globalChainId] || {};
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      filteredAddressBook = Object.values(addressBook).reduce(
-        (acc, networkAddressBook) => ({
-          ...acc,
-          ...networkAddressBook,
-        }),
-        {},
-      );
-    }
+    const filteredAddressBook = Object.values(addressBook).reduce(
+      (acc, networkAddressBook) => ({
+        ...acc,
+        ...networkAddressBook,
+      }),
+      {},
+    );
 
     const checksummedAddress = this.safeChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
@@ -588,13 +582,11 @@ class SendFlow extends PureComponent {
         style={styles.wrapper}
         {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
-        {isRemoveGlobalNetworkSelectorEnabled() ? (
-          <ContextualNetworkPicker
-            networkName={networkName}
-            networkImageSource={networkImageSource}
-            onPress={this.onNetworkSelectorPress}
-          />
-        ) : null}
+        <ContextualNetworkPicker
+          networkName={networkName}
+          networkImageSource={networkImageSource}
+          onPress={this.onNetworkSelectorPress}
+        />
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
             chainId={globalChainId}

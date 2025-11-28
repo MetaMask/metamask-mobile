@@ -85,11 +85,7 @@ jest.mock('../../../selectors/multichain', () => ({
   })),
 }));
 
-const mockSelectIsPopularNetwork = jest.fn(() => false);
-
 jest.mock('../../../selectors/networkController', () => ({
-  selectChainId: jest.fn(() => '0x1'),
-  selectIsPopularNetwork: jest.fn(() => false),
   selectProviderType: jest.fn(() => 'mainnet'),
   selectSelectedNetworkClientId: jest.fn(() => 'selectedNetworkClientId'),
 }));
@@ -154,19 +150,6 @@ jest.mock('@metamask/keyring-api', () => ({
     Devnet: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
   },
   isEvmAccountType: jest.fn(() => true),
-}));
-
-jest.mock('../../../util/networks/customNetworks', () => ({
-  PopularList: [
-    { chainId: '0x89' }, // Polygon
-    { chainId: '0xa4b1' }, // Arbitrum
-  ],
-}));
-
-const mockIsRemoveGlobalNetworkSelectorEnabled = jest.fn(() => false);
-
-jest.mock('../../../util/networks', () => ({
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Transactions', () => jest.fn());
@@ -499,34 +482,6 @@ describe('TransactionsView', () => {
       expect(filterByAddressAndNetwork).toHaveBeenCalledTimes(2);
     });
 
-    it('filters transactions by popular networks when enabled', async () => {
-      const mockTransactions = [
-        createMockTransaction({ id: 'tx-1', chainId: '0x1' }), // Mainnet
-        createMockTransaction({ id: 'tx-2', chainId: '0xe708' }), // Linea
-        createMockTransaction({ id: 'tx-3', chainId: '0x89' }), // Polygon
-        createMockTransaction({ id: 'tx-4', chainId: '0x999' }), // Unknown chain
-      ];
-
-      (
-        selectSortedTransactions as jest.MockedFunction<
-          typeof selectSortedTransactions
-        >
-      ).mockReturnValue(mockTransactions);
-      (
-        selectSelectedInternalAccount as jest.MockedFunction<
-          typeof selectSelectedInternalAccount
-        >
-      ).mockReturnValue(createMockAccount());
-
-      renderTransactionsView();
-
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
-    });
-
     it('handles submitted transactions filtering', async () => {
       const mockTransactions = [
         createMockTransaction({
@@ -829,7 +784,7 @@ describe('TransactionsView', () => {
     });
   });
 
-  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+  describe('Network Filtering', () => {
     // Common test configurations
     const createMockTransactions = (
       transactions: { id: string; chainId: string }[],
@@ -858,103 +813,45 @@ describe('TransactionsView', () => {
       });
     };
 
-    beforeEach(() => {
-      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+    it('should filter transactions based on enabledNetworksByNamespace', async () => {
+      const mockTransactions = createMockTransactions([
+        { id: 'tx-1', chainId: '0x1' }, // Enabled network
+        { id: 'tx-2', chainId: '0x89' }, // Disabled network
+        { id: 'tx-3', chainId: '0xa4b1' }, // Disabled network
+      ]);
+
+      setupSelectors(mockTransactions);
+      mockSelectEnabledNetworksByNamespace.mockReturnValue({
+        eip155: {
+          '0x1': true, // Only mainnet is enabled
+        },
+      });
+
+      runTestWithTimers();
+
+      expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
     });
 
-    describe('when feature flag is enabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+    it('should handle empty enabledNetworksByNamespace gracefully', async () => {
+      const mockTransactions = createMockTransactions([
+        { id: 'tx-1', chainId: '0x1' },
+        { id: 'tx-2', chainId: '0x89' },
+      ]);
+
+      setupSelectors(mockTransactions);
+      mockSelectEnabledNetworksByNamespace.mockReturnValue({
+        eip155: {
+          '0x1': false, // No enabled networks
+        },
       });
 
-      it('should filter transactions based on enabledNetworksByNamespace', async () => {
-        const mockTransactions = createMockTransactions([
-          { id: 'tx-1', chainId: '0x1' }, // Enabled network
-          { id: 'tx-2', chainId: '0x89' }, // Disabled network
-          { id: 'tx-3', chainId: '0xa4b1' }, // Disabled network
-        ]);
+      runTestWithTimers();
 
-        setupSelectors(mockTransactions);
-        mockSelectEnabledNetworksByNamespace.mockReturnValue({
-          eip155: {
-            '0x1': true, // Only mainnet is enabled
-          },
-        });
-
-        runTestWithTimers();
-
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-        expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
-      });
-
-      it('should handle empty enabledNetworksByNamespace gracefully', async () => {
-        const mockTransactions = createMockTransactions([
-          { id: 'tx-1', chainId: '0x1' },
-          { id: 'tx-2', chainId: '0x89' },
-        ]);
-
-        setupSelectors(mockTransactions);
-        mockSelectEnabledNetworksByNamespace.mockReturnValue({
-          eip155: {
-            '0x1': false, // No enabled networks
-          },
-        });
-
-        runTestWithTimers();
-
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-        expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
-      });
-
-      it('should have proper selector setup', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
-        expect(mockSelectEnabledNetworksByNamespace).toBeDefined();
-        expect(mockSelectIsPopularNetwork).toBeDefined();
-      });
+      expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
     });
 
-    describe('when feature flag is disabled', () => {
-      beforeEach(() => {
-        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
-      });
-
-      it('should use popular network filtering when isPopularNetwork is true', async () => {
-        const mockTransactions = createMockTransactions([
-          { id: 'tx-1', chainId: '0x1' }, // Mainnet
-          { id: 'tx-2', chainId: '0xe708' }, // Linea
-          { id: 'tx-3', chainId: '0x89' }, // Polygon (in PopularList)
-          { id: 'tx-4', chainId: '0x999' }, // Unknown chain
-        ]);
-
-        setupSelectors(mockTransactions);
-        mockSelectIsPopularNetwork.mockReturnValue(true);
-
-        runTestWithTimers();
-
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-        expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
-      });
-
-      it('should use chainId filtering when isPopularNetwork is false', async () => {
-        const mockTransactions = createMockTransactions([
-          { id: 'tx-1', chainId: '0x1' }, // Current chainId
-          { id: 'tx-2', chainId: '0x89' }, // Different chainId
-        ]);
-
-        setupSelectors(mockTransactions);
-        mockSelectIsPopularNetwork.mockReturnValue(false);
-
-        runTestWithTimers();
-
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-        expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
-      });
-
-      it('should still have proper selector setup', () => {
-        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
-        expect(mockSelectEnabledNetworksByNamespace).toBeDefined();
-        expect(mockSelectIsPopularNetwork).toBeDefined();
-      });
+    it('should have proper selector setup', () => {
+      expect(mockSelectEnabledNetworksByNamespace).toBeDefined();
     });
   });
 });

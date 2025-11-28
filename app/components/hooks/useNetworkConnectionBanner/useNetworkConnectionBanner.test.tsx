@@ -226,6 +226,7 @@ describe('useNetworkConnectionBanner', () => {
           network: rpcUrl,
           shouldNetworkSwitchPopToWallet: false,
           shouldShowPopularNetworks: false,
+          trackRpcUpdateFromBanner: true,
         },
       );
     });
@@ -258,6 +259,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:1',
         rpc_endpoint_url: 'mainnet.infura.io',
+        rpc_domain: 'mainnet.infura.io',
       });
     });
 
@@ -289,6 +291,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'unavailable',
         chain_id_caip: 'eip155:1',
         rpc_endpoint_url: 'mainnet.infura.io',
+        rpc_domain: 'mainnet.infura.io',
       });
     });
 
@@ -323,6 +326,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:1',
         rpc_endpoint_url: 'custom',
+        rpc_domain: 'custom',
       });
     });
 
@@ -597,6 +601,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:137',
         rpc_endpoint_url: 'polygon-rpc.com',
+        rpc_domain: 'polygon-rpc.com',
       });
     });
 
@@ -625,6 +630,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'unavailable',
         chain_id_caip: 'eip155:137',
         rpc_endpoint_url: 'polygon-rpc.com',
+        rpc_domain: 'polygon-rpc.com',
       });
     });
 
@@ -779,6 +785,7 @@ describe('useNetworkConnectionBanner', () => {
         banner_type: 'degraded',
         chain_id_caip: 'eip155:137',
         rpc_endpoint_url: 'polygon-rpc.com',
+        rpc_domain: 'polygon-rpc.com',
       });
     });
 

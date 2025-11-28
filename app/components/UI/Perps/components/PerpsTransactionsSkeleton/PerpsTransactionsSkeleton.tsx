@@ -20,8 +20,14 @@ const PerpsTransactionsSkeleton: React.FC<PerpsTransactionsSkeletonProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const renderSkeletonTransactionItem = () => (
-    <View style={styles.transactionItem} key="skeleton-transaction">
+  const renderSkeletonTransactionItem = (
+    sectionIndex: number,
+    itemIndex: number,
+  ) => (
+    <View
+      style={styles.transactionItem}
+      key={`skeleton-transaction-${sectionIndex}-${itemIndex}`}
+    >
       {/* Token logo skeleton */}
       <View style={styles.tokenIconContainer}>
         <Skeleton width={36} height={36} style={styles.tokenIcon} />
@@ -52,7 +58,9 @@ const PerpsTransactionsSkeleton: React.FC<PerpsTransactionsSkeletonProps> = ({
       </View>
 
       {/* Transaction items skeleton */}
-      {Array.from({ length: 3 }, () => renderSkeletonTransactionItem())}
+      {Array.from({ length: 3 }, (_, itemIndex) =>
+        renderSkeletonTransactionItem(sectionIndex, itemIndex),
+      )}
     </View>
   );
 

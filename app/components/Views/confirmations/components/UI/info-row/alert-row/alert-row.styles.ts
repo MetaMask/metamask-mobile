@@ -6,6 +6,10 @@ const styleSheet = () =>
       paddingBottom: 4,
       paddingHorizontal: 8,
     },
+    alertRowOverride: {
+      marginLeft: 0,
+      paddingLeft: 0,
+    },
   });
 
 export default styleSheet;
