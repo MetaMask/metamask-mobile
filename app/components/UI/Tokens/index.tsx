@@ -43,6 +43,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { TokensEmptyState } from '../TokensEmptyState';
+import MusdConversionCta from '../Earn/components/Musd/MusdConversionCta';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -218,15 +219,18 @@ const Tokens = memo(({ isFullView = false }: TokensProps) => {
           <TokenListSkeleton />
         </Box>
       ) : sortedTokenKeys.length > 0 ? (
-        <TokenList
-          tokenKeys={sortedTokenKeys}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          showRemoveMenu={showRemoveMenu}
-          setShowScamWarningModal={handleScamWarningModal}
-          maxItems={maxItems}
-          isFullView={isFullView}
-        />
+        <>
+          <MusdConversionCta />
+          <TokenList
+            tokenKeys={sortedTokenKeys}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            showRemoveMenu={showRemoveMenu}
+            setShowScamWarningModal={handleScamWarningModal}
+            maxItems={maxItems}
+            isFullView={isFullView}
+          />
+        </>
       ) : (
         <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
           <TokensEmptyState />
