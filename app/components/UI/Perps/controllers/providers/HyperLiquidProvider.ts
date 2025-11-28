@@ -26,6 +26,7 @@ import {
   TP_SL_CONFIG,
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -3982,9 +3983,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
+      // HyperLiquid API requires startTime to be a number (not undefined)
+      // Default to configured days ago to get recent funding payments
+      // Using 0 (epoch) would return oldest 500 records, missing latest payments
+      const defaultStartTime =
+        Date.now() -
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS *
+          24 *
+          60 *
+          60 *
+          1000;
       const rawFunding = await infoClient.userFunding({
         user: userAddress,
-        startTime: params?.startTime || 0,
+        startTime: params?.startTime ?? defaultStartTime,
         endTime: params?.endTime,
       });
 
