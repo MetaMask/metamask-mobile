@@ -3,6 +3,7 @@ import {
   processNotification,
   type UnprocessedRawNotification,
   toRawAPINotification,
+  OnChainRawNotification,
 } from '@metamask/notification-services-controller/notification-services';
 import messaging, {
   type FirebaseMessagingTypes,
@@ -11,6 +12,7 @@ import { NativeModules, Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import type { JsonValue } from '../../../core/Analytics/MetaMetrics.types';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -31,22 +33,60 @@ function analyticsTrackPushClickEvent(
   remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
 ) {
   try {
-    if (remoteMessage?.data?.data) {
-      const rawData = JSON.parse(remoteMessage.data.data?.toString() ?? null);
-      const kind = rawData?.kind ?? rawData?.data?.kind ?? rawData.type;
+    const extractData = () => {
+      try {
+        // On Chain Raw Notification Shape
+        if (remoteMessage?.data?.data) {
+          const rawData: OnChainRawNotification | null = JSON.parse(
+            remoteMessage.data.data?.toString() ?? null,
+          );
+          return {
+            kind: [
+              rawData?.payload.data.kind,
+              rawData?.type,
+              rawData?.notification_type,
+              'on-chain',
+            ].find((kind) => Boolean(kind)),
+            rawData,
+          };
+        }
 
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
-        )
-          .addProperties({
-            deeplink: remoteMessage?.data?.deeplink?.toString(),
-            notification_type: kind,
-            data: rawData,
-          })
-          .build(),
-      );
-    }
+        // Generic Platform Notification
+        if (remoteMessage?.data?.metadata) {
+          interface PlatformNotificationMetadata {
+            kind?: string;
+            [otherProps: string]: JsonValue;
+          }
+          const rawData: PlatformNotificationMetadata | null = JSON.parse(
+            remoteMessage.data.metadata?.toString() ?? null,
+          );
+
+          return {
+            kind: [rawData?.kind, rawData?.type, 'platform']
+              .filter((x): x is string => typeof x === 'string')
+              .find((kind) => Boolean(kind)),
+            rawData,
+          };
+        }
+      } catch {
+        return null;
+      }
+    };
+
+    const remoteMessageParsedData = extractData();
+
+    // Always send a push notification click event, but properties are optional
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
+      )
+        .addProperties({
+          deeplink: remoteMessage?.data?.deeplink?.toString(),
+          notification_type: remoteMessageParsedData?.kind,
+          data: remoteMessageParsedData?.rawData,
+        })
+        .build(),
+    );
   } catch {
     // Do Nothing
   }
