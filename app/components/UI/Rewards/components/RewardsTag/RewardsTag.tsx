@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import TagBase, {
   TagShape,
 } from '../../../../../component-library/base-components/TagBase';
@@ -9,7 +9,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import FoxRewardIcon from '../../../../../images/rewards/metamask-rewards-points.svg';
-import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
 
 export const REWARDS_TAG_SELECTOR = 'rewards-tag';
@@ -53,13 +52,6 @@ interface RewardsTagProps {
   testID?: string;
 }
 
-const createStyles = () =>
-  StyleSheet.create({
-    wrapper: {
-      marginVertical: 12,
-    },
-  });
-
 /**
  * Reusable rewards tag component that displays the rewards icon and dynamic points.
  * Shows "0 points" until there's a value, then displays the actual points.
@@ -76,7 +68,6 @@ const RewardsTag: React.FC<RewardsTagProps> = ({
 }) => {
   const formattedPoints = new Intl.NumberFormat('en-US').format(points);
   const { colors } = useTheme();
-  const { styles } = useStyles(createStyles, {});
 
   const backgroundColor = showBackground
     ? backgroundVariant === RewardsTagBackgroundVariant.Muted
@@ -111,14 +102,10 @@ const RewardsTag: React.FC<RewardsTagProps> = ({
   );
 
   if (onPress) {
-    return (
-      <TouchableOpacity onPress={onPress} style={styles.wrapper}>
-        {content}
-      </TouchableOpacity>
-    );
+    return <TouchableOpacity onPress={onPress}>{content}</TouchableOpacity>;
   }
 
-  return <View style={styles.wrapper}>{content}</View>;
+  return <View>{content}</View>;
 };
 
 export default RewardsTag;

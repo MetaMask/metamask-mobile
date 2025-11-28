@@ -1,12 +1,17 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import TagBase, {
   TagSeverity,
   TagShape,
 } from '../../../../../component-library/base-components/TagBase';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { MUSD_TOKEN } from '../../constants/musd';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 
 export const MUSD_TAG_SELECTOR = 'musd-tag';
 
@@ -30,14 +35,6 @@ interface MusdTagProps {
   testID?: string;
 }
 
-const createStyles = () =>
-  StyleSheet.create({
-    wrapper: {
-      marginTop: 8,
-      marginBottom: 8,
-    },
-  });
-
 /**
  * Tag component that displays mUSD amount.
  * Used in mUSD conversion flow to show the output amount.
@@ -49,17 +46,16 @@ const MusdTag: React.FC<MusdTagProps> = ({
   testID,
 }) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(createStyles, {});
 
   const tagStyle = {
-    backgroundColor: showBackground ? colors.background.section : 'transparent',
+    backgroundColor: showBackground ? colors.background.muted : 'transparent',
     paddingHorizontal: 16,
     paddingTop: 6,
     paddingBottom: 6,
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View>
       <TagBase
         shape={TagShape.Pill}
         includesBorder={false}
@@ -70,8 +66,18 @@ const MusdTag: React.FC<MusdTagProps> = ({
         testID={testID || MUSD_TAG_SELECTOR}
         gap={6}
         style={tagStyle}
+        startAccessory={
+          <AvatarToken
+            name={symbol}
+            imageSource={MUSD_TOKEN.imageSource}
+            size={AvatarSize.Xs}
+          />
+        }
       >
-        {`${amount} ${symbol}`}
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+        >{`${amount} ${symbol}`}</Text>
       </TagBase>
     </View>
   );
