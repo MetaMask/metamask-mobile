@@ -21,7 +21,6 @@ export const earnControllerInit: ControllerInitFunction<
   const transactionController = getController('TransactionController');
 
   const controller = new EarnController({
-    // env: EarnEnvironments.LOCAL,
     messenger: controllerMessenger,
     addTransactionFn: transactionController.addTransaction.bind(
       transactionController,

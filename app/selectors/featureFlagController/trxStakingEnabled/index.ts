@@ -8,7 +8,6 @@ import {
 export const selectTrxStakingEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    return false;
     const remoteFlag =
       remoteFeatureFlags?.trxStakingEnabled as unknown as VersionGatedFeatureFlag;
 
