@@ -29,6 +29,11 @@ export const tokensControllerInit: ControllerInitFunction<
     state: persistedState.TokensController,
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
+    // TODO: Remove @ts-expect-error once @metamask/network-controller is bumped in
+    // @metamask/assets-controllers. The provider from NetworkController:getSelectedNetworkClient
+    // is a SwappableProxy that's runtime-compatible with Provider but TypeScript can't verify
+    // the private field requirement due to version mismatch.
+    // @ts-expect-error - Provider type mismatch between SwappableProxy and InternalProvider
     provider,
   });
 
