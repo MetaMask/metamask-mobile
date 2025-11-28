@@ -59,6 +59,10 @@ export const useIsPriceDeviatedAboveThreshold = (
     const perpsPrice = Number.parseFloat(priceUpdate.price);
     const spotPrice = Number.parseFloat(priceUpdate.markPrice);
 
+    if (Number.isNaN(perpsPrice) || Number.isNaN(spotPrice)) {
+      return false;
+    }
+
     if (perpsPrice <= 0 || spotPrice <= 0) {
       return false;
     }
