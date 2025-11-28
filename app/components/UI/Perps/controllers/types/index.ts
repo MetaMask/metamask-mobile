@@ -608,7 +608,7 @@ export interface SubscribePositionsParams {
 }
 
 export interface SubscribeOrderFillsParams {
-  callback: (fills: OrderFill[]) => void;
+  callback: (fills: OrderFill[], isSnapshot?: boolean) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
   since?: number; // Future: only fills after timestamp
 }
